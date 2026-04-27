@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --customBlue: #2691C2;
+  --customOrange: #ec943c;
+  --deepBlue: #22334a;
+}
+
+/* Custom base */
+body {
+  font-family: 'Tajawal', sans-serif;
+  direction: rtl;
+  background-color: #ffffff;
+}
