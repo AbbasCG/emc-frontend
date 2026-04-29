@@ -7,10 +7,10 @@ import type { NavLinkItem } from '../types'
 const navLinks: NavLinkItem[] = [
   { label: 'الرئيسية', href: '/' },
   { label: 'الدورات', href: '/courses' },
-  { label: 'الاستشارات التعليمية', href: '#' },
-  { label: 'التدريب المهني', href: '#' },
-  { label: 'عن EMC', href: '/about' },
-  { label: 'المدربون', href: '#' },
+  // { label: 'الاستشارات التعليمية', href: '#' },
+  // { label: 'التدريب المهني', href: '#' },
+  { label: 'من نحن', href: '/about' },
+  // { label: 'المدربون', href: '#' },
   { label: 'تواصل معنا', href: '/contact' },
 ]
 

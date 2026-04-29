@@ -14,6 +14,7 @@ import {
   Phone,
   User,
   UserPlus,
+  BookOpen,
 } from 'lucide-react'
 import api from '../api/axios'
 import PageHeader from '../components/PageHeader'
@@ -54,38 +55,55 @@ const paymentProviders: { label: string; value: PaymentProvider }[] = [
 export default function Register() {
   const { slug } = useParams()
   const navigate = useNavigate()
+
   const [course, setCourse] = useState<Course | null>(null)
+  const [courses, setCourses] = useState<Course[]>([])
+  const [selectedCourseId, setSelectedCourseId] = useState('')
+
   const [form, setForm] = useState<RegisterForm>(initialForm)
-  const [isLoading, setIsLoading] = useState(Boolean(slug))
+  const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
 
   useEffect(() => {
-    if (!slug) {
-      return
-    }
-
     const controller = new AbortController()
 
-    async function fetchCourse() {
+    async function fetchData() {
       try {
         setIsLoading(true)
         setApiError('')
-        const response = await api.get<Course | { data?: Course }>(`/courses/${slug}`, {
+
+        if (slug) {
+          const response = await api.get<Course | { data?: Course }>(`/courses/${slug}`, {
+            signal: controller.signal,
+          })
+
+          const item = extractItem(response.data)
+          setCourse(item?.id ? item : null)
+          return
+        }
+
+        const response = await api.get<Course[] | { data?: Course[] }>('/courses', {
           signal: controller.signal,
         })
-        const item = extractItem(response.data)
-        setCourse(item?.id ? item : null)
+
+        const list = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data?.data)
+            ? response.data.data
+            : []
+
+        setCourses(list)
       } catch (err) {
         if (axios.isCancel(err)) return
-        setApiError('تعذر تحميل بيانات الدورة. يرجى المحاولة مرة أخرى.')
+        setApiError('تعذر تحميل بيانات الدورات. يرجى المحاولة مرة أخرى.')
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchCourse()
+    fetchData()
 
     return () => controller.abort()
   }, [slug])
@@ -93,6 +111,14 @@ export default function Register() {
   function updateField(name: keyof RegisterForm, value: string) {
     setForm((current) => ({ ...current, [name]: value }))
     setValidationErrors((current) => ({ ...current, [name]: undefined }))
+  }
+
+  function handleCourseChange(courseId: string) {
+    setSelectedCourseId(courseId)
+    setApiError('')
+
+    const selectedCourse = courses.find((item) => String(item.id) === courseId)
+    setCourse(selectedCourse ?? null)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -107,6 +133,7 @@ export default function Register() {
 
     try {
       setIsSubmitting(true)
+
       const payload = {
         course_id: course.id,
         full_name: form.full_name,
@@ -188,17 +215,27 @@ export default function Register() {
                 <UserPlus size={17} />
                 نموذج التسجيل
               </span>
+
               <h1 className="text-3xl font-black text-deepBlue">
                 {course?.title || 'التسجيل في الدورة'}
               </h1>
+
               <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
+
               {course?.short_description && (
-                <p className="mt-4 max-w-2xl leading-8 text-slate-600">{course.short_description}</p>
+                <p className="mt-4 max-w-2xl leading-8 text-slate-600">
+                  {course.short_description}
+                </p>
               )}
             </div>
+
             <div className="rounded-2xl bg-slate-50 px-6 py-4 ring-1 ring-slate-100">
               <span className="block text-xs font-black text-slate-400">السعر</span>
-              <strong className={`mt-1 block text-2xl font-black ${isPaid ? 'text-customOrange' : 'text-customBlue'}`}>
+              <strong
+                className={`mt-1 block text-2xl font-black ${
+                  isPaid ? 'text-customOrange' : 'text-customBlue'
+                }`}
+              >
                 {course ? (isPaid ? formatPrice(course.price) : 'مجانية') : 'يحدد بعد اختيار الدورة'}
               </strong>
             </div>
@@ -212,6 +249,48 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
+            {!slug && (
+              <label className="grid gap-2 text-sm font-black text-deepBlue">
+                اختر الدورة
+                <span className="relative block">
+                  <BookOpen
+                    size={20}
+                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <select
+                    value={selectedCourseId}
+                    required
+                    onChange={(event) => handleCourseChange(event.target.value)}
+                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  >
+                    <option value="">اختر الدورة</option>
+                    {courses.map((item) => (
+                      <option key={item.id} value={String(item.id)}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              </label>
+            )}
+
+            {slug && course && (
+              <label className="grid gap-2 text-sm font-black text-deepBlue">
+                الدورة المختارة
+                <span className="relative block">
+                  <BookOpen
+                    size={20}
+                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <input
+                    value={course.title}
+                    disabled
+                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-100 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none"
+                  />
+                </span>
+              </label>
+            )}
+
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 label="الاسم الكامل"
@@ -221,6 +300,7 @@ export default function Register() {
                 error={validationErrors.full_name?.[0]}
                 onChange={updateField}
               />
+
               <FormField
                 label="رقم الجوال"
                 name="phone"
@@ -230,6 +310,7 @@ export default function Register() {
                 onChange={updateField}
               />
             </div>
+
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 label="البريد الإلكتروني"
@@ -240,6 +321,7 @@ export default function Register() {
                 error={validationErrors.email?.[0]}
                 onChange={updateField}
               />
+
               <FormField
                 label="المدينة"
                 name="city"
@@ -261,7 +343,12 @@ export default function Register() {
                 <option value="male">ذكر</option>
                 <option value="female">أنثى</option>
               </select>
-              {validationErrors.gender?.[0] && <span className="text-xs text-customOrange">{validationErrors.gender[0]}</span>}
+
+              {validationErrors.gender?.[0] && (
+                <span className="text-xs text-customOrange">
+                  {validationErrors.gender[0]}
+                </span>
+              )}
             </label>
 
             <label className="grid gap-2 text-sm font-black text-deepBlue">
@@ -272,12 +359,18 @@ export default function Register() {
                 rows={5}
                 className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
               />
-              {validationErrors.notes?.[0] && <span className="text-xs text-customOrange">{validationErrors.notes[0]}</span>}
+
+              {validationErrors.notes?.[0] && (
+                <span className="text-xs text-customOrange">
+                  {validationErrors.notes[0]}
+                </span>
+              )}
             </label>
 
             {isPaid && (
               <div>
                 <h2 className="text-lg font-black text-deepBlue">طريقة الدفع</h2>
+
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   {paymentProviders.map((provider) => (
                     <button
@@ -295,8 +388,11 @@ export default function Register() {
                     </button>
                   ))}
                 </div>
+
                 {validationErrors.payment_provider?.[0] && (
-                  <span className="mt-2 block text-xs text-customOrange">{validationErrors.payment_provider[0]}</span>
+                  <span className="mt-2 block text-xs text-customOrange">
+                    {validationErrors.payment_provider[0]}
+                  </span>
                 )}
               </div>
             )}
@@ -308,9 +404,14 @@ export default function Register() {
                 disabled={isSubmitting}
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-customOrange px-7 font-extrabold text-white shadow-lg shadow-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
+                {isSubmitting ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <CheckCircle2 size={20} />
+                )}
                 {isSubmitting ? 'جاري الإرسال...' : 'إكمال التسجيل'}
               </motion.button>
+
               <Link
                 to="/courses"
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-lg border border-customBlue px-7 font-extrabold text-customBlue transition hover:bg-sky-50"
@@ -351,6 +452,7 @@ function FormField({
           size={20}
           className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
         />
+
         <input
           name={name}
           type={type}
@@ -360,6 +462,7 @@ function FormField({
           className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
         />
       </span>
+
       {error && <span className="text-xs text-customOrange">{error}</span>}
     </label>
   )

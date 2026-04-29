@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import axios from 'axios'
 import {
   ArrowLeft,
+  Award,
   CheckCircle2,
+  Clock3,
+  GraduationCap,
   Languages,
   MessageCircle,
   MonitorCheck,
@@ -12,11 +13,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
-import apiClient from '../api/axios'
-import CourseCard from '../components/CourseCard'
-import StateMessage from '../components/StateMessage'
 import { fadeUp } from '../utils/course'
-import type { Course } from '../types'
 
 const stats = [
   { value: '+50', label: 'مدرب معتمد' },
@@ -47,80 +44,51 @@ const features = [
   },
 ]
 
-const serviceLabels = [
-  'اللغة الإنجليزية',
-  'اللغة الهولندية',
-  'اللغة العربية',
-  'القبول الجامعي',
-  'مراجعة السيرة الذاتية',
-  'جاهزية سوق العمل',
-  'الذكاء الاصطناعي',
-  'علم البيانات',
-  'إدارة المشاريع',
-  'التسويق',
+const homeCourses = [
+  {
+    title: 'لغة إنجليزية احترافية',
+    category: 'اللغة الإنجليزية',
+    isFree: true,
+    image:
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
+    duration: '6 أسابيع',
+    students: '420 متدرب',
+  },
+  {
+    title: 'القبول الجامعي ',
+    category: 'القبول الجامعي',
+    isFree: false,
+    image:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80',
+    duration: '8 أسابيع',
+    students: '310 متدرب',
+  },
+  {
+    title: 'جاهزية سوق العمل',
+    category: 'جاهزية سوق العمل',
+    isFree: false,
+    image:
+      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=900&q=80',
+    duration: '10 أسابيع',
+    students: '260 متدرب',
+  },
+  {
+    title: 'مدخل إلى علم البيانات',
+    category: 'علم البيانات',
+    isFree: true,
+    image:
+      'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80',
+    duration: '3 أيام',
+    students: '190 متدرب',
+  },
 ]
 
-let cachedCourses: Course[] | null = null
-let coursesRequest: Promise<Course[]> | null = null
-
-function normalizeCoursesResponse(responseData: Course[] | { data?: Course[] }) {
-  if (Array.isArray(responseData)) return responseData
-  if (Array.isArray(responseData.data)) return responseData.data
-  return []
-}
-
-async function loadCourses() {
-  if (cachedCourses) return cachedCourses
-
-  coursesRequest ??= apiClient
-    .get<Course[] | { data?: Course[] }>('/courses')
-    .then((response) => {
-      const courses = normalizeCoursesResponse(response.data)
-      cachedCourses = courses
-      return courses
-    })
-    .finally(() => {
-      coursesRequest = null
-    })
-
-  return coursesRequest
-}
-
 export default function Home() {
-  const [courses, setCourses] = useState<Course[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function fetchCourses() {
-      try {
-        setIsLoading(true)
-        setError('')
-        const coursesData = await loadCourses()
-        if (!isMounted) return
-        setCourses(coursesData.slice(0, 4)) // Max 4 courses
-      } catch (err) {
-        if (!isMounted || axios.isCancel(err)) return
-        setError('تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.')
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-
-    fetchCourses()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
   return (
     <main>
       <Hero />
       <WhyChoose />
-      <HomeCourses courses={courses} isLoading={isLoading} error={error} />
+      <HomeCourses />
       <AboutPreview />
       <CTA />
     </main>
@@ -142,9 +110,9 @@ function Hero() {
             <Star size={16} className="fill-customOrange text-customOrange" />
             منصة تعليمية رقمية عالمية
           </span>
-          <h1 className="max-w-[720px] text-5xl font-black leading-tight lg:text-6xl xl:text-7xl">
+          <h1 className="max-w-2xl text-4xl font-black leading-tight sm:text-5xl lg:text-7xl">
             طوّر مستقبلك الأكاديمي والمهني
-            <span className="block text-customOrange">بثقة واحترافية</span>
+            <span className="block text-customOrange">بثقة واحـــتـرافية</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-9 text-slate-200">
             منصة تعليمية رقمية عالمية تقدم استشارات تعليمية، ودورات لغات، وتدريباً
@@ -184,23 +152,28 @@ function Hero() {
             />
             <div className="absolute inset-0 bg-deepBlue/35 mix-blend-multiply" />
           </div>
-          <div className="mt-6 grid grid-cols-3 gap-4 sm:gap-6">
-            {stats.map((item, index) => (
-              <motion.div
-                key={item.label}
-                className="rounded-xl bg-white/95 px-4 py-4 text-center shadow-2xl backdrop-blur-sm"
-                initial={{ opacity: 0, y: 22 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65 + index * 0.12 }}
-              >
-                <strong className="block text-xl font-black text-customOrange">{item.value}</strong>
-                <span className="text-sm font-bold text-deepBlue">{item.label}</span>
-              </motion.div>
+          <div className="absolute -right-2 top-8 grid gap-4 sm:-right-8">
+            {stats.slice(0, 3).map((item, index) => (
+              <StatCard key={item.label} {...item} delay={index * 0.12} />
             ))}
           </div>
         </motion.div>
       </div>
     </section>
+  )
+}
+
+function StatCard({ value, label, delay }: { value: string; label: string; delay: number }) {
+  return (
+    <motion.div
+      className="min-w-36 rounded-xl bg-white/95 px-5 py-4 text-right shadow-2xl"
+      initial={{ opacity: 0, y: 22 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.65 + delay }}
+    >
+      <strong className="block text-2xl font-black text-customOrange">{value}</strong>
+      <span className="text-sm font-bold text-deepBlue">{label}</span>
+    </motion.div>
   )
 }
 
@@ -245,28 +218,12 @@ function WhyChoose() {
   )
 }
 
-function HomeCourses({ courses, isLoading, error }: { courses: Course[]; isLoading: boolean; error: string }) {
+function HomeCourses() {
   return (
     <section id="courses" className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="relative">
           <SectionTitle>الدورات والخدمات</SectionTitle>
-          <div className="mb-8 flex gap-3 overflow-x-auto pb-2 text-right scrollbar-hide">
-            {serviceLabels.slice(0, 6).map((label) => (
-              <span
-                key={label}
-                className="flex-shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-deepBlue shadow-sm"
-              >
-                {label}
-              </span>
-            ))}
-            <Link
-              to="/courses"
-              className="flex-shrink-0 rounded-full bg-deepBlue px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-            >
-              عرض جميع التصنيفات
-            </Link>
-          </div>
           <motion.div whileHover={{ scale: 1.04 }} className="mb-8 inline-flex lg:absolute lg:left-0 lg:top-1">
             <Link
               to="/courses"
@@ -277,44 +234,58 @@ function HomeCourses({ courses, isLoading, error }: { courses: Course[]; isLoadi
             </Link>
           </motion.div>
         </div>
-        <div className="mt-10">
-          {isLoading && <CoursesLoading />}
-          {!isLoading && error && <StateMessage type="error" title="حدث خطأ" message={error} />}
-          {!isLoading && !error && courses.length === 0 && (
-            <StateMessage
-              type="empty"
-              title="لا توجد دورات متاحة"
-              message="يرجى المحاولة مرة أخرى لاحقاً."
-            />
-          )}
-          {!isLoading && !error && courses.length > 0 && (
-            <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-4">
-              {courses.map((course, index) => (
-                <CourseCard key={course.id} course={course} index={index} />
-              ))}
-            </div>
-          )}
+        <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-4">
+          {homeCourses.map((course, index) => (
+            <motion.article
+              key={course.title}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.45, delay: index * 0.08 }}
+              className="overflow-hidden rounded-lg bg-white text-right shadow-xl shadow-slate-200 ring-1 ring-slate-100"
+            >
+              <div className="relative h-52 overflow-hidden">
+                <img
+                  src={course.image}
+                  alt=""
+                  className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                />
+                <span
+                  className={`absolute right-4 top-4 rounded-full px-4 py-1.5 text-xs font-black text-white ${
+                    course.isFree ? 'bg-customBlue' : 'bg-customOrange'
+                  }`}
+                >
+                  {course.category}
+                </span>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-black text-deepBlue">{course.title}</h3>
+                <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-slate-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock3 size={16} />
+                    {course.duration}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users size={16} />
+                    {course.students}
+                  </span>
+                </div>
+                <motion.div whileHover={{ scale: 1.03 }}>
+                  <Link
+                    to="/courses"
+                    className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customBlue px-5 py-3 text-sm font-extrabold text-white"
+                  >
+                    تفاصيل الدورة
+                    <ArrowLeft size={18} />
+                  </Link>
+                </motion.div>
+              </div>
+            </motion.article>
+          ))}
         </div>
       </div>
     </section>
-  )
-}
-
-function CoursesLoading() {
-  return (
-    <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="overflow-hidden rounded-lg bg-white shadow-xl shadow-slate-200 ring-1 ring-slate-100">
-          <div className="h-52 animate-pulse bg-slate-200" />
-          <div className="space-y-4 p-6">
-            <div className="h-6 animate-pulse rounded bg-slate-200" />
-            <div className="h-20 animate-pulse rounded bg-slate-100" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
-            <div className="h-11 animate-pulse rounded-lg bg-slate-200" />
-          </div>
-        </div>
-      ))}
-    </div>
   )
 }
 
@@ -331,7 +302,7 @@ function AboutPreview() {
         >
           <img
             src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1100&q=85"
-            alt="فريق تعليمي يعمل على مشاريع تدريبية"
+            alt="فريق تعليمي يعمل على مشاريع تدريبية" 
             className="h-[420px] w-full object-cover"
           />
           <div className="absolute inset-0 bg-deepBlue/20" />
