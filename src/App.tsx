@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import SubmitWorkshop from './pages/SubmitWorkshop'
 import ThankYou from './pages/ThankYou'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/submit-workshop" element={<SubmitWorkshop />} />
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>

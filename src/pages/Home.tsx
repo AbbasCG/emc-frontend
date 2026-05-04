@@ -2,10 +2,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
-  Award,
   CheckCircle2,
   Clock3,
-  GraduationCap,
   Languages,
   MessageCircle,
   MonitorCheck,

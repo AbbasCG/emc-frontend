@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { LogIn, Menu, UserPlus, X } from 'lucide-react'
 import type { NavLinkItem } from '../types'
+import logo from '../assets/logo.png'
 
 const navLinks: NavLinkItem[] = [
   { label: 'الرئيسية', href: '/' },
@@ -21,13 +22,18 @@ export default function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-3" aria-label="EMC الرئيسية">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-deepBlue text-xl font-black text-white">
-            EMC
-          </span>
-          <span className="hidden text-right sm:block">
+          <img
+            src={logo}
+            alt="EMC Logo"
+            className="h-20 w-auto object-contain"
+          />
+
+          {/* <span className="hidden text-right sm:block">
             <span className="block text-lg font-extrabold text-deepBlue">EMC</span>
-            <span className="block text-xs font-medium text-slate-500">المنصة التعليمية العالمية</span>
-          </span>
+            <span className="block text-xs font-medium text-slate-500">
+              المنصة التعليمية العالمية
+            </span>
+          </span> */}
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
