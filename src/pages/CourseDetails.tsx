@@ -28,7 +28,6 @@ import {
   fadeUp,
   formatDuration,
   formatPrice,
-  formatSingleDate,
 } from '../utils/course'
 
 const fallbackLearningItems = [
@@ -156,26 +155,6 @@ export default function CourseDetails() {
       icon: Award,
       label: 'المستوى',
       value: course.level || 'غير محدد',
-    },
-    {
-      icon: CalendarDays,
-      label: 'تاريخ البداية',
-      value: formatSingleDate(course.start_date),
-    },
-    {
-      icon: CalendarDays,
-      label: 'تاريخ النهاية',
-      value: formatSingleDate(course.end_date),
-    },
-    {
-      icon: CalendarDays,
-      label: 'أيام الدراسة',
-      value: course.study_days || 'غير محدد',
-    },
-    {
-      icon: Clock3,
-      label: 'الوقت',
-      value: course.study_time || 'غير محدد',
     },
   ...(!isOnline
     ? [

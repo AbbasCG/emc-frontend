@@ -1,16 +1,39 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, LockKeyhole, LogIn, Mail } from 'lucide-react'
+import { AlertCircle, LockKeyhole, LogIn, Mail } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
-  const [message, setMessage] = useState('')
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  // Redirect to the page the user originally tried to visit, or dashboard
+  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('تم تسجيل الدخول بنجاح.')
+    setError('')
+    setIsLoading(true)
+    try {
+      await login(email, password)
+      navigate(from, { replace: true })
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      setError(
+        axiosError.response?.data?.message ?? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+      )
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -30,6 +53,7 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
+          {/* ── Left panel — decorative ── */}
           <div className="relative min-h-80 overflow-hidden bg-deepBlue lg:min-h-[560px]">
             <img
               src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"
@@ -49,18 +73,21 @@ export default function Login() {
             </div>
           </div>
 
+          {/* ── Right panel — form ── */}
           <div className="p-6 text-right sm:p-10">
             <h1 className="text-3xl font-black text-deepBlue">تسجيل الدخول</h1>
             <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
 
-            {message && (
-              <div className="mt-6 flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-customBlue ring-1 ring-sky-100">
-                <CheckCircle2 size={22} className="mt-1 shrink-0" />
-                <p className="font-bold">{message}</p>
+            {/* Error alert */}
+            {error && (
+              <div className="mt-6 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
+                <AlertCircle size={20} className="mt-0.5 shrink-0" />
+                <p className="text-sm font-bold">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
+            <form onSubmit={handleSubmit} className="mt-8 grid gap-5" noValidate>
+              {/* Email */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 البريد الإلكتروني
                 <span className="relative block">
@@ -71,11 +98,15 @@ export default function Login() {
                   <input
                     type="email"
                     required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   />
                 </span>
               </label>
 
+              {/* Password */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 كلمة المرور
                 <span className="relative block">
@@ -86,22 +117,39 @@ export default function Login() {
                   <input
                     type="password"
                     required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   />
                 </span>
               </label>
 
-              <Link to="#" className="text-sm font-black text-customBlue transition hover:text-customOrange">
+              <Link
+                to="#"
+                className="text-sm font-black text-customBlue transition hover:text-customOrange"
+              >
                 نسيت كلمة المرور؟
               </Link>
 
+              {/* Submit */}
               <motion.button
                 type="submit"
-                whileHover={{ scale: 1.03 }}
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-customOrange px-7 font-extrabold text-white shadow-lg shadow-orange-100"
+                disabled={isLoading}
+                whileHover={!isLoading ? { scale: 1.03 } : undefined}
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-customOrange px-7 font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:cursor-not-allowed disabled:opacity-70"
               >
-                <LogIn size={20} />
-                تسجيل الدخول
+                {isLoading ? (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    جارٍ تسجيل الدخول...
+                  </>
+                ) : (
+                  <>
+                    <LogIn size={20} />
+                    تسجيل الدخول
+                  </>
+                )}
               </motion.button>
             </form>
 

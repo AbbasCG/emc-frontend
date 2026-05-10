@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
@@ -11,6 +12,15 @@ type ThankYouState = {
 
 export default function ThankYou() {
   const { state } = useLocation()
+  const navigate = useNavigate()
+
+  // Redirect direct visitors who have no registration state
+  useEffect(() => {
+    if (!state) {
+      navigate('/courses', { replace: true })
+    }
+  }, [state, navigate])
+
   const details = (state ?? {}) as ThankYouState
   const currentDate = new Intl.DateTimeFormat('ar', {
     day: 'numeric',

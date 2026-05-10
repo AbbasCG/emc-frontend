@@ -117,22 +117,24 @@ function Hero() {
             مهنياً وتقنياً لمساعدتك على اتخاذ خطوات واثقة نحو مستقبلك.
           </p>
           <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-            <motion.a
-              whileHover={{ scale: 1.04 }}
-              href="#"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 text-base font-extrabold text-white shadow-xl shadow-orange-950/20"
-            >
-              <UserPlus size={20} />
-              سجل الآن
-            </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.04 }}
-              href="#courses"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-customBlue px-7 py-4 text-base font-extrabold text-white shadow-xl shadow-sky-950/20"
-            >
-              استكشف الدورات
-              <ArrowLeft size={20} />
-            </motion.a>
+            <motion.div whileHover={{ scale: 1.04 }}>
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 text-base font-extrabold text-white shadow-xl shadow-orange-950/20"
+              >
+                <UserPlus size={20} />
+                سجل الآن
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.04 }}>
+              <Link
+                to="/courses"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-customBlue px-7 py-4 text-base font-extrabold text-white shadow-xl shadow-sky-950/20"
+              >
+                استكشف الدورات
+                <ArrowLeft size={20} />
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -354,22 +356,24 @@ function CTA() {
             بخطوة.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <motion.a
-              whileHover={{ scale: 1.04 }}
-              href="#"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
-            >
-              <UserPlus size={20} />
-              سجل الآن
-            </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.04 }}
-              href="#courses"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-customBlue px-7 py-4 font-extrabold text-white"
-            >
-              <MessageCircle size={20} />
-              تواصل معنا
-            </motion.a>
+            <motion.div whileHover={{ scale: 1.04 }}>
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
+              >
+                <UserPlus size={20} />
+                سجل الآن
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.04 }}>
+              <Link
+                to="/contact"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-customBlue px-7 py-4 font-extrabold text-white"
+              >
+                <MessageCircle size={20} />
+                تواصل معنا
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
         <motion.div
