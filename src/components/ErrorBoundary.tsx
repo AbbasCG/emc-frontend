@@ -67,7 +67,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReload}
-              className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-7 py-3.5 font-bold text-white shadow-md shadow-sky-200 transition-all hover:bg-[#1e7dab]"
+              className="emc-focus-ring inline-flex items-center gap-2 rounded-xl bg-customBlue px-7 py-3.5 font-bold text-white shadow-md shadow-sky-200 transition-all hover:bg-[#1e7dab]"
             >
               <RefreshCw size={17} />
               إعادة تحميل الصفحة
@@ -75,7 +75,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleHome}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 font-bold text-deepBlue transition-colors hover:bg-sky-50 hover:text-customBlue"
+              className="emc-focus-ring inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 font-bold text-deepBlue transition-colors hover:bg-sky-50 hover:text-customBlue"
             >
               <Home size={17} />
               الرئيسية

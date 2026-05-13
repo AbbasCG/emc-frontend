@@ -2,225 +2,444 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
-  BadgeCheck,
-  Clock3,
+  Brain,
+  Compass,
+  Cpu,
   GraduationCap,
-  HeartHandshake,
-  Lightbulb,
-  Medal,
-  MonitorCheck,
+  Layers,
+  Quote,
   Sparkles,
   Target,
+  Users,
 } from 'lucide-react'
-import PageHeader from '../components/PageHeader'
-import { fadeUp } from '../utils/course'
+import SectionHeader from '@/components/sections/SectionHeader'
+import {
+  CTASection,
+  FeatureCard,
+  FeatureGrid,
+  PageShell,
+  ProcessSteps,
+  PublicPageHero,
+  TimelineSteps,
+} from '@/components/public'
+import { aboutPlatformLead } from '@/data/publicPages'
+import { fadeUp } from '@/utils/animations'
 
-const valueCards = [
+const differentiators = [
+  {
+    icon: Layers,
+    title: 'منظومة وليس كتالوج',
+    description: 'نربط بين اللغة، المسار، المهارات، والتمكين الرقمي في تجربة متسلسلة قابلة للقياس.',
+    iconClassName: 'bg-sky-50 text-customBlue',
+  },
+  {
+    icon: Users,
+    title: 'جمهور واسع باحتياجات حقيقية',
+    description: 'طلاب، مهاجرون، مهنيون، وباحثون عن تطوير — نصمم لهم مسارات عملية لا شعارات فارغة.',
+    iconClassName: 'bg-orange-50 text-customOrange',
+  },
+  {
+    icon: Brain,
+    title: 'ذكاء اصطناعي بمسؤولية',
+    description: 'نستخدم الأدوات الرقمية لتسريع التعلم مع ضوابط وضوح وأخلاقيات استخدام.',
+    iconClassName: 'bg-sky-50 text-customBlue',
+  },
   {
     icon: Target,
-    title: 'رسالتنا',
-    description: 'تقديم تدريب تعليمي واستشاري مخصص يساعد المتعلمين والمهنيين على الوصول إلى أهدافهم بثقة.',
-  },
-  {
-    icon: Lightbulb,
-    title: 'رؤيتنا',
-    description: 'أن نكون وجهتك الأولى للبرامج التعليمية والتدريبية التي تدعم التطور الأكاديمي والمهني.',
-  },
-  {
-    icon: HeartHandshake,
-    title: 'قيمنا',
-    description: 'الاحترافية، الشفافية، الدعم الشخصي، والتمكين من خلال تدريب عملي ومُتابعة مستمرة.',
+    title: 'توجيه عملي',
+    description: 'ورش، استشارات، ومتابعة تساعدك على ترجمة التعلم إلى قرارات وخطوات.',
+    iconClassName: 'bg-orange-50 text-customOrange',
   },
 ]
 
-const stats = [
-  { value: '+100', label: 'دورة وورشة' },
-  { value: '+2000', label: 'متدرب' },
-  { value: '+50', label: 'مدرب معتمد' },
-  { value: '+95%', label: 'رضا المتدربين' },
+const roadmapMilestones = [
+  {
+    title: 'توحيد التجربة الرقمية',
+    description: 'ربط الكتالوج، التسجيل، والمتابعة في مسار واحد يفهمه المتعلم ويُسهّل على الفريق التشغيلي العمل.',
+  },
+  {
+    title: 'توسيع الشراكات المؤسسية',
+    description: 'اتفاقيات واضحة مع جامعات ومؤسسات ومدربين — بمعايير جودة وحوكمة موثّقة.',
+  },
+  {
+    title: 'تقارير أثر دورية',
+    description: 'نشر ملخصات أثر واقعية للمجتمع والشركاء، مع احترام خصوصية المشاركين.',
+  },
+  {
+    title: 'تطوير المسارات بين المجالات الاثنا عشر',
+    description: 'ربط أقوى بين المجالات والمسارات بحيث يتحرك المتعلم بثقة عبر خطوات متوقعة.',
+  },
 ]
 
-const whyItems = [
+const journeySteps = [
   {
-    icon: MonitorCheck,
-    title: 'برامج شاملة',
-    description: 'تغطي اللغة، القبول الجامعي، التوظيف، والتدريب التقني في مسارات متكاملة.',
+    title: 'استكشاف',
+    description: 'تحديد احتياجك عبر البرامج أو التواصل الموجز.',
+    icon: Compass,
   },
   {
-    icon: GraduationCap,
-    title: 'خبراء محترفون',
-    description: 'فريق من المدربين والاستشاريين الذين يدعمون الطلاب والمهاجرين وأصحاب الخبرة.',
+    title: 'اختيار مسار',
+    description: 'دورة، ورشة، أو مسار تعلم يتوافق مع مرحلتك.',
+    icon: Layers,
   },
   {
-    icon: Clock3,
-    title: 'مرونة في التعلم',
-    description: 'خيارات أونلاين وحضورية مصممة لتناسب جدولك وتمنحك تجربة عملية.',
+    title: 'تعلم وتطبيق',
+    description: 'جلسات عملية وموارد تدعم التطبيق لا الحفظ فقط.',
+    icon: Brain,
   },
   {
-    icon: BadgeCheck,
-    title: 'نتائج قابلة للتطبيق',
-    description: 'الدورات مصممة لترتقي بمهاراتك وتجهزك للمقابلات والسوق العملي.',
+    title: 'متابعة وتطوير',
+    description: 'تغذية راجعة وخطوات تالية ضمن منظومة EMC.',
+    icon: Sparkles,
   },
 ]
 
 export default function About() {
   return (
-    <main className="bg-slate-50 pt-20">
-      <PageHeader
-        title="عن EMC"
-        subtitle="منصة تعليمية رقمية عالمية تقدم استشارات تعليمية، ودورات لغات، وتدريباً مهنياً وتقنياً."
+    <main className="bg-[#f4f7fb] pt-20">
+      <PublicPageHero
+        variant="split"
+        badge="عن EMC"
+        title="عن المركز"
+        subtitle="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة، المهارة، والفرص — بلغة عربية احترافية ومعايير عالمية."
         breadcrumbs={[
           { label: 'الرئيسية', href: '/' },
           { label: 'عن EMC' },
         ]}
+        primaryAction={{ label: 'استكشف البرامج', href: '/courses' }}
+        secondaryAction={{ label: 'تواصل معنا', href: '/contact' }}
+        stats={[
+          { value: '12', label: 'مجال تعلم ضمن منظومة EMC' },
+          { value: 'متنوعة', label: 'برامج وورش وفق الكتالوج' },
+          { value: 'شفافية', label: 'أثر وبيانات دون مبالغة' },
+        ]}
       />
 
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+      {/* من نحن — split band */}
+      <section id="about" className="scroll-mt-28 py-16 sm:py-20">
+        <PageShell>
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.55 }}
+              className="text-right"
+            >
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-customBlue shadow-sm ring-1 ring-slate-200/80">
+                <Sparkles size={17} />
+                من نحن
+              </span>
+              <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">منصة تمكين عبر التعليم</h2>
+              <span className="mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange to-customOrange/40" />
+              <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{aboutPlatformLead.ar}</p>
+              <p className="mt-5 text-base font-medium leading-8 text-slate-600">
+                نعمل على دعم الأفراد في مراحل الانتقال — دراسة، عمل، هجرة، أو إعادة ترتيب أولويات
+                — عبر برامج ومسارات تُحدَّث باستمرار لتعكس احتياج السوق والمجتمع.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-3xl bg-white p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="rounded-2xl bg-gradient-to-br from-[#f4f7fb] to-white p-6 sm:p-8">
+                <p className="text-right text-sm font-black text-customBlue">لمحة سريعة</p>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  {[
+                    { icon: GraduationCap, label: 'مسارات أكاديمية ومهنية', sub: 'تخطيط وتوجيه' },
+                    { icon: Cpu, label: 'تمكين رقمي', sub: 'أدوات ومهارات' },
+                    { icon: Users, label: 'مجتمع متعلم', sub: 'دعم وشراكات' },
+                    { icon: Brain, label: 'تعلم مستمر', sub: 'ورش وبرامج' },
+                  ].map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <div
+                        key={item.label}
+                        className="rounded-2xl border border-slate-100 bg-white p-5 text-right shadow-sm transition hover:border-customBlue/20 hover:shadow-md"
+                      >
+                        <Icon className="text-customBlue" size={26} />
+                        <p className="mt-3 font-black text-deepBlue">{item.label}</p>
+                        <p className="mt-1 text-sm font-medium text-slate-500">{item.sub}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </PageShell>
+      </section>
+
+      {/* Process — light break */}
+      <section className="border-y border-slate-200/60 bg-white py-16 sm:py-20">
+        <PageShell>
+          <ProcessSteps
+            title="رحلتك مع EMC"
+            subtitle="من أول خطوة إلى تطوير مستمر — بإيقاع واضح دون تعقيد."
+            steps={journeySteps}
+          />
+        </PageShell>
+      </section>
+
+      {/* الرؤية والرسالة */}
+      <section id="vision-mission" className="scroll-mt-28 py-16 sm:py-20">
+        <PageShell>
+          <SectionHeader
+            eyebrow="التوجه المؤسسي"
+            title="الرؤية والرسالة"
+            subtitle="رؤية واضحة ورسالة عملية: التمكين عبر تعليم جيد، وإرشاد صادق، وتجربة محترمة للمتعلم."
+          />
+          <div className="grid gap-6 md:grid-cols-2">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.5 }}
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+            >
+              <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-sky-100/50 blur-2xl" />
+              <h3 className="relative text-xl font-black text-deepBlue">الرؤية</h3>
+              <p className="relative mt-4 leading-9 text-slate-600">
+                أن نكون مرجعاً موثوقاً في بناء المسارات التعليمية والمهنية للأفراد والمؤسسات، مع
+                الحفاظ على جودة المحتوى وأثره الإنساني.
+              </p>
+            </motion.div>
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.5, delay: 0.06 }}
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+            >
+              <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-orange-100/40 blur-2xl" />
+              <h3 className="relative text-xl font-black text-deepBlue">الرسالة</h3>
+              <p className="relative mt-4 leading-9 text-slate-600">
+                تقديم برامج تدريبية واستشارية ومسارات تعلم تساعد المتعلم على اتخاذ قرارات أوضح،
+                وتطوير مهاراته، والاندماج بثقة في بيئات متعددة.
+              </p>
+            </motion.div>
+          </div>
+        </PageShell>
+      </section>
+
+      {/* خارطة الطريق */}
+      <section id="roadmap" className="scroll-mt-28 border-y border-slate-200/60 bg-white py-16 sm:py-20">
+        <PageShell>
+          <SectionHeader
+            align="right"
+            className="!mr-0 !max-w-3xl !text-right"
+            eyebrow="نحو المستقبل"
+            title="خارطة طريق EMC"
+            description="مراحل تطوير المنظومة بصدق مهني — نحدّث الأولويات مع تعلّمنا من المجتمع والشركاء."
+          />
+          <TimelineSteps steps={roadmapMilestones} />
+        </PageShell>
+      </section>
+
+      {/* رسالة القيادة */}
+      <section id="leadership" className="scroll-mt-28 py-16 sm:py-20">
+        <PageShell>
+          <SectionHeader
+            align="right"
+            className="!mr-0 !max-w-3xl !text-right"
+            eyebrow="من الإدارة"
+            title="كلمة للمجتمع التعليمي"
+            description="التزام مؤسسي بالجودة والشفافية — دون أسماء وهمية؛ التحديثات البشرية الرسمية تُعلن عبر القنوات المعتمدة."
+          />
           <motion.div
-            className="order-2 text-right lg:order-1"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.55 }}
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-8 text-right text-white shadow-2xl sm:p-10 lg:p-12"
+          >
+            <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-customOrange/15 blur-3xl" />
+            <Quote className="relative text-customOrange" size={36} aria-hidden />
+            <blockquote className="relative mt-6 text-lg font-medium leading-10 text-slate-100 sm:text-xl sm:leading-[2.15rem]">
+              نؤمن أن التعليم الجيد يبدأ من احترام المتعلم: وضوح في التوقعات، محتوى يُحدَّث، وفريق
+              يتحمّل المسؤولية أمام المجتمع. هدفنا ليس «الأكبر بأسرع وقت» — بل بناء مرجعية عربية
+              مهنية تدوم.
+            </blockquote>
+            <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-slate-300">
+              الإدارة العليا — Educational Master Central (EMC)
+            </footer>
+          </motion.div>
+        </PageShell>
+      </section>
+
+      {/* Feature grid */}
+      <section className="py-16 sm:py-20">
+        <PageShell>
+          <SectionHeader
+            align="right"
+            className="!mr-0 !max-w-3xl !text-right"
+            eyebrow="التميز"
+            title="ما الذي يميّز EMC؟"
+            subtitle="نميز أنفسنا بالربط بين المحتوى، التوجيه، والشراكات — لا بالوعود السريعة أو الوصف الزائف."
+          />
+          <FeatureGrid>
+            {differentiators.map((item) => (
+              <FeatureCard
+                key={item.title}
+                icon={item.icon}
+                title={item.title}
+                description={item.description}
+                iconClassName={item.iconClassName}
+                animation="stagger"
+              />
+            ))}
+          </FeatureGrid>
+        </PageShell>
+      </section>
+
+      {/* AI / digital — full width band */}
+      <section className="bg-white py-16 sm:py-20">
+        <PageShell>
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+            <SectionHeader
+              align="right"
+              className="!mb-0 !mr-0 !max-w-none !text-right"
+              eyebrow="المستقبل الرقمي"
+              title="التعليم، الذكاء الاصطناعي، والتحول الرقمي"
+              subtitle="نؤمن أن التحول الرقمي فرصة للمتعلم عندما يُقدَّم بلغة مفهومة وبأدوات آمنة."
+            />
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.5 }}
+              className="rounded-3xl bg-[#f4f7fb] p-6 ring-1 ring-slate-200/80 sm:p-8"
+            >
+              <ul className="grid gap-3 text-slate-700 sm:grid-cols-2">
+                {[
+                  'مقدمات عملية في الذكاء الاصطناعي واستخداماته اليومية والمهنية.',
+                  'مهارات رقمية تدعم الإنتاجية والتعلم مدى الحياة.',
+                  'مبادئ خصوصية وأمان ومسؤولية عند استخدام الأدوات.',
+                  'ربط التقنية بأهدافك الأكاديمية أو المهنية لا كغاية بحد ذاتها.',
+                ].map((line) => (
+                  <li
+                    key={line}
+                    className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-7 shadow-sm ring-1 ring-slate-100/80"
+                  >
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-customOrange" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </PageShell>
+      </section>
+
+      {/* Audience cards */}
+      <section className="py-16 sm:py-20">
+        <PageShell>
+          <SectionHeader
+            title="من نخدم؟"
+            subtitle="مجتمع متنوع يتقاطع حول هدف واحد: بناء مسار أوضح عبر التعلم الجيد."
+          />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                title: 'الطلاب والخريجون',
+                body: 'تخطيط أكاديمي، لغات، واستعداد للمرحلة التالية.',
+              },
+              {
+                title: 'المهاجرون والوافدون الجدد',
+                body: 'دعم لغوي ومهني ومجتمعي يراعي واقع الانتقال.',
+              },
+              {
+                title: 'المهنيون والباحثون عن تطوير',
+                body: 'مهارات عملية، ريادة، وتمكين رقمي بمسؤولية.',
+              },
+              {
+                title: 'الأسر والناشئة',
+                body: 'برامج مناسبة للأعمار بإشراف وتصميم آمن.',
+              },
+              {
+                title: 'المؤسسات والفرق',
+                body: 'ورش وشراكات تدريبية بأهداف محددة.',
+              },
+              {
+                title: 'المدربون والخبراء',
+                body: 'شراكات محتوى ضمن معايير الجودة والحوكمة.',
+              },
+            ].map((card, i) => (
+              <motion.div
+                key={card.title}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.45, delay: i * 0.05 }}
+                whileHover={{ y: -3 }}
+                className="min-h-[160px] rounded-3xl border border-slate-100 bg-white p-7 text-right shadow-md ring-1 ring-slate-100/90"
+              >
+                <h3 className="text-lg font-black text-deepBlue">{card.title}</h3>
+                <p className="mt-3 leading-8 text-slate-600">{card.body}</p>
+              </motion.div>
+            ))}
+          </div>
+        </PageShell>
+      </section>
+
+      {/* Mid CTA card */}
+      <section className="pb-16 sm:pb-20">
+        <PageShell>
+          <motion.div
+            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right shadow-lg ring-1 ring-slate-200/80 sm:flex-row sm:items-center sm:p-10"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.55 }}
+            transition={{ duration: 0.5 }}
           >
-            <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-customBlue">
-              <Sparkles size={17} />
-              EMC للاستشارات والتدريب
-            </span>
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">من نحن</h2>
-            <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-            <p className="mt-7 text-lg leading-10 text-slate-600">
-              نحن منصة تعليمية رقمية عالمية تقدم استشارات تعليمية، ودورات لغات،
-              وتدريباً مهنياً وتقنياً للطلاب والمهاجرين وكل من يسعى لتطوير مساره
-              الأكاديمي أو المهني. نؤمن بدعم تعليمي مخصص ومتاح للجميع لتحقيق مستقبل
-              أفضل.
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="order-1 overflow-hidden rounded-2xl shadow-2xl lg:order-2"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.55 }}
-          >
-            <img
-              src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=85"
-              alt="بيئة تعليمية في أكاديمية لغة إنجليزية"
-              className="h-[420px] w-full object-cover transition duration-700 hover:scale-105"
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
-          {valueCards.map((card, index) => {
-            const Icon = card.icon
-            return (
-              <motion.article
-                key={card.title}
-                className="rounded-2xl bg-white p-7 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100"
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 0.45, delay: index * 0.08 }}
-              >
-                <div className="mb-5 grid h-14 w-14 place-items-center rounded-xl bg-sky-50 text-customBlue">
-                  <Icon size={28} />
-                </div>
-                <h3 className="text-2xl font-black text-deepBlue">{card.title}</h3>
-                <p className="mt-4 leading-8 text-slate-600">{card.description}</p>
-              </motion.article>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="bg-white px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((item, index) => (
-            <motion.div
-              key={item.label}
-              className="rounded-2xl bg-slate-50 p-7 text-center shadow-md ring-1 ring-slate-100"
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.45, delay: index * 0.06 }}
-            >
-              <strong className="block text-4xl font-black text-customBlue">{item.value}</strong>
-              <span className="mt-2 block text-sm font-black text-slate-500">{item.label}</span>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">لماذا EMC؟</h2>
-            <span className="mx-auto mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {whyItems.map((item, index) => {
-              const Icon = item.icon
-              return (
-                <motion.article
-                  key={item.title}
-                  className="rounded-2xl bg-white p-6 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100"
-                  variants={fadeUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ duration: 0.45, delay: index * 0.08 }}
-                >
-                  <div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-orange-50 text-customOrange">
-                    <Icon size={24} />
-                  </div>
-                  <h3 className="text-xl font-black text-deepBlue">{item.title}</h3>
-                  <p className="mt-3 leading-8 text-slate-600">{item.description}</p>
-                </motion.article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 pb-20 sm:px-6 lg:px-8">
-        <motion.div
-          className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 rounded-2xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-8 text-right text-white shadow-2xl sm:p-10 lg:flex-row lg:items-center"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-sky-100">
-              <Medal size={17} />
-              ابدأ رحلتك نحو مستقبل أفضل
+            <div>
+              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">جاهز للخطوة التالية؟</h2>
+              <p className="mt-3 max-w-xl font-medium leading-9 text-slate-600">
+                اختر البرنامج المناسب، أو تواصل معنا لاستشارة موجزة حول مسارك.
+              </p>
             </div>
-            <h2 className="text-3xl font-black sm:text-4xl">ابدأ رحلتك نحو مستقبل أفضل</h2>
-            <p className="mt-4 max-w-xl text-lg leading-9 text-slate-200">
-              اختر الخدمة أو الدورة المناسبة لك واحصل على دعم مخصص يرافقك خطوة
-              بخطوة.
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.04 }}>
-            <Link
-              to="/courses"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
-            >
-              استكشف الدورات
-              <ArrowLeft size={20} />
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/courses"
+                  className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg"
+                >
+                  البرامج والدورات
+                  <ArrowLeft size={18} />
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-7 py-4 text-sm font-extrabold text-deepBlue transition hover:border-customBlue"
+                >
+                  تواصل معنا
+                </Link>
+              </motion.div>
+            </div>
           </motion.div>
-        </motion.div>
+        </PageShell>
       </section>
+
+      <CTASection
+        title="انضم إلى مجتمع EMC"
+        description="سواء كنت متعلماً، شريكاً، أو متطوعاً — هناك مسار يناسبك ضمن منظومتنا."
+        primaryLabel="استكشف المجالات"
+        primaryHref="/themes"
+        secondaryLabel="شراكة"
+        secondaryHref="/partnerships"
+      />
     </main>
   )
 }

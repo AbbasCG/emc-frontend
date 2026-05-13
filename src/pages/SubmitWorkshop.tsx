@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import api from '../api/axios'
+import { submitWorkshopRequest } from '../api/workshopRequestsApi'
 import PageHeader from '../components/PageHeader'
 import AppAlert from '../components/ui/AppAlert'
 import AppBadge from '../components/ui/AppBadge'
@@ -180,7 +180,7 @@ export default function SubmitWorkshop() {
 
     try {
       setIsSubmitting(true)
-      await api.post('/workshop-requests', payload)
+      await submitWorkshopRequest(payload)
       setValidationErrors({})
       setSuccessMessage('تم إرسال طلب الورشة بنجاح. سيقوم فريق مركز التمكين بالتواصل معك بعد مراجعة البيانات.')
     } catch (error) {

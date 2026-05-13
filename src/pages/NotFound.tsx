@@ -4,7 +4,7 @@ import { ArrowLeft, SearchX } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <main
+    <div
       dir="rtl"
       className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-[#F6F8FB] px-4"
     >
@@ -43,19 +43,19 @@ export default function NotFound() {
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-7 py-3.5 font-bold text-white shadow-md shadow-sky-200 transition-all hover:bg-[#1e7dab] hover:shadow-lg"
+            className="emc-focus-ring inline-flex items-center gap-2 rounded-xl bg-customBlue px-7 py-3.5 font-bold text-white shadow-md shadow-sky-200 transition-all hover:bg-[#1e7dab] hover:shadow-lg"
           >
             العودة للرئيسية
             <ArrowLeft size={18} />
           </Link>
           <Link
             to="/courses"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 font-bold text-deepBlue transition-colors hover:border-customBlue/30 hover:bg-sky-50 hover:text-customBlue"
+            className="emc-focus-ring inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 font-bold text-deepBlue transition-colors hover:border-customBlue/30 hover:bg-sky-50 hover:text-customBlue"
           >
             تصفح الدورات
           </Link>
         </div>
       </motion.div>
-    </main>
+    </div>
   )
 }

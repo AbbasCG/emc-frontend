@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AlertCircle, LockKeyhole, LogIn, Mail } from 'lucide-react'
+import { useEffect } from 'react'
+import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -12,7 +15,29 @@ export default function Login() {
   const location = useLocation()
 
   // Redirect to the page the user originally tried to visit, or dashboard
-  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  function safeInternalPath(raw: string | null | undefined): string | null {
+    if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null
+    return raw
+  }
+
+  const stateFrom = (location.state as { from?: string } | null)?.from
+  const from =
+    safeInternalPath(searchParams.get('next')) ?? safeInternalPath(stateFrom) ?? '/dashboard'
+
+  useEffect(() => {
+    if (searchParams.get('reason') !== 'session') return
+    toast.warning('انتهت الجلسة أو انقطع الاتصال. سجّل دخولك مجددًا.')
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('reason')
+        return next
+      },
+      { replace: true },
+    )
+  }, [searchParams, setSearchParams])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,17 +52,14 @@ export default function Login() {
       await login(email, password)
       navigate(from, { replace: true })
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } }
-      setError(
-        axiosError.response?.data?.message ?? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
-      )
+      setError(getApiErrorMessage(err))
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <main className="bg-slate-50 pt-20">
+    <div className="bg-slate-50 pt-20">
       <PageHeader
         title="تسجيل الدخول"
         breadcrumbs={[
@@ -88,7 +110,7 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="mt-8 grid gap-5" noValidate>
               {/* Email */}
-              <label className="grid gap-2 text-sm font-black text-deepBlue">
+              <label htmlFor="login-email" className="grid gap-2 text-sm font-black text-deepBlue">
                 البريد الإلكتروني
                 <span className="relative block">
                   <Mail
@@ -99,15 +121,17 @@ export default function Login() {
                     type="email"
                     required
                     autoComplete="email"
+                    id="login-email"
+                    aria-invalid={error ? true : undefined}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                    className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   />
                 </span>
               </label>
 
               {/* Password */}
-              <label className="grid gap-2 text-sm font-black text-deepBlue">
+              <label htmlFor="login-password" className="grid gap-2 text-sm font-black text-deepBlue">
                 كلمة المرور
                 <span className="relative block">
                   <LockKeyhole
@@ -118,26 +142,31 @@ export default function Login() {
                     type="password"
                     required
                     autoComplete="current-password"
+                    id="login-password"
+                    aria-invalid={error ? true : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                    className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   />
                 </span>
               </label>
 
-              <Link
-                to="#"
-                className="text-sm font-black text-customBlue transition hover:text-customOrange"
+              <button
+                type="button"
+                disabled
+                title="قريبًا عبر الدعم أو لوحة الحساب"
+                className="cursor-not-allowed text-right text-sm font-black text-slate-400"
               >
                 نسيت كلمة المرور؟
-              </Link>
+              </button>
 
               {/* Submit */}
               <motion.button
                 type="submit"
                 disabled={isLoading}
+                aria-busy={isLoading}
                 whileHover={!isLoading ? { scale: 1.03 } : undefined}
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-customOrange px-7 font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:cursor-not-allowed disabled:opacity-70"
+                className="emc-focus-ring inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-customOrange px-7 font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoading ? (
                   <>
@@ -155,13 +184,13 @@ export default function Login() {
 
             <p className="mt-7 text-center text-sm font-bold text-slate-500">
               ليس لديك حساب؟{' '}
-              <Link to="/courses" className="text-customBlue transition hover:text-customOrange">
-                سجل الآن
+              <Link to="/signup" className="text-customBlue transition hover:text-customOrange">
+                أنشئ حساباً
               </Link>
             </p>
           </div>
         </motion.div>
       </section>
-    </main>
+    </div>
   )
 }

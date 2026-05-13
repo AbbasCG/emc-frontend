@@ -9,10 +9,7 @@ export const courseImages = [
   'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80',
 ]
 
-export const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0 },
-}
+export { fadeUp } from './motion'
 
 export function extractList<T>(payload: T[] | { data?: T[] }) {
   if (Array.isArray(payload)) return payload

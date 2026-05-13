@@ -4,7 +4,8 @@
       "Bash(npx tsc *)",
       "Bash(New-Item -ItemType Directory -Path \"d:\\\\xampp\\\\htdocs\\\\emc-frontend\\\\src\\\\layouts\" -Force)",
       "Bash(Out-Null)",
-      "Bash(New-Item -ItemType Directory -Path \"d:\\\\xampp\\\\htdocs\\\\emc-frontend\\\\src\\\\components\\\\dashboard\" -Force)"
+      "Bash(New-Item -ItemType Directory -Path \"d:\\\\xampp\\\\htdocs\\\\emc-frontend\\\\src\\\\components\\\\dashboard\" -Force)",
+      "Bash(npm install *)"
     ]
   }
 }

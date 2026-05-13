@@ -1,8 +1,18 @@
 import axios from 'axios'
-import { BookOpen, Calendar, FileText, FolderOpen, GraduationCap, Users } from 'lucide-react'
+import {
+  BookOpen,
+  Calendar,
+  ClipboardList,
+  FileText,
+  FolderOpen,
+  GraduationCap,
+  UserCheck,
+  Users,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import apiClient from '../api/axios'
+import { fetchInstructorLmsDashboard } from '@/api/instructorApi'
 import {
   DashboardSection,
   EmptyState,
@@ -10,8 +20,10 @@ import {
   StatCard,
   UpcomingSessionCard,
 } from '../components/dashboard'
+import { LearningDashboardCard } from '@/components/lms'
 import { useAuth } from '../contexts/AuthContext'
 import type { TeacherDashboardData, TeachingCourse } from '../types'
+import type { InstructorLmsDashboard } from '@/types/lms'
 
 // ---------------------------------------------------------------------------
 // MOCK FALLBACK — remove when GET /api/dashboard/teacher is live
@@ -128,6 +140,7 @@ export default function TeacherDashboard() {
   const [data, setData] = useState<TeacherDashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [usingMock, setUsingMock] = useState(false)
+  const [insLms, setInsLms] = useState<InstructorLmsDashboard | null>(null)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'صباح الخير' : hour < 18 ? 'مساء الخير' : 'مساء النور'
@@ -153,6 +166,20 @@ export default function TeacherDashboard() {
 
     fetchDashboard()
     return () => { isMounted = false }
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+    fetchInstructorLmsDashboard()
+      .then((row) => {
+        if (alive) setInsLms(row)
+      })
+      .catch(() => {
+        if (alive) setInsLms(null)
+      })
+    return () => {
+      alive = false
+    }
   }, [])
 
   if (isLoading) return <TeacherSkeleton />
@@ -181,9 +208,42 @@ export default function TeacherDashboard() {
         <p className="text-sm font-bold text-white/60">{greeting}،</p>
         <h1 className="mt-1 text-2xl font-black">{user?.name ?? 'مرحباً'} 👋</h1>
         <p className="mt-2 text-sm leading-7 text-white/65">
-          إليك ملخص نشاطك التدريسي اليوم على منصة EMC.
+          بوابة التدريس — الجلسات، الحضور، وتقييم التسليمات ضمن منظومة EMC.
         </p>
       </div>
+
+      {insLms && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <LearningDashboardCard
+            title="طلابي"
+            value={insLms.student_count}
+            hint="على مستوى الدورات المسندة"
+            icon={Users}
+            accent="blue"
+          />
+          <LearningDashboardCard
+            title="حضور يحتاج تأكيداً"
+            value={insLms.attendance_pending_count}
+            hint="جلسات بانتظار الإغلاق"
+            icon={UserCheck}
+            accent="orange"
+          />
+          <LearningDashboardCard
+            title="تسليمات بانتظار المراجعة"
+            value={insLms.submissions_pending_count}
+            hint="من قائمة الانتظار"
+            icon={ClipboardList}
+            accent="orange"
+          />
+          <LearningDashboardCard
+            title="ملاحظات الإدارة"
+            value="—"
+            hint={insLms.admin_notes_placeholder ?? 'لا توجد ملاحظات بعد'}
+            icon={FileText}
+            accent="blue"
+          />
+        </div>
+      )}
 
       {/* ── Stats grid ── */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -215,7 +275,7 @@ export default function TeacherDashboard() {
       {/* ── Upcoming sessions ── */}
       <DashboardSection
         title="جلساتي القادمة"
-        action={sessions.length > 0 ? { label: 'عرض الجدول', href: '/dashboard/schedule' } : undefined}
+        action={sessions.length > 0 ? { label: 'كل الجلسات', href: '/dashboard/teacher/sessions' } : undefined}
       >
         {sessions.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -246,30 +306,30 @@ export default function TeacherDashboard() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <QuickActionCard
             icon={Calendar}
-            label="الجدول الزمني"
-            description="إدارة جلساتك المجدولة"
-            href="/dashboard/schedule"
+            label="جلساتي"
+            description="الجدول والروابط"
+            href="/dashboard/teacher/sessions"
             color="blue"
           />
           <QuickActionCard
-            icon={FolderOpen}
-            label="المواد التعليمية"
-            description="رفع وإدارة المحتوى"
-            href="/dashboard/resources"
+            icon={UserCheck}
+            label="الحضور"
+            description="تسجيل الحضور بالجلسة"
+            href="/dashboard/teacher/attendance"
             color="orange"
           />
           <QuickActionCard
-            icon={FileText}
-            label="التقييمات"
-            description="إنشاء اختبارات وتقييمات"
-            href="/dashboard/assessments"
+            icon={ClipboardList}
+            label="مراجعة التسليمات"
+            description="درجات وملاحظات"
+            href="/dashboard/teacher/submissions"
             color="green"
           />
           <QuickActionCard
-            icon={Users}
-            label="الطلاب"
-            description="متابعة تقدم الطلاب"
-            href="/dashboard/students"
+            icon={FolderOpen}
+            label="الموارد"
+            description="مواد تعليمية"
+            href="/dashboard/resources"
             color="purple"
           />
         </div>

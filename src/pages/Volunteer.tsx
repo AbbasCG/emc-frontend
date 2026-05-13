@@ -1,185 +1,232 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, BookOpen, CheckCircle2, Languages, MessageCircle, Users } from 'lucide-react'
-import PageHeader from '../components/PageHeader'
-import { fadeUp } from '../utils/course'
+import { CheckCircle2, Clock, Compass, Heart, Sparkles, Users } from 'lucide-react'
+import SectionHeader from '@/components/sections/SectionHeader'
+import { CTASection, PublicPageHero, TimelineSteps } from '@/components/public'
+import { departments10, volunteerLead } from '@/data/publicPages'
+import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
-const roles = [
+const journey = [
   {
-    icon: BookOpen,
-    title: 'مساعد مدرب',
-    desc: 'ساعد مدربينا في تنفيذ الجلسات، وإعداد المواد، ودعم المتدربين خلال الدورات العملية.',
-    requirements: ['خبرة في مجال الدورة', 'مهارات التواصل', 'الالتزام بمواعيد الجلسات'],
-    color: 'bg-sky-50 text-customBlue',
+    title: 'تقديم اهتمام',
+    description: 'أرسل لنا نبذة عن خبرتك ومجالك والوقت المتاح — دون التزام.',
   },
   {
-    icon: Languages,
-    title: 'متطوع لغوي',
-    desc: 'ادعم المتدربين الجدد في تعلم اللغات من خلال جلسات المحادثة والممارسة اليومية.',
-    requirements: ['إتقان لغة أجنبية', 'الصبر والتشجيع', 'أوقات مرنة أسبوعياً'],
-    color: 'bg-orange-50 text-customOrange',
+    title: 'مقابلة موجزة',
+    description: 'جلسة تعارف قصيرة لتوضيح الأدوار المتاحة وتوقعات الطرفين.',
   },
   {
-    icon: Users,
-    title: 'مرشد ومنتور',
-    desc: 'كن مرشداً لمتدرب يحتاج التوجيه في مساره المهني أو الأكاديمي وشاركه تجربتك.',
-    requirements: ['خبرة مهنية 3+ سنوات', 'رغبة في التأثير', 'ساعتان أسبوعياً'],
-    color: 'bg-emerald-50 text-emerald-600',
+    title: 'تجربة منضبطة',
+    description: 'تبدأ بمهام محددة مع إشراف من إدارة البرامج أو التشغيل.',
   },
   {
-    icon: MessageCircle,
-    title: 'سفير EMC',
-    desc: 'مثّل منصة EMC في مجتمعك وساعد في نشر الوعي ببرامجنا للوصول لمن يحتاجها.',
-    requirements: ['شبكة علاقات واسعة', 'شغف بالتعليم', 'نشاط على وسائل التواصل'],
-    color: 'bg-violet-50 text-violet-600',
+    title: 'تقييم وتطوير',
+    description: 'ملاحظات دورية لتحسين التجربة وربما الانتقال لدور أوسع.',
   },
-]
-
-const impact = [
-  { value: '200+', label: 'متطوع نشط' },
-  { value: '1500+', label: 'ساعة تطوع سنوياً' },
-  { value: '40+', label: 'جنسية ممثلة' },
 ]
 
 export default function Volunteer() {
   return (
-    <main className="bg-slate-50 pt-20">
-      <PageHeader
-        title="التطوع"
-        subtitle="انضم إلى مجتمع المتطوعين في EMC وكن جزءاً من التغيير الحقيقي في حياة المتعلمين."
+    <main className="bg-[#f4f7fb] pt-20">
+      <PublicPageHero
+        eyebrow="انضم إلى الأثر"
+        title="التطوع والانضمام لفريق EMC"
+        subtitle="فرصة للمساهمة في برامج تعليمية بجودة عالية — مع تعلم عملي وتجربة فريق منضبطة."
         breadcrumbs={[
           { label: 'الرئيسية', href: '/' },
           { label: 'التطوع' },
         ]}
       />
 
-      {/* Impact numbers */}
-      <section className="bg-white px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-3">
-          {impact.map((item, index) => (
-            <motion.div
-              key={item.label}
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="rounded-2xl bg-slate-50 p-7 text-center ring-1 ring-slate-100"
-            >
-              <strong className="block text-4xl font-black text-customBlue">{item.value}</strong>
-              <span className="mt-2 block text-sm font-bold text-slate-500">{item.label}</span>
-            </motion.div>
-          ))}
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            align="right"
+            title="لماذا تنضم إلى EMC؟"
+            description={volunteerLead.ar}
+          />
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.5 }}
+            className="grid gap-4 md:grid-cols-3"
+          >
+            {[
+              { icon: Heart, t: 'أثر حقيقي', d: 'مساهمة في تجارب تعلم يستفيد منها أفراد من خلفيات متنوعة.' },
+              { icon: Compass, t: 'خبرة مهنية', d: 'تعرّف على تنظيم البرامج، التشغيل، والجودة من الداخل.' },
+              { icon: Users, t: 'مجتمع داعم', d: 'بيئة عمل تطوعية محترمة بحدود واضحة للوقت والمهام.' },
+            ].map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.t} className="rounded-3xl bg-white p-7 text-right shadow-md ring-1 ring-slate-100">
+                  <Icon className="text-customBlue" size={26} />
+                  <h3 className="mt-4 text-lg font-black text-deepBlue">{item.t}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">{item.d}</p>
+                </div>
+              )
+            })}
+          </motion.div>
         </div>
       </section>
 
-      {/* Roles */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">فرص التطوع</h2>
-            <span className="mx-auto mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-            <p className="mt-5 text-lg leading-9 text-slate-600">
-              نوفر فرص تطوع متنوعة تناسب مهاراتك ووقتك وشغفك بالتعليم.
-            </p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2">
-            {roles.map((role, index) => {
-              const Icon = role.icon
+          <SectionHeader
+            title="أدوار ومجالات يمكن المساهمة فيها"
+            description="لا نعد بآلاف الساعات «السحرية» — نحدد أدواراً مرتبطة بإداراتنا حسب الحاجة الفعلية للبرامج."
+          />
+          <motion.div
+            className="grid gap-6 md:grid-cols-2"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+          >
+            {departments10.slice(0, 8).map((dept) => (
+              <motion.article
+                key={dept.id}
+                variants={staggerItem}
+                className="rounded-3xl bg-white p-7 text-right shadow-lg ring-1 ring-slate-100"
+              >
+                <h3 className="text-lg font-black text-deepBlue">{dept.title.ar}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{dept.description.ar}</p>
+                <p className="mt-4 text-xs font-bold text-customBlue">
+                  أمثلة مساهمة: {dept.responsibilities[0]?.ar}
+                </p>
+              </motion.article>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl rounded-3xl bg-white p-8 shadow-lg ring-1 ring-slate-100 lg:p-12">
+          <SectionHeader title="رحلة المتطوع" description="خطوات واضحة تقلل الالتباس وتبني التزاماً صحيحاً من الطرفين." />
+          <TimelineSteps steps={journey} />
+        </div>
+      </section>
+
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            title="التزام متوقع"
+            description="نحترم وقتك؛ لذلك نطلب توقعات واقعية يمكن الالتزام بها."
+          />
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              {
+                icon: Clock,
+                title: 'وقت محدد أسبوعياً',
+                lines: ['غالباً بين 2—6 ساعات حسب الدور والمرحلة.', 'جدولة مسبقة مع مساحة للتعديل المعقول.'],
+              },
+              {
+                icon: Sparkles,
+                title: 'انضباط وتواصل',
+                lines: ['الالتزام بالمواعيد النهائية المتفق عليها.', 'إبلاغ مبكر عند تعارض لإعادة التنسيق.'],
+              },
+            ].map((block) => {
+              const Icon = block.icon
               return (
-                <motion.article
-                  key={role.title}
+                <motion.div
+                  key={block.title}
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.45, delay: index * 0.08 }}
-                  className="rounded-2xl bg-white p-7 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100"
+                  transition={{ duration: 0.45 }}
+                  className="rounded-3xl bg-white p-7 text-right shadow-md ring-1 ring-slate-100"
                 >
-                  <div className={`mb-5 grid h-13 w-13 place-items-center rounded-xl ${role.color} h-12 w-12`}>
-                    <Icon size={24} />
-                  </div>
-                  <h3 className="text-xl font-black text-deepBlue">{role.title}</h3>
-                  <p className="mt-3 leading-8 text-slate-600">{role.desc}</p>
-                  <div className="mt-5">
-                    <p className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">المتطلبات</p>
-                    <ul className="space-y-2">
-                      {role.requirements.map((req) => (
-                        <li key={req} className="flex items-center gap-2.5 text-sm font-bold text-slate-600">
-                          <CheckCircle2 size={15} className="shrink-0 text-customBlue" />
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </motion.article>
+                  <Icon className="text-customOrange" size={26} />
+                  <h3 className="mt-4 text-lg font-black text-deepBlue">{block.title}</h3>
+                  <ul className="mt-3 space-y-2">
+                    {block.lines.map((l) => (
+                      <li key={l} className="flex items-start gap-2 text-sm font-semibold text-slate-600">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-customBlue" />
+                        {l}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
               )
             })}
           </div>
         </div>
       </section>
 
-      {/* Why volunteer */}
-      <section className="bg-white px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-right">
-          <motion.div
-            variants={fadeUp}
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            title="مهارات نبحث عنها"
+            description="تختلف حسب الدور، لكن هذه أساسيات شائعة تساعدنا على العمل بسلاسة."
+          />
+          <motion.ul
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.5 }}
+            viewport={{ once: true, amount: 0.15 }}
           >
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">لماذا تتطوع معنا؟</h2>
-            <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-            <p className="mt-7 text-lg leading-10 text-slate-600">
-              التطوع في EMC يمنحك فرصة التأثير الحقيقي في حياة آلاف المتعلمين بينما تطور
-              مهاراتك القيادية والتدريبية، وتوسع شبكة علاقاتك المهنية في بيئة ملهمة.
-            </p>
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-              {[
-                'شهادة تطوع معتمدة',
-                'تدريب مجاني على التدريب',
-                'شبكة علاقات مهنية دولية',
-                'تجربة تدريب وقيادة حقيقية',
-                'إمكانية الانتقال لدور مدفوع',
-                'مجتمع داعم ومتنوع',
-              ].map((benefit) => (
-                <li key={benefit} className="flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm font-bold text-deepBlue">
-                  <CheckCircle2 size={18} className="shrink-0 text-customBlue" />
-                  {benefit}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
+            {[
+              'تواصل واضح بالعربية (والإنجليزية ميزة عند الحاجة).',
+              'انضباط في المواعيد والوثائق.',
+              'احترام خصوصية المشاركين وسياسات المنصة.',
+              'خبرة في التدريب، التحرير، التصميم، أو التشغيل — حسب الدور.',
+              'رغبة في التعلم والاستفادة من التوجيه.',
+              'روح تعاون داخل فريق متنوع.',
+            ].map((skill) => (
+              <motion.li
+                key={skill}
+                variants={staggerItem}
+                className="rounded-2xl bg-white p-4 text-right text-sm font-semibold leading-7 text-slate-700 shadow-sm ring-1 ring-slate-100"
+              >
+                {skill}
+              </motion.li>
+            ))}
+          </motion.ul>
         </div>
       </section>
 
-      <section className="px-4 pb-20 sm:px-6 lg:px-8">
+      <section className="px-4 pb-12 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 rounded-2xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-8 text-right text-white shadow-2xl sm:p-10 lg:flex-row lg:items-center"
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.5 }}
+          className="mx-auto max-w-7xl rounded-3xl bg-deepBlue p-8 text-right text-white shadow-2xl lg:p-10"
         >
-          <div>
-            <h2 className="text-3xl font-black sm:text-4xl">جاهز للتطوع؟</h2>
-            <p className="mt-4 max-w-xl text-lg leading-9 text-slate-200">
-              تواصل معنا وأخبرنا عن مهاراتك واهتماماتك وسنجد معاً الدور المناسب لك.
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.04 }}>
+          <h2 className="text-2xl font-black">نموذج التقديم</h2>
+          <p className="mt-4 max-w-3xl leading-9 text-slate-200">
+            نستخدم صفحة التواصل لاستقبال طلبات الانضمام والتطوع. اختر موضوعاً مناسباً واذكر المجال
+            الذي ترغب بالمساهمة فيه، وسيتم توجيه رسالتك للإدارة المعنية.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
+              className="inline-flex rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white"
             >
-              تقدم للتطوع
-              <ArrowLeft size={20} />
+              تقديم طلب
             </Link>
-          </motion.div>
+            <Link
+              to="/team"
+              className="inline-flex rounded-xl border border-white/25 px-7 py-4 text-sm font-extrabold text-white hover:bg-white/10"
+            >
+              التعرف على الفريق
+            </Link>
+          </div>
         </motion.div>
       </section>
+
+      <CTASection
+        title="كن جزءاً من بناء تجربة تعليمية احترافية"
+        description="التطوع في EMC يعني مسؤولية وجودة. إذا كان هذا يتماشى مع قيمك، نحن نرحب بتواصلك."
+        primaryLabel="تواصل معنا"
+        primaryHref="/contact"
+        secondaryLabel="الشراكات"
+        secondaryHref="/partnerships"
+      />
     </main>
   )
 }

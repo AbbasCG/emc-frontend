@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 
-export type UserRole = 'student' | 'teacher' | 'admin'
+export type UserRole = 'student' | 'teacher' | 'admin' | 'partner'
 
 export type User = {
   id: number
@@ -135,6 +135,12 @@ export type AdminStats = {
   active_courses: number
   total_enrollments: number
   total_programs: number
+  pending_payments?: number
+  workshop_requests?: number
+  active_workshops?: number
+  tracks_count?: number
+  instructors_count?: number
+  departments_count?: number
 }
 
 export type RecentRegistration = {

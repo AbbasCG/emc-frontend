@@ -11,10 +11,14 @@ export default function ProtectedRoute() {
     return (
       <div
         dir="rtl"
-        className="flex min-h-screen items-center justify-center bg-[#F6F8FB]"
+        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#F6F8FB]"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
         aria-label="جارٍ التحميل"
       >
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-customBlue border-t-transparent" />
+        <span className="text-sm font-bold text-slate-500">جارٍ تهيئة الجلسة…</span>
       </div>
     )
   }

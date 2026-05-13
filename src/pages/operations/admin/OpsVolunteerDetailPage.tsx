@@ -1,0 +1,144 @@
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
+import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
+import { fetchVolunteer, updateVolunteer } from '@/api/volunteersApi'
+import { seedVolunteers, seedWorkspaceDepartments } from '@/data/operationsSeed'
+import { VOLUNTEER_STATUS_AR } from '@/data/operationsLabels'
+import type { OpsVolunteer, VolunteerStatus } from '@/types/operations'
+
+export default function OpsVolunteerDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const vid = id ? Number(id) : NaN
+  const [v, setV] = useState<OpsVolunteer | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notes] = useState('مساحة الملاحظات الداخلية — قيد ربط الـ API.')
+
+  useEffect(() => {
+    if (!Number.isFinite(vid)) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const d = await fetchVolunteer(vid)
+        if (!cancelled) setV(d)
+      } catch {
+        const seed = seedVolunteers().find((x) => x.id === vid) ?? seedVolunteers()[0]!
+        if (!cancelled) setV(seed)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [vid])
+
+  const depts = seedWorkspaceDepartments()
+
+  async function patchStatus(status: VolunteerStatus) {
+    if (!v) return
+    setV({ ...v, status })
+    try {
+      const u = await updateVolunteer(v.id, { status })
+      setV(u)
+    } catch {
+      /* keep local */
+    }
+  }
+
+  async function patchDept(department_id: string) {
+    if (!v) return
+    const name = depts.find((d) => d.id === department_id)?.title
+    setV({ ...v, department_id, department_name: name ?? null })
+    try {
+      const u = await updateVolunteer(v.id, { department_id })
+      setV(u)
+    } catch {
+      /* keep local */
+    }
+  }
+
+  if (!Number.isFinite(vid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
+  if (loading || !v) return <OpsPageSkeleton />
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-8">
+      <Link
+        to="/dashboard/admin/volunteers"
+        className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
+      >
+        <ChevronLeft size={14} />
+        قائمة المتطوعين
+      </Link>
+
+      <div className="rounded-[1.35rem] bg-white p-8 text-right shadow-xl ring-1 ring-deepBlue/[0.06]">
+        <h1 className="text-2xl font-black text-deepBlue">{v.name}</h1>
+        <p className="mt-2 text-xs font-bold text-slate-500">{v.department_name ?? 'بدون إدارة'}</p>
+
+        <div className="mt-8 grid gap-6">
+          <label className="grid gap-2 text-xs font-black text-deepBlue">
+            الحالة
+            <select
+              value={v.status}
+              onChange={(e) => patchStatus(e.target.value as VolunteerStatus)}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue"
+            >
+              {(Object.keys(VOLUNTEER_STATUS_AR) as VolunteerStatus[]).map((k) => (
+                <option key={k} value={k}>
+                  {VOLUNTEER_STATUS_AR[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="grid gap-2 text-xs font-black text-deepBlue">
+            الإدارة
+            <select
+              value={v.department_id ?? ''}
+              onChange={(e) => patchDept(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue"
+            >
+              <option value="">— اختر —</option>
+              {depts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.title}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div>
+            <p className="text-xs font-black text-deepBlue">المهارات</p>
+            <div className="mt-2 flex flex-wrap justify-end gap-2">
+              {(v.skills ?? []).map((s) => (
+                <span key={s} className="rounded-lg bg-deepBlue/[0.06] px-2 py-1 text-[11px] font-black text-deepBlue">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <dl className="grid gap-2 text-right text-xs font-bold text-slate-600">
+            <div className="flex justify-between gap-2">
+              <dt>التوفر</dt>
+              <dd>{v.availability ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt>الساعات</dt>
+              <dd>{v.hours_logged ?? 0}</dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt>خطوة الانضمام</dt>
+              <dd>{v.onboarding_step ?? '—'}</dd>
+            </div>
+          </dl>
+
+          <div className="rounded-xl bg-slate-50 px-4 py-3 text-right ring-1 ring-slate-100">
+            <p className="text-[11px] font-black text-slate-400">ملاحظات داخلية</p>
+            <p className="mt-2 text-sm font-medium text-slate-600">{notes}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

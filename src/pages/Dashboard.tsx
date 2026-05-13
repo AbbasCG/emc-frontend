@@ -1,7 +1,19 @@
 import axios from 'axios'
-import { Bell, BookOpen, Calendar, GraduationCap, Users } from 'lucide-react'
+import {
+  Bell,
+  BookOpen,
+  Calendar,
+  ClipboardList,
+  CreditCard,
+  FolderOpen,
+  GraduationCap,
+  TrendingUp,
+  Users,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import apiClient from '../api/axios'
+import { fetchStudentLmsDashboard } from '@/api/studentApi'
 import {
   DashboardSection,
   EmptyState,
@@ -11,8 +23,10 @@ import {
   StatCard,
   UpcomingSessionCard,
 } from '../components/dashboard'
+import { AssignmentCard, LearningDashboardCard, ProgressRing, SessionCard } from '@/components/lms'
 import { useAuth } from '../contexts/AuthContext'
-import type { StudentDashboard } from '../types'
+import type { StudentDashboard, UpcomingSession } from '../types'
+import type { LmsSession, StudentLmsDashboard } from '@/types/lms'
 
 // ---------------------------------------------------------------------------
 // MOCK FALLBACK — shown when GET /api/dashboard is not yet available.
@@ -150,6 +164,20 @@ function normalise(raw: unknown): StudentDashboard {
   return raw as StudentDashboard
 }
 
+function mapLmsSessionToUpcoming(s: LmsSession): UpcomingSession {
+  return {
+    id: s.id,
+    course_name: s.course_name,
+    date: s.date ?? s.starts_at ?? '—',
+    time: s.time,
+    type: s.type === 'offline' ? 'offline' : 'online',
+    instructor_name: s.instructor_name,
+    location: s.location,
+    meeting_link: s.meeting_link,
+    platform: (s.platform as UpcomingSession['platform']) ?? undefined,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -159,6 +187,7 @@ export default function Dashboard() {
   const [data, setData] = useState<StudentDashboard | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [usingMock, setUsingMock] = useState(false)
+  const [lmsDash, setLmsDash] = useState<StudentLmsDashboard | null>(null)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'صباح الخير' : hour < 18 ? 'مساء الخير' : 'مساء النور'
@@ -186,9 +215,31 @@ export default function Dashboard() {
     return () => { isMounted = false }
   }, [])
 
+  useEffect(() => {
+    let alive = true
+    fetchStudentLmsDashboard()
+      .then((row) => {
+        if (alive) setLmsDash(row)
+      })
+      .catch(() => {
+        if (alive) setLmsDash(null)
+      })
+    return () => {
+      alive = false
+    }
+  }, [])
+
   if (isLoading) return <DashboardSkeleton />
 
-  const { stats, enrollments, upcoming_sessions: sessions, notifications } = data ?? MOCK
+  const { stats, enrollments, upcoming_sessions: legacySessions, notifications: legacyNotifications } =
+    data ?? MOCK
+
+  const sessions =
+    lmsDash?.upcoming_sessions?.length ?
+      lmsDash.upcoming_sessions.map(mapLmsSessionToUpcoming)
+    : legacySessions
+
+  const notifications = lmsDash?.notifications?.length ? lmsDash.notifications : legacyNotifications
 
   const statCards = [
     { title: 'الدورات المسجلة',    value: String(stats.enrolled_courses),     icon: BookOpen,      color: 'blue'   as const },
@@ -210,11 +261,44 @@ export default function Dashboard() {
       {/* ── Welcome header ── */}
       <div className="rounded-2xl bg-deepBlue px-7 py-6 text-right text-white shadow-sm">
         <p className="text-sm font-bold text-white/60">{greeting}،</p>
-        <h1 className="mt-1 text-2xl font-black">{user?.name ?? 'مرحباً بك'} 👋</h1>
+        <h1 className="mt-1 text-2xl font-black">مرحبًا بك، {user?.name ?? 'متعلّم EMC'} 👋</h1>
         <p className="mt-2 text-sm leading-7 text-white/65">
-          إليك ملخص نشاطك التعليمي اليوم على منصة EMC.
+          إليك ملخص نشاطك التعليمي اليوم على منصة EMC — لوحة التعلم والجدول والواجبات في مكان واحد.
         </p>
       </div>
+
+      {lmsDash && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <LearningDashboardCard
+            title="نسبة التقدم"
+            value={`${Math.round(lmsDash.progress_percent)}%`}
+            hint="إنجاز المحتوى والجلسات"
+            icon={TrendingUp}
+            accent="blue"
+          />
+          <LearningDashboardCard
+            title="نسبة الحضور"
+            value={`${Math.round(lmsDash.attendance_percent)}%`}
+            hint="حسب الجلسات المسجلة"
+            icon={Calendar}
+            accent="orange"
+          />
+          <LearningDashboardCard
+            title="واجبات مطلوبة"
+            value={lmsDash.pending_assignments.filter((a) => a.status === 'pending' || a.status === 'late').length}
+            hint="بانتظار التسليم"
+            icon={ClipboardList}
+            accent="orange"
+          />
+          <LearningDashboardCard
+            title="شهادات قادمة"
+            value={lmsDash.certificates_placeholder?.length ?? 0}
+            hint="Placeholder حتى يكتمل المسار"
+            icon={GraduationCap}
+            accent="blue"
+          />
+        </div>
+      )}
 
       {/* ── Stats grid ── */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -244,29 +328,98 @@ export default function Dashboard() {
         )}
       </DashboardSection>
 
+      {lmsDash && lmsDash.current_courses.length > 0 && (
+        <DashboardSection
+          title="الدورات الحالية"
+          subtitle="متابعة مباشرة من لوحة التعلم."
+          action={{ label: 'التقدم التفصيلي', href: '/dashboard/student/progress' }}
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {lmsDash.current_courses.map((c) => (
+              <div
+                key={c.id}
+                className="rounded-2xl border border-deepBlue/[0.06] bg-white p-5 shadow-sm ring-1 ring-white"
+              >
+                <p className="text-sm font-black text-deepBlue">{c.title}</p>
+                {c.instructor_name && (
+                  <p className="mt-1 text-xs font-bold text-slate-500">مدرب: {c.instructor_name}</p>
+                )}
+                {c.progress_percent != null && (
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <ProgressRing percent={c.progress_percent} size={72} stroke={6} />
+                    {c.slug && (
+                      <Link
+                        to={`/courses/${c.slug}`}
+                        className="text-xs font-black text-customBlue hover:underline"
+                      >
+                        صفحة الدورة
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </DashboardSection>
+      )}
+
+      {lmsDash && lmsDash.pending_assignments.length > 0 && (
+        <DashboardSection
+          title="واجبات تحتاج تسليماً"
+          action={{ label: 'كل الواجبات', href: '/dashboard/student/assignments' }}
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            {lmsDash.pending_assignments.slice(0, 4).map((a) => (
+              <AssignmentCard key={a.id} assignment={a} />
+            ))}
+          </div>
+        </DashboardSection>
+      )}
+
+      {lmsDash && (lmsDash.certificates_placeholder?.length ?? 0) > 0 && (
+        <DashboardSection title="الشهادات القادمة" subtitle="Placeholder إلى حين تفعيل إصدار الشهادات.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {lmsDash.certificates_placeholder!.map((c, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-dashed border-customOrange/35 bg-orange-50/50 px-4 py-3 text-right"
+              >
+                <p className="font-black text-deepBlue">{c.label}</p>
+                {c.note && <p className="mt-1 text-xs font-semibold text-slate-600">{c.note}</p>}
+              </div>
+            ))}
+          </div>
+        </DashboardSection>
+      )}
+
       {/* ── Sessions + Notifications (two-column) ── */}
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
 
         {/* Upcoming sessions */}
         <DashboardSection
           title="الجلسات القادمة"
-          action={sessions.length > 0 ? { label: 'عرض الكل', href: '/dashboard/schedule' } : undefined}
+          action={
+            sessions.length > 0 ? { label: 'عرض الكل', href: '/dashboard/student/sessions' } : undefined
+          }
         >
           {sessions.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              {sessions.slice(0, 4).map((s) => (
-                <UpcomingSessionCard
-                  key={s.id}
-                  courseName={s.course_name}
-                  date={s.date}
-                  time={s.time ?? undefined}
-                  type={s.type}
-                  instructor={s.instructor_name ?? undefined}
-                  location={s.location ?? undefined}
-                  meetingLink={s.meeting_link ?? undefined}
-                  platform={s.platform ?? undefined}
-                />
-              ))}
+              {lmsDash?.upcoming_sessions?.length ?
+                lmsDash.upcoming_sessions.slice(0, 4).map((s) => <SessionCard key={s.id} session={s} />)
+              : sessions.slice(0, 4).map((s) => (
+                  <UpcomingSessionCard
+                    key={s.id}
+                    courseName={s.course_name}
+                    date={s.date}
+                    time={s.time ?? undefined}
+                    type={s.type}
+                    instructor={s.instructor_name ?? undefined}
+                    location={s.location ?? undefined}
+                    meetingLink={s.meeting_link ?? undefined}
+                    platform={s.platform ?? undefined}
+                  />
+                ))
+              }
             </div>
           ) : (
             <EmptyState
@@ -278,9 +431,9 @@ export default function Dashboard() {
           )}
         </DashboardSection>
 
-        {/* Notifications */}
+        {/* Notifications / آخر التنبيهات */}
         <DashboardSection
-          title="الإشعارات"
+          title="آخر التنبيهات"
           action={notifications.length > 0 ? { label: 'عرض الكل', href: '/dashboard/notifications' } : undefined}
         >
           {notifications.length > 0 ? (
@@ -302,27 +455,48 @@ export default function Dashboard() {
 
       {/* ── Quick actions ── */}
       <DashboardSection title="إجراءات سريعة">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <QuickActionCard
             icon={BookOpen}
             label="تصفح الدورات"
-            description="اكتشف برامجنا التدريبية"
+            description="كتالوج EMC العام"
             href="/courses"
             color="blue"
           />
           <QuickActionCard
             icon={Calendar}
-            label="الجدول الزمني"
-            description="جلساتك المجدولة"
-            href="/dashboard/schedule"
+            label="جلساتي"
+            description="الجلسات القادمة والسجل"
+            href="/dashboard/student/sessions"
             color="orange"
           />
           <QuickActionCard
-            icon={GraduationCap}
-            label="شهاداتي"
-            description="الشهادات المكتملة"
-            href="/dashboard/certificates"
+            icon={FolderOpen}
+            label="المواد التعليمية"
+            description="ملفات وروابط الدورة"
+            href="/dashboard/student/materials"
             color="green"
+          />
+          <QuickActionCard
+            icon={ClipboardList}
+            label="الواجبات"
+            description="التسليم والدرجات"
+            href="/dashboard/student/assignments"
+            color="purple"
+          />
+          <QuickActionCard
+            icon={TrendingUp}
+            label="التقدم"
+            description="لوحة الإنجاز والحضور"
+            href="/dashboard/student/progress"
+            color="blue"
+          />
+          <QuickActionCard
+            icon={GraduationCap}
+            label="تقييم تجربة التعلم"
+            description="ساعدنا على التحسين"
+            href="/dashboard/student/evaluation"
+            color="orange"
           />
           <QuickActionCard
             icon={Users}
@@ -333,6 +507,38 @@ export default function Dashboard() {
           />
         </div>
       </DashboardSection>
+
+      {/* ── Phase 1 placeholders + LMS summary ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DashboardSection title="حالة المدفوعات">
+          <EmptyState
+            icon={CreditCard}
+            title="لا توجد مدفوعات لعرضها"
+            description="عند التسجيل في دورة مدفوعة ستظهر حالة الدفع والفواتير هنا بعد ربط واجهة البرمجة."
+          />
+        </DashboardSection>
+        <DashboardSection title="التقدم في التعلم">
+          {lmsDash ?
+            <div className="flex flex-col items-center gap-6 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-deepBlue/[0.06] sm:flex-row-reverse sm:justify-between">
+              <div className="flex gap-8">
+                <ProgressRing percent={lmsDash.progress_percent} label="إنجاز" size={100} stroke={9} />
+                <ProgressRing percent={lmsDash.attendance_percent} label="حضور" size={100} stroke={9} />
+              </div>
+              <Link
+                to="/dashboard/student/progress"
+                className="rounded-xl bg-deepBlue px-5 py-2.5 text-xs font-black text-white shadow-md"
+              >
+                فتح لوحة التقدم
+              </Link>
+            </div>
+          : <EmptyState
+              icon={TrendingUp}
+              title="لوحة التقدم قيد الإعداد"
+              description="يتصل هذا القسم بـ GET /api/student/progress عند تفعيل الخادم."
+            />
+          }
+        </DashboardSection>
+      </div>
 
     </div>
   )

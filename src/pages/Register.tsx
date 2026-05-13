@@ -7,7 +7,6 @@ import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
-  CreditCard,
   Loader2,
   Mail,
   MapPin,
@@ -17,6 +16,8 @@ import {
   BookOpen,
 } from 'lucide-react'
 import api from '../api/axios'
+import { submitCourseRegistration } from '../api/registrationsApi'
+import PaymentProviderSelector from '../components/payments/PaymentProviderSelector'
 import PageHeader from '../components/PageHeader'
 import StateMessage from '../components/StateMessage'
 import type { Course } from '../types'
@@ -43,14 +44,8 @@ const initialForm: RegisterForm = {
   city: '',
   gender: '',
   notes: '',
-  payment_provider: 'fake',
+  payment_provider: 'stripe',
 }
-
-const paymentProviders: { label: string; value: PaymentProvider }[] = [
-  { label: 'Stripe', value: 'stripe' },
-  { label: 'PayPal', value: 'paypal' },
-  { label: 'Fake Payment', value: 'fake' },
-]
 
 export default function Register() {
   const { slug } = useParams()
@@ -134,7 +129,7 @@ export default function Register() {
     try {
       setIsSubmitting(true)
 
-      const payload = {
+      const result = await submitCourseRegistration({
         course_id: course.id,
         full_name: form.full_name,
         phone: form.phone,
@@ -143,13 +138,10 @@ export default function Register() {
         gender: form.gender,
         notes: form.notes,
         payment_provider: course.type === 'paid' ? form.payment_provider : undefined,
-      }
+      })
 
-      const response = await api.post('/register', payload)
-      const checkoutUrl = response.data?.checkout_url
-
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl
+      if (result.checkout_url) {
+        window.location.assign(result.checkout_url)
         return
       }
 
@@ -370,25 +362,17 @@ export default function Register() {
             {isPaid && (
               <div>
                 <h2 className="text-lg font-black text-deepBlue">طريقة الدفع</h2>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  {paymentProviders.map((provider) => (
-                    <button
-                      key={provider.value}
-                      type="button"
-                      onClick={() => updateField('payment_provider', provider.value)}
-                      className={`flex h-14 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-black transition ${
-                        form.payment_provider === provider.value
-                          ? 'border-customOrange bg-orange-50 text-customOrange'
-                          : 'border-slate-200 bg-slate-50 text-deepBlue hover:border-customBlue hover:text-customBlue'
-                      }`}
-                    >
-                      <CreditCard size={18} />
-                      {provider.label}
-                    </button>
-                  ))}
+                <p className="mt-2 text-sm font-semibold text-deepBlue/60">
+                  للدورات المدفوعة: اختر المزوّد. في التطوير المحلي يمكنك استخدام «دفع تجريبي محلي» لاختبار الصفحة
+                  /fake-payment.
+                </p>
+                <div className="mt-4">
+                  <PaymentProviderSelector
+                    value={form.payment_provider}
+                    onChange={(v) => updateField('payment_provider', v)}
+                    disabled={isSubmitting}
+                  />
                 </div>
-
                 {validationErrors.payment_provider?.[0] && (
                   <span className="mt-2 block text-xs text-customOrange">
                     {validationErrors.payment_provider[0]}
