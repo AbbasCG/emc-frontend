@@ -13,10 +13,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        /** Legacy aliases — keep stable to avoid breaking existing markup. */
+        /** Body text — marketing pages */
+        foreground: "#0F172A",
         customBlue: "#2691C2",
-        customOrange: "#ec943c",
-        deepBlue: "#22334a",
+        customOrange: "#EC943C",
+        deepBlue: "#22334A",
         emcBg: "#F8FBFE",
 
         /** EMC brand scale (primary). 500 = #2691C2 */

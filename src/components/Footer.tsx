@@ -1,12 +1,13 @@
+import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, Mail, MapPin, Phone } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { siteContact } from '@/data/publicPages'
 
 const explore = [
   { label: 'الرئيسية', href: '/' },
   { label: 'عن المركز', href: '/about' },
-  { label: 'الثيمات الاثنا عشر', href: '/themes' },
+  { label: 'المجالات والمحاور', href: '/tracks' },
   { label: 'الإدارات', href: '/departments' },
   { label: 'البرامج والدورات', href: '/courses' },
 ]
@@ -14,19 +15,28 @@ const explore = [
 const engage = [
   { label: 'الشراكات', href: '/partnerships' },
   { label: 'التطوع والانضمام', href: '/volunteer' },
-  { label: 'الفريق', href: '/team' },
+  { label: 'الفريق', href: '/ar/team' },
   { label: 'الأثر', href: '/impact' },
   { label: 'تقديم ورشة', href: '/submit-workshop' },
 ]
 
 const programs = [
-  { label: 'المسارات التعليمية', href: '/tracks' },
   { label: 'مسارات التعلم', href: '/paths' },
   { label: 'البرامج', href: '/programs' },
   { label: 'المنصة', href: '/platform' },
 ]
 
 export default function Footer() {
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [newsletterDone, setNewsletterDone] = useState(false)
+
+  function onNewsletterSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!newsletterEmail.trim()) return
+    setNewsletterDone(true)
+    setNewsletterEmail('')
+  }
+
   return (
     <footer className="relative isolate overflow-hidden bg-deepBlue text-white" dir="rtl">
       {/* Ambient atmospheric glow */}
@@ -55,14 +65,52 @@ export default function Footer() {
               EMC منصة تعليمية وتطويرية تربط بين البرامج التدريبية، الاستشارات، والشراكات
               لخدمة الطلاب والمهنيين والمجتمع — بجودة واحترافية وهوية عربية واضحة.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-white/70 font-latin backdrop-blur-sm">
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] font-black tracking-wide text-white/75 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-slow-pulse" />
-              Operating · Educational OS
+              التشغيل · نظام تعليمي موحّد
             </div>
+
+            <form onSubmit={onNewsletterSubmit} className="mt-8 space-y-3 text-right">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-customOrange">النشرة</p>
+                <p className="mt-1 text-sm leading-7 text-white/65">ملخصات برامج وورش — دون ازعاج.</p>
+              </div>
+              <label htmlFor="footer-news-email" className="sr-only">
+                البريد للنشرة
+              </label>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input
+                  id="footer-news-email"
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  value={newsletterEmail}
+                  onChange={(ev) => {
+                    setNewsletterEmail(ev.target.value)
+                    setNewsletterDone(false)
+                  }}
+                  placeholder="البريد الإلكتروني"
+                  dir="ltr"
+                  className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none ring-1 ring-transparent placeholder:text-white/40 focus:border-customBlue/45 focus:ring-customBlue/30"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-customOrange px-5 py-3 text-sm font-black text-deepBlue shadow-[0_12px_28px_-10px_rgba(236,148,60,0.55)] transition hover:brightness-105"
+                >
+                  تسجيل الاهتمام
+                  <ArrowLeft size={16} aria-hidden />
+                </button>
+              </div>
+              {newsletterDone ? (
+                <p className="text-xs font-bold text-customBlue" role="status">
+                  تم حفظ طلبك محلياً — سيتم ربطه بخادم النشرة عند التفعيل.
+                </p>
+              ) : null}
+            </form>
           </div>
 
           <div>
-            <h3 className="mb-5 text-xs font-black uppercase tracking-[0.12em] text-customOrange font-latin">استكشف</h3>
+            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">استكشف</h3>
             <ul className="grid gap-3.5 text-sm">
               {explore.map((link) => (
                 <li key={link.href}>
@@ -78,7 +126,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-xs font-black uppercase tracking-[0.12em] text-customOrange font-latin">المشاركة</h3>
+            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">المشاركة</h3>
             <ul className="grid gap-3.5 text-sm">
               {engage.map((link) => (
                 <li key={link.href}>
@@ -94,7 +142,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-xs font-black uppercase tracking-[0.12em] text-customOrange font-latin">البرامج</h3>
+            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">البرامج</h3>
             <ul className="grid gap-3.5 text-sm">
               {programs.map((link) => (
                 <li key={link.href}>
@@ -114,7 +162,7 @@ export default function Footer() {
               aria-hidden
               className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-customBlue/30 blur-2xl"
             />
-            <h3 className="relative mb-5 text-xs font-black uppercase tracking-[0.12em] text-customOrange font-latin">تواصل</h3>
+            <h3 className="relative mb-5 text-xs font-black tracking-[0.14em] text-customOrange">تواصل</h3>
             <ul className="relative grid gap-4 text-sm text-white/75">
               <li className="flex items-start gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] text-customOrange ring-1 ring-white/10">
@@ -147,7 +195,9 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-center gap-4 border-t border-white/10 pt-10 text-center text-sm text-white/45 sm:flex-row sm:justify-between sm:text-right">
-          <span className="font-latin tracking-wide">© {new Date().getFullYear()} EMC. جميع الحقوق محفوظة.</span>
+          <span>
+            جميع الحقوق محفوظة © {new Date().getFullYear()} EMC
+          </span>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:justify-end">
             <Link to="/contact" className="font-semibold transition hover:text-customOrange">
               دعم واستفسارات

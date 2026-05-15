@@ -23,7 +23,7 @@ const blocks = [
   {
     title: 'المجالات الاثنا عشر',
     desc: 'مجالات تعلم مترابطة بأسلوب منصة معرفية.',
-    href: '/themes',
+    href: '/tracks',
     icon: Sparkles,
     span: '',
     accent: 'from-deepBlue/[0.07] to-emcBg',

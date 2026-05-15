@@ -18,7 +18,7 @@ export default function HomeCourseCard({ course, index }: Props) {
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.45, delay: index * 0.07 }}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-white text-right shadow-lg shadow-slate-200/80 ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-2xl"
+      className="group flex flex-col overflow-hidden rounded-[1.35rem] border border-deepBlue/[0.06] bg-white text-right shadow-emc-md ring-1 ring-white transition-all hover:-translate-y-1 hover:shadow-emc-lg hover:border-customBlue/20"
     >
       <div className="relative h-48 shrink-0 overflow-hidden">
         <img
@@ -48,13 +48,13 @@ export default function HomeCourseCard({ course, index }: Props) {
         <h3 className="line-clamp-2 text-lg font-black leading-8 text-deepBlue">
           {course.title}
         </h3>
-        <p className="mt-2 line-clamp-2 min-h-[3.5rem] text-sm leading-7 text-slate-500">
+        <p className="mt-2 line-clamp-2 min-h-[3.5rem] text-sm leading-7 text-foreground/65">
           {course.short_description ||
             'برنامج تدريبي متخصص يساعدك على تطوير مهاراتك بثقة ووضوح.'}
         </p>
 
         {course.training_hours ? (
-          <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500">
+          <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/60">
             <Clock3 size={14} className="text-customBlue" />
             {course.training_hours} ساعة تدريبية
           </span>
@@ -63,7 +63,7 @@ export default function HomeCourseCard({ course, index }: Props) {
         <motion.div whileHover={{ scale: 1.02 }} className="mt-auto pt-4">
           <Link
             to={`/courses/${course.slug}`}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customBlue px-4 py-3 text-sm font-extrabold text-white transition hover:bg-[#1f7aab]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customBlue px-4 py-3 text-sm font-extrabold text-white shadow-[0_12px_28px_-14px_rgba(38,145,194,0.55)] transition hover:brightness-105"
           >
             تفاصيل الدورة
             <ArrowLeft size={16} />

@@ -30,7 +30,7 @@ export const volunteerLead: LocalizedString = {
   ar: 'التطوع في EMC ليس مجرد مساهمة وقت، بل فرصة لبناء خبرة، تطوير مهارات، والمشاركة في صناعة أثر تعليمي ومجتمعي حقيقي.',
 }
 
-/** 12 EMC themes — titles & copy for /themes and home preview */
+/** 12 EMC themes — titles & copy for /tracks (and home preview) */
 export type PublicTheme = {
   id: string
   icon: string
@@ -44,7 +44,7 @@ export const themes12: PublicTheme[] = [
   {
     id: 'academic-paths',
     icon: 'GraduationCap',
-    title: { ar: 'المسارات الأكاديمية والمهنية' },
+    title: { ar: 'المسارات الأكاديمية' },
     shortDescription: {
       ar: 'تخطيط واضح يربط بين الدراسة والعمل عبر إرشاد عملي وبرامج موجهة.',
     },
@@ -58,7 +58,7 @@ export const themes12: PublicTheme[] = [
   {
     id: 'international-learning',
     icon: 'Globe2',
-    title: { ar: 'التعلم الدولي والتبادل المعرفي' },
+    title: { ar: 'التعلّم العالمي' },
     shortDescription: {
       ar: 'تجارب تعلم تربطك ببيئات متعددة وتوسّع أفقك المعرفي والثقافي.',
     },
@@ -114,7 +114,7 @@ export const themes12: PublicTheme[] = [
   {
     id: 'leadership-ruwad',
     icon: 'Rocket',
-    title: { ar: 'القيادة وريادة الأعمال وبرنامج رواد' },
+    title: { ar: 'القيادة (روّاد)' },
     shortDescription: {
       ar: 'بناء عقلية المبادرة، التخطيط، وتنمية المشاريع والفرق.',
     },
@@ -142,9 +142,9 @@ export const themes12: PublicTheme[] = [
   {
     id: 'mental-health',
     icon: 'HeartPulse',
-    title: { ar: 'الصحة النفسية وجودة الحياة' },
+    title: { ar: 'الرفاه' },
     shortDescription: {
-      ar: 'دعم وقائي وتثقيفي يعزز التوازن والمرونة النفسية.',
+      ar: 'دعم وقائي وتثقيفي للتوازن، العناية الذاتية، وجودة الحياة اليومية.',
     },
     bullets: [
       { ar: 'مبادئ العناية الذاتية والحدود الصحية' },
@@ -170,9 +170,9 @@ export const themes12: PublicTheme[] = [
   {
     id: 'experiential',
     icon: 'Map',
-    title: { ar: 'الفعاليات والتعلم الميداني' },
+    title: { ar: 'التعلّم التجريبي' },
     shortDescription: {
-      ar: 'تعلم من خلال التجربة، الزيارات، والأنشطة التطبيقية.',
+      ar: 'تعلّم عبر التجربة المباشرة والأنشطة التطبيقية وربط المعرفة بواقع الميدان.',
     },
     bullets: [
       { ar: 'جلسات ميدانية ومجتمعية' },
@@ -184,7 +184,7 @@ export const themes12: PublicTheme[] = [
   {
     id: 'future-minds',
     icon: 'Baby',
-    title: { ar: 'الأطفال وعقول المستقبل' },
+    title: { ar: 'الأطفال (عقول المستقبل)' },
     shortDescription: {
       ar: 'أنشطة مناسبة للأعمار لتنمية الفضول والتعلم الآمن والممتع.',
     },
@@ -198,7 +198,7 @@ export const themes12: PublicTheme[] = [
   {
     id: 'partnerships',
     icon: 'Handshake',
-    title: { ar: 'الشراكات والتعاون' },
+    title: { ar: 'الشراكات' },
     shortDescription: {
       ar: 'بناء جسور مع مؤسسات وخبراء لخدمة المجتمع التعليمي بشكل أوسع.',
     },

@@ -33,20 +33,22 @@ export default function FeaturedCoursesSection() {
   }, [])
 
   return (
-    <section className="px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+    <section className="border-y border-deepBlue/[0.05] bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
+      <div className="mx-auto max-w-[1540px]">
+        <div className="mb-12 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="text-right">
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">برامج ودورات مميزة</h2>
-            <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-            <p className="mt-5 max-w-xl text-base leading-8 text-slate-500">
-              ابدأ من البرنامج الأنسب لاحتياجك، وتابع التفاصيل أو سجّل مباشرة من صفحة الدورة.
+            <p className="text-xs font-black text-customBlue">اختصارات من البرامج المميزة</p>
+            <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl xl:text-[2.5rem]">ورش ودورات عالية التأثير</h2>
+            <span className="mt-5 block h-1 w-16 rounded-full bg-customOrange" />
+            <p className="mt-5 max-w-xl text-base leading-8 text-foreground/70">
+                ابدأ من البرنامج الأنسب لمسارك، واطّلع على التفاصيل أو أكمِل التسجيل من صفحة الدورة نفسها — البيانات تُقرأ من
+                لوحة إدارتكم.
             </p>
           </div>
-          <motion.div whileHover={{ scale: 1.04 }} className="shrink-0">
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="shrink-0">
             <Link
               to="/courses"
-              className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#1c2e42]"
+              className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-6 py-3.5 text-sm font-black text-white shadow-emc-md transition hover:brightness-105"
             >
               عرض جميع الدورات
               <ArrowLeft size={17} />
@@ -57,7 +59,10 @@ export default function FeaturedCoursesSection() {
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-80 animate-pulse rounded-2xl bg-slate-200" />
+              <div
+                key={i}
+                className="h-96 animate-pulse rounded-[1.25rem] bg-brand-50/90 ring-1 ring-deepBlue/[0.04]"
+              />
             ))}
           </div>
         ) : courses.length > 0 ? (
@@ -67,10 +72,16 @@ export default function FeaturedCoursesSection() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-2xl bg-slate-50 py-20 text-center ring-1 ring-slate-200">
-            <BookOpen size={48} className="text-slate-300" aria-hidden="true" />
-            <p className="text-lg font-bold text-slate-500">لا توجد دورات متاحة حالياً</p>
-            <p className="text-sm text-slate-400">سيتم إضافة البرامج قريباً — تابعنا!</p>
+          <div className="flex flex-col items-center justify-center gap-4 rounded-[1.5rem] border border-dashed border-deepBlue/[0.12] bg-emcBg py-20 text-center">
+            <BookOpen size={48} className="text-customBlue/35" aria-hidden="true" />
+            <p className="text-lg font-black text-deepBlue">عرض البرامج يأتي مباشرةً من الخادم</p>
+            <p className="max-w-md text-sm font-semibold leading-7 text-foreground/60">
+              عند تشغيل واجهة البرمجة تُحمَّل أحدث البرامج هنا آلياً. انتقل إلى صفحة البرامج والدورات لاستعراض القائمة
+              الكاملة والتصفية حسب احتياجك.
+            </p>
+            <Link to="/courses" className="text-sm font-black text-customBlue underline-offset-8 hover:underline">
+              فتح صفحة الدورات
+            </Link>
           </div>
         )}
       </div>

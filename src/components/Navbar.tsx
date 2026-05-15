@@ -12,6 +12,7 @@ import {
   Layers,
   LogIn,
   LogOut,
+  Mail,
   MapPinned,
   Menu,
   Monitor,
@@ -24,6 +25,7 @@ import {
   Users,
   Waypoints,
   HeartHandshake,
+  Handshake,
   X,
 } from 'lucide-react'
 import logo from '../assets/logo.png'
@@ -38,16 +40,16 @@ const aboutItems: MegaDropdownItem[] = [
   { href: '/about#roadmap', label: 'خارطة الطريق', description: 'مراحل تطوير المنظومة والأولويات', icon: MapPinned },
   { href: '/about#leadership', label: 'رسالة القيادة', description: 'التزام مؤسسي بالجودة والشفافية', icon: Sparkles },
   { href: '/impact', label: 'الأثر والإنجازات', description: 'اتجاهات أثر واقعية وشفافة', icon: TrendingUp },
-  { href: '/team', label: 'الفريق', description: 'الهيكل والأدوار والقيم', icon: UserCircle },
+  { href: '/ar/team', label: 'الفريق', description: 'الهيكل والأدوار والقيم', icon: UserCircle },
 ]
 
 const programsItems: MegaDropdownItem[] = [
-  { href: '/courses', label: 'البرامج والدورات', description: 'تصفح الكتالوج والتسجيل', icon: BookOpen },
+  { href: '/courses', label: 'البرامج والدورات', description: 'استعرض البرامج وسجّل مباشرة', icon: BookOpen },
   { href: '/programs', label: 'البرامج', description: 'عرض البرامج والمسارات المؤسسية', icon: Layers },
   { href: '/paths', label: 'المسارات', description: 'مسارات تعلم مترابطة', icon: Waypoints },
-  { href: '/themes', label: 'الثيمات', description: 'اثنا عشر مجالاً للتعلم', icon: LayoutGrid },
-  { href: '/tracks', label: 'المحاور', description: 'محاور تعليمية تفصيلية', icon: Sparkles },
+  { href: '/tracks', label: 'المجالات والمحاور', description: 'المجالات الاثنا عشر والمحاور التفصيلية', icon: LayoutGrid },
   { href: '/instructors', label: 'المدربون', description: 'تعرّف على خبراء التدريب', icon: UserCircle },
+  { href: '/submit-workshop', label: 'تقديم ورشة', description: 'طلب ورشة أو برنامج عبر النموذج الرسمي', icon: CalendarPlus },
 ]
 
 const centerItems: MegaDropdownItem[] = [
@@ -57,18 +59,20 @@ const centerItems: MegaDropdownItem[] = [
 ]
 
 const joinItems: MegaDropdownItem[] = [
-  { href: '/volunteer', label: 'التطوع', description: 'انضم كمساهم في البرامج', icon: HeartHandshake },
-  { href: '/submit-workshop', label: 'تقديم ورشة', description: 'نموذج رسمي لطلب ورشة أو برنامج', icon: CalendarPlus },
-  { href: '/contact#trainer', label: 'كن مدرباً', description: 'تواصل للانضمام كمدرب معتمد', icon: GraduationCap },
+  { href: '/signup', label: 'انضم كطالب', description: 'إنشاء حساب للتعلّم والتسجيل في البرامج', icon: UserCircle },
+  { href: '/contact#trainer', label: 'انضم كمدرب', description: 'تواصل للانضمام كمدّرب مع EMC', icon: GraduationCap },
+  { href: '/partnerships/apply', label: 'انضم كشريك', description: 'تقديم طلب شراكة مؤسسية أو خدمية', icon: Handshake },
+  { href: '/volunteer', label: 'انضم كمتطوّع', description: 'شارك مهاراتك وفق أطر EMC التطوعية', icon: HeartHandshake },
+  { href: '/contact', label: 'تواصل معنا', description: 'قنوات التواصل والاستفسارات العامّة', icon: Mail },
 ]
 
 type MegaId = 'about' | 'programs' | 'center' | 'join'
 
 const megaPrefixes: Record<MegaId, readonly string[]> = {
-  about: ['/about', '/impact', '/team'],
-  programs: ['/courses', '/paths', '/themes', '/tracks', '/programs', '/instructors'],
+  about: ['/about', '/impact', '/ar/impact', '/team', '/ar/team'],
+  programs: ['/courses', '/paths', '/tracks', '/programs', '/instructors', '/submit-workshop'],
   center: ['/departments', '/platform'],
-  join: ['/volunteer', '/submit-workshop'],
+  join: ['/signup', '/contact', '/volunteer', '/partnerships/apply'],
 }
 
 function pathActive(pathname: string, mega: MegaId): boolean {
@@ -76,9 +80,22 @@ function pathActive(pathname: string, mega: MegaId): boolean {
 }
 
 const navLinkBase =
-  'rounded-2xl px-4 py-2.5 text-[13px] font-bold tracking-tight text-deepBlue transition-all duration-200 hover:bg-customBlue/[0.06] hover:text-customBlue'
+  'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight text-deepBlue transition-all duration-200 hover:bg-customBlue/[0.08] hover:text-customBlue hover:shadow-emc-xs'
 const navLinkActive =
-  'bg-customBlue/[0.09] text-customBlue shadow-[inset_0_0_0_1px_rgba(38,145,201,0.22)]'
+  'bg-customBlue/[0.11] text-customBlue shadow-[inset_0_0_0_1px_rgba(38,145,194,0.35)] backdrop-blur-sm'
+
+/** Lightweight secondary actions — center nav stays visually primary */
+const loginBtnClass =
+  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-deepBlue/[0.11] bg-white/90 px-5 text-[13px] font-semibold tracking-tight text-deepBlue shadow-[0_1px_2px_rgba(34,51,74,0.045)] backdrop-blur-sm transition-all duration-200 hover:border-customBlue/25 hover:bg-white hover:text-customBlue hover:shadow-[0_6px_18px_-12px_rgba(34,51,74,0.12)]'
+
+const dashboardBtnClass =
+  'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-customBlue/[0.18] bg-gradient-to-br from-customBlue/[0.08] via-white to-deepBlue/[0.04] px-5 text-[13px] font-semibold tracking-tight text-deepBlue shadow-[0_1px_2px_rgba(34,51,74,0.05)] backdrop-blur-sm transition-colors duration-200 hover:border-customBlue/35 hover:from-customBlue/[0.12] hover:to-customBlue/[0.06] hover:text-deepBlue hover:shadow-[0_8px_22px_-14px_rgba(38,145,194,0.22)]'
+
+const dashboardIconClass =
+  'relative size-[15px] shrink-0 text-customBlue opacity-95 transition-colors duration-200 group-hover/nav:text-customBlue'
+
+const loginIconClass =
+  'relative size-[15px] shrink-0 text-deepBlue/78 transition-colors duration-200 group-hover/login:text-customBlue'
 
 export default function Navbar() {
   const { isAuthenticated, isLoading, user, logout } = useAuth()
@@ -134,32 +151,30 @@ export default function Navbar() {
 
   const userInitial = user?.name?.charAt(0)?.toUpperCase() ?? '؟'
 
-  const joinCtaActive = pathActive(pathname, 'join')
-
   return (
     <header
       ref={navRef}
       dir="rtl"
       className={[
-        'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background] duration-300',
+        'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-350 ease-emc-out',
         scrolled
-          ? 'border-deepBlue/[0.08] bg-white/94 shadow-[0_14px_48px_-18px_rgba(15,42,67,0.18)] backdrop-blur-xl'
-          : 'border-transparent bg-white/88 backdrop-blur-lg',
+          ? 'border-deepBlue/[0.085] bg-white/[0.9] shadow-emc-lg shadow-deepBlue/[0.06] ring-1 ring-deepBlue/[0.045] backdrop-blur-2xl backdrop-saturate-150'
+          : 'border-deepBlue/[0.04] bg-white/[0.78] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/60',
       ].join(' ')}
     >
-      <div className="relative mx-auto flex min-h-[4.75rem] max-w-[1520px] items-center justify-between gap-4 px-4 sm:px-6 lg:min-h-[5rem] lg:gap-8 lg:px-10">
+      <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:h-[4.25rem] lg:px-8">
         <Link
           to="/"
-          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1.5 ring-deepBlue/0 transition hover:bg-[#F8FBFE] hover:ring-1 hover:ring-customBlue/15"
+          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1 ring-deepBlue/0 transition hover:bg-emcBg/90 hover:ring-1 hover:ring-customBlue/18"
         >
-          <img src={logo} alt="EMC" className="h-10 w-auto sm:h-[2.75rem]" />
+          <img src={logo} alt="EMC" className="h-9 w-auto sm:h-10 lg:h-[2.5rem]" />
         </Link>
 
         <nav
           className="absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center lg:flex"
           aria-label="القائمة الرئيسية"
         >
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-[1.35rem] border border-deepBlue/[0.06] bg-white/75 px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_18px_-10px_rgba(15,42,67,0.12)] backdrop-blur-xl">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl">
             <NavLink to="/" end className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}>
               الرئيسية
             </NavLink>
@@ -208,40 +223,19 @@ export default function Navbar() {
               pathname={pathname}
               locationHash={hash}
             />
-
-            <NavLink
-              to="/contact"
-              className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}
-            >
-              تواصل معنا
-            </NavLink>
           </div>
         </nav>
 
-        <div className="relative z-20 hidden items-center gap-2.5 lg:flex">
-          <Link
-            to="/volunteer"
-            onClick={() => setOpenMega(null)}
-            className={[
-              'inline-flex items-center justify-center rounded-2xl border-2 px-4 py-2.5 text-[13px] font-black tracking-tight transition-all duration-200 ease-emc-out',
-              joinCtaActive
-                ? 'border-customOrange bg-customOrange/[0.1] text-deepBlue shadow-[inset_0_0_0_1px_rgba(247,148,29,0.25)]'
-                : 'border-customOrange/85 bg-white text-deepBlue hover:-translate-y-px hover:border-customOrange hover:bg-customOrange/[0.07] hover:shadow-[0_10px_24px_-12px_rgba(236,148,60,0.5)]',
-            ].join(' ')}
-          >
-            انضم إلينا
-          </Link>
-
+        <div className="relative z-20 hidden shrink-0 items-center gap-3 lg:flex">
           {!isLoading &&
             (isAuthenticated && user ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1B6489] px-5 py-2.5 text-[13px] font-black text-white shadow-[0_12px_30px_-12px_rgba(38,145,201,0.6)] transition-all duration-200 ease-emc-out hover:-translate-y-px hover:shadow-[0_18px_36px_-12px_rgba(38,145,201,0.7)]"
-                >
-                  <LayoutDashboard size={17} strokeWidth={2.25} className="transition group-hover:scale-110" />
-                  لوحة التحكم
-                </Link>
+                <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
+                  <Link to="/dashboard" className={dashboardBtnClass}>
+                    <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
+                    <span className="whitespace-nowrap">لوحة التحكم</span>
+                  </Link>
+                </motion.span>
                 <div className="relative">
                   <button
                     type="button"
@@ -251,13 +245,13 @@ export default function Navbar() {
                     }}
                     aria-expanded={userMenuOpen}
                     className={[
-                      'flex items-center gap-2 rounded-2xl border px-3.5 py-2 text-[13px] font-bold transition-all duration-200',
+                      'flex h-11 items-center gap-2 rounded-2xl border px-3.5 text-[13px] font-semibold transition-all duration-200',
                       userMenuOpen
-                        ? 'border-customBlue/35 bg-customBlue/[0.07] text-customBlue'
-                        : 'border-deepBlue/10 text-deepBlue hover:border-customBlue/25 hover:bg-[#F8FBFE]',
+                        ? 'border-customBlue/35 bg-customBlue/[0.08] text-customBlue shadow-emc-xs backdrop-blur-sm'
+                        : 'border-deepBlue/[0.1] bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-emcBg/90',
                     ].join(' ')}
                   >
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-deepBlue text-xs font-black text-white">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-deepBlue/[0.9] text-xs font-black text-white">
                       {userInitial}
                     </span>
                     <span className="max-w-[6.5rem] truncate">{user.name}</span>
@@ -306,20 +300,18 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-1.5 rounded-2xl border border-deepBlue/12 bg-white px-4 py-2.5 text-[13px] font-black text-deepBlue transition-all duration-200 ease-emc-out hover:-translate-y-px hover:border-customBlue/30 hover:bg-[#F8FBFE] hover:text-customBlue hover:shadow-emc-xs"
-                >
-                  <LogIn size={17} strokeWidth={2.25} />
-                  دخول
-                </Link>
-                <Link
-                  to="/dashboard"
-                  className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1B6489] px-5 py-2.5 text-[13px] font-black text-white shadow-[0_12px_30px_-12px_rgba(38,145,201,0.6)] transition-all duration-200 ease-emc-out hover:-translate-y-px hover:shadow-[0_18px_36px_-12px_rgba(38,145,201,0.7)]"
-                >
-                  <LayoutDashboard size={17} strokeWidth={2.25} className="transition group-hover:scale-110" />
-                  لوحة التحكم
-                </Link>
+                <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
+                  <Link to="/login" className={loginBtnClass}>
+                    <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
+                    <span className="whitespace-nowrap">تسجيل الدخول</span>
+                  </Link>
+                </motion.span>
+                <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
+                  <Link to="/dashboard" className={dashboardBtnClass}>
+                    <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
+                    <span className="whitespace-nowrap">لوحة التحكم</span>
+                  </Link>
+                </motion.span>
               </>
             ))}
         </div>
@@ -328,7 +320,7 @@ export default function Navbar() {
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-deepBlue/10 text-deepBlue transition hover:bg-[#F8FBFE] lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-emcBg/90 lg:hidden"
         >
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
@@ -341,7 +333,7 @@ export default function Navbar() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="max-h-[min(88vh,600px)] overflow-y-auto border-t border-deepBlue/[0.07] bg-white lg:hidden"
+            className="max-h-[min(88vh,600px)] overflow-y-auto border-t border-deepBlue/[0.07] bg-white/98 backdrop-blur-xl lg:hidden"
           >
             <div className="space-y-1.5 px-4 py-4">
               <NavLink
@@ -423,28 +415,9 @@ export default function Navbar() {
               >
                 الشراكات
               </NavLink>
-              <NavLink
-                to="/contact"
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  [
-                    'block rounded-2xl px-4 py-3.5 text-sm font-black',
-                    isActive ? 'bg-customBlue/[0.1] text-customBlue ring-1 ring-customBlue/20' : 'text-deepBlue hover:bg-[#F8FBFE]',
-                  ].join(' ')
-                }
-              >
-                تواصل معنا
-              </NavLink>
 
               {!isLoading && (
-                <div className="grid gap-2.5 border-t border-deepBlue/[0.07] pt-4">
-                  <Link
-                    to="/volunteer"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-center rounded-2xl border-2 border-customOrange py-3.5 text-sm font-black text-deepBlue"
-                  >
-                    انضم إلينا
-                  </Link>
+                <div className="grid gap-3 border-t border-deepBlue/[0.07] pt-4">
                   {isAuthenticated && user ? (
                     <>
                       <div className="flex items-center gap-3 rounded-2xl border border-deepBlue/[0.08] bg-[#F8FBFE] px-4 py-3">
@@ -459,9 +432,10 @@ export default function Navbar() {
                       <Link
                         to="/dashboard"
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center justify-center gap-2 rounded-2xl bg-customBlue py-3.5 text-sm font-black text-white"
+                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
                       >
-                        لوحة التحكم
+                        <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
+                        <span className="whitespace-nowrap">لوحة التحكم</span>
                       </Link>
                       <button
                         type="button"
@@ -479,16 +453,18 @@ export default function Navbar() {
                       <Link
                         to="/login"
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center justify-center gap-2 rounded-2xl border border-deepBlue/12 py-3.5 text-sm font-black text-deepBlue"
+                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${loginBtnClass}`}
                       >
-                        دخول
+                        <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
+                        <span className="whitespace-nowrap">تسجيل الدخول</span>
                       </Link>
                       <Link
                         to="/dashboard"
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center justify-center gap-2 rounded-2xl bg-customBlue py-3.5 text-sm font-black text-white"
+                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
                       >
-                        لوحة التحكم
+                        <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
+                        <span className="whitespace-nowrap">لوحة التحكم</span>
                       </Link>
                     </>
                   )}

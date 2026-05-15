@@ -436,7 +436,7 @@ export default function About() {
         title="انضم إلى مجتمع EMC"
         description="سواء كنت متعلماً، شريكاً، أو متطوعاً — هناك مسار يناسبك ضمن منظومتنا."
         primaryLabel="استكشف المجالات"
-        primaryHref="/themes"
+        primaryHref="/tracks"
         secondaryLabel="شراكة"
         secondaryHref="/partnerships"
       />

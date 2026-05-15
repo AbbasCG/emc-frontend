@@ -1,45 +1,46 @@
-import HeroSection from '../components/home/HeroSection'
-import HomePlatformBento from '../components/home/HomePlatformBento'
-import VisionMissionSection from '../components/home/VisionMissionSection'
-import OffersSection from '../components/home/OffersSection'
-import TwelveThemesPreviewSection from '../components/home/TwelveThemesPreviewSection'
-import LearningPathsSection from '../components/home/LearningPathsSection'
-import FeaturedCoursesSection from '../components/home/FeaturedCoursesSection'
-import HomeFeaturedInstructors from '../components/home/HomeFeaturedInstructors'
+import { lazy, Suspense } from 'react'
+import HomeCinematicHero from '../components/home/HomeCinematicHero'
+import HomeTrustStrip from '../components/home/HomeTrustStrip'
+import HomeLearningTracks from '../components/home/HomeLearningTracks'
+import HomeEcosystemBento from '../components/home/HomeEcosystemBento'
 import WhyChooseSection from '../components/home/WhyChooseSection'
-import PartnershipSection from '../components/home/PartnershipSection'
-import ImpactSection from '../components/home/ImpactSection'
-import HomeStatsBand from '../components/home/HomeStatsBand'
+import HomeImpactMetrics from '../components/home/HomeImpactMetrics'
+import HomeTestimonialsCarousel from '../components/home/HomeTestimonialsCarousel'
 import HomeFaqSection from '../components/home/HomeFaqSection'
-import CTASection from '../components/shared/CTASection'
+import HomeGrandCTA from '../components/home/HomeGrandCTA'
+
+const FeaturedCoursesSection = lazy(() => import('../components/home/FeaturedCoursesSection'))
+
+function CoursesFallback() {
+  return (
+    <section className="bg-white px-4 py-16 sm:px-6 lg:px-10" aria-hidden>
+      <div className="mx-auto max-w-[1540px]">
+        <div className="mb-12 h-8 w-48 animate-pulse rounded-lg bg-brand-100" />
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-96 animate-pulse rounded-[1.25rem] bg-brand-50/80 ring-1 ring-deepBlue/[0.04]" />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
 
 export default function Home() {
   return (
-    <main className="bg-emcBg">
-      <HeroSection />
-      <HomePlatformBento />
-      <VisionMissionSection />
-      <OffersSection />
-      <TwelveThemesPreviewSection />
-      <LearningPathsSection />
-      <FeaturedCoursesSection />
-      <HomeFeaturedInstructors />
+    <main className="bg-white">
+      <HomeCinematicHero />
+      <HomeTrustStrip />
+      <HomeLearningTracks />
+      <HomeEcosystemBento />
       <WhyChooseSection />
-      <PartnershipSection />
-      <ImpactSection />
-      <HomeStatsBand />
+      <Suspense fallback={<CoursesFallback />}>
+        <FeaturedCoursesSection />
+      </Suspense>
+      <HomeImpactMetrics />
+      <HomeTestimonialsCarousel />
       <HomeFaqSection />
-      <CTASection
-        title="ابدأ رحلتك مع EMC اليوم"
-        subtitle="سواء كنت تبحث عن دورة، استشارة، شراكة، أو فرصة للتطوع، نحن هنا لمساعدتك على بناء خطوة أفضل."
-        buttonText="التسجيل في البرامج"
-        buttonLink="/courses"
-        extraLinks={[
-          { text: 'التطوع', to: '/volunteer', variant: 'orange' },
-          { text: 'شراكة', to: '/partnerships', variant: 'glass' },
-          { text: 'تواصل معنا', to: '/contact', variant: 'muted' },
-        ]}
-      />
+      <HomeGrandCTA />
     </main>
   )
 }

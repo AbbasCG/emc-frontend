@@ -32,7 +32,6 @@ import SubmitWorkshop from './pages/SubmitWorkshop'
 import TeacherDashboard from './pages/TeacherDashboard'
 import Team from './pages/Team'
 import ThankYou from './pages/ThankYou'
-import Themes from './pages/Themes'
 import Tracks from './pages/Tracks'
 import Volunteer from './pages/Volunteer'
 import AdminLmsAssignmentsPage from './pages/lms/admin/AdminLmsAssignmentsPage'
@@ -172,13 +171,15 @@ function App() {
               <Route path="/thank-you" element={<ThankYou />} />
               {/* Phase 6 — public informational pages */}
               <Route path="/departments"  element={<Departments />} />
-              <Route path="/themes"       element={<Themes />} />
+              <Route path="/themes"       element={<Navigate to="/tracks" replace />} />
               <Route path="/tracks"       element={<Tracks />} />
               <Route path="/paths"        element={<Paths />} />
               <Route path="/programs"     element={<Programs />} />
               <Route path="/platform"     element={<Platform />} />
               <Route path="/team"         element={<Team />} />
+              <Route path="/ar/team"     element={<Team />} />
               <Route path="/impact"       element={<Impact />} />
+              <Route path="/ar/impact"    element={<Impact />} />
               <Route path="/partnerships" element={<Partnerships />} />
               <Route path="/volunteer"    element={<Volunteer />} />
               <Route path="/support" element={<SupportPage />} />

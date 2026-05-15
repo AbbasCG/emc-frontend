@@ -44,12 +44,13 @@ const reasons = [
 
 export default function WhyChooseSection() {
   return (
-    <section className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">لماذا تختار EMC؟</h2>
-          <span className="mx-auto mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-          <p className="mt-5 text-base leading-8 text-slate-500">
+    <section className="border-y border-deepBlue/[0.05] bg-emcBg px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+      <div className="mx-auto max-w-[1540px]">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <p className="text-xs font-black text-customBlue">عرض قيمة المنصّة</p>
+          <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl">لماذا تختار EMC؟</h2>
+          <span className="mx-auto mt-5 block h-1 w-16 rounded-full bg-customOrange" />
+          <p className="mt-5 text-base leading-8 text-foreground/70">
             لأن التعليم الجيد يحتاج أكثر من محتوى — يحتاج توجيهاً وشراكة حقيقية.
           </p>
         </div>
@@ -65,13 +66,13 @@ export default function WhyChooseSection() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45, delay: i * 0.07 }}
-                className="rounded-2xl bg-white p-7 text-right shadow-lg shadow-slate-200/60 ring-1 ring-slate-100"
+                className="group rounded-[1.35rem] border border-deepBlue/[0.06] bg-white p-7 text-right shadow-emc-sm ring-1 ring-white/80 transition-all duration-300 hover:-translate-y-[2px] hover:shadow-emc-md"
               >
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-customBlue">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-customBlue ring-1 ring-customBlue/15 transition-transform group-hover:scale-105">
                   <Icon size={24} aria-hidden="true" />
                 </div>
                 <h3 className="text-lg font-extrabold text-deepBlue">{reason.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-slate-500">{reason.desc}</p>
+                <p className="mt-2 text-sm leading-7 text-foreground/65">{reason.desc}</p>
               </motion.div>
             )
           })}

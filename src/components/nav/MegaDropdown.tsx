@@ -65,10 +65,10 @@ export default function MegaDropdown({
         aria-expanded={isOpen}
         aria-haspopup="true"
         className={[
-          'flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-[13px] font-bold tracking-tight transition-all duration-200',
+          'flex min-h-[2.625rem] items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-all duration-200 ease-out',
           isOpen || isActive
-            ? 'bg-customBlue/[0.08] text-customBlue shadow-[inset_0_0_0_1px_rgba(38,145,201,0.22)]'
-            : 'text-deepBlue hover:bg-customBlue/[0.05] hover:text-customBlue',
+            ? 'bg-customBlue/[0.1] text-customBlue shadow-[inset_0_0_0_1px_rgba(38,145,194,0.28)] backdrop-blur-sm'
+            : 'text-deepBlue hover:bg-white/80 hover:text-customBlue hover:shadow-emc-xs',
         ].join(' ')}
       >
         {label}
@@ -86,12 +86,14 @@ export default function MegaDropdown({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute right-0 top-full z-50 mt-3 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-deepBlue/[0.1] bg-white shadow-[0_28px_56px_-16px_rgba(15,42,67,0.22)]"
+            className="absolute right-0 top-full z-50 mt-3 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-white/95 shadow-emc-lg ring-1 ring-white/80 backdrop-blur-xl"
             role="menu"
           >
-            <div className="border-b border-deepBlue/[0.06] bg-gradient-to-l from-customBlue/[0.09] via-white to-[#F8FBFE] px-5 py-3">
-              <p className="text-right text-[11px] font-black uppercase tracking-[0.14em] text-deepBlue/45">{label}</p>
-              <p className="mt-0.5 text-right text-xs font-bold text-deepBlue/70">انتقال سريع ضمن منظومة EMC</p>
+            <div className="border-b border-deepBlue/[0.06] bg-gradient-to-l from-customBlue/[0.12] via-white to-emcBg px-5 py-3.5">
+              <p className="text-right text-[12px] font-black text-customBlue/90">{label}</p>
+              <p className="mt-1 text-right text-xs font-semibold leading-relaxed text-deepBlue/65">
+                انتقال سريع ضمن منظومة EMC
+              </p>
             </div>
             <div className="max-h-[min(70vh,26rem)] overflow-y-auto p-2.5">
               {items.map((item) => {

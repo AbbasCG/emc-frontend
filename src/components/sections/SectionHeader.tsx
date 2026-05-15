@@ -25,7 +25,7 @@ export default function SectionHeader({
 
   return (
     <motion.div
-      className={`mb-10 max-w-3xl ${alignClass} ${className}`}
+      className={`mb-8 max-w-2xl md:max-w-3xl ${alignClass} ${className}`}
       variants={fadeUp}
       initial="hidden"
       whileInView="visible"
@@ -37,14 +37,14 @@ export default function SectionHeader({
           {eyebrow}
         </span>
       )}
-      <h2 className="text-3xl font-black leading-[1.15] tracking-tight text-deepBlue sm:text-4xl lg:text-[2.35rem]">
+      <h2 className="font-display text-3xl font-black leading-tight tracking-tight text-deepBlue md:text-4xl">
         {title}
       </h2>
       <span
-        className={`mt-5 block h-1 w-24 rounded-full bg-gradient-to-l from-customOrange via-customBlue/60 to-deepBlue/30 ${align === 'center' ? 'mx-auto' : ''}`}
+        className={`mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange via-customBlue/60 to-deepBlue/30 ${align === 'center' ? 'mx-auto' : ''}`}
       />
       {body && (
-        <p className="mt-5 text-base font-medium leading-8 text-deepBlue/70 sm:text-lg sm:leading-9">{body}</p>
+        <p className="mt-4 text-base font-medium leading-relaxed text-deepBlue/70 md:text-lg md:leading-relaxed">{body}</p>
       )}
     </motion.div>
   )
