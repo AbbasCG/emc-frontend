@@ -1,0 +1,219 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Mail, PhoneForwarded, RefreshCw } from 'lucide-react'
+import { fetchPartnersForSuperAdmin } from '@/api/partnersApi'
+import type { PartnerRecord } from '@/types/operations'
+import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
+import { CrudFilterBar, MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
+import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
+import { LoadingPanel, EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
+import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
+import {
+  SaGlassCard,
+  SaPageRoot,
+  SaStatChip,
+  SaToolbar,
+} from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
+import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
+
+export default function PartnersManagementPage() {
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [rows, setRows] = useState<PartnerRecord[]>([])
+  const [status, setStatus] = useState<'all' | 'named' | 'typed'>('all')
+  const [q, setQ] = useState('')
+  const [detail, setDetail] = useState<PartnerRecord | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
+    const pack = await fetchPartnersForSuperAdmin()
+    if (!pack.ok) {
+      setRows([])
+      if (pack.status === 403)
+        setLoadError('لا تملك صلاحيات كافية لقراءة /operations/partners — تحقَّق من ربط المستخدم بتجربة الموظف المناسب.')
+      else setLoadError('لم يمكن إكمال الاتصال بـ /operations/partners حاليًا؛ راجع حالة الشبكة والخلفية.')
+    } else setRows(pack.rows)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const filtered = useMemo(() => {
+    const t = q.trim().toLowerCase()
+    return rows.filter((p) => {
+      if (status === 'named' && !(p.name?.trim()?.length ?? 0)) return false
+      if (status === 'typed' && !(p.institution_type?.trim()?.length ?? 0)) return false
+      const hay = `${p.name} ${p.institution_type ?? ''} ${p.status ?? ''}`.toLowerCase()
+      return !t || hay.includes(t)
+    })
+  }, [rows, q, status])
+
+  const typed = rows.filter((p) => (p.institution_type?.trim()?.length ?? 0) > 0).length
+  const activeish = rows.filter((p) => {
+    const st = `${p.status ?? ''}`.toLowerCase()
+    return st.includes('نش') || st.includes('active')
+  }).length
+
+  return (
+    <SaPageRoot>
+      <SaToolbar
+        eyebrow="علاقات المؤسسات"
+        title="الشراكات"
+        subtitle="شبكة بطاقات شركاء مع لوحة جانبية للاتصال والإجراءات السريعة — المصدر GET /operations/partners."
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-sm"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+              تحديث
+            </button>
+            <Link to="/dashboard/admin/partners" className="rounded-2xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
+              إدارة كاملة (Ops)
+            </Link>
+            <Link
+              to="/dashboard/admin/partnership-requests"
+              className="rounded-2xl border border-accent-300 bg-accent-400/15 px-4 py-2.5 text-[12px] font-black text-accent-950"
+            >
+              طلبات خارجية
+            </Link>
+          </>
+        }
+      />
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <SaStatChip label="شركاء مسجّلون" value={rows.length} tone="blue" />
+        <SaStatChip label="بنوع مؤسسي" value={typed} tone="success" />
+        <SaStatChip label="حالات نشطة (تقديرية)" value={activeish} tone="orange" />
+      </div>
+
+      <CrudFilterBar searchValue={q} onSearchChange={setQ} searchPlaceholder="بحث بالجهة أو النمط أو الحالة…">
+        <MiniSelect
+          label="جودة البيانات"
+          value={status}
+          onChange={(v) => setStatus(v as 'all' | 'named' | 'typed')}
+          options={[
+            { value: 'all', labelAr: 'جميع المحتويات' },
+            { value: 'named', labelAr: 'بتسمية مؤكدة' },
+            { value: 'typed', labelAr: 'بتصنيف مؤسسي' },
+          ]}
+        />
+      </CrudFilterBar>
+
+      {loadError ?
+        <ErrorPanel title="خطأ قراءة البيانات من الخادم" hint={loadError} />
+      : loading ?
+        <LoadingPanel />
+      : !filtered.length ?
+        <EmptyPanel title="لا شركاء يطابق المرشّح الآن." subtitle="يمكنك العودة للوحة التشغيل أو تهيئة بيانات جديدة بعد التأشير من الفريق الأساسي." />
+      :
+        <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((p) => {
+            const rel =
+              p.status?.includes('نش') || `${p.status ?? ''}`.toLowerCase().includes('active') ?
+                'نشطة'
+              : 'تحت التقييم'
+            return (
+              <SaGlassCard key={p.id} className="flex flex-col p-5 text-right" glow="orange">
+                <div className="flex items-start gap-4">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand-500/15 text-sm font-black text-deepBlue ring-1 ring-brand-500/35">
+                    {initialsFromName(p.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-black text-deepBlue">{p.name}</h2>
+                    <p className="mt-1 text-[11px] font-bold text-muted-500">#{p.id}</p>
+                    <div className="mt-3 flex flex-wrap gap-2 justify-start">
+                      {p.institution_type ?
+                        <CrudBadge variant="brand">{p.institution_type}</CrudBadge>
+                      : (
+                        <CrudBadge variant="default">نوع غير معلن</CrudBadge>
+                      )}
+                      <CrudBadge variant={rel === 'نشطة' ? 'success' : 'accent'}>{rel}</CrudBadge>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-5 rounded-xl border border-ink-100/80 bg-slate-50/80 px-3 py-3">
+                  <p className="text-[10px] font-black uppercase text-muted-500">آخر نشاط مسجّل</p>
+                  <p className="mt-1 text-[13px] font-black text-deepBlue">{(p.updated_at ?? '—').toString().slice(0, 10)}</p>
+                </div>
+                <div className="mt-auto flex flex-wrap justify-between gap-2 border-t border-ink-100/60 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setDetail(p)}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-customBlue/25 bg-brand-500/10 px-3 py-2 text-[11px] font-black text-customBlue transition hover:bg-brand-500/15"
+                  >
+                    <PhoneForwarded className="h-4 w-4" aria-hidden />
+                    لوحة الاتصال
+                  </button>
+                  <RowActionsMenu
+                    ariaLabel={p.name}
+                    actions={[
+                      { key: 'v', label: 'تفاصيل', onClick: () => setDetail(p) },
+                      { key: 'ops', label: 'لوحة الموظّف', onClick: () => navigate('/dashboard/admin/partners') },
+                    ]}
+                  />
+                </div>
+              </SaGlassCard>
+            )
+          })}
+        </div>
+      }
+
+      <CrudDrawer
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        title={detail?.name ?? ''}
+        subtitle={detail ? `مرجع #{detail.id}` : undefined}
+        widthClassName="max-w-md sm:max-w-xl"
+        footerSlot={
+          detail ?
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/admin/partners')}
+                className="w-full rounded-2xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white"
+              >
+                فتح لوحة الموظّف الكاملة
+              </button>
+              <Link
+                to="/dashboard/admin/partnership-requests"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-ink-100 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue"
+              >
+                <Mail className="h-4 w-4" aria-hidden />
+                مراجعة الطلبات الواردة
+              </Link>
+            </div>
+          : null
+        }
+      >
+        {detail ?
+          <div className="space-y-5 text-right">
+            <div className="flex flex-wrap gap-2 justify-start">
+              {detail.institution_type ?
+                <CrudBadge variant="brand">{detail.institution_type}</CrudBadge>
+              : null}
+              {detail.status ?
+                <CrudBadge variant="accent">{detail.status}</CrudBadge>
+              : null}
+            </div>
+            <SaGlassCard className="p-4">
+              <p className="text-[11px] font-black text-muted-600">ملخص العلاقة</p>
+              <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
+                يمكن لمزامنة أعمق أن تعرض جهات اتصال وتقارير أداء عند توفر حقول إضافية من الخلفية.
+              </p>
+            </SaGlassCard>
+            <div className="rounded-2xl border border-brand-200/60 bg-brand-500/5 px-4 py-3 text-[12px] font-bold text-brand-950">
+              آخر تحديث مرصود: {detail.updated_at ?? 'لم يعود عليه طابع زمني بعد'}
+            </div>
+          </div>
+        : null}
+      </CrudDrawer>
+    </SaPageRoot>
+  )
+}

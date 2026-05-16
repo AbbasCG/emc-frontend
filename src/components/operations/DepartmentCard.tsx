@@ -4,7 +4,14 @@ import { Link } from 'react-router-dom'
 import type { WorkspaceDepartment } from '@/types/operations'
 import DepartmentHealthBadge from './DepartmentHealthBadge'
 
-export default function DepartmentCard({ d }: { d: WorkspaceDepartment }) {
+export default function DepartmentCard({
+  d,
+  listPathPrefix = '/dashboard/admin/departments',
+}: {
+  d: WorkspaceDepartment
+  /** List section path without trailing id (e.g. `/dashboard/department` for dept managers). */
+  listPathPrefix?: string
+}) {
   return (
     <motion.article
       layout
@@ -38,7 +45,7 @@ export default function DepartmentCard({ d }: { d: WorkspaceDepartment }) {
           <span>{d.meetings_week ?? 0} اجتماعات أسبوعياً</span>
         </div>
         <Link
-          to={`/dashboard/admin/departments/${d.id}`}
+          to={`${listPathPrefix}/${d.id}`}
           className="inline-flex items-center justify-end gap-1 text-xs font-black text-customBlue hover:text-customOrange"
         >
           لوحة الإدارة

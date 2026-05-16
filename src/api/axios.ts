@@ -40,6 +40,9 @@ apiClient.interceptors.response.use(
 
     const isSilentAuthProbe = url.includes('/auth/me')
 
+    const pathOnly = url.split('?')[0] ?? ''
+    const method = String(error.config?.method ?? 'get').toLowerCase()
+
     // 401: clear session except during login/register attempts
     if (status === 401 && !isAuthAttempt) {
       localStorage.removeItem(TOKEN_KEY)
@@ -57,8 +60,18 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Global toast (Arabic) — skip for auth forms & silent requests
+    // Global toast (Arabic) — skip forms, probes, silent flags, optional `/notifications*`, `/finance*` GET probes
     if (!skipToast && status !== 401 && !isAuthAttempt) {
+      const silentFinanceGet =
+        method === 'get' &&
+        (status === 403 || status === 404) &&
+        /^\/finance(\/|$)/i.test(pathOnly)
+      if (silentFinanceGet) {
+        return Promise.reject(error)
+      }
+      if ((status === 404 || status === 403) && /^\/notifications(\/|$)/.test(pathOnly)) {
+        return Promise.reject(error)
+      }
       if (status && status >= 500) {
         toast.error(msg)
       } else if (status === 403 || status === 404) {

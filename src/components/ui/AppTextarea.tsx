@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { cn } from '@/lib/utils'
 import AppFormError from './AppFormError'
 
 type AppTextareaProps = {
@@ -13,6 +14,8 @@ type AppTextareaProps = {
   maxLength?: number
   disabled?: boolean
   hint?: string
+  variant?: 'default' | 'emc'
+  textareaClassName?: string
 }
 
 export default function AppTextarea({
@@ -27,6 +30,8 @@ export default function AppTextarea({
   maxLength,
   disabled = false,
   hint,
+  variant = 'default',
+  textareaClassName,
 }: AppTextareaProps) {
   const generatedId = useId()
   const textareaId = `${name}-${generatedId}`
@@ -62,13 +67,17 @@ export default function AppTextarea({
         required={required}
         aria-invalid={Boolean(error)}
         aria-describedby={[hint ? hintId : '', error ? errorId : ''].filter(Boolean).join(' ') || undefined}
-        className={[
-          'resize-none rounded-xl border bg-white px-4 py-3 text-right font-semibold leading-7 text-deepBlue outline-none transition placeholder:text-slate-400',
+        className={cn(
+          'resize-none border bg-white px-4 text-right font-semibold leading-7 text-deepBlue outline-none transition placeholder:text-slate-400',
+          variant === 'emc' ? 'rounded-2xl py-3.5 text-[15px] placeholder:text-slate-500' : 'rounded-xl py-3',
           error
-            ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-            : 'border-amber-100 focus:border-[#b9872f] focus:ring-4 focus:ring-amber-100',
-          disabled ? 'cursor-not-allowed bg-slate-100 text-slate-500' : '',
-        ].join(' ')}
+            ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
+            : variant === 'emc'
+              ? 'border-slate-200/90 shadow-sm focus:border-[#2691C2] focus:ring-4 focus:ring-[#2691C2]/22'
+              : 'border-amber-100 focus:border-[#b9872f] focus:ring-4 focus:ring-amber-100',
+          disabled && 'cursor-not-allowed bg-slate-100 text-slate-500',
+          textareaClassName,
+        )}
       />
 
       {error && <AppFormError id={errorId} message={error} />}

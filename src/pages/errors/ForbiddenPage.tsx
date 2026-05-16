@@ -2,18 +2,12 @@ import { Link } from 'react-router-dom'
 import { ShieldOff } from 'lucide-react'
 import ErrorPageShell from '@/components/errors/ErrorPageShell'
 import { useAuth } from '@/contexts/AuthContext'
+import { getDashboardPathByRole } from '@/utils/dashboardAccess'
 
 export default function ForbiddenPage() {
   const { user, isAuthenticated } = useAuth()
 
-  const dashboardHref =
-    user?.role === 'admin'
-      ? '/dashboard/admin'
-      : user?.role === 'teacher'
-        ? '/dashboard/teacher'
-        : user?.role === 'partner'
-          ? '/partner/dashboard'
-          : '/dashboard/student'
+  const dashboardHref = getDashboardPathByRole(user?.role)
 
   return (
     <ErrorPageShell

@@ -7,6 +7,7 @@ import {
 } from 'react'
 import * as authApi from '../api/authApi'
 import type { User } from '../types'
+import { normalizeAuthUser } from '../utils/userIdentity'
 
 export const TOKEN_KEY = 'emc_token'
 export const USER_KEY = 'emc_user'
@@ -23,8 +24,8 @@ interface AuthContextValue {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
-  registerAccount: (input: RegisterAccountInput) => Promise<void>
+  login: (email: string, password: string) => Promise<{ user: User; token: string }>
+  registerAccount: (input: RegisterAccountInput) => Promise<{ user: User; token: string }>
   logout: () => void
 }
 
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const cached = localStorage.getItem(USER_KEY)
     if (cached) {
       try {
-        setUser(JSON.parse(cached) as User)
+        setUser(normalizeAuthUser(JSON.parse(cached) as unknown))
       } catch {
         localStorage.removeItem(USER_KEY)
       }
@@ -80,27 +81,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function login(email: string, password: string) {
-    const { token: newToken, user: newUser } = await authApi.login(email, password)
+    const payload = await authApi.login(email, password)
+    const { token: newToken, user: newUser } = payload
     localStorage.setItem(TOKEN_KEY, newToken)
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
     setToken(newToken)
     setUser(newUser)
+    return payload
   }
 
   async function registerAccount(input: RegisterAccountInput) {
-    const { token: newToken, user: newUser } = await authApi.registerAccount(input)
+    const payload = await authApi.registerAccount(input)
+    const { token: newToken, user: newUser } = payload
     localStorage.setItem(TOKEN_KEY, newToken)
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
     setToken(newToken)
     setUser(newUser)
+    return payload
   }
 
   function logout() {
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
-    setToken(null)
-    setUser(null)
-    authApi.logoutRemote().catch(() => {})
+    void (async () => {
+      try {
+        await authApi.logoutRemote()
+      } catch {
+        // Always clear locally even if backend is unreachable / session already expired.
+      }
+      try {
+        localStorage.removeItem(TOKEN_KEY)
+        localStorage.removeItem(USER_KEY)
+      } catch {
+        /* ignore */
+      }
+      try {
+        sessionStorage.clear()
+      } catch {
+        /* ignore */
+      }
+      setToken(null)
+      setUser(null)
+      window.location.assign('/login')
+    })()
   }
 
   return (

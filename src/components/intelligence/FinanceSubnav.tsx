@@ -1,11 +1,15 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import { financeSectionBase } from '@/utils/financeNav'
 
 export default function FinanceSubnav() {
+  const { pathname } = useLocation()
+  const base = financeSectionBase(pathname)
   const links = [
-    { to: '/dashboard/admin/finance', label: 'لوحة المالية', end: true },
-    { to: '/dashboard/admin/finance/payments', label: 'المدفوعات' },
-    { to: '/dashboard/admin/finance/transactions', label: 'المعاملات' },
+    { to: base, label: 'لوحة المالية', end: true },
+    { to: `${base}/payments`, label: 'المدفوعات' },
+    { to: `${base}/transactions`, label: 'المعاملات' },
   ]
+
   return (
     <nav className="flex flex-wrap justify-end gap-2 rounded-2xl bg-deepBlue/[0.04] p-2 ring-1 ring-deepBlue/[0.06]">
       {links.map((l) => (

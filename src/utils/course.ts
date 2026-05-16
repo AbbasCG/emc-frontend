@@ -1,4 +1,5 @@
 import type { Course } from '../types'
+import { formatEuro } from './currency'
 
 export const courseImages = [
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
@@ -25,9 +26,11 @@ export function formatPrice(price: Course['price']) {
   const numericPrice = Number(price)
   if (Number.isNaN(numericPrice)) return `${price}`
 
-  return `${new Intl.NumberFormat('ar', {
+  return formatEuro(numericPrice, {
+    locale: 'ar',
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(numericPrice)} ر.س`
+  })
 }
 
 export function formatSchedule(startDate?: string | null, endDate?: string | null) {

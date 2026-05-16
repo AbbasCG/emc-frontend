@@ -6,6 +6,7 @@ import { GraduationCap } from 'lucide-react'
 import { fetchScholarships, updateScholarshipStatus } from '@/api/scholarshipsApi'
 import { seedScholarships } from '@/data/intelligenceSeed'
 import type { ScholarshipApplication, ScholarshipStatus } from '@/types/intelligence'
+import { formatEuroInteger } from '@/utils/currency'
 
 const TYPE_AR = { full: 'منحة كاملة', partial: 'منحة جزئية' } as const
 const ST_AR: Record<ScholarshipStatus, string> = {
@@ -78,7 +79,7 @@ export default function ScholarshipsAdminPage() {
                       <span className="mr-2 text-customOrange"> · خصم {s.discount_percent}%</span>
                     )}
                     {s.type === 'full' && s.amount != null && (
-                      <span className="mr-2 text-customOrange"> · قيمة {s.amount} ر.س</span>
+                      <span className="mr-2 text-customOrange"> · قيمة {formatEuroInteger(s.amount, 'ar')}</span>
                     )}
                   </p>
                   <p className="mt-3 text-xs font-semibold leading-relaxed text-slate-600">{s.reason}</p>

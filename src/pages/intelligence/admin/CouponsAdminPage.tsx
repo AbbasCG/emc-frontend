@@ -7,6 +7,7 @@ import { TicketPercent } from 'lucide-react'
 import { createCoupon, fetchCoupons, updateCoupon } from '@/api/couponsApi'
 import { seedCoupons } from '@/data/intelligenceSeed'
 import type { CouponRecord } from '@/types/intelligence'
+import { formatEuroInteger } from '@/utils/currency'
 
 export default function CouponsAdminPage() {
   const [rows, setRows] = useState<CouponRecord[]>([])
@@ -85,7 +86,7 @@ export default function CouponsAdminPage() {
                   <p className="font-mono text-lg font-black text-customBlue">{c.code}</p>
                   <p className="mt-1 text-sm font-black text-deepBlue">{c.name}</p>
                   <p className="mt-2 text-[11px] font-bold text-slate-500">
-                    {c.discount_type === 'percent' ? `${c.value}%` : `${c.value} ر.س`} · {c.applies_to}
+                    {c.discount_type === 'percent' ? `${c.value}%` : formatEuroInteger(c.value, 'ar')} · {c.applies_to}
                   </p>
                   <p className="mt-2 text-[11px] font-bold text-slate-400">
                     استخدام {c.uses_count}/{c.max_uses ?? '∞'} · حتى {c.ends_at ?? '—'}

@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 
-export type UserRole = 'student' | 'teacher' | 'admin' | 'partner'
+export type UserRole = 'student' | 'teacher' | 'admin' | 'partner' | 'super_admin'
 
 export type User = {
   id: number
@@ -9,7 +9,8 @@ export type User = {
   phone?: string | null
   city?: string | null
   gender?: string | null
-  role?: UserRole
+  /** Backends may return extended roles beyond the frontend union — keep readable on profile. */
+  role?: UserRole | string | null
 }
 
 export type Course = {

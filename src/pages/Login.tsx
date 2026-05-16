@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
+import { getPostLoginRedirect } from '@/utils/dashboardAccess'
 
 export default function Login() {
   const { login } = useAuth()
@@ -49,8 +50,8 @@ export default function Login() {
     setError('')
     setIsLoading(true)
     try {
-      await login(email, password)
-      navigate(from, { replace: true })
+      const payload = await login(email, password)
+      navigate(getPostLoginRedirect(payload.user, from), { replace: true })
     } catch (err: unknown) {
       setError(getApiErrorMessage(err))
     } finally {

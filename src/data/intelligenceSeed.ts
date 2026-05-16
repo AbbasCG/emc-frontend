@@ -12,6 +12,7 @@ import type {
   ReportRecord,
   ScholarshipApplication,
 } from '@/types/intelligence'
+import { formatEuroCompact, formatEuroInteger } from '@/utils/currency'
 
 export function seedFinanceDashboard(): FinanceDashboardData {
   return {
@@ -47,7 +48,7 @@ export function seedFinancePayments(): FinancePaymentRow[] {
   return Array.from({ length: 16 }).map((_, i) => ({
     id: i + 1,
     amount: 450 + (i % 7) * 120,
-    currency: 'SAR',
+    currency: 'EUR',
     status: statuses[i % statuses.length]!,
     provider: providers[i % providers.length]!,
     course_name: ['مسار القيادة', 'جودة التدريب', 'ورشة تقييم الأثر'][i % 3]!,
@@ -230,10 +231,26 @@ export function seedKpiTab(tab: KpiTabSlug): KpiTabData {
       ['students', 'instructors', 'courses', 'workshops', 'attendance', 'completion', 'satisfaction'].includes(m.id),
     ),
     finance: [
-      { id: 'rev', label: 'إيرادات مؤكدة', value: '392k ر.س', trend: 'up', accent: 'blue' },
-      { id: 'pending', label: 'معلق', value: '31k ر.س', accent: 'orange' },
+      {
+        id: 'rev',
+        label: 'إيرادات مؤكدة',
+        value: formatEuroCompact(392_400, 'ar'),
+        trend: 'up',
+        accent: 'blue',
+      },
+      {
+        id: 'pending',
+        label: 'معلق',
+        value: formatEuroCompact(31_200, 'ar'),
+        accent: 'orange',
+      },
       { id: 'failed', label: 'فاشلة', value: 12, accent: 'orange' },
-      { id: 'arpu', label: 'متوسط الإيراد للمتعلم', value: '236 ر.س', accent: 'blue' },
+      {
+        id: 'arpu',
+        label: 'متوسط الإيراد للمتعلم',
+        value: formatEuroInteger(236, 'ar'),
+        accent: 'blue',
+      },
     ],
     departments: [
       { id: 'd1', label: 'صحة متوسط الإدارات', value: '88/100', accent: 'blue' },

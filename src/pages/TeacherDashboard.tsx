@@ -275,7 +275,7 @@ export default function TeacherDashboard() {
       {/* ── Upcoming sessions ── */}
       <DashboardSection
         title="جلساتي القادمة"
-        action={sessions.length > 0 ? { label: 'كل الجلسات', href: '/dashboard/teacher/sessions' } : undefined}
+        action={sessions.length > 0 ? { label: 'كل الجلسات', href: '/dashboard/instructor/sessions' } : undefined}
       >
         {sessions.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -308,21 +308,21 @@ export default function TeacherDashboard() {
             icon={Calendar}
             label="جلساتي"
             description="الجدول والروابط"
-            href="/dashboard/teacher/sessions"
+            href="/dashboard/instructor/sessions"
             color="blue"
           />
           <QuickActionCard
             icon={UserCheck}
             label="الحضور"
             description="تسجيل الحضور بالجلسة"
-            href="/dashboard/teacher/attendance"
+            href="/dashboard/instructor/attendance"
             color="orange"
           />
           <QuickActionCard
             icon={ClipboardList}
             label="مراجعة التسليمات"
             description="درجات وملاحظات"
-            href="/dashboard/teacher/submissions"
+            href="/dashboard/instructor/submissions"
             color="green"
           />
           <QuickActionCard

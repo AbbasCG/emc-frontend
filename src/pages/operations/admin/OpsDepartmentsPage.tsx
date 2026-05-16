@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import DepartmentCard from '@/components/operations/DepartmentCard'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
@@ -9,6 +10,11 @@ import type { WorkspaceDepartment } from '@/types/operations'
 import { Building2 } from 'lucide-react'
 
 export default function OpsDepartmentsPage() {
+  const location = useLocation()
+  const departmentPathPrefix = location.pathname.startsWith('/dashboard/department')
+    ? '/dashboard/department'
+    : '/dashboard/admin/departments'
+
   const [items, setItems] = useState<WorkspaceDepartment[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -62,7 +68,7 @@ export default function OpsDepartmentsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
               >
-                <DepartmentCard d={d} />
+                <DepartmentCard d={d} listPathPrefix={departmentPathPrefix} />
               </motion.div>
             ))}
           </div>

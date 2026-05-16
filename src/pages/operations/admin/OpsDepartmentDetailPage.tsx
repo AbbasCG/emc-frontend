@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Calendar,
@@ -34,6 +34,11 @@ type TabId = (typeof tabs)[number]['id']
 export default function OpsDepartmentDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const departmentsListPath = location.pathname.startsWith('/dashboard/department')
+    ? '/dashboard/department'
+    : '/dashboard/admin/departments'
+
   const [detail, setDetail] = useState<DepartmentDetail | null>(null)
   const [tasks, setTasks] = useState<OpsTask[]>([])
   const [meetings, setMeetings] = useState<OpsMeeting[]>([])
@@ -195,7 +200,7 @@ export default function OpsDepartmentDetailPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link
-          to="/dashboard/admin/departments"
+          to={departmentsListPath}
           className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
         >
           <ChevronLeft size={14} />

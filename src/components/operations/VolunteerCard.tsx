@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import type { OpsVolunteer } from '@/types/operations'
 import { VOLUNTEER_STATUS_AR } from '@/data/operationsLabels'
 
 export default function VolunteerCard({ v }: { v: OpsVolunteer }) {
+  const location = useLocation()
+  const detailBase = location.pathname.startsWith('/dashboard/volunteer')
+    ? '/dashboard/volunteer'
+    : '/dashboard/admin/volunteers'
+
   return (
     <motion.article
       layout
@@ -30,7 +35,7 @@ export default function VolunteerCard({ v }: { v: OpsVolunteer }) {
         التفرغ: {v.availability ?? '—'} · الساعات: {v.hours_logged ?? 0}
       </div>
       <Link
-        to={`/dashboard/admin/volunteers/${v.id}`}
+        to={`${detailBase}/${v.id}`}
         className="mt-4 flex items-center justify-end gap-1 text-xs font-black text-customOrange hover:underline"
       >
         الملف

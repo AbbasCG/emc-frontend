@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BookOpen, PieChart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { fetchStudentProgress } from '@/api/studentApi'
@@ -10,17 +10,22 @@ import { LmsEmptyState, LmsPageSkeleton, ProgressRing } from '@/components/lms'
 export default function StudentProgressPage() {
   const [data, setData] = useState<StudentProgressPayload | null>(null)
   const [loading, setLoading] = useState(true)
-  const [apiMissing, setApiMissing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
+    setLoading(true)
+    setError(null)
     fetchStudentProgress()
       .then((row) => {
-        if (alive) setData(row)
+        if (!alive) return
+        setData(row)
+        setError(null)
       })
       .catch((err) => {
         if (!alive || axios.isCancel(err)) return
-        setApiMissing(true)
+        setData(null)
+        setError('تعذر تحميل بيانات التقدم')
       })
       .finally(() => {
         if (alive) setLoading(false)
@@ -30,30 +35,43 @@ export default function StudentProgressPage() {
     }
   }, [])
 
-  if (loading) return <LmsPageSkeleton />
+  const courseProgress = useMemo(
+    () => (data && Array.isArray(data.course_progress) ? data.course_progress : []),
+    [data],
+  )
+  const trackProgress = useMemo(
+    () =>
+      data && Array.isArray(data.track_progress) && data.track_progress.length > 0 ?
+        data.track_progress
+      : [],
+    [data],
+  )
 
-  if (!data && apiMissing) {
+  const attendancePercent = data && Number.isFinite(data.attendance_percent) ? data.attendance_percent : 0
+  const assignmentPercent =
+    data && Number.isFinite(data.overall_assignment_completion) ? data.overall_assignment_completion : 0
+
+  if (loading) {
     return (
-      <div className="space-y-6">
-        {import.meta.env.DEV && (
-          <div className="rounded-xl bg-amber-50 px-5 py-3 text-right text-xs font-bold text-amber-800 ring-1 ring-amber-100">
-            يتطلب الخادم <code className="rounded bg-white/80 px-1">GET /api/student/progress</code>.
-          </div>
-        )}
-        <LmsEmptyState
-          icon={PieChart}
-          title="لا توجد بيانات تقدم"
-          description="عند ربط حسابك بدورة نشطة ستُحسب نسب الإنجاز والحضور هنا."
-        />
+      <div className="space-y-4 text-right">
+        <p className="text-sm font-bold text-slate-500">جاري تحميل التقدم...</p>
+        <LmsPageSkeleton />
       </div>
     )
   }
 
-  const payload = data ?? {
-    course_progress: [],
-    attendance_percent: 0,
-    overall_assignment_completion: 0,
+  if (error || !data) {
+    return (
+      <LmsEmptyState
+        icon={PieChart}
+        title={error ?? 'تعذر تحميل بيانات التقدم'}
+        description="تحقّق من الاتصال بالخادم أو حاول مرة أخرى لاحقًا."
+      />
+    )
   }
+
+  const hasTracks = trackProgress.length > 0
+  const hasCourses = courseProgress.length > 0
 
   return (
     <div className="space-y-10">
@@ -66,22 +84,22 @@ export default function StudentProgressPage() {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-10">
           <ProgressRing
-            percent={payload.attendance_percent}
+            percent={attendancePercent}
             label="حضور"
             sublabel="نسبة الحضور الإجمالية"
           />
           <ProgressRing
-            percent={payload.overall_assignment_completion}
+            percent={assignmentPercent}
             label="واجبات"
             sublabel="إتمام الواجبات"
           />
         </div>
       </div>
 
-      {payload.track_progress && payload.track_progress.length > 0 && (
+      {hasTracks && (
         <DashboardSection title="تقدم المسارات">
           <div className="grid gap-4 sm:grid-cols-2">
-            {payload.track_progress.map((t) => (
+            {trackProgress.map((t) => (
               <ProgressCard
                 key={t.track_id}
                 title={t.title}
@@ -96,15 +114,14 @@ export default function StudentProgressPage() {
       )}
 
       <DashboardSection title="تقدم الدورات">
-        {payload.course_progress.length === 0 ? (
+        {!hasCourses ?
           <LmsEmptyState
             icon={BookOpen}
-            title="لا توجد دورات ضمن التقرير"
-            description="سجّل في دورة أو أكمل تفعيل التسجيل لعرض التفاصيل."
+            title="لا توجد بيانات تقدم متاحة حاليًا"
+            description="عندما تكون مسجلاً في دورة نشطة، ستُعرض تفاصيل الجلسات والواجبات هنا."
           />
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {payload.course_progress.map((c) => (
+        : <div className="grid gap-4 lg:grid-cols-2">
+            {courseProgress.map((c) => (
               <motion.div
                 key={c.course_id}
                 initial={{ opacity: 0, y: 10 }}
@@ -128,7 +145,7 @@ export default function StudentProgressPage() {
               </motion.div>
             ))}
           </div>
-        )}
+        }
       </DashboardSection>
     </div>
   )

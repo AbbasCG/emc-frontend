@@ -25,7 +25,7 @@ import {
 } from '../components/dashboard'
 import { AssignmentCard, LearningDashboardCard, ProgressRing, SessionCard } from '@/components/lms'
 import { useAuth } from '../contexts/AuthContext'
-import type { StudentDashboard, UpcomingSession } from '../types'
+import type { DashboardStats, StudentDashboard, UpcomingSession } from '../types'
 import type { LmsSession, StudentLmsDashboard } from '@/types/lms'
 
 // ---------------------------------------------------------------------------
@@ -155,13 +155,52 @@ const MOCK: StudentDashboard = {
 }
 
 // ---------------------------------------------------------------------------
-// Normalise API response — handles both `{ ...data }` and `{ data: {...} }`
+// Normalise /dashboard API — Laravel `{ data: ... }`, partial shapes, missing arrays.
 // ---------------------------------------------------------------------------
-function normalise(raw: unknown): StudentDashboard {
-  if (raw && typeof raw === 'object' && 'data' in raw) {
-    return (raw as { data: StudentDashboard }).data
+const EMPTY_STATS: DashboardStats = {
+  enrolled_courses: 0,
+  upcoming_sessions: 0,
+  completed_certificates: 0,
+  training_hours: 0,
+}
+
+function toFiniteStat(n: unknown, fallback = 0): number {
+  if (typeof n === 'number' && Number.isFinite(n)) return n
+  const x = Number(n)
+  return Number.isFinite(x) ? x : fallback
+}
+
+function unwrapDashboardPayload(raw: unknown): unknown {
+  if (raw && typeof raw === 'object' && 'data' in raw) return (raw as { data: unknown }).data
+  return raw
+}
+
+function normalizeStudentDashboard(raw: unknown): StudentDashboard {
+  const inner = unwrapDashboardPayload(raw)
+  if (!inner || typeof inner !== 'object') {
+    return {
+      stats: { ...EMPTY_STATS },
+      enrollments: [],
+      upcoming_sessions: [],
+      notifications: [],
+    }
   }
-  return raw as StudentDashboard
+
+  const o = inner as Partial<StudentDashboard>
+  const statsIn = o.stats && typeof o.stats === 'object' ? o.stats : {}
+  const s = statsIn as Partial<DashboardStats>
+
+  return {
+    stats: {
+      enrolled_courses: toFiniteStat(s.enrolled_courses, EMPTY_STATS.enrolled_courses),
+      upcoming_sessions: toFiniteStat(s.upcoming_sessions, EMPTY_STATS.upcoming_sessions),
+      completed_certificates: toFiniteStat(s.completed_certificates, EMPTY_STATS.completed_certificates),
+      training_hours: toFiniteStat(s.training_hours, EMPTY_STATS.training_hours),
+    },
+    enrollments: Array.isArray(o.enrollments) ? o.enrollments : [],
+    upcoming_sessions: Array.isArray(o.upcoming_sessions) ? o.upcoming_sessions : [],
+    notifications: Array.isArray(o.notifications) ? o.notifications : [],
+  }
 }
 
 function mapLmsSessionToUpcoming(s: LmsSession): UpcomingSession {
@@ -188,6 +227,8 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [usingMock, setUsingMock] = useState(false)
   const [lmsDash, setLmsDash] = useState<StudentLmsDashboard | null>(null)
+  const [lmsLoading, setLmsLoading] = useState(true)
+  const [lmsError, setLmsError] = useState<string | null>(null)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'صباح الخير' : hour < 18 ? 'مساء الخير' : 'مساء النور'
@@ -200,7 +241,7 @@ export default function Dashboard() {
         setIsLoading(true)
         const response = await apiClient.get('/dashboard')
         if (!isMounted) return
-        setData(normalise(response.data))
+        setData(normalizeStudentDashboard(response.data))
       } catch (err) {
         if (!isMounted || axios.isCancel(err)) return
         // MOCK FALLBACK — remove when /api/dashboard is live
@@ -217,12 +258,33 @@ export default function Dashboard() {
 
   useEffect(() => {
     let alive = true
+    setLmsLoading(true)
+    setLmsError(null)
     fetchStudentLmsDashboard()
       .then((row) => {
-        if (alive) setLmsDash(row)
+        if (alive) {
+          setLmsDash(row)
+          setLmsError(null)
+        }
       })
-      .catch(() => {
-        if (alive) setLmsDash(null)
+      .catch((err: unknown) => {
+        if (!alive) return
+        setLmsDash(null)
+        const msg =
+          axios.isAxiosError(err) ?
+            (typeof err.response?.data === 'object' &&
+            err.response?.data &&
+            'message' in err.response.data &&
+            typeof (err.response.data as { message: unknown }).message === 'string' ?
+              (err.response.data as { message: string }).message
+            : err.response?.status === 404 ?
+              'لا توجد بيانات لوحة الطالب'
+            : `تعذّر الاتصال بالخادم (${err.response?.status ?? '—'})`)
+          : 'تعذّر تحميل لوحة التعلّم'
+        setLmsError(msg)
+      })
+      .finally(() => {
+        if (alive) setLmsLoading(false)
       })
     return () => {
       alive = false
@@ -231,15 +293,23 @@ export default function Dashboard() {
 
   if (isLoading) return <DashboardSkeleton />
 
-  const { stats, enrollments, upcoming_sessions: legacySessions, notifications: legacyNotifications } =
-    data ?? MOCK
+  if (!data) return <DashboardSkeleton />
 
+  const { stats, enrollments, upcoming_sessions: legacySessions, notifications: legacyNotifications } =
+    normalizeStudentDashboard(data)
+
+  const upcomingLms = lmsDash?.upcoming_sessions
   const sessions =
-    lmsDash?.upcoming_sessions?.length ?
-      lmsDash.upcoming_sessions.map(mapLmsSessionToUpcoming)
+    Array.isArray(upcomingLms) && upcomingLms.length > 0 ?
+      upcomingLms.map(mapLmsSessionToUpcoming)
     : legacySessions
 
-  const notifications = lmsDash?.notifications?.length ? lmsDash.notifications : legacyNotifications
+  const lmsNotify = lmsDash?.notifications
+  const notifications =
+    Array.isArray(lmsNotify) && lmsNotify.length > 0 ? lmsNotify : legacyNotifications
+
+  const pendingAssignments = Array.isArray(lmsDash?.pending_assignments) ? lmsDash.pending_assignments : []
+  const pendingDueCount = pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
 
   const statCards = [
     { title: 'الدورات المسجلة',    value: String(stats.enrolled_courses),     icon: BookOpen,      color: 'blue'   as const },
@@ -267,7 +337,21 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {lmsDash && (
+      {lmsLoading && (
+        <div className="grid animate-pulse gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 rounded-2xl bg-slate-100 ring-1 ring-slate-200/70" />
+          ))}
+        </div>
+      )}
+
+      {lmsError && !lmsLoading && (
+        <div className="rounded-xl border border-red-200/90 bg-red-50/95 px-4 py-3 text-right text-sm font-bold leading-relaxed text-red-800 ring-1 ring-red-100">
+          لم يتم تحميل لوحة التعلّم (LMS). {lmsError}
+        </div>
+      )}
+
+      {!lmsLoading && lmsDash && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <LearningDashboardCard
             title="نسبة التقدم"
@@ -285,14 +369,14 @@ export default function Dashboard() {
           />
           <LearningDashboardCard
             title="واجبات مطلوبة"
-            value={lmsDash.pending_assignments.filter((a) => a.status === 'pending' || a.status === 'late').length}
+            value={pendingDueCount}
             hint="بانتظار التسليم"
             icon={ClipboardList}
             accent="orange"
           />
           <LearningDashboardCard
             title="شهادات قادمة"
-            value={lmsDash.certificates_placeholder?.length ?? 0}
+            value={Array.isArray(lmsDash.certificates_placeholder) ? lmsDash.certificates_placeholder.length : 0}
             hint="Placeholder حتى يكتمل المسار"
             icon={GraduationCap}
             accent="blue"
@@ -328,7 +412,7 @@ export default function Dashboard() {
         )}
       </DashboardSection>
 
-      {lmsDash && lmsDash.current_courses.length > 0 && (
+      {lmsDash && Array.isArray(lmsDash.current_courses) && lmsDash.current_courses.length > 0 && (
         <DashboardSection
           title="الدورات الحالية"
           subtitle="متابعة مباشرة من لوحة التعلم."
@@ -363,23 +447,25 @@ export default function Dashboard() {
         </DashboardSection>
       )}
 
-      {lmsDash && lmsDash.pending_assignments.length > 0 && (
+      {lmsDash && pendingAssignments.length > 0 && (
         <DashboardSection
           title="واجبات تحتاج تسليماً"
           action={{ label: 'كل الواجبات', href: '/dashboard/student/assignments' }}
         >
           <div className="grid gap-4 lg:grid-cols-2">
-            {lmsDash.pending_assignments.slice(0, 4).map((a) => (
+            {pendingAssignments.slice(0, 4).map((a) => (
               <AssignmentCard key={a.id} assignment={a} />
             ))}
           </div>
         </DashboardSection>
       )}
 
-      {lmsDash && (lmsDash.certificates_placeholder?.length ?? 0) > 0 && (
+      {lmsDash &&
+        Array.isArray(lmsDash.certificates_placeholder) &&
+        lmsDash.certificates_placeholder.length > 0 && (
         <DashboardSection title="الشهادات القادمة" subtitle="Placeholder إلى حين تفعيل إصدار الشهادات.">
           <div className="grid gap-3 sm:grid-cols-2">
-            {lmsDash.certificates_placeholder!.map((c, i) => (
+            {lmsDash.certificates_placeholder.map((c, i) => (
               <div
                 key={i}
                 className="rounded-xl border border-dashed border-customOrange/35 bg-orange-50/50 px-4 py-3 text-right"
@@ -404,8 +490,8 @@ export default function Dashboard() {
         >
           {sessions.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              {lmsDash?.upcoming_sessions?.length ?
-                lmsDash.upcoming_sessions.slice(0, 4).map((s) => <SessionCard key={s.id} session={s} />)
+              {Array.isArray(upcomingLms) && upcomingLms.length > 0 ?
+                upcomingLms.slice(0, 4).map((s) => <SessionCard key={s.id} session={s} />)
               : sessions.slice(0, 4).map((s) => (
                   <UpcomingSessionCard
                     key={s.id}
@@ -518,7 +604,7 @@ export default function Dashboard() {
           />
         </DashboardSection>
         <DashboardSection title="التقدم في التعلم">
-          {lmsDash ?
+          {!lmsLoading && lmsDash ?
             <div className="flex flex-col items-center gap-6 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-deepBlue/[0.06] sm:flex-row-reverse sm:justify-between">
               <div className="flex gap-8">
                 <ProgressRing percent={lmsDash.progress_percent} label="إنجاز" size={100} stroke={9} />

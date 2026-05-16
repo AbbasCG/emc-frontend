@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import type { SupportTicket } from '@/types/operations'
 import { SUPPORT_STATUS_AR } from '@/data/operationsLabels'
 
 export default function SupportTicketCard({ t }: { t: SupportTicket }) {
+  const location = useLocation()
+  const detailBase = location.pathname.startsWith('/dashboard/support')
+    ? '/dashboard/support'
+    : '/dashboard/admin/support-tickets'
+
   return (
     <motion.article layout className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-deepBlue/[0.06]">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -20,7 +25,7 @@ export default function SupportTicketCard({ t }: { t: SupportTicket }) {
         <span>{t.requester_name ?? '—'}</span>
       </div>
       <Link
-        to={`/dashboard/admin/support-tickets/${t.id}`}
+        to={`${detailBase}/${t.id}`}
         className="mt-4 flex items-center justify-end gap-1 text-xs font-black text-customBlue"
       >
         فتح التذكرة

@@ -5,7 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import RoleGate from './components/RoleGate'
+import DashboardAccessGuard from './components/DashboardAccessGuard'
 import AppToaster from './components/feedback/AppToaster'
 import RouteFallback from './components/RouteFallback'
 import About from './pages/About'
@@ -105,6 +105,7 @@ import AdminDocumentsPage from './pages/platform/admin/AdminDocumentsPage'
 import AdminAuditLogsPage from './pages/platform/admin/AdminAuditLogsPage'
 import PlatformScaleDashboardPage from './pages/platform/admin/PlatformScaleDashboardPage'
 import NotificationPreferencesPage from './pages/settings/NotificationPreferencesPage'
+import ProfilePage from './pages/ProfilePage'
 import CalendarPage from './pages/calendar/CalendarPage'
 import AdminIntegrationsPage from './pages/platform/admin/AdminIntegrationsPage'
 import WhatsAppIntegrationPage from './pages/platform/admin/integrations/WhatsAppIntegrationPage'
@@ -124,19 +125,36 @@ import PartnerDocumentsPage from './pages/platform/partner/PartnerDocumentsPage'
 import ForbiddenPage from './pages/errors/ForbiddenPage'
 import UnauthorizedPage from './pages/errors/UnauthorizedPage'
 import ServerErrorPage from './pages/errors/ServerErrorPage'
+import HrDashboardPage from './pages/hr/HrDashboardPage'
+import HrTeamPage from './pages/hr/HrTeamPage'
+import HrVolunteersPage from './pages/hr/HrVolunteersPage'
+import HrInstructorsPage from './pages/hr/HrInstructorsPage'
+import HrApplicationsPage from './pages/hr/HrApplicationsPage'
+import HrDepartmentsPage from './pages/hr/HrDepartmentsPage'
+import HrOnboardingPage from './pages/hr/HrOnboardingPage'
+import HrTasksPage from './pages/hr/HrTasksPage'
+import HrDocumentsPage from './pages/hr/HrDocumentsPage'
+import SuperAdminOverviewPage from './pages/super-admin/SuperAdminOverviewPage'
+import UsersManagementPage from './pages/super-admin/crud/UsersManagementPage'
+import RolesPermissionsPage from './pages/super-admin/crud/RolesPermissionsPage'
+import DepartmentsManagementPage from './pages/super-admin/crud/DepartmentsManagementPage'
+import TeamManagementPage from './pages/super-admin/crud/TeamManagementPage'
+import StudentsManagementPage from './pages/super-admin/crud/StudentsManagementPage'
+import InstructorsManagementPage from './pages/super-admin/crud/InstructorsManagementPage'
+import ProgramsManagementPage from './pages/super-admin/crud/ProgramsManagementPage'
+import TracksManagementPage from './pages/super-admin/crud/TracksManagementPage'
+import WorkshopsManagementPage from './pages/super-admin/crud/WorkshopsManagementPage'
+import RegistrationsManagementPage from './pages/super-admin/crud/RegistrationsManagementPage'
+import PartnersManagementPage from './pages/super-admin/crud/PartnersManagementPage'
+
+import { getDashboardPathByRole } from './utils/dashboardAccess'
 
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'))
-const PartnerLayout = lazy(() => import('./layouts/PartnerLayout'))
 
 // Redirects to the role-specific dashboard home; ProtectedRoute guarantees auth is resolved.
 function RoleRedirect() {
   const { user } = useAuth()
-  const target =
-    user?.role === 'admin'   ? '/dashboard/admin' :
-    user?.role === 'teacher' ? '/dashboard/teacher' :
-    user?.role === 'partner' ? '/partner/dashboard' :
-    '/dashboard/student'
-  return <Navigate to={target} replace />
+  return <Navigate to={getDashboardPathByRole(user?.role)} replace />
 }
 
 function RedirectAdminWebhookDetail() {
@@ -212,21 +230,10 @@ function App() {
               <Route path="/admin/ai/automations" element={<Navigate to="/dashboard/admin/ai/automations" replace />} />
               <Route path="/admin/ai/insights" element={<Navigate to="/dashboard/admin/ai/insights" replace />} />
               <Route path="/admin/ai/usage" element={<Navigate to="/dashboard/admin/ai/usage" replace />} />
-              <Route
-                element={
-                  <Suspense fallback={<RouteFallback />}>
-                    <PartnerLayout />
-                  </Suspense>
-                }
-              >
-                <Route element={<RoleGate allow={['partner']} />}>
-                  <Route path="/partner/dashboard" element={<PartnerDashboardPage />} />
-                  <Route path="/partner/programs" element={<PartnerProgramsPage />} />
-                  <Route path="/partner/reports" element={<PartnerReportsPage />} />
-                  <Route path="/partner/documents" element={<PartnerDocumentsPage />} />
-                </Route>
-              </Route>
-
+              <Route path="/partner/dashboard" element={<Navigate to="/dashboard/partner" replace />} />
+              <Route path="/partner/programs" element={<Navigate to="/dashboard/partner/programs" replace />} />
+              <Route path="/partner/reports" element={<Navigate to="/dashboard/partner/reports" replace />} />
+              <Route path="/partner/documents" element={<Navigate to="/dashboard/partner/documents" replace />} />
               <Route
                 element={
                   <Suspense fallback={<RouteFallback />}>
@@ -234,20 +241,84 @@ function App() {
                   </Suspense>
                 }
               >
-                {/* /dashboard → redirect to role-specific home */}
-                <Route path="/dashboard" element={<RoleRedirect />} />
-                {/* Role-specific dashboard homes */}
-                <Route path="/dashboard/student" element={<Dashboard />} />
-                <Route path="/dashboard/teacher" element={<TeacherDashboard />} />
-                <Route path="/dashboard/admin"   element={<AdminDashboard />} />
+                <Route element={<DashboardAccessGuard />}>
+                  <Route path="/dashboard/teacher/*" element={<span className="sr-only" />} />
 
-                <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />
-                <Route path="/dashboard/settings/notifications" element={<NotificationPreferencesPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/ai" element={<AiWorkspacePage />} />
+                  <Route path="/dashboard" element={<RoleRedirect />} />
+                  <Route path="/dashboard/super-admin" element={<SuperAdminOverviewPage />} />
+                  {/* Super Admin CRUD — صفحة فريدة لكل كيان؛ إعادة التوجيه المعروف قديمًا */}
+                  <Route
+                    path="/dashboard/super-admin/crud/partnerships"
+                    element={<Navigate to="/dashboard/super-admin/crud/partners" replace />}
+                  />
+                  <Route path="/dashboard/super-admin/crud/users/new" element={<Navigate to="/dashboard/super-admin/crud/users" replace />} />
+                  <Route
+                    path="/dashboard/super-admin/crud/users/:id/edit"
+                    element={<Navigate to="/dashboard/super-admin/crud/users" replace />}
+                  />
+                  <Route
+                    path="/dashboard/super-admin/crud/users/:id"
+                    element={<Navigate to="/dashboard/super-admin/crud/users" replace />}
+                  />
 
-                <Route element={<RoleGate allow={['student']} />}>
+                  <Route path="/dashboard/super-admin/crud/users" element={<UsersManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/roles" element={<RolesPermissionsPage />} />
+                  <Route path="/dashboard/super-admin/crud/departments" element={<DepartmentsManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/team" element={<TeamManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/students" element={<StudentsManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/instructors" element={<InstructorsManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/programs" element={<ProgramsManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/tracks" element={<TracksManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/workshops" element={<WorkshopsManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/registrations" element={<RegistrationsManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/partners" element={<PartnersManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/*" element={<Navigate to="/dashboard/super-admin" replace />} />
+
+                  <Route path="/dashboard/student" element={<Dashboard />} />
+                  <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
+                  <Route path="/dashboard/admin" element={<AdminDashboard />} />
+                  <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
+
+                  <Route path="/dashboard/partner" element={<PartnerDashboardPage />} />
+                  <Route path="/dashboard/partner/programs" element={<PartnerProgramsPage />} />
+                  <Route path="/dashboard/partner/reports" element={<PartnerReportsPage />} />
+                  <Route path="/dashboard/partner/documents" element={<PartnerDocumentsPage />} />
+
+                  <Route path="/dashboard/executive/operations" element={<OperationsDashboardPage />} />
+                  <Route path="/dashboard/executive/kpi" element={<KpiAdminPage />} />
+                  <Route path="/dashboard/executive/reports" element={<ReportsAdminPage />} />
+                  <Route path="/dashboard/finance" element={<FinanceDashboardPage />} />
+                  <Route path="/dashboard/finance/payments" element={<FinancePaymentsPage />} />
+                  <Route path="/dashboard/finance/transactions" element={<FinanceTransactionsPage />} />
+                  <Route path="/dashboard/quality" element={<QualityAdminPage />} />
+                  <Route path="/dashboard/hr" element={<HrDashboardPage />} />
+                  <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
+                  <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
+                  <Route path="/dashboard/hr/instructors" element={<HrInstructorsPage />} />
+                  <Route path="/dashboard/hr/applications" element={<HrApplicationsPage />} />
+                  <Route path="/dashboard/hr/departments" element={<HrDepartmentsPage />} />
+                  <Route path="/dashboard/hr/onboarding" element={<HrOnboardingPage />} />
+                  <Route path="/dashboard/hr/tasks" element={<HrTasksPage />} />
+                  <Route path="/dashboard/hr/documents" element={<HrDocumentsPage />} />
+                  <Route path="/dashboard/marketing" element={<OpsMarketingPage />} />
+                  <Route path="/dashboard/support" element={<OpsSupportTicketsPage />} />
+                  <Route path="/dashboard/support/:id" element={<OpsSupportTicketDetailPage />} />
+                  <Route path="/dashboard/volunteer" element={<OpsVolunteersPage />} />
+                  <Route path="/dashboard/volunteer/:id" element={<OpsVolunteerDetailPage />} />
+                  <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
+                  <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
+
+                  <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />
+                  <Route path="/dashboard/profile" element={<ProfilePage />} />
+                  <Route
+                    path="/dashboard/settings"
+                    element={<Navigate to="/dashboard/settings/notifications" replace />}
+                  />
+                  <Route path="/dashboard/settings/notifications" element={<NotificationPreferencesPage />} />
+                  <Route path="/documents" element={<DocumentsPage />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/ai" element={<AiWorkspacePage />} />
+
                   <Route path="/dashboard/student/sessions" element={<StudentSessionsPage />} />
                   <Route path="/dashboard/student/materials" element={<StudentMaterialsPage />} />
                   <Route path="/dashboard/student/assignments" element={<StudentAssignmentsPage />} />
@@ -258,15 +329,11 @@ function App() {
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
                   <Route path="/dashboard/lessons/:lessonId" element={<LessonPlayerPage />} />
                   <Route path="/dashboard/quizzes/:quizId" element={<QuizTakePage />} />
-                </Route>
 
-                <Route element={<RoleGate allow={['teacher']} />}>
-                  <Route path="/dashboard/teacher/sessions" element={<InstructorSessionsPage />} />
-                  <Route path="/dashboard/teacher/attendance" element={<InstructorAttendancePage />} />
-                  <Route path="/dashboard/teacher/submissions" element={<InstructorSubmissionsPage />} />
-                </Route>
+                  <Route path="/dashboard/instructor/sessions" element={<InstructorSessionsPage />} />
+                  <Route path="/dashboard/instructor/attendance" element={<InstructorAttendancePage />} />
+                  <Route path="/dashboard/instructor/submissions" element={<InstructorSubmissionsPage />} />
 
-                <Route element={<RoleGate allow={['admin']} />}>
                   <Route path="/dashboard/admin/lms/sessions" element={<AdminLmsSessionsPage />} />
                   <Route path="/dashboard/admin/lms/attendance" element={<AdminLmsAttendancePage />} />
                   <Route path="/dashboard/admin/lms/assignments" element={<AdminLmsAssignmentsPage />} />

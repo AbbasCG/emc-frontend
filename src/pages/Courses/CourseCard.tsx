@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Star, Clock, Users, Play, TrendingUp, BookOpen } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { CourseItem } from '@/services/coursesApi'
+import { formatEuroInteger } from '@/utils/currency'
 
 type CourseCardProps = {
   course: CourseItem
@@ -58,7 +59,7 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
         <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${
           course.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 backdrop-blur-sm text-customBlue'
         }`}>
-          {course.is_free ? 'مجاني' : `${course.price} ر.س`}
+          {course.is_free ? 'مجاني' : formatEuroInteger(course.price, 'ar')}
         </div>
 
         {course.status === 'upcoming' && (
@@ -157,11 +158,11 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
           <div className="text-right">
             {!course.is_free && course.original_price && (
               <span className="text-xs line-through text-[#73777B] block leading-none mb-0.5">
-                {course.original_price} ر.س
+                {formatEuroInteger(course.original_price, 'ar')}
               </span>
             )}
             <span className={`font-black text-sm ${course.is_free ? 'text-emerald-600' : 'text-deepBlue'}`}>
-              {course.is_free ? 'مجاني تماماً' : `${course.price} ر.س`}
+              {course.is_free ? 'مجاني تماماً' : formatEuroInteger(course.price, 'ar')}
             </span>
           </div>
 

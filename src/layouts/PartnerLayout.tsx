@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Briefcase, FileStack, LayoutDashboard, Menu, PieChart, X } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { useAuth } from '../contexts/AuthContext'
+import { getUserDisplayName, getUserInitials, getUserSidebarSubtitle } from '../utils/userIdentity'
 
 const items = [
   { label: 'لوحة الشراكة', href: '/partner/dashboard', icon: LayoutDashboard },
@@ -21,7 +22,9 @@ export default function PartnerLayout() {
     setOpen(false)
   }, [location.pathname])
 
-  const initial = user?.name?.charAt(0)?.toUpperCase() ?? '؟'
+  const sidebarName = getUserDisplayName(user)
+  const sidebarSub = getUserSidebarSubtitle(user)
+  const sidebarInitials = getUserInitials(user)
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#0f172a]">
@@ -77,12 +80,14 @@ export default function PartnerLayout() {
         </nav>
         <div className="border-t border-white/10 p-4">
           <div className="flex items-center gap-3 rounded-xl bg-white/8 px-3 py-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-customOrange text-sm font-black text-deepBlue">
-              {initial}
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-customOrange text-[11px] font-black leading-none text-deepBlue font-latin">
+              {sidebarInitials}
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-black text-white">{user?.name}</p>
-              <p className="truncate text-[11px] text-white/45">بوابة الشركاء</p>
+            <div className="min-w-0 flex-1 text-right">
+              <p className="truncate text-xs font-black text-white">{sidebarName}</p>
+              <p className="truncate text-[11px] text-white/45 font-latin">
+                {sidebarSub !== '' ? sidebarSub : 'بوابة الشركاء'}
+              </p>
             </div>
             <button
               type="button"

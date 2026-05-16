@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Brain, BarChart3, Rocket, BookOpen, Megaphone, Shield, Clock, ChevronLeft } from 'lucide-react'
 import type { TrackItem } from '@/services/coursesApi'
+import { formatEuroInteger } from '@/utils/currency'
 
 type TrackCardProps = {
   track: TrackItem
@@ -107,11 +108,11 @@ export default function TrackCard({ track, index = 0 }: TrackCardProps) {
           <div>
             {track.original_price && (
               <span className="text-xs line-through text-[#73777B] block mb-0.5">
-                {track.original_price.toLocaleString('ar-EG')} ر.س
+                {formatEuroInteger(track.original_price, 'ar')}
               </span>
             )}
             <span className="font-black text-deepBlue text-base">
-              {track.price.toLocaleString('ar-EG')} ر.س
+              {formatEuroInteger(track.price, 'ar')}
             </span>
           </div>
 

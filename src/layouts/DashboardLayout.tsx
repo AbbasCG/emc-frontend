@@ -1,50 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Award,
-  BarChart3,
-  Bell,
-  BookMarked,
-  BookOpen,
   Bot,
-  Brain,
-  Briefcase,
-  Building2,
-  Calendar,
-  CalendarDays,
+  ChevronDown,
   ChevronLeft,
-  ClipboardCheck,
-  ClipboardList,
-  Code2,
-  Cpu,
-  FileBarChart,
-  FileText,
-  FolderLock,
-  FolderOpen,
-  GraduationCap,
-  HeartHandshake,
-  LayoutDashboard,
-  Layers,
   LogOut,
-  Megaphone,
   Menu,
-  Percent,
-  PieChart,
-  Plug2,
   Search,
   Settings,
-  ShieldCheck,
-  ShieldQuestion,
-  SlidersHorizontal,
-  Smartphone,
-  Sparkles,
-  TrendingUp,
-  UserCheck,
-  UserCog,
-  Users,
-  Wallet,
-  Webhook as WebhookIcon,
+  User,
   X,
 } from 'lucide-react'
 import logo from '../assets/logo.png'
@@ -57,223 +22,15 @@ import {
   markNotificationRead,
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
-import type { UserRole } from '../types'
 import type { PlatformNotification } from '../types/platform'
-
-// ---------------------------------------------------------------------------
-// Sidebar navigation data — role-aware
-// ---------------------------------------------------------------------------
-
-type SidebarItem  = { label: string; href: string; icon: React.ElementType }
-type SidebarGroup = { title?: string; items: SidebarItem[] }
-
-// Routes where the home link must be an EXACT match (prevent false positives)
-const exactMatchRoutes = new Set([
-  '/dashboard',
-  '/dashboard/student',
-  '/dashboard/teacher',
-  '/dashboard/admin',
-  '/dashboard/admin/operations',
-  '/dashboard/learning',
-])
-
-function getRoleSidebar(role?: UserRole): SidebarGroup[] {
-  const home =
-    role === 'admin'   ? '/dashboard/admin' :
-    role === 'teacher' ? '/dashboard/teacher' :
-    role === 'partner' ? '/partner/dashboard' :
-    '/dashboard/student'
-
-  if (role === 'partner') {
-    return [
-      { items: [{ label: 'لوحة الشركاء', href: '/partner/dashboard', icon: LayoutDashboard }] },
-      {
-        title: 'مساحة المعرفة',
-        items: [
-          { label: 'المستندات', href: '/documents', icon: FolderOpen },
-          { label: 'المساعد الذكي', href: '/ai', icon: Bot },
-          { label: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
-        ],
-      },
-    ]
-  }
-
-  if (role === 'admin') {
-    return [
-      { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
-      {
-        title: 'نظام التعلّم LMS',
-        items: [
-          { label: 'الجلسات', href: '/dashboard/admin/lms/sessions', icon: Calendar },
-          { label: 'الحضور', href: '/dashboard/admin/lms/attendance', icon: Users },
-          { label: 'الواجبات', href: '/dashboard/admin/lms/assignments', icon: ClipboardList },
-          { label: 'المواد', href: '/dashboard/admin/lms/materials', icon: FolderOpen },
-          { label: 'التقييمات', href: '/dashboard/admin/lms/evaluations', icon: FileText },
-          { label: 'التقدّم', href: '/dashboard/admin/lms/progress', icon: BarChart3 },
-        ],
-      },
-      {
-        title: 'مركز العمليات',
-        items: [
-          { label: 'لوحة العمليات', href: '/dashboard/admin/operations', icon: Sparkles },
-          { label: 'الإدارات', href: '/dashboard/admin/departments', icon: Building2 },
-          { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
-          { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar },
-          { label: 'النماذج', href: '/dashboard/admin/forms', icon: FileText },
-          { label: 'المتطوعون', href: '/dashboard/admin/volunteers', icon: Users },
-          { label: 'الشركاء', href: '/dashboard/admin/partners', icon: Briefcase },
-          { label: 'طلبات الشراكة', href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
-          { label: 'التسويق', href: '/dashboard/admin/marketing', icon: Megaphone },
-          { label: 'تذاكر الدعم', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
-        ],
-      },
-      {
-        title: 'الإيرادات والذكاء',
-        items: [
-          { label: 'لوحة المالية', href: '/dashboard/admin/finance', icon: Wallet },
-          { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
-          { label: 'المنح', href: '/dashboard/admin/scholarships', icon: GraduationCap },
-          { label: 'الشهادات', href: '/dashboard/admin/certificates', icon: Award },
-          { label: 'مراجعة الجودة', href: '/dashboard/admin/quality', icon: ClipboardCheck },
-          { label: 'مؤشرات الأداء', href: '/dashboard/admin/kpi', icon: PieChart },
-          { label: 'التقارير التحليلية', href: '/dashboard/admin/reports', icon: FileBarChart },
-        ],
-      },
-      {
-        title: 'منظومة EMC المتقدمة',
-        items: [
-          { label: 'قاعدة المعرفة', href: '/dashboard/admin/knowledge', icon: BookMarked },
-          { label: 'فئات المعرفة', href: '/dashboard/admin/knowledge/categories', icon: Layers },
-          { label: 'الوحدات التعليمية', href: '/dashboard/admin/modules', icon: BookOpen },
-          { label: 'الدروس', href: '/dashboard/admin/lessons', icon: FileText },
-          { label: 'الاختبارات', href: '/dashboard/admin/quizzes', icon: ClipboardCheck },
-          { label: 'الأتمتة', href: '/dashboard/admin/automations', icon: Cpu },
-          { label: 'مستندات الإدارة', href: '/dashboard/admin/documents', icon: FolderLock },
-          { label: 'سجل التدقيق', href: '/dashboard/admin/audit-logs', icon: ShieldCheck },
-          { label: 'نمو المنصة', href: '/dashboard/admin/platform-scale', icon: TrendingUp },
-        ],
-      },
-      {
-        title: 'التكامل والمنظومة المفتوحة',
-        items: [
-          { label: 'مركز التكاملات', href: '/dashboard/admin/integrations', icon: Plug2 },
-          { label: 'الويبهوكس', href: '/dashboard/admin/webhooks', icon: WebhookIcon },
-          { label: 'رموز المطوّر', href: '/dashboard/admin/developer/api-tokens', icon: Code2 },
-          { label: 'جاهزية الجوال', href: '/dashboard/admin/mobile-readiness', icon: Smartphone },
-          { label: 'تقويم الإدارة', href: '/dashboard/admin/calendar', icon: CalendarDays },
-        ],
-      },
-      {
-        title: 'طبقة الذكاء الاصطناعي',
-        items: [
-          { label: 'AI Command Center', href: '/dashboard/admin/ai', icon: Bot },
-          { label: 'AI Automations', href: '/dashboard/admin/ai/automations', icon: Cpu },
-          { label: 'AI Insights', href: '/dashboard/admin/ai/insights', icon: PieChart },
-          { label: 'AI Usage', href: '/dashboard/admin/ai/usage', icon: BarChart3 },
-        ],
-      },
-      {
-        title: 'الإدارة الأكاديمية',
-        items: [
-          { label: 'الدورات', href: '/dashboard/courses', icon: BookOpen },
-          { label: 'البرامج', href: '/dashboard/programs', icon: GraduationCap },
-        ],
-      },
-      {
-        title: 'الطلاب',
-        items: [
-          { label: 'قائمة الطلاب', href: '/dashboard/students',      icon: Users        },
-          { label: 'التسجيلات',    href: '/dashboard/registrations',  icon: ClipboardList },
-        ],
-      },
-      {
-        title: 'الجدولة',
-        items: [{ label: 'الجدول الزمني', href: '/dashboard/schedule', icon: Calendar }],
-      },
-      {
-        title: 'الإدارة',
-        items: [
-          { label: 'المستخدمون', href: '/dashboard/users',    icon: UserCog  },
-          { label: 'التقارير العامة',   href: '/dashboard/reports',  icon: BarChart3 },
-          { label: 'الإعدادات', href: '/dashboard/settings', icon: Settings  },
-        ],
-      },
-      {
-        title: 'التواصل والمعرفة',
-        items: [
-          { label: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
-          { label: 'تفضيلات الإشعارات', href: '/dashboard/settings/notifications', icon: SlidersHorizontal },
-          { label: 'التقويم', href: '/calendar', icon: CalendarDays },
-          { label: 'الملفات', href: '/documents', icon: FolderOpen },
-          { label: 'المساعد الذكي', href: '/ai', icon: Bot },
-        ],
-      },
-    ]
-  }
-
-  if (role === 'teacher') {
-    return [
-      { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
-      {
-        title: 'التدريس والجلسات',
-        items: [
-          { label: 'جلساتي', href: '/dashboard/teacher/sessions', icon: Calendar },
-          { label: 'الحضور', href: '/dashboard/teacher/attendance', icon: UserCheck },
-          { label: 'التسليمات', href: '/dashboard/teacher/submissions', icon: ClipboardList },
-          { label: 'كتالوج الدورات', href: '/courses', icon: BookOpen },
-        ],
-      },
-      {
-        title: 'الموارد',
-        items: [{ label: 'المواد التعليمية', href: '/dashboard/resources', icon: FolderOpen }],
-      },
-      {
-        title: 'التواصل والمعرفة',
-        items: [
-          { label: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
-          { label: 'تفضيلات الإشعارات', href: '/dashboard/settings/notifications', icon: SlidersHorizontal },
-          { label: 'التقويم', href: '/calendar', icon: CalendarDays },
-          { label: 'الملفات', href: '/documents', icon: FolderOpen },
-          { label: 'المساعد الذكي', href: '/ai', icon: Bot },
-        ],
-      },
-    ]
-  }
-
-  // Default: student
-  return [
-    { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
-    {
-      title: 'التعلّم',
-      items: [
-        { label: 'مسار التعلّم المتقدم', href: '/dashboard/learning', icon: Brain },
-        { label: 'جلساتي', href: '/dashboard/student/sessions', icon: Calendar },
-        { label: 'المواد', href: '/dashboard/student/materials', icon: FolderOpen },
-        { label: 'الواجبات', href: '/dashboard/student/assignments', icon: ClipboardList },
-        { label: 'التقدّم', href: '/dashboard/student/progress', icon: TrendingUp },
-        { label: 'تقييم الدورة', href: '/dashboard/student/evaluation', icon: Sparkles },
-      ],
-    },
-    {
-      title: 'الإنجازات',
-      items: [{ label: 'الشهادات', href: '/dashboard/certificates', icon: GraduationCap }],
-    },
-    {
-      title: 'التواصل والمعرفة',
-      items: [
-        { label: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
-        { label: 'تفضيلات الإشعارات', href: '/dashboard/settings/notifications', icon: SlidersHorizontal },
-        { label: 'التقويم', href: '/calendar', icon: CalendarDays },
-        { label: 'الملفات', href: '/documents', icon: FolderOpen },
-        { label: 'المساعد الذكي', href: '/ai', icon: Bot },
-      ],
-    },
-    {
-      title: 'الحساب',
-      items: [{ label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog }],
-    },
-  ]
-}
+import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
+import {
+  getUserDisplayEmail,
+  getUserDisplayName,
+  getUserInitials,
+  getUserRoleLabel,
+  getUserSidebarSubtitle,
+} from '../utils/userIdentity'
 
 // ---------------------------------------------------------------------------
 // Route → page title map (used by topbar)
@@ -282,13 +39,39 @@ function getRoleSidebar(role?: UserRole): SidebarGroup[] {
 const pageTitles: Record<string, string> = {
   '/dashboard':              'لوحة التحكم',
   '/dashboard/student':      'لوحة الطالب',
-  '/dashboard/teacher':      'لوحة المدرب',
+  '/dashboard/instructor':      'لوحة المدرب',
   '/dashboard/admin':        'لوحة الإدارة',
+  '/dashboard/super-admin': 'السوبر مشرف — نظرة عامة',
+  '/dashboard/super-admin/crud': 'إدارة الكيانات',
+  '/dashboard/super-admin/crud/users': 'مركز المستخدمين',
+  '/dashboard/super-admin/crud/roles': 'الأدوار والصلاحيات',
+  '/dashboard/super-admin/crud/departments': 'الإدارات',
+  '/dashboard/super-admin/crud/team': 'إدارة الفريق',
+  '/dashboard/super-admin/crud/students': 'الطلاب — السوبر مشرف',
+  '/dashboard/super-admin/crud/instructors': 'المدربون — السوبر مشرف',
+  '/dashboard/super-admin/crud/programs': 'البرامج — السوبر مشرف',
+  '/dashboard/super-admin/crud/tracks': 'المسارات — السوبر مشرف',
+  '/dashboard/super-admin/crud/workshops': 'الورش — السوبر مشرف',
+  '/dashboard/super-admin/crud/registrations': 'التسجيلات — السوبر مشرف',
+  '/dashboard/super-admin/crud/partners': 'الشراكات — السوبر مشرف',
+  '/dashboard/executive': 'اللوحة التنفيذية',
+  '/dashboard/finance': 'لوحة المالية',
+  '/dashboard/quality': 'مراجعة الجودة',
+  '/dashboard/hr': 'لوحة الموارد البشرية',
+  '/dashboard/partner': 'لوحة الشركاء',
+  '/dashboard/marketing': 'التسويق',
+  '/dashboard/support': 'تذاكر الدعم',
+  '/dashboard/volunteer': 'المتطوعون',
+  '/dashboard/department': 'الإدارات',
+  '/dashboard/teacher':      'لوحة المدرب',
   '/dashboard/student/sessions':     'جلساتي',
   '/dashboard/student/materials':    'المواد التعليمية',
   '/dashboard/student/assignments':  'الواجبات',
   '/dashboard/student/progress':     'التقدّم',
   '/dashboard/student/evaluation':   'تقييم الدورة',
+  '/dashboard/instructor/sessions':    'جلسات المدرب',
+  '/dashboard/instructor/attendance':  'الحضور',
+  '/dashboard/instructor/submissions':'مراجعة التسليمات',
   '/dashboard/teacher/sessions':    'جلسات المدرب',
   '/dashboard/teacher/attendance':  'الحضور',
   '/dashboard/teacher/submissions':'مراجعة التسليمات',
@@ -362,6 +145,19 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/ai/automations': 'AI Automations',
   '/dashboard/admin/ai/insights': 'AI Insights',
   '/dashboard/admin/ai/usage': 'AI Usage',
+  '/dashboard/executive/operations': 'لوحة العمليات التشغيلية',
+  '/dashboard/executive/kpi': 'مؤشرات الأداء',
+  '/dashboard/executive/reports': 'التقارير التحليلية',
+  '/dashboard/finance/payments': 'المدفوعات',
+  '/dashboard/finance/transactions': 'المعاملات المالية',
+  '/dashboard/hr/team': 'أعضاء الفريق',
+  '/dashboard/hr/volunteers': 'المتطوعون',
+  '/dashboard/hr/instructors': 'المدربون',
+  '/dashboard/hr/applications': 'طلبات الانضمام',
+  '/dashboard/hr/departments': 'الإدارات والأدوار',
+  '/dashboard/hr/onboarding': 'التأهيل والانضمام',
+  '/dashboard/hr/tasks': 'مهام الموارد البشرية',
+  '/dashboard/hr/documents': 'ملفات الموارد البشرية',
 }
 
 // ---------------------------------------------------------------------------
@@ -371,12 +167,15 @@ const pageTitles: Record<string, string> = {
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { user, logout } = useAuth()
   const location = useLocation()
-  const userInitial = user?.name?.charAt(0)?.toUpperCase() ?? '؟'
+  const sidebarName = getUserDisplayName(user)
+  const sidebarSubtitle = getUserSidebarSubtitle(user)
+  const sidebarInitials = getUserInitials(user)
+  const showRoleBadge = Boolean(getUserDisplayEmail(user)) && Boolean(getUserRoleLabel(user))
 
-  const groups = getRoleSidebar(user?.role)
+  const groups = getSidebarByRole(user?.role)
 
   function isActive(href: string) {
-    if (exactMatchRoutes.has(href)) return location.pathname === href
+    if (exactMatchSidebarRoutes.has(href)) return location.pathname === href
     return location.pathname.startsWith(href)
   }
 
@@ -401,7 +200,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       <aside
         dir="rtl"
         className={[
-          'fixed inset-y-0 right-0 z-40 flex w-64 flex-col overflow-hidden',
+          'fixed inset-y-0 right-0 z-40 flex w-60 flex-col overflow-hidden',
           'bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A]',
           'border-l border-white/[0.06] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
           'transition-transform duration-300 ease-emc-out',
@@ -453,9 +252,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                     <li key={item.href}>
                       <NavLink
                         to={item.href}
-                        end={exactMatchRoutes.has(item.href)}
+                        end={exactMatchSidebarRoutes.has(item.href)}
                         className={[
-                          'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-all duration-200 ease-emc-out',
+                          'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
                           active
                             ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(38,145,194,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
                             : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
@@ -485,14 +284,24 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         </nav>
 
         {/* ── User card at bottom ── */}
-        <div className="relative shrink-0 border-t border-white/[0.08] p-3">
-          <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.06] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-sm font-black text-white ring-2 ring-white/10">
-              {userInitial}
+        <div className="relative shrink-0 border-t border-white/[0.08] p-2.5">
+          <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.06] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
+            <span
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[10px] font-black leading-none text-white ring-2 ring-white/10 font-latin"
+              aria-hidden
+            >
+              {sidebarInitials}
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-white">{user?.name ?? '—'}</p>
-              <p className="truncate text-xs text-white/50 font-latin">{user?.email ?? '—'}</p>
+            <div className="min-w-0 flex-1 text-right">
+              <p className="truncate text-sm font-bold text-white">{sidebarName}</p>
+              <p className="truncate text-xs leading-snug text-white/55 font-latin">
+                {sidebarSubtitle !== '' ? sidebarSubtitle : '\u2014'}
+              </p>
+              {showRoleBadge ?
+                <span className="mt-1 inline-block max-w-full truncate rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold text-customOrange ring-1 ring-white/10 font-latin">
+                  {getUserRoleLabel(user)}
+                </span>
+              : null}
             </div>
             <button
               type="button"
@@ -525,8 +334,10 @@ function Topbar({
   unread: number
   onOpenNotifications: () => void
 }) {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const pageTitle =
     pageTitles[location.pathname] ??
@@ -534,12 +345,28 @@ function Topbar({
       .filter(([path]) => location.pathname.startsWith(path + '/') || location.pathname === path)
       .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ??
     'لوحة التحكم'
-  const userInitial = user?.name?.charAt(0)?.toUpperCase() ?? '؟'
+
+  const displayName = getUserDisplayName(user)
+  const roleLabel = getUserRoleLabel(user)
+  const initials = getUserInitials(user)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function close(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [menuOpen])
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
 
   return (
     <header
       dir="rtl"
-      className="fixed right-0 top-0 z-20 flex h-16 w-full items-center gap-4 border-b border-deepBlue/[0.07] bg-white/85 px-4 shadow-[0_1px_0_rgba(15,42,67,0.04)] backdrop-blur-xl lg:right-64 lg:w-[calc(100%-256px)]"
+      className="fixed right-0 top-0 z-20 flex h-16 w-full items-center gap-4 border-b border-deepBlue/[0.07] bg-white/78 px-4 shadow-[0_1px_0_rgba(15,42,67,0.04)] backdrop-blur-2xl lg:right-60 lg:w-[calc(100%-15rem)]"
     >
       <button
         type="button"
@@ -570,13 +397,76 @@ function Topbar({
 
         <NotificationBell unread={unread} onClick={onOpenNotifications} />
 
-        <Link
-          to="/dashboard/profile"
-          aria-label="الملف الشخصي"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-sm font-black text-white shadow-[0_8px_18px_-6px_rgba(38,145,194,0.6)] ring-2 ring-white transition hover:scale-[1.04] hover:shadow-[0_10px_22px_-6px_rgba(38,145,194,0.7)]"
-        >
-          {userInitial}
-        </Link>
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            className={[
+              'flex max-w-[min(100vw-10rem,17rem)] items-center gap-2 rounded-2xl border border-deepBlue/[0.08] bg-[#F6F8FB] py-1.5 ps-2 pe-2.5 sm:pe-3',
+              'text-deepBlue transition hover:border-customBlue/25 hover:bg-white hover:shadow-emc-xs',
+              menuOpen ? 'border-customBlue/30 bg-white shadow-emc-xs' : '',
+            ].join(' ')}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            aria-label="قائمة المستخدم"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[11px] font-black leading-none text-white shadow-[0_6px_14px_-4px_rgba(38,145,194,0.55)] ring-2 ring-white font-latin">
+              {initials}
+            </span>
+            <div className="min-w-0 flex-1 text-right max-sm:hidden">
+              <p className="truncate text-[13px] font-black leading-tight tracking-tight text-deepBlue">{displayName}</p>
+              {roleLabel ?
+                <p className="truncate text-[11px] font-bold text-deepBlue/48 font-latin">{roleLabel}</p>
+              : null}
+            </div>
+            <ChevronDown
+              aria-hidden
+              className={`size-4 shrink-0 text-deepBlue/40 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+              strokeWidth={2.25}
+            />
+          </button>
+
+          {menuOpen ?
+            <div
+              dir="rtl"
+              role="menu"
+              aria-label="خيارات المستخدم"
+              className="absolute end-0 top-[calc(100%+0.375rem)] z-[100] min-w-[15.5rem] rounded-2xl border border-deepBlue/[0.08] bg-white py-2 shadow-[0_14px_40px_-14px_rgba(15,42,67,0.22)] ring-1 ring-deepBlue/[0.04]"
+            >
+              <Link
+                to="/dashboard/profile"
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
+              >
+                <User className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
+                الملف الشخصي
+              </Link>
+              <Link
+                to="/dashboard/settings"
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
+              >
+                <Settings className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
+                الإعدادات
+              </Link>
+              <div className="my-2 h-px bg-deepBlue/[0.06]" role="presentation" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false)
+                  logout()
+                }}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm font-black text-rose-600 transition hover:bg-rose-50"
+              >
+                <LogOut className="size-[17px] shrink-0 opacity-90" aria-hidden />
+                تسجيل الخروج
+              </button>
+            </div>
+          : null}
+        </div>
       </div>
     </header>
   )
@@ -593,19 +483,17 @@ export default function DashboardLayout() {
   const [notifications, setNotifications] = useState<PlatformNotification[]>([])
   const location = useLocation()
 
+  const refreshNotifications = useCallback(() => {
+    void fetchNotifications().then((n) => setNotifications(n))
+  }, [])
+
   useEffect(() => {
     setSidebarOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
-    let cancelled = false
-    fetchNotifications().then((n) => {
-      if (!cancelled) setNotifications(n)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [location.pathname])
+    refreshNotifications()
+  }, [refreshNotifications])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -652,7 +540,10 @@ export default function DashboardLayout() {
         onMenuClick={() => setSidebarOpen(true)}
         onOpenSearch={() => setPaletteOpen(true)}
         unread={unread}
-        onOpenNotifications={() => setDrawerOpen(true)}
+        onOpenNotifications={() => {
+          setDrawerOpen(true)
+          refreshNotifications()
+        }}
       />
 
       <CommandPalette
@@ -684,7 +575,7 @@ export default function DashboardLayout() {
         <Bot size={26} className="relative" />
       </Link>
 
-      <main className="relative pt-16 lg:mr-64" id="dashboard-main-content" tabIndex={-1}>
+      <main className="relative pt-16 lg:mr-60" id="dashboard-main-content" tabIndex={-1}>
         <div className="p-5 md:p-7 lg:p-8">
           <Outlet />
         </div>

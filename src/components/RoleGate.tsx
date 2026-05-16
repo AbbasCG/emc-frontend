@@ -1,9 +1,10 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { normalizeRole } from '@/utils/dashboardAccess'
 import type { UserRole } from '../types'
 
 type Props = {
-  allow: UserRole[]
+  allow: readonly (UserRole | string)[]
   /** Where to send users lacking permission (default: forbidden page). */
   redirectTo?: string
 }
@@ -32,7 +33,15 @@ function RoleGate({ allow, redirectTo = '/403' }: Props) {
   }
 
   const role = user?.role
-  if (!role || !allow.includes(role)) {
+  if (normalizeRole(role) === 'super_admin') {
+    return <Outlet />
+  }
+
+  const normalizedRole = role != null && String(role).trim() !== '' ? String(role).trim() : ''
+  const allowed =
+    normalizedRole !== '' &&
+    allow.some((a) => String(a).trim().toLowerCase() === normalizedRole.toLowerCase())
+  if (!allowed) {
     return <Navigate to={redirectTo} replace state={{ from: location.pathname }} />
   }
 

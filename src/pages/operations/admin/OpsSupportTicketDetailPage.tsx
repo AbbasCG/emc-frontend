@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import {
@@ -13,6 +13,10 @@ import type { SupportTicketDetail, SupportTicketStatus } from '@/types/operation
 
 export default function OpsSupportTicketDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
+  const ticketListPath = location.pathname.startsWith('/dashboard/support')
+    ? '/dashboard/support'
+    : '/dashboard/admin/support-tickets'
   const tid = id ? Number(id) : NaN
   const [ticket, setTicket] = useState<SupportTicketDetail | null>(null)
   const [reply, setReply] = useState('')
@@ -84,7 +88,7 @@ export default function OpsSupportTicketDetailPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <Link
-        to="/dashboard/admin/support-tickets"
+        to={ticketListPath}
         className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
       >
         <ChevronLeft size={14} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { fetchVolunteer, updateVolunteer } from '@/api/volunteersApi'
@@ -9,6 +9,10 @@ import type { OpsVolunteer, VolunteerStatus } from '@/types/operations'
 
 export default function OpsVolunteerDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
+  const volunteerListPath = location.pathname.startsWith('/dashboard/volunteer')
+    ? '/dashboard/volunteer'
+    : '/dashboard/admin/volunteers'
   const vid = id ? Number(id) : NaN
   const [v, setV] = useState<OpsVolunteer | null>(null)
   const [loading, setLoading] = useState(true)
@@ -64,7 +68,7 @@ export default function OpsVolunteerDetailPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <Link
-        to="/dashboard/admin/volunteers"
+        to={volunteerListPath}
         className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
       >
         <ChevronLeft size={14} />

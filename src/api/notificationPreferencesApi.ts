@@ -14,9 +14,11 @@ function normalizePreferences(payload: unknown): NotificationPreferenceRow[] | n
   return null
 }
 
+const silent = { skipErrorToast: true }
+
 export async function fetchNotificationPreferences(): Promise<NotificationPreferenceRow[]> {
   try {
-    const res = await apiClient.get<unknown>('/notifications/preferences')
+    const res = await apiClient.get<unknown>('/notifications/preferences', silent)
     return normalizePreferences(res.data) ?? seedNotificationPreferences()
   } catch {
     return seedNotificationPreferences()
@@ -27,7 +29,7 @@ export async function updateNotificationPreferences(
   preferences: NotificationPreferenceRow[],
 ): Promise<NotificationPreferenceRow[]> {
   try {
-    const res = await apiClient.patch<unknown>('/notifications/preferences', { preferences })
+    const res = await apiClient.patch<unknown>('/notifications/preferences', { preferences }, silent)
     return normalizePreferences(res.data) ?? preferences
   } catch {
     return preferences
