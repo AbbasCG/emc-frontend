@@ -33,6 +33,7 @@ import MegaDropdown, { type MegaDropdownItem } from './nav/MegaDropdown'
 import { useAuth } from '../contexts/AuthContext'
 import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
 import { routeMatchesPath } from '@/utils/routeMatch'
+import { UserAvatar } from '@/components/UserAvatar'
 
 const aboutItems: MegaDropdownItem[] = [
   { href: '/about', label: 'من نحن', description: 'تعريف بالمنصة وأسلوب عملها', icon: Users },
@@ -149,8 +150,6 @@ export default function Navbar() {
     setUserMenuOpen(false)
   }
 
-  const userInitial = user?.name?.charAt(0)?.toUpperCase() ?? '؟'
-
   return (
     <header
       ref={navRef}
@@ -251,9 +250,11 @@ export default function Navbar() {
                         : 'border-deepBlue/[0.1] bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-emcBg/90',
                     ].join(' ')}
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-deepBlue/[0.9] text-xs font-black text-white">
-                      {userInitial}
-                    </span>
+                    <UserAvatar
+                      user={user}
+                      className="h-8 w-8 shrink-0 rounded-full bg-deepBlue/[0.9] text-xs text-white shadow-inner ring-1 ring-white/20"
+                      textClassName="text-xs font-black text-white"
+                    />
                     <span className="max-w-[6.5rem] truncate">{user.name}</span>
                     <ChevronDown
                       size={14}
@@ -421,9 +422,11 @@ export default function Navbar() {
                   {isAuthenticated && user ? (
                     <>
                       <div className="flex items-center gap-3 rounded-2xl border border-deepBlue/[0.08] bg-[#F8FBFE] px-4 py-3">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-deepBlue text-sm font-black text-white">
-                          {userInitial}
-                        </span>
+                        <UserAvatar
+                          user={user}
+                          className="h-10 w-10 shrink-0 rounded-full bg-deepBlue text-sm text-white shadow-sm ring-1 ring-white/20"
+                          textClassName="text-sm font-black text-white"
+                        />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-black text-deepBlue">{user.name}</p>
                           <p className="truncate text-xs text-deepBlue/50">{user.email}</p>

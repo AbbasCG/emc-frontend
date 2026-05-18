@@ -48,6 +48,10 @@ import StudentEvaluationPage from './pages/lms/student/StudentEvaluationPage'
 import StudentMaterialsPage from './pages/lms/student/StudentMaterialsPage'
 import StudentProgressPage from './pages/lms/student/StudentProgressPage'
 import StudentSessionsPage from './pages/lms/student/StudentSessionsPage'
+import StudentMyCoursesPage from './pages/lms/student/StudentMyCoursesPage'
+import StudentRegistrationsListPage from './pages/lms/student/StudentRegistrationsListPage'
+import StudentAvailableCoursesPage from './pages/lms/student/StudentAvailableCoursesPage'
+import InstructorAssignedCoursesPage from './pages/lms/instructor/InstructorAssignedCoursesPage'
 import OperationsDashboardPage from './pages/operations/admin/OperationsDashboardPage'
 import OpsDepartmentsPage from './pages/operations/admin/OpsDepartmentsPage'
 import OpsDepartmentDetailPage from './pages/operations/admin/OpsDepartmentDetailPage'
@@ -146,6 +150,7 @@ import TracksManagementPage from './pages/super-admin/crud/TracksManagementPage'
 import WorkshopsManagementPage from './pages/super-admin/crud/WorkshopsManagementPage'
 import RegistrationsManagementPage from './pages/super-admin/crud/RegistrationsManagementPage'
 import PartnersManagementPage from './pages/super-admin/crud/PartnersManagementPage'
+import SuperAdminAuditLogsPage from './pages/super-admin/AuditLogsPage'
 
 import { getDashboardPathByRole } from './utils/dashboardAccess'
 
@@ -246,6 +251,7 @@ function App() {
 
                   <Route path="/dashboard" element={<RoleRedirect />} />
                   <Route path="/dashboard/super-admin" element={<SuperAdminOverviewPage />} />
+                  <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
                   {/* Super Admin CRUD — صفحة فريدة لكل كيان؛ إعادة التوجيه المعروف قديمًا */}
                   <Route
                     path="/dashboard/super-admin/crud/partnerships"
@@ -274,8 +280,15 @@ function App() {
                   <Route path="/dashboard/super-admin/crud/partners" element={<PartnersManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/*" element={<Navigate to="/dashboard/super-admin" replace />} />
 
+                  <Route path="/dashboard/admin/programs" element={<ProgramsManagementPage />} />
+
                   <Route path="/dashboard/student" element={<Dashboard />} />
+                  <Route path="/dashboard/student/courses" element={<StudentMyCoursesPage />} />
+                  <Route path="/dashboard/student/registrations" element={<StudentRegistrationsListPage />} />
+                  <Route path="/dashboard/student/available-courses" element={<StudentAvailableCoursesPage />} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
+                  <Route path="/dashboard/instructor/courses" element={<InstructorAssignedCoursesPage />} />
+                  <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
 
@@ -287,6 +300,7 @@ function App() {
                   <Route path="/dashboard/executive/operations" element={<OperationsDashboardPage />} />
                   <Route path="/dashboard/executive/kpi" element={<KpiAdminPage />} />
                   <Route path="/dashboard/executive/reports" element={<ReportsAdminPage />} />
+                  <Route path="/dashboard/executive/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/finance" element={<FinanceDashboardPage />} />
                   <Route path="/dashboard/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/finance/transactions" element={<FinanceTransactionsPage />} />
@@ -306,6 +320,7 @@ function App() {
                   <Route path="/dashboard/volunteer" element={<OpsVolunteersPage />} />
                   <Route path="/dashboard/volunteer/:id" element={<OpsVolunteerDetailPage />} />
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
+                  <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
 
                   <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />

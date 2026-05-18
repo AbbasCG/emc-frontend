@@ -1,4 +1,3 @@
-import axios from 'axios'
 import {
   BookOpen,
   Calendar,
@@ -9,7 +8,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import apiClient from '../api/axios'
 import { fetchInstructorLmsDashboard } from '@/api/instructorApi'
@@ -23,70 +22,37 @@ import {
 import { LearningDashboardCard } from '@/components/lms'
 import { useAuth } from '../contexts/AuthContext'
 import type { TeacherDashboardData, TeachingCourse } from '../types'
-import type { InstructorLmsDashboard } from '@/types/lms'
-
-// ---------------------------------------------------------------------------
-// MOCK FALLBACK — remove when GET /api/dashboard/teacher is live
-// ---------------------------------------------------------------------------
-const MOCK: TeacherDashboardData = {
-  stats: {
-    total_students: 48,
-    upcoming_sessions: 5,
-    active_courses: 3,
-    completion_rate: 72,
-  },
-  courses: [
-    {
-      id: 1,
-      title: 'أساسيات اللغة الهولندية — المستوى الأول',
-      slug: 'dutch-basics-1',
-      student_count: 22,
-      upcoming_sessions: 3,
-      status: 'active',
-    },
-    {
-      id: 2,
-      title: 'مهارات التواصل المهني',
-      slug: 'professional-communication',
-      student_count: 15,
-      upcoming_sessions: 2,
-      status: 'active',
-    },
-    {
-      id: 3,
-      title: 'التدريب المهني التقني',
-      slug: 'technical-vocational-training',
-      student_count: 11,
-      upcoming_sessions: 0,
-      status: 'completed',
-    },
-  ],
-  upcoming_sessions: [
-    {
-      id: 1,
-      course_name: 'أساسيات اللغة الهولندية — المستوى الأول',
-      date: '١٥ مايو ٢٠٢٦',
-      time: '٤:٠٠ م — ٦:٠٠ م',
-      type: 'online',
-      meeting_link: '#',
-      platform: 'zoom',
-    },
-    {
-      id: 2,
-      course_name: 'مهارات التواصل المهني',
-      date: '١٨ مايو ٢٠٢٦',
-      time: '٢:٠٠ م — ٤:٠٠ م',
-      type: 'offline',
-      location: 'مركز EMC، أمستردام',
-    },
-  ],
-}
+import type { InstructorLmsDashboard, TeachingCourseLms } from '@/types/lms'
 
 function normalise(raw: unknown): TeacherDashboardData {
   if (raw && typeof raw === 'object' && 'data' in raw) {
     return (raw as { data: TeacherDashboardData }).data
   }
   return raw as TeacherDashboardData
+}
+
+function mapLmsCourseToTeaching(c: TeachingCourseLms): TeachingCourse {
+  const st = String(c.status ?? '').toLowerCase()
+  const status: TeachingCourse['status'] =
+    st.includes('complete') ? 'completed'
+    : st.includes('upcoming') || st.includes('قادم') ? 'upcoming'
+    : 'active'
+  return {
+    id: c.id,
+    title: c.title,
+    slug: c.slug ?? `course-${c.id}`,
+    student_count: c.student_count ?? 0,
+    upcoming_sessions: 0,
+    status,
+  }
+}
+
+function sessionPlatform(p: string | undefined): 'zoom' | 'meet' | 'teams' | undefined {
+  const s = String(p ?? '').toLowerCase()
+  if (s.includes('teams')) return 'teams'
+  if (s.includes('meet') || s.includes('google')) return 'meet'
+  if (s.includes('zoom')) return 'zoom'
+  return undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -100,7 +66,8 @@ const statusConfig = {
 }
 
 function TeachingCourseCard({ course }: { course: TeachingCourse }) {
-  const { label, cls } = statusConfig[course.status]
+  const cfg = statusConfig[course.status] ?? statusConfig.active
+  const { label, cls } = cfg
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
@@ -121,7 +88,7 @@ function TeachingCourseCard({ course }: { course: TeachingCourse }) {
       </div>
 
       <Link
-        to={`/courses/${course.slug}`}
+        to={course.slug ? `/courses/${course.slug}` : '/dashboard/instructor/courses'}
         className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2 text-xs font-black text-deepBlue transition hover:border-customBlue hover:text-customBlue"
       >
         <BookOpen size={12} />
@@ -137,73 +104,87 @@ function TeachingCourseCard({ course }: { course: TeachingCourse }) {
 
 export default function TeacherDashboard() {
   const { user } = useAuth()
-  const [data, setData] = useState<TeacherDashboardData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [usingMock, setUsingMock] = useState(false)
+  const [legacyDash, setLegacyDash] = useState<TeacherDashboardData | null>(null)
   const [insLms, setInsLms] = useState<InstructorLmsDashboard | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'صباح الخير' : hour < 18 ? 'مساء الخير' : 'مساء النور'
 
   useEffect(() => {
-    let isMounted = true
-
-    async function fetchDashboard() {
-      try {
-        setIsLoading(true)
-        const response = await apiClient.get('/dashboard/teacher')
-        if (!isMounted) return
-        setData(normalise(response.data))
-      } catch (err) {
-        if (!isMounted || axios.isCancel(err)) return
-        // MOCK FALLBACK — remove when /api/dashboard/teacher is live
-        setData(MOCK)
-        setUsingMock(true)
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-
-    fetchDashboard()
-    return () => { isMounted = false }
-  }, [])
-
-  useEffect(() => {
     let alive = true
-    fetchInstructorLmsDashboard()
-      .then((row) => {
-        if (alive) setInsLms(row)
+    setIsLoading(true)
+    void Promise.all([
+      apiClient
+        .get('/dashboard/teacher', { skipErrorToast: true })
+        .then((res) => normalise(res.data))
+        .catch(() => null),
+      fetchInstructorLmsDashboard().catch(() => null),
+    ])
+      .then(([legacy, lms]) => {
+        if (!alive) return
+        setLegacyDash(legacy)
+        setInsLms(lms)
       })
-      .catch(() => {
-        if (alive) setInsLms(null)
+      .finally(() => {
+        if (alive) setIsLoading(false)
       })
     return () => {
       alive = false
     }
   }, [])
 
+  const effective = useMemo(() => {
+    const legacy = legacyDash
+    const lms = insLms
+    if (legacy?.stats || (legacy?.courses && legacy.courses.length > 0)) {
+      return {
+        stats: legacy.stats,
+        courses: legacy.courses ?? [],
+        sessions: legacy.upcoming_sessions ?? [],
+      }
+    }
+    const courses = (lms?.assigned_courses ?? []).map(mapLmsCourseToTeaching)
+    const sessions = (lms?.upcoming_sessions ?? []).map((s) => ({
+      id: s.id,
+      course_name: s.course_name,
+      date: s.date ?? s.starts_at ?? '—',
+      time: s.time,
+      type: (s.type === 'offline' ? 'offline' : 'online') as 'online' | 'offline',
+      location: s.location,
+      meeting_link: s.meeting_link,
+      platform: (s.platform as string | undefined) ?? undefined,
+    }))
+    return {
+      stats: {
+        total_students: lms?.student_count ?? 0,
+        upcoming_sessions: sessions.length,
+        active_courses: courses.filter((c) => c.status !== 'completed').length,
+        completion_rate: 0,
+      },
+      courses,
+      sessions,
+    }
+  }, [legacyDash, insLms])
+
   if (isLoading) return <TeacherSkeleton />
 
-  const { stats, courses, upcoming_sessions: sessions } = data ?? MOCK
+  const { stats, courses, sessions } = effective
 
   const statCards = [
-    { title: 'إجمالي الطلاب',    value: stats.total_students,    icon: Users,         color: 'blue'   as const },
-    { title: 'الجلسات القادمة',  value: stats.upcoming_sessions, icon: Calendar,      color: 'orange' as const },
-    { title: 'الدورات النشطة',   value: stats.active_courses,    icon: BookOpen,      color: 'green'  as const },
-    { title: 'نسبة الإتمام',     value: `${stats.completion_rate}%`, icon: GraduationCap, color: 'purple' as const },
+    { title: 'إجمالي الطلاب', value: stats.total_students, icon: Users, color: 'blue' as const },
+    { title: 'الجلسات القادمة', value: stats.upcoming_sessions, icon: Calendar, color: 'orange' as const },
+    { title: 'الدورات النشطة', value: stats.active_courses, icon: BookOpen, color: 'green' as const },
+    {
+      title: 'نسبة الإتمام',
+      value: stats.completion_rate > 0 ? `${stats.completion_rate}%` : '—',
+      icon: GraduationCap,
+      color: 'purple' as const,
+    },
   ]
 
   return (
     <div className="space-y-8">
-
-      {/* DEV-only mock notice */}
-      {usingMock && import.meta.env.DEV && (
-        <div className="rounded-xl bg-amber-50 px-5 py-3 text-right text-xs font-bold text-amber-700 ring-1 ring-amber-100">
-          ⚠️ يتم عرض بيانات تجريبية — نقطة نهاية /api/dashboard/teacher غير متاحة بعد.
-        </div>
-      )}
-
-      {/* ── Welcome header ── */}
       <div className="rounded-2xl bg-deepBlue px-7 py-6 text-right text-white shadow-sm">
         <p className="text-sm font-bold text-white/60">{greeting}،</p>
         <h1 className="mt-1 text-2xl font-black">{user?.name ?? 'مرحباً'} 👋</h1>
@@ -255,7 +236,7 @@ export default function TeacherDashboard() {
       {/* ── My courses ── */}
       <DashboardSection
         title="دوراتي"
-        action={courses.length > 0 ? { label: 'عرض الكل', href: '/dashboard/courses' } : undefined}
+        action={courses.length > 0 ? { label: 'عرض الكل', href: '/dashboard/instructor/courses' } : undefined}
       >
         {courses.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -288,7 +269,7 @@ export default function TeacherDashboard() {
                 type={s.type}
                 location={s.location ?? undefined}
                 meetingLink={s.meeting_link ?? undefined}
-                platform={s.platform ?? undefined}
+                platform={sessionPlatform(s.platform ?? undefined)}
               />
             ))}
           </div>

@@ -29,3 +29,11 @@ export async function markAllNotificationsRead(): Promise<void> {
     /* offline */
   }
 }
+
+export async function deleteNotification(id: number): Promise<void> {
+  try {
+    await apiClient.delete(`/notifications/${id}`, silent)
+  } catch {
+    /* optional */
+  }
+}

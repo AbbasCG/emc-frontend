@@ -198,6 +198,150 @@ export async function fetchStudentLmsDashboard(): Promise<StudentLmsDashboard> {
   return normalizeStudentLmsDashboard(res.data)
 }
 
+/** Fired after course registration succeeds so student dashboards refetch registrations. */
+export const STUDENT_SCOPE_REFRESH_EVENT = 'emc-student-scope-refresh' as const
+
+export function notifyStudentScopeRefresh(): void {
+  try {
+    window.dispatchEvent(new CustomEvent(STUDENT_SCOPE_REFRESH_EVENT))
+  } catch {
+    /* ignore */
+  }
+}
+
+function coerceFlexibleList(payload: unknown, keys: string[]): unknown[] {
+  const inner = unwrapData<unknown>(payload)
+  if (Array.isArray(inner)) return inner
+  if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+    const row = inner as Record<string, unknown>
+    for (const k of keys) {
+      const v = row[k]
+      if (Array.isArray(v)) return v
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        const nested = (v as Record<string, unknown>).data
+        if (Array.isArray(nested)) return nested
+      }
+    }
+  }
+  return []
+}
+
+export type StudentListedCourse = {
+  id: number
+  title: string
+  slug?: string | null
+  instructor_name?: string | null
+  progress_percent?: number
+  status?: string
+  start_date?: string | null
+  start_time?: string | null
+  meeting_link?: string | null
+}
+
+function slugifyFallback(id: number): string {
+  return `course-${id}`
+}
+
+function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const o = raw as Record<string, unknown>
+  const nested =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const id = Number(o.id ?? o.course_id ?? nested?.id)
+  if (!Number.isFinite(id)) return null
+  const title = String(o.title ?? o.course_title ?? nested?.title ?? slugifyFallback(id))
+  const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
+  const startRaw = o.start_date ?? nested?.start_date ?? o.course_start_date
+  const timeRaw = o.start_time ?? nested?.start_time ?? o.study_time
+  const meetRaw = o.meeting_link ?? nested?.meeting_link ?? o.join_url
+  return {
+    id,
+    title,
+    slug: slugRaw != null && String(slugRaw).trim() !== '' ? String(slugRaw) : undefined,
+    instructor_name:
+      nested?.instructor_name != null ?
+        String(nested.instructor_name)
+      : o.instructor_name != null ?
+        String(o.instructor_name)
+      : undefined,
+    progress_percent: toFiniteNumber(o.progress_percent ?? o.progress),
+    status: o.status != null ? String(o.status) : undefined,
+    start_date: startRaw != null && String(startRaw).trim() !== '' ? String(startRaw) : null,
+    start_time: timeRaw != null && String(timeRaw).trim() !== '' ? String(timeRaw) : null,
+    meeting_link: meetRaw != null && String(meetRaw).trim() !== '' ? String(meetRaw) : null,
+  }
+}
+
+/** GET /student/courses — empty array on failure. */
+export async function fetchStudentCoursesList(): Promise<StudentListedCourse[]> {
+  try {
+    const res = await apiClient.get<unknown>('/student/courses', { skipErrorToast: true })
+    return coerceFlexibleList(res.data, ['courses', 'data', 'items', 'enrollments'])
+      .map(normalizeListedCourse)
+      .filter((x): x is StudentListedCourse => x != null)
+  } catch {
+    return []
+  }
+}
+
+export type StudentRegistrationRow = {
+  id: number
+  course_id: number
+  course_title?: string
+  slug?: string | null
+  status?: string
+  enrolled_at?: string | null
+  start_date?: string | null
+  start_time?: string | null
+  meeting_link?: string | null
+  instructor_name?: string | null
+}
+
+function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const o = raw as Record<string, unknown>
+  const nested =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const id = Number(o.id ?? o.registration_id ?? o.enrollment_id)
+  const course_id = Number(o.course_id ?? nested?.id)
+  if (!Number.isFinite(id) || !Number.isFinite(course_id)) return null
+  const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
+  const title = nested?.title ?? o.course_title ?? o.program_title ?? o.course_name
+  const enrolled =
+    o.enrolled_at ?? o.registered_at ?? o.created_at
+  const startD = o.start_date ?? nested?.start_date ?? o.course_start_at
+  const startT = o.start_time ?? nested?.start_time ?? o.study_time
+  const link = o.meeting_link ?? nested?.meeting_link
+  const inst =
+    nested?.instructor_name != null ?
+      String(nested.instructor_name)
+    : o.instructor_name != null ?
+      String(o.instructor_name)
+    : undefined
+  return {
+    id,
+    course_id,
+    course_title: title != null ? String(title) : slugifyFallback(course_id),
+    slug: slugRaw != null && String(slugRaw).trim() !== '' ? String(slugRaw) : undefined,
+    status: o.status != null ? String(o.status) : undefined,
+    enrolled_at: enrolled != null && String(enrolled).trim() !== '' ? String(enrolled) : null,
+    start_date: startD != null && String(startD).trim() !== '' ? String(startD) : null,
+    start_time: startT != null && String(startT).trim() !== '' ? String(startT) : null,
+    meeting_link: link != null && String(link).trim() !== '' ? String(link) : null,
+    instructor_name: inst,
+  }
+}
+
+/** GET /student/registrations — empty array on failure. */
+export async function fetchStudentRegistrations(): Promise<StudentRegistrationRow[]> {
+  try {
+    const res = await apiClient.get<unknown>('/student/registrations', { skipErrorToast: true })
+    return coerceFlexibleList(res.data, ['registrations', 'data', 'items', 'enrollments']).map(normalizeRegistrationRow).filter((x): x is StudentRegistrationRow => x != null)
+  } catch {
+    return []
+  }
+}
+
 export async function fetchStudentSessions(): Promise<{
   upcoming: LmsSession[]
   completed: LmsSession[]

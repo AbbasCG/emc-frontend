@@ -5,12 +5,20 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { toast } from 'sonner'
 import * as authApi from '../api/authApi'
 import type { User } from '../types'
-import { normalizeAuthUser } from '../utils/userIdentity'
+import {
+  TOKEN_KEY,
+  USER_KEY,
+  clearImpersonationSessionMarks,
+  readCurrentAuthBackupFromLocal,
+  readStoredImpersonationOriginal,
+  writeImpersonationSessionBackup,
+} from '@/lib/impersonationSession'
+import { normalizeAuthLoginPayload, normalizeAuthUser } from '../utils/userIdentity'
 
-export const TOKEN_KEY = 'emc_token'
-export const USER_KEY = 'emc_user'
+export { TOKEN_KEY, USER_KEY } from '@/lib/impersonationSession'
 
 interface RegisterAccountInput {
   name: string
@@ -27,6 +35,14 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ user: User; token: string }>
   registerAccount: (input: RegisterAccountInput) => Promise<{ user: User; token: string }>
   logout: () => void
+  /** True when JWT represents a target user previewed by super_admin (session markers present). */
+  isImpersonating: boolean
+  /** Super-admin profile stored before impersonation snapshot — never the impersonated user. */
+  impersonationOriginalUser: User | null
+  startImpersonationPreview: (targetUserId: number) => Promise<void>
+  stopImpersonationPreview: () => Promise<void>
+  /** Re-fetch `/auth/me` after profile / avatar changes. Returns null if probe fails while session persists. */
+  refreshUser: () => Promise<User | null>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -35,6 +51,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [impersonationOriginalUser, setImpersonationOriginalUser] = useState<User | null>(
+    () => readStoredImpersonationOriginal()?.originalUser ?? null,
+  )
+
+  const isImpersonating = impersonationOriginalUser != null
 
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY)
@@ -60,6 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem(USER_KEY)
         setToken(null)
         setUser(null)
+        clearImpersonationSessionMarks()
+        setImpersonationOriginalUser(null)
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -74,6 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const snap = readStoredImpersonationOriginal()
+    setImpersonationOriginalUser((prev) => snap?.originalUser ?? prev ?? null)
+
     hydrate()
     return () => {
       cancelled = true
@@ -87,6 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
     setToken(newToken)
     setUser(newUser)
+    clearImpersonationSessionMarks()
+    setImpersonationOriginalUser(null)
     return payload
   }
 
@@ -97,6 +125,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
     setToken(newToken)
     setUser(newUser)
+    clearImpersonationSessionMarks()
+    setImpersonationOriginalUser(null)
     return payload
   }
 
@@ -105,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await authApi.logoutRemote()
       } catch {
-        // Always clear locally even if backend is unreachable / session already expired.
+        /* always clear locally */
       }
       try {
         localStorage.removeItem(TOKEN_KEY)
@@ -120,8 +150,101 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setToken(null)
       setUser(null)
+      clearImpersonationSessionMarks()
+      setImpersonationOriginalUser(null)
       window.location.assign('/login')
     })()
+  }
+
+  async function startImpersonationPreview(targetUserId: number) {
+    if (readStoredImpersonationOriginal()) {
+      toast.warning('وضع معاينة نشط بالفعل. أنِهِ الحالي قبل البدء بآخر.')
+      throw new Error('already_impersonating')
+    }
+
+    const cur = readCurrentAuthBackupFromLocal()
+    if (!cur?.token || !cur.user) {
+      toast.error('تعذر قراءة الجلسة الحالية.')
+      throw new Error('missing_session')
+    }
+
+    writeImpersonationSessionBackup(cur.token, cur.user)
+    setImpersonationOriginalUser(cur.user)
+
+    try {
+      const raw = await authApi.postImpersonateUser(targetUserId)
+      const { token: nextToken, user: nextUser } = normalizeAuthLoginPayload(raw)
+
+      if (!nextToken.trim()) {
+        throw new Error('missing_impersonation_token')
+      }
+
+      localStorage.setItem(TOKEN_KEY, nextToken)
+      localStorage.setItem(USER_KEY, JSON.stringify(nextUser))
+      setToken(nextToken)
+      setUser(nextUser)
+
+      toast.success(`تم بدء المعاينة — عرض المنصّة كـ ${nextUser.name || 'مستخدم مستهدَف'}.`)
+    } catch (e) {
+      clearImpersonationSessionMarks()
+      setImpersonationOriginalUser(null)
+      throw e
+    }
+  }
+
+  async function stopImpersonationPreview() {
+    const fallback = readStoredImpersonationOriginal()
+
+    try {
+      const raw = await authApi.postImpersonateStop()
+      try {
+        const { token: restoredToken, user: restoredUser } = normalizeAuthLoginPayload(raw)
+        if (restoredToken.trim()) {
+          localStorage.setItem(TOKEN_KEY, restoredToken)
+          localStorage.setItem(USER_KEY, JSON.stringify(restoredUser))
+          setToken(restoredToken)
+          setUser(restoredUser)
+          clearImpersonationSessionMarks()
+          setImpersonationOriginalUser(null)
+          return
+        }
+      } catch {
+        /* fall through — restore fallback */
+      }
+    } catch {
+      /* fallback below */
+    }
+
+    if (fallback?.originalToken && fallback.originalUser?.id) {
+      localStorage.setItem(TOKEN_KEY, fallback.originalToken)
+      localStorage.setItem(USER_KEY, JSON.stringify(fallback.originalUser))
+      setToken(fallback.originalToken)
+      setUser(fallback.originalUser)
+      clearImpersonationSessionMarks()
+      setImpersonationOriginalUser(null)
+      return
+    }
+
+    clearImpersonationSessionMarks()
+    setImpersonationOriginalUser(null)
+    throw new Error('stop_impersonation_failed')
+  }
+
+  async function refreshUser() {
+    try {
+      const fresh = await authApi.fetchMe()
+      setUser(fresh)
+      localStorage.setItem(USER_KEY, JSON.stringify(fresh))
+      return fresh
+    } catch {
+      try {
+        const cached = localStorage.getItem(USER_KEY)
+        if (!cached) return null
+        return normalizeAuthUser(JSON.parse(cached) as unknown)
+      } catch {
+        return null
+      }
+    }
   }
 
   return (
@@ -134,6 +257,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         registerAccount,
         logout,
+        isImpersonating,
+        impersonationOriginalUser,
+        startImpersonationPreview,
+        stopImpersonationPreview,
+        refreshUser,
       }}
     >
       {children}

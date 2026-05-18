@@ -78,6 +78,9 @@ export type StudentLmsDashboard = {
     instructor_name?: string | null
     progress_percent?: number
     status?: string
+    start_date?: string | null
+    start_time?: string | null
+    meeting_link?: string | null
   }[]
   upcoming_sessions: LmsSession[]
   completed_sessions?: LmsSession[]
@@ -100,6 +103,9 @@ export type TeachingCourseLms = {
   slug?: string | null
   student_count?: number
   status?: string
+  start_date?: string | null
+  end_date?: string | null
+  meeting_link?: string | null
 }
 
 export type InstructorSubmission = {

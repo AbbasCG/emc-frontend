@@ -1,7 +1,24 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import axios from 'axios'
-import { RefreshCw, UserCircle2 } from 'lucide-react'
+import {
+  Ban,
+  ChevronDown,
+  Clock3,
+  Copy,
+  Mail,
+  Radio,
+  RefreshCw,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  UserCircle2,
+  Users,
+  UserSquare2,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import {
@@ -17,21 +34,30 @@ import {
   type UpdateAdminUserInput,
 } from '@/api/adminUsersApi'
 import { cn } from '@/lib/utils'
-import { normalizeRole } from '@/utils/dashboardAccess'
+import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
 import { adminRoleLabelAr, getAssignableRoleOptions } from '@/pages/super-admin/users/assignableRoles'
 import {
   canDeleteAdminUserRow,
   canEditAdminUserRow,
   canOfferSuperAdminRoleOption,
 } from '@/pages/super-admin/users/superAdminUserPolicy'
+import { UsersEnterpriseDetailDrawer } from '@/pages/super-admin/users/UsersEnterpriseDetailDrawer'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
-import { SaBackLink, SaGlassCard, SaPageRoot, SaStatChip } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
-import { CrudFilterBar, MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
-import { LoadingPanel, ErrorPanel, EmptyPanel } from '@/pages/super-admin/crud/shared/States'
+import { SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
+import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
+import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
+import { ErrorPanel, EmptyPanel } from '@/pages/super-admin/crud/shared/States'
 import { CrudCardTable, CrudTable, Th, Tr, Td } from '@/pages/super-admin/crud/shared/TableChrome'
 import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
 import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
+import {
+  EnterpriseCrudHero,
+  EnterpriseMetricTile,
+  EnterpriseTableSkeleton,
+} from '@/pages/super-admin/crud/shared/enterprise'
+import { generateSecurePassword } from '@/utils/passwordGenerator'
+import { AR_UNSPECIFIED } from '@/utils/dispAr'
 
 const MANAGER_ROLE_SET = new Set([
   'admin',
@@ -45,6 +71,8 @@ const MANAGER_ROLE_SET = new Set([
   'department_manager',
 ])
 
+const MS_DAY = 86_400_000
+
 function isEffectivelyActive(u: AdminManagedUser): boolean {
   return u.is_active !== false
 }
@@ -55,8 +83,33 @@ function statusBadge(u: AdminManagedUser): 'active' | 'inactive' | 'unknown' {
   return 'unknown'
 }
 
+function parseMs(s?: string | null): number | null {
+  const t = Date.parse(s ?? '')
+  return Number.isFinite(t) ? t : null
+}
+
+function startOfCalendarMonth(now: Date) {
+  return new Date(now.getFullYear(), now.getMonth(), 1)
+}
+
+function startOfPrevCalendarMonth(now: Date) {
+  return new Date(now.getFullYear(), now.getMonth() - 1, 1)
+}
+
+function joinedInRange(u: AdminManagedUser, from: number, to: number): boolean {
+  const t = parseMs(u.created_at)
+  return t !== null && t >= from && t < to
+}
+
+function verifiedDot(u: AdminManagedUser): 'yes' | 'no' | 'unknown' {
+  const raw = u.email_verified_at
+  if (raw == null || String(raw).trim() === '') return 'no'
+  return Number.isFinite(Date.parse(raw)) ? 'yes' : 'unknown'
+}
+
 export default function UsersManagementPage() {
-  const { user: currentUser } = useAuth()
+  const navigate = useNavigate()
+  const { user: currentUser, isImpersonating, startImpersonationPreview } = useAuth()
 
   const [rows, setRows] = useState<AdminManagedUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,6 +119,8 @@ export default function UsersManagementPage() {
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [departmentFilter, setDepartmentFilter] = useState('all')
+  const [joinedFilter, setJoinedFilter] = useState<'all' | 'month' | 'quarter' | 'year'>('all')
 
   const includeSuperAdminAssignment = canOfferSuperAdminRoleOption(currentUser?.role)
   const roleOptionsForm = useMemo(
@@ -100,61 +155,168 @@ export default function UsersManagementPage() {
     void load()
   }, [load])
 
-  const kpis = useMemo(() => {
-    const total = rows.length
-    const active = rows.filter(isEffectivelyActive).length
-    const managers = rows.filter((u) =>
-      MANAGER_ROLE_SET.has(String(normalizeRole(u.role))),
-    ).length
-    const students = rows.filter((u) => normalizeRole(u.role) === 'student').length
+  const impersonatePreview = useCallback(
+    async (target: AdminManagedUser) => {
+      try {
+        await startImpersonationPreview(target.id)
+        navigate(getDashboardPathByRole(normalizeRole(target.role)))
+      } catch (e) {
+        if (axios.isAxiosError(e) && e.response?.status === 403) {
+          toast.warning('لا تملك صلاحية تنفيذ هذا الإجراء')
+        } else if (e instanceof Error) {
+          if (e.message === 'already_impersonating' || e.message === 'missing_session') return
+          toast.error(getApiErrorMessage(e))
+        } else {
+          toast.error(getApiErrorMessage(e))
+        }
+      }
+    },
+    [navigate, startImpersonationPreview],
+  )
 
-    return [
-      { label: 'إجمالي المستخدمين', value: total, tone: 'blue' as const, hint: 'من نقطة الإدارة' },
-      {
-        label: 'النشطون',
-        value: active,
-        tone: 'ink' as const,
-        hint: 'حالة الحساب ليست «موقوفة» وفق ما يعرضه الـ API',
-      },
-      { label: 'المدراء', value: managers, tone: 'orange' as const, hint: 'أدوار إدارية وفق التصنيف' },
-      { label: 'الطلاب', value: students, tone: 'slate' as const, hint: 'دور الطالب ضمن المصدر المرجعي' },
-    ]
+  const departments = useMemo(() => {
+    const s = new Set<string>()
+    for (const u of rows) {
+      const d = u.department?.trim()
+      if (d) s.add(d)
+    }
+    return [...s].sort((a, b) => a.localeCompare(b, 'ar'))
   }, [rows])
 
+  const departmentOpts = useMemo(
+    () => [{ value: 'all', labelAr: 'كل الإدارات / الأقسام' }, ...departments.map((d) => ({ value: d, labelAr: d }))],
+    [departments],
+  )
+
+  const now = useMemo(() => new Date(), [rows])
+
+  const enterpriseKpis = useMemo(() => {
+    const total = rows.length
+    const active = rows.filter(isEffectivelyActive).length
+    const suspended = rows.filter((u) => u.is_active === false).length
+    const admins = rows.filter((u) => MANAGER_ROLE_SET.has(String(normalizeRole(u.role))))
+    const instructors = rows.filter((u) => normalizeRole(u.role) === 'instructor').length
+    const students = rows.filter((u) => normalizeRole(u.role) === 'student').length
+
+    const monthStart = startOfCalendarMonth(now).getTime()
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
+    const newThisMonth = rows.filter((u) => joinedInRange(u, monthStart, nextMonthStart)).length
+
+    const prevStart = startOfPrevCalendarMonth(now).getTime()
+    const prevMonthCount = rows.filter((u) => joinedInRange(u, prevStart, monthStart)).length
+    let growthHint = 'لا يمكن تقييم الزخم قبل توفر اشتراكات شهرية حقيقية.'
+
+    let growthShort = 'لم يتوفر اشتراك في الشهر السابق'
+    if (prevMonthCount === 0) {
+      if (newThisMonth > 0) {
+        growthShort = `${newThisMonth} هذا الشهر (لا مقارنة بالشهر السابق)`
+        growthHint = 'الشهر السابق لم يضف مستخدمًا حسب حقول الانضمام.'
+      }
+    } else {
+      growthHint =
+        newThisMonth !== prevMonthCount ?
+          `${newThisMonth} مقابل ${prevMonthCount} في الشهر الماضي — طوابع created_at الخام`
+        : 'الزخم في المستويين المتتاليين مطابق وفق المصدر المرجعي.'
+      const deltaPct = Math.round(((newThisMonth - prevMonthCount) / prevMonthCount) * 100)
+      growthShort =
+        deltaPct === 0 ? 'مساوٍ للشهر السابق' : `${deltaPct > 0 ? '+' : ''}${deltaPct}% أمام الشهر السابق`
+    }
+
+    const recent24 = rows.filter((u) => {
+      const mx = parseMs(u.updated_at) ?? parseMs(u.last_login_at)
+      return mx !== null && Date.now() - mx < MS_DAY
+    }).length
+
+    return {
+      total,
+      active,
+      suspended,
+      admins: admins.length,
+      instructors,
+      students,
+      newThisMonth,
+      growthHint,
+      growthShort,
+      recent24,
+    }
+  }, [rows, now])
+
   const filtered = useMemo(() => {
+    const nowMs = Date.now()
+    const monthStartMs = startOfCalendarMonth(now).getTime()
+    const quarterMs = monthStartMs - MS_DAY * 90
+    const yearStartMs = new Date(now.getFullYear(), 0, 1).getTime()
     const q = query.trim().toLowerCase()
     return rows.filter((u) => {
       if (roleFilter !== 'all' && normalizeRole(u.role) !== roleFilter) return false
       if (statusFilter === 'active' && !isEffectivelyActive(u)) return false
       if (statusFilter === 'inactive' && u.is_active !== false) return false
-      if (q && !`${u.name} ${u.email}`.toLowerCase().includes(q)) return false
-      return true
+
+      const deptNorm = u.department?.trim() ?? ''
+      if (departmentFilter !== 'all' && deptNorm !== departmentFilter) return false
+
+      if (joinedFilter !== 'all') {
+        const t = parseMs(u.created_at)
+        if (joinedFilter === 'month' && !(t !== null && t >= monthStartMs && t <= nowMs)) return false
+        if (joinedFilter === 'quarter' && !(t !== null && t >= quarterMs && t <= nowMs)) return false
+        if (joinedFilter === 'year' && !(t !== null && t >= yearStartMs && t <= nowMs)) return false
+      }
+
+      if (!q) return true
+      const haystack = `${u.name} ${u.email} ${u.phone ?? ''} ${u.id} ${u.department ?? ''} ${normalizeRole(u.role ?? null)}`.toLowerCase()
+      return haystack.includes(q)
     })
-  }, [rows, query, roleFilter, statusFilter])
+  }, [
+    rows,
+    query,
+    roleFilter,
+    statusFilter,
+    departmentFilter,
+    joinedFilter,
+    now,
+  ])
 
   const actorId = currentUser?.id ?? 0
 
-  const [modal, setModal] = useState<'create' | 'edit' | 'view' | 'delete' | null>(null)
+  const [modal, setModal] = useState<'create' | 'edit' | 'delete' | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   function closeModal() {
     setModal(null)
     setDeleteAck(false)
     setSaving(false)
+    setEditAvatarFile(null)
+    setRemoveAvatar(false)
   }
   const [focusedId, setFocusedId] = useState<number | null>(null)
+  const focusedUser =
+    focusedId === null ?
+      undefined
+    : rows.find((r) => r.id === focusedId) ?? filtered.find((r) => r.id === focusedId)
+
   const [formName, setFormName] = useState('')
   const [formEmail, setFormEmail] = useState('')
   const [formRole, setFormRole] = useState('student')
+  const [formPhone, setFormPhone] = useState('')
+  const [formDepartment, setFormDepartment] = useState('')
+  const [formCity, setFormCity] = useState('')
+  const [formCountry, setFormCountry] = useState('')
+  const [formHow, setFormHow] = useState('')
+  /** Admin account activation — «preserve» omits flag on PATCH for backends without it. */
+  const [formStatus, setFormStatus] = useState<'active' | 'inactive' | 'preserve'>('preserve')
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null)
+  const [removeAvatar, setRemoveAvatar] = useState(false)
   const [pw, setPw] = useState('')
   const [pwConf, setPwConf] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleteAck, setDeleteAck] = useState(false)
 
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+
   const roleOptionsEdit = useMemo(() => {
     const rn = normalizeRole(formRole ?? null)
     const opts = [...roleOptionsForm]
-    if (rn && !opts.some((o) => o.value === rn))
-      opts.unshift({ value: rn, labelAr: adminRoleLabelAr(formRole) })
+    if (rn && !opts.some((o) => o.value === rn)) opts.unshift({ value: rn, labelAr: adminRoleLabelAr(formRole) })
     return opts
   }, [roleOptionsForm, formRole])
 
@@ -162,6 +324,11 @@ export default function UsersManagementPage() {
     setFormName('')
     setFormEmail('')
     setFormRole('student')
+    setFormPhone('')
+    setFormDepartment('')
+    setFormCity('')
+    setFormCountry('')
+    setFormHow('')
     setPw('')
     setPwConf('')
     setFocusedId(null)
@@ -171,6 +338,7 @@ export default function UsersManagementPage() {
   async function openEdit(id: number) {
     setFocusedId(id)
     setModal('edit')
+    setDrawerOpen(false)
     setSaving(false)
     setPw('')
     setPwConf('')
@@ -179,10 +347,24 @@ export default function UsersManagementPage() {
       setFormName(u.name)
       setFormEmail(u.email)
       setFormRole((u.role && String(u.role)) || 'student')
+      setFormPhone(u.phone ?? '')
+      setFormDepartment(u.department ?? '')
+      setFormCity(u.city ?? '')
+      setFormCountry(u.country ?? '')
+      setFormHow(u.how_did_you_hear_about_us ?? '')
+      setFormStatus(u.is_active === false ? 'inactive' : u.is_active === true ? 'active' : 'preserve')
+      setEditAvatarFile(null)
+      setRemoveAvatar(false)
     } catch (e) {
       toast.warning(getAdminUserMutationMessage(e))
       closeModal()
     }
+  }
+
+  function openEnterpriseView(u: AdminManagedUser) {
+    setFocusedId(u.id)
+    setDrawerOpen(true)
+    setModal(null)
   }
 
   async function submitCreate() {
@@ -206,6 +388,11 @@ export default function UsersManagementPage() {
         role: formRole,
         password: pw,
         password_confirmation: pwConf || pw,
+        phone: formPhone.trim() || undefined,
+        department: formDepartment.trim() || undefined,
+        city: formCity.trim() || undefined,
+        country: formCountry.trim() || undefined,
+        how_did_you_hear_about_us: formHow.trim() || undefined,
       }
       await createAdminUser(body)
       toast.success('تم الإنشاء')
@@ -228,7 +415,19 @@ export default function UsersManagementPage() {
     }
     setSaving(true)
     try {
-      const patch: UpdateAdminUserInput = { name: formName, email: formEmail, role: formRole }
+      const patch: UpdateAdminUserInput = {
+        name: formName,
+        email: formEmail,
+        role: formRole,
+        phone: formPhone.trim() || undefined,
+        department: formDepartment.trim() || undefined,
+        city: formCity.trim() || undefined,
+        country: formCountry.trim() || undefined,
+        how_did_you_hear_about_us: formHow.trim() || undefined,
+        is_active: formStatus === 'preserve' ? undefined : formStatus === 'active',
+        avatarFile: editAvatarFile,
+        remove_avatar: removeAvatar,
+      }
       if (pwTrim) {
         patch.password = pwTrim
         patch.password_confirmation = pwcTrim || pwTrim
@@ -250,6 +449,7 @@ export default function UsersManagementPage() {
       await deleteAdminUser(u.id)
       toast.success('تم الحذف')
       closeModal()
+      setDrawerOpen(false)
       void load()
     } catch (e) {
       toast.warning(getAdminUserMutationMessage(e))
@@ -261,214 +461,348 @@ export default function UsersManagementPage() {
   const chromeSubtitle =
     forbidden ?
       ADMIN_USER_FORBIDDEN_AR
-    : 'إدارة المستخدمين وفق سياسات AdminUserController — الواجهة مرآة وليست مصدر حقيقة وحده.'
+    : 'منصّة تشغيل مؤسسية — القائمة المُحمّلة من GET /admin/users؛ الأرقام التحليلية تُشتق من هذه البيانات فقط بدون تهيئة وهمية.'
 
-  function chipTone(t?: string): 'blue' | 'orange' | 'ink' | 'success' {
-    if (t === 'orange' || t === 'danger') return 'orange'
-    if (t === 'success') return 'success'
-    if (t === 'ink' || t === 'slate') return 'ink'
-    return 'blue'
+  function activityPulse(u: AdminManagedUser): { label: string; tone: string } {
+    const login = parseMs(u.last_login_at)
+    const upd = parseMs(u.updated_at)
+    const best = login !== null || upd !== null ? Math.max(login ?? -1, upd ?? -1) : null
+    if (best !== null && best !== -1 && Date.now() - best < MS_DAY)
+      return { label: 'تفاعل خلال يوم', tone: 'text-emerald-700' }
+    if (best !== null && best !== -1 && Date.now() - best < MS_DAY * 7)
+      return { label: 'في الأسبوع', tone: 'text-amber-800' }
+    return { label: 'بلا طابع محدّث قريب', tone: 'text-muted-600' }
   }
 
   return (
-    <SaPageRoot>
-      <div className="space-y-8">
-        <div className="relative overflow-hidden rounded-[28px] border border-ink-100 bg-gradient-to-bl from-white via-white to-brand-50/35 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.08)] sm:p-8">
-          <div className="pointer-events-none absolute -left-24 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-[#2691C2]/[0.07] blur-3xl" />
-          <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#EC943C]/[0.11] blur-3xl" />
-          <div className="relative flex flex-wrap items-start justify-between gap-6">
-            <div className="min-w-0 text-right">
-              <SaBackLink className="mb-3 inline-flex" />
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-brand-800">دليل الهويات</p>
-              <h1 className="mt-2 text-2xl font-black leading-tight text-[#22334A] sm:text-3xl">المستخدمون</h1>
-              <p className="mt-3 max-w-2xl text-[13px] font-semibold leading-relaxed text-muted-600">{chromeSubtitle}</p>
-            </div>
-            {!forbidden ?
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void load()}
-                  disabled={loading}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-sm transition hover:border-customBlue/35 hover:bg-brand-50 disabled:opacity-50"
-                >
-                  <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} aria-hidden />
-                  تحديث
-                </button>
-                <button
-                  type="button"
-                  onClick={openCreate}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_14px_36px_rgba(38,145,194,0.35)] transition hover:brightness-[1.03]"
-                >
-                  <UserCircle2 className="h-4 w-4" aria-hidden />
-                  مستخدم جديد
-                </button>
-              </div>
-            : null}
-          </div>
+    <SaPageRoot className="space-y-8">
+      <EnterpriseCrudHero
+        eyebrow="Identity & Access · Enterprise CRM"
+        title="مركز المستخدمين EMC"
+        subtitle={chromeSubtitle}
+        variant="navy"
+        actions={
+          !forbidden ?
+            <>
+              <button
+                type="button"
+                onClick={() => void load()}
+                disabled={loading}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/95 px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-md backdrop-blur-sm transition hover:bg-white"
+              >
+                <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} aria-hidden />
+                تحديث
+              </button>
+              <button
+                type="button"
+                onClick={openCreate}
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_16px_40px_-12px_rgba(236,148,60,0.55)] transition hover:brightness-[1.04]"
+              >
+                <UserCircle2 className="h-4 w-4" aria-hidden />
+                مستخدم جديد
+              </button>
+            </>
+          : null
+        }
+      />
+
+      {!forbidden ?
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4">
+          <EnterpriseMetricTile
+            accent="blue"
+            icon={Users}
+            label="إجمالي المستخدمين"
+            value={enterpriseKpis.total}
+            hint="جميع الهويات المُرسلة ضمن مجموعة الإدارة"
+          />
+          <EnterpriseMetricTile
+            accent="mint"
+            icon={ShieldCheck}
+            label="نشطون"
+            value={enterpriseKpis.active}
+            deltaLabel={`موقوف: ${enterpriseKpis.suspended}`}
+            hint={enterpriseKpis.suspended === 0 ? undefined : `${enterpriseKpis.suspended} موقوف واضحة من حقل الخادم`}
+          />
+          <EnterpriseMetricTile
+            accent="navy"
+            icon={Shield}
+            label="فريق الإداريين"
+            value={enterpriseKpis.admins}
+            hint="أعضاء بتصنيف أدوار حوكمية وفق مجموعة المنصّة"
+          />
+          <EnterpriseMetricTile
+            accent="orange"
+            icon={UserSquare2}
+            label="مدربون / طلاب"
+            value={`${enterpriseKpis.instructors} / ${enterpriseKpis.students}`}
+            hint="حسب اسم الدور المُطبَّق"
+          />
+          <EnterpriseMetricTile
+            accent="blue"
+            icon={TrendingUp}
+            label="انضموا هذا الشهر"
+            value={enterpriseKpis.newThisMonth}
+            deltaLabel={<span>{enterpriseKpis.growthShort}</span>}
+            hint={enterpriseKpis.growthHint}
+          />
+          <EnterpriseMetricTile
+            accent="mint"
+            icon={Radio}
+            label="نشاط ظاهر خلال 24 ساعة"
+            value={enterpriseKpis.recent24}
+            hint="بناءً على أحدث قيم بين آخر ظهور/تحديث عند وجود الطابع الزمني"
+          />
+          <EnterpriseMetricTile
+            accent="navy"
+            icon={Ban}
+            label="موقوفون"
+            value={enterpriseKpis.suspended}
+            hint="عند ضبط الخادم is_active إلى false فقط"
+          />
+          <EnterpriseMetricTile
+            accent="orange"
+            icon={Clock3}
+            label="مزامنة مباشرة مع API الإداري"
+            value={loading ? '…' : 'جاهزة'}
+            loading={loading}
+            hint="جميع المرشّحات تقيِّد القائمة المحمّلة محلّيًا لتفادي التخمينات"
+          />
         </div>
+      : null}
 
-        <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
-            <SaGlassCard glow="blue" className="p-5">
-              <p className="text-[11px] font-black text-deepBlue">ملخص نشاط الدليل</p>
-              <p className="mt-1 text-[12px] font-semibold text-muted-600">
-                مرشحات الدور والحالة تطبَّق على القائمة المحمّلة من الخادم.
-              </p>
-              <div className="mt-4 grid gap-3">
-                {kpis.map((k) => (
-                  <SaStatChip key={k.label} label={k.label} value={k.value} tone={chipTone(k.tone ?? 'blue')} />
-                ))}
-              </div>
-              <div className="mt-5 rounded-xl border border-brand-200/40 bg-brand-500/5 px-3 py-2.5 text-[11px] font-bold leading-relaxed text-brand-950">
-                استخدم «مستخدم جديد» أو قائمة الإجراءات لإدارة الهويات وفق سياسات الخادم.
-              </div>
-            </SaGlassCard>
-          </aside>
+      {loadErr ?
+        <ErrorPanel title="تعذّر تحميل المستخدمين" hint={loadErr} />
+      : null}
 
-          <div className="min-w-0 space-y-4">
-            {loadErr ?
-              <ErrorPanel title="تعذّر تحميل المستخدمين" hint={loadErr} />
-            : null}
+      {!forbidden && !loadErr ?
+        <div className="space-y-4">
+          <CrudToolbar
+            sticky
+            searchValue={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="بحث بالاسم، البريد، الجوال، المعرّف، الدور، الإدارة…"
+          >
+            <MiniSelect label="الدور" value={roleFilter} onChange={setRoleFilter} options={roleFilterOptions} />
+            <MiniSelect
+              label="الحالة"
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'inactive')}
+              options={[
+                { value: 'all', labelAr: 'كل الحالات' },
+                { value: 'active', labelAr: 'نشط' },
+                { value: 'inactive', labelAr: 'موقوف' },
+              ]}
+            />
+            <MiniSelect
+              label="الإدارة"
+              value={departmentFilter}
+              onChange={setDepartmentFilter}
+              options={departmentOpts}
+            />
+            <MiniSelect
+              label="تاريخ الانضمام"
+              value={joinedFilter}
+              onChange={(v) => setJoinedFilter(v as 'all' | 'month' | 'quarter' | 'year')}
+              options={[
+                { value: 'all', labelAr: 'الكل' },
+                { value: 'month', labelAr: 'هذا الشهر' },
+                { value: 'quarter', labelAr: '+90 يومًا' },
+                { value: 'year', labelAr: 'هذا العام' },
+              ]}
+            />
+          </CrudToolbar>
 
-            {!forbidden && !loadErr ?
-              <>
-                <CrudFilterBar
-                  searchValue={query}
-                  onSearchChange={setQuery}
-                  searchPlaceholder="بحث بالاسم أو البريد…"
-                >
-                  <MiniSelect
-                    label="الدور"
-                    value={roleFilter}
-                    onChange={setRoleFilter}
-                    options={roleFilterOptions}
-                  />
-                  <MiniSelect
-                    label="الحالة"
-                    value={statusFilter}
-                    onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'inactive')}
-                    options={[
-                      { value: 'all', labelAr: 'كل الحالات' },
-                      { value: 'active', labelAr: 'نشط' },
-                      { value: 'inactive', labelAr: 'موقوف' },
-                    ]}
-                  />
-                </CrudFilterBar>
-
-                {loading ?
-                  <LoadingPanel />
-                :
-                  <SaGlassCard className="overflow-hidden shadow-[0_12px_48px_rgba(34,51,74,0.09)]" glow="orange">
-                    <CrudCardTable>
-                      <CrudTable>
-                <thead>
-                  <tr>
-                    <Th>المستخدم</Th>
-                    <Th>البريد</Th>
-                    <Th>الدور</Th>
-                    <Th>الحالة</Th>
-                    <Th>تحديث</Th>
-                    <Th className="text-end">إجراءات</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 ?
+          {loading ?
+            <motion.div layout className="overflow-hidden rounded-[22px] border border-white/70 bg-white/70 shadow-lg ring-1 ring-ink-100/60 backdrop-blur-md">
+              <EnterpriseTableSkeleton cols={13} rows={9} />
+            </motion.div>
+          :
+            <motion.div
+              layout
+              className="overflow-hidden rounded-[22px] border border-white/70 bg-white/75 shadow-[0_16px_48px_-18px_rgba(34,51,74,0.15)] ring-1 ring-ink-100/70 backdrop-blur-md"
+            >
+              <CrudCardTable className="min-w-[1100px]">
+                <CrudTable>
+                  <thead>
                     <tr>
-                      <td colSpan={6} className="p-0">
-                        <EmptyPanel
-                          title="لا توجد نتائج مطابقة"
-                          subtitle="جرّب تغيير الفلاتر أو البحث. إن كانت القائمة فارغة بالكامل فربما لا تزال نقطة الـ API تُهيّأ."
-                        />
-                      </td>
+                      <Th className="w-10">{'\u2060'}</Th>
+                      <Th>المستخدم</Th>
+                      <Th>#EMC</Th>
+                      <Th>البريد</Th>
+                      <Th>جوال</Th>
+                      <Th>الدور</Th>
+                      <Th>إدارة</Th>
+                      <Th>حساب</Th>
+                      <Th>تأكيد البريد</Th>
+                      <Th>آخر ظهور</Th>
+                      <Th>تاريخ الإنشاء</Th>
+                      <Th>نشاط ظاهر</Th>
+                      <Th className="text-end">إجراءات</Th>
                     </tr>
-                  : filtered.map((u) => {
-                      const st = statusBadge(u)
-                      const editOk = canEditAdminUserRow(currentUser?.role, u.role)
-                      const delOk =
-                        !!currentUser?.role && canDeleteAdminUserRow(actorId, currentUser.role, u.id, u.role)
+                  </thead>
+                  <tbody>
+                    {filtered.length === 0 ?
+                      <tr>
+                        <Td colSpan={13} className="p-0">
+                          <EmptyPanel
+                            title="لا توجد نتائج مطابقة"
+                            subtitle="امسح البحث أو غيّر مرشّح الانضمام والإدارات — القائمة تبقى مرتبطة بما استرجعته نقطة الخادم."
+                          />
+                        </Td>
+                      </tr>
+                    : filtered.map((u) => {
+                        const st = statusBadge(u)
+                        const editOk = canEditAdminUserRow(currentUser?.role, u.role)
+                        const delOk =
+                          !!currentUser?.role &&
+                          canDeleteAdminUserRow(actorId, currentUser.role, u.id, u.role)
+                        const vz = verifiedDot(u)
+                        const pulse = activityPulse(u)
+                        const expanded = expandedId === u.id
 
-                      return (
-                        <Tr key={u.id}>
-                          <Td>
-                            <div dir="rtl" className="flex min-w-0 items-center gap-3">
-                              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-100 to-white text-[12px] font-black text-customBlue ring-1 ring-brand-200/70">
-                                {initialsFromName(u.name)}
-                              </div>
-                              <div className="min-w-0 flex-1 text-right rtl:text-right">
-                                <p className="truncate font-black text-deepBlue">{u.name}</p>
-                                <p className="truncate text-[11px] font-bold text-muted-500">#{u.id}</p>
-                              </div>
-                            </div>
-                          </Td>
-                          <Td className="max-w-[14rem] text-right rtl:text-right">
-                            <span className="break-all text-[12px] font-semibold text-muted-700">{u.email}</span>
-                          </Td>
-                          <Td>
-                            <CrudBadge variant="brand">{adminRoleLabelAr(u.role)}</CrudBadge>
-                          </Td>
-                          <Td>
-                            {st === 'inactive' ?
-                              <CrudBadge variant="danger">موقوف</CrudBadge>
-                            : st === 'active' ?
-                              <CrudBadge variant="success">نشط</CrudBadge>
-                            : <CrudBadge variant="default">غير محدد</CrudBadge>}
-                          </Td>
-                          <Td className="text-[12px] font-bold text-muted-600">
-                            {(u.updated_at ?? u.created_at ?? '—').toString().slice(0, 10)}
-                          </Td>
-                          <Td className="text-end">
-                            <RowActionsMenu
-                              ariaLabel={`إجراءات ${u.name}`}
-                              actions={[
-                                {
-                                  key: 'view',
-                                  label: 'عرض',
-                                  onClick: () => {
-                                    setFocusedId(u.id)
-                                    setModal('view')
-                                  },
-                                },
-                                {
-                                  key: 'edit',
-                                  label: 'تحرير',
-                                  disabled: !editOk,
-                                  onClick: () => void openEdit(u.id),
-                                },
-                                {
-                                  key: 'del',
-                                  label: 'حذف',
-                                  destructive: true,
-                                  disabled: !delOk,
-                                  onClick: () => {
-                                    setFocusedId(u.id)
-                                    setDeleteAck(false)
-                                    setModal('delete')
-                                  },
-                                },
-                              ]}
-                            />
-                          </Td>
-                        </Tr>
-                      )
-                    })
-                  }
-                </tbody>
-                      </CrudTable>
-                    </CrudCardTable>
-                  </SaGlassCard>
-                }
-              </>
-            : null}
-          </div>
+                        return (
+                          <Fragment key={u.id}>
+                            <Tr className={cn(expanded ? 'bg-brand-400/[0.04]' : undefined)}>
+                              <Td>
+                                <button
+                                  type="button"
+                                  aria-expanded={expanded}
+                                  onClick={() => setExpandedId(expanded ? null : u.id)}
+                                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-100 bg-white shadow-sm hover:border-customBlue/35"
+                                >
+                                  <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                                    <ChevronDown className="h-4 w-4 text-deepBlue" aria-hidden />
+                                  </motion.span>
+                                </button>
+                              </Td>
+                              <Td>
+                                <div dir="rtl" className="flex min-w-0 items-center gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEnterpriseView(u)}
+                                    className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-[18px] bg-gradient-to-br from-[#2691C2]/20 to-white text-[12px] font-black text-deepBlue shadow-inner ring-1 ring-[#2691C2]/30 transition hover:-translate-y-0.5"
+                                  >
+                                    {initialsFromName(u.name)}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => openEnterpriseView(u)}
+                                    className="min-w-0 flex-1 text-right rtl:text-right"
+                                  >
+                                    <p className="truncate font-black text-deepBlue hover:text-customBlue">{u.name}</p>
+                                    <code className="mt-1 block truncate text-[10px] text-muted-500">
+                                      @{normalizeRole(u.role ?? '') || '—'}
+                                    </code>
+                                  </button>
+                                </div>
+                              </Td>
+                              <Td>
+                                <code className="text-[11px] font-black text-accent-950">#{u.id}</code>
+                              </Td>
+                              <Td className="max-w-[12rem] break-all text-[11px] font-semibold">{u.email}</Td>
+                              <Td className="text-[11px] font-semibold">{u.phone?.trim() ? u.phone : AR_UNSPECIFIED}</Td>
+                              <Td>
+                                <CrudBadge variant="brand">{adminRoleLabelAr(u.role)}</CrudBadge>
+                              </Td>
+                              <Td className="max-w-[8rem] text-[11px] font-semibold">{u.department ?? '—'}</Td>
+                              <Td>
+                                {st === 'inactive' ?
+                                  <CrudBadge variant="danger">موقوف</CrudBadge>
+                                : st === 'active' ?
+                                  <CrudBadge variant="success">نشط</CrudBadge>
+                                : <CrudBadge variant="default">غير مُصرّح</CrudBadge>}
+                              </Td>
+                              <Td>
+                                {vz === 'yes' ?
+                                  <CrudBadge variant="success">موثّق</CrudBadge>
+                                : vz === 'no' ?
+                                  <CrudBadge variant="danger">غير موثَّق</CrudBadge>
+                                : <CrudBadge variant="default">غير مُرسل</CrudBadge>}
+                              </Td>
+                              <Td className="max-w-[6.5rem] text-[11px] font-semibold">{u.last_login_at ? `${u.last_login_at.slice(0, 16)}…` : '—'}</Td>
+                              <Td className="max-w-[6.5rem] text-[11px] font-bold text-muted-600">
+                                {(u.created_at ?? '—').toString().slice(0, 10)}
+                              </Td>
+                              <Td className={`text-[10px] font-black ${pulse.tone}`}>{pulse.label}</Td>
+                              <Td className="text-end">
+                                <RowActionsMenu
+                                  ariaLabel={`إجراءات ${u.name}`}
+                                  actions={[
+                                    { key: 'view', label: 'لوحة تنفيذية', onClick: () => openEnterpriseView(u) },
+                                    { key: 'edit', label: 'تحرير', disabled: !editOk, onClick: () => void openEdit(u.id) },
+                                    ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
+                                    !isImpersonating &&
+                                    Number(currentUser?.id ?? 0) !== Number(u.id) ?
+                                      [
+                                        {
+                                          key: 'impersonate',
+                                          label: 'الدخول كمستخدم',
+                                          onClick: () => void impersonatePreview(u),
+                                        },
+                                      ]
+                                    : []),
+                                    {
+                                      key: 'del',
+                                      label: 'حذف',
+                                      destructive: true,
+                                      disabled: !delOk,
+                                      onClick: () => {
+                                        setFocusedId(u.id)
+                                        setDeleteAck(false)
+                                        setModal('delete')
+                                      },
+                                    },
+                                  ]}
+                                />
+                              </Td>
+                            </Tr>
+                            {expanded ?
+                              <tr key={`${String(u.id)}-detail`}>
+                                <Td colSpan={13} className="p-0">
+                                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden">
+                                    <div className="bg-gradient-to-bl from-brand-400/[0.07] via-white to-white px-6 py-5">
+                                      <div className="grid gap-4 text-right text-[12px] font-semibold leading-relaxed text-muted-700 sm:grid-cols-3 rtl:text-right">
+                                        <MiniPanel title="تفاصيل التواصل" icon={Mail} lines={[u.phone ?? 'لم يتوفر الجوال']} />
+                                        <MiniPanel title="الحالة التشغيلية" icon={Shield} lines={[pulse.label]} />
+                                        <MiniPanel
+                                          title="زمن تحديث السجل"
+                                          icon={TrendingUp}
+                                          lines={[u.updated_at?.slice(0, 16) ?? '—']}
+                                        />
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                </Td>
+                              </tr>
+                            : null}
+                          </Fragment>
+                        )
+                      })
+                    }
+                  </tbody>
+                </CrudTable>
+              </CrudCardTable>
+            </motion.div>
+          }
         </div>
-      </div>
+      : null}
 
+      <UsersEnterpriseDetailDrawer
+        open={drawerOpen}
+        user={focusedUser ?? null}
+        onClose={() => {
+          setDrawerOpen(false)
+        }}
+        onEdit={(id) => void openEdit(id)}
+      />
+
+      {/* Create */}
       <CrudModal
         open={modal === 'create'}
         onClose={closeModal}
         title="مستخدم جديد"
-        subtitle="POST /admin/users — التحقق النهائي على الخادم."
-        widthClassName="max-w-lg"
+        subtitle="POST /admin/users"
+        widthClassName="max-w-xl"
         footerSlot={
           <div className="flex flex-wrap justify-end gap-2">
             <button
@@ -482,7 +816,7 @@ export default function UsersManagementPage() {
               type="button"
               disabled={saving}
               onClick={() => void submitCreate()}
-              className="rounded-2xl bg-customBlue px-5 py-2 text-[12px] font-black text-white disabled:opacity-50"
+              className="rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-2 text-[12px] font-black text-white disabled:opacity-50"
             >
               إنشاء
             </button>
@@ -490,151 +824,221 @@ export default function UsersManagementPage() {
         }
       >
         {!includeSuperAdminAssignment ?
-          <p className="mb-3 rounded-2xl border border-ink-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-muted-700">
-            خيار «سوبر مشرف» مخفي — السياسات المطبَّقة بالخلفية لا تسمح بتعيين الدور بدون حساب مخوَّل.
+          <p className="mb-4 rounded-[18px] border border-amber-200/70 bg-amber-50 px-4 py-2 text-[11px] font-black text-amber-950">
+            خيار «سوبر مشرف» مخفي وفق سياسات الإسناد.
           </p>
         : null}
-        <div className="space-y-3 text-right">
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">الاسم</span>
-            <input
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">البريد</span>
-            <input
-              type="email"
-              value={formEmail}
-              onChange={(e) => setFormEmail(e.target.value)}
-              className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">الدور</span>
-            <select
-              value={formRole}
-              onChange={(e) => setFormRole(e.target.value)}
-              className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold"
-            >
-              {roleOptionsForm.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.labelAr}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">كلمة المرور</span>
-            <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">تأكيد</span>
-            <input type="password" value={pwConf} onChange={(e) => setPwConf(e.target.value)} className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold" />
-          </label>
-        </div>
+        <GroupedFormSections
+          sections={[
+            {
+              title: 'البيانات التعريفية',
+              icon: UserSquare2,
+              body: (
+                <>
+                  <Labeled label="الاسم الكامل" children={<Input value={formName} onChange={setFormName} />} />
+                  <Labeled label="البريد الإلكتروني" children={<Input type="email" value={formEmail} onChange={setFormEmail} />} />
+                </>
+              ),
+            },
+            {
+              title: 'تفاصيل اختيارية',
+              icon: Users,
+              body: (
+                <>
+                  <Labeled label="الجوال" children={<Input value={formPhone} onChange={setFormPhone} />} />
+                  <Labeled label="القسم / الإدارة" children={<Input value={formDepartment} onChange={setFormDepartment} />} />
+                  <Labeled label="المدينة" children={<Input value={formCity} onChange={setFormCity} />} />
+                  <Labeled label="الدولة" children={<Input value={formCountry} onChange={setFormCountry} />} />
+                  <Labeled
+                    label="كيف عرفتم المنصّة؟"
+                    children={<Input value={formHow} onChange={setFormHow} />}
+                  />
+                </>
+              ),
+            },
+            {
+              title: 'الدور المعياري',
+              icon: ShieldCheck,
+              body: (
+                <Labeled
+                  label="الدور"
+                  children={
+                    <select
+                      value={formRole}
+                      onChange={(e) => setFormRole(e.target.value)}
+                      className="w-full rounded-[18px] border border-ink-100 px-3 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:border-customBlue/40 focus:ring-customBlue/15"
+                    >
+                      {roleOptionsForm.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.labelAr}
+                        </option>
+                      ))}
+                    </select>
+                  }
+                />
+              ),
+            },
+            {
+              title: 'البيانات الأمنية الأولية',
+              icon: Shield,
+              body: (
+                <>
+                  <PasswordInlineTools pw={pw} setPw={setPw} setPwConf={setPwConf} />
+                  <Labeled label="كلمة المرور" children={<Input type="password" value={pw} onChange={setPw} />} />
+                  <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
+                  {pw.trim() ?
+                    <p className="rounded-[14px] border border-[#2691C2]/25 bg-brand-400/10 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-deepBlue rtl:text-right break-all">
+                      {pw}
+                    </p>
+                  : null}
+                </>
+              ),
+            },
+          ]}
+        />
       </CrudModal>
 
+      {/* Edit */}
       <CrudModal
         open={modal === 'edit' && focusedId != null}
         onClose={closeModal}
-        title="تحرير المستخدم"
+        title="تحرير المستخدم · Enterprise"
         subtitle="PUT /admin/users/{id}"
-        widthClassName="max-w-lg"
+        widthClassName="max-w-2xl"
         footerSlot={
-          <div className="flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              onClick={closeModal}
-              className="rounded-2xl border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue"
-            >
-              إلغاء
-            </button>
-            <button
-              type="button"
-              disabled={saving || focusedId == null}
-              onClick={() => void submitEdit()}
-              className="rounded-2xl bg-customBlue px-5 py-2 text-[12px] font-black text-white disabled:opacity-50"
-            >
-              حفظ
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-100/80 pt-3">
+            <p className="text-[11px] font-semibold text-muted-600 rtl:text-right">حفظك يعتمد اعتماد السياسة على Laravel.</p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={closeModal} className="rounded-[18px] border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue">
+                إلغاء
+              </button>
+              <button
+                type="button"
+                disabled={saving || focusedId == null}
+                onClick={() => void submitEdit()}
+                className="inline-flex items-center gap-2 rounded-[18px] bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-2 text-[12px] font-black text-white disabled:opacity-50"
+              >
+                <TrendingUp className="h-4 w-4" aria-hidden />
+                حفظ التغييرات
+              </button>
+            </div>
           </div>
         }
       >
-        <div className="space-y-3 text-right">
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">الاسم</span>
-            <input
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">البريد</span>
-            <input
-              type="email"
-              value={formEmail}
-              onChange={(e) => setFormEmail(e.target.value)}
-              className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">الدور</span>
-            <select
-              value={formRole}
-              onChange={(e) => setFormRole(e.target.value)}
-              className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold"
-            >
-              {roleOptionsEdit.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.labelAr}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">كلمة مرور جديدة (اختياري)</span>
-            <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold" />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-black text-muted-600">تأكيد</span>
-            <input type="password" value={pwConf} onChange={(e) => setPwConf(e.target.value)} className="w-full rounded-2xl border border-ink-100 px-3 py-2.5 text-[13px] font-semibold" />
-          </label>
-        </div>
-      </CrudModal>
-
-      <CrudModal
-        open={modal === 'view' && focusedId != null}
-        onClose={closeModal}
-        title="تفاصيل المستخدم"
-        subtitle="قراءة فقط من آخر قائمة تم تحميلها"
-      >
-        {(() => {
-          const r = filtered.find((x) => x.id === focusedId) ?? rows.find((x) => x.id === focusedId)
-          return r ?
-              <dl className="space-y-2 text-right text-[13px] font-semibold">
-                <div className="flex justify-between gap-3 border-b border-ink-100 pb-2">
-                  <dt className="text-muted-600">المعرّف</dt>
-                  <dd className="font-mono text-deepBlue">{r.id}</dd>
-                </div>
-                <div className="flex justify-between gap-3 border-b border-ink-100 pb-2">
-                  <dt className="text-muted-600">الاسم</dt>
-                  <dd>{r.name}</dd>
-                </div>
-                <div className="flex justify-between gap-3 border-b border-ink-100 pb-2">
-                  <dt className="text-muted-600">البريد</dt>
-                  <dd className="break-all">{r.email}</dd>
-                </div>
-                <div className="flex justify-between gap-3 pb-2">
-                  <dt className="text-muted-600">الدور</dt>
-                  <dd>{adminRoleLabelAr(r.role)}</dd>
-                </div>
-              </dl>
-            : <LoadingPanel />
-        })()}
+        <GroupedFormSections
+          sections={[
+            {
+              title: 'البيانات التعريفية',
+              icon: UserSquare2,
+              body: (
+                <>
+                  <Labeled label="الاسم" children={<Input value={formName} onChange={setFormName} />} />
+                  <Labeled label="البريد" children={<Input type="email" value={formEmail} onChange={setFormEmail} />} />
+                </>
+              ),
+            },
+            {
+              title: 'الاتصال والتنظيم',
+              icon: Users,
+              body: (
+                <>
+                  <Labeled label="الجوال" children={<Input value={formPhone} onChange={setFormPhone} />} />
+                  <Labeled label="القسم / الإدارة" children={<Input value={formDepartment} onChange={setFormDepartment} />} />
+                  <Labeled label="المدينة" children={<Input value={formCity} onChange={setFormCity} />} />
+                  <Labeled label="الدولة" children={<Input value={formCountry} onChange={setFormCountry} />} />
+                  <Labeled label="كيف عرفتم المنصّة؟" children={<Input value={formHow} onChange={setFormHow} />} />
+                  <Labeled
+                    label="حالة الحساب"
+                    children={
+                      <select
+                        value={formStatus}
+                        onChange={(e) =>
+                          setFormStatus(e.target.value as typeof formStatus)
+                        }
+                        className="w-full rounded-[18px] border border-ink-100 px-3 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:border-customBlue/35 focus:ring-customBlue/15"
+                      >
+                        <option value="preserve">بدون تغيير الصلاحية الافتراضية</option>
+                        <option value="active">نشط</option>
+                        <option value="inactive">موقوف</option>
+                      </select>
+                    }
+                  />
+                </>
+              ),
+            },
+            {
+              title: 'الصلاحيات',
+              icon: ShieldCheck,
+              body: (
+                <Labeled
+                  label="الدور"
+                  children={
+                    <select
+                      value={formRole}
+                      onChange={(e) => setFormRole(e.target.value)}
+                      className="w-full rounded-[18px] border border-ink-100 px-3 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:border-customBlue/35 focus:ring-customBlue/15"
+                    >
+                      {roleOptionsEdit.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.labelAr}
+                        </option>
+                      ))}
+                    </select>
+                  }
+                />
+              ),
+            },
+            {
+              title: 'صورة الملف (اختياري)',
+              icon: UserCircle2,
+              body: (
+                <>
+                  <label className="block text-right rtl:text-right">
+                    <span className="mb-1.5 block text-[11px] font-black uppercase tracking-wide text-muted-600">
+                      رفع صورة
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="w-full rounded-[18px] border border-ink-100 px-3 py-2 text-[12px] font-semibold file:me-3 file:rounded-lg file:border-0 file:bg-customBlue file:px-3 file:py-2 file:text-[11px] file:font-black file:text-white"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        setEditAvatarFile(f ?? null)
+                        if (f) setRemoveAvatar(false)
+                      }}
+                    />
+                  </label>
+                  <label className="mt-3 flex cursor-pointer items-center gap-2 text-right rtl:text-right">
+                    <input
+                      type="checkbox"
+                      checked={removeAvatar}
+                      disabled={Boolean(editAvatarFile)}
+                      onChange={(e) => setRemoveAvatar(e.target.checked)}
+                      className="h-4 w-4 rounded border-ink-200"
+                    />
+                    <span className="text-[12px] font-bold text-muted-700">إزالة الصورة الحالية إن وُجدت</span>
+                  </label>
+                </>
+              ),
+            },
+            {
+              title: 'التدوير الاختياري لكلمة المرور',
+              icon: Shield,
+              body: (
+                <>
+                  <PasswordInlineTools pw={pw} setPw={setPw} setPwConf={setPwConf} />
+                  <Labeled label="كلمة مرور جديدة (اختياري)" children={<Input type="password" value={pw} onChange={setPw} />} />
+                  <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
+                  {pw.trim() ?
+                    <p className="rounded-[14px] border border-[#2691C2]/25 bg-brand-400/10 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-deepBlue rtl:text-right break-all">
+                      {pw}
+                    </p>
+                  : null}
+                </>
+              ),
+            },
+          ]}
+        />
       </CrudModal>
 
       <CrudModal
@@ -644,16 +1048,15 @@ export default function UsersManagementPage() {
         subtitle={ADMIN_USER_FORBIDDEN_AR}
         footerSlot={
           <div className="flex flex-wrap justify-end gap-2">
-            <button type="button" onClick={closeModal} className="rounded-2xl border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue">
+            <button type="button" onClick={closeModal} className="rounded-[18px] border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue">
               إلغاء
             </button>
             <button
               type="button"
-              className="rounded-2xl bg-red-600 px-5 py-2 text-[12px] font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
+              className="rounded-[18px] bg-red-600 px-5 py-2 text-[12px] font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
               disabled={saving || !focusedId || !deleteAck}
               onClick={() => {
-                const u =
-                  filtered.find((x) => x.id === focusedId) ?? rows.find((x) => x.id === focusedId)
+                const u = filtered.find((x) => x.id === focusedId) ?? rows.find((x) => x.id === focusedId)
                 if (!u || !focusedId || !deleteAck) return
                 void executeDelete(u)
               }}
@@ -663,7 +1066,7 @@ export default function UsersManagementPage() {
           </div>
         }
       >
-        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-red-100 bg-red-50/60 px-4 py-3 text-right">
+        <label className="flex cursor-pointer items-start gap-3 rounded-[18px] border border-red-100 bg-red-50/60 px-4 py-3 text-right rtl:text-right">
           <input
             type="checkbox"
             className="mt-1 h-4 w-4 shrink-0 rounded border-red-300 text-red-600"
@@ -671,10 +1074,129 @@ export default function UsersManagementPage() {
             onChange={(e) => setDeleteAck(e.target.checked)}
           />
           <span className="text-[13px] font-black leading-relaxed text-red-950">
-            أفهم أن الحذف نهائي من واجهة المنصّة وفق سياسات الخادم ولن يُطبَّق على حسابي الشخصي.
+            أفهم أن الحذف نهائي وفق سياسات الخادم ولن يُطبَّق على حسابي الحالي.
           </span>
         </label>
       </CrudModal>
     </SaPageRoot>
+  )
+}
+
+function PasswordInlineTools({
+  pw,
+  setPw,
+  setPwConf,
+}: {
+  pw: string
+  setPw: (v: string) => void
+  setPwConf: (v: string) => void
+}) {
+  function gen() {
+    const next = generateSecurePassword()
+    setPw(next)
+    setPwConf(next)
+    toast('تم توليد كلمة مرور — راجع قبل الحفظ أو النسخ')
+  }
+
+  async function copy() {
+    const t = pw.trim()
+    if (!t) {
+      toast.warning('لا توجد كلمة مرور للنسخ')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(t)
+      toast.success('تم نسخ كلمة المرور')
+    } catch {
+      toast.error('لم يتوفر الوصول إلى الحافظة')
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => gen()}
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-[18px] border border-brand-400/35 bg-brand-400/10 px-3 py-2 text-[11px] font-black text-deepBlue shadow-sm hover:bg-brand-400/18"
+      >
+        <Sparkles className="h-3.5 w-3.5" aria-hidden />
+        توليد كلمة مرور
+      </button>
+      <button
+        type="button"
+        onClick={() => void copy()}
+        disabled={!pw.trim()}
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-[18px] border border-ink-100 bg-white px-3 py-2 text-[11px] font-black text-deepBlue disabled:opacity-40"
+      >
+        <Copy className="h-3.5 w-3.5" aria-hidden />
+        نسخ
+      </button>
+    </div>
+  )
+}
+
+function MiniPanel({ title, lines, icon: Icon }: { title: string; lines: string[]; icon: typeof Mail }) {
+  return (
+    <div className="rounded-[18px] border border-ink-100/70 bg-white/90 p-3 shadow-inner">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-black text-deepBlue">{title}</p>
+        <Icon className="h-4 w-4 text-customBlue" aria-hidden />
+      </div>
+      <ul className="mt-2 space-y-1 text-[11px] font-semibold leading-relaxed text-muted-700">
+        {lines.map((l, i) => (
+          <li key={`${title}-${String(i)}`}>{l}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function GroupedFormSections({
+  sections,
+}: {
+  sections: { title: string; icon: typeof Users; body: ReactNode }[]
+}) {
+  return (
+    <div className="space-y-5">
+      {sections.map((s) => (
+        <div key={s.title} className="rounded-[22px] border border-ink-100/70 bg-white/95 p-4 shadow-sm ring-1 ring-ink-100/55">
+          <div className="mb-4 flex items-center gap-3 border-b border-ink-100/60 pb-3">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2]/12 to-accent-400/10 text-deepBlue shadow-inner ring-1 ring-brand-200/50">
+              <s.icon className="h-5 w-5" aria-hidden />
+            </span>
+            <p className="text-[13px] font-black text-deepBlue">{s.title}</p>
+          </div>
+          <div className="space-y-4">{s.body}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Labeled({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block text-right rtl:text-right">
+      <span className="mb-1.5 block text-[11px] font-black uppercase tracking-wide text-muted-600">{label}</span>
+      {children}
+    </label>
+  )
+}
+
+function Input({
+  type = 'text',
+  value,
+  onChange,
+}: {
+  type?: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-[18px] border border-ink-100 px-4 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent transition focus:border-customBlue/35 focus:ring-customBlue/15"
+    />
   )
 }

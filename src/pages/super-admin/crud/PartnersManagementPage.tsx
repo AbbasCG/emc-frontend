@@ -4,17 +4,24 @@ import { Mail, PhoneForwarded, RefreshCw } from 'lucide-react'
 import { fetchPartnersForSuperAdmin } from '@/api/partnersApi'
 import type { PartnerRecord } from '@/types/operations'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
-import { CrudFilterBar, MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
+import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
 import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
 import { LoadingPanel, EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
+import { EnterpriseBarChartRtl } from '@/pages/super-admin/crud/shared/enterprise/charts'
 import {
   SaGlassCard,
   SaPageRoot,
   SaStatChip,
   SaToolbar,
 } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
-import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
+import {
+  EntityDetailDrawer,
+  EntityDetailField,
+  EntityDetailSection,
+} from '@/pages/super-admin/crud/shared/EntityDetailDrawer'
+import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
+import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
 
 export default function PartnersManagementPage() {
   const navigate = useNavigate()
@@ -58,6 +65,18 @@ export default function PartnersManagementPage() {
     return st.includes('نش') || st.includes('active')
   }).length
 
+  const institutionMix = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const p of rows) {
+      const k = `${p.institution_type ?? ''}`.trim().length ? `${p.institution_type}`.trim() : 'بدون نوع مؤسسي ظاهرة'
+      m.set(k, (m.get(k) ?? 0) + 1)
+    }
+    return [...m.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 14)
+      .map(([title, qty]) => ({ nameAr: title.length > 28 ? `${title.slice(0, 26)}…` : title, عدد: qty }))
+  }, [rows])
+
   return (
     <SaPageRoot>
       <SaToolbar
@@ -93,7 +112,13 @@ export default function PartnersManagementPage() {
         <SaStatChip label="حالات نشطة (تقديرية)" value={activeish} tone="orange" />
       </div>
 
-      <CrudFilterBar searchValue={q} onSearchChange={setQ} searchPlaceholder="بحث بالجهة أو النمط أو الحالة…">
+      <CrudToolbar
+        className="mt-6"
+        sticky
+        searchValue={q}
+        onSearchChange={setQ}
+        searchPlaceholder="بحث بالجهة أو النمط أو الحالة…"
+      >
         <MiniSelect
           label="جودة البيانات"
           value={status}
@@ -104,7 +129,18 @@ export default function PartnersManagementPage() {
             { value: 'typed', labelAr: 'بتصنيف مؤسسي' },
           ]}
         />
-      </CrudFilterBar>
+      </CrudToolbar>
+
+      {!loading && !loadError && institutionMix.length > 0 ?
+        <SaGlassCard className="mt-8 p-7 text-right rtl:text-right ring-4 ring-accent-400/10" glow="orange">
+          <p className="text-[11px] font-black text-deepBlue">
+            توزيع الشركاء حسب institution_type ضمن مجموعة المرجع الحالية (مصدر القائمة: GET /operations/partners).
+          </p>
+          <div className="mt-4 rounded-[22px] border border-ink-100/70 bg-white/70 p-2 shadow-inner backdrop-blur">
+            <EnterpriseBarChartRtl data={institutionMix} dataKey="عدد" nameKey="nameAr" height={236} />
+          </div>
+        </SaGlassCard>
+      : null}
 
       {loadError ?
         <ErrorPanel title="خطأ قراءة البيانات من الخادم" hint={loadError} />
@@ -165,55 +201,98 @@ export default function PartnersManagementPage() {
         </div>
       }
 
-      <CrudDrawer
+      <EntityDetailDrawer
         open={detail !== null}
         onClose={() => setDetail(null)}
         title={detail?.name ?? ''}
-        subtitle={detail ? `مرجع #{detail.id}` : undefined}
-        widthClassName="max-w-md sm:max-w-xl"
-        footerSlot={
+        subtitle={detail ? `مرجع شراكة · #${detail.id}` : undefined}
+        avatar={
           detail ?
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard/admin/partners')}
-                className="w-full rounded-2xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white"
-              >
-                فتح لوحة الموظّف الكاملة
-              </button>
-              <Link
-                to="/dashboard/admin/partnership-requests"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-ink-100 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue"
-              >
-                <Mail className="h-4 w-4" aria-hidden />
-                مراجعة الطلبات الواردة
-              </Link>
-            </div>
+            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand-500/15 text-lg font-black text-deepBlue ring-2 ring-white shadow-md">
+              {initialsFromName(detail.name)}
+            </span>
           : null
         }
-      >
-        {detail ?
-          <div className="space-y-5 text-right">
-            <div className="flex flex-wrap gap-2 justify-start">
+        badges={
+          detail ?
+            <>
               {detail.institution_type ?
                 <CrudBadge variant="brand">{detail.institution_type}</CrudBadge>
-              : null}
-              {detail.status ?
-                <CrudBadge variant="accent">{detail.status}</CrudBadge>
-              : null}
-            </div>
-            <SaGlassCard className="p-4">
-              <p className="text-[11px] font-black text-muted-600">ملخص العلاقة</p>
-              <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
-                يمكن لمزامنة أعمق أن تعرض جهات اتصال وتقارير أداء عند توفر حقول إضافية من الخلفية.
-              </p>
-            </SaGlassCard>
-            <div className="rounded-2xl border border-brand-200/60 bg-brand-500/5 px-4 py-3 text-[12px] font-bold text-brand-950">
-              آخر تحديث مرصود: {detail.updated_at ?? 'لم يعود عليه طابع زمني بعد'}
-            </div>
-          </div>
-        : null}
-      </CrudDrawer>
+              : (
+                <CrudBadge variant="default">نوع غير معلن</CrudBadge>
+              )}
+              {detail.status ? <CrudBadge variant="accent">{detail.status}</CrudBadge> : null}
+            </>
+          : null
+        }
+        footerSlot={
+          detail ?
+            <EntityActionMenu
+              onClose={() => setDetail(null)}
+              onEdit={() => navigate('/dashboard/admin/partners')}
+              editLabel="لوحة الموظّف الكاملة"
+              extraStart={
+                <Link
+                  to="/dashboard/admin/partnership-requests"
+                  className="me-auto text-[11px] font-black text-customBlue underline-offset-2 hover:underline"
+                >
+                  طلبات الشراكة
+                </Link>
+              }
+            />
+          : null
+        }
+        tabs={
+          detail ?
+            [
+              {
+                id: 'overview',
+                labelAr: 'نظرة عامة',
+                content: (
+                  <div className="space-y-4">
+                    <EntityDetailSection title="ملف الجهة" icon={<Mail className="h-4 w-4" aria-hidden />}>
+                      <dl className="grid gap-3 sm:grid-cols-2">
+                        <EntityDetailField label="المعرّف" value={<span className="font-mono">#{detail.id}</span>} />
+                        <EntityDetailField label="التسمية" value={detail.name} />
+                        <EntityDetailField label="نوع مؤسسي" value={detail.institution_type ?? '—'} />
+                        <EntityDetailField label="حالة" value={detail.status ?? '—'} />
+                      </dl>
+                    </EntityDetailSection>
+                    <EntityDetailSection title="ملخص تشغيلي">
+                      <p className="text-[13px] font-semibold text-muted-700">
+                        يمكن لمزامنة أعمق إظهار جهات اتصال وتقارير أداء عند توفر حقول إضافية من الخلفية.
+                      </p>
+                    </EntityDetailSection>
+                  </div>
+                ),
+              },
+              {
+                id: 'activity',
+                labelAr: 'النشاط',
+                content: (
+                  <EntityDetailSection title="تحديثات">
+                    <EntityDetailField
+                      label="آخر تحديث مرصود"
+                      value={detail.updated_at ?? 'لم يُرفع طابع زمني'}
+                    />
+                  </EntityDetailSection>
+                ),
+              },
+              {
+                id: 'links',
+                labelAr: 'الارتباطات',
+                content: (
+                  <EntityDetailSection title="مسارات قيادة">
+                    <p className="text-[12px] font-semibold text-muted-700">
+                      للطلبات الواردة استخدم مسار طلبات الشراكة من روابط الصفحة أو من لوحة التشغيل الكاملة.
+                    </p>
+                  </EntityDetailSection>
+                ),
+              },
+            ]
+          : undefined
+        }
+      />
     </SaPageRoot>
   )
 }

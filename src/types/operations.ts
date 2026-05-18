@@ -52,7 +52,12 @@ export type DepartmentHealth = 'healthy' | 'attention' | 'risk'
 
 export type WorkspaceDepartment = {
   id: string
-  title: string
+  /** Primary label from API when present; optional when backend only sends name_ar/name/etc. */
+  title?: string
+  name_ar?: string | null
+  name?: string | null
+  department_name?: string | null
+  label?: string | null
   description?: string
   leader_name?: string | null
   members_count: number

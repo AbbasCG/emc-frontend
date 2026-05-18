@@ -1,3 +1,4 @@
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 export function CrudCardTable({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -30,34 +31,53 @@ export function CrudTable({ children, className }: { children: React.ReactNode; 
   )
 }
 
-export function Th({ children, className }: { children: React.ReactNode; className?: string }) {
+export function Th({
+  children,
+  className,
+  ...props
+}: ComponentPropsWithoutRef<'th'> & {
+  /** Optional for decorative empty header slots */
+  children?: ReactNode
+}) {
   return (
     <th
       className={cn(
         'sticky top-0 z-[1] border-b border-ink-100 bg-slate-50/96 px-4 py-3.5 text-right text-[11px] font-black uppercase tracking-wide text-muted-500 backdrop-blur rtl:text-right',
         className,
       )}
+      {...props}
     >
       {children}
     </th>
   )
 }
 
-export function Tr({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
+export function Tr({
+  children,
+  muted,
+  className,
+  ...props
+}: ComponentPropsWithoutRef<'tr'> & {
+  muted?: boolean
+}) {
   return (
-    <tr className={cn('group transition-colors', muted ? 'opacity-85' : 'hover:bg-brand-500/[0.03]')}>
+    <tr
+      className={cn('group transition-colors', muted ? 'opacity-85' : 'hover:bg-brand-500/[0.03]', className)}
+      {...props}
+    >
       {children}
     </tr>
   )
 }
 
-export function Td({ children, className }: { children: React.ReactNode; className?: string }) {
+export function Td({ children, className, ...props }: ComponentPropsWithoutRef<'td'>) {
   return (
     <td
       className={cn(
         'border-b border-ink-100/[0.7] px-4 py-3.5 align-middle text-right text-[13px] font-semibold rtl:text-right',
         className,
       )}
+      {...props}
     >
       {children}
     </td>

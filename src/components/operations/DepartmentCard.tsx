@@ -3,6 +3,7 @@ import { Building2, ChevronLeft, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { WorkspaceDepartment } from '@/types/operations'
 import DepartmentHealthBadge from './DepartmentHealthBadge'
+import { getDepartmentName } from '@/utils/workspaceDepartment'
 
 export default function DepartmentCard({
   d,
@@ -30,7 +31,7 @@ export default function DepartmentCard({
           )}
         </div>
         <div>
-          <h3 className="text-lg font-black text-deepBlue">{d.title}</h3>
+          <h3 className="text-lg font-black text-deepBlue">{getDepartmentName(d)}</h3>
           <p className="mt-1 line-clamp-2 text-xs font-semibold leading-relaxed text-slate-500">
             {d.description ?? '—'}
           </p>

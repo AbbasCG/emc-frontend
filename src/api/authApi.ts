@@ -25,6 +25,18 @@ export async function fetchMe(): Promise<User> {
   return normalizeAuthUser(unwrapData(res.data))
 }
 
+/** Super Admin only — swaps issued token to target user perspective. */
+export async function postImpersonateUser(userId: number): Promise<unknown> {
+  const res = await apiClient.post<unknown>(`/admin/impersonate/${userId}`, {}, { skipErrorToast: true })
+  return unwrapData(res.data)
+}
+
+/** End impersonation preview — restores super_admin session server-side when supported. */
+export async function postImpersonateStop(): Promise<unknown> {
+  const res = await apiClient.post<unknown>('/admin/impersonate/stop', {}, { skipErrorToast: true })
+  return unwrapData(res.data)
+}
+
 /** Best-effort server session invalidation; callers must always clear client state regardless of outcome. */
 export async function logoutRemote(): Promise<void> {
   const opts = { skipErrorToast: true as const }

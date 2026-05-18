@@ -1,7 +1,17 @@
 import axios from 'axios'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronLeft, Headphones, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  Headphones,
+  Home,
+  Loader2,
+  RotateCcw,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -83,6 +93,163 @@ const stepAnimation = {
 const glassCard =
   'rounded-3xl border border-white/70 bg-white/75 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
 
+const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
+const SUCCESS_DESCRIPTION =
+  'تم إرسال طلب الورشة بنجاح، وسيقوم فريق EMC بالتواصل معك بعد مراجعة البيانات.'
+
+/** Ring length for r=54 in viewBox 0 0 120 120 */
+const RING_LEN = 2 * Math.PI * 54
+
+function WorkshopSuccessCelebration({
+  open,
+  onReset,
+}: {
+  open: boolean
+  onReset: () => void
+}) {
+  const particles = Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    left: `${12 + (i * 41) % 76}%`,
+    top: `${8 + (i * 29) % 72}%`,
+    delay: i * 0.035,
+    wide: i % 3 === 0,
+    tone: i % 2 === 0 ? '#2691C2' : '#EC943C',
+  }))
+
+  return (
+    <AnimatePresence>
+      {open ?
+        <motion.div
+          key="success-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="workshop-success-title"
+          aria-describedby="workshop-success-desc"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.28 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F172A]/55 px-4 backdrop-blur-md"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 10 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(34,51,74,0.35)] ring-1 ring-[#2691C2]/15 backdrop-blur-xl"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(38,145,194,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(236,148,60,0.12),transparent_48%)]" />
+
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              {particles.map((p) => (
+                <motion.span
+                  key={p.id}
+                  className="absolute rounded-full opacity-0 shadow-sm"
+                  style={{
+                    left: p.left,
+                    top: p.top,
+                    width: p.wide ? 10 : 6,
+                    height: p.wide ? 10 : 6,
+                    background: p.tone,
+                  }}
+                  initial={{ opacity: 0, scale: 0, y: 12 }}
+                  animate={{
+                    opacity: [0, 0.85, 0.35],
+                    scale: [0, 1, 0.85],
+                    y: [12, -28, -12],
+                  }}
+                  transition={{
+                    duration: 1.15,
+                    delay: 0.25 + p.delay,
+                    ease: [0.22, 0.61, 0.36, 1],
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="relative px-8 pb-9 pt-10 text-center">
+              <div className="relative mx-auto mb-8 flex h-[120px] w-[120px] items-center justify-center">
+                <svg
+                  width={120}
+                  height={120}
+                  viewBox="0 0 120 120"
+                  className="-rotate-90 shrink-0 overflow-visible"
+                  aria-hidden
+                >
+                  <defs>
+                    <linearGradient id="workshopSuccessRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#2691C2" />
+                      <stop offset="100%" stopColor="#EC943C" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" strokeWidth="5" />
+                  <motion.circle
+                    cx="60"
+                    cy="60"
+                    r="54"
+                    fill="none"
+                    stroke="url(#workshopSuccessRing)"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeDasharray={RING_LEN}
+                    initial={{ strokeDashoffset: RING_LEN }}
+                    animate={{ strokeDashoffset: 0 }}
+                    transition={{ duration: 0.72, ease: [0.22, 0.61, 0.36, 1], delay: 0.08 }}
+                  />
+                </svg>
+
+                <motion.div
+                  className="absolute inset-0 m-auto grid h-[72px] w-[72px] place-items-center rounded-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-700 shadow-[0_14px_36px_rgba(16,185,129,0.45)] ring-4 ring-white"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 22, delay: 0.58 }}
+                >
+                  <motion.div
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.72 }}
+                  >
+                    <Check className="h-10 w-10 text-white" strokeWidth={3} aria-hidden />
+                  </motion.div>
+                </motion.div>
+              </div>
+
+              <h2 id="workshop-success-title" className="text-xl font-black leading-snug text-[#22334A] sm:text-2xl">
+                {SUCCESS_TITLE}
+              </h2>
+              <p id="workshop-success-desc" className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-muted-600">
+                {SUCCESS_DESCRIPTION}
+              </p>
+
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row-reverse sm:justify-center">
+                <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                  <Link
+                    to="/"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-[13px] font-black text-[#22334A] shadow-sm transition hover:border-[#2691C2]/35 hover:bg-slate-50 sm:w-auto"
+                  >
+                    <Home className="h-4 w-4 text-[#2691C2]" aria-hidden />
+                    العودة للرئيسية
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                  <button
+                    type="button"
+                    onClick={onReset}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(38,145,194,0.38)] transition hover:brightness-[1.05] sm:w-auto"
+                  >
+                    <RotateCcw className="h-4 w-4" aria-hidden />
+                    تقديم طلب جديد
+                  </button>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      : null}
+    </AnimatePresence>
+  )
+}
+
 export default function SubmitWorkshop() {
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<WorkshopFormValues>(initialForm)
@@ -92,7 +259,27 @@ export default function SubmitWorkshop() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [apiError, setApiError] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
+  const [submissionSuccess, setSubmissionSuccess] = useState(false)
+
+  useEffect(() => {
+    if (!submissionSuccess) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [submissionSuccess])
+
+  function resetWizard() {
+    setSubmissionSuccess(false)
+    setForm(initialForm)
+    setSelectedCategories([])
+    setSelectedLocations([])
+    setSpeakerPhoto(null)
+    setStep(1)
+    setValidationErrors({})
+    setApiError('')
+  }
 
   const updateField = (name: keyof WorkshopFormValues, value: string) => {
     setForm((previous) => ({
@@ -162,7 +349,7 @@ export default function SubmitWorkshop() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setApiError('')
-    setSuccessMessage('')
+    setSubmissionSuccess(false)
 
     const allErrors = [1, 2, 3, 4].reduce<ValidationErrors>(
       (errors, currentStep) => ({ ...errors, ...validateStep(currentStep) }),
@@ -189,7 +376,7 @@ export default function SubmitWorkshop() {
       setIsSubmitting(true)
       await submitWorkshopRequest(payload)
       setValidationErrors({})
-      setSuccessMessage('تم إرسال طلب الورشة بنجاح. سيقوم فريق مركز التمكين بالتواصل معك بعد مراجعة البيانات.')
+      setSubmissionSuccess(true)
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 422) {
         const backendErrors = error.response.data?.errors ?? {}
@@ -264,11 +451,9 @@ export default function SubmitWorkshop() {
         </motion.div>
 
         <div className="mt-8 space-y-5" aria-live="polite">
-          {successMessage && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-              <AppAlert type="success" title="تم استلام الطلب" message={successMessage} />
-            </motion.div>
-          )}
+          {submissionSuccess ?
+            <span className="sr-only">{`${SUCCESS_TITLE}. ${SUCCESS_DESCRIPTION}`}</span>
+          : null}
           {apiError && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
               <AppAlert type="error" title="تنبيه" message={apiError} dismissible onDismiss={() => setApiError('')} />
@@ -774,6 +959,8 @@ export default function SubmitWorkshop() {
           </aside>
         </div>
       </div>
+
+      <WorkshopSuccessCelebration open={submissionSuccess} onReset={resetWizard} />
     </main>
   )
 }

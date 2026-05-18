@@ -20,6 +20,9 @@ export type CatalogWorkshopRow = {
   duration_hours?: number | null
   trainer_name?: string | null
   is_online?: boolean
+  /** مملوء عند المصدر طلب الزائر `workshop-requests` */
+  requester_email?: string | null
+  requester_name?: string | null
 }
 
 /** GET /courses — لا يُحمِّل محتويات وهمية عند الخطأ. */

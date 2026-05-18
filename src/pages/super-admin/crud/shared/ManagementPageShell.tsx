@@ -1,5 +1,5 @@
 import { CrudChrome } from '@/pages/super-admin/crud/shared/CrudChrome'
-import { CrudFilterBar } from '@/pages/super-admin/crud/shared/FilterBar'
+import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
 import type { KpiItem } from '@/pages/super-admin/crud/shared/KpiStrip'
 import { KpiCards } from '@/pages/super-admin/crud/shared/KpiStrip'
 
@@ -26,16 +26,15 @@ export function ManagementPageShell(props: {
       <div dir="rtl" className="space-y-5 text-right rtl:text-right">
         {search ?
           toolbar ?
-            <div className="space-y-4">
-              <CrudFilterBar
-                searchValue={search.value}
-                onSearchChange={search.onChange}
-                searchPlaceholder={search.placeholder}
-              >
-                {toolbar}
-              </CrudFilterBar>
-            </div>
-          : <CrudFilterBar searchValue={search.value} onSearchChange={search.onChange} searchPlaceholder={search.placeholder} />
+            <CrudToolbar
+              sticky
+              searchValue={search.value}
+              onSearchChange={search.onChange}
+              searchPlaceholder={search.placeholder}
+            >
+              {toolbar}
+            </CrudToolbar>
+          : <CrudToolbar sticky searchValue={search.value} onSearchChange={search.onChange} searchPlaceholder={search.placeholder} />
         : toolbar ?
           toolbar
         : null}

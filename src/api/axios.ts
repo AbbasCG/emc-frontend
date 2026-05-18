@@ -2,7 +2,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from './apiErrors'
 
-// Storage keys — must stay in sync with TOKEN_KEY in AuthContext.tsx
+// Storage keys — must stay in sync with `src/lib/impersonationSession.ts` (+ AuthContext exports).
 const TOKEN_KEY = 'emc_token'
 const USER_KEY = 'emc_user'
 

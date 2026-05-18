@@ -15,8 +15,12 @@ import {
   UserPlus,
   BookOpen,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import api from '../api/axios'
 import { submitCourseRegistration } from '../api/registrationsApi'
+import { fetchProfileUser, updateProfile } from '@/api/profileApi'
+import { notifyStudentScopeRefresh } from '@/api/studentApi'
+import { useAuth } from '@/contexts/AuthContext'
 import PaymentProviderSelector from '../components/payments/PaymentProviderSelector'
 import PageHeader from '../components/PageHeader'
 import StateMessage from '../components/StateMessage'
@@ -50,6 +54,7 @@ const initialForm: RegisterForm = {
 export default function Register() {
   const { slug } = useParams()
   const navigate = useNavigate()
+  const { user, isAuthenticated, refreshUser } = useAuth()
 
   const [course, setCourse] = useState<Course | null>(null)
   const [courses, setCourses] = useState<Course[]>([])
@@ -89,7 +94,7 @@ export default function Register() {
             ? response.data.data
             : []
 
-        setCourses(list)
+        setCourses(Array.isArray(list) ? list : [])
       } catch (err) {
         if (axios.isCancel(err)) return
         setApiError('تعذر تحميل بيانات الدورات. يرجى المحاولة مرة أخرى.')
@@ -102,6 +107,39 @@ export default function Register() {
 
     return () => controller.abort()
   }, [slug])
+
+  useEffect(() => {
+    if (!isAuthenticated || user == null) return
+    let cancelled = false
+    void (async () => {
+      let nameSrc = typeof user.name === 'string' && user.name.trim() !== '' && user.name !== '—' ? user.name.trim() : ''
+      let emailSrc =
+        typeof user.email === 'string' && user.email.trim() !== '' && user.email !== '—' ? user.email.trim() : ''
+      let phoneSrc =
+        typeof user.phone === 'string' && user.phone.trim() !== '' ? user.phone.trim() : ''
+      let citySrc = typeof user.city === 'string' && user.city.trim() !== '' ? user.city.trim() : ''
+      try {
+        const profile = await fetchProfileUser()
+        if (cancelled) return
+        if (profile.name && profile.name !== '—') nameSrc = profile.name.trim()
+        if (profile.email && profile.email !== '—') emailSrc = profile.email.trim()
+        if (profile.phone) phoneSrc = phoneSrc || String(profile.phone).trim()
+        if (profile.city) citySrc = citySrc || String(profile.city).trim()
+      } catch {
+        /* session fallback only */
+      }
+      setForm((cur) => ({
+        ...cur,
+        full_name: cur.full_name.trim() !== '' ? cur.full_name : nameSrc,
+        email: cur.email.trim() !== '' ? cur.email : emailSrc,
+        phone: cur.phone.trim() !== '' ? cur.phone : phoneSrc,
+        city: cur.city.trim() !== '' ? cur.city : citySrc,
+      }))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, user?.id])
 
   function updateField(name: keyof RegisterForm, value: string) {
     setForm((current) => ({ ...current, [name]: value }))
@@ -126,6 +164,15 @@ export default function Register() {
       return
     }
 
+    const nextErrors: ValidationErrors = {}
+    if (!form.phone.trim()) nextErrors.phone = ['رقم الجوال مطلوب']
+    if (!form.city.trim()) nextErrors.city = ['المدينة مطلوبة']
+    if (Object.keys(nextErrors).length > 0) {
+      setValidationErrors((prev) => ({ ...prev, ...nextErrors }))
+      setApiError('يرجى إكمال الحقول الإلزامية قبل الإرسال.')
+      return
+    }
+
     try {
       setIsSubmitting(true)
 
@@ -141,10 +188,28 @@ export default function Register() {
       })
 
       if (result.checkout_url) {
+        notifyStudentScopeRefresh()
+        toast.success('تم تهيئة جلسة الدفع — ستُكمَل العملية عند إتمام المعاملة.')
         window.location.assign(result.checkout_url)
         return
       }
 
+      if (isAuthenticated) {
+        try {
+          await updateProfile({
+            name: form.full_name.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            city: form.city.trim(),
+          })
+          await refreshUser()
+        } catch {
+          /* لا نمنع مسار النجاح — الخادم قد لا يتيح PATCH كاملاً */
+        }
+      }
+
+      toast.success('تم إرسال التسجيل بنجاح.')
+      notifyStudentScopeRefresh()
       navigate('/thank-you')
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 422) {
@@ -256,7 +321,7 @@ export default function Register() {
                     className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   >
                     <option value="">اختر الدورة</option>
-                    {courses.map((item) => (
+                    {(Array.isArray(courses) ? courses : []).map((item) => (
                       <option key={item.id} value={String(item.id)}>
                         {item.title}
                       </option>
@@ -299,6 +364,7 @@ export default function Register() {
                 value={form.phone}
                 icon={Phone}
                 error={validationErrors.phone?.[0]}
+                htmlRequired={false}
                 onChange={updateField}
               />
             </div>
@@ -320,6 +386,7 @@ export default function Register() {
                 value={form.city}
                 icon={MapPin}
                 error={validationErrors.city?.[0]}
+                htmlRequired={false}
                 onChange={updateField}
               />
             </div>
@@ -418,6 +485,7 @@ function FormField({
   icon: Icon,
   error,
   type = 'text',
+  htmlRequired = true,
   onChange,
 }: {
   label: string
@@ -426,6 +494,7 @@ function FormField({
   icon: typeof User
   error?: string
   type?: string
+  htmlRequired?: boolean
   onChange: (name: keyof RegisterForm, value: string) => void
 }) {
   return (
@@ -441,7 +510,7 @@ function FormField({
           name={name}
           type={type}
           value={value}
-          required
+          required={htmlRequired}
           onChange={(event) => onChange(name, event.target.value)}
           className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
         />

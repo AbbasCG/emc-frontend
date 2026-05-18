@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import logo from '../assets/logo.png'
 import CommandPalette from '../components/ai/CommandPalette'
+import ImpersonationBanner from '../components/ImpersonationBanner'
 import NotificationBell from '../components/platform/NotificationBell'
 import NotificationDrawer from '../components/platform/NotificationDrawer'
 import {
@@ -24,13 +25,8 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
-import {
-  getUserDisplayEmail,
-  getUserDisplayName,
-  getUserInitials,
-  getUserRoleLabel,
-  getUserSidebarSubtitle,
-} from '../utils/userIdentity'
+import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
+import { UserAvatar } from '@/components/UserAvatar'
 
 // ---------------------------------------------------------------------------
 // Route → page title map (used by topbar)
@@ -42,6 +38,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/instructor':      'لوحة المدرب',
   '/dashboard/admin':        'لوحة الإدارة',
   '/dashboard/super-admin': 'السوبر مشرف — نظرة عامة',
+  '/dashboard/super-admin/audit-logs': 'سجل التغييرات — السوبر مشرف',
   '/dashboard/super-admin/crud': 'إدارة الكيانات',
   '/dashboard/super-admin/crud/users': 'مركز المستخدمين',
   '/dashboard/super-admin/crud/roles': 'الأدوار والصلاحيات',
@@ -63,13 +60,19 @@ const pageTitles: Record<string, string> = {
   '/dashboard/support': 'تذاكر الدعم',
   '/dashboard/volunteer': 'المتطوعون',
   '/dashboard/department': 'الإدارات',
+  '/dashboard/department/programs': 'البرامج — الإدارة',
   '/dashboard/teacher':      'لوحة المدرب',
   '/dashboard/student/sessions':     'جلساتي',
+  '/dashboard/student/courses':      'دوراتي',
+  '/dashboard/student/registrations': 'التسجيلات',
+  '/dashboard/student/available-courses': 'دورات متاحة',
   '/dashboard/student/materials':    'المواد التعليمية',
   '/dashboard/student/assignments':  'الواجبات',
   '/dashboard/student/progress':     'التقدّم',
   '/dashboard/student/evaluation':   'تقييم الدورة',
   '/dashboard/instructor/sessions':    'جلسات المدرب',
+  '/dashboard/instructor/courses':    'دوراتي المسندة',
+  '/dashboard/instructor/workshops':   'ورش العمل',
   '/dashboard/instructor/attendance':  'الحضور',
   '/dashboard/instructor/submissions':'مراجعة التسليمات',
   '/dashboard/teacher/sessions':    'جلسات المدرب',
@@ -82,6 +85,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/lms/evaluations': 'التقييمات',
   '/dashboard/admin/lms/progress':    'التقدّم الإداري',
   '/dashboard/admin/operations': 'لوحة العمليات التشغيلية',
+  '/dashboard/admin/programs': 'إدارة البرامج والدورات',
   '/dashboard/admin/departments': 'الإدارات',
   '/dashboard/admin/tasks': 'المهام',
   '/dashboard/admin/tasks/kanban': 'كانبان المهام',
@@ -148,6 +152,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/executive/operations': 'لوحة العمليات التشغيلية',
   '/dashboard/executive/kpi': 'مؤشرات الأداء',
   '/dashboard/executive/reports': 'التقارير التحليلية',
+  '/dashboard/executive/programs': 'البرامج والدورات — التنفيذي',
   '/dashboard/finance/payments': 'المدفوعات',
   '/dashboard/finance/transactions': 'المعاملات المالية',
   '/dashboard/hr/team': 'أعضاء الفريق',
@@ -169,10 +174,20 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const location = useLocation()
   const sidebarName = getUserDisplayName(user)
   const sidebarSubtitle = getUserSidebarSubtitle(user)
-  const sidebarInitials = getUserInitials(user)
-  const showRoleBadge = Boolean(getUserDisplayEmail(user)) && Boolean(getUserRoleLabel(user))
+  const showRoleBadge = Boolean(user?.role != null && String(user.role).trim() !== '')
 
   const groups = getSidebarByRole(user?.role)
+  const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>({})
+
+  function collapsibleSectionOpen(title?: string, collapsible?: boolean) {
+    if (!collapsible || !title) return true
+    return collapsibleExpanded[title] ?? true
+  }
+
+  function toggleCollapsibleSection(title?: string) {
+    if (!title) return
+    setCollapsibleExpanded((prev) => ({ ...prev, [title]: !(prev[title] ?? true) }))
+  }
 
   function isActive(href: string) {
     if (exactMatchSidebarRoutes.has(href)) return location.pathname === href
@@ -238,60 +253,76 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
         {/* ── Navigation ── */}
         <nav className="relative flex-1 overflow-y-auto emc-scroll px-3 py-4" aria-label="قائمة لوحة التحكم">
-          {groups.map((group, gi) => (
+          {groups.map((group, gi) => {
+            const open = collapsibleSectionOpen(group.title, group.collapsible)
+
+            return (
             <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
-              {group.title && (
+              {group.collapsible && group.title ?
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => toggleCollapsibleSection(group.title)}
+                  className="group/cap mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/46 transition hover:bg-white/[0.05]"
+                >
+                  <ChevronDown
+                    size={16}
+                    className={`shrink-0 text-customOrange transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
+                    aria-hidden
+                  />
+                  <span className="font-latin flex-1 text-right leading-tight text-white/55">{group.title}</span>
+                </button>
+              : group.title ?
                 <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-white/40 font-latin">
                   {group.title}
                 </p>
-              )}
-              <ul className="space-y-0.5">
-                {group.items.map((item) => {
-                  const active = isActive(item.href)
-                  return (
-                    <li key={item.href}>
-                      <NavLink
-                        to={item.href}
-                        end={exactMatchSidebarRoutes.has(item.href)}
-                        className={[
-                          'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
-                          active
-                            ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(38,145,194,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
-                            : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
-                        ].join(' ')}
-                      >
-                        {active && (
-                          <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(236,148,60,0.7)]" />
-                        )}
-                        <item.icon
-                          size={17}
-                          className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'}
-                        />
-                        <span className="flex-1">{item.label}</span>
-                        {!active && (
-                          <ChevronLeft
-                            size={14}
-                            className="text-white/25 transition group-hover:text-white/50"
+              : null}
+              {open ?
+                <ul className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const active = isActive(item.href)
+                    return (
+                      <li key={item.href}>
+                        <NavLink
+                          to={item.href}
+                          end={exactMatchSidebarRoutes.has(item.href)}
+                          className={[
+                            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
+                            active
+                              ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(38,145,194,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
+                              : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+                          ].join(' ')}
+                        >
+                          {active ?
+                            <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(236,148,60,0.7)]" />
+                          : null}
+                          <item.icon
+                            size={17}
+                            className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'}
                           />
-                        )}
-                      </NavLink>
-                    </li>
-                  )
-                })}
-              </ul>
+                          <span className="flex-1">{item.label}</span>
+                          {!active ?
+                            <ChevronLeft size={14} className="text-white/25 transition group-hover:text-white/50" />
+                          : null}
+                        </NavLink>
+                      </li>
+                    )
+                  })}
+                </ul>
+              : null}
             </div>
-          ))}
+            )
+          })}
         </nav>
 
         {/* ── User card at bottom ── */}
         <div className="relative shrink-0 border-t border-white/[0.08] p-2.5">
           <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.06] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
-            <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[10px] font-black leading-none text-white ring-2 ring-white/10 font-latin"
-              aria-hidden
-            >
-              {sidebarInitials}
-            </span>
+            <UserAvatar
+              user={user}
+              className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[10px] leading-none text-white ring-2 ring-white/10 font-latin"
+              textClassName="text-[10px] font-black text-white font-latin"
+            />
             <div className="min-w-0 flex-1 text-right">
               <p className="truncate text-sm font-bold text-white">{sidebarName}</p>
               <p className="truncate text-xs leading-snug text-white/55 font-latin">
@@ -348,7 +379,6 @@ function Topbar({
 
   const displayName = getUserDisplayName(user)
   const roleLabel = getUserRoleLabel(user)
-  const initials = getUserInitials(user)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -410,9 +440,11 @@ function Topbar({
             aria-haspopup="menu"
             aria-label="قائمة المستخدم"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[11px] font-black leading-none text-white shadow-[0_6px_14px_-4px_rgba(38,145,194,0.55)] ring-2 ring-white font-latin">
-              {initials}
-            </span>
+            <UserAvatar
+              user={user}
+              className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(38,145,194,0.55)] ring-2 ring-white font-latin"
+              textClassName="text-[11px] font-black text-white font-latin"
+            />
             <div className="min-w-0 flex-1 text-right max-sm:hidden">
               <p className="truncate text-[13px] font-black leading-tight tracking-tight text-deepBlue">{displayName}</p>
               {roleLabel ?
@@ -577,6 +609,7 @@ export default function DashboardLayout() {
 
       <main className="relative pt-16 lg:mr-60" id="dashboard-main-content" tabIndex={-1}>
         <div className="p-5 md:p-7 lg:p-8">
+          <ImpersonationBanner />
           <Outlet />
         </div>
       </main>

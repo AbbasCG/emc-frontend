@@ -1,5 +1,6 @@
 import { unwrapData } from '@/api/unwrap'
 import type { User } from '@/types'
+import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 
 const DEFAULT_DISPLAY_NAME = 'مستخدم EMC'
 
@@ -55,13 +56,70 @@ export function normalizeAuthUser(payload: unknown): User {
   const phoneRaw = r.phone ?? r.phone_number ?? r.mobile
   const phone = trimStr(phoneRaw) || undefined
 
+  const avatarRaw =
+    r.avatar_url ??
+    r.avatarUrl ??
+    r.avatar ??
+    r.photo_url ??
+    r.profile_photo ??
+    r.profile_photo_url ??
+    r.profilePhoto ??
+    r.profilePhotoUrl ??
+    r.image ??
+    r.profile_image
+  const avatar_url = trimStr(avatarRaw) || undefined
+
+  const countryRaw = r.country ?? r.country_name
+  const country = trimStr(countryRaw) || undefined
+
+  const howRaw =
+    r.how_did_you_hear_about_us ??
+    r.howDidYouHearAboutUs ??
+    r.heard_from ??
+    r.source ??
+    r.referral_source
+  const how_did_you_hear_about_us = trimStr(howRaw) || undefined
+
+  const deptRaw =
+    r.department ?? r.department_name ?? r.faculty
+  let department: string | undefined
+  if (typeof deptRaw === 'string') department = trimStr(deptRaw) || undefined
+  else if (deptRaw && typeof deptRaw === 'object' && 'name' in (deptRaw as object))
+    department = trimStr((deptRaw as { name?: unknown }).name) || undefined
+
+  const ia = r.is_active
+  let is_active: boolean | null | undefined = undefined
+  if (ia === true || ia === 1 || ia === '1') is_active = true
+  else if (ia === false || ia === 0 || ia === '0') is_active = false
+
+  const ev = r.email_verified_at ?? r.emailVerifiedAt ?? r.email_verified
+  const email_verified_at =
+    ev != null && String(ev).trim() !== '' ? String(ev).trim() : undefined
+
+  const lk = r.last_login_at ?? r.last_login ?? r.last_seen_at
+  const last_login_at = lk != null && String(lk).trim() !== '' ? String(lk).trim() : undefined
+
+  let created_at: string | undefined
+  if (r.created_at != null && String(r.created_at).trim() !== '') created_at = String(r.created_at)
+  let updated_at: string | undefined
+  if (r.updated_at != null && String(r.updated_at).trim() !== '') updated_at = String(r.updated_at)
+
   return {
     id: finiteId(r.id),
     name,
     email,
     phone,
     city: trimStr(r.city ?? r.location) || undefined,
+    country,
     gender: trimStr(r.gender ?? r.sex) || undefined,
+    department,
+    how_did_you_hear_about_us,
+    avatar_url,
+    email_verified_at,
+    last_login_at,
+    created_at,
+    updated_at,
+    is_active,
     role,
   }
 }
@@ -131,6 +189,12 @@ export function getUserRoleLabel(u: User | null | undefined): string | null {
   if (!u?.role) return null
   const r = trimStr(u.role)
   return r === '' ? null : r
+}
+
+/** Absolute URL for profile image if present — safe for `<img src>`. */
+export function getUserAvatarUrl(u: User | null | undefined): string | null {
+  if (!u) return null
+  return resolvePublicAssetUrl(trimStr(u.avatar_url) !== '' ? trimStr(u.avatar_url) : null)
 }
 
 export function getUserInitials(u: User | null | undefined): string {

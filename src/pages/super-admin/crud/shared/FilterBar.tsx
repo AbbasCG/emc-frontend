@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type FilterBarProps = {
+export type FilterBarProps = {
   searchValue: string
   onSearchChange: (v: string) => void
   searchPlaceholder?: string

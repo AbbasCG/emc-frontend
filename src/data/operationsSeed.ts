@@ -1,4 +1,5 @@
 import { departments10 } from '@/data/publicPages'
+import { getDepartmentName } from '@/utils/workspaceDepartment'
 import type {
   DepartmentDetail,
   MarketingItem,
@@ -322,7 +323,7 @@ export function seedOperationsDashboard(): OperationsDashboardData {
     ],
     department_health: depts.slice(0, 6).map((d) => ({
       department_id: d.id,
-      title: d.title,
+      title: getDepartmentName(d),
       score: d.health_score ?? 80,
     })),
   }

@@ -8,7 +8,17 @@ export type User = {
   email: string
   phone?: string | null
   city?: string | null
+  country?: string | null
   gender?: string | null
+  department?: string | null
+  how_did_you_hear_about_us?: string | null
+  avatar_url?: string | null
+  /** When API exposes verification / timestamps (may be omitted on lite payloads). */
+  email_verified_at?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  last_login_at?: string | null
+  is_active?: boolean | null
   /** Backends may return extended roles beyond the frontend union — keep readable on profile. */
   role?: UserRole | string | null
 }
@@ -53,6 +63,22 @@ export type Course = {
     title: string
     sort_order?: number
   }[]
+
+  /** Admin/catalog extensions — backends may omit any of these */
+  program_kind?: string | null
+  track_id?: number | null
+  track?: { id: number; title?: string | null; slug?: string | null } | null
+  track_title?: string | null
+  department_id?: number | null
+  department?: { id: number; name?: string | null } | null
+  department_name?: string | null
+  instructor_id?: number | null
+  registrations_count?: number | null
+  is_published?: boolean | number | null
+  registration_open?: boolean | number | null
+  start_time?: string | null
+  meeting_link?: string | null
+  location_type?: string | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'

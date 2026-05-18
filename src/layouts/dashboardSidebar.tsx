@@ -29,6 +29,7 @@ import {
   PieChart,
   Plug2,
   Rocket,
+  ScrollText,
   Settings,
   ShieldCheck,
   ShieldQuestion,
@@ -45,7 +46,12 @@ import {
 import { normalizeRole } from '@/utils/dashboardAccess'
 
 export type SidebarNavItem = { label: string; href: string; icon: ElementType }
-export type SidebarNavGroup = { title?: string; items: SidebarNavItem[] }
+export type SidebarNavGroup = {
+  title?: string
+  items: SidebarNavItem[]
+  /** When true, renders a collapsible section (RTL). Default expanded. */
+  collapsible?: boolean
+}
 
 export const exactMatchSidebarRoutes = new Set([
   '/dashboard',
@@ -62,6 +68,7 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/volunteer',
   '/dashboard/department',
   '/dashboard/super-admin',
+  '/dashboard/super-admin/audit-logs',
   '/dashboard/admin/operations',
   '/dashboard/learning',
 ])
@@ -103,6 +110,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       title: 'مركز العمليات',
       items: [
         { label: 'لوحة العمليات', href: '/dashboard/admin/operations', icon: Sparkles },
+        { label: 'البرامج والدورات', href: '/dashboard/admin/programs', icon: BookMarked },
         { label: 'الإدارات', href: '/dashboard/admin/departments', icon: Building2 },
         { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar },
@@ -192,9 +200,15 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
 /** Master navigation for `super_admin` — full platform reach + CRUD anchors. */
 function superMasterSidebar(): SidebarNavGroup[] {
   return [
-    { items: [{ label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown }] },
+    {
+      items: [
+        { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
+        { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
+      ],
+    },
     {
       title: 'إدارة الكيانات (CRUD)',
+      collapsible: true,
       items: [
         { label: 'المستخدمون', href: '/dashboard/super-admin/crud/users', icon: Users },
         { label: 'الأدوار والصلاحيات', href: '/dashboard/super-admin/crud/roles', icon: ShieldCheck },
@@ -257,12 +271,13 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
   if (n === 'executive_admin') {
     return [
       { items: [{ label: 'اللوحة التنفيذية', href: '/dashboard/executive', icon: LayoutDashboard }] },
-      {
+        {
         title: 'القرار والمتابعة',
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
+          { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
         ],
       },
       ...communicationsBlock(),
@@ -339,6 +354,10 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
   if (n === 'department_manager') {
     return [
       { items: [{ label: 'إدارتي', href: '/dashboard/department', icon: Building2 }] },
+      {
+        title: 'التعلّم والبرامج',
+        items: [{ label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked }],
+      },
       ...communicationsBlock(),
     ]
   }
@@ -365,6 +384,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         title: 'التدريس والجلسات',
         items: [
+          { label: 'دوراتي المسندة', href: '/dashboard/instructor/courses', icon: BookMarked },
+          { label: 'ورشي', href: '/dashboard/instructor/workshops', icon: Sparkles },
           { label: 'جلساتي', href: '/dashboard/instructor/sessions', icon: Calendar },
           { label: 'الحضور', href: '/dashboard/instructor/attendance', icon: UserCheck },
           { label: 'التسليمات', href: '/dashboard/instructor/submissions', icon: ClipboardList },
@@ -387,6 +408,9 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         title: 'التعلّم',
         items: [
           { label: 'مسار التعلّم المتقدم', href: '/dashboard/learning', icon: Brain },
+          { label: 'دوراتي', href: '/dashboard/student/courses', icon: BookOpen },
+          { label: 'التسجيلات', href: '/dashboard/student/registrations', icon: ClipboardList },
+          { label: 'دورات متاحة', href: '/dashboard/student/available-courses', icon: Sparkles },
           { label: 'جلساتي', href: '/dashboard/student/sessions', icon: Calendar },
           { label: 'المواد', href: '/dashboard/student/materials', icon: FolderOpen },
           { label: 'الواجبات', href: '/dashboard/student/assignments', icon: ClipboardList },

@@ -9,6 +9,7 @@ import { asList } from '@/api/lmsApi'
 import { getTeam } from '@/services/teamApi'
 import type { HrDashboardLinkedFlags, HrDashboardSnapshot } from '@/types/hr'
 import type { OpsMeeting, OpsTask, OpsVolunteer, WorkspaceDepartment } from '@/types/operations'
+import { getDepartmentName } from '@/utils/workspaceDepartment'
 
 const emptyFlags = (): HrDashboardLinkedFlags => ({
   overviewApi: false,
@@ -171,7 +172,7 @@ export async function fetchHrDashboardSnapshot(): Promise<HrDashboardSnapshot> {
       linked.departments = true
       if (departmentsCount == null) departmentsCount = opsDepts.length
       if (!deptHeadcount.length || deptHeadcount.every((r) => r.count === 0)) {
-        deptHeadcount = opsDepts.map((d) => ({ label: d.title, count: d.members_count }))
+        deptHeadcount = opsDepts.map((d) => ({ label: getDepartmentName(d), count: d.members_count }))
       }
     }
   } catch {
