@@ -1,20 +1,129 @@
-import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  BookOpen,
+  Calendar,
+  CalendarDays,
+  Clock,
+  CreditCard,
+  Eye,
+  GraduationCap,
+  ImagePlus,
+  Plus,
+  Search,
+  Trash2,
+  UserCircle2,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import type { CatalogTrackRow } from '@/api/superAdminCatalogApi'
 import { upsertCourse, type CourseUpsertPayload, type OpsDepartmentOption } from '@/api/adminCoursesApi'
-import { getApiErrorMessage } from '@/api/apiErrors'
+import { getApiErrorMessage, getLaravelFieldErrors, withArabicValidationMessages } from '@/api/apiErrors'
+import { useAuth } from '@/contexts/AuthContext'
+import {
+  FormActions,
+  FormChecklist,
+  FormHelpCard,
+  FormSectionCard,
+  FormSuccessState,
+  FormSummaryPanel,
+  FormWizardShell,
+  emcWizardStepAnimation,
+  type WizardStepMeta,
+} from '@/components/emc-form-wizard'
+import { EMC_WIZARD_INPUT_BASE } from '@/components/emc-form-wizard/emcWizardTokens'
 import type { Course } from '@/types'
-import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
+import { getCourseInstructor } from '@/utils/courseInstructor'
 import { defaultSlugFromTitle, inferProgramKind, type ProgramKind } from '@/pages/super-admin/crud/programs/programConsoleUtils'
+import {
+  apiListToText,
+  kindToProgramType,
+  linesToStringArray,
+  normalizeCourseStatus,
+  splitKeywords,
+} from '@/utils/coursePayload'
 
 const KINDS: ProgramKind[] = ['course', 'workshop', 'program', 'track']
 
 const LOC_TYPES = [
   { v: 'online', label: 'عن بُعد' },
   { v: 'offline', label: 'حضوري' },
-  { v: 'hybrid', label: 'مختلط' },
+  { v: 'hybrid', label: 'هجين' },
 ]
+
+const SESSION_FORMAT_OPTIONS = [
+  { v: 'دورة متعددة الأيام', label: 'دورة متعددة الأيام' },
+  { v: 'ورشة / لقاء واحد', label: 'ورشة / لقاء واحد' },
+  { v: 'برنامج كامل', label: 'برنامج كامل' },
+  { v: 'دورة قصيرة', label: 'دورة قصيرة' },
+]
+
+const STATUS_OPTIONS = [
+  { v: 'draft', label: 'مسودة' },
+  { v: 'published', label: 'منشور' },
+  { v: 'archived', label: 'مؤرشف' },
+]
+
+const STEP_META: readonly WizardStepMeta[] = [
+  { id: 1, title: 'البيانات الأساسية', hint: 'عنوان، صورة، وصف، نوع البرنامج' },
+  { id: 2, title: 'المدرب والجدولة', hint: 'اختيار مدرب ومواعيد اختيارية' },
+  { id: 3, title: 'التفاصيل التعليمية', hint: 'مدة، مستوى، ماذا ستتعلم' },
+  { id: 4, title: 'السعر والتسجيل', hint: 'تسعير، مقاعد، حالة النشر' },
+  { id: 5, title: 'المراجعة والنشر', hint: 'تأكيد ثم الحفظ' },
+]
+
+function draftKey(editing: boolean, id?: number | string) {
+  return `emc-wizard-course-draft-v2-${editing ? String(id) : 'new'}`
+}
+
+/** Normalize native <input type="time"> or manual entry to HH:mm (24h). */
+function toHHmm(raw: string): string {
+  const t = raw.trim()
+  if (!t) return ''
+  const p = t.split(':')
+  if (p.length < 2) return t
+  const h = Math.min(23, Math.max(0, parseInt(p[0] ?? '0', 10) || 0))
+  const m = Math.min(59, Math.max(0, parseInt(p[1]?.slice(0, 2) ?? '0', 10) || 0))
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+const FIELD_LABEL_AR: Record<string, string> = {
+  title: 'العنوان',
+  slug: 'المختصر',
+  course_image: 'صورة الدورة',
+  short_description: 'الوصف المختصر',
+  description: 'الوصف',
+  location: 'الموقع',
+  location_type: 'نوع التقديم',
+  delivery_type: 'نوع التقديم',
+  instructor_id: 'المدرب',
+  start_date: 'تاريخ البداية',
+  end_date: 'تاريخ النهاية',
+  start_time: 'وقت البداية',
+  end_time: 'وقت الانتهاء',
+  study_time: 'وقت البداية',
+  price: 'السعر',
+  type: 'نوع التسعير',
+  status: 'الحالة',
+  features: 'ماذا ستتعلم',
+  learning_outcomes: 'المخرجات التعليمية',
+  requirements: 'المتطلبات المسبقة',
+  keywords: 'الكلمات المفتاحية',
+  notes: 'الملاحظات الداخلية',
+  curriculum_topics: 'محاور الدورة',
+  program_type: 'نوع البرنامج',
+}
+
+/** Laravel errors like `features.0` resolve to the base field label */
+function fieldErrorFor(errors: Record<string, string>, base: string): string | undefined {
+  if (errors[base]) return errors[base]
+  const prefix = `${base}.`
+  for (const [k, v] of Object.entries(errors)) {
+    if (k.startsWith(prefix)) return v
+  }
+  return undefined
+}
 
 type Props = {
   open: boolean
@@ -23,20 +132,52 @@ type Props = {
   departments: OpsDepartmentOption[]
   onClose: () => void
   onSaved: () => void
+  /** يُعاد تعيين النموذج لإنشاء دورة جديدة دون إغلاق النافذة */
+  onCreateAnother?: () => void
+  /** رابط صفحة قائمة البرامج في لوحة التحكم (زر العودة) */
+  programsListPath?: string
 }
 
-export function CourseProgramFormModal({ open, initial, tracks, departments, onClose, onSaved }: Props) {
+export function CourseProgramFormModal({
+  open,
+  initial,
+  tracks,
+  departments,
+  onClose,
+  onSaved,
+  onCreateAnother,
+  programsListPath,
+}: Props) {
   const editing = initial != null
+  const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const listHref = programsListPath ?? (location.pathname || '/dashboard/super-admin/crud/programs')
+
+  const [currentStep, setCurrentStep] = useState(1)
   const [busy, setBusy] = useState(false)
+  const [successOpen, setSuccessOpen] = useState(false)
+  const [savedCourse, setSavedCourse] = useState<Course | null>(null)
+  const [lastSavedAsPublished, setLastSavedAsPublished] = useState(false)
+  const [localDraftSavedAt, setLocalDraftSavedAt] = useState<string | null>(null)
+  const [draftHint, setDraftHint] = useState(false)
+
+  const [instructorRows, setInstructorRows] = useState<AdminInstructorOption[]>([])
+  const [instructorQuery, setInstructorQuery] = useState('')
+
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
   const [shortDescription, setShortDescription] = useState('')
+  const [courseImage, setCourseImage] = useState('')
   const [kind, setKind] = useState<ProgramKind>('course')
-  const [trackId, setTrackId] = useState<string>('')
-  const [departmentId, setDepartmentId] = useState<string>('')
-  const [instructorId, setInstructorId] = useState<string>('')
+  const [trackId, setTrackId] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+  const [instructorId, setInstructorId] = useState('')
   const [priceFree, setPriceFree] = useState(true)
   const [price, setPrice] = useState('0')
   const [capacity, setCapacity] = useState('')
@@ -44,18 +185,33 @@ export function CourseProgramFormModal({ open, initial, tracks, departments, onC
   const [registrationOpen, setRegistrationOpen] = useState(true)
   const [isOnline, setIsOnline] = useState(true)
   const [locationType, setLocationType] = useState('online')
+  const [locationText, setLocationText] = useState('')
   const [startDate, setStartDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [endTime, setEndTime] = useState('')
   const [meetingLink, setMeetingLink] = useState('')
+  const [durationText, setDurationText] = useState('')
+  const [trainingHours, setTrainingHours] = useState('')
+  const [language, setLanguage] = useState('')
+  const [level, setLevel] = useState('')
+  const [targetAudience, setTargetAudience] = useState('')
+  const [certificate, setCertificate] = useState('')
+  const [sessionFormat, setSessionFormat] = useState(SESSION_FORMAT_OPTIONS[0].v)
+  const [learnText, setLearnText] = useState('')
+  const [prerequisites, setPrerequisites] = useState('')
+  const [learningOutcomes, setLearningOutcomes] = useState('')
+  const [outline, setOutline] = useState('')
+  const [keywords, setKeywords] = useState('')
+  const [adminNotes, setAdminNotes] = useState('')
 
-  useEffect(() => {
-    if (!open) return
+  const resetFromInitial = useCallback(() => {
     if (!initial) {
       setTitle('')
       setSlug('')
       setDescription('')
       setShortDescription('')
+      setCourseImage('')
       setKind('course')
       setTrackId('')
       setDepartmentId('')
@@ -67,16 +223,39 @@ export function CourseProgramFormModal({ open, initial, tracks, departments, onC
       setRegistrationOpen(true)
       setIsOnline(true)
       setLocationType('online')
+      setLocationText('')
       setStartDate('')
       setStartTime('')
       setEndDate('')
+      setEndTime('')
       setMeetingLink('')
+      setDurationText('')
+      setTrainingHours('')
+      setLanguage('')
+      setLevel('')
+      setTargetAudience('')
+      setCertificate('')
+      setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
+      setLearnText('')
+      setPrerequisites('')
+      setLearningOutcomes('')
+      setOutline('')
+      setKeywords('')
+      setAdminNotes('')
+      setInstructorQuery('')
+      setImageFile(null)
+      setImagePreviewUrl((u) => {
+        if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
+        return null
+      })
+      setFieldErrors({})
       return
     }
     setTitle(initial.title ?? '')
     setSlug(initial.slug ?? '')
     setDescription(initial.description ?? '')
     setShortDescription(initial.short_description ?? '')
+    setCourseImage(initial.course_image ?? '')
     setKind(inferProgramKind(initial))
     setTrackId(initial.track_id != null ? String(initial.track_id) : '')
     setDepartmentId(initial.department_id != null ? String(initial.department_id) : '')
@@ -85,255 +264,759 @@ export function CourseProgramFormModal({ open, initial, tracks, departments, onC
     setPriceFree(free)
     setPrice(String(initial.price ?? '0'))
     setCapacity(initial.capacity != null ? String(initial.capacity) : '')
-    setStatus(String(initial.status ?? 'draft'))
+    setStatus(normalizeCourseStatus(String(initial.status ?? 'draft')))
     setRegistrationOpen(
-      typeof initial.registration_open === 'boolean' ? initial.registration_open :
-        typeof initial.registration_open === 'number' ?
-          initial.registration_open === 1
-        : true,
+      typeof initial.registration_open === 'boolean' ?
+        initial.registration_open
+      : typeof initial.registration_open === 'number' ?
+        initial.registration_open === 1
+      : true,
     )
     setIsOnline(Boolean(initial.is_online))
     setLocationType((initial.location_type as string) || (initial.is_online ? 'online' : 'offline'))
+    setLocationText(initial.location ?? '')
     setStartDate(initial.start_date ? String(initial.start_date).slice(0, 10) : '')
     setStartTime(initial.start_time ? String(initial.start_time).slice(0, 8) : '')
     setEndDate(initial.end_date ? String(initial.end_date).slice(0, 10) : '')
+    setEndTime(initial.end_time ? String(initial.end_time).slice(0, 8) : '')
     setMeetingLink(initial.meeting_link ?? '')
-  }, [open, initial])
+    setDurationText(initial.duration ?? '')
+    setTrainingHours(initial.training_hours != null ? String(initial.training_hours) : '')
+    setLanguage(initial.language ?? '')
+    setLevel(initial.level ?? '')
+    setTargetAudience(initial.target_audience ?? '')
+    setCertificate(initial.certificate ?? '')
+    setSessionFormat(initial.session_format?.trim() || SESSION_FORMAT_OPTIONS[0].v)
+    setPrerequisites(apiListToText((initial as { requirements?: unknown }).requirements ?? initial.prerequisites))
+    setLearningOutcomes(apiListToText((initial as { learning_outcomes?: unknown }).learning_outcomes))
+    setOutline(
+      apiListToText((initial as { curriculum_topics?: unknown }).curriculum_topics) || (initial.study_days ?? ''),
+    )
+    setKeywords(apiListToText((initial as { keywords?: unknown }).keywords ?? initial.keywords))
+    setAdminNotes((initial as { notes?: string | null }).notes ?? initial.admin_notes ?? '')
+    setLearnText(
+      initial.features && initial.features.length > 0 ? initial.features.map((f) => f.title).join('\n') : '',
+    )
+    setFieldErrors({})
+    setImageFile(null)
+    setImagePreviewUrl((u) => {
+      if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
+      return null
+    })
+    setInstructorQuery('')
+  }, [initial])
 
-  async function submit() {
-    if (!title.trim()) {
-      toast.warning('عنوان الدورة مطلوب')
-      return
-    }
-    setBusy(true)
+  useEffect(() => {
+    if (!open) return
+    setCurrentStep(1)
+    setSuccessOpen(false)
+    setSavedCourse(null)
+    setLastSavedAsPublished(false)
+    setLocalDraftSavedAt(null)
+    resetFromInitial()
+    const k = draftKey(editing, initial?.id)
     try {
-      const payload: CourseUpsertPayload = {
-        title: title.trim(),
-        slug: slug.trim() || defaultSlugFromTitle(title),
-        description: description.trim() || undefined,
-        short_description: shortDescription.trim() || undefined,
-        program_kind: kind,
-        type: priceFree ? 'free' : 'paid',
-        price: priceFree ? 0 : Number(price) || 0,
-        is_online: isOnline,
-        location_type: locationType,
-        capacity: capacity.trim() ? Number(capacity) : null,
-        status,
-        registration_open: registrationOpen,
-        start_date: startDate.trim() || null,
-        end_date: endDate.trim() || null,
-        study_time: startTime.trim() || null,
-        meeting_link: meetingLink.trim() || null,
-        track_id: trackId ? Number(trackId) : null,
-        department_id: departmentId ? Number(departmentId) : null,
-        instructor_id: instructorId ? Number(instructorId) : null,
-        is_published: String(status).toLowerCase() === 'published',
+      const raw = localStorage.getItem(k)
+      setDraftHint(Boolean(raw && !editing))
+    } catch {
+      setDraftHint(false)
+    }
+  }, [open, initial, editing, resetFromInitial])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const rows = await fetchAdminInstructors()
+        if (!cancelled) setInstructorRows(rows)
+      } catch {
+        if (!cancelled) setInstructorRows([])
       }
-      await upsertCourse(payload, editing ? initial?.id : undefined)
-      toast.success(editing ? 'تم تحديث البرنامج' : 'تم إنشاء البرنامج')
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open])
+
+  /** After successful publish: brief success overlay then open the public course page (user is not left in the modal). */
+  useEffect(() => {
+    if (!successOpen || !savedCourse?.slug || !lastSavedAsPublished) return
+    const id = window.setTimeout(() => {
+      navigate(`/courses/${savedCourse.slug}`)
+      setSuccessOpen(false)
       onSaved()
       onClose()
+    }, 3200)
+    return () => window.clearTimeout(id)
+  }, [successOpen, savedCourse?.slug, lastSavedAsPublished, navigate, onSaved, onClose])
+
+  const persistDraft = useCallback(() => {
+    if (!open) return
+    const k = draftKey(editing, initial?.id)
+    const pack = {
+      title,
+      slug,
+      description,
+      shortDescription,
+      courseImage,
+      kind,
+      trackId,
+      departmentId,
+      instructorId,
+      priceFree,
+      price,
+      capacity,
+      status,
+      registrationOpen,
+      isOnline,
+      locationType,
+      locationText,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
+      meetingLink,
+      durationText,
+      trainingHours,
+      language,
+      level,
+      targetAudience,
+      certificate,
+      sessionFormat,
+      learnText,
+      prerequisites,
+      learningOutcomes,
+      outline,
+      keywords,
+      adminNotes,
+    }
+    try {
+      localStorage.setItem(k, JSON.stringify(pack))
+      setLocalDraftSavedAt(
+        new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      )
+    } catch {
+      /* quota */
+    }
+  }, [
+    open,
+    editing,
+    initial?.id,
+    title,
+    slug,
+    description,
+    shortDescription,
+    courseImage,
+    kind,
+    trackId,
+    departmentId,
+    instructorId,
+    priceFree,
+    price,
+    capacity,
+    status,
+    registrationOpen,
+    isOnline,
+    locationType,
+    locationText,
+    startDate,
+    startTime,
+    endDate,
+    endTime,
+    meetingLink,
+    durationText,
+    trainingHours,
+    language,
+    level,
+    targetAudience,
+    certificate,
+    sessionFormat,
+    learnText,
+    prerequisites,
+    learningOutcomes,
+    outline,
+    keywords,
+    adminNotes,
+  ])
+
+  useEffect(() => {
+    if (!open) return
+    const t = window.setTimeout(() => persistDraft(), 500)
+    return () => window.clearTimeout(t)
+  }, [open, persistDraft])
+
+  function restoreDraft() {
+    const k = draftKey(editing, initial?.id)
+    try {
+      const raw = localStorage.getItem(k)
+      if (!raw) return
+      const p = JSON.parse(raw) as Record<string, unknown>
+      const str = (x: unknown) => (typeof x === 'string' ? x : '')
+      const bool = (x: unknown) => (typeof x === 'boolean' ? x : undefined)
+      if (str(p.title)) setTitle(str(p.title))
+      if (str(p.slug)) setSlug(str(p.slug))
+      if (str(p.description)) setDescription(str(p.description))
+      if (str(p.shortDescription)) setShortDescription(str(p.shortDescription))
+      if (str(p.courseImage)) setCourseImage(str(p.courseImage))
+      if (str(p.kind)) setKind(p.kind as ProgramKind)
+      if (str(p.trackId)) setTrackId(str(p.trackId))
+      if (str(p.departmentId)) setDepartmentId(str(p.departmentId))
+      if (str(p.instructorId)) setInstructorId(str(p.instructorId))
+      if (bool(p.priceFree) !== undefined) setPriceFree(bool(p.priceFree)!)
+      if (str(p.price)) setPrice(str(p.price))
+      if (str(p.capacity)) setCapacity(str(p.capacity))
+      if (str(p.status)) setStatus(normalizeCourseStatus(str(p.status)))
+      if (bool(p.registrationOpen) !== undefined) setRegistrationOpen(bool(p.registrationOpen)!)
+      if (bool(p.isOnline) !== undefined) setIsOnline(bool(p.isOnline)!)
+      if (str(p.locationType)) setLocationType(str(p.locationType))
+      if (str(p.locationText)) setLocationText(str(p.locationText))
+      if (str(p.startDate)) setStartDate(str(p.startDate))
+      if (str(p.startTime)) setStartTime(str(p.startTime))
+      if (str(p.endDate)) setEndDate(str(p.endDate))
+      if (str(p.endTime)) setEndTime(str(p.endTime))
+      if (str(p.meetingLink)) setMeetingLink(str(p.meetingLink))
+      if (str(p.durationText)) setDurationText(str(p.durationText))
+      if (str(p.trainingHours)) setTrainingHours(str(p.trainingHours))
+      if (str(p.language)) setLanguage(str(p.language))
+      if (str(p.level)) setLevel(str(p.level))
+      if (str(p.targetAudience)) setTargetAudience(str(p.targetAudience))
+      if (str(p.certificate)) setCertificate(str(p.certificate))
+      if (str(p.sessionFormat)) setSessionFormat(str(p.sessionFormat))
+      if (str(p.learnText)) setLearnText(str(p.learnText))
+      if (str(p.prerequisites)) setPrerequisites(str(p.prerequisites))
+      if (str(p.learningOutcomes)) setLearningOutcomes(str(p.learningOutcomes))
+      if (str(p.outline)) setOutline(str(p.outline))
+      if (str(p.keywords)) setKeywords(str(p.keywords))
+      if (str(p.adminNotes)) setAdminNotes(str(p.adminNotes))
+      toast.success('تمت استعادة المسودة')
+    } catch {
+      toast.error('تعذّر قراءة المسودة')
+    }
+  }
+
+  function clearDraft() {
+    const k = draftKey(editing, initial?.id)
+    try {
+      localStorage.removeItem(k)
+      setDraftHint(false)
+      toast.message('تم مسح المسودة المحلية')
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const kindLabel = useMemo(() => {
+    if (kind === 'course') return 'دورة'
+    if (kind === 'workshop') return 'ورشة'
+    if (kind === 'program') return 'برنامج'
+    return 'مسار'
+  }, [kind])
+
+  const deptLabel = useMemo(() => {
+    const d = departments.find((x) => String(x.id) === departmentId)
+    return d?.name ?? '—'
+  }, [departments, departmentId])
+
+  const trackLabel = useMemo(() => {
+    const t = tracks.find((x) => String(x.id) === trackId)
+    return t?.title ?? '—'
+  }, [tracks, trackId])
+
+  const locLabel = useMemo(() => LOC_TYPES.find((x) => x.v === locationType)?.label ?? locationType, [locationType])
+
+  const selectedInstructor = useMemo(() => {
+    if (!instructorId) return null
+    const id = Number(instructorId)
+    return instructorRows.find((u) => u.id === id) ?? null
+  }, [instructorRows, instructorId])
+
+  /** Review/summary label — never surfaces raw numeric instructor ids to learners/admins here. */
+  const wizardInstructorSummary = useMemo(() => {
+    if (selectedInstructor?.name) return selectedInstructor.name
+    const raw = instructorId.trim()
+    if (!raw) return 'بدون مدرب'
+    const id = Number(raw)
+    if (!Number.isFinite(id) || id <= 0) return 'بدون مدرب'
+    if (initial && Number(initial.instructor_id) === id) {
+      const lab = getCourseInstructor(initial).displayName
+      if (lab !== 'بدون مدرب') return lab
+    }
+    return 'مدرب مسند'
+  }, [selectedInstructor, instructorId, initial])
+
+  const filteredInstructors = useMemo(() => {
+    const q = instructorQuery.trim().toLowerCase()
+    let list = instructorRows
+    if (q) {
+      list = list.filter(
+        (u) =>
+          u.name.toLowerCase().includes(q) ||
+          (u.email && u.email.toLowerCase().includes(q)) ||
+          String(u.id).includes(q),
+      )
+    }
+    return list.slice(0, 80)
+  }, [instructorRows, instructorQuery])
+
+  const clearField = useCallback((key: string) => {
+    setFieldErrors((prev) => {
+      const n = { ...prev }
+      delete n[key]
+      return n
+    })
+  }, [])
+
+  const pickImageFile = useCallback(
+    (file: File | null) => {
+      setImagePreviewUrl((prev) => {
+        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+        return file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+      })
+      setImageFile(file && file.type.startsWith('image/') ? file : null)
+      clearField('course_image')
+    },
+    [clearField],
+  )
+
+  const showLocationField = locationType === 'offline' || locationType === 'hybrid'
+
+  function validateStep(step: number): boolean {
+    if (step === 1) {
+      if (!title.trim()) {
+        toast.warning('عنوان البرنامج مطلوب')
+        return false
+      }
+      return true
+    }
+    if (step === 2) {
+      if (showLocationField && !locationText.trim()) {
+        toast.warning('حقل الموقع مطلوب للحضوري أو الهجين')
+        return false
+      }
+      return true
+    }
+    if (step === 3) return true
+    if (step === 4) {
+      if (!priceFree) {
+        const n = Number(price)
+        if (!Number.isFinite(n) || n <= 0) {
+          toast.warning('أدخل سعرًا صالحًا للبرامج المدفوعة')
+          return false
+        }
+      }
+      return true
+    }
+    return true
+  }
+
+  function goNext() {
+    if (!validateStep(currentStep)) return
+    setCurrentStep((s) => Math.min(STEP_META.length, s + 1))
+  }
+
+  function goBack() {
+    setCurrentStep((s) => Math.max(1, s - 1))
+  }
+
+  function buildPayload(): CourseUpsertPayload {
+    const featuresLines = linesToStringArray(learnText)
+    const outcomesLines = linesToStringArray(learningOutcomes)
+    const requirementsLines = linesToStringArray(prerequisites)
+    const topicLines = linesToStringArray(outline)
+    const keywordLines = splitKeywords(keywords)
+    const hoursNum = trainingHours.trim() ? Number(trainingHours) : null
+    const tStart = toHHmm(startTime)
+    const tEnd = toHHmm(endTime)
+    const onlineOnly = locationType === 'online'
+    const lifecycle = normalizeCourseStatus(status)
+
+    return {
+      title: title.trim(),
+      slug: slug.trim() || defaultSlugFromTitle(title),
+      description: description.trim() || undefined,
+      short_description: shortDescription.trim() || undefined,
+      course_image: imageFile ? undefined : courseImage.trim() || undefined,
+      program_type: kindToProgramType(kind),
+      type: priceFree ? 'free' : 'paid',
+      is_free: priceFree,
+      price: priceFree ? 0 : Number(price) || 0,
+      is_online: locationType === 'online' || locationType === 'hybrid',
+      delivery_type: locationType,
+      location_type: locationType,
+      location: onlineOnly ? null : locationText.trim() || null,
+      capacity: capacity.trim() ? Number(capacity) : undefined,
+      status: lifecycle,
+      registration_open: registrationOpen,
+      start_date: startDate.trim() || undefined,
+      end_date: endDate.trim() || undefined,
+      start_time: tStart || undefined,
+      end_time: tEnd || undefined,
+      study_time: tStart || undefined,
+      meeting_link: meetingLink.trim() || undefined,
+      track_id: trackId ? Number(trackId) : undefined,
+      department_id: departmentId ? Number(departmentId) : undefined,
+      instructor_id: instructorId ? Number(instructorId) : undefined,
+      duration: durationText.trim() || undefined,
+      training_hours: hoursNum != null && Number.isFinite(hoursNum) ? hoursNum : undefined,
+      target_audience: targetAudience.trim() || undefined,
+      language: language.trim() || undefined,
+      level: level.trim() || undefined,
+      certificate: certificate.trim() || undefined,
+      study_days: outline.trim() || undefined,
+      notes: adminNotes.trim() || undefined,
+      features: featuresLines,
+      learning_outcomes: outcomesLines,
+      requirements: requirementsLines,
+      curriculum_topics: topicLines,
+      keywords: keywordLines,
+    }
+  }
+
+  async function submit() {
+    setFieldErrors({})
+    if (!validateStep(1) || !validateStep(2) || !validateStep(4)) return
+    setBusy(true)
+    try {
+      const payload = buildPayload()
+      // Temporary debug — inspect alignment with Laravel AdminCourseController
+      console.log('[CourseWizard] formPayload', payload)
+      const course = await upsertCourse(payload, editing ? initial?.id : undefined, {
+        imageFile: imageFile ?? undefined,
+      })
+      try {
+        localStorage.removeItem(draftKey(editing, initial?.id))
+        setLocalDraftSavedAt(null)
+      } catch {
+        /* ignore */
+      }
+      setSavedCourse(course)
+      setLastSavedAsPublished(String(payload.status).toLowerCase() === 'published')
+      setSuccessOpen(true)
     } catch (e) {
+      setFieldErrors(withArabicValidationMessages(getLaravelFieldErrors(e)))
       toast.error(getApiErrorMessage(e))
     } finally {
       setBusy(false)
     }
   }
 
-  return (
-    <CrudModal
-      open={open}
-      onClose={onClose}
-      title={editing ? 'تعديل برنامج / دورة' : 'إنشاء برنامج / دورة'}
-      subtitle="التواريخ اختيارية — الفراغ يعني دفعة قادمة بدون موعد محدد بعد."
-      widthClassName="max-w-2xl"
-    >
-      <div className="max-h-[min(70vh,640px)] space-y-6 overflow-y-auto pe-1 text-right" dir="rtl">
-        <section className="space-y-3 rounded-2xl border border-deepBlue/[0.06] bg-white/90 p-4 shadow-sm">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">المحتوى</h3>
-          <label className="block text-xs font-black text-deepBlue">
+  const progressPercent = Math.round(((currentStep - 1) / (STEP_META.length - 1)) * 100)
+
+  const summaryRows = useMemo(
+    () => [
+      { label: 'العنوان', value: title.trim() || '—' },
+      { label: 'النوع', value: kindLabel },
+      { label: 'صورة', value: courseImage.trim() ? 'رابط مضاف' : '—' },
+      { label: 'المختصر (slug)', value: slug.trim() || defaultSlugFromTitle(title) || '—' },
+      { label: 'تنسيق الجلسة', value: sessionFormat },
+      { label: 'الإدارة', value: deptLabel },
+      { label: 'المسار', value: trackLabel },
+      { label: 'المدرب', value: wizardInstructorSummary },
+      { label: 'نوع الحضور', value: locLabel },
+      { label: 'التسعير', value: priceFree ? 'مجاني' : `${price} (مدفوع)` },
+      { label: 'المقاعد', value: capacity.trim() || '—' },
+      { label: 'حالة النشر', value: STATUS_OPTIONS.find((s) => s.v === status)?.label ?? status },
+      { label: 'التسجيل', value: registrationOpen ? 'مفتوح' : 'مغلق' },
+      { label: 'جدولة', value: `${startDate || '—'} · ${endDate || '—'}` },
+    ],
+    [
+      title,
+      kindLabel,
+      courseImage,
+      slug,
+      sessionFormat,
+      deptLabel,
+      trackLabel,
+      wizardInstructorSummary,
+      locLabel,
+      priceFree,
+      price,
+      capacity,
+      status,
+      registrationOpen,
+      startDate,
+      endDate,
+    ],
+  )
+
+  const checklistItems = useMemo(
+    () => [
+      { id: 't', label: 'عنوان واضح', done: Boolean(title.trim()) },
+      { id: 'i', label: 'صورة غلاف أو وصف للعرض العام', done: Boolean(imageFile || courseImage.trim() || shortDescription.trim()) },
+      { id: 'p', label: priceFree ? 'مجاني' : 'سعر صالح', done: priceFree || (Number(price) > 0 && Number.isFinite(Number(price))) },
+      { id: 'r', label: 'حالة النشر محددة', done: Boolean(status) },
+    ],
+    [title, courseImage, shortDescription, priceFree, price, status, imageFile],
+  )
+
+  const helpByStep = useMemo((): ReactNode => {
+    if (currentStep === 1) {
+      return (
+        <>
+          <p>أضف عنوانًا ووصفًا قصيرًا يظهران في صفحة الزائر؛ رابط الصورة يمكن أن يكون مطلقًا من مكتبة الوسائط.</p>
+          <p>حقل «نوع البرنامج» يحدّد التصنيف في كتالوج الإدارة؛ «تنسيق الجلسة» يظهر للزائر إن كان الخادم يخزّنه.</p>
+        </>
+      )
+    }
+    if (currentStep === 2) {
+      return (
+        <>
+          <p>ابحث عن المدرب بالاسم أو البريد — لا حاجة لمعرّف رقمي. اتركه فارغًا إن لم يُحدد بعد.</p>
+          <p>المواعيد كلها اختيارية؛ الفراغ يدعم عبارة «انضم إلى الدورة القادمة» في الموقع العام عند عدم وجود جدول.</p>
+        </>
+      )
+    }
+    if (currentStep === 3) {
+      return (
+        <>
+          <p>«ماذا ستتعلم»: سطر لكل نقطة — تُحفظ كقائمة في واجهة البرنامج عند دعم الخادم لها.</p>
+          <p>المتطلبات والمخرجات والمحاور تظهر للمتعلم عند توفرها في الاستجابة من API.</p>
+        </>
+      )
+    }
+    if (currentStep === 4) {
+      return (
+        <>
+          <p>السعة والتسجيل وربط الإدارة والمسار يساعدون عمليات التشغيل وعرض المقاعد في الصفحة العامة.</p>
+        </>
+      )
+    }
+    return (
+      <>
+        <p>راجع الحقول ثم احفظ. يمكن الرجوع لتعديل أي خطوة قبل الإرسال النهائي.</p>
+      </>
+    )
+  }, [currentStep])
+
+  function handleCreateAnother() {
+    setSuccessOpen(false)
+    setSavedCourse(null)
+    setLastSavedAsPublished(false)
+    onCreateAnother?.()
+    onSaved()
+  }
+
+  const mainFields = useMemo(() => {
+    if (currentStep === 1) {
+      return (
+        <FormSectionCard title="المحتوى الأساسي" eyebrow="الخطوة 1" icon={BookOpen}>
+          <div
+            role="presentation"
+            onDragOver={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              pickImageFile(e.dataTransfer.files?.[0] ?? null)
+            }}
+            className="relative rounded-3xl border-2 border-dashed border-[#2691C2]/35 bg-gradient-to-br from-[#2691C2]/[0.06] to-white px-4 py-6 text-center transition hover:border-[#2691C2]/55"
+          >
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="course-wizard-cover"
+              onChange={(e) => pickImageFile(e.target.files?.[0] ?? null)}
+            />
+            {(imagePreviewUrl || (courseImage.trim() && !imageFile)) ?
+              <div className="relative mx-auto max-h-56 overflow-hidden rounded-2xl ring-2 ring-white">
+                <img
+                  src={imagePreviewUrl || courseImage}
+                  alt=""
+                  className="max-h-56 w-full object-cover"
+                />
+                <div className="absolute start-2 top-2 flex gap-2">
+                  <label
+                    htmlFor="course-wizard-cover"
+                    className="cursor-pointer rounded-xl bg-white/95 px-3 py-1.5 text-[11px] font-black text-[#22334A] shadow-md ring-1 ring-slate-200"
+                  >
+                    تغيير
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      pickImageFile(null)
+                      setCourseImage('')
+                    }}
+                    className="inline-flex items-center gap-1 rounded-xl bg-rose-600 px-3 py-1.5 text-[11px] font-black text-white shadow-md"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                    إزالة
+                  </button>
+                </div>
+              </div>
+            : (
+              <label htmlFor="course-wizard-cover" className="flex cursor-pointer flex-col items-center gap-2">
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#2691C2]/15 text-[#2691C2] ring-1 ring-[#2691C2]/25">
+                  <ImagePlus className="h-7 w-7" aria-hidden />
+                </span>
+                <span className="text-sm font-black text-[#22334A]">اسحب صورة الغلاف أو اضغط للرفع</span>
+                <span className="text-[11px] font-semibold text-slate-500">PNG أو JPG — يُرسل الملف للخادم عند الحفظ</span>
+              </label>
+            )}
+          </div>
+          {fieldErrors.course_image ?
+            <p className="text-[12px] font-bold text-rose-600">{fieldErrors.course_image}</p>
+          : null}
+
+          <label className="block text-[11px] font-black text-[#22334A]">
+            أو أدخل رابط الصورة (اختياري)
+            <input
+              value={courseImage}
+              onChange={(e) => {
+                setCourseImage(e.target.value)
+                clearField('course_image')
+              }}
+              dir="ltr"
+              className={`${EMC_WIZARD_INPUT_BASE} font-mono`}
+              placeholder="https://…"
+            />
+          </label>
+
+          <label className="block text-[11px] font-black text-[#22334A]">
             العنوان
             <input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold outline-none ring-customBlue/0 focus:ring-2"
+              onChange={(e) => {
+                setTitle(e.target.value)
+                clearField('title')
+              }}
+              className={EMC_WIZARD_INPUT_BASE}
             />
+            {fieldErrors.title ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.title}</span>
+            : null}
           </label>
-          <label className="block text-xs font-black text-deepBlue">
+          <label className="block text-[11px] font-black text-[#22334A]">
             المختصر (slug)
             <input
               value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              onChange={(e) => {
+                setSlug(e.target.value)
+                clearField('slug')
+              }}
               dir="ltr"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:ring-2 focus:ring-customBlue/25"
+              className={`${EMC_WIZARD_INPUT_BASE} font-mono`}
             />
+            {fieldErrors.slug ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.slug}</span>
+            : null}
           </label>
-          <label className="block text-xs font-black text-deepBlue">
-            الوصف
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-customBlue/25"
-            />
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            تعريف قصير
+          <label className="block text-[11px] font-black text-[#22334A]">
+            الوصف المختصر
             <textarea
               value={shortDescription}
-              onChange={(e) => setShortDescription(e.target.value)}
+              onChange={(e) => {
+                setShortDescription(e.target.value)
+                clearField('short_description')
+              }}
               rows={2}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-customBlue/25"
+              className={EMC_WIZARD_INPUT_BASE}
             />
+            {fieldErrors.short_description ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.short_description}</span>
+            : null}
           </label>
-        </section>
-
-        <section className="grid gap-3 rounded-2xl border border-deepBlue/[0.06] bg-slate-50/80 p-4 sm:grid-cols-2">
-          <label className="block text-xs font-black text-deepBlue">
-            النوع
-            <select
-              value={kind}
-              onChange={(e) => setKind(e.target.value as ProgramKind)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold"
-            >
-              {KINDS.map((k) => (
-                <option key={k} value={k}>
-                  {k === 'course' ? 'دورة' : k === 'workshop' ? 'ورشة' : k === 'program' ? 'برنامج' : 'مسار'}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            الإدارة
-            <select
-              value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-            >
-              <option value="">— اختياري —</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-xs font-black text-deepBlue sm:col-span-2">
-            المسار / البرنامج الأب
-            <select
-              value={trackId}
-              onChange={(e) => setTrackId(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-            >
-              <option value="">— اختياري —</option>
-              {tracks.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            معرّف مدرب (اختياري)
-            <input
-              value={instructorId}
-              onChange={(e) => setInstructorId(e.target.value)}
-              inputMode="numeric"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm outline-none focus:ring-2 focus:ring-customBlue/25"
-              placeholder="رقم المستخدم في النظام"
+          <label className="block text-[11px] font-black text-[#22334A]">
+            الوصف الكامل
+            <textarea
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value)
+                clearField('description')
+              }}
+              rows={4}
+              className={EMC_WIZARD_INPUT_BASE}
             />
+            {fieldErrors.description ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.description}</span>
+            : null}
           </label>
-        </section>
-
-        <section className="grid gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 sm:grid-cols-2">
-          <label className="flex items-center gap-2 text-xs font-black text-deepBlue">
-            <input
-              type="checkbox"
-              checked={priceFree}
-              onChange={(e) => setPriceFree(e.target.checked)}
-              className="size-4 rounded border-slate-300"
-            />
-            مجانية
-          </label>
-          {!priceFree ?
-            <label className="block text-xs font-black text-deepBlue">
-              السعر
-              <input
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm"
-              />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-[11px] font-black text-[#22334A]">
+              نوع البرنامج
+              <select value={kind} onChange={(e) => setKind(e.target.value as ProgramKind)} className={EMC_WIZARD_INPUT_BASE}>
+                {KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {k === 'course' ? 'دورة' : k === 'workshop' ? 'ورشة' : k === 'program' ? 'برنامج' : 'مسار'}
+                  </option>
+                ))}
+              </select>
             </label>
-          : <span />}
-          <label className="block text-xs font-black text-deepBlue">
-            السعة
-            <input
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-            />
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            حالة النشر
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-            >
-              <option value="draft">مسودّة</option>
-              <option value="published">منشور</option>
-              <option value="cancelled">ملغاة</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-xs font-black text-deepBlue sm:col-span-2">
-            <input
-              type="checkbox"
-              checked={registrationOpen}
-              onChange={(e) => setRegistrationOpen(e.target.checked)}
-              className="size-4 rounded border-slate-300"
-            />
-            التسجيل مفتوح
-          </label>
-        </section>
-
-        <section className="grid gap-3 rounded-2xl border border-deepBlue/[0.06] bg-[#FAFCFF] p-4 sm:grid-cols-2">
-          <h3 className="sm:col-span-2 text-xs font-black uppercase tracking-widest text-slate-500">الجدولة (اختيارية)</h3>
-          <label className="block text-xs font-black text-deepBlue">
-            تاريخ البداية
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm"
-            />
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            وقت البداية
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm"
-            />
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            تاريخ الانتهاء
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm"
-            />
-          </label>
-          <label className="block text-xs font-black text-deepBlue">
-            نوع الموقع
+            <label className="block text-[11px] font-black text-[#22334A]">
+              حالة النشر / العمل
+              <select
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value)
+                  clearField('status')
+                }}
+                className={EMC_WIZARD_INPUT_BASE}
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s.v} value={s.v}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.status ?
+                <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.status}</span>
+              : null}
+            </label>
+            <label className="block text-[11px] font-black text-[#22334A]">
+              تنسيق الجلسة (للعرض العام)
+              <select value={sessionFormat} onChange={(e) => setSessionFormat(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
+                {SESSION_FORMAT_OPTIONS.map((s) => (
+                  <option key={s.v} value={s.v}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-[11px] font-black text-[#22334A]">
+              الإدارة
+              <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
+                <option value="">— اختياري —</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+              المسار
+              <select value={trackId} onChange={(e) => setTrackId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
+                <option value="">— اختياري —</option>
+                {tracks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </FormSectionCard>
+      )
+    }
+    if (currentStep === 2) {
+      return (
+        <FormSectionCard title="المدرب والجدولة" eyebrow="الخطوة 2" icon={CalendarDays}>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            نوع التقديم (للزائر)
             <select
               value={locationType}
               onChange={(e) => {
-                setLocationType(e.target.value)
-                setIsOnline(e.target.value === 'online' || e.target.value === 'hybrid')
+                const v = e.target.value
+                setLocationType(v)
+                setIsOnline(v === 'online' || v === 'hybrid')
+                clearField('location')
+                clearField('location_type')
+                clearField('delivery_type')
               }}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+              className={EMC_WIZARD_INPUT_BASE}
             >
               {LOC_TYPES.map((x) => (
                 <option key={x.v} value={x.v}>
@@ -341,42 +1024,577 @@ export function CourseProgramFormModal({ open, initial, tracks, departments, onC
                 </option>
               ))}
             </select>
+            {fieldErrors.location_type || fieldErrors.delivery_type ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">
+                {fieldErrors.location_type || fieldErrors.delivery_type}
+              </span>
+            : null}
           </label>
-          <label className="block text-xs font-black text-deepBlue sm:col-span-2">
-            رابط الاجتماع
-            <input
-              value={meetingLink}
-              onChange={(e) => setMeetingLink(e.target.value)}
-              dir="ltr"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono text-sm"
-            />
-          </label>
-        </section>
 
-        <div className="flex flex-wrap justify-end gap-2 pb-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-black text-deepBlue hover:bg-slate-50"
-          >
-            إلغاء
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void submit()}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-[#EC943C] to-[#2691C2] px-6 py-2.5 text-sm font-black text-white shadow-lg disabled:opacity-50"
-          >
-            {busy ?
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden /> جاري الحفظ…
-              </>
-            : editing ?
-              'حفظ التعديلات'
-            : 'إنشاء'}
-          </button>
-        </div>
-      </div>
-    </CrudModal>
+          {showLocationField ?
+            <label className="block text-[11px] font-black text-[#22334A]">
+              الموقع / العنوان <span className="text-rose-600">*</span>
+              <input
+                value={locationText}
+                onChange={(e) => {
+                  setLocationText(e.target.value)
+                  clearField('location')
+                }}
+                className={EMC_WIZARD_INPUT_BASE}
+                placeholder="مدينة، قاعة، عنوان…"
+              />
+              {fieldErrors.location ?
+                <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.location}</span>
+              : null}
+            </label>
+          : null}
+
+          <div className="space-y-3 border-t border-slate-200/80 pt-4">
+            <p className="text-[12px] font-bold text-slate-600">اختيار المدرب — قائمة المدربين فقط</p>
+            <div className="relative">
+              <Search className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+              <input
+                value={instructorQuery}
+                onChange={(e) => setInstructorQuery(e.target.value)}
+                className={`${EMC_WIZARD_INPUT_BASE} pe-10`}
+                placeholder="ابحث بالاسم أو البريد…"
+              />
+            </div>
+            {fieldErrors.instructor_id ?
+              <p className="text-[12px] font-bold text-rose-600">{fieldErrors.instructor_id}</p>
+            : null}
+            {selectedInstructor ?
+              <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#2691C2]/25 bg-[#2691C2]/[0.06] p-4">
+                {selectedInstructor.avatar_url ?
+                  <img src={selectedInstructor.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white" />
+                : <UserCircle2 className="h-12 w-12 text-slate-400" aria-hidden />}
+                <div className="min-w-0 flex-1 text-right">
+                  <p className="text-sm font-black text-[#22334A]">{selectedInstructor.name}</p>
+                  <p className="truncate text-xs font-semibold text-slate-600">{selectedInstructor.email}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInstructorId('')
+                    clearField('instructor_id')
+                  }}
+                  className="text-[11px] font-black text-rose-600"
+                >
+                  إزالة
+                </button>
+              </div>
+            : null}
+            {!selectedInstructor ?
+              <ul
+                className="max-h-48 overflow-y-auto rounded-2xl border border-slate-200/90 bg-white p-2 shadow-inner"
+                role="listbox"
+              >
+                {filteredInstructors.length === 0 ?
+                  <li className="px-3 py-4 text-center text-[12px] font-semibold text-slate-500">
+                    لا يمكن عرض المدربين بعد التحميل — راجع وحدة التحكم (استجابة GET /admin/instructors) أو أضِف صفًا في جدول المدربين.
+                  </li>
+                : filteredInstructors.map((u) => (
+                    <li key={u.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInstructorId(String(u.id))
+                          clearField('instructor_id')
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition hover:bg-slate-50"
+                      >
+                        {u.avatar_url ?
+                          <img src={u.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                        : <UserCircle2 className="h-9 w-9 shrink-0 text-slate-400" />}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13px] font-black text-[#22334A]">{u.name}</p>
+                          <p className="truncate text-[11px] font-semibold text-slate-500">{u.email}</p>
+                        </div>
+                      </button>
+                    </li>
+                  ))
+                }
+              </ul>
+            : null}
+            <Link
+              to="/dashboard/super-admin/crud/instructors"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-[12px] font-black text-[#2691C2] hover:underline"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              إدارة المدربين
+            </Link>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="text-[11px] font-black text-[#22334A]">
+              <span className="mb-1 block">تاريخ البداية (اختياري)</span>
+              <div className="relative mt-1">
+                <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value)
+                    clearField('start_date')
+                  }}
+                  className={`${EMC_WIZARD_INPUT_BASE} min-h-[44px] cursor-pointer pe-10 [color-scheme:light] shadow-inner`}
+                />
+              </div>
+              {fieldErrors.start_date ?
+                <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.start_date}</span>
+              : null}
+            </div>
+            <div className="text-[11px] font-black text-[#22334A]">
+              <span className="mb-1 block">وقت البداية (24 ساعة، اختياري)</span>
+              <div className="relative mt-1">
+                <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <input
+                  type="time"
+                  step={60}
+                  value={startTime}
+                  onChange={(e) => {
+                    setStartTime(toHHmm(e.target.value))
+                    clearField('start_time')
+                    clearField('study_time')
+                  }}
+                  className={`${EMC_WIZARD_INPUT_BASE} min-h-[44px] pe-10 font-mono tabular-nums [color-scheme:light]`}
+                  placeholder="20:00"
+                />
+              </div>
+              {fieldErrors.start_time || fieldErrors.study_time ?
+                <span className="mt-1 block text-[11px] font-bold text-rose-600">
+                  {fieldErrors.start_time || fieldErrors.study_time}
+                </span>
+              : null}
+            </div>
+            <div className="text-[11px] font-black text-[#22334A]">
+              <span className="mb-1 block">تاريخ الانتهاء (اختياري)</span>
+              <div className="relative mt-1">
+                <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value)
+                    clearField('end_date')
+                  }}
+                  className={`${EMC_WIZARD_INPUT_BASE} min-h-[44px] pe-10 [color-scheme:light]`}
+                />
+              </div>
+              {fieldErrors.end_date ?
+                <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.end_date}</span>
+              : null}
+            </div>
+            <div className="text-[11px] font-black text-[#22334A]">
+              <span className="mb-1 block">وقت الانتهاء (24 ساعة، اختياري)</span>
+              <div className="relative mt-1">
+                <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <input
+                  type="time"
+                  step={60}
+                  value={endTime}
+                  onChange={(e) => {
+                    setEndTime(toHHmm(e.target.value))
+                    clearField('end_time')
+                  }}
+                  className={`${EMC_WIZARD_INPUT_BASE} min-h-[44px] pe-10 font-mono tabular-nums [color-scheme:light]`}
+                />
+              </div>
+              {fieldErrors.end_time ?
+                <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.end_time}</span>
+              : null}
+            </div>
+            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+              رابط الاجتماع (اختياري)
+              <input
+                value={meetingLink}
+                onChange={(e) => setMeetingLink(e.target.value)}
+                dir="ltr"
+                className={`${EMC_WIZARD_INPUT_BASE} font-mono`}
+              />
+            </label>
+          </div>
+        </FormSectionCard>
+      )
+    }
+    if (currentStep === 3) {
+      return (
+        <FormSectionCard title="التفاصيل التعليمية" eyebrow="الخطوة 3" icon={GraduationCap}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-[11px] font-black text-[#22334A]">
+              المدة (نص للزائر)
+              <input value={durationText} onChange={(e) => setDurationText(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مثال: 4 أسابيع" />
+            </label>
+            <label className="block text-[11px] font-black text-[#22334A]">
+             عدد الساعات التدريبية
+              <input
+                value={trainingHours}
+                onChange={(e) => setTrainingHours(e.target.value)}
+                inputMode="decimal"
+                className={EMC_WIZARD_INPUT_BASE}
+              />
+            </label>
+            <label className="block text-[11px] font-black text-[#22334A]">
+              لغة الدورة
+              <input value={language} onChange={(e) => setLanguage(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="العربية" />
+            </label>
+            <label className="block text-[11px] font-black text-[#22334A]">
+              المستوى
+              <input value={level} onChange={(e) => setLevel(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مبتدئ / متوسط…" />
+            </label>
+            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+              الفئة المستهدفة
+              <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
+            </label>
+            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+              الشهادة المتاحة
+              <input value={certificate} onChange={(e) => setCertificate(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
+            </label>
+          </div>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            ماذا ستتعلم؟ (سطر لكل نقطة)
+            <textarea
+              value={learnText}
+              onChange={(e) => {
+                setLearnText(e.target.value)
+                clearField('features')
+              }}
+              rows={5}
+              className={EMC_WIZARD_INPUT_BASE}
+              placeholder={'سطر 1\nسطر 2'}
+            />
+            {fieldErrorFor(fieldErrors, 'features') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'features')}</span>
+            : null}
+          </label>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            المتطلبات المسبقة
+            <textarea
+              value={prerequisites}
+              onChange={(e) => {
+                setPrerequisites(e.target.value)
+                clearField('requirements')
+              }}
+              rows={3}
+              className={EMC_WIZARD_INPUT_BASE}
+            />
+            {fieldErrorFor(fieldErrors, 'requirements') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'requirements')}</span>
+            : null}
+          </label>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            المخرجات التعليمية
+            <textarea
+              value={learningOutcomes}
+              onChange={(e) => {
+                setLearningOutcomes(e.target.value)
+                clearField('learning_outcomes')
+              }}
+              rows={3}
+              className={EMC_WIZARD_INPUT_BASE}
+            />
+            {fieldErrorFor(fieldErrors, 'learning_outcomes') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'learning_outcomes')}</span>
+            : null}
+          </label>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            محاور الدورة
+            <textarea
+              value={outline}
+              onChange={(e) => {
+                setOutline(e.target.value)
+                clearField('curriculum_topics')
+              }}
+              rows={3}
+              className={EMC_WIZARD_INPUT_BASE}
+            />
+            {fieldErrorFor(fieldErrors, 'curriculum_topics') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'curriculum_topics')}</span>
+            : null}
+          </label>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            الكلمات المفتاحية (مفصولة بفواصل)
+            <input
+              value={keywords}
+              onChange={(e) => {
+                setKeywords(e.target.value)
+                clearField('keywords')
+              }}
+              className={EMC_WIZARD_INPUT_BASE}
+              placeholder="كلمات، مفتاحية"
+            />
+            {fieldErrorFor(fieldErrors, 'keywords') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'keywords')}</span>
+            : null}
+          </label>
+        </FormSectionCard>
+      )
+    }
+    if (currentStep === 4) {
+      return (
+        <FormSectionCard title="السعر والتسجيل والإدارة الداخلية" eyebrow="الخطوة 4" icon={CreditCard}>
+          <label className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-slate-50/80 px-4 py-3 text-[13px] font-black text-[#22334A]">
+            <input type="checkbox" checked={priceFree} onChange={(e) => setPriceFree(e.target.checked)} className="size-4 rounded border-slate-300" />
+            البرنامج مجاني
+          </label>
+          {!priceFree ?
+            <label className="block text-[11px] font-black text-[#22334A]">
+              السعر
+              <input value={price} onChange={(e) => setPrice(e.target.value)} className={`${EMC_WIZARD_INPUT_BASE} font-mono`} />
+            </label>
+          : null}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-[11px] font-black text-[#22334A]">
+              عدد المقاعد
+              <input value={capacity} onChange={(e) => setCapacity(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
+            </label>
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 py-3 text-[13px] font-black text-[#22334A] sm:mt-6">
+              <input
+                type="checkbox"
+                checked={registrationOpen}
+                onChange={(e) => setRegistrationOpen(e.target.checked)}
+                className="size-4 rounded border-slate-300"
+              />
+              التسجيل مفتوح
+            </label>
+          </div>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            ملاحظات داخلية (لا تُعرض للزائر عادةً)
+            <textarea
+              value={adminNotes}
+              onChange={(e) => {
+                setAdminNotes(e.target.value)
+                clearField('notes')
+              }}
+              rows={3}
+              className={EMC_WIZARD_INPUT_BASE}
+            />
+            {fieldErrorFor(fieldErrors, 'notes') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'notes')}</span>
+            : null}
+          </label>
+          <p className="rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-[11px] font-semibold text-slate-600">
+            تم إنشاء السجل بواسطة: {user?.name ? `${user.name} (#${user.id})` : `#${user?.id ?? '—'}`}
+          </p>
+        </FormSectionCard>
+      )
+    }
+    return (
+      <FormSectionCard title="مراجعة نهائية" eyebrow="الخطوة 5" icon={Eye}>
+        <p className="text-[13px] font-semibold leading-relaxed text-slate-700">
+          سيتم الإرسال إلى واجهة البرامج ({editing ? 'PUT' : 'POST'}) مع كل الحقول المدعومة في الطلب.
+        </p>
+        <ul className="space-y-2 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 text-[12px] font-bold text-slate-700">
+          <li>العنوان: {title.trim() || '—'}</li>
+          <li>المدرب: {wizardInstructorSummary}</li>
+          <li>التسعير: {priceFree ? 'مجاني' : `${price}`}</li>
+          <li>الحالة: {status}</li>
+        </ul>
+      </FormSectionCard>
+    )
+  }, [
+    currentStep,
+    title,
+    slug,
+    shortDescription,
+    description,
+    courseImage,
+    kind,
+    status,
+    sessionFormat,
+    departmentId,
+    departments,
+    trackId,
+    tracks,
+    instructorQuery,
+    selectedInstructor,
+    filteredInstructors,
+    wizardInstructorSummary,
+    locationText,
+    locationType,
+    startDate,
+    startTime,
+    endDate,
+    endTime,
+    meetingLink,
+    durationText,
+    trainingHours,
+    language,
+    level,
+    targetAudience,
+    certificate,
+    learnText,
+    prerequisites,
+    learningOutcomes,
+    outline,
+    keywords,
+    priceFree,
+    price,
+    capacity,
+    registrationOpen,
+    adminNotes,
+    editing,
+    showLocationField,
+    clearField,
+    pickImageFile,
+    fieldErrors,
+    imagePreviewUrl,
+    imageFile,
+  ])
+
+  const successSlug = savedCourse?.slug
+  const successTitle = editing
+    ? 'تم تحديث الدورة بنجاح'
+    : lastSavedAsPublished
+      ? 'تم إنشاء الدورة ونشرها بنجاح'
+      : 'تم إنشاء الدورة بنجاح'
+
+  return (
+    <>
+      <FormWizardShell
+        open={open && !successOpen}
+        onClose={onClose}
+        title={editing ? 'تعديل برنامج / دورة' : 'إنشاء برنامج / دورة'}
+        subtitle="إدارة كاملة للحقول الظاهرة في صفحة الدورة العامة — دون تعارض مع واجهة البرنامج."
+        eyebrow="Programs · LMS"
+        stepsMeta={STEP_META}
+        currentStep={currentStep}
+        onStepSelect={(id) => {
+          if (id < currentStep) setCurrentStep(id)
+        }}
+        progressPercent={progressPercent}
+        progressLabel="اكتمال المعالج"
+        mainColumn={
+          <div className="space-y-2">
+            {Object.keys(fieldErrors).length > 0 ?
+              <div className="mb-2 rounded-2xl border border-rose-200/90 bg-rose-50/90 px-4 py-3 text-right">
+                <p className="text-[11px] font-black text-rose-800">تأكّد من الحقول التالية (ردًّا من الخادم):</p>
+                <ul className="mt-2 space-y-1 text-[12px] font-bold text-rose-700">
+                  {Object.entries(fieldErrors).map(([k, msg]) => {
+                    const base = k.split('.')[0] ?? k
+                    return (
+                      <li key={k}>
+                        <span className="text-rose-900">{FIELD_LABEL_AR[base] ?? base}:</span> {msg}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            : null}
+            {localDraftSavedAt ?
+              <div className="mb-2 flex items-center justify-end rounded-2xl border border-emerald-200/90 bg-emerald-50/90 px-4 py-2 text-[11px] font-black text-emerald-900">
+                تم حفظ المسودة — {localDraftSavedAt}
+              </div>
+            : null}
+            {draftHint && !editing ?
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#2691C2]/30 bg-[#2691C2]/[0.07] px-4 py-3 text-[12px] font-bold text-[#22334A]">
+                <span>يوجد مسودة محفوظة محليًا لهذا النموذج.</span>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={restoreDraft}
+                    className="rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-[#2691C2] shadow-sm ring-1 ring-[#2691C2]/25"
+                  >
+                    استعادة
+                  </button>
+                  <button type="button" onClick={clearDraft} className="rounded-xl px-3 py-1.5 text-[11px] font-black text-slate-600">
+                    تجاهل
+                  </button>
+                </div>
+              </div>
+            : null}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={emcWizardStepAnimation.initial}
+                animate={emcWizardStepAnimation.animate}
+                exit={emcWizardStepAnimation.exit}
+                transition={emcWizardStepAnimation.transition}
+                className="min-h-[240px]"
+              >
+                {mainFields}
+              </motion.div>
+            </AnimatePresence>
+            <FormActions
+              showBack={currentStep > 1}
+              onBack={goBack}
+              showNext={currentStep < STEP_META.length}
+              onNext={goNext}
+              showSubmit={currentStep === STEP_META.length}
+              onSubmit={() => void submit()}
+              busy={busy}
+              disableNext={busy}
+              disableSubmit={busy}
+              submitLabel={editing ? 'حفظ التعديلات' : 'حفظ ونشر في النظام'}
+              extras={
+                <button
+                  type="button"
+                  onClick={() => {
+                    persistDraft()
+                  }}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[12px] font-black text-slate-700 shadow-sm"
+                >
+                  حفظ مسودة
+                </button>
+              }
+            />
+          </div>
+        }
+        sidebar={
+          <>
+            <FormSummaryPanel rows={summaryRows} />
+            <FormHelpCard title="إرشادات الخطوة">{helpByStep}</FormHelpCard>
+            <FormChecklist items={checklistItems} />
+          </>
+        }
+      />
+      <FormSuccessState
+        open={successOpen}
+        title={successTitle}
+        description="تم حفظ بيانات الدورة وإتاحتها حسب حالة النشر والتسجيل."
+        actions={
+          <div className="flex w-full flex-col gap-3 text-right">
+            {successSlug ?
+              <a
+                href={`/courses/${successSlug}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  setSuccessOpen(false)
+                  onSaved()
+                  onClose()
+                }}
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-3 text-sm font-black text-white shadow-lg"
+              >
+                عرض الدورة
+              </a>
+            : null}
+            {!editing ?
+              <button
+                type="button"
+                onClick={handleCreateAnother}
+                className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#2691C2]/40 bg-white px-5 py-3 text-sm font-black text-[#22334A] transition hover:bg-slate-50"
+              >
+                إنشاء دورة جديدة
+              </button>
+            : null}
+            <Link
+              to={listHref}
+              onClick={() => {
+                setSuccessOpen(false)
+                setLastSavedAsPublished(false)
+                onSaved()
+                onClose()
+              }}
+              className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-black text-slate-800"
+            >
+              العودة للقائمة
+            </Link>
+          </div>
+        }
+      />
+    </>
   )
 }

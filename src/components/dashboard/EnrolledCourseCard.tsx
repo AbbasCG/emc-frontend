@@ -58,9 +58,12 @@ export default function EnrolledCourseCard({
       {/* Content */}
       <div className="p-4 text-right">
         <h3 className="line-clamp-2 text-sm font-black leading-6 text-deepBlue">{course.title}</h3>
-        {course.instructor_name && (
-          <p className="mt-0.5 truncate text-xs text-slate-400">المدرب: {course.instructor_name}</p>
-        )}
+        <p className="mt-0.5 truncate text-xs text-slate-400">
+          المدرب:{' '}
+          {course.instructor_name && String(course.instructor_name).trim() !== '' ?
+            course.instructor_name
+          : 'لم يتم تعيين مدرب بعد'}
+        </p>
 
         {scheduleLine ?
           <p className="mt-2 flex items-start gap-1.5 text-[11px] font-bold leading-relaxed text-slate-600">
@@ -71,7 +74,7 @@ export default function EnrolledCourseCard({
           </p>
         : (
           <p className="mt-2 rounded-xl border border-sky-200/80 bg-sky-50/[0.85] px-3 py-2 text-[11px] font-bold leading-relaxed text-sky-950">
-            انضممت إلى الدورة القادمة — سيتم إشعارك عند تحديد الموعد
+            سيتم إشعارك عند تحديد الموعد
           </p>
         )}
 

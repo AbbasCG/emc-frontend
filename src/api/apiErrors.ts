@@ -1,5 +1,48 @@
 import axios from 'axios'
 
+/** Laravel-style `errors` object: `{ field: ["msg"] }` → first message per field */
+export function getLaravelFieldErrors(error: unknown): Record<string, string> {
+  if (!axios.isAxiosError(error)) return {}
+  const data = error.response?.data as { errors?: Record<string, string[] | string> } | undefined
+  const errors = data?.errors
+  if (!errors || typeof errors !== 'object') return {}
+  const out: Record<string, string> = {}
+  for (const [key, val] of Object.entries(errors)) {
+    if (Array.isArray(val) && val[0]) out[key] = String(val[0])
+    else if (typeof val === 'string' && val) out[key] = val
+  }
+
+  // Copy dotted errors (e.g. learning_outcomes.0) onto the base key for form display
+  for (const [key, msg] of Object.entries(out)) {
+    const base = key.split('.')[0]
+    if (base && out[base] === undefined) out[base] = msg
+  }
+  return out
+}
+
+/** UI copy for common English / default Laravel validation messages */
+export function translateLaravelFieldMessage(msg: string): string {
+  const t = msg.trim()
+  const lower = t.toLowerCase()
+  if (!t) return t
+  if (lower.includes('must be a string')) return 'نوع البيانات غير صحيح.'
+  if (lower.includes('must be an array')) return 'نوع البيانات غير صحيح.'
+  if (lower.includes('must be an image')) return 'الصورة غير صالحة.'
+  if (lower.includes('image could not')) return 'الصورة غير صالحة.'
+  if (lower.includes('field is required') || lower === 'the given data was invalid.') return 'الحقل مطلوب.'
+  if (lower.includes('validation') && lower.includes('selected')) return 'القيمة المحدّدة غير صالحة.'
+  if (lower.includes('status') && lower.includes('invalid')) return 'حالة النشر غير صحيحة.'
+  return t
+}
+
+export function withArabicValidationMessages(errors: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(errors)) {
+    out[k] = translateLaravelFieldMessage(v)
+  }
+  return out
+}
+
 const STATUS_MESSAGES: Record<number, string> = {
   400: 'تعذّر تنفيذ الطلب. يرجى التحقق من البيانات.',
   401: 'يجب تسجيل الدخول أولًا.',
@@ -40,7 +83,7 @@ export function getApiErrorMessage(error: unknown): string {
 
   if (status === 422 && data?.errors) {
     const first = firstValidationMessage(data.errors)
-    if (first) return first
+    if (first) return translateLaravelFieldMessage(String(first))
     return STATUS_MESSAGES[422] ?? FALLBACK
   }
 

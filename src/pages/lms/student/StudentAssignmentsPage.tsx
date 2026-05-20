@@ -1,44 +1,31 @@
-import axios from 'axios'
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
-import { ClipboardList, Send } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { ClipboardList, RefreshCw, Send } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { fetchStudentAssignments, submitStudentAssignment } from '@/api/studentApi'
+import { submitStudentAssignment } from '@/api/studentApi'
 import type { StudentAssignment } from '@/types/lms'
 import { DashboardSection } from '@/components/dashboard'
 import { AssignmentCard, LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
+import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 
 export default function StudentAssignmentsPage() {
-  const [assignments, setAssignments] = useState<StudentAssignment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [apiMissing, setApiMissing] = useState(false)
+  const {
+    loading,
+    refreshing,
+    loadError,
+    refresh,
+    assignmentsScoped,
+    registrations,
+  } = useStudentDashboardData()
+
   const [active, setActive] = useState<StudentAssignment | null>(null)
   const [text, setText] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
-  function reload() {
-    fetchStudentAssignments().then(setAssignments).catch(() => setApiMissing(true))
+  async function reload() {
+    await refresh()
   }
-
-  useEffect(() => {
-    let alive = true
-    fetchStudentAssignments()
-      .then((rows) => {
-        if (alive) setAssignments(rows)
-      })
-      .catch((err) => {
-        if (!alive || axios.isCancel(err)) return
-        setApiMissing(true)
-      })
-      .finally(() => {
-        if (alive) setLoading(false)
-      })
-    return () => {
-      alive = false
-    }
-  }, [])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -54,7 +41,7 @@ export default function StudentAssignmentsPage() {
       setText('')
       setFile(null)
       setActive(null)
-      reload()
+      await reload()
     } catch {
       setMessage({ type: 'err', text: 'فشل التسليم. تحقق من الحقول أو حاول لاحقاً.' })
     } finally {
@@ -62,40 +49,55 @@ export default function StudentAssignmentsPage() {
     }
   }
 
-  if (loading) return <LmsPageSkeleton />
+  if (loading && assignmentsScoped.length === 0) return <LmsPageSkeleton />
 
   return (
-    <div className="space-y-8">
-      {apiMissing && import.meta.env.DEV && (
-        <div className="rounded-xl bg-amber-50 px-5 py-3 text-right text-xs font-bold text-amber-800 ring-1 ring-amber-100">
-          يتطلب الخادم مسارات{' '}
-          <code className="rounded bg-white/80 px-1">GET /api/student/assignments</code> و{' '}
-          <code className="rounded bg-white/80 px-1">POST .../submit</code>.
+    <div className="space-y-8 text-right rtl" dir="rtl">
+      <header className="flex flex-wrap items-start justify-between gap-4 rounded-[1.35rem] border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.04]">
+        <div>
+          <h1 className="text-xl font-black text-deepBlue">الواجبات</h1>
+          <p className="mt-2 max-w-2xl text-[13px] font-semibold text-muted-700">
+            مصدر الخادم: <span className="font-mono text-[11px]">GET /student/assignments</span> — فلترة حسب دوراتك المسجّلة (
+            {registrations.length}).
+          </p>
+          {loadError ?
+            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
+              {loadError}
+            </p>
+          : null}
         </div>
-      )}
+        <button
+          type="button"
+          onClick={() => void refresh()}
+          disabled={refreshing}
+          className="inline-flex items-center gap-2 rounded-2xl border border-deepBlue/10 bg-deepBlue/[0.04] px-4 py-2 text-[11px] font-black text-deepBlue transition hover:bg-deepBlue/[0.07] disabled:opacity-60"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
+          تحديث
+        </button>
+      </header>
 
       {message && (
         <div
           className={
-            message.type === 'ok'
-              ? 'rounded-xl bg-emerald-50 px-4 py-3 text-right text-sm font-bold text-emerald-800 ring-1 ring-emerald-100'
-              : 'rounded-xl bg-red-50 px-4 py-3 text-right text-sm font-bold text-red-700 ring-1 ring-red-100'
+            message.type === 'ok' ?
+              'rounded-xl bg-emerald-50 px-4 py-3 text-right text-sm font-bold text-emerald-800 ring-1 ring-emerald-100'
+            : 'rounded-xl bg-red-50 px-4 py-3 text-right text-sm font-bold text-red-700 ring-1 ring-red-100'
           }
         >
           {message.text}
         </div>
       )}
 
-      <DashboardSection title="واجباتي" subtitle="التسليم، التقييم، والملاحظات في مكان واحد.">
-        {assignments.length === 0 ? (
+      <DashboardSection title="واجبات الدورات المسجّلة" subtitle="تسليم وتقييم ضمن نفس مصدر البيانات الموحّد.">
+        {assignmentsScoped.length === 0 ?
           <LmsEmptyState
             icon={ClipboardList}
-            title="لا توجد واجبات"
-            description="عند إسناد واجبات ضمن دوراتك ستظهر هنا مع مواعيد التسليم."
+            title="لا توجد واجبات حالياً"
+            description="عند إسناد واجبات ضمن دوراتك ستظهر هنا مع المواعيد."
           />
-        ) : (
-          <div className="grid gap-4">
-            {assignments.map((a) => (
+        : <div className="grid gap-4">
+            {assignmentsScoped.map((a) => (
               <AssignmentCard
                 key={a.id}
                 assignment={a}
@@ -108,7 +110,7 @@ export default function StudentAssignmentsPage() {
               />
             ))}
           </div>
-        )}
+        }
       </DashboardSection>
 
       <AnimatePresence>

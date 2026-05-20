@@ -1,8 +1,18 @@
 import { motion } from 'framer-motion'
-import { Star, Clock, Users, Play, TrendingUp, BookOpen } from 'lucide-react'
+import {
+  BookOpen,
+  Users,
+  Calendar,
+  Monitor,
+  Building2,
+  Sparkles,
+  ArrowUpRight,
+  GraduationCap,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
+import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 
 type CourseCardProps = {
   course: CourseItem
@@ -10,186 +20,173 @@ type CourseCardProps = {
   index?: number
 }
 
-const categoryConfig: Record<string, { bg: string; text: string; gradient: string; icon: string }> = {
-  'AI & Tech':    { bg: 'bg-blue-50',    text: 'text-customBlue',  gradient: 'from-customBlue/90 to-deepBlue',    icon: '🤖' },
-  'Languages':    { bg: 'bg-emerald-50', text: 'text-emerald-700', gradient: 'from-emerald-500/90 to-emerald-900', icon: '🌐' },
-  'Business':     { bg: 'bg-orange-50',  text: 'text-customOrange',gradient: 'from-customOrange/90 to-amber-900',  icon: '💼' },
-  'Academic':     { bg: 'bg-purple-50',  text: 'text-purple-700',  gradient: 'from-purple-500/90 to-purple-900',  icon: '🎓' },
-  'Personal Dev': { bg: 'bg-teal-50',    text: 'text-teal-700',    gradient: 'from-teal-500/90 to-teal-900',      icon: '✨' },
+function accentFromKey(label: string) {
+  let h = 0
+  for (let i = 0; i < label.length; i++) h = (h + label.charCodeAt(i) * (i + 1)) % 1000000
+  const palettes = [
+    { chip: 'bg-brand-50 text-brand-700 border-brand-200/60' },
+    { chip: 'bg-emerald-50 text-emerald-800 border-emerald-200/60' },
+    { chip: 'bg-accent-50 text-accent-800 border-accent-200/60' },
+    { chip: 'bg-violet-50 text-violet-800 border-violet-200/60' },
+    { chip: 'bg-rose-50 text-rose-800 border-rose-200/60' },
+    { chip: 'bg-amber-50 text-amber-800 border-amber-200/60' },
+  ]
+  return palettes[h % palettes.length]
 }
 
-const levelLabels: Record<string, string> = {
-  beginner:     'مبتدئ',
-  intermediate: 'متوسط',
-  advanced:     'متقدم',
+function formatStartAr(iso: string | null): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export default function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
-  const config = categoryConfig[course.category] ?? categoryConfig['AI & Tech']
-  const isEnrolled = course.progress !== undefined
+  const accent = accentFromKey(course.category_label)
+  const imgSrc = course.thumbnail
+    ? resolvePublicAssetUrl(course.thumbnail) ?? course.thumbnail
+    : null
+
+  const startLabel = formatStartAr(course.start_date)
+  const seatsLine =
+    course.seats_count != null
+      ? `${course.registrations_count.toLocaleString('ar-EG')} / ${course.seats_count.toLocaleString('ar-EG')} مقعداً`
+      : `${course.registrations_count.toLocaleString('ar-EG')} تسجيل`
+
+  const statusBadge =
+    course.status === 'upcoming'
+      ? 'قادمة'
+      : course.status_label_ar ??
+        (course.status === 'archived' ? 'مؤرشفة' : course.status === 'active' ? 'متاحة' : null)
 
   return (
-    <motion.div
+    <motion.article
       initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.18 } }}
-      transition={{ duration: 0.48, delay: index * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -5 }}
-      className={`group bg-white rounded-xl border-2 border-slate-100 shadow-sm hover:shadow-xl hover:border-customOrange/40 transition-all duration-300 overflow-hidden ${
-        viewMode === 'list' ? 'flex flex-row-reverse' : 'flex flex-col'
+      exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
+      transition={{ duration: 0.45, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -6 }}
+      className={`group flex overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-emc-md ring-1 ring-slate-100/90 transition-all duration-300 hover:border-brand-300/50 hover:shadow-emc-lg ${
+        viewMode === 'list' ? 'flex-row-reverse' : 'flex-col'
       }`}
     >
-      {/* Thumbnail */}
-      <div className={`relative overflow-hidden shrink-0 ${
-        viewMode === 'list' ? 'w-52 rounded-l-xl' : 'h-44'
-      }`}>
-        {course.thumbnail ? (
+      {/* Image */}
+      <div
+        className={`relative shrink-0 overflow-hidden ${
+          viewMode === 'list' ? 'w-56 md:w-64' : 'h-52 w-full'
+        }`}
+      >
+        {imgSrc ? (
           <img
-            src={course.thumbnail}
+            src={imgSrc}
             alt={course.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${config.gradient} flex items-center justify-center`}>
-            <span className="text-6xl opacity-75 select-none">{config.icon}</span>
-          </div>
+          <img
+            src={course.cover_placeholder}
+            alt={course.title}
+            className="h-full w-full object-cover"
+          />
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900/55 via-transparent to-transparent opacity-90" />
 
-        {/* Price badge */}
-        <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${
-          course.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 backdrop-blur-sm text-customBlue'
-        }`}>
-          {course.is_free ? 'مجاني' : formatEuroInteger(course.price, 'ar')}
+        <div className="absolute right-3 top-3 flex flex-wrap items-center justify-end gap-1.5">
+          {statusBadge && (
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue shadow-sm backdrop-blur">
+              {statusBadge}
+            </span>
+          )}
+          <span className="rounded-full border border-white/30 bg-ink-900/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+            {course.catalog_type_label_ar ?? (course.catalog_type === 'workshop' ? 'ورشة' : 'دورة')}
+          </span>
         </div>
 
-        {course.status === 'upcoming' && (
-          <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-customOrange/90 text-white text-xs rounded-lg font-semibold">
-            قريباً
-          </div>
-        )}
-
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-deepBlue/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40">
-            <Play className="w-6 h-6 text-white fill-white ms-0.5" />
-          </div>
+        <div className="absolute bottom-3 right-3 left-3 flex flex-wrap items-end justify-between gap-2">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-black shadow-sm ${
+              course.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 text-brand-700'
+            }`}
+          >
+            {course.is_free ? 'مجاناً' : formatEuroInteger(course.price, 'ar')}
+          </span>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-5">
-        {/* Category + Level */}
-        <div className="flex items-center justify-between mb-2.5">
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${config.bg} ${config.text}`}>
-            {course.category}
+      <div className="flex min-w-0 flex-1 flex-col p-6 text-right">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${accent.chip}`}
+          >
+            {course.category_label}
           </span>
-          <span className="text-xs text-[#73777B]">{levelLabels[course.level]}</span>
+          <span className="text-[11px] font-semibold text-muted-500">{course.level_label_ar}</span>
+          {course.language && (
+            <span className="text-[11px] text-muted-400">· {course.language}</span>
+          )}
         </div>
 
-        {/* Title */}
-        <h3 className="font-bold text-deepBlue text-base leading-snug line-clamp-2 mb-1.5 group-hover:text-customBlue transition-colors duration-200">
+        <h3 className="mb-2 line-clamp-2 text-lg font-black leading-snug text-ink-900 transition group-hover:text-brand-600 md:text-xl">
           {course.title}
         </h3>
 
-        {/* Description */}
-        <p className="text-sm text-[#73777B] line-clamp-2 mb-3.5 leading-relaxed">
-          {course.description}
-        </p>
+        <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-600">{course.short_description}</p>
 
-        {/* Instructor */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-customBlue/40 to-customBlue flex items-center justify-center shrink-0">
-            <span className="text-xs text-white font-black select-none">
-              {course.trainer.name.split(' ').at(-1)?.charAt(0) ?? '؟'}
-            </span>
-          </div>
-          <span className="text-xs text-[#73777B] font-medium">{course.trainer.name}</span>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-xs text-[#73777B] mb-3">
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-customBlue shrink-0" />
-            {course.duration_weeks} أسابيع · {course.sessions_count} جلسة
+        <div className="mb-4 flex flex-wrap gap-2 text-[11px] text-muted-600">
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 font-semibold text-deepBlue">
+            <GraduationCap className="h-3.5 w-3.5 text-brand-500" />
+            {course.trainer.name}
           </span>
-          <span className="flex items-center gap-1">
-            <Users className="w-3.5 h-3.5 text-customOrange shrink-0" />
-            {course.enrolled_count.toLocaleString('ar-EG')}
-          </span>
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map(star => (
-              <Star
-                key={star}
-                className={`w-3.5 h-3.5 ${
-                  star <= Math.round(course.rating)
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-slate-200 fill-slate-200'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs font-bold text-deepBlue">{course.rating}</span>
-        </div>
-
-        {/* Progress bar */}
-        {isEnrolled && course.progress !== undefined && (
-          <div className="mb-3">
-            <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-[#73777B]">تقدمك في الدورة</span>
-              <span className="font-bold text-customBlue">{course.progress}%</span>
-            </div>
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-customBlue to-customBlue/70 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${course.progress}%` }}
-                transition={{ duration: 1.2, ease: 'easeOut', delay: index * 0.07 + 0.4 }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-slate-100">
-          <div className="text-right">
-            {!course.is_free && course.original_price && (
-              <span className="text-xs line-through text-[#73777B] block leading-none mb-0.5">
-                {formatEuroInteger(course.original_price, 'ar')}
-              </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 font-medium">
+            {course.delivery_key === 'online' ? (
+              <Monitor className="h-3.5 w-3.5 text-brand-500" />
+            ) : (
+              <Building2 className="h-3.5 w-3.5 text-accent-500" />
             )}
-            <span className={`font-black text-sm ${course.is_free ? 'text-emerald-600' : 'text-deepBlue'}`}>
-              {course.is_free ? 'مجاني تماماً' : formatEuroInteger(course.price, 'ar')}
-            </span>
-          </div>
+            {course.delivery_label_ar}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 font-medium">
+            <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+            {course.duration_label}
+          </span>
+        </div>
 
+        <div className="mb-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 text-xs text-muted-500">
+          <span className="flex items-center gap-1.5 font-medium">
+            <Calendar className="h-3.5 w-3.5 shrink-0 text-brand-500" />
+            {startLabel ?? 'انضم إلى الدورة القادمة'}
+          </span>
+          <span className="flex items-center gap-1.5 font-medium">
+            <Users className="h-3.5 w-3.5 shrink-0 text-accent-500" />
+            {seatsLine}
+          </span>
+        </div>
+
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+          <div>
+            <p className="text-[10px] font-bold text-muted-400">الاستثمار</p>
+            <p className={`text-lg font-black ${course.is_free ? 'text-emerald-600' : 'text-ink-900'}`}>
+              {course.is_free ? 'مجاناً بالكامل' : formatEuroInteger(course.price, 'ar')}
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/courses/${course.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-deepBlue/15 bg-white px-3 py-2 text-xs font-black text-deepBlue transition hover:border-customBlue/40 hover:bg-sky-50"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-deepBlue transition hover:border-brand-300 hover:bg-brand-50"
             >
-              عرض التفاصيل
+              تفاصيل
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
-            {isEnrolled ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-customBlue/10 px-3 py-2 text-xs font-black text-customBlue">
-                <TrendingUp className="w-3.5 h-3.5" />
-                متابعة التعلم
-              </span>
-            ) : (
-              <Link
-                to={`/courses/${course.slug}/register`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-customBlue px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-deepBlue"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                التسجيل
-              </Link>
-            )}
+            <Link
+              to={`/courses/${course.slug}/register`}
+              className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-500 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-600"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              سجل الآن
+            </Link>
           </div>
         </div>
       </div>
-    </motion.div>
+    </motion.article>
   )
 }

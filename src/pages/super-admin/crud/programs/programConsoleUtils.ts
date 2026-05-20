@@ -11,12 +11,18 @@ export const PROGRAM_KIND_LABEL: Record<ProgramKind, string> = {
 }
 
 export function inferProgramKind(c: Course): ProgramKind {
-  const raw = c.program_kind ?? (c as { catalog_kind?: string }).catalog_kind ?? (c as { kind?: string }).kind
+  const raw =
+    c.program_kind ??
+    (c as { program_type?: string }).program_type ??
+    (c as { catalog_kind?: string }).catalog_kind ??
+    (c as { kind?: string }).kind
   if (raw != null) {
     const s = String(raw).toLowerCase()
+    if (s === 'full_program' || s.includes('برنامج')) return 'program'
+    if (s === 'one_session') return 'workshop'
     if (s.includes('workshop') || s.includes('ورش')) return 'workshop'
     if (s.includes('track') || s.includes('مسار')) return 'track'
-    if (s.includes('program') || s.includes('برنامج')) return 'program'
+    if (s.includes('program')) return 'program'
     if (s.includes('course') || s.includes('دورة')) return 'course'
   }
   return 'course'

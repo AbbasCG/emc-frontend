@@ -3,21 +3,29 @@ import { BookOpen, Layers, Sparkles } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 
-const categories = [
-  { label: 'ذكاء اصطناعي وتقنية', hint: 'مسارات رقمية وتطبيقية' },
-  { label: 'لغات', hint: 'مهارات تواصل أكاديمية ومهنية' },
-  { label: 'أعمال', hint: 'مهارات مهنية وريادية' },
-  { label: 'أكاديمي', hint: 'تخطيط وقبول ومسار دراسي' },
-  { label: 'تطوير شخصي', hint: 'وعي ومهارات ناعمة' },
+export type DerivedCategory = { label: string; count: number }
+
+type Props = {
+  derivedCategories: DerivedCategory[]
+  loading: boolean
+}
+
+const palette = [
+  'from-brand-500/12 to-brand-600/5 border-brand-200/60',
+  'from-accent-500/12 to-accent-600/5 border-accent-200/50',
+  'from-emerald-500/10 to-emerald-600/5 border-emerald-200/50',
+  'from-violet-500/10 to-violet-600/5 border-violet-200/50',
+  'from-rose-500/10 to-rose-600/5 border-rose-200/50',
+  'from-amber-500/10 to-amber-600/5 border-amber-200/50',
 ]
 
-export default function CoursesProgramIntro() {
+export default function CoursesProgramIntro({ derivedCategories, loading }: Props) {
   return (
-    <section className="bg-[#f4f7fb] py-16">
+    <section className="bg-gradient-to-b from-[#f0f5fb] to-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
           title="فئات البرامج"
-          description="تساعدك الفئات على تصفية الكتالوج بسرعة — مع بقاء البحث والفرز متاحين في الشريط أعلاه."
+          description="تعرض الخانات أدناه توزيعاً حقيقياً مستخرجاً من كتالوج الدورات الحالي — مع شرح سريع لطريقة التصفية."
         />
 
         <motion.div
@@ -26,35 +34,67 @@ export default function CoursesProgramIntro() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5 }}
-          className="grid gap-4 lg:grid-cols-3"
+          className="mb-10 grid gap-4 lg:grid-cols-3"
         >
-          <div className="rounded-3xl bg-white p-7 text-right shadow-md ring-1 ring-slate-100">
-            <Layers className="text-customBlue" size={28} />
+          <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
+            <Layers className="text-brand-500" size={28} />
             <h3 className="mt-4 text-lg font-black text-deepBlue">دورات وورش ومسارات</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">
-              تجمع الصفحة بين ورش قصيرة ودورات أطول ومسارات تعلم مترابطة — حسب توفرها في
-              الكتالوج الحالي من الـ API.
+            <p className="mt-2 text-sm leading-7 text-muted-600">
+              تجمع الصفحة بين ورش قصيرة ودورات أطول ومسارات تعلم مترابطة — حسب توفرها في الكتالوج الحالي من الخادم.
             </p>
           </div>
-          <div className="rounded-3xl bg-white p-7 text-right shadow-md ring-1 ring-slate-100">
-            <BookOpen className="text-customOrange" size={28} />
+          <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
+            <BookOpen className="text-accent-500" size={28} />
             <h3 className="mt-4 text-lg font-black text-deepBlue">محاذاة مع مجالات EMC</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">
+            <p className="mt-2 text-sm leading-7 text-muted-600">
               اطلع على صفحة المجالات الاثنا عشر لفهم كيف تتكامل البرامج مع منظومة EMC الأوسع.
             </p>
           </div>
-          <div className="rounded-3xl bg-white p-7 text-right shadow-md ring-1 ring-slate-100">
-            <Sparkles className="text-customBlue" size={28} />
-            <h3 className="mt-4 text-lg font-black text-deepBlue">فئات سريعة</h3>
-            <ul className="mt-3 space-y-2 text-sm font-semibold text-slate-600">
-              {categories.map((c) => (
-                <li key={c.label}>
-                  <span className="text-deepBlue">{c.label}</span> — {c.hint}
-                </li>
-              ))}
-            </ul>
+          <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
+            <Sparkles className="text-brand-500" size={28} />
+            <h3 className="mt-4 text-lg font-black text-deepBlue">تصفية ذكية</h3>
+            <p className="mt-2 text-sm leading-7 text-muted-600">
+              استخدم الشريط اللاصق أعلاه للمزج بين السعر، نمط التقديم، المستوى، ونوع البرنامج — كلها مبنية على بياناتك
+              الفعلية.
+            </p>
           </div>
         </motion.div>
+
+        {!loading && derivedCategories.length === 0 ? (
+          <p className="text-center text-sm text-muted-500">
+            عند توفر دورات في الكتالوج، ستظهر هنا بطاقات بنيوية تعرض أكثر المسارات والأقسام نشاطاً.
+          </p>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45 }}
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {loading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-28 animate-pulse rounded-3xl border border-slate-100 bg-slate-100/80"
+                  />
+                ))
+              : derivedCategories.map((c, i) => (
+                  <div
+                    key={`${c.label}-${i}`}
+                    className={`flex items-center justify-between gap-3 rounded-3xl border bg-gradient-to-br p-5 text-right ${palette[i % palette.length]}`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-black text-deepBlue">{c.label}</p>
+                      <p className="mt-1 text-xs text-muted-500">برنامج في هذه الفئة</p>
+                    </div>
+                    <div className="flex h-12 min-w-[3rem] shrink-0 items-center justify-center rounded-2xl bg-white/90 px-3 text-lg font-black tabular-nums text-deepBlue shadow-sm">
+                      {c.count.toLocaleString('ar-EG')}
+                    </div>
+                  </div>
+                ))}
+          </motion.div>
+        )}
       </div>
     </section>
   )

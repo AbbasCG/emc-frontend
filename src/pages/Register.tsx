@@ -17,15 +17,17 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import api from '../api/axios'
-import { submitCourseRegistration } from '../api/registrationsApi'
+import { submitCourseRegistration, type CourseRegisterBody } from '../api/registrationsApi'
 import { fetchProfileUser, updateProfile } from '@/api/profileApi'
 import { notifyStudentScopeRefresh } from '@/api/studentApi'
+import { notifyNotificationsRefresh } from '@/api/notificationsApi'
 import { useAuth } from '@/contexts/AuthContext'
 import PaymentProviderSelector from '../components/payments/PaymentProviderSelector'
 import PageHeader from '../components/PageHeader'
 import StateMessage from '../components/StateMessage'
 import type { Course } from '../types'
-import { extractItem, formatPrice } from '../utils/course'
+import { formatPrice } from '../utils/course'
+import { unwrapPublicCoursePayload } from '@/utils/publicCourseNormalize'
 
 type PaymentProvider = 'stripe' | 'paypal' | 'fake'
 
@@ -39,7 +41,82 @@ type RegisterForm = {
   payment_provider: PaymentProvider
 }
 
-type ValidationErrors = Partial<Record<keyof RegisterForm, string[]>>
+type ValidationErrors = Partial<Record<keyof RegisterForm | 'course_id', string[]>>
+
+function normalizeLaravelErrors(raw: unknown): Record<string, string[]> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const out: Record<string, string[]> = {}
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (Array.isArray(v)) {
+      out[k] = v.map((x) => String(x))
+    } else if (v != null && v !== '') {
+      out[k] = [String(v)]
+    }
+  }
+  return out
+}
+
+const FIELD_LABEL_AR: Record<string, string> = {
+  full_name: 'الاسم الكامل',
+  email: 'البريد الإلكتروني',
+  phone: 'رقم الجوال',
+  city: 'المدينة',
+  gender: 'الجنس',
+  notes: 'الملاحظات',
+  payment_provider: 'طريقة الدفع',
+  course_id: 'الدورة',
+  workshop_id: 'ورشة العمل',
+  track_id: 'المسار',
+  receipt: 'الإيصال',
+}
+
+function pickFieldErrors(
+  normalized: Record<string, string[]>,
+): ValidationErrors {
+  const keys = new Set<string>([
+    'full_name',
+    'email',
+    'phone',
+    'city',
+    'gender',
+    'notes',
+    'payment_provider',
+    'course_id',
+  ])
+  const pick: ValidationErrors = {}
+  for (const k of keys) {
+    if (normalized[k]?.length) {
+      pick[k as keyof RegisterForm | 'course_id'] = normalized[k]
+    }
+  }
+  return pick
+}
+
+function formatValidationAlertMessage(errors: Record<string, string[]>, fallback: string): string {
+  const lines: string[] = []
+  for (const [key, msgs] of Object.entries(errors)) {
+    const label = FIELD_LABEL_AR[key] ?? key
+    for (const m of msgs) {
+      lines.push(`${label}: ${m}`)
+    }
+  }
+  return lines.length > 0 ? lines.join('\n') : fallback
+}
+
+function buildRegistrationBody(form: RegisterForm, paid: boolean): CourseRegisterBody {
+  const body: CourseRegisterBody = {
+    full_name: form.full_name.trim(),
+    email: form.email.trim(),
+    phone: form.phone.trim(),
+    city: form.city.trim(),
+    gender: form.gender.trim(),
+    notes: form.notes.trim(),
+  }
+  if (paid) {
+    body.payment_provider = form.payment_provider
+  }
+  return body
+}
 
 const initialForm: RegisterForm = {
   full_name: '',
@@ -49,6 +126,32 @@ const initialForm: RegisterForm = {
   gender: '',
   notes: '',
   payment_provider: 'stripe',
+}
+
+function registrationLooksDuplicate(
+  data: { message?: string; errors?: Record<string, string | string[]> } | undefined,
+): boolean {
+  if (!data) return false
+  const msg = String(data.message ?? '').toLowerCase()
+  if (msg.includes('already') || msg.includes('duplicate') || msg.includes('registered')) return true
+  if (/مسجل|مكرر|بالفعل/u.test(String(data.message ?? ''))) return true
+  const errs = data.errors
+  if (!errs) return false
+  const flat = Object.values(errs)
+    .flatMap((v) => (Array.isArray(v) ? v : [v]))
+    .map((x) => String(x).toLowerCase())
+    .join(' ')
+  return (
+    flat.includes('already') ||
+    flat.includes('duplicate') ||
+    flat.includes('registered') ||
+    /مسجل|مكرر/u.test(
+      Object.values(errs)
+        .flatMap((v) => (Array.isArray(v) ? v : [v]))
+        .map((x) => String(x))
+        .join(' '),
+    )
+  )
 }
 
 export default function Register() {
@@ -75,12 +178,18 @@ export default function Register() {
         setApiError('')
 
         if (slug) {
-          const response = await api.get<Course | { data?: Course }>(`/courses/${slug}`, {
+          const response = await api.get<Course | { data?: Course }>(`/courses/${encodeURIComponent(slug)}`, {
             signal: controller.signal,
+            skipErrorToast: true,
           })
 
-          const item = extractItem(response.data)
-          setCourse(item?.id ? item : null)
+          const item =
+            unwrapPublicCoursePayload(response.data) ??
+            (typeof response.data === 'object' && response.data !== null && 'slug' in response.data ?
+              (response.data as Course)
+            : null)
+
+          setCourse(item?.slug ? item : null)
           return
         }
 
@@ -152,6 +261,7 @@ export default function Register() {
 
     const selectedCourse = courses.find((item) => String(item.id) === courseId)
     setCourse(selectedCourse ?? null)
+    setValidationErrors((e) => ({ ...e, course_id: undefined }))
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -176,19 +286,33 @@ export default function Register() {
     try {
       setIsSubmitting(true)
 
+      const paid = course.type === 'paid'
+      const body = buildRegistrationBody(form, paid)
+      const payloadForLog: Record<string, unknown> = {
+        full_name: body.full_name,
+        email: body.email,
+        phone: body.phone,
+        city: body.city,
+        gender: body.gender,
+        notes: body.notes,
+      }
+      if (paid && body.payment_provider) {
+        payloadForLog.payment_provider = body.payment_provider
+      }
+      console.log('registration payload', {
+        endpoint: 'POST /courses/{id}/register (course_id not in body)',
+        course_id: course.id,
+        body: payloadForLog,
+      })
+
       const result = await submitCourseRegistration({
         course_id: course.id,
-        full_name: form.full_name,
-        phone: form.phone,
-        email: form.email,
-        city: form.city,
-        gender: form.gender,
-        notes: form.notes,
-        payment_provider: course.type === 'paid' ? form.payment_provider : undefined,
+        ...body,
       })
 
       if (result.checkout_url) {
         notifyStudentScopeRefresh()
+        notifyNotificationsRefresh()
         toast.success('تم تهيئة جلسة الدفع — ستُكمَل العملية عند إتمام المعاملة.')
         window.location.assign(result.checkout_url)
         return
@@ -210,11 +334,44 @@ export default function Register() {
 
       toast.success('تم إرسال التسجيل بنجاح.')
       notifyStudentScopeRefresh()
+      notifyNotificationsRefresh()
       navigate('/thank-you')
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 422) {
-        setValidationErrors(err.response.data?.errors ?? {})
-        setApiError(err.response.data?.message ?? 'يرجى مراجعة البيانات المدخلة.')
+      if (axios.isAxiosError(err)) {
+        console.log('registration error', err.response?.data)
+        const st = err.response?.status
+        const raw = err.response?.data as
+          | { message?: string; errors?: Record<string, string | string[]> }
+          | undefined
+        const data = raw
+        const nestedErrors =
+          data && typeof data === 'object' && 'errors' in data && data.errors != null ?
+            data.errors
+          : undefined
+
+        if (st === 409 || registrationLooksDuplicate(data)) {
+          const msg = 'أنت مسجل بالفعل في هذه الدورة'
+          setApiError(msg)
+          toast.error(msg)
+          return
+        }
+
+        if (st === 422 && nestedErrors !== undefined) {
+          const normalized = normalizeLaravelErrors(nestedErrors)
+          setValidationErrors(pickFieldErrors(normalized))
+          const summary = formatValidationAlertMessage(
+            normalized,
+            typeof data?.message === 'string' && data.message.trim() !== '' ?
+              data.message
+            : 'يرجى تصحيح الحقول أدناه.',
+          )
+          setApiError(summary)
+          return
+        }
+
+        const msg =
+          typeof data?.message === 'string' && data.message.trim() !== '' ? data.message : 'تعذر إرسال طلب التسجيل.'
+        setApiError(msg)
         return
       }
 
@@ -225,6 +382,11 @@ export default function Register() {
   }
 
   const isPaid = course?.type === 'paid'
+
+  const lockIdentityFields =
+    isAuthenticated &&
+    form.full_name.trim() !== '' &&
+    form.email.trim() !== ''
 
   if (isLoading) {
     return (
@@ -301,7 +463,7 @@ export default function Register() {
           {apiError && (
             <div className="mt-6 flex items-start gap-3 rounded-xl bg-orange-50 p-4 text-customOrange ring-1 ring-orange-100">
               <AlertCircle size={22} className="mt-1 shrink-0" />
-              <p className="font-bold leading-7">{apiError}</p>
+              <p className="whitespace-pre-line font-bold leading-7">{apiError}</p>
             </div>
           )}
 
@@ -328,6 +490,9 @@ export default function Register() {
                     ))}
                   </select>
                 </span>
+                {validationErrors.course_id?.[0] ?
+                  <span className="text-xs text-customOrange">{validationErrors.course_id[0]}</span>
+                : null}
               </label>
             )}
 
@@ -355,6 +520,8 @@ export default function Register() {
                 value={form.full_name}
                 icon={User}
                 error={validationErrors.full_name?.[0]}
+                readOnly={lockIdentityFields}
+                readOnlyHint={lockIdentityFields ? 'يُستخدم اسمك من ملفك الشخصي.' : undefined}
                 onChange={updateField}
               />
 
@@ -377,6 +544,8 @@ export default function Register() {
                 value={form.email}
                 icon={Mail}
                 error={validationErrors.email?.[0]}
+                readOnly={lockIdentityFields}
+                readOnlyHint={lockIdentityFields ? 'يُستخدم بريدك من ملفك الشخصي.' : undefined}
                 onChange={updateField}
               />
 
@@ -486,6 +655,8 @@ function FormField({
   error,
   type = 'text',
   htmlRequired = true,
+  readOnly = false,
+  readOnlyHint,
   onChange,
 }: {
   label: string
@@ -495,6 +666,8 @@ function FormField({
   error?: string
   type?: string
   htmlRequired?: boolean
+  readOnly?: boolean
+  readOnlyHint?: string
   onChange: (name: keyof RegisterForm, value: string) => void
 }) {
   return (
@@ -510,11 +683,18 @@ function FormField({
           name={name}
           type={type}
           value={value}
-          required={htmlRequired}
-          onChange={(event) => onChange(name, event.target.value)}
-          className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+          required={htmlRequired && !readOnly}
+          readOnly={readOnly}
+          onChange={(event) => !readOnly && onChange(name, event.target.value)}
+          className={`h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100 ${
+            readOnly ? 'cursor-default bg-slate-100 text-slate-600' : ''
+          }`}
         />
       </span>
+
+      {readOnlyHint ?
+        <span className="text-xs font-semibold text-slate-500">{readOnlyHint}</span>
+      : null}
 
       {error && <span className="text-xs text-customOrange">{error}</span>}
     </label>

@@ -22,6 +22,7 @@ import {
   type StudentListedCourse,
   type StudentRegistrationRow,
 } from '@/api/studentApi'
+import { notifyNotificationsRefresh } from '@/api/notificationsApi'
 import { fetchCoursesStrict } from '@/api/superAdminCatalogApi'
 import {
   DashboardSection,
@@ -43,51 +44,12 @@ import type {
 } from '../types'
 import type { StudentLmsDashboard, LmsSession } from '@/types/lms'
 import { mergeStudentEnrollments } from '@/utils/studentEnrollmentMerge'
-
-const EMPTY_STATS: DashboardStats = {
-  enrolled_courses: 0,
-  upcoming_sessions: 0,
-  completed_certificates: 0,
-  training_hours: 0,
-}
+import { normalizeStudentDashboardPayload } from '@/utils/studentDashboardEnvelope'
 
 function toFiniteStat(n: unknown, fallback = 0): number {
   if (typeof n === 'number' && Number.isFinite(n)) return n
   const x = Number(n)
   return Number.isFinite(x) ? x : fallback
-}
-
-function unwrapDashboardPayload(raw: unknown): unknown {
-  if (raw && typeof raw === 'object' && 'data' in raw) return (raw as { data: unknown }).data
-  return raw
-}
-
-function normalizeStudentDashboard(raw: unknown): StudentDashboard {
-  const inner = unwrapDashboardPayload(raw)
-  if (!inner || typeof inner !== 'object') {
-    return {
-      stats: { ...EMPTY_STATS },
-      enrollments: [],
-      upcoming_sessions: [],
-      notifications: [],
-    }
-  }
-
-  const o = inner as Partial<StudentDashboard>
-  const statsIn = o.stats && typeof o.stats === 'object' ? o.stats : {}
-  const s = statsIn as Partial<DashboardStats>
-
-  return {
-    stats: {
-      enrolled_courses: toFiniteStat(s.enrolled_courses, EMPTY_STATS.enrolled_courses),
-      upcoming_sessions: toFiniteStat(s.upcoming_sessions, EMPTY_STATS.upcoming_sessions),
-      completed_certificates: toFiniteStat(s.completed_certificates, EMPTY_STATS.completed_certificates),
-      training_hours: toFiniteStat(s.training_hours, EMPTY_STATS.training_hours),
-    },
-    enrollments: Array.isArray(o.enrollments) ? o.enrollments : [],
-    upcoming_sessions: Array.isArray(o.upcoming_sessions) ? o.upcoming_sessions : [],
-    notifications: Array.isArray(o.notifications) ? o.notifications : [],
-  }
 }
 
 function mapLmsSessionToUpcoming(s: LmsSession): UpcomingSession {
@@ -104,6 +66,15 @@ function mapLmsSessionToUpcoming(s: LmsSession): UpcomingSession {
   }
 }
 
+function deriveStatsFromLms(lms: StudentLmsDashboard): DashboardStats {
+  return {
+    enrolled_courses: Array.isArray(lms.current_courses) ? lms.current_courses.length : 0,
+    upcoming_sessions: Array.isArray(lms.upcoming_sessions) ? lms.upcoming_sessions.length : 0,
+    completed_certificates: Array.isArray(lms.certificates_placeholder) ? lms.certificates_placeholder.length : 0,
+    training_hours: 0,
+  }
+}
+
 function hourGreeting(): string {
   const hour = new Date().getHours()
   if (hour < 12) return 'صباح الخير'
@@ -114,7 +85,7 @@ function hourGreeting(): string {
 export default function Dashboard() {
   const { user } = useAuth()
 
-  const [data, setData] = useState<StudentDashboard>(() => normalizeStudentDashboard(null))
+  const [data, setData] = useState<StudentDashboard>(() => normalizeStudentDashboardPayload(null))
   const [isLoading, setIsLoading] = useState(true)
   const [dashSourceError, setDashSourceError] = useState<string | null>(null)
   const [lmsDash, setLmsDash] = useState<StudentLmsDashboard | null>(null)
@@ -136,16 +107,25 @@ export default function Dashboard() {
 
   useEffect(() => {
     let isMounted = true
-    async function fetchDashboard() {
-      try {
-        setIsLoading(true)
-        const response = await apiClient.get('/dashboard')
-        if (!isMounted) return
-        setData(normalizeStudentDashboard(response.data))
+    async function loadPrimaryDashboard() {
+      setIsLoading(true)
+      setLmsLoading(true)
+      setLmsError(null)
+      setDashSourceError(null)
+
+      const [dashResult, lmsResult] = await Promise.allSettled([
+        apiClient.get('/dashboard', { skipErrorToast: true }),
+        fetchStudentLmsDashboard(),
+      ])
+
+      if (!isMounted) return
+
+      if (dashResult.status === 'fulfilled') {
+        setData(normalizeStudentDashboardPayload(dashResult.value.data))
         setDashSourceError(null)
-      } catch (err) {
-        if (!isMounted || axios.isCancel(err)) return
-        setData(normalizeStudentDashboard(null))
+      } else {
+        setData(normalizeStudentDashboardPayload(null))
+        const err = dashResult.reason
         const msg =
           axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
             ? (() => {
@@ -154,30 +134,21 @@ export default function Dashboard() {
               })()
             : null
         setDashSourceError(msg ?? 'لم يتم استرجاع موجز لوحة الموحّد — تُشتق الأرقام من مصادر مرئية حيث تتوفر فقط.')
-      } finally {
-        if (isMounted) setIsLoading(false)
       }
-    }
-    void fetchDashboard()
-    return () => {
-      isMounted = false
-    }
-  }, [])
 
-  useEffect(() => {
-    let alive = true
-    setLmsLoading(true)
-    setLmsError(null)
-    fetchStudentLmsDashboard()
-      .then((row) => {
-        if (alive) {
-          setLmsDash(row)
-          setLmsError(null)
+      if (lmsResult.status === 'fulfilled') {
+        const row = lmsResult.value
+        setLmsDash(row)
+        setLmsError(null)
+        if (dashResult.status === 'rejected') {
+          setData((prev) => ({
+            ...prev,
+            stats: deriveStatsFromLms(row),
+          }))
         }
-      })
-      .catch((err: unknown) => {
-        if (!alive) return
+      } else {
         setLmsDash(null)
+        const err = lmsResult.reason
         const msg =
           axios.isAxiosError(err) ?
             typeof err.response?.data === 'object' &&
@@ -190,12 +161,15 @@ export default function Dashboard() {
             : `تعذّر الاتصال (${err.response?.status ?? '—'})`
           : 'تعذّر تحميل لوحة التعلّم.'
         setLmsError(msg)
-      })
-      .finally(() => {
-        if (alive) setLmsLoading(false)
-      })
+      }
+
+      setIsLoading(false)
+      setLmsLoading(false)
+    }
+
+    void loadPrimaryDashboard()
     return () => {
-      alive = false
+      isMounted = false
     }
   }, [])
 
@@ -221,10 +195,19 @@ export default function Dashboard() {
   useEffect(() => {
     function onStudentRefresh() {
       void syncStudentEnrollmentSources()
+      notifyNotificationsRefresh()
       fetchStudentLmsDashboard()
         .then((row) => {
           setLmsDash(row)
           setLmsError(null)
+          const d = deriveStatsFromLms(row)
+          setData((prev) => ({
+            ...prev,
+            stats: {
+              ...d,
+              training_hours: prev.stats.training_hours,
+            },
+          }))
         })
         .catch((err: unknown) => {
           setLmsDash(null)
@@ -244,12 +227,12 @@ export default function Dashboard() {
 
       void (async () => {
         try {
-          const response = await apiClient.get('/dashboard')
-          setData(normalizeStudentDashboard(response.data))
+          const response = await apiClient.get('/dashboard', { skipErrorToast: true })
+          setData(normalizeStudentDashboardPayload(response.data))
           setDashSourceError(null)
         } catch (err: unknown) {
           if (axios.isCancel(err)) return
-          setData(normalizeStudentDashboard(null))
+          setData(normalizeStudentDashboardPayload(null))
           const msg =
             axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
               ? (() => {
@@ -297,8 +280,10 @@ export default function Dashboard() {
     pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
 
   const unreadCount = [...notifications].filter((raw) => {
-    const n = raw as { is_read?: boolean }
-    return typeof n.is_read === 'boolean' ? !n.is_read : false
+    if (!raw || typeof raw !== 'object') return false
+    const n = raw as { is_read?: boolean; read_at?: string | null }
+    if (typeof n.is_read === 'boolean') return !n.is_read
+    return n.read_at == null || String(n.read_at).trim() === ''
   }).length
 
   const enrolledSlugs = new Set(
@@ -430,7 +415,18 @@ export default function Dashboard() {
         title="دوراتي والتسجيلات الحالية"
         subtitle="مزامنة من لوحة الموحّد وجداول الطالب والتسجيلات حيث تتيحها نقطة البرمجة."
       >
-        {!lmsLoading && currentLmsCourses.length > 0 ?
+        {enrollmentsMerged.length > 0 ?
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {enrollmentsMerged.slice(0, 8).map((e) => (
+              <EnrolledCourseCard
+                key={e.id}
+                enrollment={e}
+                actionLabel="متابعة التعلم"
+                actionTo={e.course?.slug ? `/courses/${e.course.slug}` : '/dashboard/student/progress'}
+              />
+            ))}
+          </div>
+        : !lmsLoading && currentLmsCourses.length > 0 ?
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {currentLmsCourses.slice(0, 6).map((c, idx) => {
               const pct = typeof c.progress_percent === 'number' ? Math.round(c.progress_percent) : 0
@@ -489,24 +485,12 @@ export default function Dashboard() {
               )
             })}
           </div>
-        : enrollmentsMerged.length === 0 ?
-          <EmptyState
+        : <EmptyState
             icon={BookOpen}
             title="لا توجد دورات مسجلة حاليًا"
             description="سيُعرض هنا كل تسجيل مؤكَّد مع الخادم عبر لوحة الموحّد أو مسارات الطالب والتسجيل."
             action={{ label: 'استعرض الدورات المتاحة', href: '/courses' }}
-          />
-        : <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {enrollmentsMerged.slice(0, 8).map((e) => (
-              <EnrolledCourseCard
-                key={e.id}
-                enrollment={e}
-                actionLabel="متابعة التعلم"
-                actionTo={e.course?.slug ? `/courses/${e.course.slug}` : '/dashboard/student/progress'}
-              />
-            ))}
-          </div>
-        }
+          />}
       </DashboardSection>
 
       {/* 4 — الدورات المتاحة */}

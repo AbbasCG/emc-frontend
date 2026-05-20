@@ -16,27 +16,19 @@ const INITIAL_VISIBLE = 9
 
 function CourseSkeleton() {
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-100 overflow-hidden animate-pulse">
-      <div className="h-44 bg-slate-200" />
-      <div className="p-5 space-y-3">
-        <div className="flex justify-between">
-          <div className="h-5 bg-slate-100 rounded-full w-24" />
-          <div className="h-4 bg-slate-100 rounded w-10" />
+    <div className="animate-pulse overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc-md">
+      <div className="h-52 bg-gradient-to-br from-slate-200 to-slate-100" />
+      <div className="space-y-4 p-6">
+        <div className="flex gap-2">
+          <div className="h-6 w-24 rounded-full bg-slate-100" />
+          <div className="h-6 w-16 rounded-full bg-slate-100" />
         </div>
-        <div className="h-5 bg-slate-200 rounded w-4/5" />
-        <div className="h-4 bg-slate-100 rounded w-full" />
-        <div className="h-4 bg-slate-100 rounded w-3/4" />
-        <div className="flex gap-2 items-center">
-          <div className="w-7 h-7 bg-slate-200 rounded-full" />
-          <div className="h-4 bg-slate-100 rounded w-32" />
-        </div>
-        <div className="flex gap-4">
-          <div className="h-4 bg-slate-100 rounded w-28" />
-          <div className="h-4 bg-slate-100 rounded w-16" />
-        </div>
-        <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
-          <div className="h-5 bg-slate-200 rounded w-20" />
-          <div className="h-9 bg-slate-200 rounded-lg w-28" />
+        <div className="h-6 w-4/5 rounded-lg bg-slate-200" />
+        <div className="h-4 w-full rounded bg-slate-100" />
+        <div className="h-4 w-3/4 rounded bg-slate-100" />
+        <div className="flex gap-2 pt-2">
+          <div className="h-8 flex-1 rounded-xl bg-slate-100" />
+          <div className="h-8 flex-1 rounded-xl bg-slate-200" />
         </div>
       </div>
     </div>
@@ -45,23 +37,22 @@ function CourseSkeleton() {
 
 function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-5">
-        <Search className="w-9 h-9 text-slate-400" />
+    <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 py-24 text-center">
+      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-inner">
+        <Search className="h-9 w-9 text-muted-300" />
       </div>
       {apiEmpty ? (
         <>
-          <h3 className="text-xl font-bold text-deepBlue mb-2">لا توجد برامج منشورة حالياً</h3>
-          <p className="text-[#73777B] text-sm max-w-md leading-7">
-            لم يتم العثور على دورات أو ورش في الكتالوج الحالي. يمكنك العودة لاحقاً، أو
-            التواصل معنا لطلب برنامج مخصص أو ورشة للفريق.
+          <h3 className="mb-2 text-xl font-black text-deepBlue">لا توجد دورات في الكتالوج</h3>
+          <p className="max-w-md text-sm leading-7 text-muted-500">
+            لم يُعثر على برامج منشورة. يُحدَّث الكتالوج تلقائياً عند نشر دورات جديدة من لوحة الإدارة.
           </p>
         </>
       ) : (
         <>
-          <h3 className="text-xl font-bold text-deepBlue mb-2">لا توجد نتائج مطابقة للفلتر</h3>
-          <p className="text-[#73777B] text-sm max-w-xs">
-            جرّب تعديل كلمة البحث أو اختر فئة أو فلتر مختلف.
+          <h3 className="mb-2 text-xl font-black text-deepBlue">لا توجد نتائج مطابقة</h3>
+          <p className="max-w-xs text-sm text-muted-500">
+            جرّب تعديل البحث أو إعادة ضبط الفلاتر في الشريط أعلاه.
           </p>
         </>
       )}
@@ -75,25 +66,22 @@ export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }
   const visibleCourses = courses.slice(0, visibleCount)
   const hasMore = visibleCount < courses.length
 
-  const gridClass = viewMode === 'grid'
-    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-    : 'flex flex-col gap-4'
+  const gridClass =
+    viewMode === 'grid'
+      ? 'grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3'
+      : 'flex flex-col gap-6'
 
   return (
-    <section className="bg-white py-16">
+    <section id="catalog-courses" className="scroll-mt-28 bg-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Section label */}
-        <div className="mb-8">
-          <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
+        <div className="mb-10">
+          <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-500">
             جميع الدورات
           </span>
-          <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
-            الدورات المتاحة
-          </h2>
-          <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
+          <h2 className="text-2xl font-black text-deepBlue md:text-3xl">الدورات المتاحة</h2>
+          <div className="mt-2 h-1 w-12 rounded-full bg-brand-500" />
         </div>
 
-        {/* Loading skeletons */}
         {loading && (
           <div className={gridClass}>
             {Array.from({ length: INITIAL_VISIBLE }).map((_, i) => (
@@ -102,51 +90,45 @@ export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && courses.length === 0 && (
           <div className={gridClass}>
             <EmptyState apiEmpty={totalFromApi === 0} />
           </div>
         )}
 
-        {/* Courses grid */}
         {!loading && courses.length > 0 && (
           <>
             <div className={gridClass}>
               <AnimatePresence>
                 {visibleCourses.map((course, i) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    index={i}
-                    viewMode={viewMode}
-                  />
+                  <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
                 ))}
               </AnimatePresence>
             </div>
 
-            {/* Load more */}
             {hasMore && (
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center mt-12 gap-3"
+                className="mt-12 flex flex-col items-center gap-3"
               >
                 <button
-                  onClick={() => setVisibleCount(c => c + INITIAL_VISIBLE)}
-                  className="bg-deepBlue text-white font-bold px-10 py-3.5 rounded-xl hover:bg-deepBlue/90 transition-colors duration-200 text-sm"
+                  type="button"
+                  onClick={() => setVisibleCount((c) => c + INITIAL_VISIBLE)}
+                  className="rounded-2xl bg-deepBlue px-10 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800"
                 >
                   تحميل المزيد
                 </button>
-                <p className="text-xs text-[#73777B]">
-                  عرض {visibleCourses.length} من {courses.length} دورة
+                <p className="text-xs text-muted-500">
+                  عرض {visibleCourses.length.toLocaleString('ar-EG')} من{' '}
+                  {courses.length.toLocaleString('ar-EG')} دورة
                 </p>
               </motion.div>
             )}
 
             {!hasMore && courses.length > INITIAL_VISIBLE && (
-              <p className="text-center text-xs text-[#73777B] mt-10">
-                تم عرض جميع الدورات ({courses.length})
+              <p className="mt-10 text-center text-xs text-muted-500">
+                تم عرض جميع النتائج ({courses.length.toLocaleString('ar-EG')})
               </p>
             )}
           </>

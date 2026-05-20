@@ -1,4 +1,5 @@
 import apiClient from './axios'
+import { extractCoursesList } from '@/api/coursesApi.public'
 import { unwrapData } from './unwrap'
 import type {
   LmsMaterial,
@@ -7,7 +8,7 @@ import type {
   StudentLmsDashboard,
   StudentProgressPayload,
 } from '../types/lms'
-import { asList } from './lmsApi'
+import type { Course } from '@/types'
 
 function toFiniteNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -193,9 +194,22 @@ export function normalizeStudentLmsDashboard(payload: unknown): StudentLmsDashbo
   }
 }
 
+/** Raw `{ data }` / bare body plus normalized LMS dashboard (one HTTP call). */
+export async function fetchStudentLmsDashboardWithEnvelope(): Promise<{
+  dashboard: StudentLmsDashboard
+  envelope: unknown
+}> {
+  try {
+    const res = await apiClient.get<unknown>('/student/dashboard', { skipErrorToast: true })
+    return { dashboard: normalizeStudentLmsDashboard(res.data), envelope: res.data }
+  } catch {
+    return { dashboard: normalizeStudentLmsDashboard(null), envelope: null }
+  }
+}
+
 export async function fetchStudentLmsDashboard(): Promise<StudentLmsDashboard> {
-  const res = await apiClient.get<unknown>('/student/dashboard')
-  return normalizeStudentLmsDashboard(res.data)
+  const { dashboard } = await fetchStudentLmsDashboardWithEnvelope()
+  return dashboard
 }
 
 /** Fired after course registration succeeds so student dashboards refetch registrations. */
@@ -209,7 +223,7 @@ export function notifyStudentScopeRefresh(): void {
   }
 }
 
-function coerceFlexibleList(payload: unknown, keys: string[]): unknown[] {
+export function coerceFlexibleList(payload: unknown, keys: string[]): unknown[] {
   const inner = unwrapData<unknown>(payload)
   if (Array.isArray(inner)) return inner
   if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
@@ -295,15 +309,33 @@ export type StudentRegistrationRow = {
   start_time?: string | null
   meeting_link?: string | null
   instructor_name?: string | null
+  /** Resolved from nested course media keys when backend sends them */
+  course_cover_url?: string | null
+  /** Payment / checkout flags when backend exposes them */
+  payment_status?: string | null
 }
 
-function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow | null {
+function pickCourseCover(nested: Record<string, unknown> | null): string | undefined {
+  if (!nested) return undefined
+  const keys = ['course_image', 'image_url', 'cover_image', 'thumbnail', 'image', 'cover']
+  for (const k of keys) {
+    const v = nested[k]
+    if (v != null && String(v).trim() !== '') return String(v).trim()
+  }
+  return undefined
+}
+
+export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
   const o = raw as Record<string, unknown>
   const nested =
     o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const nestedInstr =
+    nested?.instructor && typeof nested.instructor === 'object' && !Array.isArray(nested.instructor) ?
+      (nested.instructor as Record<string, unknown>)
+    : null
   const id = Number(o.id ?? o.registration_id ?? o.enrollment_id)
-  const course_id = Number(o.course_id ?? nested?.id)
+  const course_id = Number(o.course_id ?? nested?.id ?? o.courseId)
   if (!Number.isFinite(id) || !Number.isFinite(course_id)) return null
   const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
   const title = nested?.title ?? o.course_title ?? o.program_title ?? o.course_name
@@ -312,33 +344,117 @@ function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow | null {
   const startD = o.start_date ?? nested?.start_date ?? o.course_start_at
   const startT = o.start_time ?? nested?.start_time ?? o.study_time
   const link = o.meeting_link ?? nested?.meeting_link
-  const inst =
-    nested?.instructor_name != null ?
-      String(nested.instructor_name)
-    : o.instructor_name != null ?
-      String(o.instructor_name)
-    : undefined
+  let inst: string | undefined
+  if (nestedInstr?.name != null) inst = String(nestedInstr.name)
+  else if (nested?.instructor_name != null) inst = String(nested.instructor_name)
+  else if (o.instructor_name != null) inst = String(o.instructor_name)
+
+  const cover = pickCourseCover(nested)
+
+  const pay =
+    o.payment_status ??
+    o.paymentStatus ??
+    o.payment_state ??
+    (o.payment && typeof o.payment === 'object' && !Array.isArray(o.payment) ?
+      (o.payment as Record<string, unknown>).status
+    : null)
+
   return {
     id,
     course_id,
     course_title: title != null ? String(title) : slugifyFallback(course_id),
     slug: slugRaw != null && String(slugRaw).trim() !== '' ? String(slugRaw) : undefined,
     status: o.status != null ? String(o.status) : undefined,
+    payment_status:
+      pay != null && String(pay).trim() !== '' ? String(pay).trim() : null,
     enrolled_at: enrolled != null && String(enrolled).trim() !== '' ? String(enrolled) : null,
     start_date: startD != null && String(startD).trim() !== '' ? String(startD) : null,
     start_time: startT != null && String(startT).trim() !== '' ? String(startT) : null,
     meeting_link: link != null && String(link).trim() !== '' ? String(link) : null,
     instructor_name: inst,
+    course_cover_url: cover ?? null,
   }
+}
+
+function debugStudentRegs(label: string, payload: Record<string, unknown>) {
+  if (!import.meta.env.DEV) return
+  console.log(`[EMC student/registrations] ${label}`, payload)
 }
 
 /** GET /student/registrations — empty array on failure. */
 export async function fetchStudentRegistrations(): Promise<StudentRegistrationRow[]> {
   try {
+    debugStudentRegs('request', {
+      method: 'GET',
+      path: '/student/registrations',
+      baseURL: apiClient.defaults.baseURL,
+    })
     const res = await apiClient.get<unknown>('/student/registrations', { skipErrorToast: true })
-    return coerceFlexibleList(res.data, ['registrations', 'data', 'items', 'enrollments']).map(normalizeRegistrationRow).filter((x): x is StudentRegistrationRow => x != null)
-  } catch {
+    const rawList = coerceFlexibleList(res.data, ['registrations', 'data', 'items', 'enrollments'])
+    const rows = rawList.map(normalizeRegistrationRow).filter((x): x is StudentRegistrationRow => x != null)
+    debugStudentRegs('response', {
+      httpStatus: res.status,
+      rowCount: rows.length,
+      shapeSample:
+        rawList[0] && typeof rawList[0] === 'object' ? Object.keys(rawList[0] as object).slice(0, 28) : [],
+    })
+    return rows
+  } catch (e) {
+    debugStudentRegs('error', {
+      message: e instanceof Error ? e.message : String(e),
+    })
     return []
+  }
+}
+
+function normalizeSessionStatus(raw: unknown): import('@/types/lms').LmsSessionStatus {
+  const s = String(raw ?? '').toLowerCase()
+  if (s.includes('complete')) return 'completed'
+  if (s.includes('cancel')) return 'cancelled'
+  if (s.includes('live')) return 'live'
+  return 'scheduled'
+}
+
+function normalizeLmsSessionRow(raw: unknown): LmsSession | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const nested =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const id = Number(o.id)
+  if (!Number.isFinite(id)) return null
+  const cidRaw = o.course_id ?? nested?.id
+  const course_id = cidRaw != null && cidRaw !== '' && Number.isFinite(Number(cidRaw)) ? Number(cidRaw) : null
+  const course_name = String(o.course_name ?? nested?.title ?? o.title ?? 'دورة')
+  const course_slug =
+    o.course_slug != null && String(o.course_slug).trim() !== '' ?
+      String(o.course_slug)
+    : nested?.slug != null && String(nested.slug).trim() !== '' ?
+      String(nested.slug)
+    : null
+  const typeRaw = String(o.type ?? '').toLowerCase()
+  const type = typeRaw.includes('offline') ? 'offline' : typeRaw.includes('online') ? 'online' : undefined
+  return {
+    id,
+    course_id,
+    title: o.title != null ? String(o.title) : null,
+    course_name,
+    course_slug,
+    starts_at: o.starts_at != null ? String(o.starts_at) : null,
+    ends_at: o.ends_at != null ? String(o.ends_at) : null,
+    date: o.date != null ? String(o.date) : null,
+    time: o.time != null ? String(o.time) : null,
+    status: normalizeSessionStatus(o.status),
+    type,
+    instructor_name:
+      o.instructor_name != null ?
+        String(o.instructor_name)
+      : nested?.instructor_name != null ?
+        String(nested.instructor_name)
+      : null,
+    location: o.location != null ? String(o.location) : null,
+    meeting_link: o.meeting_link != null ? String(o.meeting_link) : null,
+    recording_link: o.recording_link != null ? String(o.recording_link) : null,
+    platform: o.platform != null ? String(o.platform) : null,
   }
 }
 
@@ -346,42 +462,140 @@ export async function fetchStudentSessions(): Promise<{
   upcoming: LmsSession[]
   completed: LmsSession[]
 }> {
-  const res = await apiClient.get<unknown>('/student/sessions')
-  const raw = unwrapData<unknown>(res.data)
-  if (Array.isArray(raw)) {
-    const upcoming = raw.filter((s) => s.status !== 'completed')
-    const completed = raw.filter((s) => s.status === 'completed')
-    return { upcoming, completed }
-  }
-  if (raw == null || typeof raw !== 'object') {
-    return { upcoming: [], completed: [] }
-  }
-  const obj = raw as Record<string, unknown>
-  const upcomingRaw = obj.upcoming ?? obj.upcoming_sessions ?? obj.scheduled_sessions
-  const completedRaw = obj.completed ?? obj.completed_sessions
-  const upcomingSessions = Array.isArray(upcomingRaw) ? (upcomingRaw as LmsSession[]) : []
-  const completedSessions = Array.isArray(completedRaw) ? (completedRaw as LmsSession[]) : []
-  const sessionsFlat = Array.isArray(obj.sessions) ? (obj.sessions as LmsSession[]) : []
-  if (sessionsFlat.length > 0 && upcomingSessions.length === 0 && completedSessions.length === 0) {
-    return {
-      upcoming: sessionsFlat.filter((s) => s.status !== 'completed'),
-      completed: sessionsFlat.filter((s) => s.status === 'completed'),
+  try {
+    const res = await apiClient.get<unknown>('/student/sessions', { skipErrorToast: true })
+    const raw = unwrapData<unknown>(res.data)
+
+    const normalizeList = (arr: unknown[]): LmsSession[] =>
+      arr.map(normalizeLmsSessionRow).filter((x): x is LmsSession => x != null)
+
+    if (Array.isArray(raw)) {
+      const mapped = normalizeList(raw)
+      const upcoming = mapped.filter((s) => s.status !== 'completed')
+      const completed = mapped.filter((s) => s.status === 'completed')
+      return { upcoming, completed }
     }
+
+    if (raw != null && typeof raw === 'object' && !Array.isArray(raw)) {
+      const obj = raw as Record<string, unknown>
+      const upcomingRaw = obj.upcoming ?? obj.upcoming_sessions ?? obj.scheduled_sessions
+      const completedRaw = obj.completed ?? obj.completed_sessions
+      let upcomingSessions = Array.isArray(upcomingRaw) ? normalizeList(upcomingRaw as unknown[]) : []
+      let completedSessions = Array.isArray(completedRaw) ? normalizeList(completedRaw as unknown[]) : []
+      const sessionsFlat = Array.isArray(obj.sessions) ? normalizeList(obj.sessions as unknown[]) : []
+      if (sessionsFlat.length > 0 && upcomingSessions.length === 0 && completedSessions.length === 0) {
+        upcomingSessions = sessionsFlat.filter((s) => s.status !== 'completed')
+        completedSessions = sessionsFlat.filter((s) => s.status === 'completed')
+      }
+      return {
+        upcoming: upcomingSessions,
+        completed: completedSessions,
+      }
+    }
+
+    const flat = coerceFlexibleList(res.data, ['sessions', 'data', 'items', 'upcoming_sessions'])
+    if (flat.length > 0) {
+      const mapped = normalizeList(flat)
+      return {
+        upcoming: mapped.filter((s) => s.status !== 'completed'),
+        completed: mapped.filter((s) => s.status === 'completed'),
+      }
+    }
+  } catch {
+    /* ignore */
   }
+  return { upcoming: [], completed: [] }
+}
+
+function normalizeMaterialKind(raw: unknown): import('@/types/lms').MaterialKind {
+  const s = String(raw ?? 'other').toLowerCase()
+  if (s.includes('pdf')) return 'pdf'
+  if (s.includes('video') || s.includes('mp4')) return 'video'
+  if (s.includes('slide')) return 'slides'
+  if (s.includes('link') || s.includes('url')) return 'link'
+  if (s.includes('doc')) return 'document'
+  return 'other'
+}
+
+function normalizeMaterialRow(raw: unknown): LmsMaterial | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const nested =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const id = Number(o.id)
+  if (!Number.isFinite(id)) return null
+  const cidRaw = o.course_id ?? nested?.id
+  const course_id = cidRaw != null && cidRaw !== '' && Number.isFinite(Number(cidRaw)) ? Number(cidRaw) : null
+  const title = String(o.title ?? o.name ?? 'مادة')
   return {
-    upcoming: upcomingSessions,
-    completed: completedSessions,
+    id,
+    course_id,
+    title,
+    kind: normalizeMaterialKind(o.kind ?? o.type ?? 'other'),
+    url: o.url != null ? String(o.url) : o.link != null ? String(o.link) : null,
+    description: o.description != null ? String(o.description) : null,
+    course_name:
+      o.course_name != null ? String(o.course_name) : nested?.title != null ? String(nested.title) : null,
+    size_label: o.size_label != null ? String(o.size_label) : null,
+    updated_at: o.updated_at != null ? String(o.updated_at) : null,
+  }
+}
+
+function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const nested =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const nestedAssignment =
+    o.assignment && typeof o.assignment === 'object' && !Array.isArray(o.assignment) ?
+      (o.assignment as Record<string, unknown>)
+    : null
+  const assignment_id = Number(o.assignment_id ?? nestedAssignment?.id ?? o.id)
+  const id = Number(o.id ?? o.student_assignment_id ?? assignment_id)
+  if (!Number.isFinite(id) || !Number.isFinite(assignment_id)) return null
+  const cidRaw = o.course_id ?? nested?.id
+  const course_id = cidRaw != null && cidRaw !== '' && Number.isFinite(Number(cidRaw)) ? Number(cidRaw) : null
+  const statusRaw = String(o.status ?? 'pending').toLowerCase()
+  let status: StudentAssignment['status'] = 'pending'
+  if (statusRaw.includes('grade')) status = 'graded'
+  else if (statusRaw.includes('submit')) status = 'submitted'
+  else if (statusRaw.includes('revision')) status = 'revision'
+  else if (statusRaw.includes('late')) status = 'late'
+
+  return {
+    id,
+    course_id,
+    assignment_id,
+    title: String(o.title ?? o.assignment_title ?? 'واجب'),
+    course_name:
+      o.course_name != null ? String(o.course_name) : nested?.title != null ? String(nested.title) : null,
+    due_at: o.due_at != null ? String(o.due_at) : o.deadline != null ? String(o.deadline) : null,
+    status,
+    score: o.score != null ? Number(o.score) : null,
+    max_score: o.max_score != null ? Number(o.max_score) : null,
+    feedback: o.feedback != null ? String(o.feedback) : null,
+    submitted_at: o.submitted_at != null ? String(o.submitted_at) : null,
   }
 }
 
 export async function fetchStudentMaterials(): Promise<LmsMaterial[]> {
-  const res = await apiClient.get<unknown>('/student/materials')
-  return asList<LmsMaterial>(res.data)
+  try {
+    const res = await apiClient.get<unknown>('/student/materials', { skipErrorToast: true })
+    const rawList = coerceFlexibleList(res.data, ['materials', 'data', 'items'])
+    return rawList.map(normalizeMaterialRow).filter((x): x is LmsMaterial => x != null)
+  } catch {
+    return []
+  }
 }
 
 export async function fetchStudentAssignments(): Promise<StudentAssignment[]> {
-  const res = await apiClient.get<unknown>('/student/assignments')
-  return asList<StudentAssignment>(res.data)
+  try {
+    const res = await apiClient.get<unknown>('/student/assignments', { skipErrorToast: true })
+    const rawList = coerceFlexibleList(res.data, ['assignments', 'data', 'items'])
+    return rawList.map(normalizeStudentAssignmentRow).filter((x): x is StudentAssignment => x != null)
+  } catch {
+    return []
+  }
 }
 
 export async function submitStudentAssignment(
@@ -403,8 +617,61 @@ export async function submitStudentAssignment(
 }
 
 export async function fetchStudentProgress(): Promise<StudentProgressPayload> {
-  const res = await apiClient.get<unknown>('/student/progress', { skipErrorToast: true })
-  return normalizeStudentProgressPayload(res.data)
+  try {
+    const res = await apiClient.get<unknown>('/student/progress', { skipErrorToast: true })
+    return normalizeStudentProgressPayload(res.data)
+  } catch {
+    return normalizeStudentProgressPayload(null)
+  }
+}
+
+/** GET /student/available-courses — normalized Course rows; empty when route missing. */
+export async function fetchStudentAvailableCourses(): Promise<Course[]> {
+  try {
+    const res = await apiClient.get<unknown>('/student/available-courses', { skipErrorToast: true })
+    const rawList = coerceFlexibleList(res.data, ['courses', 'data', 'items', 'available', 'results'])
+    if (rawList.length === 0) return []
+    return extractCoursesList(rawList) as Course[]
+  } catch {
+    return []
+  }
+}
+
+export type StudentReviewRow = {
+  id: number
+  course_id: number
+  registration_id?: number | null
+  submitted_at?: string | null
+}
+
+function normalizeStudentReviewRow(raw: unknown): StudentReviewRow | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const id = Number(o.id)
+  const course_id = Number(o.course_id ?? (o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>).id : undefined))
+  if (!Number.isFinite(id) || !Number.isFinite(course_id)) return null
+  const rid = o.registration_id
+  const registration_id =
+    rid != null && rid !== '' && Number.isFinite(Number(rid)) ? Number(rid) : null
+  const submitted =
+    o.submitted_at ?? o.created_at ?? o.updated_at
+  return {
+    id,
+    course_id,
+    registration_id,
+    submitted_at: submitted != null && String(submitted).trim() !== '' ? String(submitted) : null,
+  }
+}
+
+/** GET /student/reviews — existing evaluations so UI can enforce one review per course */
+export async function fetchStudentReviews(): Promise<StudentReviewRow[]> {
+  try {
+    const res = await apiClient.get<unknown>('/student/reviews', { skipErrorToast: true })
+    const rawList = coerceFlexibleList(res.data, ['reviews', 'data', 'items'])
+    return rawList.map(normalizeStudentReviewRow).filter((x): x is StudentReviewRow => x != null)
+  } catch {
+    return []
+  }
 }
 
 export type EvaluationPayload = {
@@ -418,5 +685,5 @@ export type EvaluationPayload = {
 }
 
 export async function submitStudentEvaluation(body: EvaluationPayload): Promise<void> {
-  await apiClient.post('/student/evaluations', body)
+  await apiClient.post('/student/evaluations', body, { skipErrorToast: true })
 }

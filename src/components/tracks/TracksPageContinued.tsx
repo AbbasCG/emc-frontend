@@ -1,39 +1,8 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  ArrowLeft,
-  Baby,
-  Brain,
-  Briefcase,
-  Globe2,
-  GraduationCap,
-  Handshake,
-  HeartPulse,
-  Languages,
-  Lightbulb,
-  Map,
-  Rocket,
-  Wallet,
-} from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
-import { themes12 } from '@/data/publicPages'
-import { fadeUp, staggerContainer, viewportOnce } from '@/utils/animations'
-import TrackPremiumCard from '@/components/tracks/TrackPremiumCard'
-
-const themeIcons = {
-  GraduationCap,
-  Globe2,
-  Languages,
-  Brain,
-  Briefcase,
-  Rocket,
-  Lightbulb,
-  HeartPulse,
-  Wallet,
-  Map,
-  Baby,
-  Handshake,
-} as const
+import { fadeUp, viewportOnce } from '@/utils/animations'
 
 const stats = [
   { value: '١٢ محوراً', label: 'شبكة تعليمية واحدة ترابطها الواضح' },
@@ -50,38 +19,12 @@ const journey = [
 export default function TracksPageContinued() {
   return (
     <>
-      <section className="relative border-t border-deepBlue/[0.06] bg-gradient-to-b from-emcBg via-white to-white px-4 py-16 sm:px-6 lg:px-10 lg:py-20">
+      <section className="relative border-t border-deepBlue/[0.06] bg-gradient-to-b from-emcBg via-white to-white px-4 py-14 sm:px-6 lg:px-10 lg:py-16">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-emc-radial opacity-[0.35] [mask-image:linear-gradient(180deg,rgba(0,0,0,1),transparent)]"
         />
         <div className="relative mx-auto max-w-[1540px]">
-          <SectionHeader
-            align="right"
-            eyebrow="المحاور"
-            title="تجربة محاور حديثة ومنظمة"
-            description="نفس المنظومة الاثني عشر — مع بطاقات مصمّمة لتسهيل القراءة والانتقال السريع إلى البرامج."
-          />
-
-          <motion.div
-            className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {themes12.map((theme, index) => {
-              const Icon = themeIcons[theme.icon as keyof typeof themeIcons] ?? GraduationCap
-              return (
-                <TrackPremiumCard key={`premium-${theme.id}`} theme={theme} Icon={Icon} index={index} />
-              )
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="px-4 py-14 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-[1540px]">
           <motion.div
             className="grid gap-6 rounded-[1.75rem] border border-deepBlue/[0.07] bg-white p-8 shadow-emc-md shadow-deepBlue/[0.05] ring-1 ring-white sm:grid-cols-3 sm:p-10"
             variants={fadeUp}

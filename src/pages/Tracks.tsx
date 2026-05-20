@@ -70,16 +70,20 @@ export default function Tracks() {
         />
 
         <div className="relative mx-auto max-w-[1540px]">
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45 }}
-            className="mb-12 max-w-3xl text-right text-[1.05rem] font-medium leading-8 text-foreground/73"
+            className="mb-12 max-w-3xl space-y-3 text-right"
           >
-            اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون مغادرة أسلوب EMC
-            المؤسسي.
-          </motion.p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-customOrange">المحاور</p>
+            <p className="text-[1.05rem] font-medium leading-8 text-foreground/73">
+              تجربة محاور حديثة ومنظمة: نفس المنظومة الاثني عشر، وبطاقات مصمّمة لتسهيل القراءة والانتقال السريع إلى
+              البرامج. اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون
+              مغادرة أسلوب EMC المؤسسي.
+            </p>
+          </motion.div>
 
           <motion.div
             variants={staggerContainer}
@@ -146,7 +150,7 @@ export default function Tracks() {
                         to="/courses"
                         className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1c6f98] py-3.5 text-sm font-black text-white shadow-[0_12px_32px_-12px_rgba(38,145,194,0.55)] ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
                       >
-                        استكشف الدورات
+                        استكشف البرامج
                         <ArrowLeft size={17} aria-hidden />
                       </Link>
                     </motion.div>

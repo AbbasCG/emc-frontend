@@ -87,6 +87,7 @@ export type QuizAttemptResult = {
 
 export type NotificationType =
   | 'registration'
+  | 'course_registration'
   | 'payment'
   | 'session_reminder'
   | 'assignment_due'
@@ -103,7 +104,12 @@ export type PlatformNotification = {
   body?: string | null
   read_at: string | null
   created_at: string
+  /** Resolved in-app route (from `action_url` or entity) */
   href?: string | null
+  /** Raw link from API */
+  action_url?: string | null
+  entity_type?: string | null
+  entity_id?: number | null
 }
 
 export type AutomationTrigger =

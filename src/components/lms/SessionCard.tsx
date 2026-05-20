@@ -38,6 +38,16 @@ export default function SessionCard({ session, showRecording = true }: Props) {
             {session.instructor_name && <span>المدرب: {session.instructor_name}</span>}
             {session.location && <span>{session.location}</span>}
           </div>
+          {(() => {
+            const noDate =
+              (!session.date || String(session.date).trim() === '' || String(session.date) === '—') &&
+              (!session.starts_at || String(session.starts_at).trim() === '')
+            return noDate ?
+                <p className="rounded-xl border border-sky-200/85 bg-sky-50/90 px-3 py-2 text-[11px] font-bold leading-relaxed text-sky-950">
+                  سيتم إشعارك عند تحديد الموعد
+                </p>
+              : null
+          })()}
         </div>
 
         <div className="flex shrink-0 flex-col gap-2 sm:items-end">

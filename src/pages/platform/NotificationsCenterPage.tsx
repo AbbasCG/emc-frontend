@@ -1,21 +1,24 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { SlidersHorizontal, Trash2 } from 'lucide-react'
 import {
   deleteNotification,
   fetchNotifications,
+  isNotificationUnread,
   markAllNotificationsRead,
   markNotificationRead,
 } from '@/api/notificationsApi'
 import EmptyState from '@/components/dashboard/EmptyState'
 import type { PlatformNotification, NotificationType } from '@/types/platform'
+import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
 const TYPE_LABELS: Partial<Record<NotificationType, string>> & { all: string } = {
   all: 'كل الأنواع',
   registration: 'تسجيل',
+  course_registration: 'تسجيل دورة',
   payment: 'دفع',
   session_reminder: 'جلسة',
   assignment_due: 'واجب',
@@ -27,6 +30,7 @@ const TYPE_LABELS: Partial<Record<NotificationType, string>> & { all: string } =
 }
 
 export default function NotificationsCenterPage() {
+  const navigate = useNavigate()
   const [items, setItems] = useState<PlatformNotification[]>([])
   const [loading, setLoading] = useState(true)
   const [readFilter, setReadFilter] = useState<ReadFilter>('all')
@@ -47,12 +51,12 @@ export default function NotificationsCenterPage() {
     }
   }, [])
 
-  const unread = useMemo(() => items.filter((n) => !n.read_at).length, [items])
+  const unread = useMemo(() => items.filter((n) => isNotificationUnread(n)).length, [items])
 
   const visible = useMemo(() => {
     return items.filter((n) => {
-      if (readFilter === 'unread' && n.read_at) return false
-      if (readFilter === 'read' && !n.read_at) return false
+      if (readFilter === 'unread' && !isNotificationUnread(n)) return false
+      if (readFilter === 'read' && isNotificationUnread(n)) return false
       if (typeFilter !== 'all' && n.type !== typeFilter) return false
       return true
     })
@@ -66,8 +70,15 @@ export default function NotificationsCenterPage() {
 
   async function onRead(id: number) {
     const stamp = new Date().toISOString()
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: stamp } : n)))
+    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: n.read_at ?? stamp } : n)))
     await markNotificationRead(id)
+  }
+
+  async function openItem(n: PlatformNotification) {
+    if (isNotificationUnread(n)) {
+      await onRead(n.id)
+    }
+    if (n.href) navigate(normalizeNotificationInternalPath(n.href))
   }
 
   async function onReadAll() {
@@ -154,30 +165,42 @@ export default function NotificationsCenterPage() {
         <EmptyState title="لا نتائج للفلتر الحالي" description="غيّر نوع الإشعار أو حالة القراءة." />
       ) : (
         <ul className="space-y-3">
-          {visible.map((n, idx) => (
+          {visible.map((n, idx) => {
+            const unread = isNotificationUnread(n)
+            return (
             <motion.li
               key={n.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.03 }}
-              className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+              className={[
+                'rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md',
+                unread ? 'border-customBlue/25 ring-1 ring-sky-100/80' : 'border-slate-100',
+              ].join(' ')}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+                <button
+                  type="button"
+                  onClick={() => void openItem(n)}
+                  className="min-w-0 flex-1 text-right transition hover:opacity-95"
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-black text-deepBlue">{n.title}</p>
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">
                       {TYPE_LABELS[n.type] ?? n.type}
                     </span>
-                    {!n.read_at ?
+                    {unread ?
                       <span className="rounded-full bg-customOrange/15 px-2 py-0.5 text-[10px] font-black text-customOrange">غير مقروء</span>
                     : null}
                   </div>
                   {n.body && <p className="mt-2 text-sm leading-7 text-slate-500">{n.body}</p>}
                   <p className="mt-3 text-[11px] font-bold text-slate-400">{n.created_at}</p>
-                </div>
+                  {n.href ?
+                    <p className="mt-2 text-[11px] font-black text-customBlue">انقر لفتح الصفحة المرتبطة</p>
+                  : null}
+                </button>
                 <div className="flex flex-col gap-2">
-                  {!n.read_at && (
+                  {unread && (
                     <button
                       type="button"
                       onClick={() => void onRead(n.id)}
@@ -188,21 +211,20 @@ export default function NotificationsCenterPage() {
                   )}
                   <button
                     type="button"
-                    onClick={() => void onDelete(n.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      void onDelete(n.id)
+                    }}
                     className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-100 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
                   >
                     <Trash2 size={14} aria-hidden />
                     حذف
                   </button>
-                  {n.href && (
-                    <Link to={n.href} className="text-center text-[11px] font-black text-deepBlue hover:underline">
-                      فتح التفاصيل
-                    </Link>
-                  )}
                 </div>
               </div>
             </motion.li>
-          ))}
+            )
+          })}
         </ul>
       )}
     </div>

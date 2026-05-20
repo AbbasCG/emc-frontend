@@ -48,6 +48,15 @@ export type Course = {
   study_time?: string | null
   certificate?: string | null
   course_image?: string | null
+  /** Alternate media keys from various backends */
+  image_url?: string | null
+  thumbnail?: string | null
+  image?: string | null
+  cover_image?: string | null
+  /** Some APIs expose explicit free flag */
+  is_free?: boolean | number | null
+  seats_count?: number | null
+  delivery_type?: string | null
 
   instructor?: {
     id: number
@@ -66,6 +75,8 @@ export type Course = {
 
   /** Admin/catalog extensions — backends may omit any of these */
   program_kind?: string | null
+  /** بعض الـ APIs تستخدم program_type بدلاً من program_kind */
+  program_type?: string | null
   track_id?: number | null
   track?: { id: number; title?: string | null; slug?: string | null } | null
   track_title?: string | null
@@ -77,8 +88,15 @@ export type Course = {
   is_published?: boolean | number | null
   registration_open?: boolean | number | null
   start_time?: string | null
+  end_time?: string | null
   meeting_link?: string | null
   location_type?: string | null
+  /** عرض عربي محفوظ من لوحة الإدارة — يغيّر صفحة الزائر عند وجوده */
+  session_format?: string | null
+  prerequisites?: string | null
+  learning_outcomes?: string | null
+  keywords?: string | null
+  admin_notes?: string | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'

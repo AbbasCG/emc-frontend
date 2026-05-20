@@ -58,7 +58,7 @@ export function formatSingleDate(date?: string | null) {
 }
 
 export function formatDuration(startDate?: string | null, endDate?: string | null) {
-  if (!startDate || !endDate) return '4 أسابيع'
+  if (!startDate || !endDate) return ''
 
   const start = new Date(startDate)
   const end = new Date(endDate)

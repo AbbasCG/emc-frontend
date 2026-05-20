@@ -1,54 +1,111 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useCallback, useEffect, useMemo, useState, type ElementType } from 'react'
 import { Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Gauge,
-  LineChart,
-  Radio,
+  AlertCircle,
+  Bell,
+  BookOpen,
+  CalendarClock,
+  CameraOff,
+  GraduationCap,
+  Mail,
+  Phone,
   RefreshCw,
-  Trophy,
-  WandSparkles,
+  Sparkles,
+  Tag,
+  Users,
+  Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { fetchInstructors, type InstructorPublic } from '@/api/instructorsApi'
+import {
+  fetchAdminInstructorsDirectory,
+  type AdminInstructorDirectoryRow,
+} from '@/api/adminInstructorsApi'
+import { updateAdminUser } from '@/api/adminUsersApi'
+import { getApiErrorMessage } from '@/api/apiErrors'
+import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
 import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
 import { LoadingPanel, EmptyPanel } from '@/pages/super-admin/crud/shared/States'
-import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
 import {
   EntityDetailDrawer,
   EntityDetailField,
   EntityDetailSection,
 } from '@/pages/super-admin/crud/shared/EntityDetailDrawer'
-import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
-import {
-  AnimatedTabular,
-  EnterpriseCrudHero,
-  EnterpriseMetricTile,
-} from '@/pages/super-admin/crud/shared/enterprise/EnterpriseMetrics'
-import { EnterpriseBarChartRtl, EMC_CHART_PALETTE, EnterpriseTinyArea } from '@/pages/super-admin/crud/shared/enterprise/charts'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 
-function splitExpertise(raw: string) {
-  return raw.split(/[,،؛\/|]/g).flatMap((p) => p.trim()).filter(Boolean)
+function displayLastActivity(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return '—'
+    return d.toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })
+  } catch {
+    return '—'
+  }
 }
+
+function hasPhoto(r: AdminInstructorDirectoryRow): boolean {
+  return Boolean(resolvePublicAssetUrl(r.avatar_url ?? r.instructor_image_url))
+}
+
+function InstructorAvatar({ row, className }: { row: AdminInstructorDirectoryRow; className?: string }) {
+  const url = resolvePublicAssetUrl(row.avatar_url ?? row.instructor_image_url)
+  if (url) {
+    return (
+      <div className={`relative overflow-hidden rounded-2xl ring-2 ring-white shadow-lg ${className ?? ''}`}>
+        <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
+      </div>
+    )
+  }
+  const ini = initialsFromName(row.name)
+  return (
+    <div
+      className={`grid place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2] via-[#1e6f96] to-[#22334A] text-lg font-black text-white shadow-inner ring-2 ring-white/30 ${className ?? ''}`}
+    >
+      {ini.slice(0, 2)}
+    </div>
+  )
+}
+
+const STATUS_FILTER = [
+  { value: 'all', labelAr: 'كل الحالات' },
+  { value: 'active', labelAr: 'نشط' },
+  { value: 'inactive', labelAr: 'موقوف' },
+]
+
+const PHOTO_FILTER = [
+  { value: 'all', labelAr: 'كل الصور' },
+  { value: 'has', labelAr: 'مع صورة' },
+  { value: 'none', labelAr: 'بدون صورة' },
+]
+
+const ASSIGN_FILTER = [
+  { value: 'all', labelAr: 'الكل' },
+  { value: 'assigned', labelAr: 'له دورات' },
+  { value: 'unassigned', labelAr: 'بدون دورات' },
+]
 
 export default function InstructorsManagementPage() {
   const [loading, setLoading] = useState(true)
-  const [rows, setRows] = useState<InstructorPublic[]>([])
+  const [rows, setRows] = useState<AdminInstructorDirectoryRow[]>([])
   const [q, setQ] = useState('')
-  const [sortKey, setSortKey] = useState<'courses' | 'slug'>('courses')
-  const [view, setView] = useState<InstructorPublic | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [photoFilter, setPhotoFilter] = useState<string>('all')
+  const [assignFilter, setAssignFilter] = useState<string>('all')
+  const [expertiseQ, setExpertiseQ] = useState('')
+  const [view, setView] = useState<AdminInstructorDirectoryRow | null>(null)
+  const [togglingId, setTogglingId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const list = await fetchInstructors()
+      const { rows: list } = await fetchAdminInstructorsDirectory()
       setRows(Array.isArray(list) ? list : [])
     } catch {
-      toast.error('تعذّر تحميل المدربين من /instructors')
+      toast.error('تعذّر تحميل المدربين من /api/admin/instructors')
       setRows([])
     } finally {
       setLoading(false)
@@ -59,394 +116,416 @@ export default function InstructorsManagementPage() {
     void load()
   }, [load])
 
+  const expertiseTags = useMemo(() => {
+    const s = new Set<string>()
+    for (const r of rows) {
+      for (const t of r.expertise ?? []) {
+        if (t.trim()) s.add(t.trim())
+      }
+    }
+    return [...s].sort((a, b) => a.localeCompare(b, 'ar'))
+  }, [rows])
+
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()
-    const base = [...rows]
-    base.sort((a, b) => {
-      if (sortKey === 'slug') return a.slug.localeCompare(b.slug)
-      const ac = a.courses_count ?? 0
-      const bc = b.courses_count ?? 0
-      return bc - ac
+    const ex = expertiseQ.trim().toLowerCase()
+    return rows.filter((r) => {
+      if (t) {
+        const blob = `${r.name} ${r.email} ${r.phone ?? ''} ${r.title ?? ''}`.toLowerCase()
+        if (!blob.includes(t)) return false
+      }
+      if (ex) {
+        const hasTag = (r.expertise ?? []).some((x) => x.toLowerCase().includes(ex))
+        if (!hasTag && !(r.title ?? '').toLowerCase().includes(ex)) return false
+      }
+      if (statusFilter === 'active' && !r.is_active) return false
+      if (statusFilter === 'inactive' && r.is_active) return false
+      if (photoFilter === 'has' && !hasPhoto(r)) return false
+      if (photoFilter === 'none' && hasPhoto(r)) return false
+      if (assignFilter === 'assigned' && (r.assigned_courses_count ?? 0) <= 0) return false
+      if (assignFilter === 'unassigned' && (r.assigned_courses_count ?? 0) > 0) return false
+      return true
     })
-    return base.filter((r) => !t || `${r.name} ${r.slug} ${r.title ?? ''}`.toLowerCase().includes(t))
-  }, [rows, q, sortKey])
+  }, [rows, q, expertiseQ, statusFilter, photoFilter, assignFilter])
 
-  const workshopsAgg = rows.reduce((a, i) => a + (i.workshops_count ?? 0), 0)
-  const rosterBusy = filtered.filter((i) => (i.courses_count ?? 0) + (i.workshops_count ?? 0) > 0).length
+  const kpis = useMemo(() => {
+    const total = rows.length
+    const active = rows.filter((r) => r.is_active).length
+    const courses = rows.reduce((a, r) => a + (r.assigned_courses_count ?? 0), 0)
+    const upcoming = rows.reduce((a, r) => a + (r.upcoming_workshops_count ?? 0), 0)
+    const noPhoto = rows.filter((r) => !hasPhoto(r)).length
+    const noExpertise = rows.filter((r) => (r.expertise?.length ?? 0) === 0).length
+    return { total, active, courses, upcoming, noPhoto, noExpertise }
+  }, [rows])
 
-  const topBar = [...filtered].sort((a, b) => (b.courses_count ?? 0) - (a.courses_count ?? 0)).slice(0, 9)
-
-  const tagCloud = useMemo(() => {
-    const tally = new Map<string, number>()
-    for (const r of filtered) {
-      if (!r.expertise?.trim()) continue
-      for (const w of splitExpertise(r.expertise)) tally.set(w, (tally.get(w) ?? 0) + 1)
+  async function toggleActive(row: AdminInstructorDirectoryRow) {
+    if (!row.user_id) {
+      toast.error('لا يوجد مستخدم مرتبط بهذا السجل — لا يمكن تغيير حالة التفعيل من هنا.')
+      return
     }
-    return [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 42)
-  }, [filtered])
-
-  const tagArea = tagCloud.slice(0, 12).map((t, idx) => ({ idx, v: t[1] }))
+    if (!row.email?.trim()) {
+      toast.error('لا يمكن تحديث الحساب بدون بريد إلكتروني.')
+      return
+    }
+    setTogglingId(row.user_id)
+    try {
+      await updateAdminUser(row.user_id, {
+        name: row.name,
+        email: row.email.trim(),
+        role: row.role,
+        is_active: !row.is_active,
+      })
+      toast.success(!row.is_active ? 'تم التفعيل' : 'تم التعطيل')
+      await load()
+    } catch (e) {
+      toast.error(getApiErrorMessage(e))
+    } finally {
+      setTogglingId(null)
+    }
+  }
 
   return (
     <SaPageRoot className="space-y-8 pb-16">
-      <EnterpriseCrudHero
-        eyebrow="Faculty network · Marketplace inventory"
-        title="المدربون — قياس أثر الكتالوج العام فقط"
-        subtitle="البيانات تُستهلك من نقطة الزائر `/instructors`؛ الأرقام هنا عدّية لمخرجات البرمجيات والورش في الاستجابة الحالية وليست بطاقة تقييم أداء حقيقية."
-        variant="navy"
-        actions={
-          <>
+      <section className="relative overflow-hidden rounded-[28px] border border-white/30 bg-gradient-to-bl from-[#0b1f33] via-[#132b45] to-[#0e3a52] px-6 py-8 text-white shadow-[0_32px_80px_-32px_rgba(15,23,42,0.55)] md:px-10">
+        <div className="pointer-events-none absolute -start-24 top-0 h-72 w-72 rounded-full bg-[#2691C2]/25 blur-[100px]" />
+        <div className="pointer-events-none absolute -end-16 bottom-0 h-56 w-56 rounded-full bg-[#EC943C]/20 blur-[90px]" />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl space-y-3 text-right">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/55">Faculty · EMC</p>
+            <h1 className="text-3xl font-black leading-tight md:text-4xl">دليل المدربين</h1>
+            <p className="text-[14px] font-semibold leading-relaxed text-white/75">
+              مستند إلى <code className="rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">GET /api/admin/instructors</code>
+              — كل سجل في جدول المدربين يُعرَض مع التطبيع المناسب (حتى بدون صورة أو بريد أو ربط مستخدم بعد).
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-end">
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-[18px] border border-white/25 bg-white/95 px-4 py-2.5 text-[12px] font-black text-deepBlue shadow backdrop-blur-md"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur-md transition hover:bg-white/15"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
             <Link
-              to="/dashboard/hr/instructors"
-              className="rounded-[18px] bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-lg"
+              to="/dashboard/super-admin/crud/programs"
+              className="rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-[#0f172a] shadow-lg transition hover:brightness-105"
             >
-              تشغيل HR تفصيلي
+              إسناد دورات
             </Link>
-          </>
-        }
-      />
+          </div>
+        </div>
+      </section>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <EnterpriseMetricTile
-          accent="blue"
-          icon={Trophy}
-          label="مراجع المدرب في النطاق المرشَّح"
-          value={<AnimatedTabular value={filtered.length} />}
-          hint={`من أصل مجموعة المرجع: ${rows.length}`}
-        />
-        <EnterpriseMetricTile
-          accent="orange"
-          icon={Gauge}
-          label="ورش مرتبطة باستجابة الكتالوج"
-          value={<AnimatedTabular value={workshopsAgg} />}
-        />
-        <EnterpriseMetricTile
-          accent="mint"
-          icon={Radio}
-          label="ضغط ظاهر في المرشّح الآن"
-          value={filtered.length === 0 ? '—' : `${Math.round((rosterBusy / filtered.length) * 100)}٪`}
-          hint={`${rosterBusy} من ${filtered.length} لديهم دورات أو ورش وفق هذا الجد.`}
-        />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+        <Kpi icon={Users} label="إجمالي المدربين" value={kpis.total} tone="sky" />
+        <Kpi icon={Zap} label="المدربون النشطون" value={kpis.active} tone="emerald" />
+        <Kpi icon={BookOpen} label="الدورات المسندة" value={kpis.courses} tone="blue" />
+        <Kpi icon={CalendarClock} label="الورش القادمة" value={kpis.upcoming} tone="amber" />
+        <Kpi icon={CameraOff} label="بدون صورة" value={kpis.noPhoto} tone="rose" />
+        <Kpi icon={Tag} label="بدون تخصص" value={kpis.noExpertise} tone="violet" />
       </div>
 
       <CrudToolbar
         sticky
         searchValue={q}
         onSearchChange={setQ}
-        searchPlaceholder="بحث بالاسم أو السِّلَق أو المسمى الوظيفي المعروض…"
+        searchPlaceholder="بحث بالاسم أو البريد أو الهاتف…"
       >
-        <MiniSelect
-          label="الفرز"
-          value={sortKey}
-          onChange={(v) => setSortKey(v as 'courses' | 'slug')}
-          options={[
-            { value: 'courses', labelAr: 'الأكثر برنامجًا' },
-            { value: 'slug', labelAr: 'السِلِق أبجديًا' },
-          ]}
-        />
+        <MiniSelect label="الحالة" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTER} />
+        <MiniSelect label="الصورة" value={photoFilter} onChange={setPhotoFilter} options={PHOTO_FILTER} />
+        <MiniSelect label="الإسناد" value={assignFilter} onChange={setAssignFilter} options={ASSIGN_FILTER} />
+        <label className="flex min-w-[160px] flex-col gap-1.5 text-right text-[11px] font-black text-deepBlue">
+          تخصص
+          <select
+            value={expertiseQ}
+            onChange={(e) => setExpertiseQ(e.target.value)}
+            className="rounded-xl border border-deepBlue/[0.12] bg-white px-3 py-2 text-[12px] font-bold text-deepBlue shadow-inner"
+          >
+            <option value="">الكل</option>
+            {expertiseTags.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        </label>
       </CrudToolbar>
 
-      <div className="grid gap-6 xl:grid-cols-[340px,minmax(0,1fr)]">
-        <div className="space-y-5">
-          <SaGlassCard glow="orange" className="p-6 text-right">
-            <div className="flex items-start justify-between gap-2 rtl:flex-row-reverse">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-accent-950">الأكثر تأثيراً في السجل الحالي</p>
-                <p className="mt-2 text-[11px] font-semibold text-muted-700">صفوف حسب مجموع برامج الاستجابة فقط؛ لا نقارن بتقييمات طلّاب خارجية الآن.</p>
-              </div>
-              <WandSparkles className="h-7 w-7 text-accent-600/80" aria-hidden />
+      {loading ?
+        <LoadingPanel />
+      : rows.length === 0 ?
+        <SaGlassCard className="p-12 text-center" glow="blue">
+          <div className="mx-auto flex max-w-md flex-col items-center gap-4">
+            <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 text-slate-400 ring-1 ring-slate-200">
+              <AlertCircle className="h-8 w-8" aria-hidden />
             </div>
-            <div className="mt-4 divide-y divide-ink-100/65 border-t border-ink-100/70 rtl:text-right">
-              {filtered.length === 0 && !loading ?
-                <EmptyPanel title="لا مدرب لتصنيفه في هذا المنظور الآن." />
-              : topBar.map((ins, idx) => {
-                  const pulse = ((ins.workshops_count ?? 0) + (ins.courses_count ?? 0)) * 3
-                  return (
-                    <motion.button
-                      type="button"
-                      key={`${ins.slug}-${idx}`}
-                      layout
-                      onClick={() => setView(ins)}
-                      className="flex w-full items-center gap-3 py-4 text-start rtl:flex-row-reverse"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: idx * 0.04 }}
-                    >
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] bg-gradient-to-bl from-accent-400/25 to-white text-[12px] font-black text-accent-950 ring-1 ring-accent-300/50">
-                        {idx + 1}
-                      </span>
-                      <div className="min-w-0 flex-1 rtl:text-right">
-                        <p className="truncate font-black text-deepBlue">{ins.name}</p>
-                        <div className="mt-2 flex flex-wrap gap-2 justify-start rtl:flex-row-reverse">
-                          <CrudBadge variant="brand">{ins.courses_count ?? 0} برنامج</CrudBadge>
-                          <CrudBadge variant="accent">{ins.workshops_count ?? 0} ورشة</CrudBadge>
-                          {pulse > 28 ?
-                            <CrudBadge variant="success">ضغط كتالوج مرتفع</CrudBadge>
-                          : pulse > 12 ?
-                            <CrudBadge variant="default">ضغط متوسط</CrudBadge>
-                          : (
-                            <CrudBadge variant="default">حمولة مخفيفة ظاهرة</CrudBadge>
-                          )}
-                        </div>
-                      </div>
-                    </motion.button>
-                  )
-                })}
-            </div>
-          </SaGlassCard>
-          <SaGlassCard className="p-5 ring-2 ring-accent-400/35" glow="blue">
-            <p className="text-[11px] font-black text-deepBlue">مزامنة بيانات خارجية مقترحة</p>
-            <ul className="mt-4 space-y-3 text-[12px] font-semibold text-muted-700 rtl:text-right">
-              <li> لا يصدّره `/instructors` معدلات إكمال فعلية أو آراء؛ أضيف عند ظهور حقل حقيقي لتجنّب مؤثرات LMS وهمية. </li>
-              <li> يمكن لمزود خلفى جديد حقن عدّادات SLA استجابة دون مغادرة شكل هذه اللوحة. </li>
-            </ul>
-          </SaGlassCard>
-        </div>
-
-        <div className="space-y-5">
-          {loading ?
-            <LoadingPanel />
-          : !filtered.length ?
-            <EmptyPanel title="لم يتم العثور على مدربين" subtitle="تأكد من أن نقطة GET /instructors متاحة وفق شبكة العمل الآن." />
-          :
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
-              <SaGlassCard className="relative overflow-hidden p-8" glow="orange">
-                <div className="absolute end-[-10%] top-[-35%] h-48 w-48 rounded-full bg-[#2691C2]/10 blur-[80px]" aria-hidden />
-                <div className="relative flex flex-wrap items-start justify-between gap-4 text-right rtl:text-right">
-                  <div>
-                    <p className="text-[11px] font-black text-muted-600">مزيج إنتاج المحتوى الظاهري</p>
-                    <h2 className="mt-2 text-3xl font-black text-deepBlue">مجموعات التدريس وفق مجموعة المرشّح</h2>
-                  </div>
-                  <LineChart className="h-11 w-11 text-accent-700/85" aria-hidden />
-                </div>
-                <div className="relative mt-6 rounded-[26px] border border-white/80 bg-white/70 p-3 shadow-inner backdrop-blur">
-                  <EnterpriseBarChartRtl
-                    data={topBar.map((r) => ({ nameAr: r.name.length > 16 ? `${r.name.slice(0, 14)}…` : r.name, برامج: r.courses_count ?? 0 }))}
-                    dataKey="برامج"
-                    nameKey="nameAr"
-                    gradientId="ins-bar"
-                    height={280}
+            <p className="text-lg font-black text-deepBlue">لا يوجد مدربون حاليًا</p>
+            <p className="text-[13px] font-semibold leading-relaxed text-muted-700">
+              لم تُحمَّل أي صفوف من الخادم بعد التطبيع؛ تحقق من استجابة <code className="font-mono text-[11px]">GET /api/admin/instructors</code> في تبويب الشبكة
+              وسجلات الـ console.
+            </p>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="rounded-2xl bg-[#2691C2] px-6 py-2.5 text-[12px] font-black text-white shadow-md"
+            >
+              إعادة المحاولة
+            </button>
+          </div>
+        </SaGlassCard>
+      : filtered.length === 0 ?
+        <EmptyPanel title="لا نتائج ضمن المرشحات" subtitle="جرّب توسيع البحث أو إعادة ضبط الفلاتر." />
+      :
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <AnimatePresence initial={false}>
+            {filtered.map((row, i) => (
+              <motion.article
+                key={row.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ delay: Math.min(i * 0.02, 0.2) }}
+                className="group relative flex flex-col overflow-hidden rounded-[26px] border border-white/80 bg-gradient-to-b from-white via-white to-slate-50/90 shadow-[0_28px_70px_-38px_rgba(15,23,42,0.45)] ring-1 ring-slate-200/70"
+              >
+                <div className="relative flex flex-col items-center px-5 pb-4 pt-8 text-center">
+                  <div
+                    className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#2691C2]/12 via-[#2691C2]/5 to-transparent"
+                    aria-hidden
                   />
-                </div>
-              </SaGlassCard>
-
-              <SaGlassCard className="flex flex-col gap-4 p-5 text-right" glow="blue">
-                <p className="text-[11px] font-black text-deepBlue">سحابة خبرات مفكّكة من النصوص الحرفية</p>
-                <p className="text-[11px] font-semibold text-muted-600">يُقسَم حقل expertise عند الفواصل والشرطات حسب استجابة الخادم فقط.</p>
-                <div className="rounded-[20px] border border-customBlue/25 bg-brand-500/[0.05] px-2 py-2">
-                  {tagArea.length ?
-                    <EnterpriseTinyArea data={tagArea} height={86} />
-                  : null}
-                </div>
-                <div className="flex flex-wrap gap-2 justify-start rtl:flex-row-reverse">
-                  {tagCloud.length ?
-                    tagCloud.map(([label, w]) => (
-                      <motion.span
-                        key={label}
-                        layout
-                        className="rounded-full px-3 py-1 text-[11px] font-black ring-1"
-                        style={{
-                          backgroundColor: `rgba(38,145,194,${0.08 + Math.min(0.22, w * 0.04)})`,
-                          color: '#0F172A',
-                          borderColor: 'rgba(38,145,194,0.35)',
-                        }}
-                      >
-                        {label} · {w}
-                      </motion.span>
-                    ))
-                  : (
-                    <span className="text-[12px] font-bold text-muted-600">لا يوجد نص خبرة قابل للتفكيك في هذه المجموعة.</span>
-                  )}
-                </div>
-              </SaGlassCard>
-            </div>
-          }
-
-          {!loading && filtered.length ?
-            <div className="grid gap-4 md:grid-cols-2">
-              {filtered.map((ins, i) => {
-                const busy = (ins.courses_count ?? 0) > 0 || (ins.workshops_count ?? 0) > 0
-                return (
-                  <motion.div
-                    key={ins.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(i * 0.03, 0.24) }}
-                    className="relative overflow-hidden rounded-[26px] border border-white/70 bg-gradient-to-bl from-white via-white to-slate-50 p-5 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)] ring-1 ring-ink-100/60"
-                  >
+                  <div className="relative mb-4 h-28 w-28 shrink-0 sm:h-32 sm:w-32">
+                    <InstructorAvatar row={row} className="h-full w-full" />
                     <span
-                      className="absolute -start-8 top-8 h-24 w-24 rounded-full opacity-40 blur-2xl"
-                      style={{ background: EMC_CHART_PALETTE[i % EMC_CHART_PALETTE.length] }}
-                      aria-hidden
-                    />
-                    <div className="relative flex flex-wrap items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 rtl:flex-row-reverse">
-                        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-slate-100 text-sm font-black text-deepBlue ring-1 ring-slate-200">
-                          {initialsFromName(ins.name)}
-                        </div>
-                        <div className="min-w-0 text-right rtl:text-right">
-                          <h3 className="font-black text-deepBlue">{ins.name}</h3>
-                          <code className="mt-1 block truncate text-[11px] text-muted-600">{ins.slug}</code>
-                        </div>
-                      </div>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black ring-1 ${
-                          busy ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-slate-100 text-slate-600 ring-slate-200'
-                        }`}
-                      >
-                        <Radio className={`h-3 w-3 ${busy ? 'text-emerald-600' : 'text-slate-400'}`} aria-hidden />
-                        {busy ? 'ضغط كتالوج ظاهر' : 'أقل من جلسة برنامج'}
-                      </span>
-                    </div>
-                    {ins.title ?
-                      <p className="relative mt-3 text-[12px] font-bold text-muted-700 rtl:text-right">{ins.title}</p>
+                      className={`absolute -bottom-1 end-1 rounded-full px-2 py-0.5 text-[9px] font-black ring-2 ring-white ${
+                        row.is_active ? 'bg-emerald-500 text-white' : 'bg-slate-400 text-white'
+                      }`}
+                    >
+                      {row.is_active ? 'نشط' : 'موقوف'}
+                    </span>
+                  </div>
+                  <h2 className="line-clamp-2 min-h-[3rem] text-lg font-black leading-snug text-deepBlue">{row.name}</h2>
+                  <p className="mt-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-500 dir-ltr">
+                    <Mail className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" aria-hidden />
+                    <span className="truncate">{row.email || '—'}</span>
+                  </p>
+                  {row.phone ?
+                    <p className="mt-0.5 flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-600 dir-ltr">
+                      <Phone className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
+                      {row.phone}
+                    </p>
+                  : null}
+                  <div className="mt-3 flex min-h-[2.25rem] flex-wrap justify-center gap-1.5">
+                    {(row.expertise?.length ?? 0) > 0 ?
+                      row.expertise!.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full border border-[#2691C2]/25 bg-[#2691C2]/[0.07] px-2.5 py-0.5 text-[10px] font-black text-[#0f3a52]"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    : <span className="text-[11px] font-bold text-slate-400">غير محدد</span>}
+                    {(row.expertise?.length ?? 0) > 3 ?
+                      <span className="text-[10px] font-black text-slate-400">+{row.expertise!.length - 3}</span>
                     : null}
-                    <div className="relative mt-4 flex flex-wrap justify-start gap-2 rtl:flex-row-reverse">
-                      {ins.expertise ?
-                        splitExpertise(ins.expertise).slice(0, 4).map((tag) => (
-                          <CrudBadge key={tag} variant="brand">
-                            {tag}
-                          </CrudBadge>
-                        ))
-                      : (
-                        <CrudBadge variant="default">تخصّص غير معلن</CrudBadge>
-                      )}
-                      {ins.image_url ?
-                        <CrudBadge variant="accent">بروفايل بصورة</CrudBadge>
-                      : (
-                        <CrudBadge variant="default">رمز احتياطي</CrudBadge>
-                      )}
-                    </div>
-                    <div className="relative mt-4 rounded-2xl border border-ink-100/80 bg-slate-50/90 px-4 py-3 text-right">
-                      <p className="text-[10px] font-black uppercase text-muted-500">ضخّ كتالوج موجز</p>
-                      <p className="mt-1 text-[14px] font-black text-deepBlue">
-                        {ins.courses_count ?? 0} دورة · {ins.workshops_count ?? 0} ورشة
-                      </p>
-                    </div>
-                    {ins.courses && ins.courses.length > 0 ?
-                      <div className="relative mt-3 flex flex-wrap gap-1.5 justify-start rtl:flex-row-reverse">
-                        {ins.courses.slice(0, 3).map((c) => (
-                          <span key={c.id} className="rounded-lg bg-brand-500/10 px-2 py-0.5 text-[10px] font-bold text-brand-950 ring-1 ring-brand-400/25">
-                            {c.title}
-                          </span>
-                        ))}
-                        {ins.courses.length > 3 ?
-                          <span className="text-[10px] font-black text-muted-500">+{ins.courses.length - 3}</span>
-                        : null}
-                      </div>
-                    : null}
-                    <div className="relative mt-5 flex justify-end border-t border-ink-100/60 pt-4">
-                      <RowActionsMenu
-                        ariaLabel={ins.name}
-                        actions={[
-                          { key: 'v', label: 'لمحة', onClick: () => setView(ins) },
-                          { key: 'p', label: 'الموقع العام', onClick: () => window.open(`/instructors/${ins.slug}`, '_blank') },
-                        ]}
-                      />
-                    </div>
-                  </motion.div>
-                )
-              })}
-            </div>
-          : null}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100/90 bg-slate-50/80 px-2 py-3 [&>div]:px-1 [&>div]:text-center">
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-slate-500">دورات</p>
+                    <p className="text-lg font-black tabular-nums text-deepBlue">{row.assigned_courses_count ?? 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-slate-500">ورش</p>
+                    <p className="text-lg font-black tabular-nums text-deepBlue">{row.workshops_count ?? 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-slate-500">قادمة</p>
+                    <p className="text-lg font-black tabular-nums text-[#EC943C]">{row.upcoming_workshops_count ?? 0}</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100/90 px-4 py-2 text-center">
+                  <p className="text-[10px] font-bold text-slate-500">آخر نشاط</p>
+                  <p className="text-[11px] font-black text-slate-700">{displayLastActivity(row.last_activity_at)}</p>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-1.5 border-t border-slate-100 bg-white/90 px-3 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setView(row)}
+                    className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#2691C2]/40"
+                  >
+                    عرض الملف
+                  </button>
+                  {row.user_id ?
+                    <Link
+                      to={`/dashboard/super-admin/crud/users/${row.user_id}/edit`}
+                      className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#2691C2]/40"
+                    >
+                      تعديل
+                    </Link>
+                  : null}
+                  <Link
+                    to="/dashboard/super-admin/crud/programs"
+                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black text-emerald-900 shadow-sm transition hover:bg-emerald-100"
+                  >
+                    إسناد دورة
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => toast.message('سيتم ربط إرسال الإشعارات عبر مركز الإشعارات قريبًا')}
+                    className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm"
+                  >
+                    إشعار
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!row.user_id || togglingId === row.user_id}
+                    title={row.user_id ? undefined : 'لا يوجد مستخدم للحساب — أضِف أو اربِط user_id في الخلفية'}
+                    onClick={() => void toggleActive(row)}
+                    className="rounded-xl border border-slate-800/10 bg-slate-900 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm disabled:opacity-50"
+                  >
+                    {row.user_id && togglingId === row.user_id ? '…' : row.is_active ? 'تعطيل' : 'تفعيل'}
+                  </button>
+                </div>
+              </motion.article>
+            ))}
+          </AnimatePresence>
         </div>
-      </div>
+      }
+
+      {!loading && rows.length > 0 ?
+        <p className="text-center text-[11px] font-bold text-slate-500">
+          عرض {filtered.length} من أصل {rows.length} مدربًا
+        </p>
+      : null}
 
       <EntityDetailDrawer
         open={view !== null}
         onClose={() => setView(null)}
         title={view?.name ?? ''}
-        subtitle={view?.title ?? 'ملف مدرب — كتالوج عام'}
-        avatar={
-          view ?
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 text-lg font-black text-deepBlue ring-2 ring-white shadow-md">
-              {initialsFromName(view.name)}
-            </span>
-          : null
-        }
+        subtitle={view?.title ?? view?.email ?? ''}
+        widthClassName="max-w-xl"
+        avatar={view ? <InstructorAvatar row={view} className="mx-auto h-20 w-20 text-xl" /> : null}
         badges={
           view ?
             <>
-              <CrudBadge variant="brand">{view.courses_count ?? 0} برنامج</CrudBadge>
-              <CrudBadge variant="accent">{view.workshops_count ?? 0} ورشة</CrudBadge>
+              <CrudBadge variant={view.is_active ? 'success' : 'default'}>{view.is_active ? 'نشط' : 'موقوف'}</CrudBadge>
+              <CrudBadge variant="brand">{view.assigned_courses_count} دورة</CrudBadge>
+              <CrudBadge variant="accent">{view.workshops_count} ورشة</CrudBadge>
             </>
           : null
         }
         footerSlot={
-          <EntityActionMenu
-            onClose={() => setView(null)}
-            onEdit={
-              view ?
-                () => window.open(`/instructors/${view.slug}`, '_blank')
-              : undefined
-            }
-            editLabel="صفحة الزائر"
-          />
+          view ?
+            <div className="flex flex-wrap justify-end gap-2">
+              {view.user_id ?
+                <Link
+                  to={`/dashboard/super-admin/crud/users/${view.user_id}/edit`}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-sm"
+                >
+                  تعديل المستخدم
+                </Link>
+              : null}
+              <button
+                type="button"
+                disabled={!view.user_id}
+                title={view.user_id ? undefined : 'لا يوجد حساب مستخدم مرتبط'}
+                onClick={() => view.user_id && void toggleActive(view)}
+                className="rounded-2xl bg-slate-900 px-4 py-2.5 text-[12px] font-black text-white shadow-sm disabled:opacity-50"
+              >
+                {view.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'}
+              </button>
+            </div>
+          : null
         }
         tabs={
           view ?
             [
               {
-                id: 'overview',
-                labelAr: 'نظرة عامة',
+                id: 'general',
+                labelAr: 'البيانات العامة',
                 content: (
                   <div className="space-y-4">
-                    <EntityDetailSection title="نبذة" icon={<WandSparkles className="h-4 w-4" aria-hidden />}>
-                      <p className="text-[13px] font-semibold leading-relaxed text-muted-700">
-                        {view.bio?.trim() ?? 'لم يصل نص سيرة عبر نقطة الاستجابة الحالية.'}
-                      </p>
-                    </EntityDetailSection>
-                    <EntityDetailSection title="مفاتيح سجل" icon={<Radio className="h-4 w-4" aria-hidden />}>
+                    <EntityDetailSection title="التواصل" icon={<Mail className="h-4 w-4" aria-hidden />}>
                       <dl className="grid gap-3 sm:grid-cols-2">
-                        <EntityDetailField label="المعرّف" value={<span className="font-mono">#{view.id}</span>} />
-                        <EntityDetailField label="السِلِق" value={<code className="font-mono text-[12px]">{view.slug}</code>} />
-                        <EntityDetailField label="المسمى المعروض" value={view.title ?? '—'} />
+                        <EntityDetailField label="البريد" value={<span dir="ltr">{view.email || '—'}</span>} />
+                        <EntityDetailField label="الهاتف" value={view.phone || '—'} />
                         <EntityDetailField
-                          label="صورة ملف"
-                          value={view.image_url ? 'مرفوع' : 'رمز احتياطي'}
+                          label="معرّف المستخدم"
+                          value={
+                            view.user_id ?
+                              <span className="font-mono">#{view.user_id}</span>
+                            : '— (غير مربوط)'
+                          }
+                        />
+                        <EntityDetailField
+                          label="معرّف ملف المدرب"
+                          value={view.instructor_id ? <span className="font-mono">#{view.instructor_id}</span> : '—'}
                         />
                       </dl>
+                    </EntityDetailSection>
+                    <EntityDetailSection title="نبذة" icon={<GraduationCap className="h-4 w-4" aria-hidden />}>
+                      <p className="text-[13px] font-semibold leading-relaxed text-muted-700">
+                        {view.bio?.trim() ? view.bio : 'غير محدد'}
+                      </p>
+                    </EntityDetailSection>
+                    <EntityDetailSection title="التخصص" icon={<Sparkles className="h-4 w-4" aria-hidden />}>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {(view.expertise?.length ?? 0) > 0 ?
+                          view.expertise!.map((t) => (
+                            <CrudBadge key={t} variant="brand">
+                              {t}
+                            </CrudBadge>
+                          ))
+                        : (
+                          <span className="text-[12px] font-bold text-slate-500">لا توجد وسوم — عرض مصفوفة فارغة [] في الـ API</span>
+                        )}
+                      </div>
                     </EntityDetailSection>
                   </div>
                 ),
               },
               {
-                id: 'expertise',
-                labelAr: 'الخبرات والبرامج',
+                id: 'courses',
+                labelAr: 'الدورات المسندة',
                 content: (
-                  <EntityDetailSection title="خبرات معلنة" icon={<LineChart className="h-4 w-4" aria-hidden />}>
-                    <div className="flex flex-wrap justify-end gap-2">
-                      {splitExpertise(view.expertise ?? '').length ?
-                        splitExpertise(view.expertise ?? '').map((t) => (
-                          <CrudBadge key={t} variant="brand">
-                            {t}
-                          </CrudBadge>
-                        ))
-                      : (
-                        <CrudBadge variant="default">لا حقل خبرة قابل للتفكيك</CrudBadge>
-                      )}
-                    </div>
-                    {view.courses?.length ?
-                      <div className="mt-4 space-y-2">
-                        <p className="text-[11px] font-black text-muted-600">برامج مرتبطة في الاستجابة</p>
-                        <ul className="space-y-2 text-[12px] font-semibold text-muted-800 rtl:text-right">
-                          {view.courses.map((c) => (
-                            <li key={c.id} className="rounded-xl border border-ink-100/70 bg-white px-3 py-2">
-                              {c.title}{' '}
-                              <code className="text-[10px] text-muted-500">{c.slug}</code>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    : null}
+                  <EntityDetailSection title="إحصاء سريع" icon={<BookOpen className="h-4 w-4" aria-hidden />}>
+                    <p className="text-[13px] font-semibold text-muted-700">
+                      عدد الدورات المسندة وفق سجلات الخادم:{' '}
+                      <strong className="text-deepBlue">{view.assigned_courses_count}</strong>. لقائمة العناوين الكاملة، اربط
+                      نقطة تفاصيل المدرب لاحقًا أو افتح لوحة البرامج.
+                    </p>
+                    <Link
+                      to="/dashboard/super-admin/crud/programs"
+                      className="mt-4 inline-flex rounded-xl bg-[#2691C2] px-4 py-2 text-[12px] font-black text-white shadow-md"
+                    >
+                      فتح إدارة البرامج
+                    </Link>
+                  </EntityDetailSection>
+                ),
+              },
+              {
+                id: 'workshops',
+                labelAr: 'الورش',
+                content: (
+                  <EntityDetailSection title="الورش" icon={<CalendarClock className="h-4 w-4" aria-hidden />}>
+                    <EntityDetailField label="إجمالي الورش المسندة" value={String(view.workshops_count)} />
+                    <EntityDetailField label="ورش بموعد قادم" value={String(view.upcoming_workshops_count)} />
+                  </EntityDetailSection>
+                ),
+              },
+              {
+                id: 'ratings',
+                labelAr: 'التقييمات',
+                content: (
+                  <EntityDetailSection title="التقييمات" icon={<Sparkles className="h-4 w-4" aria-hidden />}>
+                    <p className="text-[13px] font-semibold text-muted-700">
+                      لا تتوفر بيانات تقييمات في استجابة قائمة المدربين حاليًا.
+                    </p>
                   </EntityDetailSection>
                 ),
               },
@@ -454,9 +533,18 @@ export default function InstructorsManagementPage() {
                 id: 'activity',
                 labelAr: 'النشاط',
                 content: (
-                  <EntityDetailSection title="تدقيق ظرفي" icon={<Gauge className="h-4 w-4" aria-hidden />}>
-                    <p className="text-[12px] font-semibold text-muted-700">
-                      لا سجل تغييرات خلفي في واجهة `/instructors`؛ هذا القسم تذكير تشغيلي حتى تربط نقطة LMS أو HR.
+                  <EntityDetailSection title="آخر نشاط" icon={<Zap className="h-4 w-4" aria-hidden />}>
+                    <EntityDetailField label="آخر تسجيل دخول" value={displayLastActivity(view.last_login_at)} />
+                  </EntityDetailSection>
+                ),
+              },
+              {
+                id: 'notifications',
+                labelAr: 'الإشعارات',
+                content: (
+                  <EntityDetailSection title="الإشعارات" icon={<Bell className="h-4 w-4" aria-hidden />}>
+                    <p className="text-[13px] font-semibold text-muted-700">
+                      لم يتم تسجيل سجل إشعارات لهذا المدرب في هذه الواجهة بعد.
                     </p>
                   </EntityDetailSection>
                 ),
@@ -466,5 +554,43 @@ export default function InstructorsManagementPage() {
         }
       />
     </SaPageRoot>
+  )
+}
+
+function Kpi({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: ElementType
+  label: string
+  value: number
+  tone: 'sky' | 'emerald' | 'blue' | 'amber' | 'rose' | 'violet'
+}) {
+  const ring: Record<typeof tone, string> = {
+    sky: 'ring-sky-400/25',
+    emerald: 'ring-emerald-400/30',
+    blue: 'ring-[#2691C2]/35',
+    amber: 'ring-amber-400/35',
+    rose: 'ring-rose-400/30',
+    violet: 'ring-violet-400/35',
+  }
+  const bg: Record<typeof tone, string> = {
+    sky: 'from-sky-500/15 to-white',
+    emerald: 'from-emerald-500/15 to-white',
+    blue: 'from-[#2691C2]/15 to-white',
+    amber: 'from-amber-500/15 to-white',
+    rose: 'from-rose-500/12 to-white',
+    violet: 'from-violet-500/12 to-white',
+  }
+  return (
+    <SaGlassCard className={`bg-gradient-to-br ${bg[tone]} p-4 ring-1 ${ring[tone]}`} glow="blue">
+      <div className="flex items-center justify-between gap-2 rtl:flex-row-reverse">
+        <Icon className="h-5 w-5 opacity-70" aria-hidden />
+        <span className="text-2xl font-black tabular-nums text-deepBlue">{value}</span>
+      </div>
+      <p className="mt-2 text-[10px] font-black uppercase leading-snug tracking-wide text-slate-600">{label}</p>
+    </SaGlassCard>
   )
 }

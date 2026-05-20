@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import TrackCard from './TrackCard'
 import type { TrackItem } from '@/services/coursesApi'
@@ -66,6 +67,10 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
               <TrackSkeleton key={i} />
             ))}
           </div>
+        ) : tracks.length === 0 ? (
+          <p className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center text-sm text-muted-500">
+            لا تتوفر مسارات من الخادم حالياً. يمكنك تصفح الدورات أعلاه أو زيارة صفحة المسارات لاحقاً.
+          </p>
         ) : (
           <div className="flex md:grid md:grid-cols-3 gap-5 overflow-x-auto md:overflow-visible pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
             {tracks.map((track, i) => (
@@ -82,9 +87,12 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
             transition={{ duration: 0.45, delay: 0.5 }}
             className="flex justify-center mt-10"
           >
-            <button className="flex items-center gap-2 border-2 border-deepBlue text-deepBlue hover:bg-deepBlue hover:text-white font-bold px-7 py-3 rounded-xl transition-all duration-200 text-sm">
+            <Link
+              to="/tracks"
+              className="flex items-center gap-2 rounded-xl border-2 border-deepBlue px-7 py-3 text-sm font-bold text-deepBlue transition-all duration-200 hover:bg-deepBlue hover:text-white"
+            >
               عرض جميع المسارات
-            </button>
+            </Link>
           </motion.div>
         )}
       </div>

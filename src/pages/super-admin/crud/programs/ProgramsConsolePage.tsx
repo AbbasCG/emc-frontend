@@ -21,6 +21,7 @@ import {
   patchCoursePublishState,
   type AdminRegistrationRow,
 } from '@/api/adminCoursesApi'
+import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { fetchCoursesStrict, fetchTracksStrict, type CatalogTrackRow } from '@/api/superAdminCatalogApi'
 import type { Course } from '@/types'
@@ -51,6 +52,12 @@ import {
   isUpcomingCourse,
   missingCourseDate,
 } from '@/pages/super-admin/crud/programs/programConsoleUtils'
+import {
+  applyAssignedInstructorToCourse,
+  getCourseInstructor,
+  instructorLookupMapFromAssignableRows,
+  type CourseInstructorLookupRow,
+} from '@/utils/courseInstructor'
 import type { ElementType, ReactNode } from 'react'
 
 type CourseVM = Course & {
@@ -79,6 +86,7 @@ export default function ProgramsConsolePage() {
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [rows, setRows] = useState<Course[]>([])
+  const [instructorRows, setInstructorRows] = useState<AdminInstructorOption[]>([])
   const [regs, setRegs] = useState<AdminRegistrationRow[]>([])
   const [tracks, setTracks] = useState<CatalogTrackRow[]>([])
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([])
@@ -95,7 +103,11 @@ export default function ProgramsConsolePage() {
   const load = useCallback(async () => {
     setLoading(true)
     setFailed(false)
-    const pack = await fetchCoursesStrict()
+    const [pack, insRows] = await Promise.all([
+      fetchCoursesStrict(),
+      fetchAdminInstructors().catch(() => [] as AdminInstructorOption[]),
+    ])
+    setInstructorRows(insRows)
     if (!pack.ok) {
       setFailed(true)
       setRows([])
@@ -119,6 +131,16 @@ export default function ProgramsConsolePage() {
 
   const regMap = useMemo(() => countRegistrationsByCourse(regs), [regs])
 
+  const instructorLookup = useMemo(() => {
+    const rows: CourseInstructorLookupRow[] = instructorRows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      avatar_url: r.avatar_url ?? null,
+    }))
+    return instructorLookupMapFromAssignableRows(rows)
+  }, [instructorRows])
+
   const viewModels: CourseVM[] = useMemo(
     () => rows.map((c) => vmFromCourse(c, regMap)),
     [rows, regMap],
@@ -139,7 +161,8 @@ export default function ProgramsConsolePage() {
     return viewModels.filter((c) => {
       const dept = c.department?.name ?? c.department_name ?? ''
       const tr = c.track?.title ?? c.track_title ?? ''
-      const hay = `${c.title} ${c.slug} ${c.instructor_name ?? ''} ${dept} ${tr}`.toLowerCase()
+      const insLabel = getCourseInstructor(c, { lookupByInstructorId: instructorLookup }).displayName
+      const hay = `${c.title} ${c.slug} ${insLabel} ${dept} ${tr}`.toLowerCase()
       if (t && !hay.includes(t)) return false
       if (mode === 'published' && !isPublishedCourse(c)) return false
       if (mode === 'draft' && isPublishedCourse(c)) return false
@@ -147,7 +170,7 @@ export default function ProgramsConsolePage() {
       if (mode === 'no_date' && !missingCourseDate(c)) return false
       return true
     })
-  }, [viewModels, q, mode])
+  }, [viewModels, q, mode, instructorLookup])
 
   function openCreate() {
     setFormCourse(null)
@@ -180,6 +203,21 @@ export default function ProgramsConsolePage() {
     } catch (e) {
       toast.error(getApiErrorMessage(e))
     }
+  }
+
+  function instructorDrawerField(course: Course) {
+    const pin = getCourseInstructor(course, { lookupByInstructorId: instructorLookup })
+    if (!hasInstructor(course)) {
+      return <span className="font-bold text-amber-700">بدون مدرب</span>
+    }
+    return (
+      <div className="space-y-0.5 text-right">
+        <div className="font-bold text-deepBlue">{pin.displayName}</div>
+        {pin.email ?
+          <div className="text-[11px] font-semibold text-slate-500 dir-ltr">{pin.email}</div>
+        : null}
+      </div>
+    )
   }
 
   return (
@@ -270,6 +308,7 @@ export default function ProgramsConsolePage() {
               <ProgramBentoCard
                 key={c.id}
                 c={c}
+                instructorLookup={instructorLookup}
                 index={i}
                 onPreview={() => setPreview(c)}
                 onEdit={() => openEdit(c)}
@@ -334,9 +373,7 @@ export default function ProgramsConsolePage() {
                           : <CrudBadge variant="default">مسودة</CrudBadge>}
                         </Td>
                         <Td className="text-[12px] font-bold">
-                          {hasInstructor(c) ?
-                            <span className="text-deepBlue">{c.instructor_name ?? `#${c.instructor_id}`}</span>
-                          : <span className="text-amber-700">—</span>}
+                          <CourseInstructorTableCell course={c} lookup={instructorLookup} />
                         </Td>
                         <Td className="max-w-[10rem] text-[11px] font-semibold text-slate-600">
                           <span className="line-clamp-2">
@@ -460,6 +497,7 @@ export default function ProgramsConsolePage() {
                         }
                       />
                       <EntityDetailField label="رابط اجتماع" value={preview.meeting_link ?? '—'} />
+                      <EntityDetailField label="المدرب" value={instructorDrawerField(preview)} />
                     </dl>
                   </EntityDetailSection>
                 ),
@@ -476,13 +514,22 @@ export default function ProgramsConsolePage() {
         departments={departments}
         onClose={() => setFormOpen(false)}
         onSaved={() => void load()}
+        onCreateAnother={() => setFormCourse(null)}
       />
 
       <AssignInstructorModal
         open={assignCourse !== null}
         course={assignCourse}
         onClose={() => setAssignCourse(null)}
-        onAssigned={() => void load()}
+        onAssigned={(ins) => {
+          const target = assignCourse
+          if (!target) return
+          const cid = target.id
+          const merged = applyAssignedInstructorToCourse(target, ins)
+          setRows((prev) => prev.map((row) => (row.id === cid ? merged : row)))
+          setPreview((p) => (p?.id === cid ? merged : p))
+          setFormCourse((fc) => (fc?.id === cid ? merged : fc))
+        }}
       />
 
       <ScheduleCourseModal
@@ -529,6 +576,7 @@ function KpiMini({
 
 function ProgramBentoCard({
   c,
+  instructorLookup,
   index,
   onPreview,
   onEdit,
@@ -538,6 +586,7 @@ function ProgramBentoCard({
   onDelete,
 }: {
   c: CourseVM
+  instructorLookup: Map<number, CourseInstructorLookupRow>
   index: number
   onPreview: () => void
   onEdit: () => void
@@ -550,6 +599,7 @@ function ProgramBentoCard({
   const paid = isPaidCourse(c)
   const palette =
     index % 3 === 0 ? 'from-[#22334A] to-[#2691C2]' : index % 3 === 1 ? 'from-[#EC943C] to-[#22334A]' : 'from-[#0F172A] to-[#22334A]'
+  const insResolved = getCourseInstructor(c, { lookupByInstructorId: instructorLookup })
 
   return (
     <motion.article
@@ -571,7 +621,7 @@ function ProgramBentoCard({
         <h3 className="mt-4 line-clamp-2 min-h-[2.75rem] text-lg font-black leading-snug">{c.title}</h3>
         <p className="mt-2 text-[11px] font-semibold text-white/75">
           {hasInstructor(c) ?
-            <>المدرب: {c.instructor_name}</>
+            <>المدرب: {insResolved.displayName}</>
           : <span className="inline-flex items-center gap-1 text-amber-200">
               <UserX size={14} aria-hidden /> بدون مدرب
             </span>}
@@ -623,5 +673,48 @@ function ProgramBentoCard({
         </button>
       </div>
     </motion.article>
+  )
+}
+
+function CourseInstructorTableCell({
+  course,
+  lookup,
+}: {
+  course: Course
+  lookup: Map<number, CourseInstructorLookupRow>
+}) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const resolved = getCourseInstructor(course, { lookupByInstructorId: lookup })
+
+  useEffect(() => {
+    setImgFailed(false)
+  }, [resolved.avatarUrl])
+
+  if (!hasInstructor(course)) {
+    return <span className="font-bold text-amber-700">بدون مدرب</span>
+  }
+
+  const showImg = Boolean(resolved.avatarUrl && !imgFailed)
+
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#2691C2]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#2691C2]/22">
+        {showImg && resolved.avatarUrl ?
+          <img
+            src={resolved.avatarUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={() => setImgFailed(true)}
+          />
+        : initialsFromName(resolved.displayName)}
+      </span>
+      <div className="min-w-0 text-right">
+        <p className="truncate font-bold text-deepBlue">{resolved.displayName}</p>
+        {resolved.email ?
+          <p className="truncate text-[10px] font-semibold text-slate-500 dir-ltr">{resolved.email}</p>
+        : null}
+      </div>
+    </div>
   )
 }

@@ -1,58 +1,54 @@
-import axios from 'axios'
-import { useEffect, useState } from 'react'
-import { FolderOpen } from 'lucide-react'
-import { fetchStudentMaterials } from '@/api/studentApi'
-import type { LmsMaterial } from '@/types/lms'
+import { FolderOpen, RefreshCw } from 'lucide-react'
 import { DashboardSection } from '@/components/dashboard'
 import { LmsEmptyState, LmsPageSkeleton, MaterialCard } from '@/components/lms'
+import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 
 export default function StudentMaterialsPage() {
-  const [materials, setMaterials] = useState<LmsMaterial[]>([])
-  const [loading, setLoading] = useState(true)
-  const [apiMissing, setApiMissing] = useState(false)
+  const { loading, refreshing, loadError, refresh, materialsScoped, registrations } = useStudentDashboardData()
 
-  useEffect(() => {
-    let alive = true
-    fetchStudentMaterials()
-      .then((rows) => {
-        if (alive) setMaterials(rows)
-      })
-      .catch((err) => {
-        if (!alive || axios.isCancel(err)) return
-        setApiMissing(true)
-      })
-      .finally(() => {
-        if (alive) setLoading(false)
-      })
-    return () => {
-      alive = false
-    }
-  }, [])
-
-  if (loading) return <LmsPageSkeleton />
+  if (loading && materialsScoped.length === 0) {
+    return <LmsPageSkeleton />
+  }
 
   return (
-    <div className="space-y-8">
-      {apiMissing && import.meta.env.DEV && (
-        <div className="rounded-xl bg-amber-50 px-5 py-3 text-right text-xs font-bold text-amber-800 ring-1 ring-amber-100">
-          تحقق من نقطة النهاية <code className="rounded bg-white/80 px-1">GET /api/student/materials</code> على الخادم.
+    <div className="space-y-8 text-right rtl" dir="rtl">
+      <header className="flex flex-wrap items-start justify-between gap-4 rounded-[1.35rem] border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.04]">
+        <div>
+          <h1 className="text-xl font-black text-deepBlue">المواد التعليمية</h1>
+          <p className="mt-2 max-w-2xl text-[13px] font-semibold text-muted-700">
+            مصدر الخادم: <span className="font-mono text-[11px]">GET /student/materials</span> — معروض فقط ما يخص دوراتك
+            المسجّلة ({registrations.length}).
+          </p>
+          {loadError ?
+            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
+              {loadError}
+            </p>
+          : null}
         </div>
-      )}
+        <button
+          type="button"
+          onClick={() => void refresh()}
+          disabled={refreshing}
+          className="inline-flex items-center gap-2 rounded-2xl border border-deepBlue/10 bg-deepBlue/[0.04] px-4 py-2 text-[11px] font-black text-deepBlue transition hover:bg-deepBlue/[0.07] disabled:opacity-60"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
+          تحديث
+        </button>
+      </header>
 
-      <DashboardSection title="مكتبة المواد" subtitle="ملفات، روابط، وفيديوهات الدورة أو الورشة.">
-        {materials.length === 0 ? (
+      <DashboardSection title="مكتبة المواد" subtitle="ملفات وروابط وفيديوهات الدورات التي سجّلت فيها فقط.">
+        {materialsScoped.length === 0 ?
           <LmsEmptyState
             icon={FolderOpen}
             title="لا توجد مواد بعد"
-            description="سيُرفع المحتوى التعليمي هنا من قبل الإدارة أو المدرب."
+            description="لا توجد مواد من الخادم لهذه الدورات حاليًا — لا يتم إنشاء محتوى وهمي هنا."
           />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {materials.map((m) => (
+        : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {materialsScoped.map((m) => (
               <MaterialCard key={m.id} material={m} />
             ))}
           </div>
-        )}
+        }
       </DashboardSection>
     </div>
   )

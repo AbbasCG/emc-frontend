@@ -17,7 +17,7 @@ import {
   UserSquare2,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { getApiErrorMessage } from '@/api/apiErrors'
@@ -52,6 +52,18 @@ import { CrudCardTable, CrudTable, Th, Tr, Td } from '@/pages/super-admin/crud/s
 import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
 import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
 import {
+  FormActions,
+  FormChecklist,
+  FormHelpCard,
+  FormSectionCard,
+  FormSuccessState,
+  FormSummaryPanel,
+  FormWizardShell,
+  emcWizardStepAnimation,
+  type WizardStepMeta,
+} from '@/components/emc-form-wizard'
+import { EMC_WIZARD_INPUT_BASE } from '@/components/emc-form-wizard/emcWizardTokens'
+import {
   EnterpriseCrudHero,
   EnterpriseMetricTile,
   EnterpriseTableSkeleton,
@@ -72,6 +84,13 @@ const MANAGER_ROLE_SET = new Set([
 ])
 
 const MS_DAY = 86_400_000
+
+const USER_CREATE_STEP_META: readonly WizardStepMeta[] = [
+  { id: 1, title: 'معلومات المستخدم', hint: 'الهوية وبيانات الاتصال' },
+  { id: 2, title: 'الدور والصلاحيات', hint: 'الدور المعياري في المنصّة' },
+  { id: 3, title: 'الأمان وكلمة المرور', hint: 'كلمة المرور الأولية' },
+  { id: 4, title: 'المراجعة والحفظ', hint: 'تأكيد ثم الإنشاء' },
+]
 
 function isEffectivelyActive(u: AdminManagedUser): boolean {
   return u.is_active !== false
@@ -287,6 +306,8 @@ export default function UsersManagementPage() {
     setSaving(false)
     setEditAvatarFile(null)
     setRemoveAvatar(false)
+    setCreateWizardStep(1)
+    setCreateSuccessOpen(false)
   }
   const [focusedId, setFocusedId] = useState<number | null>(null)
   const focusedUser =
@@ -310,6 +331,8 @@ export default function UsersManagementPage() {
   const [pwConf, setPwConf] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleteAck, setDeleteAck] = useState(false)
+  const [createWizardStep, setCreateWizardStep] = useState(1)
+  const [createSuccessOpen, setCreateSuccessOpen] = useState(false)
 
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
@@ -332,6 +355,8 @@ export default function UsersManagementPage() {
     setPw('')
     setPwConf('')
     setFocusedId(null)
+    setCreateWizardStep(1)
+    setCreateSuccessOpen(false)
     setModal('create')
   }
 
@@ -367,19 +392,40 @@ export default function UsersManagementPage() {
     setModal(null)
   }
 
+  function validateCreateWizard(step: number): boolean {
+    if (step === 1) {
+      if (!formName.trim() || !formEmail.trim()) {
+        toast.warning('الاسم والبريد مطلوبان')
+        return false
+      }
+      return true
+    }
+    if (step === 2) return true
+    if (step === 3) {
+      if (!pw.trim()) {
+        toast.warning('كلمة المرور مطلوبة')
+        return false
+      }
+      if (pw !== pwConf) {
+        toast.warning('تأكيد كلمة المرور غير متطابق')
+        return false
+      }
+      return true
+    }
+    return true
+  }
+
+  function goNextCreate() {
+    if (!validateCreateWizard(createWizardStep)) return
+    setCreateWizardStep((s) => Math.min(4, s + 1))
+  }
+
+  function goBackCreate() {
+    setCreateWizardStep((s) => Math.max(1, s - 1))
+  }
+
   async function submitCreate() {
-    if (!formName.trim() || !formEmail.trim()) {
-      toast.warning('الاسم والبريد مطلوبان')
-      return
-    }
-    if (!pw.trim()) {
-      toast.warning('كلمة المرور مطلوبة')
-      return
-    }
-    if (pw !== pwConf) {
-      toast.warning('تأكيد كلمة المرور غير متطابق')
-      return
-    }
+    if (!validateCreateWizard(1) || !validateCreateWizard(3)) return
     setSaving(true)
     try {
       const body: CreateAdminUserInput = {
@@ -395,8 +441,7 @@ export default function UsersManagementPage() {
         how_did_you_hear_about_us: formHow.trim() || undefined,
       }
       await createAdminUser(body)
-      toast.success('تم الإنشاء')
-      closeModal()
+      setCreateSuccessOpen(true)
       void load()
     } catch (e) {
       toast.warning(getAdminUserMutationMessage(e))
@@ -796,107 +841,143 @@ export default function UsersManagementPage() {
         onEdit={(id) => void openEdit(id)}
       />
 
-      {/* Create */}
-      <CrudModal
-        open={modal === 'create'}
-        onClose={closeModal}
-        title="مستخدم جديد"
-        subtitle="POST /admin/users"
-        widthClassName="max-w-xl"
-        footerSlot={
-          <div className="flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              onClick={closeModal}
-              className="rounded-2xl border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue"
-            >
-              إلغاء
-            </button>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void submitCreate()}
-              className="rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-2 text-[12px] font-black text-white disabled:opacity-50"
-            >
-              إنشاء
-            </button>
-          </div>
-        }
-      >
-        {!includeSuperAdminAssignment ?
-          <p className="mb-4 rounded-[18px] border border-amber-200/70 bg-amber-50 px-4 py-2 text-[11px] font-black text-amber-950">
-            خيار «سوبر مشرف» مخفي وفق سياسات الإسناد.
-          </p>
-        : null}
-        <GroupedFormSections
-          sections={[
-            {
-              title: 'البيانات التعريفية',
-              icon: UserSquare2,
-              body: (
-                <>
-                  <Labeled label="الاسم الكامل" children={<Input value={formName} onChange={setFormName} />} />
-                  <Labeled label="البريد الإلكتروني" children={<Input type="email" value={formEmail} onChange={setFormEmail} />} />
-                </>
-              ),
-            },
-            {
-              title: 'تفاصيل اختيارية',
-              icon: Users,
-              body: (
-                <>
-                  <Labeled label="الجوال" children={<Input value={formPhone} onChange={setFormPhone} />} />
-                  <Labeled label="القسم / الإدارة" children={<Input value={formDepartment} onChange={setFormDepartment} />} />
-                  <Labeled label="المدينة" children={<Input value={formCity} onChange={setFormCity} />} />
-                  <Labeled label="الدولة" children={<Input value={formCountry} onChange={setFormCountry} />} />
-                  <Labeled
-                    label="كيف عرفتم المنصّة؟"
-                    children={<Input value={formHow} onChange={setFormHow} />}
-                  />
-                </>
-              ),
-            },
-            {
-              title: 'الدور المعياري',
-              icon: ShieldCheck,
-              body: (
-                <Labeled
-                  label="الدور"
-                  children={
-                    <select
-                      value={formRole}
-                      onChange={(e) => setFormRole(e.target.value)}
-                      className="w-full rounded-[18px] border border-ink-100 px-3 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:border-customBlue/40 focus:ring-customBlue/15"
-                    >
-                      {roleOptionsForm.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.labelAr}
-                        </option>
-                      ))}
-                    </select>
+      {/* Create — EMC معالج متعدد الخطوات */}
+      <>
+        <FormWizardShell
+          open={modal === 'create' && !createSuccessOpen}
+          onClose={closeModal}
+          title="مستخدم جديد"
+          subtitle="POST /admin/users — نفس الحقول السابقة مع تجربة إرسال موحّدة."
+          eyebrow="Users · IAM"
+          stepsMeta={USER_CREATE_STEP_META}
+          currentStep={createWizardStep}
+          onStepSelect={(id) => {
+            if (id < createWizardStep) setCreateWizardStep(id)
+          }}
+          progressPercent={Math.round(((createWizardStep - 1) / (USER_CREATE_STEP_META.length - 1)) * 100)}
+          progressLabel="اكتمال إنشاء المستخدم"
+          maxWidthClassName="max-w-6xl"
+          mainColumn={
+            <div className="space-y-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={createWizardStep}
+                  initial={emcWizardStepAnimation.initial}
+                  animate={emcWizardStepAnimation.animate}
+                  exit={emcWizardStepAnimation.exit}
+                  transition={emcWizardStepAnimation.transition}
+                  className="min-h-[200px] space-y-4"
+                >
+                  {createWizardStep === 1 ?
+                    <FormSectionCard title="الهوية ووسائل الاتصال" eyebrow="الخطوة 1" icon={UserSquare2}>
+                      <Labeled label="الاسم الكامل" children={<Input value={formName} onChange={setFormName} />} />
+                      <Labeled label="البريد الإلكتروني" children={<Input type="email" value={formEmail} onChange={setFormEmail} />} />
+                      <Labeled label="الجوال" children={<Input value={formPhone} onChange={setFormPhone} />} />
+                      <Labeled label="القسم / الإدارة" children={<Input value={formDepartment} onChange={setFormDepartment} />} />
+                      <Labeled label="المدينة" children={<Input value={formCity} onChange={setFormCity} />} />
+                      <Labeled label="الدولة" children={<Input value={formCountry} onChange={setFormCountry} />} />
+                      <Labeled label="كيف عرفتم المنصّة؟" children={<Input value={formHow} onChange={setFormHow} />} />
+                    </FormSectionCard>
+                  : createWizardStep === 2 ?
+                    <FormSectionCard title="الدور المعياري" eyebrow="الخطوة 2" icon={ShieldCheck}>
+                      {!includeSuperAdminAssignment ?
+                        <p className="rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-[11px] font-black text-amber-950">
+                          خيار «سوبر مشرف» مخفي وفق سياسات الإسناد.
+                        </p>
+                      : null}
+                      <Labeled
+                        label="الدور"
+                        children={
+                          <select
+                            value={formRole}
+                            onChange={(e) => setFormRole(e.target.value)}
+                            className={EMC_WIZARD_INPUT_BASE}
+                          >
+                            {roleOptionsForm.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.labelAr}
+                              </option>
+                            ))}
+                          </select>
+                        }
+                      />
+                    </FormSectionCard>
+                  : createWizardStep === 3 ?
+                    <FormSectionCard title="البيانات الأمنية الأولية" eyebrow="الخطوة 3" icon={Shield}>
+                      <PasswordInlineTools pw={pw} setPw={setPw} setPwConf={setPwConf} />
+                      <Labeled label="كلمة المرور" children={<Input type="password" value={pw} onChange={setPw} />} />
+                      <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
+                      {pw.trim() ?
+                        <p className="rounded-[14px] border border-[#2691C2]/25 bg-brand-400/10 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-deepBlue rtl:text-right break-all">
+                          {pw}
+                        </p>
+                      : null}
+                    </FormSectionCard>
+                  : <FormSectionCard title="مراجعة قبل الإنشاء" eyebrow="الخطوة 4" icon={Sparkles}>
+                      <ul className="space-y-2 text-[13px] font-semibold text-slate-700">
+                        <li>الاسم: {formName.trim() || '—'}</li>
+                        <li>البريد: {formEmail.trim() || '—'}</li>
+                        <li>الدور: {adminRoleLabelAr(formRole)}</li>
+                        <li>الجوال: {formPhone.trim() || '—'}</li>
+                      </ul>
+                    </FormSectionCard>
                   }
-                />
-              ),
-            },
-            {
-              title: 'البيانات الأمنية الأولية',
-              icon: Shield,
-              body: (
-                <>
-                  <PasswordInlineTools pw={pw} setPw={setPw} setPwConf={setPwConf} />
-                  <Labeled label="كلمة المرور" children={<Input type="password" value={pw} onChange={setPw} />} />
-                  <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
-                  {pw.trim() ?
-                    <p className="rounded-[14px] border border-[#2691C2]/25 bg-brand-400/10 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-deepBlue rtl:text-right break-all">
-                      {pw}
-                    </p>
-                  : null}
-                </>
-              ),
-            },
-          ]}
+                </motion.div>
+              </AnimatePresence>
+              <FormActions
+                showBack={createWizardStep > 1}
+                onBack={goBackCreate}
+                showNext={createWizardStep < 4}
+                onNext={goNextCreate}
+                showSubmit={createWizardStep === 4}
+                onSubmit={() => void submitCreate()}
+                busy={saving}
+                disableNext={saving}
+                disableSubmit={saving}
+                submitLabel="إنشاء المستخدم"
+              />
+            </div>
+          }
+          sidebar={
+            <>
+              <FormSummaryPanel
+                rows={[
+                  { label: 'الاسم', value: formName.trim() || '—' },
+                  { label: 'البريد', value: formEmail.trim() || '—' },
+                  { label: 'الدور', value: adminRoleLabelAr(formRole) },
+                  { label: 'الجوال', value: formPhone.trim() || '—' },
+                  { label: 'القسم', value: formDepartment.trim() || '—' },
+                ]}
+              />
+              <FormHelpCard title="إرشادات">
+                {createWizardStep === 1 ?
+                  <p>أدخل اسمًا واضحًا وبريدًا فعّالًا؛ بقية الحقول تساعد الفرق الداخلية ولا تُفرض على الخادم.</p>
+                : createWizardStep === 2 ?
+                  <p>الدور يضبط صلاحيات الوصول الافتراضية وفق سياسة Laravel — اختر ما يملكه المستخدم فعليًا.</p>
+                : createWizardStep === 3 ?
+                  <p>استخدم أدوات التوليد للحصول على كلمة مرور قوية؛ احفظ التأكيد مطابقًا.</p>
+                : <p>بعد الإنشاء يمكن التعديل من الجدول أو بطاقة Enterprise.</p>}
+              </FormHelpCard>
+              <FormChecklist
+                items={[
+                  { id: 'n', label: 'الاسم والبريد مكتملان', done: Boolean(formName.trim() && formEmail.trim()) },
+                  { id: 'r', label: 'تم اختيار الدور', done: Boolean(formRole) },
+                  { id: 'p', label: 'كلمة المرور والتأكيد متطابقان', done: Boolean(pw.trim() && pw === pwConf) },
+                ]}
+              />
+            </>
+          }
         />
-      </CrudModal>
+        <FormSuccessState
+          open={createSuccessOpen}
+          title="تم إنشاء المستخدم"
+          description="أُنشئ الحساب عبر واجهة الإدارة؛ يمكنك الآن متابعة التحرير من الجدول."
+          continueLabel="تم"
+          onContinue={() => {
+            closeModal()
+          }}
+        />
+      </>
 
       {/* Edit */}
       <CrudModal

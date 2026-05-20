@@ -1,0 +1,141 @@
+import { useEffect, type ReactNode } from 'react'
+import { X } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import {
+  EMC_WIZARD_GLASS_CARD,
+  EMC_WIZARD_HEADER_GRADIENT,
+} from '@/components/emc-form-wizard/emcWizardTokens'
+import { FormProgressBar } from '@/components/emc-form-wizard/FormProgressBar'
+import { FormStepper, type WizardStepMeta } from '@/components/emc-form-wizard/FormStepper'
+
+type Variant = 'overlay' | 'inline'
+
+type Props = {
+  open: boolean
+  onClose: () => void
+  title: string
+  subtitle?: string
+  eyebrow?: string
+  stepsMeta: readonly WizardStepMeta[]
+  currentStep: number
+  onStepSelect?: (stepId: number) => void
+  /** 0–100 */
+  progressPercent: number
+  progressLabel?: string
+  mainColumn: ReactNode
+  sidebar: ReactNode
+  variant?: Variant
+  className?: string
+  lockBodyScroll?: boolean
+  /** Max width for overlay content */
+  maxWidthClassName?: string
+}
+
+export function FormWizardShell({
+  open,
+  onClose,
+  title,
+  subtitle,
+  eyebrow,
+  stepsMeta,
+  currentStep,
+  onStepSelect,
+  progressPercent,
+  progressLabel,
+  mainColumn,
+  sidebar,
+  variant = 'overlay',
+  className,
+  lockBodyScroll = true,
+  maxWidthClassName = 'max-w-6xl',
+}: Props) {
+  useEffect(() => {
+    if (!lockBodyScroll || variant !== 'overlay') return
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open, lockBodyScroll, variant])
+
+  const inner = (
+    <div
+      className={cn(
+        variant === 'overlay' && 'relative w-full',
+        variant === 'inline' && 'w-full',
+        maxWidthClassName,
+        'space-y-6 px-4 py-6 sm:px-6',
+        className,
+      )}
+      dir="rtl"
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <div className={cn(EMC_WIZARD_HEADER_GRADIENT)}>
+        <div className="pointer-events-none absolute -end-24 -top-24 h-56 w-56 rounded-full bg-[#2691C2]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 start-0 h-64 w-64 rounded-full bg-[#EC943C]/20 blur-3xl" />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 text-right">
+            {eyebrow ?
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/70">{eyebrow}</p>
+            : null}
+            <h2 className="mt-1 text-2xl font-black leading-tight text-white sm:text-3xl">{title}</h2>
+            {subtitle ?
+              <p className="mt-2 max-w-xl text-[13px] font-semibold leading-relaxed text-white/85">{subtitle}</p>
+            : null}
+          </div>
+          {variant === 'overlay' ?
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/18"
+              aria-label="إغلاق"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          : null}
+        </div>
+
+        <div className="relative mt-6 space-y-5">
+          <FormStepper steps={stepsMeta} currentStep={currentStep} onStepSelect={onStepSelect} />
+          <FormProgressBar percent={progressPercent} label={progressLabel} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-8">
+          <div className={cn(EMC_WIZARD_GLASS_CARD, 'p-5 sm:p-7')}>{mainColumn}</div>
+        </div>
+        <aside className="space-y-4 lg:col-span-4">{sidebar}</aside>
+      </div>
+    </div>
+  )
+
+  if (variant === 'inline') {
+    if (!open) return null
+    return inner
+  }
+
+  return (
+    <AnimatePresence>
+      {open ?
+        <motion.div
+          key="form-wizard-overlay"
+          role="dialog"
+          aria-modal="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22 }}
+          className="fixed inset-0 z-[200] overflow-y-auto bg-[#0F172A]/55 backdrop-blur-md"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) onClose()
+          }}
+        >
+          <div className="flex min-h-full items-start justify-center py-6 sm:py-10">{inner}</div>
+        </motion.div>
+      : null}
+    </AnimatePresence>
+  )
+}

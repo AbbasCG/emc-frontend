@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -21,10 +21,13 @@ import {
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  NOTIFICATIONS_REFRESH_EVENT,
+  isNotificationUnread,
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
 import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
+import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
 import { UserAvatar } from '@/components/UserAvatar'
 
@@ -176,7 +179,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const sidebarSubtitle = getUserSidebarSubtitle(user)
   const showRoleBadge = Boolean(user?.role != null && String(user.role).trim() !== '')
 
-  const groups = getSidebarByRole(user?.role)
+  const groups = useMemo(() => {
+    return getSidebarByRole(user?.role)
+  }, [user?.role])
   const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>({})
 
   function collapsibleSectionOpen(title?: string, collapsible?: boolean) {
@@ -528,6 +533,14 @@ export default function DashboardLayout() {
   }, [refreshNotifications])
 
   useEffect(() => {
+    function onNotifRefresh() {
+      refreshNotifications()
+    }
+    window.addEventListener(NOTIFICATIONS_REFRESH_EVENT, onNotifRefresh)
+    return () => window.removeEventListener(NOTIFICATIONS_REFRESH_EVENT, onNotifRefresh)
+  }, [refreshNotifications])
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
@@ -538,24 +551,22 @@ export default function DashboardLayout() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const unread = notifications.filter((n) => !n.read_at).length
+  const unread = notifications.filter((n) => isNotificationUnread(n)).length
 
   async function handleMarkRead(id: number) {
-    setNotifications((prev) =>
-      prev.map((x) =>
-        x.id === id ? { ...x, read_at: x.read_at ?? new Date().toISOString().slice(0, 10) } : x,
-      ),
-    )
+    const stamp = new Date().toISOString()
+    setNotifications((prev) => prev.map((x) => (x.id === id ? { ...x, read_at: x.read_at ?? stamp } : x)))
     await markNotificationRead(id)
   }
 
   async function handleMarkAll() {
-    const stamp = new Date().toISOString().slice(0, 10)
+    const stamp = new Date().toISOString()
     setNotifications((prev) => prev.map((x) => ({ ...x, read_at: x.read_at ?? stamp })))
     await markAllNotificationsRead()
   }
 
   return (
+    <StudentDashboardProvider>
     <div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]">
       {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
       <div
@@ -614,5 +625,6 @@ export default function DashboardLayout() {
         </div>
       </main>
     </div>
+    </StudentDashboardProvider>
   )
 }

@@ -6,6 +6,8 @@ export type LmsSessionStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
 
 export type LmsSession = {
   id: number
+  /** When present, used to scope sessions to registered courses */
+  course_id?: number | null
   title?: string | null
   course_name: string
   course_slug?: string | null
@@ -27,6 +29,7 @@ export type MaterialKind = 'pdf' | 'video' | 'link' | 'slides' | 'document' | 'o
 
 export type LmsMaterial = {
   id: number
+  course_id?: number | null
   title: string
   kind: MaterialKind
   url?: string | null
@@ -40,6 +43,7 @@ export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' |
 
 export type StudentAssignment = {
   id: number
+  course_id?: number | null
   assignment_id: number
   title: string
   course_name?: string | null
