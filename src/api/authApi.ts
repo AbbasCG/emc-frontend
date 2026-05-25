@@ -37,6 +37,19 @@ export async function postImpersonateStop(): Promise<unknown> {
   return unwrapData(res.data)
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await apiClient.post('/auth/forgot-password', { email }, { skipErrorToast: true })
+}
+
+export async function resetPassword(params: {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}): Promise<void> {
+  await apiClient.post('/auth/reset-password', params, { skipErrorToast: true })
+}
+
 /** Best-effort server session invalidation; callers must always clear client state regardless of outcome. */
 export async function logoutRemote(): Promise<void> {
   const opts = { skipErrorToast: true as const }

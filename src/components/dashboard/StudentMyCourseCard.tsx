@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import logo from '@/assets/logo.png'
 import type { Course, Enrollment } from '@/types'
+import { studentLearnHref } from '@/utils/studentLearnNavigation'
 
 function hasScheduledDate(course: Course): boolean {
   const d = course.start_date
@@ -64,7 +65,7 @@ export default function StudentMyCourseCard({
 
   const scheduleLine = formatScheduleLine(course)
   const slug = enrollment.course?.slug?.trim()
-  const learnHref = '/dashboard/student/progress'
+  const learnHref = studentLearnHref(enrollment.course.id)
   const detailHref = slug ? `/courses/${slug}` : '/dashboard/student/registrations'
 
   return (

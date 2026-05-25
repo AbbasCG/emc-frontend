@@ -15,7 +15,6 @@ import MeetingCard from '@/components/operations/MeetingCard'
 import { fetchDepartmentDetail } from '@/api/operationsApi'
 import { fetchTasks } from '@/api/tasksApi'
 import { fetchMeetings } from '@/api/meetingsApi'
-import { seedDepartmentDetail, seedMeetings, seedTasks } from '@/data/operationsSeed'
 import DepartmentHealthBadge from '@/components/operations/DepartmentHealthBadge'
 import type { DepartmentDetail, OpsMeeting, OpsTask } from '@/types/operations'
 
@@ -44,37 +43,29 @@ export default function OpsDepartmentDetailPage() {
   const [meetings, setMeetings] = useState<OpsMeeting[]>([])
   const [tab, setTab] = useState<TabId>('overview')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
+  async function loadDept() {
     if (!id) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [d, t, m] = await Promise.all([
-          fetchDepartmentDetail(id),
-          fetchTasks(),
-          fetchMeetings(),
-        ])
-        if (!cancelled) {
-          setDetail(d)
-          setTasks(t.filter((x) => x.department_id === id))
-          setMeetings(m.filter((x) => x.department_id === id))
-        }
-      } catch {
-        const seedD = seedDepartmentDetail(id)
-        if (!cancelled) {
-          setDetail(seedD)
-          setTasks(seedTasks().filter((x) => x.department_id === id))
-          setMeetings(seedMeetings().filter((x) => x.department_id === id))
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+    setLoadError(null)
+    setLoading(true)
+    try {
+      const [d, t, m] = await Promise.all([
+        fetchDepartmentDetail(id),
+        fetchTasks(),
+        fetchMeetings(),
+      ])
+      setDetail(d)
+      setTasks(t.filter((x) => x.department_id === id))
+      setMeetings(m.filter((x) => x.department_id === id))
+    } catch {
+      setLoadError('تعذّر تحميل بيانات الإدارة. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [id])
+  }
+
+  useEffect(() => { void loadDept() }, [id])
 
   const title = detail?.title ?? 'إدارة'
 
@@ -188,6 +179,12 @@ export default function OpsDepartmentDetailPage() {
   }, [detail, tab, tasks, meetings])
 
   if (loading || !id) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void loadDept()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
   if (!detail) {
     return (
       <div className="rounded-2xl bg-white p-10 text-center font-black text-deepBlue ring-1 ring-deepBlue/[0.06]">

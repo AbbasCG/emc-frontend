@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { DateRangeFilter, FinanceSubnav, PaymentStatusBadge } from '@/components/intelligence'
 import { fetchFinancePayments } from '@/api/financeApi'
-import { seedFinancePayments } from '@/data/intelligenceSeed'
+
 import type { FinancePaymentRow, PaymentStatus, PaymentProvider } from '@/types/intelligence'
 import {
   ProviderBadge,
@@ -61,7 +61,7 @@ export default function FinancePaymentsPage() {
         if (!cancelled) setAllRows(Array.isArray(d) ? d : [])
       } catch {
         if (!cancelled) {
-          setAllRows(seedFinancePayments())
+          setAllRows([])
           setLoadErr(true)
         }
       } finally {
@@ -135,7 +135,7 @@ export default function FinancePaymentsPage() {
             role="status"
           >
             <AlertCircle size={18} aria-hidden />
-            تم تحميل بيانات احتياطية محلياً بسبب تعذّر الوصول إلى الخادم.
+            تعذّر تحميل المدفوعات من الخادم. تحقق من الاتصال وأعد المحاولة.
           </motion.div>
         : null}
 

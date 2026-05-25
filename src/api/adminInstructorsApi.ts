@@ -194,14 +194,8 @@ export async function fetchAdminInstructorsDirectory(params?: { search?: string;
       },
     })
 
-    // eslint-disable-next-line no-console -- temporary debug requested
-    console.log('GET /api/admin/instructors response:', res.data)
-
     const rawList = extractInstructorsArray(res.data)
     const rows = rawList.map(normalizeDirectoryRow).filter((x): x is AdminInstructorDirectoryRow => x != null)
-
-    // eslint-disable-next-line no-console -- temporary debug requested
-    console.log('normalized instructors:', rows)
 
     const lifted = unwrapData(res.data)
     const metaRaw = pickMeta(res.data, lifted)
@@ -216,7 +210,7 @@ export async function fetchAdminInstructorsDirectory(params?: { search?: string;
       },
     }
   } catch (e) {
-    if (axios.isAxiosError(e) && e.response?.status !== 404) {
+    if (axios.isAxiosError(e) && e.response?.status !== 404 && import.meta.env.DEV) {
       console.warn('fetchAdminInstructorsDirectory:', getApiErrorMessage(e))
     }
     return {

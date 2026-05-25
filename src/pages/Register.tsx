@@ -299,11 +299,13 @@ export default function Register() {
       if (paid && body.payment_provider) {
         payloadForLog.payment_provider = body.payment_provider
       }
-      console.log('registration payload', {
-        endpoint: 'POST /courses/{id}/register (course_id not in body)',
-        course_id: course.id,
-        body: payloadForLog,
-      })
+      if (import.meta.env.DEV) {
+        console.log('registration payload', {
+          endpoint: 'POST /courses/{id}/register (course_id not in body)',
+          course_id: course.id,
+          body: payloadForLog,
+        })
+      }
 
       const result = await submitCourseRegistration({
         course_id: course.id,

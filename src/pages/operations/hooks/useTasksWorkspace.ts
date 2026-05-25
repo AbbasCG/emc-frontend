@@ -1,31 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { addTaskComment, fetchTask, fetchTasks, updateTask } from '@/api/tasksApi'
-import { seedTasks } from '@/data/operationsSeed'
 import { useAuth } from '@/contexts/AuthContext'
 import type { OpsTask } from '@/types/operations'
 
 export type TasksScope = 'all' | 'mine' | 'overdue' | 'kanban'
 
-function filterSeed(scope: TasksScope, userId?: number): OpsTask[] {
-  let seed = seedTasks()
-  if (scope === 'mine' && userId != null) {
-    seed = seed.filter((t) => t.assignee_id === userId)
-  }
-  if (scope === 'overdue') {
-    const today = new Date().toISOString().slice(0, 10)
-    seed = seed.filter(
-      (t) =>
-        Boolean(t.due_at && t.due_at < today && t.status !== 'done' && t.status !== 'cancelled'),
-    )
-  }
-  return seed
-}
-
 export function useTasksWorkspace(scope: TasksScope) {
   const { user } = useAuth()
   const [tasks, setTasks] = useState<OpsTask[]>([])
   const [loading, setLoading] = useState(true)
-  const [usingSeed, setUsingSeed] = useState(false)
   const [selected, setSelected] = useState<OpsTask | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
 
@@ -40,10 +23,8 @@ export function useTasksWorkspace(scope: TasksScope) {
             : undefined
       const data = await fetchTasks(params)
       setTasks(data)
-      setUsingSeed(false)
     } catch {
-      setTasks(filterSeed(scope, user?.id))
-      setUsingSeed(true)
+      setTasks([])
     } finally {
       setLoading(false)
     }
@@ -138,7 +119,6 @@ export function useTasksWorkspace(scope: TasksScope) {
   return {
     tasks,
     loading,
-    usingSeed,
     reload: load,
     selected,
     panelOpen,

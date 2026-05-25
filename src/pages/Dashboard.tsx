@@ -45,6 +45,7 @@ import type {
 import type { StudentLmsDashboard, LmsSession } from '@/types/lms'
 import { mergeStudentEnrollments } from '@/utils/studentEnrollmentMerge'
 import { normalizeStudentDashboardPayload } from '@/utils/studentDashboardEnvelope'
+import { studentLearnHref } from '@/utils/studentLearnNavigation'
 
 function toFiniteStat(n: unknown, fallback = 0): number {
   if (typeof n === 'number' && Number.isFinite(n)) return n
@@ -422,7 +423,7 @@ export default function Dashboard() {
                 key={e.id}
                 enrollment={e}
                 actionLabel="متابعة التعلم"
-                actionTo={e.course?.slug ? `/courses/${e.course.slug}` : '/dashboard/student/progress'}
+                actionTo={studentLearnHref(e.course.id)}
               />
             ))}
           </div>
@@ -430,7 +431,7 @@ export default function Dashboard() {
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {currentLmsCourses.slice(0, 6).map((c, idx) => {
               const pct = typeof c.progress_percent === 'number' ? Math.round(c.progress_percent) : 0
-              const hrefContinue = c.slug ? `/courses/${c.slug}` : '/dashboard/student/progress'
+              const hrefContinue = studentLearnHref(c.id)
               return (
                 <motion.div
                   key={c.id}

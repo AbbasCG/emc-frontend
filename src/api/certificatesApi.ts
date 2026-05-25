@@ -36,10 +36,7 @@ export async function verifyCertificatePublic(code: string): Promise<Certificate
 
 /** Public verification without Authorization header — avoids redirect on 401 for anonymous visitors. */
 export async function verifyCertificatePublicAnonymous(code: string): Promise<CertificateVerificationResult> {
-  const base =
-    import.meta.env.VITE_API_URL ??
-    import.meta.env.VITE_API_BASE_URL ??
-    'http://127.0.0.1:8000/api'
+  const base = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? ''
   const url = `${String(base).replace(/\/$/, '')}/certificates/verify/${encodeURIComponent(code)}`
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   const json = (await res.json()) as unknown

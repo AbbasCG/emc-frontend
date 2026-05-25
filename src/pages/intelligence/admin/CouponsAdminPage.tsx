@@ -5,21 +5,24 @@ import { CouponForm, ExportButton, IntelligencePageSkeleton } from '@/components
 import EmptyState from '@/components/dashboard/EmptyState'
 import { TicketPercent } from 'lucide-react'
 import { createCoupon, fetchCoupons, updateCoupon } from '@/api/couponsApi'
-import { seedCoupons } from '@/data/intelligenceSeed'
+
 import type { CouponRecord } from '@/types/intelligence'
 import { formatEuroInteger } from '@/utils/currency'
 
 export default function CouponsAdminPage() {
   const [rows, setRows] = useState<CouponRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [modal, setModal] = useState<'create' | 'edit' | null>(null)
   const [editRow, setEditRow] = useState<CouponRecord | null>(null)
 
   async function load() {
+    setLoadError(null)
+    setLoading(true)
     try {
       setRows(await fetchCoupons())
     } catch {
-      setRows(seedCoupons())
+      setLoadError('تعذّر تحميل الكوبونات. تحقق من الاتصال وأعد المحاولة.')
     } finally {
       setLoading(false)
     }
@@ -40,6 +43,12 @@ export default function CouponsAdminPage() {
   }
 
   if (loading) return <IntelligencePageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

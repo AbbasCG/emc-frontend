@@ -7,7 +7,6 @@ import {
   replySupportTicket,
   updateSupportTicket,
 } from '@/api/supportApi'
-import { seedSupportTicketDetail } from '@/data/operationsSeed'
 import { SUPPORT_STATUS_AR } from '@/data/operationsLabels'
 import type { SupportTicketDetail, SupportTicketStatus } from '@/types/operations'
 
@@ -22,25 +21,23 @@ export default function OpsSupportTicketDetailPage() {
   const [reply, setReply] = useState('')
   const [internal, setInternal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => {
+  async function loadTicket() {
     if (!Number.isFinite(tid)) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchSupportTicket(tid)
-        if (!cancelled) setTicket(d)
-      } catch {
-        if (!cancelled) setTicket(seedSupportTicketDetail(tid))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setTicket(await fetchSupportTicket(tid))
+    } catch {
+      setLoadError('تعذّر تحميل التذكرة. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [tid])
+  }
+
+  useEffect(() => { void loadTicket() }, [tid])
 
   async function sendReply(e: React.FormEvent) {
     e.preventDefault()
@@ -83,7 +80,14 @@ export default function OpsSupportTicketDetailPage() {
   }
 
   if (!Number.isFinite(tid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
-  if (loading || !ticket) return <OpsPageSkeleton />
+  if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void loadTicket()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
+  if (!ticket) return <OpsPageSkeleton />
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">

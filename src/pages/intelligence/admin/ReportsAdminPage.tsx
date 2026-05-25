@@ -9,20 +9,23 @@ import {
 import EmptyState from '@/components/dashboard/EmptyState'
 import { FileBarChart } from 'lucide-react'
 import { fetchReports, generateReport } from '@/api/reportsApi'
-import { seedReports } from '@/data/intelligenceSeed'
+
 import type { ReportRecord, ReportTypeSlug } from '@/types/intelligence'
 
 export default function ReportsAdminPage() {
   const [rows, setRows] = useState<ReportRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [modal, setModal] = useState(false)
   const [preview, setPreview] = useState<ReportRecord | null>(null)
 
   async function load() {
+    setLoadError(null)
+    setLoading(true)
     try {
       setRows(await fetchReports())
     } catch {
-      setRows(seedReports())
+      setLoadError('تعذّر تحميل التقارير. تحقق من الاتصال وأعد المحاولة.')
     } finally {
       setLoading(false)
     }
@@ -33,6 +36,12 @@ export default function ReportsAdminPage() {
   }, [])
 
   if (loading) return <IntelligencePageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">
@@ -95,17 +104,7 @@ export default function ReportsAdminPage() {
             setRows((x) => [r, ...x])
             setPreview(r)
           } catch {
-            const id = Math.max(0, ...rows.map((x) => x.id)) + 1
-            const fake: ReportRecord = {
-              id,
-              title: payload.title ?? 'تقرير جديد',
-              report_type: payload.report_type,
-              related_label: payload.related_label,
-              created_at: new Date().toISOString().slice(0, 10),
-              preview_summary: 'معاينة محلية — ربط مسار التوليد على الخادم.',
-            }
-            setRows((x) => [fake, ...x])
-            setPreview(fake)
+            /* generation failed — let the modal handle the error toast */
           }
         }}
       />

@@ -8,7 +8,6 @@ import { fetchMeeting } from '@/api/meetingsApi'
 import { createTaskFromActionItem } from '@/api/tasksApi'
 import { fetchMeetingIntelligence } from '@/api/aiInsightsApi'
 import AiSummaryPanel from '@/components/ai/AiSummaryPanel'
-import { seedMeetingDetail } from '@/data/operationsSeed'
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 import type { OpsMeetingDetail } from '@/types/operations'
 import type { AiMeetingIntelligence } from '@/types/ai'
@@ -19,26 +18,24 @@ export default function OpsMeetingDetailPage() {
   const mid = id ? Number(id) : NaN
   const [detail, setDetail] = useState<OpsMeetingDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [convertMsg, setConvertMsg] = useState('')
   const [aiSummary, setAiSummary] = useState<AiMeetingIntelligence | null>(null)
 
-  useEffect(() => {
+  async function loadDetail() {
     if (!Number.isFinite(mid)) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchMeeting(mid)
-        if (!cancelled) setDetail(d)
-      } catch {
-        if (!cancelled) setDetail(seedMeetingDetail(mid))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setDetail(await fetchMeeting(mid))
+    } catch {
+      setLoadError('تعذّر تحميل تفاصيل الاجتماع. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [mid])
+  }
+
+  useEffect(() => { void loadDetail() }, [mid])
 
   useEffect(() => {
     if (!Number.isFinite(mid)) return
@@ -66,7 +63,14 @@ export default function OpsMeetingDetailPage() {
   if (!Number.isFinite(mid)) {
     return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
   }
-  if (loading || !detail) return <OpsPageSkeleton />
+  if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void loadDetail()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
+  if (!detail) return <OpsPageSkeleton />
 
   return (
     <div className="space-y-8">

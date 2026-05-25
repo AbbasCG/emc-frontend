@@ -6,9 +6,11 @@ import LmsStatusBadge from './LmsStatusBadge'
 type Props = {
   session: LmsSession
   showRecording?: boolean
+  /** Optional label for joining online meeting link */
+  joinMeetingLabel?: string
 }
 
-export default function SessionCard({ session, showRecording = true }: Props) {
+export default function SessionCard({ session, showRecording = true, joinMeetingLabel }: Props) {
   const dateLine = session.date ?? session.starts_at ?? '—'
   const timeLine = session.time ?? ''
 
@@ -59,7 +61,7 @@ export default function SessionCard({ session, showRecording = true }: Props) {
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-customBlue px-4 py-2.5 text-xs font-black text-white shadow-md shadow-customBlue/25 transition hover:opacity-95"
             >
               <PlayCircle size={16} />
-              دخول الجلسة
+              {joinMeetingLabel ?? 'دخول الجلسة'}
             </a>
           )}
           {showRecording && session.recording_link && (

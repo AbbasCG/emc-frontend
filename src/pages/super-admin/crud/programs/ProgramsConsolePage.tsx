@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   BookMarked,
   CalendarClock,
@@ -16,6 +16,7 @@ import {
   countNewRegistrations,
   countRegistrationsByCourse,
   deleteCourse,
+  fetchAdminCourseDetail,
   fetchAdminRegistrationsIndex,
   fetchDepartmentOptions,
   patchCoursePublishState,
@@ -83,6 +84,7 @@ function isPaidCourse(c: Course) {
 }
 
 export default function ProgramsConsolePage() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [rows, setRows] = useState<Course[]>([])
@@ -177,9 +179,15 @@ export default function ProgramsConsolePage() {
     setFormOpen(true)
   }
 
-  function openEdit(c: Course) {
+  async function openEdit(c: Course) {
     setFormCourse(c)
     setFormOpen(true)
+    try {
+      const fresh = await fetchAdminCourseDetail(c.id)
+      setFormCourse(fresh)
+    } catch {
+      setFormCourse(c)
+    }
   }
 
   async function togglePublish(c: Course) {
@@ -399,6 +407,11 @@ export default function ProgramsConsolePage() {
                               { key: 'a', label: 'تعيين مدرب', onClick: () => setAssignCourse(c) },
                               { key: 's', label: 'تحديد موعد', onClick: () => setScheduleCourse(c) },
                               {
+                                key: 'lms-cms',
+                                label: 'محتوى الدورة — LMS',
+                                onClick: () => navigate(`/dashboard/super-admin/crud/programs/${c.id}/content`),
+                              },
+                              {
                                 key: 'p',
                                 label: isPublishedCourse(c) ? 'إلغاء النشر' : 'نشر',
                                 onClick: () => void togglePublish(c),
@@ -452,13 +465,22 @@ export default function ProgramsConsolePage() {
             editLabel="تعديل"
             extraStart={
               preview ?
-                <button
-                  type="button"
-                  onClick={() => window.open(`/courses/${preview.slug}`, '_blank')}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black text-deepBlue hover:bg-slate-50"
-                >
-                  صفحة الزائر
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.open(`/courses/${preview.slug}`, '_blank')}
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black text-deepBlue hover:bg-slate-50"
+                  >
+                    صفحة الزائر
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/dashboard/super-admin/crud/programs/${preview.id}/content`)}
+                    className="rounded-xl border border-customBlue/30 bg-customBlue/[0.08] px-4 py-2 text-xs font-black text-deepBlue hover:bg-customBlue/[0.12]"
+                  >
+                    محتوى الدورة LMS
+                  </button>
+                </div>
               : null
             }
           />
@@ -512,6 +534,7 @@ export default function ProgramsConsolePage() {
         initial={formCourse}
         tracks={tracks}
         departments={departments}
+        existingCourses={rows}
         onClose={() => setFormOpen(false)}
         onSaved={() => void load()}
         onCreateAnother={() => setFormCourse(null)}

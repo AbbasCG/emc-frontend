@@ -4,7 +4,6 @@ import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { Handshake } from 'lucide-react'
 import { fetchPartnershipRequests, updatePartnershipRequest } from '@/api/partnersApi'
-import { seedPartnershipRequests } from '@/data/operationsSeed'
 import type { PartnershipRequest } from '@/types/operations'
 
 const PIPELINE = ['قيد المراجعة', 'بانتظار الرد', 'مقبول مبدئياً', 'مرفوض', 'مكتمل']
@@ -12,23 +11,21 @@ const PIPELINE = ['قيد المراجعة', 'بانتظار الرد', 'مقب�
 export default function OpsPartnershipRequestsPage() {
   const [items, setItems] = useState<PartnershipRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchPartnershipRequests()
-        if (!cancelled) setItems(d)
-      } catch {
-        if (!cancelled) setItems(seedPartnershipRequests())
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+  async function load() {
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setItems(await fetchPartnershipRequests())
+    } catch {
+      setLoadError('تعذّر تحميل طلبات الشراكة. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
+
+  useEffect(() => { void load() }, [])
 
   async function changeStatus(id: number, status: string) {
     setItems((list) => list.map((x) => (x.id === id ? { ...x, status } : x)))
@@ -40,6 +37,12 @@ export default function OpsPartnershipRequestsPage() {
   }
 
   if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

@@ -17,10 +17,21 @@ export function splitKeywords(text: string): string[] {
     .filter(Boolean)
 }
 
-/** Map legacy DB values to allowed lifecycle statuses */
+/** Map UI / legacy / localized values → API enums only (`draft` | `published` | `archived`). Never send Arabic labels. */
 export function normalizeCourseStatus(raw: string): CourseLifecycleStatus {
-  const s = String(raw).toLowerCase().trim()
-  if (s === 'published' || s === 'draft' || s === 'archived') return s
+  const t = String(raw ?? '').trim()
+  const s = t.toLowerCase()
+
+  // English variants
+  if (s === 'published' || s === 'active' || s === 'live') return 'published'
+  if (s === 'archived' || s === 'inactive') return 'archived'
+  if (s === 'draft' || s === 'pending') return 'draft'
+
+  // Arabic labels from legacy servers or pasted data (never forwarded as-is)
+  if (t.includes('منشور')) return 'published'
+  if (t.includes('مؤرشف')) return 'archived'
+  if (t.includes('مسود')) return 'draft'
+
   return 'draft'
 }
 

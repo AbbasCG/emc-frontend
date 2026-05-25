@@ -5,31 +5,28 @@ import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { MARKETING_STATUS_AR } from '@/data/operationsLabels'
 import type { MarketingContentStatus, MarketingItem } from '@/types/operations'
 import { fetchMarketingItems, updateMarketingItem } from '@/api/marketingApi'
-import { seedMarketing } from '@/data/operationsSeed'
 
 export default function OpsMarketingPage() {
   const [items, setItems] = useState<MarketingItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [platform, setPlatform] = useState<string>('all')
   const [view, setView] = useState<'kanban' | 'list'>('kanban')
   const [selected, setSelected] = useState<MarketingItem | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchMarketingItems()
-        if (!cancelled) setItems(d)
-      } catch {
-        if (!cancelled) setItems(seedMarketing())
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+  async function load() {
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setItems(await fetchMarketingItems())
+    } catch {
+      setLoadError('تعذّر تحميل المحتوى التسويقي. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
+
+  useEffect(() => { void load() }, [])
 
   const platforms = useMemo(() => {
     const s = new Set<string>()
@@ -56,6 +53,12 @@ export default function OpsMarketingPage() {
   }
 
   if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { unwrapLms } from './lmsApi'
-import { buildGenerationOutput, seedAiConversationsV2, seedAiGenerations, seedAiMessages } from '@/data/aiSeed'
 import type { AiConversation } from '@/types/platform'
 import type { AiChatMessage, AiConversationThread, AiGenerationKind, AiGenerationRecord } from '@/types/ai'
 
@@ -17,9 +16,9 @@ export async function fetchAiConversationThreads(): Promise<AiConversationThread
     if (payload && typeof payload === 'object' && Array.isArray(payload.conversations)) {
       return payload.conversations
     }
-    return seedAiConversationsV2()
+    return []
   } catch {
-    return seedAiConversationsV2()
+    return []
   }
 }
 
@@ -29,9 +28,9 @@ export async function fetchAiMessages(conversationId: number): Promise<AiChatMes
     const payload = unwrapLms<AiChatMessage[] | { messages: AiChatMessage[] }>(res.data)
     if (Array.isArray(payload)) return payload
     if (payload && typeof payload === 'object' && Array.isArray(payload.messages)) return payload.messages
-    return seedAiMessages(conversationId)
+    return []
   } catch {
-    return seedAiMessages(conversationId)
+    return []
   }
 }
 
@@ -70,9 +69,9 @@ export async function fetchAiRecentGenerations(): Promise<AiGenerationRecord[]> 
     const payload = unwrapLms<AiGenerationRecord[] | { records: AiGenerationRecord[] }>(res.data)
     if (Array.isArray(payload)) return payload
     if (payload && typeof payload === 'object' && Array.isArray(payload.records)) return payload.records
-    return seedAiGenerations()
+    return []
   } catch {
-    return seedAiGenerations()
+    return []
   }
 }
 
@@ -82,17 +81,6 @@ export async function generateAiContent(input: {
   temperature?: number
   max_tokens?: number
 }): Promise<AiGenerationRecord> {
-  try {
-    const res = await apiClient.post<unknown>('/ai/generations', input)
-    return unwrapLms<AiGenerationRecord>(res.data)
-  } catch {
-    return {
-      id: Date.now(),
-      kind: input.kind,
-      title: 'ناتج توليد جديد',
-      prompt: input.prompt,
-      output_markdown: buildGenerationOutput(input.kind, input.prompt),
-      created_at: new Date().toISOString().slice(0, 16).replace('T', ' '),
-    }
-  }
+  const res = await apiClient.post<unknown>('/ai/generations', input)
+  return unwrapLms<AiGenerationRecord>(res.data)
 }

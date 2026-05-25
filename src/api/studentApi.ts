@@ -78,23 +78,6 @@ function pickScalarWithNested(
   return 0
 }
 
-function normalizeCourseProgressRow(x: unknown): StudentProgressPayload['course_progress'][number] | null {
-  if (!x || typeof x !== 'object') return null
-  const o = x as Record<string, unknown>
-  const course_id = Number(o.course_id ?? o.id)
-  if (!Number.isFinite(course_id)) return null
-  return {
-    course_id,
-    course_title: String(o.course_title ?? o.title ?? 'دورة'),
-    slug: o.slug != null && String(o.slug).trim() !== '' ? String(o.slug) : undefined,
-    progress_percent: toFiniteNumber(o.progress_percent ?? o.progress ?? o.percent),
-    sessions_completed: Math.max(0, Math.floor(toFiniteNumber(o.sessions_completed ?? o.completed_sessions))),
-    sessions_total: Math.max(0, Math.floor(toFiniteNumber(o.sessions_total ?? o.total_sessions))),
-    assignments_done: Math.max(0, Math.floor(toFiniteNumber(o.assignments_done ?? o.completed_assignments))),
-    assignments_total: Math.max(0, Math.floor(toFiniteNumber(o.assignments_total ?? o.total_assignments))),
-  }
-}
-
 function normalizeTrackProgressRow(
   x: unknown,
 ): NonNullable<StudentProgressPayload['track_progress']>[number] | null {
@@ -106,6 +89,98 @@ function normalizeTrackProgressRow(
     track_id,
     title: String(o.title ?? ''),
     progress_percent: toFiniteNumber(o.progress_percent ?? o.percent),
+  }
+}
+
+/** Row from `/student/courses` or nested `current_courses` on `/student/dashboard`. */
+export type StudentListedCourse = {
+  id: number
+  title: string
+  slug?: string | null
+  instructor_name?: string | null
+  progress_percent?: number
+  status?: string
+  start_date?: string | null
+  start_time?: string | null
+  meeting_link?: string | null
+}
+
+function slugifyFallback(id: number): string {
+  return `course-${id}`
+}
+
+/** Prefer explicit course/program ids before falling back to top-level row id (may be enrollment/registration pk). */
+function pickCoursePkFromEnrollmentLikeRow(
+  o: Record<string, unknown>,
+  nested: Record<string, unknown> | null,
+): number | null {
+  const tryNum = (v: unknown): number | null => {
+    if (v == null || v === '') return null
+    const n = Number(v)
+    return Number.isFinite(n) && n > 0 ? n : null
+  }
+
+  const explicit =
+    tryNum(o.course_id) ??
+    tryNum(o.courseId) ??
+    tryNum(o.course_pk) ??
+    tryNum(o.course_primary_id) ??
+    tryNum(o.program_id) ??
+    (nested ? tryNum(nested.course_id) ?? tryNum(nested.program_id) ?? tryNum(nested.id) : null)
+  const topId = tryNum(o.id)
+
+  const pk = explicit ?? topId ?? null
+
+  return pk && pk > 0 ? pk : null
+}
+
+function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const o = raw as Record<string, unknown>
+  const nested =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const id = pickCoursePkFromEnrollmentLikeRow(o, nested)
+  if (!(id != null && id > 0)) return null
+  const title = String(o.title ?? o.course_title ?? nested?.title ?? slugifyFallback(id))
+  const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
+  const startRaw = o.start_date ?? nested?.start_date ?? o.course_start_date
+  const timeRaw = o.start_time ?? nested?.start_time ?? o.study_time
+  const meetRaw = o.meeting_link ?? nested?.meeting_link ?? o.join_url
+  return {
+    id,
+    title,
+    slug: slugRaw != null && String(slugRaw).trim() !== '' ? String(slugRaw) : undefined,
+    instructor_name:
+      nested?.instructor_name != null ?
+        String(nested.instructor_name)
+      : o.instructor_name != null ?
+        String(o.instructor_name)
+      : undefined,
+    progress_percent: toFiniteNumber(o.progress_percent ?? o.progress),
+    status: o.status != null ? String(o.status) : undefined,
+    start_date: startRaw != null && String(startRaw).trim() !== '' ? String(startRaw) : null,
+    start_time: timeRaw != null && String(timeRaw).trim() !== '' ? String(timeRaw) : null,
+    meeting_link: meetRaw != null && String(meetRaw).trim() !== '' ? String(meetRaw) : null,
+  }
+}
+
+function normalizeCourseProgressRow(x: unknown): StudentProgressPayload['course_progress'][number] | null {
+  if (!x || typeof x !== 'object') return null
+  const o = x as Record<string, unknown>
+  const nestedCourse =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
+  const cid = pickCoursePkFromEnrollmentLikeRow(o as Record<string, unknown>, nestedCourse)
+  if (!(cid != null && cid > 0)) return null
+  const slugFrom = (v: unknown) => (v != null && String(v).trim() !== '' ? String(v).trim() : undefined)
+  return {
+    course_id: cid,
+    course_title: String(o.course_title ?? o.title ?? nestedCourse?.title ?? 'دورة'),
+    slug: slugFrom(o.slug ?? o.course_slug ?? nestedCourse?.slug),
+    progress_percent: toFiniteNumber(o.progress_percent ?? o.progress ?? o.percent),
+    sessions_completed: Math.max(0, Math.floor(toFiniteNumber(o.sessions_completed ?? o.completed_sessions))),
+    sessions_total: Math.max(0, Math.floor(toFiniteNumber(o.sessions_total ?? o.total_sessions))),
+    assignments_done: Math.max(0, Math.floor(toFiniteNumber(o.assignments_done ?? o.completed_assignments))),
+    assignments_total: Math.max(0, Math.floor(toFiniteNumber(o.assignments_total ?? o.total_assignments))),
   }
 }
 
@@ -178,11 +253,28 @@ export function normalizeStudentLmsDashboard(payload: unknown): StudentLmsDashbo
 
   const upcomingRaw = firstArray(row, ['upcoming_sessions', 'sessions', 'upcoming'])
 
+  const currentCoursesRaw = firstArray(row, ['current_courses', 'courses', 'active_courses'])
+  const current_courses: StudentLmsDashboard['current_courses'] =
+    currentCoursesRaw
+      .map(normalizeListedCourse)
+      .filter((c): c is StudentListedCourse => c != null)
+      .map((c) => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug ?? null,
+        instructor_name: c.instructor_name ?? null,
+        progress_percent: c.progress_percent,
+        status: c.status,
+        start_date: c.start_date ?? null,
+        start_time: c.start_time ?? null,
+        meeting_link: c.meeting_link ?? null,
+      }))
+
   return {
     progress_percent: toFiniteNumber(row.progress_percent),
     attendance_percent: toFiniteNumber(row.attendance_percent),
     pending_assignments: firstArray(row, ['pending_assignments', 'assignments']) as StudentAssignment[],
-    current_courses: firstArray(row, ['current_courses', 'courses', 'active_courses']) as StudentLmsDashboard['current_courses'],
+    current_courses,
     upcoming_sessions: upcomingRaw as LmsSession[],
     completed_sessions: (() => {
       const completed = row.completed_sessions ?? row.completed
@@ -240,52 +332,6 @@ export function coerceFlexibleList(payload: unknown, keys: string[]): unknown[] 
   return []
 }
 
-export type StudentListedCourse = {
-  id: number
-  title: string
-  slug?: string | null
-  instructor_name?: string | null
-  progress_percent?: number
-  status?: string
-  start_date?: string | null
-  start_time?: string | null
-  meeting_link?: string | null
-}
-
-function slugifyFallback(id: number): string {
-  return `course-${id}`
-}
-
-function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
-  const o = raw as Record<string, unknown>
-  const nested =
-    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ? (o.course as Record<string, unknown>) : null
-  const id = Number(o.id ?? o.course_id ?? nested?.id)
-  if (!Number.isFinite(id)) return null
-  const title = String(o.title ?? o.course_title ?? nested?.title ?? slugifyFallback(id))
-  const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
-  const startRaw = o.start_date ?? nested?.start_date ?? o.course_start_date
-  const timeRaw = o.start_time ?? nested?.start_time ?? o.study_time
-  const meetRaw = o.meeting_link ?? nested?.meeting_link ?? o.join_url
-  return {
-    id,
-    title,
-    slug: slugRaw != null && String(slugRaw).trim() !== '' ? String(slugRaw) : undefined,
-    instructor_name:
-      nested?.instructor_name != null ?
-        String(nested.instructor_name)
-      : o.instructor_name != null ?
-        String(o.instructor_name)
-      : undefined,
-    progress_percent: toFiniteNumber(o.progress_percent ?? o.progress),
-    status: o.status != null ? String(o.status) : undefined,
-    start_date: startRaw != null && String(startRaw).trim() !== '' ? String(startRaw) : null,
-    start_time: timeRaw != null && String(timeRaw).trim() !== '' ? String(timeRaw) : null,
-    meeting_link: meetRaw != null && String(meetRaw).trim() !== '' ? String(meetRaw) : null,
-  }
-}
-
 /** GET /student/courses — empty array on failure. */
 export async function fetchStudentCoursesList(): Promise<StudentListedCourse[]> {
   try {
@@ -335,8 +381,15 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
       (nested.instructor as Record<string, unknown>)
     : null
   const id = Number(o.id ?? o.registration_id ?? o.enrollment_id)
-  const course_id = Number(o.course_id ?? nested?.id ?? o.courseId)
-  if (!Number.isFinite(id) || !Number.isFinite(course_id)) return null
+  const rawCoursePk =
+    o.course_id ??
+    o.courseId ??
+    o.program_id ??
+    nested?.course_id ??
+    nested?.program_id ??
+    nested?.id
+  const course_id = Number(rawCoursePk)
+  if (!Number.isFinite(id) || !Number.isFinite(course_id) || course_id <= 0) return null
   const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
   const title = nested?.title ?? o.course_title ?? o.program_title ?? o.course_name
   const enrolled =

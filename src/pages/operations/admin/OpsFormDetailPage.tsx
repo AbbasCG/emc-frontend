@@ -9,7 +9,6 @@ import {
   fetchFormSubmissions,
   updateFormDefinition,
 } from '@/api/formsApi'
-import { seedFormDefinitions } from '@/data/operationsSeed'
 import type { FormSubmissionRow, OpsFormDefinition } from '@/types/operations'
 
 export default function OpsFormDetailPage() {
@@ -19,36 +18,34 @@ export default function OpsFormDetailPage() {
   const [rows, setRows] = useState<FormSubmissionRow[]>([])
   const [tab, setTab] = useState<'edit' | 'subs'>('edit')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
+  async function loadForm() {
     if (!Number.isFinite(fid)) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
-        if (!cancelled) {
-          setForm(f)
-          setRows(s)
-        }
-      } catch {
-        const seed = seedFormDefinitions().find((x) => x.id === fid) ?? seedFormDefinitions()[0]!
-        if (!cancelled) {
-          setForm(seed)
-          setRows([
-            { id: 1, submitted_at: '2026-05-02', submitter_label: 'زائر', answers_preview: 'عرض تجريبي' },
-          ])
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+    setLoadError(null)
+    setLoading(true)
+    try {
+      const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
+      setForm(f)
+      setRows(s)
+    } catch {
+      setLoadError('تعذّر تحميل النموذج. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [fid])
+  }
+
+  useEffect(() => { void loadForm() }, [fid])
 
   if (!Number.isFinite(fid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
-  if (loading || !form) return <OpsPageSkeleton />
+  if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void loadForm()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
+  if (!form) return <OpsPageSkeleton />
 
   return (
     <div className="space-y-8">

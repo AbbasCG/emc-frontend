@@ -5,7 +5,6 @@ import DepartmentCard from '@/components/operations/DepartmentCard'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
-import { seedWorkspaceDepartments } from '@/data/operationsSeed'
 import type { WorkspaceDepartment } from '@/types/operations'
 import { Building2 } from 'lucide-react'
 
@@ -17,25 +16,29 @@ export default function OpsDepartmentsPage() {
 
   const [items, setItems] = useState<WorkspaceDepartment[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchWorkspaceDepartments()
-        if (!cancelled) setItems(d)
-      } catch {
-        if (!cancelled) setItems(seedWorkspaceDepartments())
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+  async function load() {
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setItems(await fetchWorkspaceDepartments())
+    } catch {
+      setLoadError('تعذّر تحميل الإدارات. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
+
+  useEffect(() => { void load() }, [])
 
   if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

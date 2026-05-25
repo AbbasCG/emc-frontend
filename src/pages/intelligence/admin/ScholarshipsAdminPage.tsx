@@ -4,7 +4,7 @@ import { ScholarshipDecisionPanel, IntelligencePageSkeleton } from '@/components
 import EmptyState from '@/components/dashboard/EmptyState'
 import { GraduationCap } from 'lucide-react'
 import { fetchScholarships, updateScholarshipStatus } from '@/api/scholarshipsApi'
-import { seedScholarships } from '@/data/intelligenceSeed'
+
 import type { ScholarshipApplication, ScholarshipStatus } from '@/types/intelligence'
 import { formatEuroInteger } from '@/utils/currency'
 
@@ -18,13 +18,16 @@ const ST_AR: Record<ScholarshipStatus, string> = {
 export default function ScholarshipsAdminPage() {
   const [rows, setRows] = useState<ScholarshipApplication[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
 
   async function load() {
+    setLoadError(null)
+    setLoading(true)
     try {
       setRows(await fetchScholarships())
     } catch {
-      setRows(seedScholarships())
+      setLoadError('تعذّر تحميل المنح. تحقق من الاتصال وأعد المحاولة.')
     } finally {
       setLoading(false)
     }
@@ -48,6 +51,12 @@ export default function ScholarshipsAdminPage() {
   }
 
   if (loading) return <IntelligencePageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

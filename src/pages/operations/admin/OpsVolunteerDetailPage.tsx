@@ -3,9 +3,9 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { fetchVolunteer, updateVolunteer } from '@/api/volunteersApi'
-import { seedVolunteers, seedWorkspaceDepartments } from '@/data/operationsSeed'
+import { fetchWorkspaceDepartments } from '@/api/operationsApi'
 import { VOLUNTEER_STATUS_AR } from '@/data/operationsLabels'
-import type { OpsVolunteer, VolunteerStatus } from '@/types/operations'
+import type { OpsVolunteer, VolunteerStatus, WorkspaceDepartment } from '@/types/operations'
 
 export default function OpsVolunteerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -15,29 +15,30 @@ export default function OpsVolunteerDetailPage() {
     : '/dashboard/admin/volunteers'
   const vid = id ? Number(id) : NaN
   const [v, setV] = useState<OpsVolunteer | null>(null)
+  const [depts, setDepts] = useState<WorkspaceDepartment[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [notes] = useState('مساحة الملاحظات الداخلية — قيد ربط الـ API.')
 
-  useEffect(() => {
+  async function load() {
     if (!Number.isFinite(vid)) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchVolunteer(vid)
-        if (!cancelled) setV(d)
-      } catch {
-        const seed = seedVolunteers().find((x) => x.id === vid) ?? seedVolunteers()[0]!
-        if (!cancelled) setV(seed)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+    setLoadError(null)
+    setLoading(true)
+    try {
+      const [vData, dData] = await Promise.all([
+        fetchVolunteer(vid),
+        fetchWorkspaceDepartments(),
+      ])
+      setV(vData)
+      setDepts(dData)
+    } catch {
+      setLoadError('تعذّر تحميل بيانات المتطوع. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [vid])
+  }
 
-  const depts = seedWorkspaceDepartments()
+  useEffect(() => { void load() }, [vid])
 
   async function patchStatus(status: VolunteerStatus) {
     if (!v) return
@@ -63,7 +64,14 @@ export default function OpsVolunteerDetailPage() {
   }
 
   if (!Number.isFinite(vid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
-  if (loading || !v) return <OpsPageSkeleton />
+  if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
+  if (!v) return <OpsPageSkeleton />
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">

@@ -8,8 +8,7 @@ import AiGenerationPanel from '@/components/ai/AiGenerationPanel'
 import AiRecommendationCard from '@/components/ai/AiRecommendationCard'
 import EmptyState from '@/components/ai/EmptyState'
 import AiAssistantPanel from '@/components/platform/AiAssistantPanel'
-import { seedAiSuggestedPrompts } from '@/data/aiSeed'
-import type { AiChatMessage, AiContextScope, AiGenerationRecord, AiRecommendation } from '@/types/ai'
+import type { AiChatMessage, AiContextScope, AiGenerationRecord, AiRecommendation, AiSuggestedPrompt } from '@/types/ai'
 
 export default function AiWorkspacePage() {
   const [list, setList] = useState<Awaited<ReturnType<typeof fetchAiConversationThreads>>>([])
@@ -20,7 +19,7 @@ export default function AiWorkspacePage() {
   const [activeScopes, setActiveScopes] = useState<AiContextScope[]>(['knowledge', 'tasks'])
   const [recommendations, setRecommendations] = useState<AiRecommendation[]>([])
   const [generation, setGeneration] = useState<AiGenerationRecord | null>(null)
-  const suggestions = useMemo(() => seedAiSuggestedPrompts(), [])
+  const suggestions = useMemo<AiSuggestedPrompt[]>(() => [], [])
 
   useEffect(() => {
     let cancelled = false

@@ -971,7 +971,7 @@ export default function UsersManagementPage() {
         <FormSuccessState
           open={createSuccessOpen}
           title="تم إنشاء المستخدم"
-          description="أُنشئ الحساب عبر واجهة الإدارة؛ يمكنك الآن متابعة التحرير من الجدول."
+          description="تم إرسال بيانات الدخول عبر البريد الإلكتروني"
           continueLabel="تم"
           onContinue={() => {
             closeModal()

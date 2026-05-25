@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import OpsTaskTabs from '@/components/operations/OpsTaskTabs'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
@@ -7,17 +7,20 @@ import TaskDetailPanel from '@/components/operations/TaskDetailPanel'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { ClipboardList } from 'lucide-react'
 import { TASK_STATUS_AR } from '@/data/operationsLabels'
-import type { TaskStatus } from '@/types/operations'
+import { fetchWorkspaceDepartments } from '@/api/operationsApi'
+import type { TaskStatus, WorkspaceDepartment } from '@/types/operations'
 import { useTasksWorkspace } from '../hooks/useTasksWorkspace'
-import { seedWorkspaceDepartments } from '@/data/operationsSeed'
 
 export default function OpsTasksListPage() {
-  const { tasks, loading, usingSeed, selected, panelOpen, openTask, closePanel, onPatch, onToggleChecklist, onComment } =
+  const { tasks, loading, selected, panelOpen, openTask, closePanel, onPatch, onToggleChecklist, onComment } =
     useTasksWorkspace('all')
   const [dept, setDept] = useState<string>('all')
   const [status, setStatus] = useState<TaskStatus | 'all'>('all')
+  const [depts, setDepts] = useState<WorkspaceDepartment[]>([])
 
-  const depts = useMemo(() => seedWorkspaceDepartments(), [])
+  useEffect(() => {
+    fetchWorkspaceDepartments().then(setDepts).catch(() => { /* keep empty */ })
+  }, [])
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
@@ -35,7 +38,7 @@ export default function OpsTasksListPage() {
         <div className="text-right">
           <h1 className="text-xl font-black text-deepBlue">المهام</h1>
           <p className="mt-1 text-xs font-semibold text-slate-500">
-            قائمة ذكية مع مرشحات سريعة {usingSeed && '· عرض تجريبي محلي'}
+            قائمة ذكية مع مرشحات سريعة
           </p>
         </div>
         <OpsTaskTabs />

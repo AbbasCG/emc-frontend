@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, CalendarClock, ExternalLink, Users } from 'lucide-react'
+import { BookOpen, CalendarClock, ExternalLink, Layers, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { fetchInstructorCourses, fetchInstructorLmsDashboard } from '@/api/instructorApi'
@@ -103,6 +103,14 @@ export default function InstructorAssignedCoursesPage() {
                   className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 py-2 text-xs font-black text-deepBlue hover:border-customBlue"
                 >
                   عرض تفاصيل الدورة
+                </Link>
+                <Link
+                  to={`/dashboard/instructor/courses/${c.id}/content`}
+                  aria-label={`إدارة محتوى الدورة ${c.title}`}
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue py-2.5 text-xs font-black text-white shadow-sm hover:brightness-105"
+                >
+                  <Layers className="h-3.5 w-3.5" aria-hidden />
+                  إدارة المحتوى (LMS)
                 </Link>
               </motion.article>
             ))}

@@ -5,31 +5,34 @@ import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { Calendar } from 'lucide-react'
 import { fetchMeetings } from '@/api/meetingsApi'
-import { seedMeetings } from '@/data/operationsSeed'
 import type { OpsMeeting } from '@/types/operations'
 
 export default function OpsMeetingsPage() {
   const [items, setItems] = useState<OpsMeeting[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const d = await fetchMeetings()
-        if (!cancelled) setItems(d)
-      } catch {
-        if (!cancelled) setItems(seedMeetings())
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+  async function load() {
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setItems(await fetchMeetings())
+    } catch {
+      setLoadError('تعذّر تحميل الاجتماعات. تحقق من الاتصال وأعد المحاولة.')
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
+
+  useEffect(() => { void load() }, [])
 
   if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

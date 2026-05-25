@@ -2,30 +2,38 @@ import { useEffect, useState } from 'react'
 import OperationsDashboard from '@/components/operations/OperationsDashboard'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { fetchOperationsDashboard } from '@/api/operationsApi'
-import { seedOperationsDashboard } from '@/data/operationsSeed'
 import type { OperationsDashboardData } from '@/types/operations'
 
 export default function OperationsDashboardPage() {
   const [data, setData] = useState<OperationsDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
+  function doLoad() {
+    setLoadError(null)
+    setLoading(true)
     let cancelled = false
-    ;(async () => {
+    void (async () => {
       try {
         const d = await fetchOperationsDashboard()
         if (!cancelled) setData(d)
       } catch {
-        if (!cancelled) setData(seedOperationsDashboard())
+        if (!cancelled) setLoadError('تعذّر تحميل لوحة العمليات. تحقق من الاتصال وأعد المحاولة.')
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+    return () => { cancelled = true }
+  }
 
-  if (loading || !data) return <OpsPageSkeleton />
+  useEffect(() => doLoad(), [])
+
+  if (loading) return <OpsPageSkeleton />
+  if (loadError || !data) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError ?? 'لا توجد بيانات.'}</p>
+      <button type="button" onClick={doLoad} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
   return <OperationsDashboard data={data} />
 }

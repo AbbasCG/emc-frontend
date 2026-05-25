@@ -1,0 +1,83 @@
+import type { LmsSessionStatus } from './lms'
+
+/** GET /student/courses/:courseId/learn — normalized view */
+export type StudentLearnCourseOverview = {
+  id: number
+  title: string
+  slug?: string | null
+  instructor_name?: string | null
+  description?: string | null
+  course_image?: string | null
+}
+
+export type CourseLearnSession = {
+  id: number
+  course_id?: number | null
+  title?: string | null
+  description?: string | null
+  start_at?: string | null
+  end_at?: string | null
+  starts_at?: string | null
+  ends_at?: string | null
+  date?: string | null
+  time?: string | null
+  meeting_url?: string | null
+  recording_url?: string | null
+  location_type?: 'online' | 'offline' | 'hybrid' | string | null
+  location?: string | null
+  status: LmsSessionStatus | string
+  type?: 'online' | 'offline' | null
+  instructor_name?: string | null
+}
+
+export type CourseLearnMaterialKind = 'pdf' | 'video' | 'link' | 'slides' | 'document' | 'other'
+
+export type CourseLearnMaterial = {
+  id: number
+  course_id?: number | null
+  title: string
+  description?: string | null
+  kind: CourseLearnMaterialKind | string
+  file_url?: string | null
+  external_url?: string | null
+  url?: string | null
+  visibility?: 'public' | 'enrolled' | string | null
+}
+
+export type CourseLearnAssignmentSubmissionType = 'text' | 'file' | 'both' | string
+
+/** Student-facing assignment row (mirrors LMS submit contract) */
+export type CourseLearnAssignment = {
+  id: number
+  assignment_id?: number
+  title: string
+  description?: string | null
+  due_at?: string | null
+  max_points?: number | null
+  submission_type?: CourseLearnAssignmentSubmissionType | null
+  required?: boolean
+  visible?: boolean
+  /** Student status — when learner context */
+  status?: string | null
+  score?: number | null
+  feedback?: string | null
+}
+
+export type StudentLearnModule = {
+  id: number
+  course_id?: number
+  title: string
+  sort_order: number
+  lessons_count: number
+  completed_lessons?: number
+}
+
+export type StudentCourseLearnPayload = {
+  course: StudentLearnCourseOverview | null
+  progress_percent?: number | null
+  registration_status?: string | null
+  modules: StudentLearnModule[]
+  sessions: CourseLearnSession[]
+  materials: CourseLearnMaterial[]
+  assignments: CourseLearnAssignment[]
+}

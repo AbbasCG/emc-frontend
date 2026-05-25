@@ -63,16 +63,16 @@ export function FormWizardShell({
   const inner = (
     <div
       className={cn(
-        variant === 'overlay' && 'relative w-full',
+        variant === 'overlay' && 'relative flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[1.9rem] border border-white/65 bg-white/72 shadow-[0_28px_90px_-20px_rgba(15,23,42,0.45)] backdrop-blur-xl',
         variant === 'inline' && 'w-full',
         maxWidthClassName,
-        'space-y-6 px-4 py-6 sm:px-6',
+        variant === 'inline' && 'space-y-6 px-4 py-6 sm:px-6',
         className,
       )}
       dir="rtl"
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className={cn(EMC_WIZARD_HEADER_GRADIENT)}>
+      <div className={cn(EMC_WIZARD_HEADER_GRADIENT, variant === 'overlay' && 'sticky top-0 z-20 m-3 shrink-0 sm:m-4')}>
         <div className="pointer-events-none absolute -end-24 -top-24 h-56 w-56 rounded-full bg-[#2691C2]/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 start-0 h-64 w-64 rounded-full bg-[#EC943C]/20 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -103,7 +103,12 @@ export function FormWizardShell({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div
+        className={cn(
+          'grid grid-cols-1 gap-8 lg:grid-cols-12',
+          variant === 'overlay' ? 'min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-6' : '',
+        )}
+      >
         <div className="lg:col-span-8">
           <div className={cn(EMC_WIZARD_GLASS_CARD, 'p-5 sm:p-7')}>{mainColumn}</div>
         </div>
@@ -128,12 +133,12 @@ export function FormWizardShell({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22 }}
-          className="fixed inset-0 z-[200] overflow-y-auto bg-[#0F172A]/55 backdrop-blur-md"
+          className="fixed inset-0 z-[200] overflow-hidden bg-[#0F172A]/55 backdrop-blur-md"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) onClose()
           }}
         >
-          <div className="flex min-h-full items-start justify-center py-6 sm:py-10">{inner}</div>
+          <div className="flex h-full items-start justify-center p-3 sm:p-6">{inner}</div>
         </motion.div>
       : null}
     </AnimatePresence>

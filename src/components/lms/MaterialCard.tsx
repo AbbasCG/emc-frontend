@@ -13,6 +13,11 @@ const iconMap = {
 
 export default function MaterialCard({ material }: { material: LmsMaterial }) {
   const Icon = iconMap[material.kind] ?? iconMap.other
+  const hasUrl = Boolean(material.url && String(material.url).trim() !== '')
+  const actionVerb =
+    material.kind === 'link' ? 'فتح الرابط'
+    : ['pdf', 'document', 'slides'].includes(material.kind) ? 'تحميل / فتح'
+    : 'فتح المادة'
 
   return (
     <motion.div
@@ -37,15 +42,19 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
           <Icon size={22} />
         </span>
       </div>
-      {material.url && (
+      {hasUrl ?
         <a
-          href={material.url}
+          href={material.url ?? '#'}
           target="_blank"
           rel="noreferrer"
           className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-deepBlue py-2.5 text-xs font-black text-white transition hover:bg-deepBlue/90"
         >
-          فتح المادة
+          {actionVerb}
         </a>
+      : (
+        <p className="mt-4 rounded-xl border border-deepBlue/[0.08] bg-deepBlue/[0.03] py-2.5 text-center text-[11px] font-bold text-deepBlue/55">
+          لا رابط أو ملف متاح من الخادم لهذه المادة.
+        </p>
       )}
     </motion.div>
   )

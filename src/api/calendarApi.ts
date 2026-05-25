@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { asList } from './lmsApi'
-import { seedCalendarEvents } from '@/data/phase7Seed'
 import type { CalendarEventRecord, CalendarFilterKind } from '@/types/phase7'
 
 export async function fetchCalendarEvents(kind?: CalendarFilterKind): Promise<CalendarEventRecord[]> {
@@ -10,9 +9,7 @@ export async function fetchCalendarEvents(kind?: CalendarFilterKind): Promise<Ca
     })
     return asList<CalendarEventRecord>(res.data)
   } catch {
-    const base = seedCalendarEvents()
-    if (!kind || kind === 'all') return base
-    return base.filter((e) => e.kind === kind)
+    return []
   }
 }
 

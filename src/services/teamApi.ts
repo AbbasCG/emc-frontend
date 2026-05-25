@@ -31,7 +31,7 @@ export function resolveTeamMemberImage(image: string | null): string | null {
   if (!image?.trim()) return null
   if (/^https?:\/\//i.test(image)) return image
   const apiBase =
-    import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api'
+    import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? ''
   const origin = apiBase.replace(/\/api\/?$/, '').replace(/\/$/, '')
   return image.startsWith('/') ? `${origin}${image}` : `${origin}/${image}`
 }

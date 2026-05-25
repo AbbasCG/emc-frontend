@@ -5,6 +5,9 @@ import {
   BookOpen,
   Calendar,
   CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   CreditCard,
   Eye,
@@ -88,6 +91,184 @@ function toHHmm(raw: string): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
+function pickCourseImageUrl(course: Course | null): string {
+  if (!course) return ''
+  const media = course as Course & {
+    course_image?: string | null
+    image_url?: string | null
+    image?: string | null
+    thumbnail?: string | null
+  }
+  return String(media.image_url || media.course_image || media.image || media.thumbnail || '').trim()
+}
+
+function normalizeListText(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string') return item
+        if (item && typeof item === 'object' && 'title' in item) return String((item as { title?: unknown }).title ?? '')
+        return String(item ?? '')
+      })
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join('\n')
+  }
+  return apiListToText(value)
+}
+
+function isDuplicateCourseValue(courses: Course[], currentId: number | undefined, key: 'title' | 'slug', value: string) {
+  const v = value.trim().toLowerCase()
+  if (!v) return false
+  return courses.some((course) => Number(course.id) !== Number(currentId) && String(course[key] ?? '').trim().toLowerCase() === v)
+}
+
+const EMC_PLACEHOLDER =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#22334A"/><stop offset=".55" stop-color="#2691C2"/><stop offset="1" stop-color="#EC943C"/></linearGradient></defs><rect width="1200" height="675" fill="url(#g)"/><circle cx="1040" cy="90" r="210" fill="rgba(255,255,255,.16)"/><circle cx="140" cy="620" r="260" fill="rgba(255,255,255,.12)"/><text x="600" y="330" fill="white" font-family="Arial, sans-serif" font-size="96" font-weight="900" text-anchor="middle">EMC</text><text x="600" y="398" fill="rgba(255,255,255,.82)" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Premium Learning Program</text></svg>',
+  )
+
+type DatePickerProps = {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  error?: string
+}
+
+function ModernDatePicker({ label, value, onChange, error }: DatePickerProps) {
+  const [open, setOpen] = useState(false)
+  const baseDate = value ? new Date(`${value}T12:00:00`) : new Date()
+  const [cursor, setCursor] = useState(() => new Date(baseDate.getFullYear(), baseDate.getMonth(), 1))
+  const days = useMemo(() => {
+    const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
+    const startOffset = (first.getDay() + 1) % 7
+    const start = new Date(first)
+    start.setDate(first.getDate() - startOffset)
+    return Array.from({ length: 42 }, (_, i) => {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      return d
+    })
+  }, [cursor])
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const labelText = value || 'اختر التاريخ'
+  return (
+    <div className="relative text-[11px] font-black text-[#22334A]">
+      <span className="mb-1 block">{label}</span>
+      <button
+        type="button"
+        onClick={() => setOpen((x) => !x)}
+        className={`${EMC_WIZARD_INPUT_BASE} flex min-h-[46px] items-center justify-between gap-3 bg-white text-right`}
+      >
+        <span className={value ? 'font-mono tabular-nums text-[#22334A]' : 'text-slate-400'}>{labelText}</span>
+        <Calendar className="h-4 w-4 text-[#2691C2]" aria-hidden />
+      </button>
+      {open ? (
+        <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-3xl border border-white/80 bg-white/95 p-3 shadow-[0_24px_70px_-18px_rgba(15,23,42,.35)] backdrop-blur-xl">
+          <div className="mb-3 flex items-center justify-between">
+            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#22334A]">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <span className="text-sm font-black text-[#22334A]">
+              {cursor.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}
+            </span>
+            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#22334A]">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-slate-400">
+            {['س', 'ح', 'ن', 'ث', 'ر', 'خ', 'ج'].map((d) => <span key={d}>{d}</span>)}
+          </div>
+          <div className="mt-2 grid grid-cols-7 gap-1">
+            {days.map((d) => {
+              const iso = fmt(d)
+              const selected = iso === value
+              const muted = d.getMonth() !== cursor.getMonth()
+              return (
+                <button
+                  type="button"
+                  key={iso}
+                  onClick={() => {
+                    onChange(iso)
+                    setOpen(false)
+                  }}
+                  className={`aspect-square rounded-xl text-[12px] font-black transition ${
+                    selected ? 'bg-gradient-to-l from-[#2691C2] to-[#22334A] text-white shadow-md' : muted ? 'text-slate-300 hover:bg-slate-50' : 'text-[#22334A] hover:bg-[#2691C2]/10'
+                  }`}
+                >
+                  {d.getDate()}
+                </button>
+              )
+            })}
+          </div>
+          {value ? (
+            <button type="button" onClick={() => { onChange(''); setOpen(false) }} className="mt-3 w-full rounded-xl bg-slate-50 px-3 py-2 text-[11px] font-black text-slate-600">
+              مسح التاريخ
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {error ? <span className="mt-1 block text-[11px] font-bold text-rose-600">{error}</span> : null}
+    </div>
+  )
+}
+
+type TimePickerProps = {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  error?: string
+}
+
+function ModernTimePicker({ label, value, onChange, error }: TimePickerProps) {
+  const [open, setOpen] = useState(false)
+  const [hour, minute] = (value || '09:00').split(':')
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+  const minutes = ['00', '15', '30', '45']
+  return (
+    <div className="relative text-[11px] font-black text-[#22334A]">
+      <span className="mb-1 block">{label}</span>
+      <button
+        type="button"
+        onClick={() => setOpen((x) => !x)}
+        className={`${EMC_WIZARD_INPUT_BASE} flex min-h-[46px] items-center justify-between gap-3 bg-white text-right`}
+      >
+        <span className={value ? 'font-mono tabular-nums text-[#22334A]' : 'text-slate-400'}>{value || 'اختر الوقت'}</span>
+        <Clock className="h-4 w-4 text-[#2691C2]" aria-hidden />
+      </button>
+      {open ? (
+        <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-3xl border border-white/80 bg-white/95 p-3 shadow-[0_24px_70px_-18px_rgba(15,23,42,.35)] backdrop-blur-xl">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid max-h-48 grid-cols-3 gap-1">
+              {hours.map((h) => (
+                <button key={h} type="button" onClick={() => onChange(`${h}:${minute ?? '00'}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${h === hour ? 'bg-[#22334A] text-white' : 'bg-slate-50 text-[#22334A]'}`}>
+                  {h}
+                </button>
+              ))}
+            </div>
+            <div className="grid content-start gap-1">
+              {minutes.map((m) => (
+                <button key={m} type="button" onClick={() => onChange(`${hour ?? '09'}:${m}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${m === minute ? 'bg-[#2691C2] text-white' : 'bg-slate-50 text-[#22334A]'}`}>
+                  :{m}
+                </button>
+              ))}
+              <button type="button" onClick={() => { onChange(''); setOpen(false) }} className="mt-2 rounded-xl bg-rose-50 px-2 py-2 text-[11px] font-black text-rose-600">
+                مسح
+              </button>
+              <button type="button" onClick={() => setOpen(false)} className="rounded-xl bg-emerald-50 px-2 py-2 text-[11px] font-black text-emerald-700">
+                <Check className="mx-auto h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {error ? <span className="mt-1 block text-[11px] font-bold text-rose-600">{error}</span> : null}
+    </div>
+  )
+}
+
 const FIELD_LABEL_AR: Record<string, string> = {
   title: 'العنوان',
   slug: 'المختصر',
@@ -130,6 +311,7 @@ type Props = {
   initial: Course | null
   tracks: CatalogTrackRow[]
   departments: OpsDepartmentOption[]
+  existingCourses?: Course[]
   onClose: () => void
   onSaved: () => void
   /** يُعاد تعيين النموذج لإنشاء دورة جديدة دون إغلاق النافذة */
@@ -143,6 +325,7 @@ export function CourseProgramFormModal({
   initial,
   tracks,
   departments,
+  existingCourses = [],
   onClose,
   onSaved,
   onCreateAnother,
@@ -255,12 +438,15 @@ export function CourseProgramFormModal({
     setSlug(initial.slug ?? '')
     setDescription(initial.description ?? '')
     setShortDescription(initial.short_description ?? '')
-    setCourseImage(initial.course_image ?? '')
+    setCourseImage(pickCourseImageUrl(initial))
     setKind(inferProgramKind(initial))
     setTrackId(initial.track_id != null ? String(initial.track_id) : '')
     setDepartmentId(initial.department_id != null ? String(initial.department_id) : '')
     setInstructorId(initial.instructor_id != null ? String(initial.instructor_id) : '')
-    const free = String(initial.type) !== 'paid'
+    const free =
+      initial.is_free != null ?
+        initial.is_free === true || initial.is_free === 1
+      : String(initial.type) !== 'paid'
     setPriceFree(free)
     setPrice(String(initial.price ?? '0'))
     setCapacity(initial.capacity != null ? String(initial.capacity) : '')
@@ -273,29 +459,29 @@ export function CourseProgramFormModal({
       : true,
     )
     setIsOnline(Boolean(initial.is_online))
-    setLocationType((initial.location_type as string) || (initial.is_online ? 'online' : 'offline'))
+    setLocationType((initial.location_type as string) || (initial.delivery_type as string) || (initial.is_online ? 'online' : 'offline'))
     setLocationText(initial.location ?? '')
     setStartDate(initial.start_date ? String(initial.start_date).slice(0, 10) : '')
-    setStartTime(initial.start_time ? String(initial.start_time).slice(0, 8) : '')
+    setStartTime(initial.start_time ? String(initial.start_time).slice(0, 5) : initial.study_time ? String(initial.study_time).slice(0, 5) : '')
     setEndDate(initial.end_date ? String(initial.end_date).slice(0, 10) : '')
-    setEndTime(initial.end_time ? String(initial.end_time).slice(0, 8) : '')
+    setEndTime(initial.end_time ? String(initial.end_time).slice(0, 5) : '')
     setMeetingLink(initial.meeting_link ?? '')
     setDurationText(initial.duration ?? '')
     setTrainingHours(initial.training_hours != null ? String(initial.training_hours) : '')
     setLanguage(initial.language ?? '')
     setLevel(initial.level ?? '')
-    setTargetAudience(initial.target_audience ?? '')
+    setTargetAudience(initial.target_audience ?? (initial as { audience?: string | null }).audience ?? '')
     setCertificate(initial.certificate ?? '')
     setSessionFormat(initial.session_format?.trim() || SESSION_FORMAT_OPTIONS[0].v)
-    setPrerequisites(apiListToText((initial as { requirements?: unknown }).requirements ?? initial.prerequisites))
-    setLearningOutcomes(apiListToText((initial as { learning_outcomes?: unknown }).learning_outcomes))
+    setPrerequisites(normalizeListText((initial as { requirements?: unknown }).requirements ?? initial.prerequisites))
+    setLearningOutcomes(normalizeListText((initial as { learning_outcomes?: unknown; outcomes?: unknown }).learning_outcomes ?? (initial as { outcomes?: unknown }).outcomes))
     setOutline(
-      apiListToText((initial as { curriculum_topics?: unknown }).curriculum_topics) || (initial.study_days ?? ''),
+      normalizeListText((initial as { curriculum_topics?: unknown }).curriculum_topics) || (initial.study_days ?? ''),
     )
-    setKeywords(apiListToText((initial as { keywords?: unknown }).keywords ?? initial.keywords))
+    setKeywords(normalizeListText((initial as { keywords?: unknown; tags?: unknown }).keywords ?? (initial as { tags?: unknown }).tags))
     setAdminNotes((initial as { notes?: string | null }).notes ?? initial.admin_notes ?? '')
     setLearnText(
-      initial.features && initial.features.length > 0 ? initial.features.map((f) => f.title).join('\n') : '',
+      normalizeListText(initial.features),
     )
     setFieldErrors({})
     setImageFile(null)
@@ -556,7 +742,7 @@ export function CourseProgramFormModal({
           String(u.id).includes(q),
       )
     }
-    return list.slice(0, 80)
+    return list.slice(0, 10)
   }, [instructorRows, instructorQuery])
 
   const clearField = useCallback((key: string) => {
@@ -585,6 +771,19 @@ export function CourseProgramFormModal({
     if (step === 1) {
       if (!title.trim()) {
         toast.warning('عنوان البرنامج مطلوب')
+        return false
+      }
+      const nextSlug = slug.trim() || defaultSlugFromTitle(title)
+      const nextErrors: Record<string, string> = {}
+      if (isDuplicateCourseValue(existingCourses, initial?.id, 'title', title)) {
+        nextErrors.title = 'يوجد برنامج بنفس العنوان. يرجى اختيار عنوان مختلف.'
+      }
+      if (isDuplicateCourseValue(existingCourses, initial?.id, 'slug', nextSlug)) {
+        nextErrors.slug = 'هذا المختصر مستخدم بالفعل. يرجى اختيار مختصر مختلف.'
+      }
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors((prev) => ({ ...prev, ...nextErrors }))
+        toast.warning('لا يمكن حفظ برنامج بعنوان أو مختصر مكرر.')
         return false
       }
       return true
@@ -620,15 +819,31 @@ export function CourseProgramFormModal({
   }
 
   function buildPayload(): CourseUpsertPayload {
+    function optionalFkId(raw: string): number | undefined {
+      const s = raw.trim()
+      if (!s) return undefined
+      const n = Number(s)
+      return Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined
+    }
+
     const featuresLines = linesToStringArray(learnText)
     const outcomesLines = linesToStringArray(learningOutcomes)
     const requirementsLines = linesToStringArray(prerequisites)
     const topicLines = linesToStringArray(outline)
     const keywordLines = splitKeywords(keywords)
-    const hoursNum = trainingHours.trim() ? Number(trainingHours) : null
+
+    const hoursParsed = trainingHours.trim() ? Number(trainingHours) : undefined
+    const hoursOk =
+      hoursParsed !== undefined && Number.isFinite(hoursParsed) && hoursParsed >= 0 ? hoursParsed : undefined
+
+    const capParsed = capacity.trim() ? Number(capacity) : undefined
+    const capacityOk =
+      capParsed !== undefined && Number.isFinite(capParsed) && capParsed >= 1 ? Math.floor(capParsed) : undefined
+
     const tStart = toHHmm(startTime)
     const tEnd = toHHmm(endTime)
     const onlineOnly = locationType === 'online'
+    /** API contract: strictly `draft` | `published` | `archived` (Arabic labels only in STATUS_OPTIONS UI, values are EN) */
     const lifecycle = normalizeCourseStatus(status)
 
     return {
@@ -636,7 +851,11 @@ export function CourseProgramFormModal({
       slug: slug.trim() || defaultSlugFromTitle(title),
       description: description.trim() || undefined,
       short_description: shortDescription.trim() || undefined,
-      course_image: imageFile ? undefined : courseImage.trim() || undefined,
+      ...(imageFile ?
+        {}
+      : courseImage.trim()
+        ? { course_image: courseImage.trim() }
+        : {}),
       program_type: kindToProgramType(kind),
       type: priceFree ? 'free' : 'paid',
       is_free: priceFree,
@@ -645,7 +864,7 @@ export function CourseProgramFormModal({
       delivery_type: locationType,
       location_type: locationType,
       location: onlineOnly ? null : locationText.trim() || null,
-      capacity: capacity.trim() ? Number(capacity) : undefined,
+      capacity: capacityOk,
       status: lifecycle,
       registration_open: registrationOpen,
       start_date: startDate.trim() || undefined,
@@ -654,11 +873,11 @@ export function CourseProgramFormModal({
       end_time: tEnd || undefined,
       study_time: tStart || undefined,
       meeting_link: meetingLink.trim() || undefined,
-      track_id: trackId ? Number(trackId) : undefined,
-      department_id: departmentId ? Number(departmentId) : undefined,
-      instructor_id: instructorId ? Number(instructorId) : undefined,
+      track_id: optionalFkId(trackId),
+      department_id: optionalFkId(departmentId),
+      instructor_id: optionalFkId(instructorId),
       duration: durationText.trim() || undefined,
-      training_hours: hoursNum != null && Number.isFinite(hoursNum) ? hoursNum : undefined,
+      training_hours: hoursOk,
       target_audience: targetAudience.trim() || undefined,
       language: language.trim() || undefined,
       level: level.trim() || undefined,
@@ -679,8 +898,6 @@ export function CourseProgramFormModal({
     setBusy(true)
     try {
       const payload = buildPayload()
-      // Temporary debug — inspect alignment with Laravel AdminCourseController
-      console.log('[CourseWizard] formPayload', payload)
       const course = await upsertCourse(payload, editing ? initial?.id : undefined, {
         imageFile: imageFile ?? undefined,
       })
@@ -749,6 +966,8 @@ export function CourseProgramFormModal({
     ],
     [title, courseImage, shortDescription, priceFree, price, status, imageFile],
   )
+
+  const coverPreviewSrc = imagePreviewUrl || courseImage || EMC_PLACEHOLDER
 
   const helpByStep = useMemo((): ReactNode => {
     if (currentStep === 1) {
@@ -820,10 +1039,10 @@ export function CourseProgramFormModal({
               id="course-wizard-cover"
               onChange={(e) => pickImageFile(e.target.files?.[0] ?? null)}
             />
-            {(imagePreviewUrl || (courseImage.trim() && !imageFile)) ?
+            {coverPreviewSrc ?
               <div className="relative mx-auto max-h-56 overflow-hidden rounded-2xl ring-2 ring-white">
                 <img
-                  src={imagePreviewUrl || courseImage}
+                  src={coverPreviewSrc}
                   alt=""
                   className="max-h-56 w-full object-cover"
                 />
@@ -1086,7 +1305,7 @@ export function CourseProgramFormModal({
             : null}
             {!selectedInstructor ?
               <ul
-                className="max-h-48 overflow-y-auto rounded-2xl border border-slate-200/90 bg-white p-2 shadow-inner"
+                className="rounded-2xl border border-slate-200/90 bg-white p-2 shadow-inner"
                 role="listbox"
               >
                 {filteredInstructors.length === 0 ?
@@ -1128,12 +1347,49 @@ export function CourseProgramFormModal({
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="text-[11px] font-black text-[#22334A]">
+            <ModernDatePicker
+              label="تاريخ البداية (اختياري)"
+              value={startDate}
+              onChange={(v) => {
+                setStartDate(v)
+                clearField('start_date')
+              }}
+              error={fieldErrors.start_date}
+            />
+            <ModernTimePicker
+              label="وقت البداية (24 ساعة، اختياري)"
+              value={startTime}
+              onChange={(v) => {
+                setStartTime(toHHmm(v))
+                clearField('start_time')
+                clearField('study_time')
+              }}
+              error={fieldErrors.start_time || fieldErrors.study_time}
+            />
+            <ModernDatePicker
+              label="تاريخ الانتهاء (اختياري)"
+              value={endDate}
+              onChange={(v) => {
+                setEndDate(v)
+                clearField('end_date')
+              }}
+              error={fieldErrors.end_date}
+            />
+            <ModernTimePicker
+              label="وقت الانتهاء (24 ساعة، اختياري)"
+              value={endTime}
+              onChange={(v) => {
+                setEndTime(toHHmm(v))
+                clearField('end_time')
+              }}
+              error={fieldErrors.end_time}
+            />
+            <div className="hidden text-[11px] font-black text-[#22334A]">
               <span className="mb-1 block">تاريخ البداية (اختياري)</span>
               <div className="relative mt-1">
                 <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
                 <input
-                  type="date"
+                  type="text"
                   value={startDate}
                   onChange={(e) => {
                     setStartDate(e.target.value)
@@ -1146,12 +1402,12 @@ export function CourseProgramFormModal({
                 <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.start_date}</span>
               : null}
             </div>
-            <div className="text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#22334A]">
               <span className="mb-1 block">وقت البداية (24 ساعة، اختياري)</span>
               <div className="relative mt-1">
                 <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
                 <input
-                  type="time"
+                  type="text"
                   step={60}
                   value={startTime}
                   onChange={(e) => {
@@ -1169,12 +1425,12 @@ export function CourseProgramFormModal({
                 </span>
               : null}
             </div>
-            <div className="text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#22334A]">
               <span className="mb-1 block">تاريخ الانتهاء (اختياري)</span>
               <div className="relative mt-1">
                 <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
                 <input
-                  type="date"
+                  type="text"
                   value={endDate}
                   onChange={(e) => {
                     setEndDate(e.target.value)
@@ -1187,12 +1443,12 @@ export function CourseProgramFormModal({
                 <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.end_date}</span>
               : null}
             </div>
-            <div className="text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#22334A]">
               <span className="mb-1 block">وقت الانتهاء (24 ساعة، اختياري)</span>
               <div className="relative mt-1">
                 <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
                 <input
-                  type="time"
+                  type="text"
                   step={60}
                   value={endTime}
                   onChange={(e) => {
@@ -1441,6 +1697,7 @@ export function CourseProgramFormModal({
     pickImageFile,
     fieldErrors,
     imagePreviewUrl,
+    coverPreviewSrc,
     imageFile,
   ])
 

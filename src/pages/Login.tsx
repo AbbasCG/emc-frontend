@@ -28,8 +28,21 @@ export default function Login() {
     safeInternalPath(searchParams.get('next')) ?? safeInternalPath(stateFrom) ?? '/dashboard'
 
   useEffect(() => {
-    if (searchParams.get('reason') !== 'session') return
-    toast.warning('انتهت الجلسة أو انقطع الاتصال. سجّل دخولك مجددًا.')
+    const reason = searchParams.get('reason')
+    if (!reason) return
+
+    const MESSAGES: Record<string, { msg: string; kind: 'warning' | 'error' }> = {
+      session:              { msg: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى', kind: 'warning' },
+      suspended:            { msg: 'تم تعطيل الحساب، يرجى التواصل مع الإدارة', kind: 'error' },
+      impersonation_expired:{ msg: 'انتهت جلسة المعاينة — تم استعادة حسابك الإداري.', kind: 'warning' },
+      reset_success:        { msg: 'تم إعادة تعيين كلمة المرور، يمكنك تسجيل الدخول الآن.', kind: 'warning' },
+    }
+
+    const entry = MESSAGES[reason]
+    if (!entry) return
+    if (entry.kind === 'error') toast.error(entry.msg)
+    else toast.warning(entry.msg)
+
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev)
@@ -152,14 +165,12 @@ export default function Login() {
                 </span>
               </label>
 
-              <button
-                type="button"
-                disabled
-                title="قريبًا عبر الدعم أو لوحة الحساب"
-                className="cursor-not-allowed text-right text-sm font-black text-slate-400"
+              <Link
+                to="/forgot-password"
+                className="text-right text-sm font-black text-customBlue hover:text-customOrange"
               >
                 نسيت كلمة المرور؟
-              </button>
+              </Link>
 
               {/* Submit */}
               <motion.button

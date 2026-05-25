@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { unwrapLms } from './lmsApi'
-import { seedAiAutomationRuns, seedAiAutomations } from '@/data/aiSeed'
 import type { AiAutomationFlow, AiAutomationRun } from '@/types/ai'
 
 export async function fetchAiAutomations(): Promise<AiAutomationFlow[]> {
@@ -9,9 +8,9 @@ export async function fetchAiAutomations(): Promise<AiAutomationFlow[]> {
     const payload = unwrapLms<AiAutomationFlow[] | { automations: AiAutomationFlow[] }>(res.data)
     if (Array.isArray(payload)) return payload
     if (payload && typeof payload === 'object' && Array.isArray(payload.automations)) return payload.automations
-    return seedAiAutomations()
+    return []
   } catch {
-    return seedAiAutomations()
+    return []
   }
 }
 
@@ -21,8 +20,8 @@ export async function fetchAiAutomationRuns(): Promise<AiAutomationRun[]> {
     const payload = unwrapLms<AiAutomationRun[] | { runs: AiAutomationRun[] }>(res.data)
     if (Array.isArray(payload)) return payload
     if (payload && typeof payload === 'object' && Array.isArray(payload.runs)) return payload.runs
-    return seedAiAutomationRuns()
+    return []
   } catch {
-    return seedAiAutomationRuns()
+    return []
   }
 }

@@ -102,7 +102,7 @@ export type CourseUpsertPayload = {
   is_online?: boolean
   location?: string | null
   capacity?: number | null
-  status?: 'draft' | 'published' | 'archived' | string | null
+  status?: 'draft' | 'published' | 'archived'
   registration_open?: boolean
   start_date?: string | null
   end_date?: string | null
@@ -177,35 +177,44 @@ function appendStringArray(fd: FormData, key: string, values: string[] | undefin
   })
 }
 
-const ARRAY_KEYS_KEEP_EMPTY = new Set([
-  'features',
-  'learning_outcomes',
-  'requirements',
-  'curriculum_topics',
-  'keywords',
-])
-
 /**
- * Remove null/undefined, empty strings, and empty arrays (except known list fields) so Laravel receives clean input.
+ * Drop nullish, empty strings, NaN numbers, whitespace-only arrays, and coerce `status` so Laravel only sees `draft` | `published` | `archived`.
  */
 export function sanitizeCoursePayload(payload: CourseUpsertPayload): CourseUpsertPayload {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(payload) as [keyof CourseUpsertPayload, unknown][]) {
     if (v === undefined) continue
     if (v === null) continue
+    if (typeof v === 'number' && Number.isNaN(v)) continue
     if (typeof v === 'string' && v.trim() === '') continue
-    if (Array.isArray(v) && v.length === 0 && !ARRAY_KEYS_KEEP_EMPTY.has(k as string)) continue
+    if (Array.isArray(v)) {
+      const cleaned = v
+        .map((item) => (typeof item === 'string' ? item.trim() : String(item ?? '').trim()))
+        .filter((item) => item !== '')
+      if (cleaned.length === 0) continue
+      out[k as string] = cleaned
+      continue
+    }
     out[k as string] = v
   }
+
+  const allowedStatus = new Set(['draft', 'published', 'archived'])
+  const st = out.status
+  if (typeof st === 'string') {
+    const s = st.toLowerCase().trim()
+    out.status = allowedStatus.has(s) ? s : 'draft'
+  }
+
   return out as CourseUpsertPayload
 }
 
-function courseToFormData(payload: CourseUpsertPayload, imageFile?: File | null): FormData {
+function courseToFormData(payload: CourseUpsertPayload, imageFile: File): FormData {
   const fd = new FormData()
   const { features, learning_outcomes, requirements, curriculum_topics, keywords, ...rest } = payload
   const flat = rest as Record<string, unknown>
   for (const [key, value] of Object.entries(flat)) {
-    if (key === 'course_image' && imageFile) continue
+    /** Never duplicate `course_image` as scalar when file is appended below */
+    if (key === 'course_image') continue
     appendScalar(fd, key, value)
   }
   appendStringArray(fd, 'features', features)
@@ -213,9 +222,7 @@ function courseToFormData(payload: CourseUpsertPayload, imageFile?: File | null)
   appendStringArray(fd, 'requirements', requirements)
   appendStringArray(fd, 'curriculum_topics', curriculum_topics)
   appendStringArray(fd, 'keywords', keywords)
-  if (imageFile) {
-    fd.append('course_image', imageFile)
-  }
+  fd.append('course_image', imageFile)
   return fd
 }
 
@@ -236,6 +243,17 @@ export async function upsertCourse(
     delivery_type: payload.delivery_type ?? payload.location_type ?? null,
   }
   const body = sanitizeCoursePayload(enriched)
+
+  if (courseId == null && import.meta.env.DEV) {
+    if (imageFile) {
+      console.log("CREATE COURSE PAYLOAD", {
+        ...(body as object),
+        course_image: `[multipart File: ${imageFile.name}]`,
+      })
+    } else {
+      console.log("CREATE COURSE PAYLOAD", body)
+    }
+  }
 
   if (imageFile) {
     const fd = courseToFormData(body, imageFile)
@@ -263,6 +281,13 @@ export async function upsertCourse(
   return firstSuccessfulCourseRequest([
     () => apiClient.post<unknown>('/admin/courses', body),
     () => apiClient.post<unknown>('/courses', body),
+  ])
+}
+
+export async function fetchAdminCourseDetail(courseId: number): Promise<Course> {
+  return firstSuccessfulCourseRequest([
+    () => apiClient.get<unknown>(`/admin/courses/${courseId}`, silent),
+    () => apiClient.get<unknown>(`/courses/${courseId}`, silent),
   ])
 }
 
@@ -300,8 +325,7 @@ export async function assignInstructorToCourse(courseId: number, instructorId: n
       return
     } catch (e) {
       last = e
-      if (axios.isAxiosError(e)) {
-        // eslint-disable-next-line no-console -- temporary: identify failing URLs from Network / console
+      if (axios.isAxiosError(e) && import.meta.env.DEV) {
         console.log(e.config?.method, e.config?.url, e.response?.status, e.response?.data)
       }
     }

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ExportButton, IntelligencePageSkeleton, KpiBentoGrid } from '@/components/intelligence'
 import { fetchKpiDashboard } from '@/api/kpiApi'
-import { seedKpiTab } from '@/data/intelligenceSeed'
-import type { KpiTabSlug } from '@/types/intelligence'
+import type { KpiMetric, KpiTabSlug } from '@/types/intelligence'
 
 const TABS: { slug: KpiTabSlug; label: string }[] = [
   { slug: 'overview', label: 'نظرة عامة' },
@@ -17,12 +16,14 @@ const TABS: { slug: KpiTabSlug; label: string }[] = [
 export default function KpiAdminPage() {
   const [tab, setTab] = useState<KpiTabSlug>('overview')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [highlights, setHighlights] = useState<string[] | undefined>()
-  const [metrics, setMetrics] = useState(seedKpiTab('overview').metrics)
+  const [metrics, setMetrics] = useState<KpiMetric[]>([])
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    setLoadError(null)
     ;(async () => {
       try {
         const d = await fetchKpiDashboard(tab)
@@ -31,10 +32,10 @@ export default function KpiAdminPage() {
           setHighlights(d.highlights)
         }
       } catch {
-        const s = seedKpiTab(tab)
         if (!cancelled) {
-          setMetrics(s.metrics)
-          setHighlights(s.highlights)
+          setMetrics([])
+          setHighlights(undefined)
+          setLoadError('تعذّر تحميل مؤشرات الأداء. تحقق من الاتصال وأعد المحاولة.')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -71,7 +72,16 @@ export default function KpiAdminPage() {
         ))}
       </nav>
 
-      {loading ? <IntelligencePageSkeleton /> : <KpiBentoGrid metrics={metrics} highlights={highlights} />}
+      {loading ? (
+        <IntelligencePageSkeleton />
+      ) : loadError ? (
+        <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+          <p className="font-black text-rose-800">{loadError}</p>
+          <button type="button" onClick={() => setTab((t) => t)} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+        </div>
+      ) : (
+        <KpiBentoGrid metrics={metrics} highlights={highlights} />
+      )}
     </div>
   )
 }

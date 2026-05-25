@@ -8,19 +8,22 @@ import {
   fetchAdminCertificates,
   updateCertificate,
 } from '@/api/certificatesApi'
-import { seedCertificates } from '@/data/intelligenceSeed'
+
 import type { CertificateRecord, CertificateStatus } from '@/types/intelligence'
 
 export default function CertificatesAdminPage() {
   const [rows, setRows] = useState<CertificateRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
 
   async function load() {
+    setLoadError(null)
+    setLoading(true)
     try {
       setRows(await fetchAdminCertificates())
     } catch {
-      setRows(seedCertificates())
+      setLoadError('تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.')
     } finally {
       setLoading(false)
     }
@@ -46,6 +49,12 @@ export default function CertificatesAdminPage() {
   }
 
   if (loading) return <IntelligencePageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

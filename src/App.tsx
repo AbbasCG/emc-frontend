@@ -21,6 +21,8 @@ import InstructorDetail from './pages/InstructorDetail'
 import Instructors from './pages/Instructors'
 import Impact from './pages/Impact'
 import Login from './pages/Login'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import NotFound from './pages/NotFound'
 import Partnerships from './pages/Partnerships'
 import Paths from './pages/Paths'
@@ -49,6 +51,8 @@ import StudentMaterialsPage from './pages/lms/student/StudentMaterialsPage'
 import StudentProgressPage from './pages/lms/student/StudentProgressPage'
 import StudentSessionsPage from './pages/lms/student/StudentSessionsPage'
 import StudentMyCoursesPage from './pages/lms/student/StudentMyCoursesPage'
+import StudentCourseLearnPage from './pages/lms/student/StudentCourseLearnPage'
+import CourseContentManagerPage from './pages/lms/admin/CourseContentManagerPage'
 import StudentRegistrationsListPage from './pages/lms/student/StudentRegistrationsListPage'
 import StudentAvailableCoursesPage from './pages/lms/student/StudentAvailableCoursesPage'
 import InstructorAssignedCoursesPage from './pages/lms/instructor/InstructorAssignedCoursesPage'
@@ -187,9 +191,11 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/fake-payment/:paymentId" element={<FakePayment />} />
+              {import.meta.env.DEV && <Route path="/fake-payment/:paymentId" element={<FakePayment />} />}
               <Route path="/submit-workshop" element={<SubmitWorkshop />} />
               <Route path="/thank-you" element={<ThankYou />} />
               {/* Phase 6 — public informational pages */}
@@ -278,16 +284,25 @@ function App() {
                   <Route path="/dashboard/super-admin/crud/workshops" element={<WorkshopsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/registrations" element={<RegistrationsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/partners" element={<PartnersManagementPage />} />
+                  <Route
+                    path="/dashboard/super-admin/crud/programs/:courseId/content"
+                    element={<CourseContentManagerPage />}
+                  />
                   <Route path="/dashboard/super-admin/crud/*" element={<Navigate to="/dashboard/super-admin" replace />} />
 
                   <Route path="/dashboard/admin/programs" element={<ProgramsManagementPage />} />
 
                   <Route path="/dashboard/student" element={<Dashboard />} />
                   <Route path="/dashboard/student/courses" element={<StudentMyCoursesPage />} />
+                  <Route path="/dashboard/student/learn/:courseId" element={<StudentCourseLearnPage />} />
                   <Route path="/dashboard/student/registrations" element={<StudentRegistrationsListPage />} />
                   <Route path="/dashboard/student/available-courses" element={<StudentAvailableCoursesPage />} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
                   <Route path="/dashboard/instructor/courses" element={<InstructorAssignedCoursesPage />} />
+                  <Route
+                    path="/dashboard/instructor/courses/:courseId/content"
+                    element={<CourseContentManagerPage />}
+                  />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
@@ -342,6 +357,11 @@ function App() {
                   <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
+                  <Route path="/dashboard/courses/:courseId/content" element={<CourseContentManagerPage />} />
+                  <Route
+                    path="/dashboard/admin/lms/courses/:courseId/content"
+                    element={<CourseContentManagerPage />}
+                  />
                   <Route path="/dashboard/lessons/:lessonId" element={<LessonPlayerPage />} />
                   <Route path="/dashboard/quizzes/:quizId" element={<QuizTakePage />} />
 
