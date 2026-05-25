@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   Award,
@@ -89,6 +90,7 @@ const cells = [
 ] as const
 
 export default function HomeEcosystemBento() {
+  const { t } = useTranslation()
   return (
     <section className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
       <div aria-hidden className="pointer-events-none absolute -left-40 top-24 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.06] blur-3xl" />
@@ -98,7 +100,7 @@ export default function HomeEcosystemBento() {
         <div className="mb-14 max-w-3xl text-right">
           <p className="text-xs font-black text-customBlue">طبقة المنظومة الرقمية</p>
           <h2 className="mt-3 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.65rem]">
-            منظومة EMC — من LMS إلى قرارات الجودة
+            {t('home.ecosystem')}
           </h2>
           <p className="mt-5 text-lg font-semibold leading-9 text-foreground/72">
             وحدات متكاملة تعمل كمنصّة SaaS تعليمية: هوية واحدة وجودة موحّدة وتكامل سلس مع فرقكم التقنية والتعليمية.

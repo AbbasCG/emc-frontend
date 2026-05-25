@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { submitWorkshopRequest } from '../api/workshopRequestsApi'
 import AppAlert from '../components/ui/AppAlert'
@@ -43,29 +44,7 @@ type WorkshopFormValues = {
   price_amount: string
 }
 
-const categories = [
-  'المسارات الأكاديمية والمهنية',
-  'التعلم الدولي والتبادل',
-  'معهد اللغة والتواصل',
-  'الذكاء الاصطناعي والتمكين الرقمي',
-  'تطوير المهارات والمسار المهني',
-  'القيادة وريادة الأعمال',
-  'مساحات الوعي والمعرفة',
-  'الصحة النفسية ونمط الحياة',
-  'الوعي المالي',
-  'التعلم التجريبي والأنشطة الميدانية',
-  'تطوير الأطفال والناشئة Future Minds',
-  'الشراكات والتعاون الاستراتيجي',
-]
 
-const locationTypes = ['مقر المركز', 'Google Meet', 'Zoom', 'أخرى']
-
-const STEP_META = [
-  { id: 1, title: 'بيانات مقدم الطلب', hint: 'تواصل ومتابعة الطلب' },
-  { id: 2, title: 'بيانات الورشة', hint: 'البرنامج والمتحدث والمجالات' },
-  { id: 3, title: 'تفاصيل التنفيذ', hint: 'محاور، جمهور، موعد ومكان' },
-  { id: 4, title: 'المراجعة والإرسال', hint: 'التسعير ثم الإرسال النهائي' },
-] as const
 
 const initialForm: WorkshopFormValues = {
   requester_name: '',
@@ -93,9 +72,8 @@ const stepAnimation = {
 const glassCard =
   'rounded-3xl border border-white/70 bg-white/75 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
 
-const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
-const SUCCESS_DESCRIPTION =
-  'تم إرسال طلب الورشة بنجاح، وسيقوم فريق EMC بالتواصل معك بعد مراجعة البيانات.'
+const SUCCESS_TITLE = 'submitWorkshop.successTitle'
+const SUCCESS_DESCRIPTION = 'submitWorkshop.successDesc'
 
 /** Ring length for r=54 in viewBox 0 0 120 120 */
 const RING_LEN = 2 * Math.PI * 54
@@ -107,6 +85,7 @@ function WorkshopSuccessCelebration({
   open: boolean
   onReset: () => void
 }) {
+  const { t } = useTranslation()
   const particles = Array.from({ length: 18 }, (_, i) => ({
     id: i,
     left: `${12 + (i * 41) % 76}%`,
@@ -215,10 +194,10 @@ function WorkshopSuccessCelebration({
               </div>
 
               <h2 id="workshop-success-title" className="text-xl font-black leading-snug text-[#22334A] sm:text-2xl">
-                {SUCCESS_TITLE}
+                {t(SUCCESS_TITLE)}
               </h2>
               <p id="workshop-success-desc" className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-muted-600">
-                {SUCCESS_DESCRIPTION}
+                {t(SUCCESS_DESCRIPTION)}
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row-reverse sm:justify-center">
@@ -228,7 +207,7 @@ function WorkshopSuccessCelebration({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-[13px] font-black text-[#22334A] shadow-sm transition hover:border-[#2691C2]/35 hover:bg-slate-50 sm:w-auto"
                   >
                     <Home className="h-4 w-4 text-[#2691C2]" aria-hidden />
-                    العودة للرئيسية
+                    {t('submitWorkshop.backToHome')}
                   </Link>
                 </motion.div>
                 <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
@@ -238,7 +217,7 @@ function WorkshopSuccessCelebration({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(38,145,194,0.38)] transition hover:brightness-[1.05] sm:w-auto"
                   >
                     <RotateCcw className="h-4 w-4" aria-hidden />
-                    تقديم طلب جديد
+                    {t('submitWorkshop.submitNew')}
                   </button>
                 </motion.div>
               </div>
@@ -251,6 +230,33 @@ function WorkshopSuccessCelebration({
 }
 
 export default function SubmitWorkshop() {
+  const { t } = useTranslation()
+  const categories = [
+    t('submitWorkshop.category1'),
+    t('submitWorkshop.category2'),
+    t('submitWorkshop.category3'),
+    t('submitWorkshop.category4'),
+    t('submitWorkshop.category5'),
+    t('submitWorkshop.category6'),
+    t('submitWorkshop.category7'),
+    t('submitWorkshop.category8'),
+    t('submitWorkshop.category9'),
+    t('submitWorkshop.category10'),
+    t('submitWorkshop.category11'),
+    t('submitWorkshop.category12'),
+  ]
+  const locationTypes = [
+    t('submitWorkshop.locationCenter'),
+    t('submitWorkshop.locationGoogleMeet'),
+    t('submitWorkshop.locationZoom'),
+    t('submitWorkshop.locationOther'),
+  ]
+  const STEP_META = [
+    { id: 1, titleKey: 'submitWorkshop.stepApplicant', hint: t('submitWorkshop.step1Hint') },
+    { id: 2, titleKey: 'submitWorkshop.stepWorkshop', hint: t('submitWorkshop.step2Hint') },
+    { id: 3, titleKey: 'submitWorkshop.stepExecution', hint: t('submitWorkshop.step3Hint') },
+    { id: 4, titleKey: 'submitWorkshop.stepReview', hint: t('submitWorkshop.step4Hint') },
+  ] as const
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<WorkshopFormValues>(initialForm)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -299,29 +305,29 @@ export default function SubmitWorkshop() {
     }
 
     if (targetStep === 1) {
-      required('requester_name', 'يرجى إدخال اسم مقدم الطلب.')
-      required('requester_email', 'يرجى إدخال البريد الإلكتروني.')
-      required('requester_phone', 'يرجى إدخال رقم الجوال.')
-      required('requester_department', 'يرجى إدخال القسم أو الجهة.')
+      required('requester_name', t('submitWorkshop.validationNameRequired'))
+      required('requester_email', t('submitWorkshop.validationEmailRequired'))
+      required('requester_phone', t('submitWorkshop.validationPhoneRequired'))
+      required('requester_department', t('submitWorkshop.validationDepartmentRequired'))
     }
 
     if (targetStep === 2) {
-      required('program_name', 'يرجى إدخال اسم البرنامج.')
-      required('speaker_name', 'يرجى إدخال اسم المتحدث.')
-      required('speaker_job_title', 'يرجى إدخال المسمى الوظيفي للمتحدث.')
-      if (selectedCategories.length === 0) errors.categories = ['يرجى اختيار فئة واحدة على الأقل.']
+      required('program_name', t('submitWorkshop.validationProgramRequired'))
+      required('speaker_name', t('submitWorkshop.validationSpeakerRequired'))
+      required('speaker_job_title', t('submitWorkshop.validationJobTitleRequired'))
+      if (selectedCategories.length === 0) errors.categories = [t('submitWorkshop.validationCategoryRequired')]
     }
 
     if (targetStep === 3) {
-      required('topics', 'يرجى كتابة محاور الورشة.')
-      required('target_audience', 'يرجى تحديد الجمهور المستهدف.')
-      required('proposed_date', 'يرجى اختيار التاريخ المقترح.')
-      required('proposed_time', 'يرجى اختيار الوقت المقترح.')
-      if (selectedLocations.length === 0) errors.location_types = ['يرجى اختيار طريقة تنفيذ واحدة على الأقل.']
+      required('topics', t('submitWorkshop.validationTopicsRequired'))
+      required('target_audience', t('submitWorkshop.validationAudienceRequired'))
+      required('proposed_date', t('submitWorkshop.validationDateRequired'))
+      required('proposed_time', t('submitWorkshop.validationTimeRequired'))
+      if (selectedLocations.length === 0) errors.location_types = [t('submitWorkshop.validationLocationRequired')]
     }
 
     if (targetStep === 4 && form.price_type === 'paid') {
-      required('price_amount', 'يرجى إدخال قيمة السعر عند اختيار ورشة مدفوعة.')
+      required('price_amount', t('submitWorkshop.validationPriceRequired'))
     }
 
     return errors
@@ -331,7 +337,7 @@ export default function SubmitWorkshop() {
     const errors = validateStep()
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors)
-      setApiError('يرجى إكمال الحقول المطلوبة في هذه الخطوة قبل المتابعة.')
+      setApiError(t('submitWorkshop.errorStepIncomplete'))
       return
     }
 
@@ -358,7 +364,7 @@ export default function SubmitWorkshop() {
 
     if (Object.keys(allErrors).length > 0) {
       setValidationErrors(allErrors)
-      setApiError('يرجى مراجعة الحقول المطلوبة قبل إرسال الطلب.')
+      setApiError(t('submitWorkshop.errorReviewFields'))
       const firstBroken = ([1, 2, 3, 4] as const).find((s) => Object.keys(validateStep(s)).length > 0)
       setStep(firstBroken ?? step)
       return
@@ -381,11 +387,11 @@ export default function SubmitWorkshop() {
       if (axios.isAxiosError(error) && error.response?.status === 422) {
         const backendErrors = error.response.data?.errors ?? {}
         setValidationErrors(backendErrors)
-        setApiError(error.response.data?.message ?? 'يرجى التحقق من البيانات المدخلة.')
+        setApiError(error.response.data?.message ?? t('submitWorkshop.errorCheckData'))
         return
       }
 
-      setApiError('تعذر إرسال الطلب الآن. يرجى المحاولة مرة أخرى لاحقا.')
+      setApiError(t('submitWorkshop.errorSubmitFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -438,25 +444,25 @@ export default function SubmitWorkshop() {
           <div className="relative text-right">
             <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-white/85">
               <Link to="/" className="transition hover:text-white">
-                الرئيسية
+                {t('courses.breadcrumbHome')}
               </Link>
               <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-[#EC943C]" aria-hidden />
-              <span className="text-white">تقديم ورشة عمل</span>
+              <span className="text-white">{t('submitWorkshop.title')}</span>
             </nav>
-            <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">تقديم ورشة عمل</h1>
+            <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">{t('submitWorkshop.title')}</h1>
             <p className="mt-3 max-w-2xl text-[14px] font-semibold leading-relaxed text-white/80">
-              شارك خبرتك مع مجتمع EMC عبر طلب واضح ومنظم يصل مباشرة إلى الفريق المختص.
+              {t('submitWorkshop.heroSubtitle')}
             </p>
           </div>
         </motion.div>
 
         <div className="mt-8 space-y-5" aria-live="polite">
           {submissionSuccess ?
-            <span className="sr-only">{`${SUCCESS_TITLE}. ${SUCCESS_DESCRIPTION}`}</span>
+            <span className="sr-only">{`${t(SUCCESS_TITLE)}. ${t(SUCCESS_DESCRIPTION)}`}</span>
           : null}
           {apiError && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-              <AppAlert type="error" title="تنبيه" message={apiError} dismissible onDismiss={() => setApiError('')} />
+              <AppAlert type="error" title={t('submitWorkshop.alertTitle')} message={apiError} dismissible onDismiss={() => setApiError('')} />
             </motion.div>
           )}
         </div>
@@ -495,14 +501,14 @@ export default function SubmitWorkshop() {
                                 <Check className="h-5 w-5" aria-hidden />
                               : meta.id}
                             </motion.span>
-                            <p className="mt-3 hidden text-[11px] font-black leading-snug text-[#22334A] lg:block">{meta.title}</p>
+                            <p className="mt-3 hidden text-[11px] font-black leading-snug text-[#22334A] lg:block">{t(meta.titleKey)}</p>
                           </div>
                         )
                       })}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#2691C2]/20 bg-[#2691C2]/[0.07] px-4 py-3">
-                    <span className="text-[12px] font-black text-[#22334A]">تقدّم الطلب</span>
+                    <span className="text-[12px] font-black text-[#22334A]">{t('submitWorkshop.progressLabel')}</span>
                     <span className="text-sm font-black text-[#2691C2]">{progressPct}%</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200/90">
@@ -542,16 +548,16 @@ export default function SubmitWorkshop() {
                               <Check className="h-4 w-4" aria-hidden />
                             : meta.id}
                           </span>
-                          <div className="min-w-0 flex-1 text-right">
-                            <p className="text-[13px] font-black text-[#22334A]">{meta.title}</p>
-                            <p className="text-[11px] font-semibold text-muted-600">{meta.hint}</p>
+                            <div className="min-w-0 flex-1 text-right">
+                              <p className="text-[13px] font-black text-[#22334A]">{t(meta.titleKey)}</p>
+                              <p className="text-[11px] font-semibold text-muted-600">{meta.hint}</p>
                           </div>
                         </div>
                       )
                     })}
                   </div>
                   <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-100/90 px-4 py-2.5">
-                    <span className="text-[11px] font-black text-slate-700">التقدّم</span>
+                    <span className="text-[11px] font-black text-slate-700">{t('submitWorkshop.progressMobileLabel')}</span>
                     <span className="text-[13px] font-black text-[#2691C2]">{progressPct}%</span>
                   </div>
                 </div>
@@ -562,29 +568,29 @@ export default function SubmitWorkshop() {
                   {step === 1 && (
                     <motion.div key="requester" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ١ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">بيانات مقدم الطلب</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">{t('submitWorkshop.stepIndicator', { current: 1, total: 4 })}</p>
+                        <h2 className="mt-2 text-xl font-black text-[#22334A]">{t('submitWorkshop.stepApplicant')}</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
-                          بيانات التواصل التي سيستخدمها فريق EMC لمتابعة طلبك.
+                          {t('submitWorkshop.step1Description')}
                         </p>
                       </header>
 
                       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                        <AppInput
-                          variant="emc"
-                          label="الاسم الكامل"
-                          name="requester_name"
+                          <AppInput
+                            variant="emc"
+                            label={t('submitWorkshop.applicantName')}
+                            name="requester_name"
                           value={form.requester_name}
                           onChange={(value) => updateField('requester_name', value)}
-                          placeholder="اكتب الاسم الكامل"
+                          placeholder={t('submitWorkshop.applicantNamePlaceholder')}
                           error={getError('requester_name')}
                           required
                           icon="user"
                         />
-                        <AppInput
-                          variant="emc"
-                          label="البريد الإلكتروني"
-                          name="requester_email"
+                          <AppInput
+                            variant="emc"
+                            label={t('submitWorkshop.applicantEmail')}
+                            name="requester_email"
                           type="email"
                           value={form.requester_email}
                           onChange={(value) => updateField('requester_email', value)}
@@ -593,10 +599,10 @@ export default function SubmitWorkshop() {
                           required
                           icon="mail"
                         />
-                        <AppInput
-                          variant="emc"
-                          label="رقم الجوال"
-                          name="requester_phone"
+                          <AppInput
+                            variant="emc"
+                            label={t('submitWorkshop.applicantPhone')}
+                            name="requester_phone"
                           type="tel"
                           value={form.requester_phone}
                           onChange={(value) => updateField('requester_phone', value)}
@@ -607,11 +613,11 @@ export default function SubmitWorkshop() {
                         />
                         <AppInput
                           variant="emc"
-                          label="القسم أو الجهة"
+                          label={t('submitWorkshop.departmentLabel')}
                           name="requester_department"
                           value={form.requester_department}
                           onChange={(value) => updateField('requester_department', value)}
-                          placeholder="مثال: كلية الأعمال"
+                          placeholder={t('submitWorkshop.departmentPlaceholder')}
                           error={getError('requester_department')}
                           required
                           icon="text"
@@ -623,20 +629,20 @@ export default function SubmitWorkshop() {
                   {step === 2 && (
                     <motion.div key="program" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ٢ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">بيانات الورشة</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">{t('submitWorkshop.stepIndicator', { current: 2, total: 4 })}</p>
+                        <h2 className="mt-2 text-xl font-black text-[#22334A]">{t('submitWorkshop.stepWorkshop')}</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
-                          صِف البرنامج، المتحدث، والمجالات التي تمثل محتواك.
+                          {t('submitWorkshop.step2Description')}
                         </p>
                       </header>
 
                       <AppInput
                         variant="emc"
-                        label="اسم البرنامج / عنوان الورشة"
+                        label={t('submitWorkshop.programNameLabel')}
                         name="program_name"
                         value={form.program_name}
                         onChange={(value) => updateField('program_name', value)}
-                        placeholder="مثال: مقدمة عملية في الذكاء الاصطناعي"
+                        placeholder={t('submitWorkshop.programNamePlaceholder')}
                         error={getError('program_name')}
                         required
                         icon="text"
@@ -644,7 +650,7 @@ export default function SubmitWorkshop() {
 
                       <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
                         <AppCheckboxGroup
-                          label="فئات البرنامج"
+                          label={t('submitWorkshop.categoriesLabel')}
                           name="categories"
                           options={categories.map((category) => ({ label: category, value: category }))}
                           selected={selectedCategories}
@@ -662,18 +668,18 @@ export default function SubmitWorkshop() {
                           name="speaker_name"
                           value={form.speaker_name}
                           onChange={(value) => updateField('speaker_name', value)}
-                          placeholder="اسم المتحدث الرئيسي"
+                          placeholder={t('submitWorkshop.speakerNamePlaceholder')}
                           error={getError('speaker_name')}
                           required
                           icon="user"
                         />
                         <AppInput
                           variant="emc"
-                          label="المسمى الوظيفي"
+                          label={t('submitWorkshop.jobTitleLabel')}
                           name="speaker_job_title"
                           value={form.speaker_job_title}
                           onChange={(value) => updateField('speaker_job_title', value)}
-                          placeholder="مثال: مستشار تطوير مهني"
+                          placeholder={t('submitWorkshop.jobTitlePlaceholder')}
                           error={getError('speaker_job_title')}
                           required
                           icon="text"
@@ -681,7 +687,7 @@ export default function SubmitWorkshop() {
                       </div>
 
                       <AppFileUpload
-                        label="صورة المتحدث"
+                        label={t('submitWorkshop.speakerPhotoLabel')}
                         name="speaker_photo"
                         file={speakerPhoto}
                         onChange={setSpeakerPhoto}
@@ -695,8 +701,8 @@ export default function SubmitWorkshop() {
                   {step === 3 && (
                     <motion.div key="details" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ٣ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">تفاصيل التنفيذ</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">{t('submitWorkshop.stepIndicator', { current: 3, total: 4 })}</p>
+                        <h2 className="mt-2 text-xl font-black text-[#22334A]">{t('submitWorkshop.stepExecution')}</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
                           المحاور، الجمهور، الموعد المقترح، وأسلوب التنفيذ.
                         </p>
@@ -770,8 +776,8 @@ export default function SubmitWorkshop() {
                   {step === 4 && (
                     <motion.div key="pricing" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ٤ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">المراجعة والإرسال</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">{t('submitWorkshop.stepIndicator', { current: 4, total: 4 })}</p>
+                        <h2 className="mt-2 text-xl font-black text-[#22334A]">{t('submitWorkshop.stepReview')}</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
                           حدّد نوع السعر ثم أرسل الطلب بعد المراجعة النهائية.
                         </p>
@@ -826,7 +832,7 @@ export default function SubmitWorkshop() {
                       <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }} className="sm:min-w-[8rem]">
                         <AppButton type="button" variant="outline" onClick={goToPreviousStep} fullWidth className="rounded-2xl border-2 border-slate-200 bg-white font-black text-[#22334A] hover:border-[#2691C2]/35 hover:bg-slate-50">
                           <ArrowRight size={18} aria-hidden />
-                          السابق
+                          {t('submitWorkshop.previous')}
                         </AppButton>
                       </motion.div>
                     )}
@@ -839,7 +845,7 @@ export default function SubmitWorkshop() {
                           fullWidth
                           className="rounded-2xl border-0 bg-gradient-to-l from-[#2691C2] to-[#1e7aad] font-black shadow-[0_14px_32px_rgba(38,145,194,0.35)] hover:brightness-[1.05]"
                         >
-                          التالي
+                          {t('submitWorkshop.next')}
                           <ArrowLeft size={18} aria-hidden />
                         </AppButton>
                       </motion.div>
@@ -857,7 +863,7 @@ export default function SubmitWorkshop() {
                         {isSubmitting ?
                           <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
                         : <CheckCircle2 size={20} aria-hidden />}
-                        إرسال الطلب
+                        {t('submitWorkshop.submit')}
                       </motion.button>
                     }
                   </div>
@@ -876,17 +882,17 @@ export default function SubmitWorkshop() {
             >
               <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-4 text-right">
                 <div>
-                  <h3 className="text-lg font-black text-[#22334A]">ملخص الطلب</h3>
+                  <h3 className="text-lg font-black text-[#22334A]">{t('submitWorkshop.summary')}</h3>
                   <p className="mt-1 text-[12px] font-semibold text-muted-600">يتجدّد أثناء تعبئة الخطوات</p>
                 </div>
                 <span className="rounded-xl bg-[#2691C2]/10 px-2.5 py-1 text-[11px] font-black text-[#2691C2] ring-1 ring-[#2691C2]/25">
-                  مباشر
+                  {t('submitWorkshop.direct')}
                 </span>
               </div>
 
               {!previewHasData ?
                 <p className="mt-6 rounded-2xl border border-dashed border-slate-300/90 bg-slate-50/90 px-4 py-10 text-center text-[13px] font-bold text-muted-600">
-                  لم يتم إدخال البيانات بعد
+                  {t('submitWorkshop.summaryEmpty')}
                 </p>
               :
                 <motion.dl layout className="mt-6 space-y-4 text-right">
@@ -950,7 +956,7 @@ export default function SubmitWorkshop() {
                           <Check className="h-4 w-4" aria-hidden />
                         : meta.id}
                       </span>
-                      <span className={cn('text-[13px] font-bold', active ? 'text-[#22334A]' : 'text-muted-600')}>{meta.title}</span>
+                      <span className={cn('text-[13px] font-bold', active ? 'text-[#22334A]' : 'text-muted-600')}>{t(meta.titleKey)}</span>
                     </li>
                   )
                 })}

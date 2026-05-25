@@ -1,20 +1,24 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowLeftCircle, BriefcaseBusiness, GraduationCap, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 import { fadeUp } from '../utils/course'
 
-const paths = [
+
+export default function Paths() {
+  const { t } = useTranslation()
+  const paths = [
   {
     icon: GraduationCap,
-    title: 'مسار الطالب',
-    subtitle: 'من الإعداد إلى القبول الجامعي',
-    description: 'مسار متكامل يأخذ الطالب من تحسين مهاراته اللغوية وصولاً إلى القبول في الجامعات الأوروبية والحصول على المنح.',
+    titleKey: 'paths.studentPath',
+    subtitle: t('paths.studentSubtitle'),
+    description: t('paths.studentPathDesc'),
     steps: [
-      { label: 'تقييم المستوى', desc: 'تحديد نقطة البداية وتحليل الفجوات المهارية' },
-      { label: 'تعزيز اللغة', desc: 'IELTS / TOEFL / هولندية حسب الوجهة' },
-      { label: 'القبول الأكاديمي', desc: 'إعداد الملف الجامعي ورسائل القبول' },
-      { label: 'الانطلاق', desc: 'دعم ما بعد القبول والتكيف الأكاديمي' },
+      { label: t('paths.studentStep1Label'), desc: t('paths.studentStep1Desc') },
+      { label: t('paths.studentStep2Label'), desc: t('paths.studentStep2Desc') },
+      { label: t('paths.studentStep3Label'), desc: t('paths.studentStep3Desc') },
+      { label: t('paths.studentStep4Label'), desc: t('paths.studentStep4Desc') },
     ],
     color: 'bg-sky-50 text-customBlue',
     accent: 'bg-customBlue',
@@ -22,14 +26,14 @@ const paths = [
   },
   {
     icon: BriefcaseBusiness,
-    title: 'مسار المهني',
-    subtitle: 'من المهارات إلى فرصة العمل',
-    description: 'برنامج متكامل لتطوير الكفاءات المهنية ومهارات التوظيف والتميز في سوق العمل الأوروبي.',
+    titleKey: 'paths.professionalPath',
+    subtitle: t('paths.professionalSubtitle'),
+    description: t('paths.professionalDesc'),
     steps: [
-      { label: 'تقييم الكفاءات', desc: 'تحليل المهارات الحالية ومتطلبات السوق' },
-      { label: 'التدريب المهني', desc: 'دورات المهارات والتخصص الوظيفي' },
-      { label: 'التهيئة للتوظيف', desc: 'السيرة الذاتية والمقابلات والشبكة المهنية' },
-      { label: 'فرصة العمل', desc: 'دعم مستمر حتى الحصول على الوظيفة' },
+      { label: t('paths.professionalStep1Label'), desc: t('paths.professionalStep1Desc') },
+      { label: t('paths.professionalStep2Label'), desc: t('paths.professionalStep2Desc') },
+      { label: t('paths.professionalStep3Label'), desc: t('paths.professionalStep3Desc') },
+      { label: t('paths.professionalStep4Label'), desc: t('paths.professionalStep4Desc') },
     ],
     color: 'bg-orange-50 text-customOrange',
     accent: 'bg-customOrange',
@@ -37,14 +41,14 @@ const paths = [
   },
   {
     icon: Users,
-    title: 'مسار الاندماج',
-    subtitle: 'من الوصول إلى الانتماء',
-    description: 'مسار متخصص يساعد المهاجرين والوافدين الجدد على الاندماج في المجتمع والحياة الأكاديمية والمهنية.',
+    titleKey: 'paths.integrationPath',
+    subtitle: t('paths.integrationSubtitle'),
+    description: t('paths.integrationDesc'),
     steps: [
-      { label: 'اللغة والثقافة', desc: 'تعلم الهولندية وفهم الثقافة المحلية' },
-      { label: 'التوجيه المجتمعي', desc: 'فهم الأنظمة والخدمات المتاحة' },
-      { label: 'التطوير المهني', desc: 'مهارات العمل ومتطلبات سوق العمل المحلي' },
-      { label: 'الاستقلالية', desc: 'بناء شبكة علاقات وتحقيق الاستقرار' },
+      { label: t('paths.integrationStep1Label'), desc: t('paths.integrationStep1Desc') },
+      { label: t('paths.integrationStep2Label'), desc: t('paths.integrationStep2Desc') },
+      { label: t('paths.integrationStep3Label'), desc: t('paths.integrationStep3Desc') },
+      { label: t('paths.integrationStep4Label'), desc: t('paths.integrationStep4Desc') },
     ],
     color: 'bg-emerald-50 text-emerald-600',
     accent: 'bg-emerald-500',
@@ -52,15 +56,14 @@ const paths = [
   },
 ]
 
-export default function Paths() {
   return (
     <main className="bg-slate-50 pt-20">
       <PageHeader
-        title="المسارات التعليمية"
-        subtitle="مسارات متكاملة مصممة لتأخذك خطوة بخطوة من حيث أنت إلى حيث تريد أن تكون."
+        title={t('paths.title')}
+        subtitle={t('paths.heroSubtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'المسارات' },
+          { label: t('courses.breadcrumbHome'), href: '/' },
+          { label: t('paths.title') },
         ]}
       />
 
@@ -70,7 +73,7 @@ export default function Paths() {
             const Icon = path.icon
             return (
               <motion.article
-                key={path.title}
+                key={path.titleKey}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -83,7 +86,7 @@ export default function Paths() {
                     <Icon size={22} />
                     <span className="text-sm font-black">{path.subtitle}</span>
                   </div>
-                  <h2 className="text-3xl font-black text-deepBlue">{path.title}</h2>
+                  <h2 className="text-3xl font-black text-deepBlue">{t(path.titleKey)}</h2>
                   <span className="mt-3 block h-1 w-16 rounded-full bg-customOrange" />
                   <p className="mt-5 text-lg leading-9 text-slate-600">{path.description}</p>
 
@@ -105,7 +108,7 @@ export default function Paths() {
                     to="/courses"
                     className={`mt-7 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-black text-white transition hover:opacity-90 ${path.accent}`}
                   >
-                    ابدأ هذا المسار
+                    {t('paths.ctaStart')}
                     <ArrowLeftCircle size={18} />
                   </Link>
                 </div>
@@ -113,7 +116,7 @@ export default function Paths() {
                 <div className="relative hidden overflow-hidden lg:block">
                   <img
                     src={path.image}
-                    alt={path.title}
+                    alt={t(path.titleKey)}
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-deepBlue/25" />
@@ -134,9 +137,9 @@ export default function Paths() {
           transition={{ duration: 0.5 }}
         >
           <div>
-            <h2 className="text-3xl font-black sm:text-4xl">غير متأكد من مسارك؟</h2>
+            <h2 className="text-3xl font-black sm:text-4xl">{t('paths.notSure')}</h2>
             <p className="mt-4 max-w-xl text-lg leading-9 text-slate-200">
-              تواصل معنا وسيساعدك أحد مستشارينا في اختيار المسار الأنسب لأهدافك.
+              {t('paths.ctaSectionText')}
             </p>
           </div>
           <motion.div whileHover={{ scale: 1.04 }}>
@@ -144,7 +147,7 @@ export default function Paths() {
               to="/contact"
               className="inline-flex items-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
             >
-              تواصل مع مستشار
+              {t('paths.ctaConsult')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>

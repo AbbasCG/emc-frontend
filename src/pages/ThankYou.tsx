@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 
 type ThankYouState = {
@@ -11,6 +12,7 @@ type ThankYouState = {
 }
 
 export default function ThankYou() {
+  const { t } = useTranslation()
   const { state } = useLocation()
   const navigate = useNavigate()
 
@@ -87,7 +89,7 @@ export default function ThankYou() {
               to="/"
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white shadow-lg shadow-orange-100"
             >
-              العودة للرئيسية
+              {t('common.backToHome')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>

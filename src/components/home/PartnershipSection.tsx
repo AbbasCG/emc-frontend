@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+
 import { Handshake, Lightbulb } from 'lucide-react'
 import { fadeUp } from '../../utils/course'
 

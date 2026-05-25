@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 
-const milestones = [
-  { phase: 'المرحلة ١', title: 'تأسيس الهيكل', desc: 'تعريف الإدارات والمسؤوليات وربطها بالرسالة.' },
-  { phase: 'المرحلة ٢', title: 'توحيد الجودة', desc: 'اعتماد معايير محتوى وتشغيل وتوثيق للإجراءات.' },
-  { phase: 'المرحلة ٣', title: 'التكامل الرقمي', desc: 'ربط التسجيل والمتابعة والتقارير في تجربة واحدة.' },
-  { phase: 'المرحلة ٤', title: 'توسيع الأثر', desc: 'شراكات مؤسسية وبرامج موسمية بضوابط واضحة.' },
-]
-
 export default function DepartmentsTimelineStrip() {
+  const { t } = useTranslation()
+
+  const milestones = [
+    { phase: 'المرحلة ١', title: 'تأسيس الهيكل', desc: 'تعريف الإدارات والمسؤوليات وربطها بالرسالة.' },
+    { phase: 'المرحلة ٢', title: 'توحيد الجودة', desc: 'اعتماد معايير محتوى وتشغيل وتوثيق للإجراءات.' },
+    { phase: 'المرحلة ٣', title: 'التكامل الرقمي', desc: 'ربط التسجيل والمتابعة والتقارير في تجربة واحدة.' },
+    { phase: 'المرحلة ٤', title: 'توسيع الأثر', desc: 'شراكات مؤسسية وبرامج موسمية بضوابط واضحة.' },
+  ]
   return (
     <section className="border-y border-deepBlue/[0.08] bg-deepBlue px-4 py-16 text-white sm:px-6 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
@@ -20,12 +22,12 @@ export default function DepartmentsTimelineStrip() {
           transition={{ duration: 0.45 }}
         >
           <span className="mb-3 inline-block rounded-full border border-customOrange/35 bg-customOrange/15 px-3 py-1 text-xs font-black text-customOrange">
-            مسار التطور
+            {t('departments.howTheyWork')}
           </span>
-          <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">خط زمني للنضج المؤسسي</h2>
+          <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">{t('departments.howTheyWork')}</h2>
           <span className="mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange to-customBlue" />
           <p className="mt-5 text-base font-medium leading-8 text-white/75 sm:text-lg sm:leading-9">
-            صورة تخطيطية لكيفية نضج المنظومة — دون تواريخ ثابتة في الواجهة حتى تتوفر بيانات رسمية من الإدارة.
+            {t('departments.howTheyWorkDesc')}
           </p>
         </motion.div>
 
@@ -49,7 +51,7 @@ export default function DepartmentsTimelineStrip() {
         </motion.div>
 
         <p className="mt-8 text-center text-xs font-semibold text-white/45">
-          يمكن ربط هذا القسم لاحقاً ببيانات Laravel عند اعتماد milestones رسمية.
+          {t('departments.faqDesc')}
         </p>
       </div>
     </section>

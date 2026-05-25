@@ -43,8 +43,21 @@ import AdminLmsSessionsPage from './pages/lms/admin/AdminLmsSessionsPage'
 import InstructorAttendancePage from './pages/lms/instructor/InstructorAttendancePage'
 import InstructorSessionsPage from './pages/lms/instructor/InstructorSessionsPage'
 import InstructorSubmissionsPage from './pages/lms/instructor/InstructorSubmissionsPage'
+import InstructorMaterialsPage from './pages/lms/instructor/InstructorMaterialsPage'
+import InstructorRecordingsPage from './pages/lms/instructor/InstructorRecordingsPage'
+import InstructorEvaluationsPage from './pages/lms/instructor/InstructorEvaluationsPage'
+import InstructorProgressPage from './pages/lms/instructor/InstructorProgressPage'
+import InstructorTicketsPage from './pages/lms/instructor/InstructorTicketsPage'
+import InstructorTicketDetailPage from './pages/lms/instructor/InstructorTicketDetailPage'
+import TwoFactorSettingsPage from './pages/TwoFactorSettingsPage'
+import TwoFactorVerifyPage from './pages/TwoFactorVerifyPage'
+import UserManagementPage from './pages/admin/UserManagementPage'
 import StudentAssignmentsPage from './pages/lms/student/StudentAssignmentsPage'
 import StudentEvaluationPage from './pages/lms/student/StudentEvaluationPage'
+import StudentPaymentsPage from './pages/lms/student/StudentPaymentsPage'
+import StudentSurveysPage from './pages/lms/student/StudentSurveysPage'
+import StudentLiveStreamPage from './pages/lms/student/StudentLiveStreamPage'
+import StudentRecordingsPage from './pages/lms/student/StudentRecordingsPage'
 import StudentMaterialsPage from './pages/lms/student/StudentMaterialsPage'
 import StudentProgressPage from './pages/lms/student/StudentProgressPage'
 import StudentSessionsPage from './pages/lms/student/StudentSessionsPage'
@@ -187,6 +200,7 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/auth/2fa/verify" element={<TwoFactorVerifyPage />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/register" element={<Register />} />
               <Route path="/fake-payment/:paymentId" element={<FakePayment />} />
@@ -330,6 +344,7 @@ function App() {
                     element={<Navigate to="/dashboard/settings/notifications" replace />}
                   />
                   <Route path="/dashboard/settings/notifications" element={<NotificationPreferencesPage />} />
+                  <Route path="/dashboard/settings/2fa" element={<TwoFactorSettingsPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/ai" element={<AiWorkspacePage />} />
@@ -339,6 +354,10 @@ function App() {
                   <Route path="/dashboard/student/assignments" element={<StudentAssignmentsPage />} />
                   <Route path="/dashboard/student/progress" element={<StudentProgressPage />} />
                   <Route path="/dashboard/student/evaluation" element={<StudentEvaluationPage />} />
+                  <Route path="/dashboard/student/payments" element={<StudentPaymentsPage />} />
+                  <Route path="/dashboard/student/surveys" element={<StudentSurveysPage />} />
+                  <Route path="/dashboard/student/live" element={<StudentLiveStreamPage />} />
+                  <Route path="/dashboard/student/recordings" element={<StudentRecordingsPage />} />
                   <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
@@ -348,6 +367,12 @@ function App() {
                   <Route path="/dashboard/instructor/sessions" element={<InstructorSessionsPage />} />
                   <Route path="/dashboard/instructor/attendance" element={<InstructorAttendancePage />} />
                   <Route path="/dashboard/instructor/submissions" element={<InstructorSubmissionsPage />} />
+                  <Route path="/dashboard/instructor/materials" element={<InstructorMaterialsPage />} />
+                  <Route path="/dashboard/instructor/recordings" element={<InstructorRecordingsPage />} />
+                  <Route path="/dashboard/instructor/evaluations" element={<InstructorEvaluationsPage />} />
+                  <Route path="/dashboard/instructor/progress" element={<InstructorProgressPage />} />
+                  <Route path="/dashboard/instructor/tickets" element={<InstructorTicketsPage />} />
+                  <Route path="/dashboard/instructor/tickets/:id" element={<InstructorTicketDetailPage />} />
 
                   <Route path="/dashboard/admin/lms/sessions" element={<AdminLmsSessionsPage />} />
                   <Route path="/dashboard/admin/lms/attendance" element={<AdminLmsAttendancePage />} />
@@ -356,6 +381,7 @@ function App() {
                   <Route path="/dashboard/admin/lms/evaluations" element={<AdminLmsEvaluationsPage />} />
                   <Route path="/dashboard/admin/lms/progress" element={<AdminLmsProgressPage />} />
                   <Route path="/dashboard/admin/operations" element={<OperationsDashboardPage />} />
+                  <Route path="/dashboard/admin/users" element={<UserManagementPage />} />
                   <Route path="/dashboard/admin/departments" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/admin/departments/:id" element={<OpsDepartmentDetailPage />} />
                   <Route path="/dashboard/admin/tasks" element={<OpsTasksListPage />} />

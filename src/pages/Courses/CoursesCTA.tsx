@@ -1,8 +1,10 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function CoursesCTA() {
+  const { t } = useTranslation()
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
@@ -61,7 +63,7 @@ export default function CoursesCTA() {
               className="flex items-center gap-2.5 bg-customBlue text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-customBlue/30 hover:bg-customBlue/90 transition-all duration-200"
             >
               <Calendar className="w-5 h-5" />
-              احجز استشارتك المجانية
+              {t('courses.ctaConsultation')}
             </motion.button>
 
             <motion.button
@@ -69,7 +71,7 @@ export default function CoursesCTA() {
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-2 text-white border-2 border-white/20 hover:border-white/50 font-bold px-8 py-4 rounded-xl transition-all duration-200"
             >
-              عرض جميع المسارات
+              {t('courses.ctaAllTracks')}
               <ArrowLeft className="w-4 h-4" />
             </motion.button>
           </div>

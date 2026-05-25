@@ -1,14 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { BookOpen, GraduationCap, Users, Video } from 'lucide-react'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
-
-const metrics = [
-  { raw: '+850', label: 'متعلّم في المنظومة', icon: Users },
-  { raw: '+32', label: 'مسار وبرنامج مكثّف', icon: BookOpen },
-  { raw: '+420', label: 'خريج معتمد', icon: GraduationCap },
-  { raw: '+95', label: 'ورشة وتجربة مباشرة', icon: Video },
-] as const
 
 function AnimatedFigure({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -49,6 +43,15 @@ function AnimatedFigure({ value }: { value: string }) {
 }
 
 export default function HomeImpactMetrics() {
+  const { t } = useTranslation()
+
+  const metrics = [
+    { raw: '+850', label: t('home.learners'), icon: Users },
+    { raw: '+32', label: t('home.programCount'), icon: BookOpen },
+    { raw: '+420', label: t('home.graduates'), icon: GraduationCap },
+    { raw: '+95', label: 'ورشة وتجربة مباشرة', icon: Video },
+  ] as const
+
   return (
     <section className="relative overflow-hidden bg-deepBlue px-4 py-16 text-white sm:px-6 lg:px-10 lg:py-24" dir="rtl">
       <div
@@ -60,8 +63,8 @@ export default function HomeImpactMetrics() {
 
       <div className="relative mx-auto max-w-[1540px]">
         <div className="mb-12 max-w-2xl text-right">
-          <p className="text-xs font-black text-customOrange">مؤشرات الأثر</p>
-          <h2 className="mt-3 font-display text-3xl font-black sm:text-4xl">أرقام تعكس نضج المنصة</h2>
+          <p className="text-xs font-black text-customOrange">{t('home.impact')}</p>
+          <h2 className="mt-3 font-display text-3xl font-black sm:text-4xl">{t('home.impactDesc')}</h2>
           <p className="mt-4 text-base font-semibold leading-8 text-white/70">
             مؤشرات تشغيلية معتمدة على نشاط البرامج والمجتمع — وليست زينة بصرية.
           </p>

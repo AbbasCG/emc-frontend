@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -7,6 +7,8 @@ import {
   CalendarPlus,
   ChevronDown,
   GraduationCap,
+  Handshake,
+  HeartHandshake,
   LayoutDashboard,
   LayoutGrid,
   Layers,
@@ -24,53 +26,21 @@ import {
   UserCircle,
   Users,
   Waypoints,
-  HeartHandshake,
-  Handshake,
   X,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import logo from '../assets/logo.png'
 import MegaDropdown, { type MegaDropdownItem } from './nav/MegaDropdown'
 import { useAuth } from '../contexts/AuthContext'
 import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
 import { routeMatchesPath } from '@/utils/routeMatch'
 import { UserAvatar } from '@/components/UserAvatar'
-
-const aboutItems: MegaDropdownItem[] = [
-  { href: '/about', label: 'من نحن', description: 'تعريف بالمنصة وأسلوب عملها', icon: Users },
-  { href: '/about#vision-mission', label: 'الرؤية والرسالة', description: 'ما نسعى إليه وكيف نخدم المتعلم', icon: Target },
-  { href: '/about#roadmap', label: 'خارطة الطريق', description: 'مراحل تطوير المنظومة والأولويات', icon: MapPinned },
-  { href: '/about#leadership', label: 'رسالة القيادة', description: 'التزام مؤسسي بالجودة والشفافية', icon: Sparkles },
-  { href: '/impact', label: 'الأثر والإنجازات', description: 'اتجاهات أثر واقعية وشفافة', icon: TrendingUp },
-  { href: '/ar/team', label: 'الفريق', description: 'الهيكل والأدوار والقيم', icon: UserCircle },
-]
-
-const programsItems: MegaDropdownItem[] = [
-  { href: '/courses', label: 'البرامج والدورات', description: 'استعرض البرامج وسجّل مباشرة', icon: BookOpen },
-  { href: '/programs', label: 'البرامج', description: 'عرض البرامج والمسارات المؤسسية', icon: Layers },
-  { href: '/paths', label: 'المسارات', description: 'مسارات تعلم مترابطة', icon: Waypoints },
-  { href: '/tracks', label: 'المجالات والمحاور', description: 'المجالات الاثنا عشر والمحاور التفصيلية', icon: LayoutGrid },
-  { href: '/instructors', label: 'المدربون', description: 'تعرّف على خبراء التدريب', icon: UserCircle },
-  { href: '/submit-workshop', label: 'تقديم ورشة', description: 'طلب ورشة أو برنامج عبر النموذج الرسمي', icon: CalendarPlus },
-]
-
-const centerItems: MegaDropdownItem[] = [
-  { href: '/departments', label: 'الإدارات', description: 'الهيكل التنظيمي لـ EMC', icon: Building2 },
-  { href: '/departments#governance', label: 'الحوكمة والجودة', description: 'سياسات الجودة والامتثال', icon: ShieldCheck },
-  { href: '/platform', label: 'المنصة', description: 'التجربة الرقمية والخدمات', icon: Monitor },
-]
-
-const joinItems: MegaDropdownItem[] = [
-  { href: '/signup', label: 'انضم كطالب', description: 'إنشاء حساب للتعلّم والتسجيل في البرامج', icon: UserCircle },
-  { href: '/contact#trainer', label: 'انضم كمدرب', description: 'تواصل للانضمام كمدّرب مع EMC', icon: GraduationCap },
-  { href: '/partnerships/apply', label: 'انضم كشريك', description: 'تقديم طلب شراكة مؤسسية أو خدمية', icon: Handshake },
-  { href: '/volunteer', label: 'انضم كمتطوّع', description: 'شارك مهاراتك وفق أطر EMC التطوعية', icon: HeartHandshake },
-  { href: '/contact', label: 'تواصل معنا', description: 'قنوات التواصل والاستفسارات العامّة', icon: Mail },
-]
+import LanguageSwitcher from './LanguageSwitcher'
 
 type MegaId = 'about' | 'programs' | 'center' | 'join'
 
 const megaPrefixes: Record<MegaId, readonly string[]> = {
-  about: ['/about', '/impact', '/ar/impact', '/team', '/ar/team'],
+  about: ['/about', '/impact', '/team'],
   programs: ['/courses', '/paths', '/tracks', '/programs', '/instructors', '/submit-workshop'],
   center: ['/departments', '/platform'],
   join: ['/signup', '/contact', '/volunteer', '/partnerships/apply'],
@@ -100,14 +70,47 @@ const loginIconClass =
 
 export default function Navbar() {
   const { isAuthenticated, isLoading, user, logout } = useAuth()
+  const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const [openMega, setOpenMega] = useState<MegaId | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileGroup, setMobileGroup] = useState<MegaId | null>(null)
 
-  const navRef = useRef<HTMLElement>(null)
   const { pathname, hash } = useLocation()
+  const navRef = useRef<HTMLElement>(null)
+
+  const aboutItems = useMemo<MegaDropdownItem[]>(() => [
+    { href: '/about', label: t('nav.aboutItems.about.label'), description: t('nav.aboutItems.about.description'), icon: Users },
+    { href: '/about#vision-mission', label: t('nav.aboutItems.vision.label'), description: t('nav.aboutItems.vision.description'), icon: Target },
+    { href: '/about#roadmap', label: t('nav.aboutItems.roadmap.label'), description: t('nav.aboutItems.roadmap.description'), icon: MapPinned },
+    { href: '/about#leadership', label: t('nav.aboutItems.leadership.label'), description: t('nav.aboutItems.leadership.description'), icon: Sparkles },
+    { href: '/impact', label: t('nav.aboutItems.impact.label'), description: t('nav.aboutItems.impact.description'), icon: TrendingUp },
+    { href: '/team', label: t('nav.aboutItems.team.label'), description: t('nav.aboutItems.team.description'), icon: UserCircle },
+  ], [t])
+
+  const programsItems = useMemo<MegaDropdownItem[]>(() => [
+    { href: '/courses', label: t('nav.programsItems.courses.label'), description: t('nav.programsItems.courses.description'), icon: BookOpen },
+    { href: '/programs', label: t('nav.programsItems.programs.label'), description: t('nav.programsItems.programs.description'), icon: Layers },
+    { href: '/paths', label: t('nav.programsItems.paths.label'), description: t('nav.programsItems.paths.description'), icon: Waypoints },
+    { href: '/tracks', label: t('nav.programsItems.tracks.label'), description: t('nav.programsItems.tracks.description'), icon: LayoutGrid },
+    { href: '/instructors', label: t('nav.programsItems.instructors.label'), description: t('nav.programsItems.instructors.description'), icon: UserCircle },
+    { href: '/submit-workshop', label: t('nav.programsItems.workshop.label'), description: t('nav.programsItems.workshop.description'), icon: CalendarPlus },
+  ], [t])
+
+  const centerItems = useMemo<MegaDropdownItem[]>(() => [
+    { href: '/departments', label: t('nav.centerItems.departments.label'), description: t('nav.centerItems.departments.description'), icon: Building2 },
+    { href: '/departments#governance', label: t('nav.centerItems.governance.label'), description: t('nav.centerItems.governance.description'), icon: ShieldCheck },
+    { href: '/platform', label: t('nav.centerItems.platform.label'), description: t('nav.centerItems.platform.description'), icon: Monitor },
+  ], [t])
+
+  const joinItems = useMemo<MegaDropdownItem[]>(() => [
+    { href: '/signup', label: t('nav.joinItems.student.label'), description: t('nav.joinItems.student.description'), icon: UserCircle },
+    { href: '/contact#trainer', label: t('nav.joinItems.trainer.label'), description: t('nav.joinItems.trainer.description'), icon: GraduationCap },
+    { href: '/partnerships/apply', label: t('nav.joinItems.partner.label'), description: t('nav.joinItems.partner.description'), icon: Handshake },
+    { href: '/volunteer', label: t('nav.joinItems.volunteer.label'), description: t('nav.joinItems.volunteer.description'), icon: HeartHandshake },
+    { href: '/contact', label: t('nav.joinItems.contact.label'), description: t('nav.joinItems.contact.description'), icon: Mail },
+  ], [t])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -153,7 +156,6 @@ export default function Navbar() {
   return (
     <header
       ref={navRef}
-      dir="rtl"
       className={[
         'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-350 ease-emc-out',
         scrolled
@@ -171,15 +173,15 @@ export default function Navbar() {
 
         <nav
           className="absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center lg:flex"
-          aria-label="القائمة الرئيسية"
+          aria-label={t('nav.about')}
         >
           <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl">
             <NavLink to="/" end className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}>
-              الرئيسية
+              {t('nav.home')}
             </NavLink>
 
             <MegaDropdown
-              label="عن EMC"
+              label={t('nav.about')}
               items={aboutItems}
               isOpen={openMega === 'about'}
               onToggle={() => toggleMega('about')}
@@ -188,7 +190,7 @@ export default function Navbar() {
               locationHash={hash}
             />
             <MegaDropdown
-              label="البرامج"
+              label={t('nav.programs')}
               items={programsItems}
               isOpen={openMega === 'programs'}
               onToggle={() => toggleMega('programs')}
@@ -197,7 +199,7 @@ export default function Navbar() {
               locationHash={hash}
             />
             <MegaDropdown
-              label="المركز"
+              label={t('nav.center')}
               items={centerItems}
               isOpen={openMega === 'center'}
               onToggle={() => toggleMega('center')}
@@ -210,11 +212,11 @@ export default function Navbar() {
               to="/partnerships"
               className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}
             >
-              الشراكات
+              {t('nav.partnerships')}
             </NavLink>
 
             <MegaDropdown
-              label="انضم إلينا"
+              label={t('nav.join')}
               items={joinItems}
               isOpen={openMega === 'join'}
               onToggle={() => toggleMega('join')}
@@ -222,17 +224,18 @@ export default function Navbar() {
               pathname={pathname}
               locationHash={hash}
             />
+            <LanguageSwitcher />
           </div>
         </nav>
 
-        <div className="relative z-20 hidden shrink-0 items-center gap-3 lg:flex">
+        <div className="relative z-20 hidden shrink-0 items-center gap-2 lg:flex">
           {!isLoading &&
             (isAuthenticated && user ? (
               <>
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
                   <Link to="/dashboard" className={dashboardBtnClass}>
                     <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                    <span className="whitespace-nowrap">لوحة التحكم</span>
+                    <span className="whitespace-nowrap">{t('nav.dashboard')}</span>
                   </Link>
                 </motion.span>
                 <div className="relative">
@@ -271,19 +274,19 @@ export default function Navbar() {
                         className="absolute left-0 top-full z-50 mt-2.5 w-56 overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-white py-1 shadow-[0_24px_48px_-14px_rgba(15,42,67,0.2)]"
                         role="menu"
                       >
-                        <Link
+                          <Link
                           to="/dashboard"
                           className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-[#F8FBFE]"
                         >
                           <LayoutDashboard size={16} />
-                          لوحة التحكم
+                          {t('nav.dashboard')}
                         </Link>
                         <Link
                           to="/dashboard/profile"
                           className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-[#F8FBFE]"
                         >
                           <User size={16} />
-                          الملف الشخصي
+                          {t('nav.profile')}
                         </Link>
                         <div className="my-1 border-t border-deepBlue/[0.06]" />
                         <button
@@ -292,7 +295,7 @@ export default function Navbar() {
                           className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold text-customOrange transition hover:bg-customOrange/[0.08]"
                         >
                           <LogOut size={16} />
-                          تسجيل الخروج
+                          {t('nav.logout')}
                         </button>
                       </motion.div>
                     )}
@@ -304,13 +307,13 @@ export default function Navbar() {
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
                   <Link to="/login" className={loginBtnClass}>
                     <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
-                    <span className="whitespace-nowrap">تسجيل الدخول</span>
+                    <span className="whitespace-nowrap">{t('nav.login')}</span>
                   </Link>
                 </motion.span>
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
                   <Link to="/dashboard" className={dashboardBtnClass}>
                     <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                    <span className="whitespace-nowrap">لوحة التحكم</span>
+                    <span className="whitespace-nowrap">{t('nav.dashboard')}</span>
                   </Link>
                 </motion.span>
               </>
@@ -320,7 +323,7 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+          aria-label={mobileOpen ? (t('nav.home')) : (t('nav.home'))}
           className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-emcBg/90 lg:hidden"
         >
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -334,61 +337,108 @@ export default function Navbar() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="max-h-[min(88vh,600px)] overflow-y-auto border-t border-deepBlue/[0.07] bg-white/98 backdrop-blur-xl lg:hidden"
+            className="max-h-[80vh] overflow-y-auto border-t border-deepBlue/[0.07] bg-white/98 backdrop-blur-xl lg:hidden"
           >
-            <div className="space-y-1.5 px-4 py-4">
-              <NavLink
-                to="/"
-                end
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  [
-                    'block rounded-2xl px-4 py-3.5 text-sm font-black',
-                    isActive ? 'bg-customBlue/[0.1] text-customBlue ring-1 ring-customBlue/20' : 'text-deepBlue hover:bg-[#F8FBFE]',
-                  ].join(' ')
-                }
-              >
-                الرئيسية
-              </NavLink>
+            <div className="space-y-1 px-4 py-3">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1">
+                <NavLink
+                  to="/"
+                  end
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    [
+                      'shrink-0 rounded-xl px-3 py-2 text-sm font-black',
+                      isActive ? 'bg-customBlue/[0.1] text-customBlue ring-1 ring-customBlue/20' : 'text-deepBlue hover:bg-[#F8FBFE]',
+                    ].join(' ')
+                  }
+                >
+                  {t('nav.home')}
+                </NavLink>
 
-              {(
-                [
-                  ['about', 'عن EMC', aboutItems],
-                  ['programs', 'البرامج', programsItems],
-                  ['center', 'المركز', centerItems],
-                  ['join', 'انضم إلينا', joinItems],
-                ] as const
-              ).map(([id, label, items]) => (
-                <div key={id} className="overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-[#F8FBFE]/80">
-                  <button
-                    type="button"
-                    onClick={() => setMobileGroup((g) => (g === id ? null : id))}
-                    className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-black text-deepBlue"
-                  >
-                    {label}
-                    <ChevronDown
-                      size={16}
-                      className={['text-deepBlue/45 transition-transform', mobileGroup === id ? '-rotate-180' : ''].join(' ')}
-                    />
-                  </button>
+                {(
+                  [
+                    ['about', t('nav.about'), aboutItems],
+                    ['programs', t('nav.programs'), programsItems],
+                    ['center', t('nav.center'), centerItems],
+                  ] as const
+                ).map(([id, label, items]) => (
+                  <div key={id} className="shrink-0 overflow-hidden rounded-xl border border-deepBlue/[0.08] bg-[#F8FBFE]/80">
+                    <button
+                      type="button"
+                      onClick={() => setMobileGroup((g) => (g === id ? null : id))}
+                      className="flex items-center gap-1 px-3 py-2 text-sm font-black text-deepBlue whitespace-nowrap"
+                    >
+                      {label}
+                      <ChevronDown
+                        size={14}
+                        className={['text-deepBlue/45 transition-transform shrink-0', mobileGroup === id ? '-rotate-180' : ''].join(' ')}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {mobileGroup === id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-deepBlue/[0.06] bg-white"
+                        >
+                          {items.map((item) => {
+                            const Icon = item.icon
+                            return (
+                              <Link
+                                key={item.href}
+                                to={item.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="flex gap-3 border-b border-deepBlue/[0.04] px-4 py-2.5 text-right last:border-0 hover:bg-customBlue/[0.05]"
+                              >
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-deepBlue/[0.04] text-customBlue">
+                                  <Icon size={18} />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-black text-deepBlue">{item.label}</p>
+                                  <p className="text-xs leading-relaxed text-deepBlue/55">{item.description}</p>
+                                </div>
+                              </Link>
+                            )
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+
+                <div className="shrink-0 overflow-hidden rounded-xl border border-deepBlue/[0.08] bg-[#F8FBFE]/80">
+                  <div className="flex items-center gap-1 px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={() => setMobileGroup((g) => (g === 'join' ? null : 'join'))}
+                      className="flex items-center gap-1 text-sm font-black text-deepBlue whitespace-nowrap"
+                    >
+                      {t('nav.join')}
+                      <ChevronDown
+                        size={14}
+                        className={['text-deepBlue/45 transition-transform shrink-0', mobileGroup === 'join' ? '-rotate-180' : ''].join(' ')}
+                      />
+                    </button>
+                  </div>
                   <AnimatePresence>
-                    {mobileGroup === id && (
+                    {mobileGroup === 'join' && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden border-t border-deepBlue/[0.06] bg-white"
                       >
-                        {items.map((item) => {
+                        {joinItems.map((item) => {
                           const Icon = item.icon
                           return (
                             <Link
                               key={item.href}
                               to={item.href}
                               onClick={() => setMobileOpen(false)}
-                              className="flex gap-3 border-b border-deepBlue/[0.04] px-4 py-3.5 text-right last:border-0 hover:bg-customBlue/[0.05]"
+                              className="flex gap-3 border-b border-deepBlue/[0.04] px-4 py-2.5 text-right last:border-0 hover:bg-customBlue/[0.05]"
                             >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-deepBlue/[0.04] text-customBlue">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-deepBlue/[0.04] text-customBlue">
                                 <Icon size={18} />
                               </div>
                               <div className="min-w-0">
@@ -402,26 +452,29 @@ export default function Navbar() {
                     )}
                   </AnimatePresence>
                 </div>
-              ))}
+                <div className="shrink-0 self-center">
+                  <LanguageSwitcher />
+                </div>
 
-              <NavLink
-                to="/partnerships"
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  [
-                    'block rounded-2xl px-4 py-3.5 text-sm font-black',
-                    isActive ? 'bg-customBlue/[0.1] text-customBlue ring-1 ring-customBlue/20' : 'text-deepBlue hover:bg-[#F8FBFE]',
-                  ].join(' ')
-                }
-              >
-                الشراكات
-              </NavLink>
+                <NavLink
+                  to="/partnerships"
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    [
+                      'shrink-0 rounded-xl px-3 py-2 text-sm font-black',
+                      isActive ? 'bg-customBlue/[0.1] text-customBlue ring-1 ring-customBlue/20' : 'text-deepBlue hover:bg-[#F8FBFE]',
+                    ].join(' ')
+                  }
+                >
+                  {t('nav.partnerships')}
+                </NavLink>
+              </div>
 
               {!isLoading && (
-                <div className="grid gap-3 border-t border-deepBlue/[0.07] pt-4">
+                <div className="grid gap-2 border-t border-deepBlue/[0.07] pt-3">
                   {isAuthenticated && user ? (
                     <>
-                      <div className="flex items-center gap-3 rounded-2xl border border-deepBlue/[0.08] bg-[#F8FBFE] px-4 py-3">
+                      <div className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.08] bg-[#F8FBFE] px-3 py-2">
                         <UserAvatar
                           user={user}
                           className="h-10 w-10 shrink-0 rounded-full bg-deepBlue text-sm text-white shadow-sm ring-1 ring-white/20"
@@ -432,13 +485,13 @@ export default function Navbar() {
                           <p className="truncate text-xs text-deepBlue/50">{user.email}</p>
                         </div>
                       </div>
-                      <Link
+                        <Link
                         to="/dashboard"
                         onClick={() => setMobileOpen(false)}
-                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
+                        className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm ${dashboardBtnClass}`}
                       >
                         <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                        <span className="whitespace-nowrap">لوحة التحكم</span>
+                        <span className="whitespace-nowrap">{t('nav.dashboard')}</span>
                       </Link>
                       <button
                         type="button"
@@ -446,9 +499,9 @@ export default function Navbar() {
                           logout()
                           setMobileOpen(false)
                         }}
-                        className="rounded-2xl border border-customOrange/30 py-3.5 text-sm font-black text-customOrange"
+                        className="rounded-xl border border-customOrange/30 py-2.5 text-sm font-black text-customOrange"
                       >
-                        تسجيل الخروج
+                        {t('nav.logout')}
                       </button>
                     </>
                   ) : (
@@ -456,18 +509,18 @@ export default function Navbar() {
                       <Link
                         to="/login"
                         onClick={() => setMobileOpen(false)}
-                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${loginBtnClass}`}
+                        className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm ${loginBtnClass}`}
                       >
                         <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
-                        <span className="whitespace-nowrap">تسجيل الدخول</span>
+                        <span className="whitespace-nowrap">{t('nav.login')}</span>
                       </Link>
                       <Link
                         to="/dashboard"
                         onClick={() => setMobileOpen(false)}
-                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
+                        className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm ${dashboardBtnClass}`}
                       >
                         <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                        <span className="whitespace-nowrap">لوحة التحكم</span>
+                        <span className="whitespace-nowrap">{t('nav.dashboard')}</span>
                       </Link>
                     </>
                   )}

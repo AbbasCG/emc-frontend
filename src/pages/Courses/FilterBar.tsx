@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { LayoutGrid, List, ChevronDown } from 'lucide-react'
 
 type FilterBarProps = {
@@ -12,20 +13,20 @@ type FilterBarProps = {
 }
 
 const filterTags = [
-  { value: 'all',      label: 'الكل' },
-  { value: 'free',     label: 'مجاني' },
-  { value: 'paid',     label: 'مدفوع' },
-  { value: 'new',      label: 'جديد' },
-  { value: 'upcoming', label: 'قادم' },
-  { value: 'live',     label: 'نشط' },
+  { value: 'all',      labelKey: 'courses.filterAll' },
+  { value: 'free',     labelKey: 'courses.filterFree' },
+  { value: 'paid',     labelKey: 'courses.filterPaid' },
+  { value: 'new',      labelKey: 'courses.filterNew' },
+  { value: 'upcoming', labelKey: 'courses.filterUpcoming' },
+  { value: 'live',     labelKey: 'courses.filterActive' },
 ]
 
 const sortOptions = [
-  { value: 'popular',    label: 'الأكثر شهرة' },
-  { value: 'newest',     label: 'الأحدث' },
-  { value: 'price_low',  label: 'السعر: الأقل' },
-  { value: 'price_high', label: 'السعر: الأعلى' },
-  { value: 'duration',   label: 'المدة' },
+  { value: 'popular',    labelKey: 'courses.sortPopular' },
+  { value: 'newest',     labelKey: 'courses.sortNewest' },
+  { value: 'price_low',  labelKey: 'courses.sortPriceLow' },
+  { value: 'price_high', labelKey: 'courses.sortPriceHigh' },
+  { value: 'duration',   labelKey: 'courses.sortDuration' },
 ]
 
 export default function FilterBar({
@@ -38,6 +39,7 @@ export default function FilterBar({
   resultCount,
   totalCount,
 }: FilterBarProps) {
+  const { t } = useTranslation()
   return (
     <div className="sticky top-20 z-30 bg-white border-b border-slate-200 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
@@ -54,7 +56,7 @@ export default function FilterBar({
                     : 'bg-slate-100 text-[#73777B] hover:bg-slate-200 hover:text-deepBlue'
                 }`}
               >
-                {tag.label}
+                {t(tag.labelKey)}
               </button>
             ))}
           </div>
@@ -69,7 +71,7 @@ export default function FilterBar({
                 className="appearance-none bg-slate-50 border border-slate-200 text-deepBlue text-xs font-semibold pl-8 pr-4 py-2 rounded-lg cursor-pointer focus:outline-none focus:border-customBlue transition-colors"
               >
                 {sortOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
                 ))}
               </select>
               <ChevronDown className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#73777B] pointer-events-none" />
@@ -82,7 +84,7 @@ export default function FilterBar({
                 className={`p-2 transition-colors ${
                   viewMode === 'grid' ? 'bg-deepBlue text-white' : 'bg-white text-[#73777B] hover:bg-slate-50'
                 }`}
-                aria-label="عرض شبكة"
+                aria-label={t('courses.gridView')}
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
@@ -91,7 +93,7 @@ export default function FilterBar({
                 className={`p-2 transition-colors ${
                   viewMode === 'list' ? 'bg-deepBlue text-white' : 'bg-white text-[#73777B] hover:bg-slate-50'
                 }`}
-                aria-label="عرض قائمة"
+                aria-label={t('courses.listView')}
               >
                 <List className="w-4 h-4" />
               </button>
@@ -99,10 +101,7 @@ export default function FilterBar({
 
             {/* Results count */}
             <span className="text-xs text-[#73777B] font-medium whitespace-nowrap hidden sm:block">
-              <span className="text-deepBlue font-bold">{resultCount}</span>
-              {' '}من{' '}
-              <span className="text-deepBlue font-bold">{totalCount}</span>
-              {' '}دورة
+              {t('courses.showing', { count: resultCount, total: totalCount })}
             </span>
           </div>
         </div>

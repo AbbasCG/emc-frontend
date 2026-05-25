@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   BookOpen,
   CheckCircle2,
@@ -9,49 +10,51 @@ import {
 } from 'lucide-react'
 import { fadeUp } from '../../utils/course'
 
-const reasons = [
-  {
-    icon: BookOpen,
-    title: 'محتوى عملي مرتبط بسوق العمل',
-    desc: 'كل برنامج مصمم ليعكس متطلبات الوظائف والمؤسسات الحقيقية.',
-  },
-  {
-    icon: MessageCircle,
-    title: 'إرشاد واضح وليس مجرد معلومات',
-    desc: 'نرافقك بخطة واضحة من البداية حتى الوصول لهدفك.',
-  },
-  {
-    icon: Globe,
-    title: 'برامج مرنة حضورية وعن بعد',
-    desc: 'تعلّم بالطريقة التي تناسبك، في الوقت الذي تختاره.',
-  },
-  {
-    icon: Users,
-    title: 'مدربون وشركاء متخصصون',
-    desc: 'فريق من المدربين المعتمدين والمؤسسات الشريكة في التعليم.',
-  },
-  {
-    icon: CheckCircle2,
-    title: 'تجربة تسجيل سهلة وواضحة',
-    desc: 'عملية انضمام مبسطة لتبدأ تعلّمك فور تسجيلك.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'قابلية التوسع نحو منصة متكاملة',
-    desc: 'نسعى لأن تكون EMC وجهتك الشاملة للتعليم والتطوير.',
-  },
-]
-
 export default function WhyChooseSection() {
+  const { t } = useTranslation()
+
+  const reasons = [
+    {
+      icon: BookOpen,
+      title: t('home.practicalContent'),
+      desc: t('home.practicalContentDesc'),
+    },
+    {
+      icon: MessageCircle,
+      title: t('home.clearGuidance'),
+      desc: t('home.clearGuidanceDesc'),
+    },
+    {
+      icon: Globe,
+      title: 'برامج مرنة حضورية وعن بعد',
+      desc: 'تعلّم بالطريقة التي تناسبك، في الوقت الذي تختاره.',
+    },
+    {
+      icon: Users,
+      title: 'مدربون وشركاء متخصصون',
+      desc: 'فريق من المدربين المعتمدين والمؤسسات الشريكة في التعليم.',
+    },
+    {
+      icon: CheckCircle2,
+      title: 'تجربة تسجيل سهلة وواضحة',
+      desc: 'عملية انضمام مبسطة لتبدأ تعلّمك فور تسجيلك.',
+    },
+    {
+      icon: TrendingUp,
+      title: 'قابلية التوسع نحو منصة متكاملة',
+      desc: 'نسعى لأن تكون EMC وجهتك الشاملة للتعليم والتطوير.',
+    },
+  ]
+
   return (
     <section className="border-y border-deepBlue/[0.05] bg-emcBg px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
       <div className="mx-auto max-w-[1540px]">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="text-xs font-black text-customBlue">عرض قيمة المنصّة</p>
-          <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl">لماذا تختار EMC؟</h2>
+          <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl">{t('home.whyChoose')}</h2>
           <span className="mx-auto mt-5 block h-1 w-16 rounded-full bg-customOrange" />
           <p className="mt-5 text-base leading-8 text-foreground/70">
-            لأن التعليم الجيد يحتاج أكثر من محتوى — يحتاج توجيهاً وشراكة حقيقية.
+            {t('home.whyChooseDesc')}
           </p>
         </div>
 

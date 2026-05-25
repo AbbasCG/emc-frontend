@@ -1,67 +1,70 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BadgeCheck, BookOpen, Clock3, GraduationCap, Languages, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 import { fadeUp } from '../utils/course'
 
-const programs = [
-  {
-    icon: Clock3,
-    title: 'الدورات القصيرة',
-    duration: 'أسبوع — 4 أسابيع',
-    desc: 'دورات مكثفة ومرنة تناسب المهنيين المشغولين. تركز على مهارة واحدة أو موضوع محدد مع نتائج فورية.',
-    features: ['محتوى مكثف', 'جداول مرنة', 'شهادة إتمام', 'أونلاين وحضوري'],
-    color: 'bg-sky-50',
-    iconColor: 'text-customBlue',
-    badge: 'الأكثر شعبية',
-  },
-  {
-    icon: BookOpen,
-    title: 'البرامج المتكاملة',
-    duration: '2 — 6 أشهر',
-    desc: 'برامج شاملة تجمع عدة مهارات في مسار واحد متصاعد، مع متابعة مستمرة ومشاريع تطبيقية.',
-    features: ['مسار متكامل', 'مشاريع تطبيقية', 'متابعة شخصية', 'شهادة احترافية'],
-    color: 'bg-orange-50',
-    iconColor: 'text-customOrange',
-    badge: null,
-  },
-  {
-    icon: Languages,
-    title: 'برامج اللغات',
-    duration: '4 — 24 أسبوعاً',
-    desc: 'مسارات لغوية متدرجة من المبتدئ إلى المتقدم بالإنجليزية والهولندية والعربية، مع تركيز على اللغة العملية.',
-    features: ['مستويات متعددة', 'محادثة حية', 'إعداد للاختبارات', 'طلاب ومهنيون'],
-    color: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    badge: null,
-  },
-  {
-    icon: GraduationCap,
-    title: 'الشهادات المهنية',
-    duration: '3 — 9 أشهر',
-    desc: 'برامج تنتهي بشهادات معتمدة في مجالات الإدارة والتقنية والتسويق والبيانات.',
-    features: ['شهادة معتمدة', 'إشراف خبراء', 'تقييم مستمر', 'اعتراف دولي'],
-    color: 'bg-violet-50',
-    iconColor: 'text-violet-600',
-    badge: 'جديد',
-  },
-]
 
 const stats = [
-  { value: '+100', label: 'برنامج ودورة', icon: BookOpen },
-  { value: '+2000', label: 'متدرب', icon: Users },
-  { value: '+95%', label: 'رضا المتدربين', icon: BadgeCheck },
+  { value: '+100', labelKey: 'programs.statsPrograms', icon: BookOpen },
+  { value: '+2000', labelKey: 'programs.statsStudents', icon: Users },
+  { value: '+95%', labelKey: 'programs.statsSatisfaction', icon: BadgeCheck },
 ]
 
 export default function Programs() {
+  const { t } = useTranslation()
+  const programs = [
+  {
+    icon: Clock3,
+    titleKey: 'programs.shortCourses',
+    duration: t('programs.shortCoursesDuration'),
+    desc: t('programs.shortCoursesDesc'),
+    features: [t('programs.shortCoursesFeature1'), t('programs.shortCoursesFeature2'), t('programs.shortCoursesFeature3'), t('programs.shortCoursesFeature4')],
+    color: 'bg-sky-50',
+    iconColor: 'text-customBlue',
+    badgeKey: 'programs.popular',
+  },
+  {
+    icon: BookOpen,
+    titleKey: 'programs.integratedPrograms',
+    duration: t('programs.integratedDuration'),
+    desc: t('programs.integratedDesc'),
+    features: [t('programs.integratedFeature1'), t('programs.integratedFeature2'), t('programs.integratedFeature3'), t('programs.integratedFeature4')],
+    color: 'bg-orange-50',
+    iconColor: 'text-customOrange',
+    badgeKey: null,
+  },
+  {
+    icon: Languages,
+    titleKey: 'programs.languagePrograms',
+    duration: t('programs.languageDuration'),
+    desc: t('programs.languageDesc'),
+    features: [t('programs.languageFeature1'), t('programs.languageFeature2'), t('programs.languageFeature3'), t('programs.languageFeature4')],
+    color: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
+    badgeKey: null,
+  },
+  {
+    icon: GraduationCap,
+    titleKey: 'programs.certificates',
+    duration: t('programs.certificatesDuration'),
+    desc: t('programs.certificatesDesc'),
+    features: [t('programs.certificatesFeature1'), t('programs.certificatesFeature2'), t('programs.certificatesFeature3'), t('programs.certificatesFeature4')],
+    color: 'bg-violet-50',
+    iconColor: 'text-violet-600',
+    badgeKey: 'common.new',
+  },
+]
+
   return (
     <main className="bg-slate-50 pt-20">
       <PageHeader
-        title="البرامج التدريبية"
-        subtitle="برامج متنوعة تلائم كل مستوى وهدف — من الدورات القصيرة إلى الشهادات المهنية المعتمدة."
+        title={t('programs.title')}
+        subtitle={t('programs.heroSubtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'البرامج' },
+          { label: t('courses.breadcrumbHome'), href: '/' },
+          { label: t('programs.title') },
         ]}
       />
 
@@ -72,7 +75,7 @@ export default function Programs() {
             const Icon = stat.icon
             return (
               <motion.div
-                key={stat.label}
+                key={stat.labelKey}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -85,7 +88,7 @@ export default function Programs() {
                 </span>
                 <div>
                   <strong className="block text-3xl font-black text-customBlue">{stat.value}</strong>
-                  <span className="text-sm font-bold text-slate-500">{stat.label}</span>
+                  <span className="text-sm font-bold text-slate-500">{t(stat.labelKey)}</span>
                 </div>
               </motion.div>
             )
@@ -101,7 +104,7 @@ export default function Programs() {
               const Icon = program.icon
               return (
                 <motion.article
-                  key={program.title}
+                  key={program.titleKey}
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="visible"
@@ -109,15 +112,15 @@ export default function Programs() {
                   transition={{ duration: 0.45, delay: index * 0.08 }}
                   className="relative rounded-2xl bg-white p-7 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100"
                 >
-                  {program.badge && (
+                  {program.badgeKey && (
                     <span className="absolute left-5 top-5 rounded-full bg-customOrange px-3 py-1 text-xs font-black text-white">
-                      {program.badge}
+                      {t(program.badgeKey)}
                     </span>
                   )}
                   <div className={`mb-5 grid h-14 w-14 place-items-center rounded-xl ${program.color}`}>
                     <Icon size={28} className={program.iconColor} />
                   </div>
-                  <h3 className="text-2xl font-black text-deepBlue">{program.title}</h3>
+                  <h3 className="text-2xl font-black text-deepBlue">{t(program.titleKey)}</h3>
                   <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-500">
                     <Clock3 size={12} />
                     {program.duration}
@@ -148,7 +151,7 @@ export default function Programs() {
               to="/courses"
               className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-8 py-4 font-extrabold text-white shadow-lg transition hover:opacity-90"
             >
-              تصفح جميع البرامج والدورات
+              {t('programs.browseAll')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>
@@ -165,9 +168,9 @@ export default function Programs() {
           transition={{ duration: 0.5 }}
         >
           <div>
-            <h2 className="text-3xl font-black sm:text-4xl">احتاج مساعدة في الاختيار؟</h2>
+            <h2 className="text-3xl font-black sm:text-4xl">{t('programs.needHelp')}</h2>
             <p className="mt-4 max-w-xl text-lg leading-9 text-slate-200">
-              فريق مستشارينا جاهز لمساعدتك في اختيار البرنامج المناسب لأهدافك وظروفك.
+              {t('programs.ctaText')}
             </p>
           </div>
           <motion.div whileHover={{ scale: 1.04 }}>
@@ -175,7 +178,7 @@ export default function Programs() {
               to="/contact"
               className="inline-flex items-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
             >
-              تواصل معنا
+              {t('common.contactUs')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>

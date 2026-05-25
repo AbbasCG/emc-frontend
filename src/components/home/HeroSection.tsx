@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { BookOpen, Brain, GraduationCap, MessageCircle, Users } from 'lucide-react'
 import PublicPageHero from '@/components/shared/PublicPageHero'
 import { fadeUp, staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
@@ -35,6 +36,7 @@ const heroCards = [
 ]
 
 export default function HeroSection() {
+  const { t } = useTranslation()
   return (
     <>
       <PublicPageHero
@@ -50,7 +52,7 @@ export default function HeroSection() {
         subtitle="منصة تعليمية وتشغيلية متكاملة لبناء المسارات، إدارة البرامج، وتمكين الطلاب والمدربين والشركاء."
         ctaText="استكشف البرامج"
         ctaLink="/courses"
-        secondaryCtaText="سجّل الآن"
+        secondaryCtaText={t('common.registerNow')}
         secondaryCtaLink="/signup"
         tertiaryCtaText="اطلب ورشة"
         tertiaryCtaLink="/submit-workshop"

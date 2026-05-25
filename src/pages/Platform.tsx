@@ -1,64 +1,67 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BadgeCheck, Bell, BookOpen, GraduationCap, MonitorCheck, Shield, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 import { fadeUp } from '../utils/course'
 
-const features = [
+
+export default function Platform() {
+  const { t } = useTranslation()
+  const features = [
   {
     icon: MonitorCheck,
-    title: 'تعلم هجين مرن',
-    description: 'اختر بين الحضور الشخصي أو التعلم عن بُعد أو مزيج منهما بحسب جدولك وأهدافك.',
+    titleKey: 'platform.feature1',
+    description: t('platform.feature1Desc'),
     color: 'bg-sky-50 text-customBlue',
   },
   {
     icon: Users,
-    title: 'مدربون متخصصون',
-    description: 'فريق من المدربين المعتمدين ذوي الخبرة في التعليم والتدريب المهني والاستشارات.',
+    titleKey: 'platform.feature2',
+    description: t('platform.feature2Desc'),
     color: 'bg-orange-50 text-customOrange',
   },
   {
     icon: BookOpen,
-    title: 'محتوى محدّث باستمرار',
-    description: 'مناهج تواكب سوق العمل الحديث وتُحدَّث بانتظام لتعكس أحدث المتطلبات المهنية.',
+    titleKey: 'platform.feature3',
+    description: t('platform.feature3Desc'),
     color: 'bg-emerald-50 text-emerald-600',
   },
   {
     icon: GraduationCap,
-    title: 'شهادات معتمدة',
-    description: 'احصل على شهادات إتمام معتمدة تُعزز ملفك المهني وتفتح لك أبواباً جديدة.',
+    titleKey: 'platform.feature4',
+    description: t('platform.feature4Desc'),
     color: 'bg-violet-50 text-violet-600',
   },
   {
     icon: Bell,
-    title: 'متابعة ودعم مستمر',
-    description: 'نظام إشعارات وتذكيرات ودعم شخصي يضمن مواصلتك لمسيرتك التعليمية دون انقطاع.',
+    titleKey: 'platform.feature5',
+    description: t('platform.feature5Desc'),
     color: 'bg-amber-50 text-amber-600',
   },
   {
     icon: Shield,
-    title: 'بيئة آمنة وموثوقة',
-    description: 'منصة محمية ببروتوكولات أمان حديثة تحافظ على بيانات المتدربين وخصوصيتهم.',
+    titleKey: 'platform.feature6',
+    description: t('platform.feature6Desc'),
     color: 'bg-rose-50 text-rose-600',
   },
 ]
 
 const steps = [
-  { number: '١', title: 'إنشاء حساب', desc: 'سجّل في دقائق وأكمل ملفك الشخصي لتلقّي توصيات مخصصة.' },
-  { number: '٢', title: 'اختر برنامجك', desc: 'تصفح الدورات والمسارات واختر ما يناسب هدفك ومستواك.' },
-  { number: '٣', title: 'ابدأ التعلم', desc: 'انضم لجلساتك، تفاعل مع المدرب، وأنجز تطبيقاتك العملية.' },
-  { number: '٤', title: 'احصل على شهادتك', desc: 'أتمم البرنامج واحصل على شهادتك المعتمدة لتعزيز مسيرتك.' },
+  { number: '١', titleKey: 'platform.step1', desc: t('platform.step1Desc') },
+  { number: '٢', titleKey: 'platform.step2', desc: t('platform.step2Desc') },
+  { number: '٣', titleKey: 'platform.step3', desc: t('platform.step3Desc') },
+  { number: '٤', titleKey: 'platform.step4', desc: t('platform.step4Desc') },
 ]
 
-export default function Platform() {
   return (
     <main className="bg-slate-50 pt-20">
       <PageHeader
-        title="المنصة"
-        subtitle="منصة EMC — بيئة تعليمية متكاملة صُممت لمساعدتك على النمو بثقة واحترافية."
+        title={t('platform.title')}
+        subtitle={t('platform.heroSubtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'المنصة' },
+          { label: t('courses.breadcrumbHome'), href: '/' },
+          { label: t('platform.title') },
         ]}
       />
 
@@ -75,17 +78,15 @@ export default function Platform() {
           >
             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-customBlue">
               <MonitorCheck size={17} />
-              منصة تعليمية رقمية عالمية
+              {t('platform.globalPlatform')}
             </span>
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">لماذا EMC؟</h2>
+            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">{t('platform.whyEmc')}</h2>
             <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
             <p className="mt-7 text-lg leading-10 text-slate-600">
-              صُممت منصة EMC لتكون رفيقك في كل خطوة من رحلتك التعليمية — من اختيار
-              البرنامج إلى الحصول على الشهادة والحصول على فرصة عملك. نجمع بين الخبرة
-              الأكاديمية، والتدريب المهني، والدعم الشخصي في بيئة واحدة متكاملة.
+              {t('platform.heroText')}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              {['أونلاين وحضوري', 'دعم شخصي', 'مدربون معتمدون', 'شهادات معتمدة'].map((tag) => (
+              {[t('platform.tagOnline'), t('platform.tagSupport'), t('platform.tagCertified'), t('platform.tagAccredited')].map((tag) => (
                 <span key={tag} className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-black text-deepBlue shadow-sm ring-1 ring-slate-200">
                   <BadgeCheck size={14} className="text-customBlue" />
                   {tag}
@@ -102,7 +103,7 @@ export default function Platform() {
           >
             <img
               src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=85"
-              alt="بيئة التعلم الرقمي في EMC"
+              alt={t('platform.heroImageAlt')}
               className="h-[420px] w-full object-cover"
             />
           </motion.div>
@@ -113,7 +114,7 @@ export default function Platform() {
       <section className="bg-white px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">مزايا المنصة</h2>
+            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">{t('platform.benefits')}</h2>
             <span className="mx-auto mt-4 block h-1 w-20 rounded-full bg-customOrange" />
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -121,7 +122,7 @@ export default function Platform() {
               const Icon = feat.icon
               return (
                 <motion.article
-                  key={feat.title}
+                  key={feat.titleKey}
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="visible"
@@ -132,7 +133,7 @@ export default function Platform() {
                   <div className={`mb-4 grid h-12 w-12 place-items-center rounded-xl ${feat.color}`}>
                     <Icon size={24} />
                   </div>
-                  <h3 className="text-xl font-black text-deepBlue">{feat.title}</h3>
+                  <h3 className="text-xl font-black text-deepBlue">{t(feat.titleKey)}</h3>
                   <p className="mt-3 leading-8 text-slate-600">{feat.description}</p>
                 </motion.article>
               )
@@ -145,7 +146,7 @@ export default function Platform() {
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">كيف تبدأ؟</h2>
+            <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">{t('platform.howToStart')}</h2>
             <span className="mx-auto mt-4 block h-1 w-20 rounded-full bg-customOrange" />
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -162,7 +163,7 @@ export default function Platform() {
                 <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-deepBlue text-xl font-black text-white">
                   {step.number}
                 </span>
-                <h3 className="text-lg font-black text-deepBlue">{step.title}</h3>
+                <h3 className="text-lg font-black text-deepBlue">{t(step.titleKey)}</h3>
                 <p className="mt-2 text-sm leading-7 text-slate-600">{step.desc}</p>
               </motion.div>
             ))}
@@ -180,9 +181,9 @@ export default function Platform() {
           transition={{ duration: 0.5 }}
         >
           <div>
-            <h2 className="text-3xl font-black sm:text-4xl">ابدأ تجربتك اليوم</h2>
+            <h2 className="text-3xl font-black sm:text-4xl">{t('platform.ctaSectionTitle')}</h2>
             <p className="mt-4 max-w-xl text-lg leading-9 text-slate-200">
-              سجّل مجاناً وابدأ استكشاف برامجنا التعليمية الآن.
+              {t('platform.ctaSectionDesc')}
             </p>
           </div>
           <motion.div whileHover={{ scale: 1.04 }}>
@@ -190,7 +191,7 @@ export default function Platform() {
               to="/register"
               className="inline-flex items-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white"
             >
-              سجّل الآن مجاناً
+               {t('platform.ctaStart')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>

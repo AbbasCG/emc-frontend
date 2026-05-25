@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ChevronRight, Quote } from 'lucide-react'
 
 const quotes = [
@@ -27,6 +28,7 @@ const quotes = [
 const AUTO_MS = 7200
 
 export default function HomeTestimonialsCarousel() {
+  const { t } = useTranslation()
   const [index, setIndex] = useState(0)
   const len = quotes.length
 
@@ -45,7 +47,7 @@ export default function HomeTestimonialsCarousel() {
       <div className="mx-auto max-w-[1540px]">
         <div className="mb-10 flex flex-col gap-6 text-right lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black text-customBlue">قصص من الميدان</p>
+            <p className="text-xs font-black text-customBlue">{t('home.testimonials')}</p>
             <h2 className="mt-3 font-display text-3xl font-black text-deepBlue sm:text-4xl">شهادات من الميدان</h2>
             <p className="mt-4 max-w-xl text-base font-semibold leading-8 text-foreground/70">
               ملاحظات من شركاء تشغيل وقادة جودة — صياغة احترافية تعكس طبيعة العمل المؤسسي.

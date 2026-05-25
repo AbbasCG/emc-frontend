@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, SearchX } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function NotFound() {
+  const { t } = useTranslation()
   return (
     <div
       dir="rtl"
@@ -31,12 +33,12 @@ export default function NotFound() {
 
         {/* Heading */}
         <h1 className="-mt-4 text-3xl font-black text-deepBlue sm:text-4xl">
-          الصفحة غير موجودة
+          {t('errors.notFound')}
         </h1>
 
         {/* Subtitle */}
         <p className="mx-auto mt-5 max-w-sm leading-8 text-slate-500">
-          عذراً، لم نتمكن من العثور على الصفحة التي تبحث عنها. ربما تم نقلها أو حذفها أو أن الرابط غير صحيح.
+          {t('errors.notFoundDesc')}
         </p>
 
         {/* Actions */}
@@ -45,14 +47,14 @@ export default function NotFound() {
             to="/"
             className="emc-focus-ring inline-flex items-center gap-2 rounded-xl bg-customBlue px-7 py-3.5 font-bold text-white shadow-md shadow-sky-200 transition-all hover:bg-[#1e7dab] hover:shadow-lg"
           >
-            العودة للرئيسية
+            {t('errors.goHome')}
             <ArrowLeft size={18} />
           </Link>
           <Link
             to="/courses"
             className="emc-focus-ring inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 font-bold text-deepBlue transition-colors hover:border-customBlue/30 hover:bg-sky-50 hover:text-customBlue"
           >
-            تصفح الدورات
+            {t('errors.browseCourses')}
           </Link>
         </div>
       </motion.div>

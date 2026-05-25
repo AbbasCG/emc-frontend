@@ -1,30 +1,32 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ClipboardCheck, UserPlus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 
 const steps = [
   {
-    title: 'اختيار البرنامج',
-    body: 'راجع الوصف، المدة، والمتطلبات — ثم انتقل لصفحة تفاصيل الدورة.',
+    titleKey: 'courses.stepChoose',
+    bodyKey: 'courses.stepChooseDesc',
   },
   {
-    title: 'التسجيل',
-    body: 'أكمل بيانات التسجيل عبر مسار المنصة الحالي (حساب/تسجيل) دون تغيير الـ API.',
+    titleKey: 'courses.stepRegister',
+    bodyKey: 'courses.stepRegisterDesc',
   },
   {
-    title: 'تأكيد والمتابعة',
-    body: 'ستصلك تعليمات المشاركة عبر القنوات الرسمية للبرنامج.',
+    titleKey: 'courses.stepConfirm',
+    bodyKey: 'courses.stepConfirmDesc',
   },
 ]
 
 export default function CoursesRegistrationSection() {
+  const { t } = useTranslation()
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
-          title="كيف يعمل التسجيل؟"
+          title={t('courses.howItWorks')}
           description="مسار موحّد: تصفح — تفاصيل — تسجيل — متابعة. أي تحديثات مستقبلية على المنصة ستظهر هنا تلقائياً عبر نفس الروابط."
         />
 
@@ -36,15 +38,15 @@ export default function CoursesRegistrationSection() {
           viewport={{ once: true, amount: 0.15 }}
         >
           <ol className="space-y-4 text-right">
-            {steps.map((s, i) => (
+              {steps.map((s, i) => (
               <motion.li
-                key={s.title}
+                key={s.titleKey}
                 variants={staggerItem}
                 className="rounded-3xl border border-slate-100 bg-[#f4f7fb] p-6"
               >
                 <span className="text-xs font-black text-customOrange">خطوة {i + 1}</span>
-                <p className="mt-2 text-lg font-black text-deepBlue">{s.title}</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{s.body}</p>
+                <p className="mt-2 text-lg font-black text-deepBlue">{t(s.titleKey)}</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{t(s.bodyKey)}</p>
               </motion.li>
             ))}
           </ol>
@@ -64,7 +66,7 @@ export default function CoursesRegistrationSection() {
                 to="/contact"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white"
               >
-                تواصل معنا
+                {t('courses.ctaContact')}
                 <ArrowLeft size={18} />
               </Link>
               <Link
@@ -72,7 +74,7 @@ export default function CoursesRegistrationSection() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 px-6 py-3 text-sm font-bold text-white hover:bg-white/10"
               >
                 <ClipboardCheck size={18} />
-                طلب ورشة للفريق
+                {t('courses.ctaTeamWorkshop')}
               </Link>
             </div>
           </motion.div>

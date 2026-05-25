@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, HelpCircle } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
 
@@ -27,7 +28,8 @@ const faqs = [
 ]
 
 export default function HomeFaqSection() {
-  const [open, setOpen] = useState<number | null>(0)
+  const { t } = useTranslation()
+  const [open, setOpen] = useState<number | null>(null)
 
   return (
     <section className="border-y border-deepBlue/[0.05] bg-white px-4 py-16 sm:px-6 lg:px-8">
@@ -35,8 +37,8 @@ export default function HomeFaqSection() {
         <SectionHeader
           align="right"
           className="!mr-0 !text-right"
-          eyebrow="أسئلة شائعة"
-          title="كل ما تحتاج معرفته قبل البدء"
+          eyebrow={t('home.faq')}
+          title={t('home.faqDesc')}
           description="إجابات موجزة حول التسجيل، الورش، وطبيعة منظومة EMC الرقمية."
         />
 

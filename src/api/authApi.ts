@@ -5,8 +5,22 @@ import { normalizeAuthLoginPayload, normalizeAuthUser } from '../utils/userIdent
 
 type AuthPayload = { token: string; user: User }
 
+export class TwoFactorRequiredError extends Error {
+  userId: number
+  constructor(userId: number) {
+    super('Two-factor authentication required')
+    this.name = 'TwoFactorRequiredError'
+    this.userId = userId
+  }
+}
+
 export async function login(email: string, password: string): Promise<AuthPayload> {
   const res = await apiClient.post<unknown>('/auth/login', { email, password }, { skipErrorToast: true })
+  const body = res.data as Record<string, unknown>
+  if (body.requires_2fa) {
+    const userId = Number((body.data as Record<string, unknown> | undefined)?.user_id ?? 0)
+    throw new TwoFactorRequiredError(userId)
+  }
   return normalizeAuthLoginPayload(unwrapData(res.data))
 }
 

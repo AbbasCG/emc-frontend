@@ -1,15 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { BookOpen, LayoutGrid, TrendingUp, Users } from 'lucide-react'
 import StatCard from '@/components/shared/StatCard'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
-
-const bandStats = [
-  { raw: '+25', label: 'برنامج تدريبي', icon: LayoutGrid },
-  { raw: '+500', label: 'مستفيد', icon: TrendingUp },
-  { raw: '+10', label: 'مجالات تطوير', icon: Users },
-  { raw: '✓', label: 'شراكات تعليمية', icon: BookOpen },
-] as const
 
 function AnimatedNumber({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -51,6 +45,15 @@ function AnimatedNumber({ value }: { value: string }) {
 }
 
 export default function HomeStatsBand() {
+  const { t } = useTranslation()
+
+  const bandStats = [
+    { raw: '+25', label: t('home.statsPrograms'), icon: LayoutGrid },
+    { raw: '+500', label: t('home.statsBeneficiaries'), icon: TrendingUp },
+    { raw: '+10', label: t('home.statsFields'), icon: Users },
+    { raw: '✓', label: t('home.statsPartnerships'), icon: BookOpen },
+  ] as const
+
   return (
     <section className="bg-deepBlue px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
       <motion.div

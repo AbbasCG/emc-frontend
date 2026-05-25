@@ -420,3 +420,41 @@ export type EvaluationPayload = {
 export async function submitStudentEvaluation(body: EvaluationPayload): Promise<void> {
   await apiClient.post('/student/evaluations', body)
 }
+
+// ─── Payments ────────────────────────────────────────────────────────────────
+
+export type StudentPayment = {
+  id: number
+  registration_id: number
+  amount: number
+  provider: string
+  status: string
+  payment_method: string | null
+  receipt_url: string | null
+  confirmed_at: string | null
+  created_at: string
+  course_title: string | null
+  course_id: number | null
+}
+
+export async function fetchStudentPayments(): Promise<StudentPayment[]> {
+  const res = await apiClient.get<unknown>('/student/payments')
+  return asList<StudentPayment>(res.data)
+}
+
+// ─── Recordings ──────────────────────────────────────────────────────────────
+
+export type StudentRecording = {
+  id: number
+  title: string
+  recording_url: string
+  session_date: string | null
+  course_id: number | null
+  course_title: string | null
+  course_slug: string | null
+}
+
+export async function fetchStudentRecordings(): Promise<StudentRecording[]> {
+  const res = await apiClient.get<unknown>('/student/recordings')
+  return asList<StudentRecording>(res.data)
+}

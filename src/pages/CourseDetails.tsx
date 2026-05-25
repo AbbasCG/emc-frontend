@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   Award,
@@ -30,14 +31,15 @@ import {
   formatPrice,
 } from '../utils/course'
 
-const fallbackLearningItems = [
-  'تطوير مهاراتك الأكاديمية والمهنية',
-  'اكتساب معرفة عملية قابلة للتطبيق',
-  'تحسين فرصك في الدراسة أو العمل',
-  'بناء خطة واضحة للتطور المستقبلي',
-]
-
 export default function CourseDetails() {
+  const { t } = useTranslation()
+
+  const fallbackLearningItems = [
+    t('courses.fallbackLearningItem1'),
+    t('courses.fallbackLearningItem2'),
+    t('courses.fallbackLearningItem3'),
+    t('courses.fallbackLearningItem4'),
+  ]
   const { slug } = useParams()
   const [course, setCourse] = useState<Course | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -77,7 +79,7 @@ export default function CourseDetails() {
           return
         }
 
-        setError('تعذر تحميل تفاصيل الدورة. يرجى المحاولة مرة أخرى.')
+        setError(t('courses.fetchError'))
       } finally {
         setIsLoading(false)
       }
@@ -93,7 +95,7 @@ export default function CourseDetails() {
   if (error) {
     return (
       <main className="bg-slate-50 px-4 pb-20 pt-32 sm:px-6 lg:px-8">
-        <StateMessage type="error" title="حدث خطأ" message={error} />
+        <StateMessage type="error" title={t('common.error')} message={error} />
       </main>
     )
   }
@@ -103,8 +105,8 @@ export default function CourseDetails() {
       <main className="bg-slate-50 px-4 pb-20 pt-32 sm:px-6 lg:px-8">
         <StateMessage
           type="empty"
-          title="الدورة غير موجودة"
-          message="لم نتمكن من العثور على هذه الدورة. يمكنك الرجوع إلى صفحة الدورات واختيار دورة أخرى."
+          title={t('courses.notFound')}
+          message={t('courses.notFoundMessage')}
         />
       </main>
     )
@@ -112,72 +114,72 @@ export default function CourseDetails() {
 
   const isOnline = Boolean(course.is_online)
   const isFree = course.type === 'free'
-  const courseType = isOnline ? 'أونلاين' : 'حضوري'
+  const courseType = isOnline ? t('common.online') : t('common.inPerson')
   const calculatedDuration = formatDuration(course.start_date, course.end_date)
   const displayDuration = course.duration || calculatedDuration
-  const priceLabel = isFree ? 'مجانية' : formatPrice(course.price)
-  const registerLabel = isFree ? 'سجل الآن مجاناً' : 'سجل الآن'
-  const locationLabel = isOnline ? 'أونلاين' : course.location || 'غير محدد'
-  const statusLabel = course.status === 'active' ? 'متاحة للتسجيل' : course.status || 'غير محدد'
+  const priceLabel = isFree ? t('common.free') : formatPrice(course.price)
+  const registerLabel = isFree ? t('courses.registerFree') : t('courses.registerPaid')
+  const locationLabel = isOnline ? t('common.online') : course.location || t('courses.locationUnknown')
+  const statusLabel = course.status === 'active' ? t('courses.statusActive') : course.status || t('courses.locationUnknown')
   const isSingleDay =
     course.start_date &&
     course.end_date &&
     new Date(course.start_date).toDateString() === new Date(course.end_date).toDateString()
-  const programTypeLabel = isSingleDay ? 'ورشة / لقاء واحد' : 'دورة متعددة الأيام'
+  const programTypeLabel = isSingleDay ? t('courses.typeSingleDay') : t('courses.typeMultiDay')
 
   const instructorName =
-    course.instructor?.name || course.instructor_name || 'مدرب معتمد من EMC'
+    course.instructor?.name || course.instructor_name || t('courses.instructorFallback')
 
   const detailRows = [
-    { icon: Monitor, label: 'نوع الدورة', value: courseType },
+    { icon: Monitor, label: t('courses.courseType'), value: courseType },
     {
       icon: CalendarDays,
-      label: 'نوع البرنامج',
+      label: t('courses.programTypeLabel'),
       value: programTypeLabel,
     },
-    { icon: Clock3, label: 'المدة', value: displayDuration || 'غير محدد' },
+    { icon: Clock3, label: t('courses.duration'), value: displayDuration || t('courses.locationUnknown') },
     {
       icon: BookOpen,
-      label: 'عدد الساعات',
-      value: course.training_hours ? `${course.training_hours} ساعة تدريبية` : 'غير محدد',
+      label: t('courses.hoursLabel'),
+      value: course.training_hours ? t('courses.hoursValue', { hours: course.training_hours }) : t('courses.locationUnknown'),
     },
     {
       icon: Target,
-      label: 'الفئة المستهدفة',
-      value: course.target_audience || 'غير محدد',
+      label: t('courses.targetAudienceLabel'),
+      value: course.target_audience || t('courses.locationUnknown'),
     },
     {
       icon: Languages,
-      label: 'لغة الدورة',
-      value: course.language || 'غير محدد',
+      label: t('courses.languageLabel'),
+      value: course.language || t('courses.locationUnknown'),
     },
     {
       icon: Award,
-      label: 'المستوى',
-      value: course.level || 'غير محدد',
+      label: t('courses.levelLabel'),
+      value: course.level || t('courses.locationUnknown'),
     },
-  ...(!isOnline
-    ? [
-        {
-          icon: Monitor,
-          label: 'المكان',
-          value: course.location || 'غير محدد',
-        },
-      ]
-    : []),
+    ...(!isOnline
+      ? [
+          {
+            icon: Monitor,
+            label: t('courses.location'),
+            value: course.location || t('courses.locationUnknown'),
+          },
+        ]
+      : []),
     {
       icon: Users,
-      label: 'عدد المقاعد',
-      value: course.capacity ? `${course.capacity} مقعد` : 'غير محدد',
+      label: t('courses.seats'),
+      value: course.capacity ? t('courses.capacityLabel', { count: course.capacity }) : t('courses.locationUnknown'),
     },
     {
       icon: BadgeCheck,
-      label: 'الشهادة',
-      value: course.certificate || 'غير محدد',
+      label: t('courses.certificateLabel'),
+      value: course.certificate || t('courses.locationUnknown'),
     },
     {
       icon: BadgeCheck,
-      label: 'حالة الدورة',
+      label: t('courses.statusLabel'),
       value: statusLabel,
     },
   ]
@@ -206,7 +208,7 @@ export default function CourseDetails() {
           <div className="order-2 text-right lg:order-1">
             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-customBlue">
               <GraduationCap size={17} />
-              تفاصيل البرنامج التدريبي
+              {t('courses.detailsTitle')}
             </span>
 
             <h1 className="text-3xl font-black leading-[1.3] text-deepBlue sm:text-4xl lg:text-5xl">
@@ -215,22 +217,22 @@ export default function CourseDetails() {
 
             <p className="mt-5 text-lg leading-9 text-slate-600">
               {course.short_description ||
-                'برنامج تدريبي عملي يساعدك على تطوير مهاراتك بثقة من خلال محتوى واضح وتطبيقات واقعية.'}
+                t('courses.descriptionFallback')}
             </p>
 
             <div className="mt-7 grid gap-4 sm:grid-cols-2">
-              <InfoTile icon={Monitor} label="نوع الدورة" value={courseType} />
-              <InfoTile icon={CalendarDays} label="نوع البرنامج" value={programTypeLabel} />
-              <InfoTile icon={Clock3} label="المدة" value={displayDuration || 'غير محدد'} />
-              <InfoTile icon={BriefcaseBusiness} label="المدرب" value={instructorName} />
-              <InfoTile icon={Award} label="السعر" value={priceLabel} accent={isFree ? 'blue' : 'orange'} />
+              <InfoTile icon={Monitor} label={t('courses.courseType')} value={courseType} />
+              <InfoTile icon={CalendarDays} label={t('courses.programTypeLabel')} value={programTypeLabel} />
+              <InfoTile icon={Clock3} label={t('courses.duration')} value={displayDuration || t('courses.locationUnknown')} />
+              <InfoTile icon={BriefcaseBusiness} label={t('courses.instructor')} value={instructorName} />
+              <InfoTile icon={Award} label={t('courses.price')} value={priceLabel} accent={isFree ? 'blue' : 'orange'} />
               {!isOnline && (
-                <InfoTile icon={Monitor} label="المكان" value={locationLabel} />
+                <InfoTile icon={Monitor} label={t('courses.location')} value={locationLabel} />
               )}
               <InfoTile
                 icon={Users}
-                label="المقاعد المتاحة"
-                value={course.capacity ? `${course.capacity} مقعد` : 'مقاعد محدودة'}
+                label={t('courses.seats')}
+                value={course.capacity ? t('courses.capacityLabel', { count: course.capacity }) : t('courses.seatsFallback')}
               />
             </div>
 
@@ -251,7 +253,7 @@ export default function CourseDetails() {
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-customBlue px-7 py-4 font-extrabold text-customBlue transition hover:bg-sky-50"
               >
                 <Share2 size={20} />
-                شارك الدورة
+                {t('courses.shareButtonLabel')}
               </motion.button>
             </div>
           </div>
@@ -274,7 +276,7 @@ export default function CourseDetails() {
                   isFree ? 'bg-customBlue' : 'bg-customOrange'
                 }`}
               >
-                {isFree ? 'مجانية' : 'مدفوعة'}
+                {isFree ? t('common.free') : t('common.paid')}
               </span>
             </div>
           </motion.div>
@@ -289,11 +291,11 @@ export default function CourseDetails() {
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
           >
-            <CardHeading>تفاصيل الدورة</CardHeading>
+            <CardHeading>{t('courses.details')}</CardHeading>
 
             <p className="mt-7 whitespace-pre-line text-lg leading-10 text-slate-600">
               {course.description ||
-                'هذا البرنامج مصمم لمساعدتك على تطوير مهاراتك الأكاديمية والمهنية من خلال محتوى عملي وتدريبات تفاعلية تناسب أهدافك.'}
+                t('courses.detailsFallback')}
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -312,7 +314,7 @@ export default function CourseDetails() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
             >
-              <CardHeading>ماذا ستتعلم</CardHeading>
+              <CardHeading>{t('courses.whatYouLearn')}</CardHeading>
 
               <ul className="mt-7 grid gap-4">
                 {learningItems.map((item, index) => (
@@ -335,7 +337,7 @@ export default function CourseDetails() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5, delay: 0.08 }}
             >
-              <CardHeading>المدرب</CardHeading>
+              <CardHeading>{t('courses.instructor')}</CardHeading>
 
               <div className="mt-7 flex items-center gap-4">
                 <img
@@ -350,14 +352,14 @@ export default function CourseDetails() {
                 <div>
                   <h3 className="text-xl font-black text-deepBlue">{instructorName}</h3>
                   <p className="mt-1 text-sm font-bold text-customBlue">
-                    {course.instructor?.title || 'مدرب محترف للتدريب المهني'}
+                    {course.instructor?.title || t('courses.instructorTitleFallback')}
                   </p>
                 </div>
               </div>
 
               <p className="mt-5 leading-8 text-slate-600">
                 {course.instructor?.bio ||
-                  'مدرب متخصص في تطوير المهارات المهنية والتقنية، يقدم برامج واقعية وتركيزاً على التطبيق العملي والدعم الشخصي.'}
+                  t('courses.instructorBioFallback')}
               </p>
 
               <motion.div whileHover={{ scale: 1.03 }} className="mt-6">
@@ -365,7 +367,7 @@ export default function CourseDetails() {
                   to="/courses"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deepBlue px-5 py-3 text-sm font-extrabold text-white"
                 >
-                  عرض جميع الدورات
+                  {t('courses.breadcrumbCourses')}
                   <ArrowLeft size={18} />
                 </Link>
               </motion.div>
@@ -402,14 +404,15 @@ function CourseDetailsLoading() {
 }
 
 function Breadcrumb({ courseTitle }: { courseTitle: string }) {
+  const { t } = useTranslation()
   return (
     <nav className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
       <Link to="/" className="transition hover:text-customBlue">
-        الرئيسية
+        {t('courses.breadcrumbHome')}
       </Link>
       <span className="text-customOrange">&gt;</span>
       <Link to="/courses" className="transition hover:text-customBlue">
-        الدورات
+        {t('courses.breadcrumbCourses')}
       </Link>
       <span className="text-customOrange">&gt;</span>
       <span className="text-deepBlue">{courseTitle}</span>
@@ -504,11 +507,11 @@ function CourseDetailsCTA({
     >
       <div className="text-right">
         <h2 className="text-3xl font-black leading-tight sm:text-4xl">
-          ابدأ رحلتك التعليمية الآن
+          {t('courses.ctaTitle')}
         </h2>
 
         <p className="mt-4 text-lg leading-9 text-slate-200">
-          اختر الدورة المناسبة لك وابدأ تطوير مهاراتك اليوم.
+          {t('courses.ctaDesc')}
         </p>
 
         <div className="mt-7 flex flex-col gap-4 sm:flex-row">
@@ -527,7 +530,7 @@ function CourseDetailsCTA({
               to="/courses"
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customBlue px-7 py-4 font-extrabold text-white sm:w-auto"
             >
-              استكشف جميع الدورات
+               {t('courses.exploreAll')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -8,8 +8,14 @@ import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Signup() {
-  const { registerAccount } = useAuth()
+  const { registerAccount, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

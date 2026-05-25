@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, GraduationCap } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fetchInstructors, type InstructorPublic } from '@/api/instructorsApi'
 import { PublicPageHero } from '@/components/public'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 
 export default function Instructors() {
+  const { t } = useTranslation()
   const [rows, setRows] = useState<InstructorPublic[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
@@ -38,8 +40,8 @@ export default function Instructors() {
         title="مدربون يصنعون أثراً حقيقياً"
         subtitle="تعرّف على خبراء EMC الذين يقودون الجلسات والمسارات بجودة مؤسسية وتجربة تعلم حديثة."
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'المدربون' },
+          { label: t('courses.breadcrumbHome'), href: '/' },
+          { label: t('nav.programsItems.instructors.label') },
         ]}
       />
 

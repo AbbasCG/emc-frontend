@@ -1,15 +1,17 @@
 import { motion } from 'framer-motion'
 import { BadgePercent, Coins, Gift } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 
 export default function CoursesPricingSection() {
+  const { t } = useTranslation()
   return (
     <section className="bg-[#f4f7fb] py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
-          title="مجاني مقابل مدفوع"
-          description="يعتمد السعر على طبيعة البرنامج، مدته، ونوع الشهادة أو المرافقة — مع إمكانية وجود عروض أو منح عند الإعلان عنها رسمياً."
+          title={t('courses.freeVsPaid')}
+          description={t('courses.freeVsPaidDesc')}
         />
 
         <motion.div
@@ -22,7 +24,7 @@ export default function CoursesPricingSection() {
         >
           <div className="rounded-3xl bg-white p-8 text-right shadow-lg ring-1 ring-slate-100">
             <Gift className="text-customBlue" size={30} />
-            <h3 className="mt-4 text-xl font-black text-deepBlue">برامج مجانية أو مدعومة</h3>
+            <h3 className="mt-4 text-xl font-black text-deepBlue">{t('courses.freeSupported')}</h3>
             <p className="mt-3 leading-8 text-slate-600">
               قد تُتاح برامج مجانية أو مدعومة جزئياً ضمن مبادرات محددة. راجع بطاقة البرنامج
               لمعرفة إن كان مجانياً، وتابع الشروط المعروضة في صفحة التفاصيل.
@@ -30,7 +32,7 @@ export default function CoursesPricingSection() {
           </div>
           <div className="rounded-3xl bg-white p-8 text-right shadow-lg ring-1 ring-slate-100">
             <Coins className="text-customOrange" size={30} />
-            <h3 className="mt-4 text-xl font-black text-deepBlue">برامج مدفوعة</h3>
+            <h3 className="mt-4 text-xl font-black text-deepBlue">{t('courses.paidPrograms')}</h3>
             <p className="mt-3 leading-8 text-slate-600">
               تظهر التكلفة في بطاقة الدورة عند توفرها من الـ API. أي استفسار مالي يُدار عبر
               القنوات الرسمية وليس عبر رسائل عشوائية.

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   BookOpen,
@@ -34,6 +35,7 @@ const staggerItem = {
 }
 
 export default function HomeCinematicHero() {
+  const { t } = useTranslation()
   return (
     <section className="relative isolate overflow-hidden bg-white pt-[4.75rem] lg:pt-[5.25rem]" dir="rtl">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-emc-hero bg-cover" />
@@ -57,7 +59,7 @@ export default function HomeCinematicHero() {
               LMS · AI · SaaS
             </span>
             <span className="rounded-full border border-deepBlue/10 bg-white/80 px-4 py-2 text-xs font-black text-foreground/85 backdrop-blur-md">
-              المركز التعليمي الرائد EMC
+              {t('home.heroTitle')}
             </span>
           </motion.div>
 
@@ -65,7 +67,7 @@ export default function HomeCinematicHero() {
             variants={fadeUp}
             className="font-display text-[2.35rem] font-black leading-[1.12] tracking-tight text-deepBlue sm:text-5xl lg:text-[3.45rem] xl:text-[3.75rem]"
           >
-            منصّة تشغيل تعليمية مؤسّسية توحّد المتعلّم والمدرِّب وقيادة الجودة في تجربة رقمية واحدة على امتداد LMS و&nbsp;AI
+            {t('home.heroSubtitle')}
           </motion.h1>
 
           <motion.p
@@ -83,7 +85,7 @@ export default function HomeCinematicHero() {
                 className="group relative inline-flex items-center gap-3 overflow-hidden rounded-2xl bg-accent-gradient px-9 py-4 text-base font-extrabold text-white shadow-emc-glow-accent transition-all duration-300 hover:shadow-[0_28px_52px_-14px_rgba(236,148,60,0.52)]"
               >
                 <span aria-hidden className="absolute inset-0 bg-emc-shimmer opacity-0 transition-opacity duration-700 group-hover:animate-shimmer group-hover:opacity-40" />
-                استكشف المسارات والدورات
+                {t('home.explorePrograms')}
                 <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
               </Link>
             </motion.div>
@@ -92,23 +94,23 @@ export default function HomeCinematicHero() {
                 to="/signup"
                 className="inline-flex items-center gap-2 rounded-2xl border border-deepBlue/[0.12] bg-white/95 px-8 py-4 text-base font-extrabold text-deepBlue shadow-emc-sm backdrop-blur-md transition-all hover:border-customBlue/35 hover:shadow-emc-md"
               >
-                إنشاء حساب
+                {t('home.createAccount')}
               </Link>
             </motion.div>
             <Link
               to="/contact"
               className="inline-flex items-center px-2 py-4 text-sm font-black text-customBlue underline-offset-8 transition hover:text-deepBlue hover:underline"
             >
-              استشارة للمؤسسات
+              {t('home.consultation')}
             </Link>
           </motion.div>
 
           <motion.div variants={fadeUp} className="mt-12 flex flex-wrap justify-end gap-6 border-t border-deepBlue/[0.06] pt-10">
-            {[
-              { Icon: Users, label: 'مجتمع متعلم', sub: 'طلاب · مهنيون · شركاء' },
-              { Icon: Gauge, label: 'أداء قابل للقياس', sub: 'تحليلات وتقارير' },
-              { Icon: Video, label: 'ورش مباشرة', sub: 'جداول ذكية' },
-            ].map(({ Icon, label, sub }) => (
+            {([
+              { Icon: Users, label: t('home.learningCommunity'), sub: 'طلاب · مهنيون · شركاء', id: 'community' },
+              { Icon: Gauge, label: t('home.measurablePerformance'), sub: 'تحليلات وتقارير', id: 'performance' },
+              { Icon: Video, label: t('home.liveWorkshops'), sub: 'جداول ذكية', id: 'workshops' },
+            ] as const).map(({ Icon, label, sub }) => (
               <div key={label} className="flex items-center gap-3 text-right">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-customBlue/10 text-customBlue ring-1 ring-customBlue/15">
                   <Icon size={22} strokeWidth={2} aria-hidden />

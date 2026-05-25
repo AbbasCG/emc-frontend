@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+
 import {
   Baby,
   Brain,
@@ -15,7 +16,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
-import { themes12 } from '@/data/publicPages'
+import { themes12, t as contentT } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
 const iconMap = {
@@ -63,9 +64,9 @@ export default function TwelveThemesPreviewSection() {
                   <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-customBlue transition group-hover:bg-customBlue group-hover:text-white">
                     <Icon size={22} />
                   </div>
-                  <h3 className="text-base font-black leading-7 text-deepBlue">{theme.title.ar}</h3>
+                  <h3 className="text-base font-black leading-7 text-deepBlue">{contentT(theme.title)}</h3>
                   <p className="mt-2 flex-1 text-sm leading-7 text-slate-600">
-                    {theme.shortDescription.ar}
+                    {contentT(theme.shortDescription)}
                   </p>
                   <span className="mt-4 text-xs font-bold text-customOrange">استكشف المجال</span>
                 </Link>

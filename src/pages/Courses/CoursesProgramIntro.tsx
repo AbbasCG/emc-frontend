@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { BookOpen, Layers, Sparkles } from 'lucide-react'
+
 import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 

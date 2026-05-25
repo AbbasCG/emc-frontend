@@ -1,34 +1,36 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Mail, MapPin, Phone } from 'lucide-react'
 import logo from '../assets/logo.png'
-import { siteContact } from '@/data/publicPages'
-
-const explore = [
-  { label: 'الرئيسية', href: '/' },
-  { label: 'عن المركز', href: '/about' },
-  { label: 'المجالات والمحاور', href: '/tracks' },
-  { label: 'الإدارات', href: '/departments' },
-  { label: 'البرامج والدورات', href: '/courses' },
-]
-
-const engage = [
-  { label: 'الشراكات', href: '/partnerships' },
-  { label: 'التطوع والانضمام', href: '/volunteer' },
-  { label: 'الفريق', href: '/ar/team' },
-  { label: 'الأثر', href: '/impact' },
-  { label: 'تقديم ورشة', href: '/submit-workshop' },
-]
-
-const programs = [
-  { label: 'مسارات التعلم', href: '/paths' },
-  { label: 'البرامج', href: '/programs' },
-  { label: 'المنصة', href: '/platform' },
-]
+import { siteContact, t as contentT } from '@/data/publicPages'
 
 export default function Footer() {
+  const { t } = useTranslation()
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const [newsletterDone, setNewsletterDone] = useState(false)
+
+  const explore = [
+    { label: t('footer.links.home'), href: '/' },
+    { label: t('footer.links.about'), href: '/about' },
+    { label: t('footer.links.tracks'), href: '/tracks' },
+    { label: t('footer.links.departments'), href: '/departments' },
+    { label: t('footer.links.courses'), href: '/courses' },
+  ]
+
+  const engage = [
+    { label: t('footer.links.partnerships'), href: '/partnerships' },
+    { label: t('footer.links.volunteer'), href: '/volunteer' },
+    { label: t('footer.links.team'), href: '/team' },
+    { label: t('footer.links.impact'), href: '/impact' },
+    { label: t('footer.links.workshop'), href: '/submit-workshop' },
+  ]
+
+  const programs = [
+    { label: t('footer.links.paths'), href: '/paths' },
+    { label: t('footer.links.programs'), href: '/programs' },
+    { label: t('footer.links.platform'), href: '/platform' },
+  ]
 
   function onNewsletterSubmit(e: FormEvent) {
     e.preventDefault()
@@ -38,7 +40,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="relative isolate overflow-hidden bg-deepBlue text-white" dir="rtl">
+    <footer className="relative isolate overflow-hidden bg-deepBlue text-white">
       {/* Ambient atmospheric glow */}
       <div
         aria-hidden
@@ -62,18 +64,17 @@ export default function Footer() {
               <img src={logo} alt="EMC" className="h-16 w-auto brightness-0 invert" />
             </Link>
             <p className="mt-6 max-w-sm text-sm leading-8 text-white/65">
-              EMC منصة تعليمية وتطويرية تربط بين البرامج التدريبية، الاستشارات، والشراكات
-              لخدمة الطلاب والمهنيين والمجتمع — بجودة واحترافية وهوية عربية واضحة.
+              {t('footer.description')}
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] font-black tracking-wide text-white/75 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-slow-pulse" />
-              التشغيل · نظام تعليمي موحّد
+              {t('footer.badge')}
             </div>
 
             <form onSubmit={onNewsletterSubmit} className="mt-8 space-y-3 text-right">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-customOrange">النشرة</p>
-                <p className="mt-1 text-sm leading-7 text-white/65">ملخصات برامج وورش — دون ازعاج.</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-customOrange">{t('footer.newsletter.title')}</p>
+                <p className="mt-1 text-sm leading-7 text-white/65">{t('footer.newsletter.description')}</p>
               </div>
               <label htmlFor="footer-news-email" className="sr-only">
                 البريد للنشرة
@@ -89,7 +90,7 @@ export default function Footer() {
                     setNewsletterEmail(ev.target.value)
                     setNewsletterDone(false)
                   }}
-                  placeholder="البريد الإلكتروني"
+                  placeholder={t('footer.newsletter.placeholder')}
                   dir="ltr"
                   className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-3 text-sm text-white outline-none ring-1 ring-transparent placeholder:text-white/40 focus:border-customBlue/45 focus:ring-customBlue/30"
                 />
@@ -97,20 +98,20 @@ export default function Footer() {
                   type="submit"
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-customOrange px-5 py-3 text-sm font-black text-deepBlue shadow-[0_12px_28px_-10px_rgba(236,148,60,0.55)] transition hover:brightness-105"
                 >
-                  تسجيل الاهتمام
+                  {t('footer.newsletter.submit')}
                   <ArrowLeft size={16} aria-hidden />
                 </button>
               </div>
               {newsletterDone ? (
                 <p className="text-xs font-bold text-customBlue" role="status">
-                  تم حفظ طلبك محلياً — سيتم ربطه بخادم النشرة عند التفعيل.
+                  {t('footer.newsletter.success')}
                 </p>
               ) : null}
             </form>
           </div>
 
           <div>
-            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">استكشف</h3>
+            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">{t('footer.explore')}</h3>
             <ul className="grid gap-3.5 text-sm">
               {explore.map((link) => (
                 <li key={link.href}>
@@ -126,7 +127,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">المشاركة</h3>
+            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">{t('footer.engage')}</h3>
             <ul className="grid gap-3.5 text-sm">
               {engage.map((link) => (
                 <li key={link.href}>
@@ -142,7 +143,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">البرامج</h3>
+            <h3 className="mb-5 text-xs font-black tracking-[0.14em] text-customOrange">{t('footer.programs')}</h3>
             <ul className="grid gap-3.5 text-sm">
               {programs.map((link) => (
                 <li key={link.href}>
@@ -162,7 +163,7 @@ export default function Footer() {
               aria-hidden
               className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-customBlue/30 blur-2xl"
             />
-            <h3 className="relative mb-5 text-xs font-black tracking-[0.14em] text-customOrange">تواصل</h3>
+            <h3 className="relative mb-5 text-xs font-black tracking-[0.14em] text-customOrange">{t('footer.contact')}</h3>
             <ul className="relative grid gap-4 text-sm text-white/75">
               <li className="flex items-start gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] text-customOrange ring-1 ring-white/10">
@@ -182,28 +183,28 @@ export default function Footer() {
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] text-customOrange ring-1 ring-white/10">
                   <MapPin size={15} />
                 </span>
-                <span>{siteContact.location.ar}</span>
+                <span>{contentT(siteContact.location)}</span>
               </li>
             </ul>
             <Link
               to="/contact"
               className="relative mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customBlue px-5 py-3 text-sm font-black text-white shadow-[0_12px_32px_-10px_rgba(38,145,194,0.65)] transition-all duration-300 ease-emc-out hover:-translate-y-0.5 hover:brightness-105"
             >
-              صفحة التواصل الكاملة
+              {t('footer.fullContactPage')}
             </Link>
           </div>
         </div>
 
         <div className="mt-14 flex flex-col items-center gap-4 border-t border-white/10 pt-10 text-center text-sm text-white/45 sm:flex-row sm:justify-between sm:text-right">
           <span>
-            جميع الحقوق محفوظة © {new Date().getFullYear()} EMC
+            {t('footer.rights', { year: new Date().getFullYear() })}
           </span>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:justify-end">
             <Link to="/contact" className="font-semibold transition hover:text-customOrange">
-              دعم واستفسارات
+              {t('footer.links.support')}
             </Link>
             <Link to="/submit-workshop" className="font-semibold transition hover:text-customOrange">
-              طلب ورشة أو برنامج
+              {t('footer.links.requestWorkshop')}
             </Link>
           </div>
         </div>

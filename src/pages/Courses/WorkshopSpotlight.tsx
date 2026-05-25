@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, Clock, MapPin, Wifi, Users, ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { WorkshopItem } from '@/services/coursesApi'
 
 type WorkshopSpotlightProps = {
@@ -37,6 +38,7 @@ function WorkshopSkeleton() {
 }
 
 export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotlightProps) {
+  const { t } = useTranslation()
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
 
@@ -52,16 +54,16 @@ export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotli
         >
           <div>
             <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
-              ورش العمل المجانية
+              {t('courses.freeWorkshops')}
             </span>
             <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
-              ورش قادمة — سجّل مجاناً
+              {t('courses.workshopsDesc')}
             </h2>
             <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
           </div>
 
           <button className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-customBlue hover:text-deepBlue transition-colors">
-            كل الورش
+            {t('courses.allWorkshops')}
             <ArrowLeft className="w-4 h-4" />
           </button>
         </motion.div>
@@ -84,7 +86,7 @@ export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotli
         {/* Mobile "see all" */}
         <div className="flex sm:hidden justify-center mt-6">
           <button className="flex items-center gap-1.5 text-sm font-bold text-customBlue">
-            كل الورش
+            {t('courses.allWorkshops')}
             <ArrowLeft className="w-4 h-4" />
           </button>
         </div>
@@ -100,6 +102,7 @@ type WorkshopCardProps = {
 }
 
 function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
+  const { t } = useTranslation()
   const spotsStyle = spotsColor(workshop.spots_remaining, workshop.total_spots)
   const spotsPercent = Math.round((workshop.spots_remaining / workshop.total_spots) * 100)
 
@@ -119,13 +122,13 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
             : 'bg-amber-50 text-amber-700'
         }`}>
           {workshop.is_online
-            ? <><Wifi className="w-3.5 h-3.5" />أونلاين</>
-            : <><MapPin className="w-3.5 h-3.5" />حضوري</>}
+            ? <><Wifi className="w-3.5 h-3.5" />{t('common.online')}</>
+            : <><MapPin className="w-3.5 h-3.5" />{t('common.inPerson')}</>}
         </span>
 
         <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${spotsStyle}`}>
           <Users className="w-3 h-3 inline ms-0.5" />
-          {' '}{workshop.spots_remaining} مقعد
+          {' '}{workshop.spots_remaining} {t('common.seatsAvailable')}
         </span>
       </div>
 
@@ -149,7 +152,7 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       {/* Spots progress */}
       <div className="mb-4">
         <div className="flex justify-between text-xs mb-1">
-          <span className="text-[#73777B]">المقاعد المتاحة</span>
+          <span className="text-[#73777B]">{t('courses.seats')}</span>
           <span className="font-bold text-deepBlue">{spotsPercent}%</span>
         </div>
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -164,7 +167,7 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
 
       {/* CTA */}
       <button className="mt-auto w-full bg-customOrange text-white font-bold py-2.5 rounded-xl text-sm hover:bg-customOrange/90 transition-colors duration-200">
-        سجّل مجاناً
+        {t('common.registerNow')}
       </button>
     </motion.div>
   )

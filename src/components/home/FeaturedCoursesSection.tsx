@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import apiClient from '../../api/axios'
 import HomeCourseCard from './HomeCourseCard'
@@ -8,6 +9,7 @@ import type { Course } from '../../types'
 import { extractList } from '../../utils/course'
 
 export default function FeaturedCoursesSection() {
+  const { t } = useTranslation()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -38,11 +40,10 @@ export default function FeaturedCoursesSection() {
         <div className="mb-12 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="text-right">
             <p className="text-xs font-black text-customBlue">اختصارات من البرامج المميزة</p>
-            <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl xl:text-[2.5rem]">ورش ودورات عالية التأثير</h2>
+            <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl xl:text-[2.5rem]">{t('home.featuredPrograms')}</h2>
             <span className="mt-5 block h-1 w-16 rounded-full bg-customOrange" />
             <p className="mt-5 max-w-xl text-base leading-8 text-foreground/70">
-                ابدأ من البرنامج الأنسب لمسارك، واطّلع على التفاصيل أو أكمِل التسجيل من صفحة الدورة نفسها — البيانات تُقرأ من
-                لوحة إدارتكم.
+                {t('home.featuredProgramsDesc')}
             </p>
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="shrink-0">
@@ -50,7 +51,7 @@ export default function FeaturedCoursesSection() {
               to="/courses"
               className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-6 py-3.5 text-sm font-black text-white shadow-emc-md transition hover:brightness-105"
             >
-              عرض جميع الدورات
+              {t('common.viewAll')}
               <ArrowLeft size={17} />
             </Link>
           </motion.div>

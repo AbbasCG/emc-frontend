@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, type LucideIcon } from 'lucide-react'
+import { t as contentT } from '@/data/publicPages'
 import type { PublicTheme } from '@/data/publicPages'
 import { staggerItem } from '@/utils/animations'
 
@@ -42,19 +43,19 @@ export default function TrackPremiumCard({ theme, Icon, index }: Props) {
         </div>
 
         <h3 className="line-clamp-2 min-h-[2.5rem] text-base font-black leading-snug text-deepBlue sm:text-lg">
-          {theme.title.ar}
+          {contentT(theme.title)}
         </h3>
         <p className="mt-2 flex-1 text-[13px] font-medium leading-7 text-deepBlue/70 line-clamp-3 sm:text-sm">
-          {theme.shortDescription.ar}
+          {contentT(theme.shortDescription)}
         </p>
 
         <ul className="mt-4 flex flex-wrap justify-end gap-1.5">
           {tags.map((b) => (
             <li
-              key={b.ar}
+              key={contentT(b)}
               className="rounded-full border border-deepBlue/[0.06] bg-emcBg/95 px-2.5 py-0.5 text-[10px] font-bold text-deepBlue/65 sm:text-[11px]"
             >
-              {b.ar.length > 28 ? `${b.ar.slice(0, 27)}…` : b.ar}
+              {contentT(b).length > 28 ? `${contentT(b).slice(0, 27)}…` : contentT(b)}
             </li>
           ))}
         </ul>

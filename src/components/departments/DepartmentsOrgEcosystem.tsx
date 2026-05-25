@@ -14,8 +14,9 @@ import {
   Waypoints,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
-import { departments10, type PublicDepartment } from '@/data/publicPages'
+import { departments10, type PublicDepartment, t as contentT } from '@/data/publicPages'
 
 const iconMap: Record<string, LucideIcon> = {
   Building2,
@@ -89,7 +90,7 @@ function DeptNode({
         <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-customBlue transition-colors duration-300 group-hover:bg-customBlue group-hover:text-white">
           <Icon size={24} strokeWidth={2} aria-hidden />
         </span>
-        <span className="relative mt-3 line-clamp-3 text-xs font-black leading-snug text-white sm:text-sm">{dept.title.ar}</span>
+        <span className="relative mt-3 line-clamp-3 text-xs font-black leading-snug text-white sm:text-sm">{contentT(dept.title)}</span>
         <span className="relative mt-2 text-[10px] font-bold leading-relaxed text-white/70">النواة · التوجيه · الحوكمة العليا</span>
         {(active || hovered) && (
           <motion.span
@@ -135,7 +136,7 @@ function DeptNode({
           active || hovered ? 'text-customBlue' : 'group-hover:text-customBlue',
         ].join(' ')}
       >
-        {dept.title.ar}
+        {contentT(dept.title)}
       </span>
       {active && (
         <motion.span
@@ -306,8 +307,8 @@ export default function DepartmentsOrgEcosystem() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-customOrange">الإدارة العليا</p>
-                <h3 className="mt-1 text-lg font-black">{center.title.ar}</h3>
-                <p className="mt-2 text-sm leading-7 text-white/85">{center.description.ar}</p>
+                <h3 className="mt-1 text-lg font-black">{contentT(center.title)}</h3>
+                <p className="mt-2 text-sm leading-7 text-white/85">{contentT(center.description)}</p>
               </div>
               <Building2 className="shrink-0 text-customBlue" size={32} />
             </div>
@@ -335,9 +336,9 @@ export default function DepartmentsOrgEcosystem() {
                       <Icon size={20} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-black text-deepBlue">{dept.title.ar}</span>
+                      <span className="block text-sm font-black text-deepBlue">{contentT(dept.title)}</span>
                       <span className="mt-0.5 line-clamp-2 text-xs font-medium leading-relaxed text-deepBlue/55">
-                        {dept.description.ar}
+                        {contentT(dept.description)}
                       </span>
                     </span>
                     <ChevronLeft className={['shrink-0 text-deepBlue/40 transition-transform', open ? '-rotate-90' : ''].join(' ')} size={18} />
@@ -352,9 +353,9 @@ export default function DepartmentsOrgEcosystem() {
                       >
                         <ul className="space-y-2">
                           {dept.responsibilities.map((r) => (
-                            <li key={r.ar} className="flex gap-2 text-xs font-semibold leading-relaxed text-deepBlue/80">
+                            <li key={contentT(r)} className="flex gap-2 text-xs font-semibold leading-relaxed text-deepBlue/80">
                               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-customOrange" />
-                              {r.ar}
+                              {contentT(r)}
                             </li>
                           ))}
                         </ul>
@@ -378,6 +379,7 @@ function SpotlightPanel({
   selected: PublicDepartment | null
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className="relative min-h-[300px] overflow-hidden rounded-[1.35rem] border border-deepBlue/10 bg-white/90 shadow-[0_28px_70px_-24px_rgba(15,42,67,0.22)] backdrop-blur-xl">
       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-customOrange via-customBlue to-deepBlue" />
@@ -395,29 +397,29 @@ function SpotlightPanel({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black text-customBlue">معاينة الإدارة</p>
-                <h3 className="mt-2 text-xl font-black leading-snug text-deepBlue sm:text-2xl">{selected.title.ar}</h3>
+                <h3 className="mt-2 text-xl font-black leading-snug text-deepBlue sm:text-2xl">{contentT(selected.title)}</h3>
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 className="rounded-xl px-3 py-1.5 text-xs font-black text-deepBlue/45 transition hover:bg-deepBlue/[0.05] hover:text-deepBlue"
               >
-                إغلاق
+                {t('common.close')}
               </button>
             </div>
-            <p className="mt-4 text-sm font-medium leading-8 text-deepBlue/72">{selected.description.ar}</p>
+            <p className="mt-4 text-sm font-medium leading-8 text-deepBlue/72">{contentT(selected.description)}</p>
             <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-customOrange">مسؤوليات رئيسية</p>
             <ul className="mt-3 space-y-2.5">
               {selected.responsibilities.map((r, idx) => (
                 <motion.li
-                  key={r.ar}
+                  key={contentT(r)}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   className="flex gap-3 rounded-xl border border-deepBlue/[0.07] bg-emcBg px-3 py-2.5 text-sm font-semibold leading-relaxed text-deepBlue/88 shadow-sm"
                 >
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-customBlue shadow-[0_0_8px_rgba(38,145,201,0.5)]" />
-                  {r.ar}
+                  {contentT(r)}
                 </motion.li>
               ))}
             </ul>

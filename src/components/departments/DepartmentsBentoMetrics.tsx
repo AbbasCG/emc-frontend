@@ -1,48 +1,50 @@
 import { motion } from 'framer-motion'
 import { Activity, Cpu, ShieldCheck, UsersRound } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 
-const tiles = [
-  {
-    icon: UsersRound,
-    label: 'تنسيق مؤسسي',
-    value: '١٠',
-    hint: 'إدارات متخصصة',
-    span: 'lg:col-span-2',
-    bg: 'from-customBlue/[0.12] via-white to-emcBg',
-    ring: 'ring-customBlue/20',
-  },
-  {
-    icon: Activity,
-    label: 'دورة تحسين',
-    value: 'مستمر',
-    hint: 'جودة وتغذية راجعة',
-    span: '',
-    bg: 'from-customOrange/[0.1] to-white',
-    ring: 'ring-customOrange/25',
-  },
-  {
-    icon: Cpu,
-    label: 'البنية الرقمية',
-    value: 'آمنة',
-    hint: 'تجربة منصة موحدة',
-    span: '',
-    bg: 'from-deepBlue/[0.06] to-white',
-    ring: 'ring-deepBlue/15',
-  },
-  {
-    icon: ShieldCheck,
-    label: 'الحوكمة',
-    value: 'مفعّلة',
-    hint: 'سياسات ووثائق',
-    span: 'lg:col-span-4',
-    bg: 'from-deepBlue/[0.08] via-emcBg to-customBlue/[0.08]',
-    ring: 'ring-deepBlue/12',
-  },
-]
-
 export default function DepartmentsBentoMetrics() {
+  const { t } = useTranslation()
+
+  const tiles = [
+    {
+      icon: UsersRound,
+      label: t('departments.metricsInstitutional'),
+      value: '١٠',
+      hint: 'إدارات متخصصة',
+      span: 'lg:col-span-2',
+      bg: 'from-customBlue/[0.12] via-white to-emcBg',
+      ring: 'ring-customBlue/20',
+    },
+    {
+      icon: Activity,
+      label: t('departments.metricsImprovement'),
+      value: 'مستمر',
+      hint: 'جودة وتغذية راجعة',
+      span: '',
+      bg: 'from-customOrange/[0.1] to-white',
+      ring: 'ring-customOrange/25',
+    },
+    {
+      icon: Cpu,
+      label: t('departments.metricsDigital'),
+      value: 'آمنة',
+      hint: 'تجربة منصة موحدة',
+      span: '',
+      bg: 'from-deepBlue/[0.06] to-white',
+      ring: 'ring-deepBlue/15',
+    },
+    {
+      icon: ShieldCheck,
+      label: t('departments.metricsGovernance'),
+      value: 'مفعّلة',
+      hint: 'سياسات ووثائق',
+      span: 'lg:col-span-4',
+      bg: 'from-deepBlue/[0.08] via-emcBg to-customBlue/[0.08]',
+      ring: 'ring-deepBlue/12',
+    },
+  ]
   return (
     <section className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[120%] -translate-x-1/2 bg-gradient-to-b from-customBlue/[0.06] to-transparent blur-3xl" />
@@ -50,7 +52,7 @@ export default function DepartmentsBentoMetrics() {
         <SectionHeader
           align="right"
           className="!mr-0 !max-w-3xl !text-right"
-          eyebrow="لوحة مؤشرات"
+          eyebrow={t('departments.metricsInstitutional')}
           title="مؤشرات تشغيلية — أسلوب منصات التعلم الراقية"
           description="بنية bento تعرض أهم محاور التشغيل دون أرقام وهمية: تركيز على الجودة، الأمان، والتنسيق بين الفرق."
         />

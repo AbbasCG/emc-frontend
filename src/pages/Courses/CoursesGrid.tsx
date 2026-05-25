@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import CourseCard from './CourseCard'
 import type { CourseItem } from '@/services/coursesApi'
 
@@ -44,6 +45,7 @@ function CourseSkeleton() {
 }
 
 function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
+  const { t } = useTranslation()
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
       <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-5">
@@ -51,17 +53,16 @@ function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
       </div>
       {apiEmpty ? (
         <>
-          <h3 className="text-xl font-bold text-deepBlue mb-2">لا توجد برامج منشورة حالياً</h3>
+          <h3 className="text-xl font-bold text-deepBlue mb-2">{t('courses.noPrograms')}</h3>
           <p className="text-[#73777B] text-sm max-w-md leading-7">
-            لم يتم العثور على دورات أو ورش في الكتالوج الحالي. يمكنك العودة لاحقاً، أو
-            التواصل معنا لطلب برنامج مخصص أو ورشة للفريق.
+            {t('courses.noResultsDesc')}
           </p>
         </>
       ) : (
         <>
-          <h3 className="text-xl font-bold text-deepBlue mb-2">لا توجد نتائج مطابقة للفلتر</h3>
+          <h3 className="text-xl font-bold text-deepBlue mb-2">{t('courses.noResults')}</h3>
           <p className="text-[#73777B] text-sm max-w-xs">
-            جرّب تعديل كلمة البحث أو اختر فئة أو فلتر مختلف.
+            {t('courses.noResultsDesc')}
           </p>
         </>
       )}
@@ -70,6 +71,7 @@ function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
 }
 
 export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }: CoursesGridProps) {
+  const { t } = useTranslation()
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
 
   const visibleCourses = courses.slice(0, visibleCount)
@@ -85,10 +87,10 @@ export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }
         {/* Section label */}
         <div className="mb-8">
           <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
-            جميع الدورات
+            {t('courses.breadcrumbCourses')}
           </span>
           <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
-            الدورات المتاحة
+            {t('courses.breadcrumbCourses')}
           </h2>
           <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
         </div>
@@ -136,17 +138,17 @@ export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }
                   onClick={() => setVisibleCount(c => c + INITIAL_VISIBLE)}
                   className="bg-deepBlue text-white font-bold px-10 py-3.5 rounded-xl hover:bg-deepBlue/90 transition-colors duration-200 text-sm"
                 >
-                  تحميل المزيد
+                  {t('courses.loadMore')}
                 </button>
                 <p className="text-xs text-[#73777B]">
-                  عرض {visibleCourses.length} من {courses.length} دورة
+                  {t('courses.showing', { count: visibleCourses.length, total: courses.length })}
                 </p>
               </motion.div>
             )}
 
             {!hasMore && courses.length > INITIAL_VISIBLE && (
               <p className="text-center text-xs text-[#73777B] mt-10">
-                تم عرض جميع الدورات ({courses.length})
+                {t('courses.allLoaded', { count: courses.length })}
               </p>
             )}
           </>

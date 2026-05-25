@@ -6,14 +6,21 @@ import { AlertCircle, LockKeyhole, LogIn, Mail } from 'lucide-react'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { TwoFactorRequiredError } from '@/api/authApi'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 import { getPostLoginRedirect } from '@/utils/dashboardAccess'
 
 export default function Login() {
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   // Redirect to the page the user originally tried to visit, or dashboard
   const [searchParams, setSearchParams] = useSearchParams()
@@ -53,6 +60,10 @@ export default function Login() {
       const payload = await login(email, password)
       navigate(getPostLoginRedirect(payload.user, from), { replace: true })
     } catch (err: unknown) {
+      if (err instanceof TwoFactorRequiredError) {
+        navigate(`/auth/2fa/verify?user_id=${err.userId}`, { replace: true })
+        return
+      }
       setError(getApiErrorMessage(err))
     } finally {
       setIsLoading(false)

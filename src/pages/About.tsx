@@ -22,96 +22,99 @@ import {
   PublicPageHero,
   TimelineSteps,
 } from '@/components/public'
-import { aboutPlatformLead } from '@/data/publicPages'
+import { useTranslation } from 'react-i18next'
+import { aboutPlatformLead, t as contentT } from '@/data/publicPages'
 import { fadeUp } from '@/utils/animations'
 
-const differentiators = [
-  {
-    icon: Layers,
-    title: 'منظومة وليس كتالوج',
-    description: 'نربط بين اللغة، المسار، المهارات، والتمكين الرقمي في تجربة متسلسلة قابلة للقياس.',
-    iconClassName: 'bg-sky-50 text-customBlue',
-  },
-  {
-    icon: Users,
-    title: 'جمهور واسع باحتياجات حقيقية',
-    description: 'طلاب، مهاجرون، مهنيون، وباحثون عن تطوير — نصمم لهم مسارات عملية لا شعارات فارغة.',
-    iconClassName: 'bg-orange-50 text-customOrange',
-  },
-  {
-    icon: Brain,
-    title: 'ذكاء اصطناعي بمسؤولية',
-    description: 'نستخدم الأدوات الرقمية لتسريع التعلم مع ضوابط وضوح وأخلاقيات استخدام.',
-    iconClassName: 'bg-sky-50 text-customBlue',
-  },
-  {
-    icon: Target,
-    title: 'توجيه عملي',
-    description: 'ورش، استشارات، ومتابعة تساعدك على ترجمة التعلم إلى قرارات وخطوات.',
-    iconClassName: 'bg-orange-50 text-customOrange',
-  },
-]
-
-const roadmapMilestones = [
-  {
-    title: 'توحيد التجربة الرقمية',
-    description: 'ربط الكتالوج، التسجيل، والمتابعة في مسار واحد يفهمه المتعلم ويُسهّل على الفريق التشغيلي العمل.',
-  },
-  {
-    title: 'توسيع الشراكات المؤسسية',
-    description: 'اتفاقيات واضحة مع جامعات ومؤسسات ومدربين — بمعايير جودة وحوكمة موثّقة.',
-  },
-  {
-    title: 'تقارير أثر دورية',
-    description: 'نشر ملخصات أثر واقعية للمجتمع والشركاء، مع احترام خصوصية المشاركين.',
-  },
-  {
-    title: 'تطوير المسارات بين المجالات الاثنا عشر',
-    description: 'ربط أقوى بين المجالات والمسارات بحيث يتحرك المتعلم بثقة عبر خطوات متوقعة.',
-  },
-]
-
-const journeySteps = [
-  {
-    title: 'استكشاف',
-    description: 'تحديد احتياجك عبر البرامج أو التواصل الموجز.',
-    icon: Compass,
-  },
-  {
-    title: 'اختيار مسار',
-    description: 'دورة، ورشة، أو مسار تعلم يتوافق مع مرحلتك.',
-    icon: Layers,
-  },
-  {
-    title: 'تعلم وتطبيق',
-    description: 'جلسات عملية وموارد تدعم التطبيق لا الحفظ فقط.',
-    icon: Brain,
-  },
-  {
-    title: 'متابعة وتطوير',
-    description: 'تغذية راجعة وخطوات تالية ضمن منظومة EMC.',
-    icon: Sparkles,
-  },
-]
-
 export default function About() {
+  const { t } = useTranslation()
+
+  const differentiators = [
+    {
+      icon: Layers,
+      title: t('about.differentiator1Title'),
+      description: t('about.differentiator1Desc'),
+      iconClassName: 'bg-sky-50 text-customBlue',
+    },
+    {
+      icon: Users,
+      title: t('about.differentiator2Title'),
+      description: t('about.differentiator2Desc'),
+      iconClassName: 'bg-orange-50 text-customOrange',
+    },
+    {
+      icon: Brain,
+      title: t('about.differentiator3Title'),
+      description: t('about.differentiator3Desc'),
+      iconClassName: 'bg-sky-50 text-customBlue',
+    },
+    {
+      icon: Target,
+      title: t('about.differentiator4Title'),
+      description: t('about.differentiator4Desc'),
+      iconClassName: 'bg-orange-50 text-customOrange',
+    },
+  ]
+
+  const roadmapMilestones = [
+    {
+      title: t('about.roadmapMilestone1'),
+      description: t('about.roadmapMilestone1Desc'),
+    },
+    {
+      title: t('about.roadmapMilestone2'),
+      description: t('about.roadmapMilestone2Desc'),
+    },
+    {
+      title: t('about.roadmapMilestone3'),
+      description: t('about.roadmapMilestone3Desc'),
+    },
+    {
+      title: t('about.roadmapMilestone4'),
+      description: t('about.roadmapMilestone4Desc'),
+    },
+  ]
+
+  const journeySteps = [
+    {
+      title: t('about.journeyStep1'),
+      description: t('about.journeyStep1Desc'),
+      icon: Compass,
+    },
+    {
+      title: t('about.journeyStep2'),
+      description: t('about.journeyStep2Desc'),
+      icon: Layers,
+    },
+    {
+      title: t('about.journeyStep3'),
+      description: t('about.journeyStep3Desc'),
+      icon: Brain,
+    },
+    {
+      title: t('about.journeyStep4'),
+      description: t('about.journeyStep4Desc'),
+      icon: Sparkles,
+    },
+  ]
+
   return (
     <main className="bg-[#f4f7fb] pt-20">
       <PublicPageHero
         variant="split"
-        badge="عن EMC"
-        title="عن المركز"
-        subtitle="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة، المهارة، والفرص — بلغة عربية احترافية ومعايير عالمية."
+        badge={t('about.title')}
+        title={t('about.title')}
+        subtitle={t('about.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'عن EMC' },
+          { label: t('about.breadcrumbHome'), href: '/' },
+          { label: t('about.title') },
         ]}
-        primaryAction={{ label: 'استكشف البرامج', href: '/courses' }}
-        secondaryAction={{ label: 'تواصل معنا', href: '/contact' }}
+        primaryAction={{ label: t('about.ctaPrograms'), href: '/courses' }}
+        secondaryAction={{ label: t('about.ctaContact'), href: '/contact' }}
         stats={[
-          { value: '12', label: 'مجال تعلم ضمن منظومة EMC' },
-          { value: 'متنوعة', label: 'برامج وورش وفق الكتالوج' },
-          { value: 'شفافية', label: 'أثر وبيانات دون مبالغة' },
+          { value: '12', label: t('about.statsTracks') },
+          { value: t('about.statsDiverse'), label: t('about.statsDiverse') },
+          { value: t('about.statsTransparent'), label: t('about.statsTransparent') },
         ]}
       />
 
@@ -129,14 +132,13 @@ export default function About() {
             >
               <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-customBlue shadow-sm ring-1 ring-slate-200/80">
                 <Sparkles size={17} />
-                من نحن
+                {t('about.whoWeAre')}
               </span>
-              <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">منصة تمكين عبر التعليم</h2>
+              <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">{t('about.whoWeAre')}</h2>
               <span className="mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange to-customOrange/40" />
-              <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{aboutPlatformLead.ar}</p>
+              <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{contentT(aboutPlatformLead)}</p>
               <p className="mt-5 text-base font-medium leading-8 text-slate-600">
-                نعمل على دعم الأفراد في مراحل الانتقال — دراسة، عمل، هجرة، أو إعادة ترتيب أولويات
-                — عبر برامج ومسارات تُحدَّث باستمرار لتعكس احتياج السوق والمجتمع.
+                {t('about.whoWeAreDesc')}
               </p>
             </motion.div>
 
@@ -148,7 +150,7 @@ export default function About() {
               transition={{ duration: 0.5 }}
             >
               <div className="rounded-2xl bg-gradient-to-br from-[#f4f7fb] to-white p-6 sm:p-8">
-                <p className="text-right text-sm font-black text-customBlue">لمحة سريعة</p>
+                <p className="text-right text-sm font-black text-customBlue">{t('about.whoWeAre')}</p>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   {[
                     { icon: GraduationCap, label: 'مسارات أكاديمية ومهنية', sub: 'تخطيط وتوجيه' },
@@ -179,8 +181,8 @@ export default function About() {
       <section className="border-y border-slate-200/60 bg-white py-16 sm:py-20">
         <PageShell>
           <ProcessSteps
-            title="رحلتك مع EMC"
-            subtitle="من أول خطوة إلى تطوير مستمر — بإيقاع واضح دون تعقيد."
+            title={t('about.roadmap')}
+            subtitle={t('about.roadmapSubtitle')}
             steps={journeySteps}
           />
         </PageShell>
@@ -190,9 +192,9 @@ export default function About() {
       <section id="vision-mission" className="scroll-mt-28 py-16 sm:py-20">
         <PageShell>
           <SectionHeader
-            eyebrow="التوجه المؤسسي"
-            title="الرؤية والرسالة"
-            subtitle="رؤية واضحة ورسالة عملية: التمكين عبر تعليم جيد، وإرشاد صادق، وتجربة محترمة للمتعلم."
+            eyebrow={t('about.vision')}
+            title={`${t('about.vision')} ${t('about.mission')}`}
+            subtitle={t('about.visionMissionSubtitle')}
           />
           <div className="grid gap-6 md:grid-cols-2">
             <motion.div
@@ -204,10 +206,9 @@ export default function About() {
               className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-sky-100/50 blur-2xl" />
-              <h3 className="relative text-xl font-black text-deepBlue">الرؤية</h3>
+              <h3 className="relative text-xl font-black text-deepBlue">{t('about.vision')}</h3>
               <p className="relative mt-4 leading-9 text-slate-600">
-                أن نكون مرجعاً موثوقاً في بناء المسارات التعليمية والمهنية للأفراد والمؤسسات، مع
-                الحفاظ على جودة المحتوى وأثره الإنساني.
+                {t('about.visionText')}
               </p>
             </motion.div>
             <motion.div
@@ -219,10 +220,9 @@ export default function About() {
               className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-orange-100/40 blur-2xl" />
-              <h3 className="relative text-xl font-black text-deepBlue">الرسالة</h3>
+              <h3 className="relative text-xl font-black text-deepBlue">{t('about.mission')}</h3>
               <p className="relative mt-4 leading-9 text-slate-600">
-                تقديم برامج تدريبية واستشارية ومسارات تعلم تساعد المتعلم على اتخاذ قرارات أوضح،
-                وتطوير مهاراته، والاندماج بثقة في بيئات متعددة.
+                {t('about.missionText')}
               </p>
             </motion.div>
           </div>
@@ -235,9 +235,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="نحو المستقبل"
-            title="خارطة طريق EMC"
-            description="مراحل تطوير المنظومة بصدق مهني — نحدّث الأولويات مع تعلّمنا من المجتمع والشركاء."
+            eyebrow={t('about.roadmap')}
+            title={t('about.roadmap')}
+            description={t('about.roadmapSubtitle')}
           />
           <TimelineSteps steps={roadmapMilestones} />
         </PageShell>
@@ -249,9 +249,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="من الإدارة"
-            title="كلمة للمجتمع التعليمي"
-            description="التزام مؤسسي بالجودة والشفافية — دون أسماء وهمية؛ التحديثات البشرية الرسمية تُعلن عبر القنوات المعتمدة."
+            eyebrow={t('about.leadership')}
+            title={t('about.leadership')}
+            description={t('about.leadershipDescription')}
           />
           <motion.div
             variants={fadeUp}
@@ -264,12 +264,10 @@ export default function About() {
             <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-customOrange/15 blur-3xl" />
             <Quote className="relative text-customOrange" size={36} aria-hidden />
             <blockquote className="relative mt-6 text-lg font-medium leading-10 text-slate-100 sm:text-xl sm:leading-[2.15rem]">
-              نؤمن أن التعليم الجيد يبدأ من احترام المتعلم: وضوح في التوقعات، محتوى يُحدَّث، وفريق
-              يتحمّل المسؤولية أمام المجتمع. هدفنا ليس «الأكبر بأسرع وقت» — بل بناء مرجعية عربية
-              مهنية تدوم.
+              {t('about.leadershipQuote')}
             </blockquote>
             <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-slate-300">
-              الإدارة العليا — Educational Master Central (EMC)
+              {t('about.leadershipFooter')}
             </footer>
           </motion.div>
         </PageShell>
@@ -281,9 +279,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="التميز"
-            title="ما الذي يميّز EMC؟"
-            subtitle="نميز أنفسنا بالربط بين المحتوى، التوجيه، والشراكات — لا بالوعود السريعة أو الوصف الزائف."
+            eyebrow={t('about.whatMakesUsDifferent')}
+            title={t('about.whatMakesUsDifferent')}
+            subtitle={t('about.whatMakesUsDifferentDesc')}
           />
           <FeatureGrid>
             {differentiators.map((item) => (
@@ -307,9 +305,9 @@ export default function About() {
             <SectionHeader
               align="right"
               className="!mb-0 !mr-0 !max-w-none !text-right"
-              eyebrow="المستقبل الرقمي"
-              title="التعليم، الذكاء الاصطناعي، والتحول الرقمي"
-              subtitle="نؤمن أن التحول الرقمي فرصة للمتعلم عندما يُقدَّم بلغة مفهومة وبأدوات آمنة."
+              eyebrow={t('about.statsDiverse')}
+              title={t('about.aiSectionTitle')}
+              subtitle={t('about.aiSectionSubtitle')}
             />
             <motion.div
               variants={fadeUp}
@@ -321,10 +319,10 @@ export default function About() {
             >
               <ul className="grid gap-3 text-slate-700 sm:grid-cols-2">
                 {[
-                  'مقدمات عملية في الذكاء الاصطناعي واستخداماته اليومية والمهنية.',
-                  'مهارات رقمية تدعم الإنتاجية والتعلم مدى الحياة.',
-                  'مبادئ خصوصية وأمان ومسؤولية عند استخدام الأدوات.',
-                  'ربط التقنية بأهدافك الأكاديمية أو المهنية لا كغاية بحد ذاتها.',
+                  t('about.aiBullet1'),
+                  t('about.aiBullet2'),
+                  t('about.aiBullet3'),
+                  t('about.aiBullet4'),
                 ].map((line) => (
                   <li
                     key={line}
@@ -344,34 +342,34 @@ export default function About() {
       <section className="py-16 sm:py-20">
         <PageShell>
           <SectionHeader
-            title="من نخدم؟"
-            subtitle="مجتمع متنوع يتقاطع حول هدف واحد: بناء مسار أوضح عبر التعلم الجيد."
+            title={t('about.whomWeServe')}
+            subtitle={t('about.audienceSectionSubtitle')}
           />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                title: 'الطلاب والخريجون',
-                body: 'تخطيط أكاديمي، لغات، واستعداد للمرحلة التالية.',
+                title: t('about.audienceStudents'),
+                body: t('about.audienceStudentsBody'),
               },
               {
-                title: 'المهاجرون والوافدون الجدد',
-                body: 'دعم لغوي ومهني ومجتمعي يراعي واقع الانتقال.',
+                title: t('about.audienceImmigrants'),
+                body: t('about.audienceImmigrantsBody'),
               },
               {
-                title: 'المهنيون والباحثون عن تطوير',
-                body: 'مهارات عملية، ريادة، وتمكين رقمي بمسؤولية.',
+                title: t('about.audienceProfessionals'),
+                body: t('about.audienceProfessionalsBody'),
               },
               {
-                title: 'الأسر والناشئة',
-                body: 'برامج مناسبة للأعمار بإشراف وتصميم آمن.',
+                title: t('about.audienceFamiliesTitle'),
+                body: t('about.audienceFamiliesBody'),
               },
               {
-                title: 'المؤسسات والفرق',
-                body: 'ورش وشراكات تدريبية بأهداف محددة.',
+                title: t('about.audienceInstitutions'),
+                body: t('about.audienceInstitutionsBody'),
               },
               {
-                title: 'المدربون والخبراء',
-                body: 'شراكات محتوى ضمن معايير الجودة والحوكمة.',
+                title: t('about.audienceTrainers'),
+                body: t('about.audienceTrainersBody'),
               },
             ].map((card, i) => (
               <motion.div
@@ -404,9 +402,9 @@ export default function About() {
             transition={{ duration: 0.5 }}
           >
             <div>
-              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">جاهز للخطوة التالية؟</h2>
+              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">{t('about.readyForNext')}</h2>
               <p className="mt-3 max-w-xl font-medium leading-9 text-slate-600">
-                اختر البرنامج المناسب، أو تواصل معنا لاستشارة موجزة حول مسارك.
+                {t('about.midCtaText')}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -415,7 +413,7 @@ export default function About() {
                   to="/courses"
                   className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg"
                 >
-                  البرامج والدورات
+                  {t('about.ctaPrograms')}
                   <ArrowLeft size={18} />
                 </Link>
               </motion.div>
@@ -424,7 +422,7 @@ export default function About() {
                   to="/contact"
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-7 py-4 text-sm font-extrabold text-deepBlue transition hover:border-customBlue"
                 >
-                  تواصل معنا
+                  {t('about.ctaContact')}
                 </Link>
               </motion.div>
             </div>
@@ -433,11 +431,11 @@ export default function About() {
       </section>
 
       <CTASection
-        title="انضم إلى مجتمع EMC"
-        description="سواء كنت متعلماً، شريكاً، أو متطوعاً — هناك مسار يناسبك ضمن منظومتنا."
-        primaryLabel="استكشف المجالات"
+        title={t('about.ctaPrograms')}
+        description={t('about.ctaSectionDescription')}
+        primaryLabel={t('about.ctaPrograms')}
         primaryHref="/tracks"
-        secondaryLabel="شراكة"
+        secondaryLabel={t('about.ctaContact')}
         secondaryHref="/partnerships"
       />
     </main>

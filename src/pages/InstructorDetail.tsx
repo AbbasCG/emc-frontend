@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fetchInstructor, type InstructorPublic } from '@/api/instructorsApi'
 import { PublicPageHero } from '@/components/public'
 
 export default function InstructorDetail() {
+  const { t } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const [ins, setIns] = useState<InstructorPublic | null>(null)
   const [loading, setLoading] = useState(true)
@@ -64,8 +66,8 @@ export default function InstructorDetail() {
         title={ins.name}
         subtitle={ins.title ?? 'مدرب ضمن منظومة EMC'}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'المدربون', href: '/instructors' },
+          { label: t('courses.breadcrumbHome'), href: '/' },
+          { label: t('nav.programsItems.instructors.label'), href: '/instructors' },
           { label: ins.name },
         ]}
       />

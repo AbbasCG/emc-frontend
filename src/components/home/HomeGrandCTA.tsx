@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 
 export default function HomeGrandCTA() {
+  const { t } = useTranslation()
   return (
     <section className="relative isolate overflow-hidden bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-28" dir="rtl">
       <div className="relative mx-auto max-w-[1540px] overflow-hidden rounded-[2rem] border border-deepBlue/[0.08] bg-deepBlue px-6 py-14 text-white shadow-emc-xl sm:px-12 sm:py-16 lg:px-16 lg:py-20">
@@ -23,7 +25,7 @@ export default function HomeGrandCTA() {
               className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-black tracking-wide backdrop-blur-md"
             >
               <Sparkles size={14} className="text-customOrange" aria-hidden />
-              الخطوة التالية
+              {t('home.nextStep')}
             </motion.span>
             <motion.h2
               initial={{ opacity: 0, y: 16 }}
@@ -41,7 +43,7 @@ export default function HomeGrandCTA() {
               transition={{ delay: 0.1, duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
               className="mt-5 max-w-xl text-base font-semibold leading-8 text-white/75"
             >
-              نربط البرامج بالأشخاص والبيانات: دورات، ورش، شراكات، وتكامل تقني — دون المساس ببنيتكم الحالية.
+              {t('home.nextStepDesc')}
             </motion.p>
           </div>
 
@@ -61,7 +63,7 @@ export default function HomeGrandCTA() {
                 to="/contact"
                 className="flex w-full items-center justify-center rounded-2xl border border-white/25 bg-white/10 px-8 py-4 text-center text-base font-extrabold text-white backdrop-blur-md transition hover:bg-white/16"
               >
-                حدّد موعداً مع الفريق
+                {t('home.scheduleMeeting')}
               </Link>
             </motion.div>
             <p className="text-xs font-semibold leading-6 text-white/55">

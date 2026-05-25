@@ -15,9 +15,10 @@ import {
   Rocket,
   Wallet,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '@/components/PageHeader'
 import TracksPageContinued from '@/components/tracks/TracksPageContinued'
-import { themes12 } from '@/data/publicPages'
+import { themes12, t as contentT } from '@/data/publicPages'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
 const themeIcons = {
@@ -52,14 +53,15 @@ function accentForIndex(i: number) {
 }
 
 export default function Tracks() {
+  const { t } = useTranslation()
   return (
     <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
       <PageHeader
-        title="المحاور الاثنا عشر"
-        subtitle="محاور EMC الرسمية — مصفوفة واحدة تجمع التعليم الأكاديمي والعالمي والرقمي والمهني ضمن تجربة عربية فاخرة."
+        title={t('tracks.title')}
+        subtitle={t('tracks.heroSubtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'المحاور' },
+          { label: t('courses.breadcrumbHome'), href: '/' },
+          { label: t('tracks.title') },
         ]}
       />
 
@@ -77,8 +79,7 @@ export default function Tracks() {
             transition={{ duration: 0.45 }}
             className="mb-12 max-w-3xl text-right text-[1.05rem] font-medium leading-8 text-foreground/73"
           >
-            اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون مغادرة أسلوب EMC
-            المؤسسي.
+            {t('tracks.intro')}
           </motion.p>
 
           <motion.div
@@ -124,19 +125,19 @@ export default function Tracks() {
                     </div>
 
                     <h3 className="min-h-[2.85rem] text-lg font-black leading-snug tracking-tight text-deepBlue sm:text-xl">
-                      {theme.title.ar}
+                      {contentT(theme.title)}
                     </h3>
                     <p className="mt-3 flex-1 text-sm font-medium leading-7 text-foreground/72 line-clamp-4">
-                      {theme.shortDescription.ar}
+                      {contentT(theme.shortDescription)}
                     </p>
 
                     <ul className="mt-6 flex flex-wrap justify-end gap-2">
                       {chipBullets.map((b) => (
                         <li
-                          key={b.ar}
+                          key={contentT(b)}
                           className="rounded-full border border-deepBlue/[0.06] bg-emcBg/90 px-3 py-1 text-[11px] font-bold text-foreground/70"
                         >
-                          {b.ar.length > 32 ? `${b.ar.slice(0, 31)}…` : b.ar}
+                          {contentT(b).length > 32 ? `${contentT(b).slice(0, 31)}…` : contentT(b)}
                         </li>
                       ))}
                     </ul>
@@ -146,7 +147,7 @@ export default function Tracks() {
                         to="/courses"
                         className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1c6f98] py-3.5 text-sm font-black text-white shadow-[0_12px_32px_-12px_rgba(38,145,194,0.55)] ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
                       >
-                        استكشف الدورات
+                        {t('tracks.exploreCourses')}
                         <ArrowLeft size={17} aria-hidden />
                       </Link>
                     </motion.div>

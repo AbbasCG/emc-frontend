@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, type ChangeEvent } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PLATFORM_STATS } from '@/services/coursesApi'
 
 type CoursesHeroProps = {
@@ -10,12 +11,12 @@ type CoursesHeroProps = {
 }
 
 const categories = [
-  { value: 'all',          label: 'الكل' },
-  { value: 'AI & Tech',   label: 'ذكاء اصطناعي وتقنية' },
-  { value: 'Languages',   label: 'لغات' },
-  { value: 'Business',    label: 'أعمال' },
-  { value: 'Academic',    label: 'أكاديمي' },
-  { value: 'Personal Dev',label: 'تطوير شخصي' },
+  { value: 'all',          labelKey: 'courses.categoryAll' },
+  { value: 'AI & Tech',   labelKey: 'courses.categoryAiTech' },
+  { value: 'Languages',   labelKey: 'courses.categoryLanguages' },
+  { value: 'Business',    labelKey: 'courses.categoryBusiness' },
+  { value: 'Academic',    labelKey: 'courses.categoryAcademic' },
+  { value: 'Personal Dev',labelKey: 'courses.categoryPersonalDev' },
 ]
 
 const statsData = [
@@ -61,6 +62,7 @@ function StatCounter({ value, label, suffix, delay }: { value: number; label: st
 }
 
 export default function CoursesHero({ onSearch, activeCategory, onCategoryChange }: CoursesHeroProps) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-40px' })
@@ -114,7 +116,7 @@ export default function CoursesHero({ onSearch, activeCategory, onCategoryChange
 
         {/* Headline */}
         <motion.h1 {...fadeUp(0.1)} className="text-4xl md:text-6xl font-black text-white text-center leading-tight mb-4">
-          استكشف برامجنا
+          {t('courses.heroTitle')}
         </motion.h1>
         <motion.p {...fadeUp(0.18)} className="text-lg md:text-xl text-white/65 text-center mb-10 leading-relaxed">
           ورش عمل · دورات · مسارات — مصممة لتأخذك من الصفر إلى الشهادة الاحترافية
@@ -127,7 +129,7 @@ export default function CoursesHero({ onSearch, activeCategory, onCategoryChange
             type="search"
             value={query}
             onChange={handleSearch}
-            placeholder="ابحث عن دورة، مسار، أو مهارة..."
+            placeholder={t('courses.searchPlaceholder')}
             className="w-full h-14 bg-white/95 backdrop-blur-sm text-deepBlue pr-14 pl-5 rounded-xl border-2 border-transparent focus:border-customBlue outline-none text-base font-medium shadow-xl placeholder-[#73777B]/70 transition-all duration-200"
           />
         </motion.div>
@@ -144,7 +146,7 @@ export default function CoursesHero({ onSearch, activeCategory, onCategoryChange
                   : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
               }`}
             >
-              {cat.label}
+              {t(cat.labelKey)}
             </button>
           ))}
         </motion.div>
