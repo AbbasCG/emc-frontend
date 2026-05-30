@@ -1,11 +1,9 @@
 import type { Course, Enrollment } from '@/types'
 import type { StudentListedCourse, StudentRegistrationRow } from '@/api/studentApi'
+import { normalizeRegistrationStatus } from './statusLabels'
 
 export function mapBackendRegStatus(raw?: string | null): Enrollment['status'] {
-  const s = String(raw ?? '').toLowerCase()
-  if (s.includes('complete') || s.includes('finish')) return 'completed'
-  if (s.includes('pending') || s.includes('wait') || s.includes('hold')) return 'pending'
-  return 'active'
+  return normalizeRegistrationStatus(raw)
 }
 
 /** Shared course scaffold for LMS merge / envelope parsing. */

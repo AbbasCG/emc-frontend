@@ -19,8 +19,13 @@ function clearAuthStorage(): void {
   } catch { /* ignore */ }
 }
 
+const apiBaseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL
+if (!apiBaseUrl && !import.meta.env.DEV) {
+  throw new Error('[EMC] VITE_API_URL is not set. Add it to your .env file.')
+}
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL,
+  baseURL: apiBaseUrl,
   headers: {
     Accept: 'application/json',
   },

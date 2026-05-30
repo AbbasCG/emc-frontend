@@ -4,7 +4,7 @@ import { fetchKnowledgeArticles, fetchKnowledgeCategories } from '@/api/knowledg
 import ArticleCard from '@/components/platform/ArticleCard'
 import KnowledgeSidebar from '@/components/platform/KnowledgeSidebar'
 import EmptyState from '@/components/dashboard/EmptyState'
-import { KNOWLEDGE_CATEGORY_LABELS } from '@/data/platformSeed'
+import { KNOWLEDGE_CATEGORY_LABELS } from '@/utils/statusLabels'
 import type { KnowledgeArticle, KnowledgeCategory } from '@/types/platform'
 
 export default function KnowledgeHubPage() {

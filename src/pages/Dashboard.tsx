@@ -38,7 +38,6 @@ import { useAuth } from '../contexts/AuthContext'
 import type {
   Course,
   DashboardStats,
-  Notification as EmcNotification,
   StudentDashboard,
   UpcomingSession,
 } from '../types'
@@ -126,15 +125,7 @@ export default function Dashboard() {
         setDashSourceError(null)
       } else {
         setData(normalizeStudentDashboardPayload(null))
-        const err = dashResult.reason
-        const msg =
-          axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
-            ? (() => {
-                const m = (err.response.data as { message?: unknown }).message
-                return typeof m === 'string' && m.trim() ? m : null
-              })()
-            : null
-        setDashSourceError(msg ?? 'لم يتم استرجاع موجز لوحة الموحّد — تُشتق الأرقام من مصادر مرئية حيث تتوفر فقط.')
+        setDashSourceError('تعذّر تحميل لوحة التحكم.')
       }
 
       if (lmsResult.status === 'fulfilled') {
@@ -149,19 +140,7 @@ export default function Dashboard() {
         }
       } else {
         setLmsDash(null)
-        const err = lmsResult.reason
-        const msg =
-          axios.isAxiosError(err) ?
-            typeof err.response?.data === 'object' &&
-            err.response?.data &&
-            'message' in err.response.data &&
-            typeof (err.response.data as { message: unknown }).message === 'string' ?
-              (err.response.data as { message: string }).message
-            : err.response?.status === 404 ?
-              'لا توجد بيانات لوحة الطالب.'
-            : `تعذّر الاتصال (${err.response?.status ?? '—'})`
-          : 'تعذّر تحميل لوحة التعلّم.'
-        setLmsError(msg)
+        setLmsError('تعذّر تحميل بيانات التعلّم.')
       }
 
       setIsLoading(false)
@@ -210,20 +189,9 @@ export default function Dashboard() {
             },
           }))
         })
-        .catch((err: unknown) => {
+        .catch(() => {
           setLmsDash(null)
-          const msg =
-            axios.isAxiosError(err) ?
-              typeof err.response?.data === 'object' &&
-              err.response?.data &&
-              'message' in err.response.data &&
-              typeof (err.response.data as { message: unknown }).message === 'string' ?
-                (err.response.data as { message: string }).message
-              : err.response?.status === 404 ?
-                'لا توجد بيانات لوحة الطالب.'
-              : `تعذّر الاتصال (${err.response?.status ?? '—'})`
-            : 'تعذّر تحميل لوحة التعلّم.'
-          setLmsError(msg)
+          setLmsError('تعذّر تحميل بيانات التعلّم.')
         })
 
       void (async () => {
@@ -234,14 +202,7 @@ export default function Dashboard() {
         } catch (err: unknown) {
           if (axios.isCancel(err)) return
           setData(normalizeStudentDashboardPayload(null))
-          const msg =
-            axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
-              ? (() => {
-                  const m = (err.response.data as { message?: unknown }).message
-                  return typeof m === 'string' && m.trim() ? m : null
-                })()
-              : null
-          setDashSourceError(msg ?? 'لم يتم استرجاع موجز لوحة الموحّد — تُشتق الأرقام من مصادر مرئية حيث تتوفر فقط.')
+          setDashSourceError('تعذّر تحميل لوحة التحكم.')
         }
       })()
     }
@@ -257,16 +218,12 @@ export default function Dashboard() {
   const { stats, enrollments, upcoming_sessions: legacySessions } = base
   const enrollmentsSafe = Array.isArray(enrollments) ? enrollments : []
   const enrollmentsMerged = mergeStudentEnrollments(enrollmentsSafe, studentRegsApi, studentCoursesApi)
-  const legacyNotificationsSafe = Array.isArray(base.notifications) ? base.notifications : []
 
   const upcomingLmsRaw = Array.isArray(lmsDash?.upcoming_sessions) ? [...(lmsDash?.upcoming_sessions ?? [])] : []
   const sessions =
     upcomingLmsRaw.length > 0 ? upcomingLmsRaw.map(mapLmsSessionToUpcoming) : [...legacySessions]
 
-  const notifications =
-    Array.isArray(lmsDash?.notifications) && lmsDash?.notifications ?
-      [...lmsDash.notifications]
-    : [...legacyNotificationsSafe]
+  const dashboardNotifications = Array.isArray(lmsDash?.notifications) ? lmsDash.notifications : []
 
   const currentLmsCourses = Array.isArray(lmsDash?.current_courses) ? [...lmsDash!.current_courses] : []
 
@@ -280,9 +237,7 @@ export default function Dashboard() {
   const pendingDueCount =
     pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
 
-  const unreadCount = [...notifications].filter((raw) => {
-    if (!raw || typeof raw !== 'object') return false
-    const n = raw as { is_read?: boolean; read_at?: string | null }
+  const unreadCount = dashboardNotifications.filter((n) => {
     if (typeof n.is_read === 'boolean') return !n.is_read
     return n.read_at == null || String(n.read_at).trim() === ''
   }).length
@@ -296,10 +251,9 @@ export default function Dashboard() {
   const activeEnrollCount = enrollmentsMerged.filter((e) => e.status !== 'completed').length
 
   let learningLine = 'تابع بطاقاتك أدناه لإكمال جلساتك القادمة.'
-  if (lmsLoading) learningLine = 'جلب حالة مسار التعلّم الحالية…'
+  if (lmsLoading) learningLine = 'جارٍ تحميل بيانات التعلّم…'
   else if (lmsDash != null && Number.isFinite(lmsDash.progress_percent))
-    learningLine = `تقدّمك التقريبي في المحتوى: ${Math.round(lmsDash.progress_percent)}%.`
-  else if (dashSourceError) learningLine = dashSourceError
+    learningLine = `تقدّمك في المحتوى: ${Math.round(lmsDash.progress_percent)}%.`
   else if (activeEnrollCount === 0 && completedEnrollCount === 0)
     learningLine = 'لم تسجل بعد — تصفّح الدورات المتاحة ضمن هذه الصفحة وابدأ.'
   const hour = hourGreeting()
@@ -309,7 +263,7 @@ export default function Dashboard() {
     <div className="space-y-12 text-right rtl" dir="rtl">
       {dashSourceError ?
         <p className="rounded-2xl border border-amber-200/95 bg-amber-50/[0.7] px-4 py-3 text-[12px] font-bold leading-relaxed text-amber-950 ring-1 ring-amber-100">
-          لوحة الموحّد العامّة تعذّرت — العرض الأسفل لا يعتمد سوى ما يتيحه استجاباتك الحقيقية.
+          {dashSourceError}
         </p>
       : null}
 
@@ -345,7 +299,7 @@ export default function Dashboard() {
           )}
           {lmsError && !lmsLoading && (
             <div className="rounded-2xl border border-orange-100/90 bg-orange-50/90 px-4 py-3 text-[12px] font-bold leading-relaxed text-orange-950 ring-1 ring-orange-100">
-              لم يكتمل تحميل منصّة التعلّم: {lmsError}
+              {lmsError}
             </div>
           )}
           {!lmsLoading && lmsDash && (
@@ -591,17 +545,15 @@ export default function Dashboard() {
 
         <DashboardSection
           title="أحدث الإشعارات"
-          action={
-            notifications.length > 0 ? { label: 'مركز الإشعارات', href: '/dashboard/notifications' } : undefined
-          }
+          action={{ label: 'مركز الإشعارات', href: '/dashboard/notifications' }}
         >
-          {notifications.length > 0 ?
+          {dashboardNotifications.length > 0 ?
             <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-deepBlue/[0.05] bg-white shadow-sm ring-1 ring-white">
-              {[...notifications].slice(0, 5).map((n) => (
-                <NotificationItem key={String((n as EmcNotification).id)} notification={n as EmcNotification} />
+              {dashboardNotifications.slice(0, 5).map((n, i) => (
+                <NotificationItem key={String(n.id ?? i)} notification={n} />
               ))}
             </div>
-          : <EmptyState icon={Bell} title="لا إشعارات حديثة" />}
+          : <EmptyState icon={Bell} title="لا إشعارات حديثة — تحقق من مركز الإشعارات." />}
         </DashboardSection>
       </div>
 

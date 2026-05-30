@@ -631,6 +631,35 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
   }
 }
 
+/**
+ * Triggers a protected file download via the backend auth-gated endpoint.
+ * Falls back to opening `fallbackUrl` in a new tab if the download endpoint is unavailable.
+ */
+export async function downloadMaterial(materialId: number, fallbackUrl?: string | null): Promise<void> {
+  try {
+    const res = await apiClient.get<Blob>(`/materials/${materialId}/download`, {
+      responseType: 'blob',
+      skipErrorToast: true,
+    })
+    const blob = res.data
+    const disposition = String(res.headers['content-disposition'] ?? '')
+    const match = /filename[^;=\n]*=(['"]?)([^'";\n]+)\1/i.exec(disposition)
+    const filename = match?.[2]?.trim() || `material-${materialId}`
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch {
+    if (fallbackUrl) {
+      window.open(fallbackUrl, '_blank', 'noreferrer')
+    }
+  }
+}
+
 export async function fetchStudentMaterials(): Promise<LmsMaterial[]> {
   try {
     const res = await apiClient.get<unknown>('/student/materials', { skipErrorToast: true })

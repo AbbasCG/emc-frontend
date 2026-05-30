@@ -5,7 +5,11 @@
       "Bash(New-Item -ItemType Directory -Path \"d:\\\\xampp\\\\htdocs\\\\emc-frontend\\\\src\\\\layouts\" -Force)",
       "Bash(Out-Null)",
       "Bash(New-Item -ItemType Directory -Path \"d:\\\\xampp\\\\htdocs\\\\emc-frontend\\\\src\\\\components\\\\dashboard\" -Force)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(ls D:/xampp/htdocs/emc-backend/app/Http/Controllers/Api/ 2>&1 | head -30)",
+      "Read(//d/xampp/htdocs/emc-backend/app/Http/Controllers/**)",
+      "Bash(grep -n \"health\\\\|Health\" D:/xampp/htdocs/emc-backend/routes/api.php 2>&1 | head -20)",
+      "Read(//d/xampp/htdocs/emc-backend/routes/**)"
     ]
   }
 }

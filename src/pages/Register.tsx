@@ -340,7 +340,7 @@ export default function Register() {
       navigate('/thank-you')
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        console.log('registration error', err.response?.data)
+        if (import.meta.env.DEV) console.log('registration error', err.response?.data)
         const st = err.response?.status
         const raw = err.response?.data as
           | { message?: string; errors?: Record<string, string | string[]> }

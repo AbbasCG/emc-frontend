@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpenCheck, ClipboardCheck, Video } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { DEMO_COURSE_ID } from '@/data/platformSeed'
-
-const courseId = DEMO_COURSE_ID
+const courseId = 1
 
 export default function StudentLearningHubPage() {
   return (

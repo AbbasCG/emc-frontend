@@ -156,6 +156,8 @@ export function normalizePlatformNotification(raw: unknown): PlatformNotificatio
     type,
     title,
     body,
+    message: body,
+    is_read: read_at != null && String(read_at).trim() !== '',
     read_at,
     created_at,
     href,
@@ -186,24 +188,15 @@ export function isNotificationUnread(n: PlatformNotification): boolean {
 
 export async function fetchNotifications(): Promise<PlatformNotification[]> {
   try {
-    if (import.meta.env.DEV) {
-      console.log('[EMC notifications] request', {
-        method: 'GET',
-        path: '/notifications',
-        baseURL: apiClient.defaults.baseURL,
-      })
-    }
     const res = await apiClient.get<unknown>('/notifications', silent)
     const inner = unwrapData<unknown>(res.data)
-    const rawList: unknown[] = Array.isArray(inner) ? inner : Array.isArray((inner as { data?: unknown })?.data) ? ((inner as { data: unknown[] }).data) : []
-    const normalized = rawList.map(normalizePlatformNotification).filter((x): x is PlatformNotification => x != null)
-    if (import.meta.env.DEV) {
-      console.log('[EMC notifications] response', {
-        httpStatus: res.status,
-        count: normalized.length,
-        sampleHref: normalized[0]?.href ?? null,
-      })
-    }
+    const rawList: unknown[] =
+      Array.isArray(inner) ? inner
+      : Array.isArray((inner as { data?: unknown })?.data) ? (inner as { data: unknown[] }).data
+      : []
+    const normalized = rawList
+      .map(normalizePlatformNotification)
+      .filter((x): x is PlatformNotification => x != null)
     return dedupeNotifications(normalized)
   } catch {
     return []

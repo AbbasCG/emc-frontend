@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, FileText, Film, Link2, Presentation } from 'lucide-react'
+import { BookOpen, Download, FileText, Film, Link2, Loader2, Presentation } from 'lucide-react'
 import type { LmsMaterial } from '@/types/lms'
+import { downloadMaterial } from '@/api/studentApi'
 
 const iconMap = {
   pdf: FileText,
@@ -12,11 +14,28 @@ const iconMap = {
 }
 
 export default function MaterialCard({ material }: { material: LmsMaterial }) {
+  const [downloading, setDownloading] = useState(false)
   const Icon = iconMap[material.kind] ?? iconMap.other
+  const isLink = material.kind === 'link'
   const hasUrl = Boolean(material.url && String(material.url).trim() !== '')
+
+  async function handleDownload() {
+    if (isLink && material.url) {
+      window.open(material.url, '_blank', 'noreferrer')
+      return
+    }
+    setDownloading(true)
+    try {
+      await downloadMaterial(material.id, material.url)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   const actionVerb =
-    material.kind === 'link' ? 'فتح الرابط'
-    : ['pdf', 'document', 'slides'].includes(material.kind) ? 'تحميل / فتح'
+    isLink ? 'فتح الرابط'
+    : ['pdf', 'document', 'slides'].includes(material.kind) ? 'تحميل'
+    : material.kind === 'video' ? 'مشاهدة'
     : 'فتح المادة'
 
   return (
@@ -42,18 +61,24 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
           <Icon size={22} />
         </span>
       </div>
-      {hasUrl ?
-        <a
-          href={material.url ?? '#'}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-deepBlue py-2.5 text-xs font-black text-white transition hover:bg-deepBlue/90"
+
+      {hasUrl || !isLink ? (
+        <button
+          type="button"
+          disabled={downloading}
+          onClick={() => void handleDownload()}
+          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue py-2.5 text-xs font-black text-white transition hover:bg-deepBlue/90 disabled:opacity-60"
         >
-          {actionVerb}
-        </a>
-      : (
+          {downloading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            !isLink && <Download size={14} />
+          )}
+          {downloading ? 'جارٍ التحميل...' : actionVerb}
+        </button>
+      ) : (
         <p className="mt-4 rounded-xl border border-deepBlue/[0.08] bg-deepBlue/[0.03] py-2.5 text-center text-[11px] font-bold text-deepBlue/55">
-          لا رابط أو ملف متاح من الخادم لهذه المادة.
+          لا رابط أو ملف متاح لهذه المادة.
         </p>
       )}
     </motion.div>

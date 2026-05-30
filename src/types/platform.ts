@@ -101,7 +101,12 @@ export type PlatformNotification = {
   id: number
   type: NotificationType
   title: string
+  /** Body text shown below the title. */
   body?: string | null
+  /** Alias of `body` — preferred field name per notification contract. */
+  message?: string | null
+  /** Derived from `read_at` — true when notification has been read. */
+  is_read: boolean
   read_at: string | null
   created_at: string
   /** Resolved in-app route (from `action_url` or entity) */

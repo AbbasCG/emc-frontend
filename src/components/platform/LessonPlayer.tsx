@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Download, PlayCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -64,7 +65,7 @@ export default function LessonPlayer({ lesson, modules }: Props) {
           <h3 className="text-sm font-black text-deepBlue">محتوى الدرس</h3>
           <div
             className="prose prose-sm mt-4 max-w-none text-slate-600 prose-p:leading-8"
-            dangerouslySetInnerHTML={{ __html: lesson.content_html ?? '' }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.content_html ?? '') }}
           />
         </article>
 

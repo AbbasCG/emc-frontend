@@ -22,7 +22,6 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
   NOTIFICATIONS_REFRESH_EVENT,
-  isNotificationUnread,
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
 import type { PlatformNotification } from '../types/platform'
@@ -543,6 +542,11 @@ export default function DashboardLayout() {
   }, [refreshNotifications])
 
   useEffect(() => {
+    const id = setInterval(refreshNotifications, 90_000)
+    return () => clearInterval(id)
+  }, [refreshNotifications])
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
@@ -553,17 +557,23 @@ export default function DashboardLayout() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const unread = notifications.filter((n) => isNotificationUnread(n)).length
+  const unread = notifications.filter((n) => !n.is_read).length
 
   async function handleMarkRead(id: number) {
     const stamp = new Date().toISOString()
-    setNotifications((prev) => prev.map((x) => (x.id === id ? { ...x, read_at: x.read_at ?? stamp } : x)))
+    setNotifications((prev) =>
+      prev.map((x) =>
+        x.id === id ? { ...x, is_read: true, read_at: x.read_at ?? stamp } : x,
+      ),
+    )
     await markNotificationRead(id)
   }
 
   async function handleMarkAll() {
     const stamp = new Date().toISOString()
-    setNotifications((prev) => prev.map((x) => ({ ...x, read_at: x.read_at ?? stamp })))
+    setNotifications((prev) =>
+      prev.map((x) => ({ ...x, is_read: true, read_at: x.read_at ?? stamp })),
+    )
     await markAllNotificationsRead()
   }
 

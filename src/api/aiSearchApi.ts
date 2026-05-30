@@ -10,8 +10,8 @@ export async function semanticSearch(query: string): Promise<AiSearchResponse> {
     })
     const payload = unwrapLms<AiSearchResponse>(res.data)
     if (payload?.groups?.length) return payload
-    return { groups: [] }
+    return { query, groups: [] }
   } catch {
-    return { groups: [] }
+    return { query, groups: [] }
   }
 }

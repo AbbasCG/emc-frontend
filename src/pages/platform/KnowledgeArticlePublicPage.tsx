@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import { motion } from 'framer-motion'
 import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
@@ -64,7 +65,7 @@ export default function KnowledgeArticlePublicPage() {
         {article.excerpt && <p className="mt-6 text-base font-medium leading-8 text-slate-600">{article.excerpt}</p>}
         <div
           className="prose prose-lg prose-slate mt-8 max-w-none text-slate-700 prose-headings:font-black prose-p:leading-8"
-          dangerouslySetInnerHTML={{ __html: article.body ?? '' }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.body ?? '') }}
         />
       </motion.div>
 

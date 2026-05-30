@@ -1,5 +1,3 @@
-import type { Notification } from './index'
-
 /** ── Shared LMS ─────────────────────────────────────────────────────────── */
 
 export type LmsSessionStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
@@ -89,7 +87,19 @@ export type StudentLmsDashboard = {
   upcoming_sessions: LmsSession[]
   completed_sessions?: LmsSession[]
   certificates_placeholder?: { label: string; note?: string }[]
-  notifications?: Notification[]
+  /** Notifications embedded in dashboard response — duck-typed for compatibility. */
+  notifications?: {
+    id?: number | string
+    title?: string | null
+    message?: string | null
+    body?: string | null
+    type?: string | null
+    is_read?: boolean
+    read_at?: string | null
+    created_at?: string | null
+    href?: string | null
+    action_url?: string | null
+  }[]
 }
 
 export type InstructorLmsDashboard = {

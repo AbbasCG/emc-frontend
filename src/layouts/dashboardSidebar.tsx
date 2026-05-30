@@ -6,7 +6,6 @@ import {
   BookMarked,
   BookOpen,
   Bot,
-  Brain,
   Briefcase,
   Building2,
   Calendar,
@@ -407,7 +406,6 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         title: 'التعلّم',
         items: [
-          { label: 'مسار التعلّم المتقدم', href: '/dashboard/learning', icon: Brain },
           { label: 'دوراتي', href: '/dashboard/student/courses', icon: BookOpen },
           { label: 'التسجيلات', href: '/dashboard/student/registrations', icon: ClipboardList },
           { label: 'دورات متاحة', href: '/dashboard/student/available-courses', icon: Sparkles },

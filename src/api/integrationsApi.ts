@@ -1,10 +1,5 @@
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
-import {
-  seedEmailIntegration,
-  seedIntegrations,
-  seedWhatsAppIntegration,
-} from '@/data/phase7Seed'
 import type {
   EmailIntegrationPreview,
   IntegrationSummary,
@@ -19,28 +14,20 @@ export async function fetchIntegrations(): Promise<IntegrationSummary[]> {
     if (inner && typeof inner === 'object' && Array.isArray((inner as { integrations: IntegrationSummary[] }).integrations)) {
       return (inner as { integrations: IntegrationSummary[] }).integrations
     }
-    return seedIntegrations()
+    return []
   } catch {
-    return seedIntegrations()
+    return []
   }
 }
 
 export async function fetchWhatsAppIntegration(): Promise<WhatsAppIntegrationPreview> {
-  try {
-    const res = await apiClient.get<unknown>('/integrations/whatsapp')
-    return unwrapData<WhatsAppIntegrationPreview>(res.data)
-  } catch {
-    return seedWhatsAppIntegration()
-  }
+  const res = await apiClient.get<unknown>('/integrations/whatsapp')
+  return unwrapData<WhatsAppIntegrationPreview>(res.data)
 }
 
 export async function fetchEmailIntegration(): Promise<EmailIntegrationPreview> {
-  try {
-    const res = await apiClient.get<unknown>('/integrations/email')
-    return unwrapData<EmailIntegrationPreview>(res.data)
-  } catch {
-    return seedEmailIntegration()
-  }
+  const res = await apiClient.get<unknown>('/integrations/email')
+  return unwrapData<EmailIntegrationPreview>(res.data)
 }
 
 /** Sends smoke-test WhatsApp — backend queues provider delivery */

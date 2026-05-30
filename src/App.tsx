@@ -8,159 +8,182 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import DashboardAccessGuard from './components/DashboardAccessGuard'
 import AppToaster from './components/feedback/AppToaster'
 import RouteFallback from './components/RouteFallback'
-import About from './pages/About'
-import AdminDashboard from './pages/AdminDashboard'
-import Contact from './pages/Contact'
-import CourseDetails from './pages/CourseDetails'
-import Courses from './pages/Courses'
-import Dashboard from './pages/Dashboard'
-import FakePayment from './pages/FakePayment'
-import Departments from './pages/Departments'
+import { getDashboardPathByRole } from './utils/dashboardAccess'
+
+// ── Eager: tiny, critical-path public pages ──────────────────────────────────
 import Home from './pages/Home'
-import InstructorDetail from './pages/InstructorDetail'
-import Instructors from './pages/Instructors'
-import Impact from './pages/Impact'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import NotFound from './pages/NotFound'
-import Partnerships from './pages/Partnerships'
-import Paths from './pages/Paths'
-import Platform from './pages/Platform'
-import Programs from './pages/Programs'
-import Register from './pages/Register'
-import Signup from './pages/Signup'
-import SubmitWorkshop from './pages/SubmitWorkshop'
-import TeacherDashboard from './pages/TeacherDashboard'
-import Team from './pages/Team'
-import ThankYou from './pages/ThankYou'
-import Tracks from './pages/Tracks'
-import Volunteer from './pages/Volunteer'
-import AdminLmsAssignmentsPage from './pages/lms/admin/AdminLmsAssignmentsPage'
-import AdminLmsAttendancePage from './pages/lms/admin/AdminLmsAttendancePage'
-import AdminLmsEvaluationsPage from './pages/lms/admin/AdminLmsEvaluationsPage'
-import AdminLmsMaterialsPage from './pages/lms/admin/AdminLmsMaterialsPage'
-import AdminLmsProgressPage from './pages/lms/admin/AdminLmsProgressPage'
-import AdminLmsSessionsPage from './pages/lms/admin/AdminLmsSessionsPage'
-import InstructorAttendancePage from './pages/lms/instructor/InstructorAttendancePage'
-import InstructorSessionsPage from './pages/lms/instructor/InstructorSessionsPage'
-import InstructorSubmissionsPage from './pages/lms/instructor/InstructorSubmissionsPage'
-import StudentAssignmentsPage from './pages/lms/student/StudentAssignmentsPage'
-import StudentEvaluationPage from './pages/lms/student/StudentEvaluationPage'
-import StudentMaterialsPage from './pages/lms/student/StudentMaterialsPage'
-import StudentProgressPage from './pages/lms/student/StudentProgressPage'
-import StudentSessionsPage from './pages/lms/student/StudentSessionsPage'
-import StudentMyCoursesPage from './pages/lms/student/StudentMyCoursesPage'
-import StudentCourseLearnPage from './pages/lms/student/StudentCourseLearnPage'
-import CourseContentManagerPage from './pages/lms/admin/CourseContentManagerPage'
-import StudentRegistrationsListPage from './pages/lms/student/StudentRegistrationsListPage'
-import StudentAvailableCoursesPage from './pages/lms/student/StudentAvailableCoursesPage'
-import InstructorAssignedCoursesPage from './pages/lms/instructor/InstructorAssignedCoursesPage'
-import OperationsDashboardPage from './pages/operations/admin/OperationsDashboardPage'
-import OpsDepartmentsPage from './pages/operations/admin/OpsDepartmentsPage'
-import OpsDepartmentDetailPage from './pages/operations/admin/OpsDepartmentDetailPage'
-import OpsTasksListPage from './pages/operations/admin/OpsTasksListPage'
-import OpsTasksKanbanPage from './pages/operations/admin/OpsTasksKanbanPage'
-import OpsTasksMyPage from './pages/operations/admin/OpsTasksMyPage'
-import OpsTasksOverduePage from './pages/operations/admin/OpsTasksOverduePage'
-import OpsMeetingsPage from './pages/operations/admin/OpsMeetingsPage'
-import OpsMeetingDetailPage from './pages/operations/admin/OpsMeetingDetailPage'
-import OpsFormsPage from './pages/operations/admin/OpsFormsPage'
-import OpsFormCreatePage from './pages/operations/admin/OpsFormCreatePage'
-import OpsFormDetailPage from './pages/operations/admin/OpsFormDetailPage'
-import OpsVolunteersPage from './pages/operations/admin/OpsVolunteersPage'
-import OpsVolunteerDetailPage from './pages/operations/admin/OpsVolunteerDetailPage'
-import OpsPartnersPage from './pages/operations/admin/OpsPartnersPage'
-import OpsPartnershipRequestsPage from './pages/operations/admin/OpsPartnershipRequestsPage'
-import OpsMarketingPage from './pages/operations/admin/OpsMarketingPage'
-import OpsSupportTicketsPage from './pages/operations/admin/OpsSupportTicketsPage'
-import OpsSupportTicketDetailPage from './pages/operations/admin/OpsSupportTicketDetailPage'
-import SupportPage from './pages/operations/public/SupportPage'
-import PublicFormPage from './pages/operations/public/PublicFormPage'
-import PartnershipApplyPage from './pages/operations/public/PartnershipApplyPage'
-import FinanceDashboardPage from './pages/intelligence/admin/FinanceDashboardPage'
-import FinancePaymentsPage from './pages/intelligence/admin/FinancePaymentsPage'
-import FinanceTransactionsPage from './pages/intelligence/admin/FinanceTransactionsPage'
-import CouponsAdminPage from './pages/intelligence/admin/CouponsAdminPage'
-import ScholarshipsAdminPage from './pages/intelligence/admin/ScholarshipsAdminPage'
-import CertificatesAdminPage from './pages/intelligence/admin/CertificatesAdminPage'
-import QualityAdminPage from './pages/intelligence/admin/QualityAdminPage'
-import KpiAdminPage from './pages/intelligence/admin/KpiAdminPage'
-import ReportsAdminPage from './pages/intelligence/admin/ReportsAdminPage'
-import StudentCertificatesPage from './pages/intelligence/student/StudentCertificatesPage'
-import CertificateVerifyPage from './pages/intelligence/public/CertificateVerifyPage'
-import KnowledgeHubPage from './pages/platform/KnowledgeHubPage'
-import KnowledgeArticlePublicPage from './pages/platform/KnowledgeArticlePublicPage'
-import NotificationsCenterPage from './pages/platform/NotificationsCenterPage'
-import DocumentsPage from './pages/platform/DocumentsPage'
-import AiWorkspacePage from './pages/platform/AiWorkspacePage'
-import StudentLearningHubPage from './pages/platform/StudentLearningHubPage'
-import CourseModulesPage from './pages/platform/CourseModulesPage'
-import LessonPlayerPage from './pages/platform/LessonPlayerPage'
-import QuizTakePage from './pages/platform/QuizTakePage'
-import AdminKnowledgeHubPage from './pages/platform/admin/AdminKnowledgeHubPage'
-import AdminKnowledgeCategoriesPage from './pages/platform/admin/AdminKnowledgeCategoriesPage'
-import AdminKnowledgeArticleCreatePage from './pages/platform/admin/AdminKnowledgeArticleCreatePage'
-import AdminKnowledgeArticleEditPage from './pages/platform/admin/AdminKnowledgeArticleEditPage'
-import {
-  AdminLessonsPage,
-  AdminModulesPage,
-  AdminQuizzesPage,
-} from './pages/platform/admin/AdminLmsStructurePages'
-import AdminAutomationsPage from './pages/platform/admin/AdminAutomationsPage'
-import AdminAutomationRunsPage from './pages/platform/admin/AdminAutomationRunsPage'
-import AdminDocumentsPage from './pages/platform/admin/AdminDocumentsPage'
-import AdminAuditLogsPage from './pages/platform/admin/AdminAuditLogsPage'
-import PlatformScaleDashboardPage from './pages/platform/admin/PlatformScaleDashboardPage'
-import NotificationPreferencesPage from './pages/settings/NotificationPreferencesPage'
-import ProfilePage from './pages/ProfilePage'
-import CalendarPage from './pages/calendar/CalendarPage'
-import AdminIntegrationsPage from './pages/platform/admin/AdminIntegrationsPage'
-import WhatsAppIntegrationPage from './pages/platform/admin/integrations/WhatsAppIntegrationPage'
-import EmailIntegrationPage from './pages/platform/admin/integrations/EmailIntegrationPage'
-import AdminWebhooksPage from './pages/platform/admin/AdminWebhooksPage'
-import AdminWebhookDetailPage from './pages/platform/admin/AdminWebhookDetailPage'
-import AdminApiTokensPage from './pages/platform/admin/developer/AdminApiTokensPage'
-import AdminMobileReadinessPage from './pages/platform/admin/AdminMobileReadinessPage'
-import AdminAiCommandCenterPage from './pages/platform/admin/ai/AdminAiCommandCenterPage'
-import AdminAiAutomationsPage from './pages/platform/admin/ai/AdminAiAutomationsPage'
-import AdminAiInsightsPage from './pages/platform/admin/ai/AdminAiInsightsPage'
-import AdminAiUsagePage from './pages/platform/admin/ai/AdminAiUsagePage'
-import PartnerDashboardPage from './pages/platform/partner/PartnerDashboardPage'
-import PartnerProgramsPage from './pages/platform/partner/PartnerProgramsPage'
-import PartnerReportsPage from './pages/platform/partner/PartnerReportsPage'
-import PartnerDocumentsPage from './pages/platform/partner/PartnerDocumentsPage'
-import ForbiddenPage from './pages/errors/ForbiddenPage'
-import UnauthorizedPage from './pages/errors/UnauthorizedPage'
-import ServerErrorPage from './pages/errors/ServerErrorPage'
-import HrDashboardPage from './pages/hr/HrDashboardPage'
-import HrTeamPage from './pages/hr/HrTeamPage'
-import HrVolunteersPage from './pages/hr/HrVolunteersPage'
-import HrInstructorsPage from './pages/hr/HrInstructorsPage'
-import HrApplicationsPage from './pages/hr/HrApplicationsPage'
-import HrDepartmentsPage from './pages/hr/HrDepartmentsPage'
-import HrOnboardingPage from './pages/hr/HrOnboardingPage'
-import HrTasksPage from './pages/hr/HrTasksPage'
-import HrDocumentsPage from './pages/hr/HrDocumentsPage'
-import SuperAdminOverviewPage from './pages/super-admin/SuperAdminOverviewPage'
-import UsersManagementPage from './pages/super-admin/crud/UsersManagementPage'
-import RolesPermissionsPage from './pages/super-admin/crud/RolesPermissionsPage'
-import DepartmentsManagementPage from './pages/super-admin/crud/DepartmentsManagementPage'
-import TeamManagementPage from './pages/super-admin/crud/TeamManagementPage'
-import StudentsManagementPage from './pages/super-admin/crud/StudentsManagementPage'
-import InstructorsManagementPage from './pages/super-admin/crud/InstructorsManagementPage'
-import ProgramsManagementPage from './pages/super-admin/crud/ProgramsManagementPage'
-import TracksManagementPage from './pages/super-admin/crud/TracksManagementPage'
-import WorkshopsManagementPage from './pages/super-admin/crud/WorkshopsManagementPage'
-import RegistrationsManagementPage from './pages/super-admin/crud/RegistrationsManagementPage'
-import PartnersManagementPage from './pages/super-admin/crud/PartnersManagementPage'
-import SuperAdminAuditLogsPage from './pages/super-admin/AuditLogsPage'
 
-import { getDashboardPathByRole } from './utils/dashboardAccess'
+// ── Lazy: public pages (rarely above-the-fold on first load) ─────────────────
+const About              = lazy(() => import('./pages/About'))
+const Contact            = lazy(() => import('./pages/Contact'))
+const CourseDetails      = lazy(() => import('./pages/CourseDetails'))
+const Courses            = lazy(() => import('./pages/Courses'))
+const FakePayment        = lazy(() => import('./pages/FakePayment'))
+const Departments        = lazy(() => import('./pages/Departments'))
+const InstructorDetail   = lazy(() => import('./pages/InstructorDetail'))
+const Instructors        = lazy(() => import('./pages/Instructors'))
+const Impact             = lazy(() => import('./pages/Impact'))
+const Partnerships       = lazy(() => import('./pages/Partnerships'))
+const Paths              = lazy(() => import('./pages/Paths'))
+const Platform           = lazy(() => import('./pages/Platform'))
+const Programs           = lazy(() => import('./pages/Programs'))
+const Register           = lazy(() => import('./pages/Register'))
+const Signup             = lazy(() => import('./pages/Signup'))
+const SubmitWorkshop     = lazy(() => import('./pages/SubmitWorkshop'))
+const Team               = lazy(() => import('./pages/Team'))
+const ThankYou           = lazy(() => import('./pages/ThankYou'))
+const Tracks             = lazy(() => import('./pages/Tracks'))
+const Volunteer          = lazy(() => import('./pages/Volunteer'))
 
+// ── Lazy: dashboard layout (code-split entry point) ──────────────────────────
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'))
 
-// Redirects to the role-specific dashboard home; ProtectedRoute guarantees auth is resolved.
+// ── Lazy: dashboard pages — student ──────────────────────────────────────────
+const Dashboard                  = lazy(() => import('./pages/Dashboard'))
+const StudentMyCoursesPage       = lazy(() => import('./pages/lms/student/StudentMyCoursesPage'))
+const StudentCourseLearnPage     = lazy(() => import('./pages/lms/student/StudentCourseLearnPage'))
+const StudentRegistrationsListPage = lazy(() => import('./pages/lms/student/StudentRegistrationsListPage'))
+const StudentAvailableCoursesPage  = lazy(() => import('./pages/lms/student/StudentAvailableCoursesPage'))
+const StudentSessionsPage        = lazy(() => import('./pages/lms/student/StudentSessionsPage'))
+const StudentMaterialsPage       = lazy(() => import('./pages/lms/student/StudentMaterialsPage'))
+const StudentAssignmentsPage     = lazy(() => import('./pages/lms/student/StudentAssignmentsPage'))
+const StudentProgressPage        = lazy(() => import('./pages/lms/student/StudentProgressPage'))
+const StudentEvaluationPage      = lazy(() => import('./pages/lms/student/StudentEvaluationPage'))
+
+// ── Lazy: dashboard pages — instructor / teacher ──────────────────────────────
+const TeacherDashboard           = lazy(() => import('./pages/TeacherDashboard'))
+const InstructorAssignedCoursesPage  = lazy(() => import('./pages/lms/instructor/InstructorAssignedCoursesPage'))
+const InstructorSessionsPage     = lazy(() => import('./pages/lms/instructor/InstructorSessionsPage'))
+const InstructorAttendancePage   = lazy(() => import('./pages/lms/instructor/InstructorAttendancePage'))
+const InstructorSubmissionsPage  = lazy(() => import('./pages/lms/instructor/InstructorSubmissionsPage'))
+
+// ── Lazy: dashboard pages — admin LMS ────────────────────────────────────────
+const AdminDashboard             = lazy(() => import('./pages/AdminDashboard'))
+const AdminLmsSessionsPage       = lazy(() => import('./pages/lms/admin/AdminLmsSessionsPage'))
+const AdminLmsAttendancePage     = lazy(() => import('./pages/lms/admin/AdminLmsAttendancePage'))
+const AdminLmsAssignmentsPage    = lazy(() => import('./pages/lms/admin/AdminLmsAssignmentsPage'))
+const AdminLmsMaterialsPage      = lazy(() => import('./pages/lms/admin/AdminLmsMaterialsPage'))
+const AdminLmsEvaluationsPage    = lazy(() => import('./pages/lms/admin/AdminLmsEvaluationsPage'))
+const AdminLmsProgressPage       = lazy(() => import('./pages/lms/admin/AdminLmsProgressPage'))
+const CourseContentManagerPage   = lazy(() => import('./pages/lms/admin/CourseContentManagerPage'))
+
+// ── Lazy: advanced LMS (lessons, quizzes, modules) ───────────────────────────
+const CourseModulesPage   = lazy(() => import('./pages/platform/CourseModulesPage'))
+const LessonPlayerPage    = lazy(() => import('./pages/platform/LessonPlayerPage'))
+const QuizTakePage        = lazy(() => import('./pages/platform/QuizTakePage'))
+const StudentLearningHubPage = lazy(() => import('./pages/platform/StudentLearningHubPage'))
+
+// ── Lazy: dashboard pages — operations ───────────────────────────────────────
+const OperationsDashboardPage       = lazy(() => import('./pages/operations/admin/OperationsDashboardPage'))
+const OpsDepartmentsPage            = lazy(() => import('./pages/operations/admin/OpsDepartmentsPage'))
+const OpsDepartmentDetailPage       = lazy(() => import('./pages/operations/admin/OpsDepartmentDetailPage'))
+const OpsTasksListPage              = lazy(() => import('./pages/operations/admin/OpsTasksListPage'))
+const OpsTasksKanbanPage            = lazy(() => import('./pages/operations/admin/OpsTasksKanbanPage'))
+const OpsTasksMyPage                = lazy(() => import('./pages/operations/admin/OpsTasksMyPage'))
+const OpsTasksOverduePage           = lazy(() => import('./pages/operations/admin/OpsTasksOverduePage'))
+const OpsMeetingsPage               = lazy(() => import('./pages/operations/admin/OpsMeetingsPage'))
+const OpsMeetingDetailPage          = lazy(() => import('./pages/operations/admin/OpsMeetingDetailPage'))
+const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
+const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
+const OpsFormDetailPage             = lazy(() => import('./pages/operations/admin/OpsFormDetailPage'))
+const OpsVolunteersPage             = lazy(() => import('./pages/operations/admin/OpsVolunteersPage'))
+const OpsVolunteerDetailPage        = lazy(() => import('./pages/operations/admin/OpsVolunteerDetailPage'))
+const OpsPartnersPage               = lazy(() => import('./pages/operations/admin/OpsPartnersPage'))
+const OpsPartnershipRequestsPage    = lazy(() => import('./pages/operations/admin/OpsPartnershipRequestsPage'))
+const OpsMarketingPage              = lazy(() => import('./pages/operations/admin/OpsMarketingPage'))
+const OpsSupportTicketsPage         = lazy(() => import('./pages/operations/admin/OpsSupportTicketsPage'))
+const OpsSupportTicketDetailPage    = lazy(() => import('./pages/operations/admin/OpsSupportTicketDetailPage'))
+const SupportPage                   = lazy(() => import('./pages/operations/public/SupportPage'))
+const PublicFormPage                = lazy(() => import('./pages/operations/public/PublicFormPage'))
+const PartnershipApplyPage          = lazy(() => import('./pages/operations/public/PartnershipApplyPage'))
+
+// ── Lazy: dashboard pages — intelligence / finance / quality ─────────────────
+const FinanceDashboardPage    = lazy(() => import('./pages/intelligence/admin/FinanceDashboardPage'))
+const FinancePaymentsPage     = lazy(() => import('./pages/intelligence/admin/FinancePaymentsPage'))
+const FinanceTransactionsPage = lazy(() => import('./pages/intelligence/admin/FinanceTransactionsPage'))
+const CouponsAdminPage        = lazy(() => import('./pages/intelligence/admin/CouponsAdminPage'))
+const ScholarshipsAdminPage   = lazy(() => import('./pages/intelligence/admin/ScholarshipsAdminPage'))
+const CertificatesAdminPage   = lazy(() => import('./pages/intelligence/admin/CertificatesAdminPage'))
+const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
+const KpiAdminPage            = lazy(() => import('./pages/intelligence/admin/KpiAdminPage'))
+const ReportsAdminPage        = lazy(() => import('./pages/intelligence/admin/ReportsAdminPage'))
+const StudentCertificatesPage = lazy(() => import('./pages/intelligence/student/StudentCertificatesPage'))
+const CertificateVerifyPage   = lazy(() => import('./pages/intelligence/public/CertificateVerifyPage'))
+
+// ── Lazy: dashboard pages — platform / knowledge / AI ────────────────────────
+const KnowledgeHubPage              = lazy(() => import('./pages/platform/KnowledgeHubPage'))
+const KnowledgeArticlePublicPage    = lazy(() => import('./pages/platform/KnowledgeArticlePublicPage'))
+const NotificationsCenterPage       = lazy(() => import('./pages/platform/NotificationsCenterPage'))
+const DocumentsPage                 = lazy(() => import('./pages/platform/DocumentsPage'))
+const AiWorkspacePage               = lazy(() => import('./pages/platform/AiWorkspacePage'))
+const AdminKnowledgeHubPage         = lazy(() => import('./pages/platform/admin/AdminKnowledgeHubPage'))
+const AdminKnowledgeCategoriesPage  = lazy(() => import('./pages/platform/admin/AdminKnowledgeCategoriesPage'))
+const AdminKnowledgeArticleCreatePage = lazy(() => import('./pages/platform/admin/AdminKnowledgeArticleCreatePage'))
+const AdminKnowledgeArticleEditPage   = lazy(() => import('./pages/platform/admin/AdminKnowledgeArticleEditPage'))
+const AdminLessonsPage   = lazy(() => import('./pages/platform/admin/AdminLmsStructurePages').then(m => ({ default: m.AdminLessonsPage })))
+const AdminModulesPage   = lazy(() => import('./pages/platform/admin/AdminLmsStructurePages').then(m => ({ default: m.AdminModulesPage })))
+const AdminQuizzesPage   = lazy(() => import('./pages/platform/admin/AdminLmsStructurePages').then(m => ({ default: m.AdminQuizzesPage })))
+const AdminAutomationsPage      = lazy(() => import('./pages/platform/admin/AdminAutomationsPage'))
+const AdminAutomationRunsPage   = lazy(() => import('./pages/platform/admin/AdminAutomationRunsPage'))
+const AdminDocumentsPage        = lazy(() => import('./pages/platform/admin/AdminDocumentsPage'))
+const AdminAuditLogsPage        = lazy(() => import('./pages/platform/admin/AdminAuditLogsPage'))
+const PlatformScaleDashboardPage = lazy(() => import('./pages/platform/admin/PlatformScaleDashboardPage'))
+const AdminIntegrationsPage     = lazy(() => import('./pages/platform/admin/AdminIntegrationsPage'))
+const WhatsAppIntegrationPage   = lazy(() => import('./pages/platform/admin/integrations/WhatsAppIntegrationPage'))
+const EmailIntegrationPage      = lazy(() => import('./pages/platform/admin/integrations/EmailIntegrationPage'))
+const AdminWebhooksPage         = lazy(() => import('./pages/platform/admin/AdminWebhooksPage'))
+const AdminWebhookDetailPage    = lazy(() => import('./pages/platform/admin/AdminWebhookDetailPage'))
+const AdminApiTokensPage        = lazy(() => import('./pages/platform/admin/developer/AdminApiTokensPage'))
+const AdminMobileReadinessPage  = lazy(() => import('./pages/platform/admin/AdminMobileReadinessPage'))
+const AdminAiCommandCenterPage  = lazy(() => import('./pages/platform/admin/ai/AdminAiCommandCenterPage'))
+const AdminAiAutomationsPage    = lazy(() => import('./pages/platform/admin/ai/AdminAiAutomationsPage'))
+const AdminAiInsightsPage       = lazy(() => import('./pages/platform/admin/ai/AdminAiInsightsPage'))
+const AdminAiUsagePage          = lazy(() => import('./pages/platform/admin/ai/AdminAiUsagePage'))
+const PartnerDashboardPage      = lazy(() => import('./pages/platform/partner/PartnerDashboardPage'))
+const PartnerProgramsPage       = lazy(() => import('./pages/platform/partner/PartnerProgramsPage'))
+const PartnerReportsPage        = lazy(() => import('./pages/platform/partner/PartnerReportsPage'))
+const PartnerDocumentsPage      = lazy(() => import('./pages/platform/partner/PartnerDocumentsPage'))
+
+// ── Lazy: dashboard pages — HR ───────────────────────────────────────────────
+const HrDashboardPage   = lazy(() => import('./pages/hr/HrDashboardPage'))
+const HrTeamPage        = lazy(() => import('./pages/hr/HrTeamPage'))
+const HrVolunteersPage  = lazy(() => import('./pages/hr/HrVolunteersPage'))
+const HrInstructorsPage = lazy(() => import('./pages/hr/HrInstructorsPage'))
+const HrApplicationsPage = lazy(() => import('./pages/hr/HrApplicationsPage'))
+const HrDepartmentsPage = lazy(() => import('./pages/hr/HrDepartmentsPage'))
+const HrOnboardingPage  = lazy(() => import('./pages/hr/HrOnboardingPage'))
+const HrTasksPage       = lazy(() => import('./pages/hr/HrTasksPage'))
+const HrDocumentsPage   = lazy(() => import('./pages/hr/HrDocumentsPage'))
+
+// ── Lazy: dashboard pages — super admin ──────────────────────────────────────
+const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
+const SuperAdminAuditLogsPage     = lazy(() => import('./pages/super-admin/AuditLogsPage'))
+const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
+const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
+const DepartmentsManagementPage   = lazy(() => import('./pages/super-admin/crud/DepartmentsManagementPage'))
+const TeamManagementPage          = lazy(() => import('./pages/super-admin/crud/TeamManagementPage'))
+const StudentsManagementPage      = lazy(() => import('./pages/super-admin/crud/StudentsManagementPage'))
+const InstructorsManagementPage   = lazy(() => import('./pages/super-admin/crud/InstructorsManagementPage'))
+const ProgramsManagementPage      = lazy(() => import('./pages/super-admin/crud/ProgramsManagementPage'))
+const TracksManagementPage        = lazy(() => import('./pages/super-admin/crud/TracksManagementPage'))
+const WorkshopsManagementPage     = lazy(() => import('./pages/super-admin/crud/WorkshopsManagementPage'))
+const RegistrationsManagementPage = lazy(() => import('./pages/super-admin/crud/RegistrationsManagementPage'))
+const PartnersManagementPage      = lazy(() => import('./pages/super-admin/crud/PartnersManagementPage'))
+
+// ── Lazy: settings, profile, calendar, error pages ───────────────────────────
+const NotificationPreferencesPage = lazy(() => import('./pages/settings/NotificationPreferencesPage'))
+const ProfilePage    = lazy(() => import('./pages/ProfilePage'))
+const CalendarPage   = lazy(() => import('./pages/calendar/CalendarPage'))
+const ForbiddenPage      = lazy(() => import('./pages/errors/ForbiddenPage'))
+const UnauthorizedPage   = lazy(() => import('./pages/errors/UnauthorizedPage'))
+const ServerErrorPage    = lazy(() => import('./pages/errors/ServerErrorPage'))
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function RoleRedirect() {
   const { user } = useAuth()
   return <Navigate to={getDashboardPathByRole(user?.role)} replace />
@@ -183,46 +206,45 @@ function App() {
             {/* ── Public routes — Navbar + Footer layout ── */}
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/courses/:slug" element={<CourseDetails />} />
-              <Route path="/courses/:slug/register" element={<Register />} />
-              <Route path="/instructors" element={<Instructors />} />
-              <Route path="/instructors/:slug" element={<InstructorDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/register" element={<Register />} />
-              {import.meta.env.DEV && <Route path="/fake-payment/:paymentId" element={<FakePayment />} />}
-              <Route path="/submit-workshop" element={<SubmitWorkshop />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              {/* Phase 6 — public informational pages */}
-              <Route path="/departments"  element={<Departments />} />
-              <Route path="/themes"       element={<Navigate to="/tracks" replace />} />
-              <Route path="/tracks"       element={<Tracks />} />
-              <Route path="/paths"        element={<Paths />} />
-              <Route path="/programs"     element={<Programs />} />
-              <Route path="/platform"     element={<Platform />} />
-              <Route path="/team"         element={<Team />} />
-              <Route path="/ar/team"     element={<Team />} />
-              <Route path="/impact"       element={<Impact />} />
-              <Route path="/ar/impact"    element={<Impact />} />
-              <Route path="/partnerships" element={<Partnerships />} />
-              <Route path="/volunteer"    element={<Volunteer />} />
-              <Route path="/support" element={<SupportPage />} />
-              <Route path="/forms/:slug" element={<PublicFormPage />} />
-              <Route path="/partnerships/apply" element={<PartnershipApplyPage />} />
-              <Route path="/certificates/verify/:code" element={<CertificateVerifyPage />} />
-              <Route path="/knowledge" element={<KnowledgeHubPage />} />
-              <Route path="/knowledge/:slug" element={<KnowledgeArticlePublicPage />} />
-              <Route path="/401" element={<UnauthorizedPage />} />
-              <Route path="/403" element={<ForbiddenPage />} />
-              <Route path="/404" element={<NotFound />} />
-              <Route path="/500" element={<ServerErrorPage />} />
-              {/* 404 inside public layout so Navbar + Footer are visible */}
               <Route path="*" element={<NotFound />} />
+
+              <Route path="/courses" element={<Suspense fallback={<RouteFallback />}><Courses /></Suspense>} />
+              <Route path="/courses/:slug" element={<Suspense fallback={<RouteFallback />}><CourseDetails /></Suspense>} />
+              <Route path="/courses/:slug/register" element={<Suspense fallback={<RouteFallback />}><Register /></Suspense>} />
+              <Route path="/instructors" element={<Suspense fallback={<RouteFallback />}><Instructors /></Suspense>} />
+              <Route path="/instructors/:slug" element={<Suspense fallback={<RouteFallback />}><InstructorDetail /></Suspense>} />
+              <Route path="/about" element={<Suspense fallback={<RouteFallback />}><About /></Suspense>} />
+              <Route path="/contact" element={<Suspense fallback={<RouteFallback />}><Contact /></Suspense>} />
+              <Route path="/signup" element={<Suspense fallback={<RouteFallback />}><Signup /></Suspense>} />
+              <Route path="/register" element={<Suspense fallback={<RouteFallback />}><Register /></Suspense>} />
+              {import.meta.env.DEV && <Route path="/fake-payment/:paymentId" element={<Suspense fallback={<RouteFallback />}><FakePayment /></Suspense>} />}
+              <Route path="/submit-workshop" element={<Suspense fallback={<RouteFallback />}><SubmitWorkshop /></Suspense>} />
+              <Route path="/thank-you" element={<Suspense fallback={<RouteFallback />}><ThankYou /></Suspense>} />
+              <Route path="/departments"  element={<Suspense fallback={<RouteFallback />}><Departments /></Suspense>} />
+              <Route path="/themes"       element={<Navigate to="/tracks" replace />} />
+              <Route path="/tracks"       element={<Suspense fallback={<RouteFallback />}><Tracks /></Suspense>} />
+              <Route path="/paths"        element={<Suspense fallback={<RouteFallback />}><Paths /></Suspense>} />
+              <Route path="/programs"     element={<Suspense fallback={<RouteFallback />}><Programs /></Suspense>} />
+              <Route path="/platform"     element={<Suspense fallback={<RouteFallback />}><Platform /></Suspense>} />
+              <Route path="/team"         element={<Suspense fallback={<RouteFallback />}><Team /></Suspense>} />
+              <Route path="/ar/team"      element={<Suspense fallback={<RouteFallback />}><Team /></Suspense>} />
+              <Route path="/impact"       element={<Suspense fallback={<RouteFallback />}><Impact /></Suspense>} />
+              <Route path="/ar/impact"    element={<Suspense fallback={<RouteFallback />}><Impact /></Suspense>} />
+              <Route path="/partnerships" element={<Suspense fallback={<RouteFallback />}><Partnerships /></Suspense>} />
+              <Route path="/volunteer"    element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
+              <Route path="/support" element={<Suspense fallback={<RouteFallback />}><SupportPage /></Suspense>} />
+              <Route path="/forms/:slug" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
+              <Route path="/partnerships/apply" element={<Suspense fallback={<RouteFallback />}><PartnershipApplyPage /></Suspense>} />
+              <Route path="/certificates/verify/:code" element={<Suspense fallback={<RouteFallback />}><CertificateVerifyPage /></Suspense>} />
+              <Route path="/knowledge" element={<Suspense fallback={<RouteFallback />}><KnowledgeHubPage /></Suspense>} />
+              <Route path="/knowledge/:slug" element={<Suspense fallback={<RouteFallback />}><KnowledgeArticlePublicPage /></Suspense>} />
+              <Route path="/401" element={<Suspense fallback={<RouteFallback />}><UnauthorizedPage /></Suspense>} />
+              <Route path="/403" element={<Suspense fallback={<RouteFallback />}><ForbiddenPage /></Suspense>} />
+              <Route path="/404" element={<NotFound />} />
+              <Route path="/500" element={<Suspense fallback={<RouteFallback />}><ServerErrorPage /></Suspense>} />
             </Route>
 
             {/* ── Protected dashboard routes — sidebar + topbar layout ── */}
@@ -258,20 +280,13 @@ function App() {
                   <Route path="/dashboard" element={<RoleRedirect />} />
                   <Route path="/dashboard/super-admin" element={<SuperAdminOverviewPage />} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
-                  {/* Super Admin CRUD — صفحة فريدة لكل كيان؛ إعادة التوجيه المعروف قديمًا */}
                   <Route
                     path="/dashboard/super-admin/crud/partnerships"
                     element={<Navigate to="/dashboard/super-admin/crud/partners" replace />}
                   />
                   <Route path="/dashboard/super-admin/crud/users/new" element={<Navigate to="/dashboard/super-admin/crud/users" replace />} />
-                  <Route
-                    path="/dashboard/super-admin/crud/users/:id/edit"
-                    element={<Navigate to="/dashboard/super-admin/crud/users" replace />}
-                  />
-                  <Route
-                    path="/dashboard/super-admin/crud/users/:id"
-                    element={<Navigate to="/dashboard/super-admin/crud/users" replace />}
-                  />
+                  <Route path="/dashboard/super-admin/crud/users/:id/edit" element={<Navigate to="/dashboard/super-admin/crud/users" replace />} />
+                  <Route path="/dashboard/super-admin/crud/users/:id" element={<Navigate to="/dashboard/super-admin/crud/users" replace />} />
 
                   <Route path="/dashboard/super-admin/crud/users" element={<UsersManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/roles" element={<RolesPermissionsPage />} />
@@ -299,10 +314,7 @@ function App() {
                   <Route path="/dashboard/student/available-courses" element={<StudentAvailableCoursesPage />} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
                   <Route path="/dashboard/instructor/courses" element={<InstructorAssignedCoursesPage />} />
-                  <Route
-                    path="/dashboard/instructor/courses/:courseId/content"
-                    element={<CourseContentManagerPage />}
-                  />
+                  <Route path="/dashboard/instructor/courses/:courseId/content" element={<CourseContentManagerPage />} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
@@ -340,10 +352,7 @@ function App() {
 
                   <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />
                   <Route path="/dashboard/profile" element={<ProfilePage />} />
-                  <Route
-                    path="/dashboard/settings"
-                    element={<Navigate to="/dashboard/settings/notifications" replace />}
-                  />
+                  <Route path="/dashboard/settings" element={<Navigate to="/dashboard/settings/notifications" replace />} />
                   <Route path="/dashboard/settings/notifications" element={<NotificationPreferencesPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
@@ -358,10 +367,7 @@ function App() {
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
                   <Route path="/dashboard/courses/:courseId/content" element={<CourseContentManagerPage />} />
-                  <Route
-                    path="/dashboard/admin/lms/courses/:courseId/content"
-                    element={<CourseContentManagerPage />}
-                  />
+                  <Route path="/dashboard/admin/lms/courses/:courseId/content" element={<CourseContentManagerPage />} />
                   <Route path="/dashboard/lessons/:lessonId" element={<LessonPlayerPage />} />
                   <Route path="/dashboard/quizzes/:quizId" element={<QuizTakePage />} />
 
