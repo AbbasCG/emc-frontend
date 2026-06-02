@@ -429,7 +429,7 @@ export default function StudentCourseLearnPage() {
                 <div className="flex h-[4.75rem] w-[4.75rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/12 ring-1 ring-white/20">
                   {coverUrl ?
                     <img src={coverUrl} alt="" className="h-full w-full object-cover" draggable={false} />
-                  : <img src={logo} alt="" className="h-12 w-auto opacity-92" draggable={false} />}
+                  : <img src={logo} alt="" className="h-12 w-auto opacity-92" width={160} height={48} loading="lazy" draggable={false} />}
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   <h1 className="text-[1.65rem] font-black leading-snug text-white sm:text-[2rem]">{courseTitle}</h1>

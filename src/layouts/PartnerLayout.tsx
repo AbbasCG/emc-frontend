@@ -49,7 +49,7 @@ export default function PartnerLayout() {
       >
         <div className="flex h-16 items-center justify-between px-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="EMC" className="h-9 w-auto brightness-0 invert" />
+            <img src={logo} alt="EMC" className="h-9 w-auto brightness-0 invert" width={160} height={36} loading="eager" />
           </Link>
           <button
             type="button"

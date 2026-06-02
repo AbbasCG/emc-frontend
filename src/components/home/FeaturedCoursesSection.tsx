@@ -66,11 +66,17 @@ export default function FeaturedCoursesSection() {
             ))}
           </div>
         ) : courses.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <motion.div
+            className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
+            variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {courses.map((course, i) => (
               <HomeCourseCard key={course.id} course={course} index={i} />
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 rounded-[1.5rem] border border-dashed border-deepBlue/[0.12] bg-emcBg py-20 text-center">
             <BookOpen size={48} className="text-customBlue/35" aria-hidden="true" />

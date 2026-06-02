@@ -9,7 +9,11 @@
       "Bash(ls D:/xampp/htdocs/emc-backend/app/Http/Controllers/Api/ 2>&1 | head -30)",
       "Read(//d/xampp/htdocs/emc-backend/app/Http/Controllers/**)",
       "Bash(grep -n \"health\\\\|Health\" D:/xampp/htdocs/emc-backend/routes/api.php 2>&1 | head -20)",
-      "Read(//d/xampp/htdocs/emc-backend/routes/**)"
+      "Read(//d/xampp/htdocs/emc-backend/routes/**)",
+      "Bash(npm run *)",
+      "Bash(grep -v \"import.meta.env.DEV\\\\|if.*DEV\\\\|DEV.*console\\\\|//.*console\")",
+      "Bash(npm test *)",
+      "Bash(grep -v \"import.meta.env.DEV\\\\|if.*DEV\\\\|DEV.*&&\\\\|\\\\!import.meta\\\\|//.*console\\\\|\\\\.test\\\\.\\\\|setup\\\\.ts\")"
     ]
   }
 }

@@ -1,219 +1,288 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import {
-  ArrowLeft,
-  BookOpen,
-  Cpu,
-  Gauge,
-  Layers,
-  Sparkles,
-  Users,
-  Video,
-} from 'lucide-react'
-import { fadeUp } from '@/utils/animations'
+import { motion, useReducedMotion } from 'framer-motion'
+import { ArrowLeft } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 
-const fadeOrchestra = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.06, delayChildren: 0.08 },
-  },
+// ── Orbital ecosystem visual ──────────────────────────────────────────────────
+
+const ORBIT_ITEMS = [
+  { label: 'ورش', angle: 0, r: 120, color: '#2691C2', size: 42 },
+  { label: 'دورات', angle: 72, r: 140, color: '#EC943C', size: 46 },
+  { label: 'مسارات', angle: 144, r: 128, color: '#22334A', size: 44 },
+  { label: 'ذكاء اصطناعي', angle: 216, r: 138, color: '#2691C2', size: 50 },
+  { label: 'مجتمع', angle: 288, r: 118, color: '#EC943C', size: 40 },
+] as const
+
+function OrbitalVisual() {
+  const shouldReduce = useReducedMotion()
+  return (
+    <div className="relative flex h-[340px] w-[340px] items-center justify-center sm:h-[420px] sm:w-[420px] lg:h-[480px] lg:w-[480px]">
+      {/* Orbit ring */}
+      <div
+        aria-hidden
+        className="absolute inset-0 rounded-full border border-white/[0.08]"
+        style={{ margin: '32px' }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 rounded-full border border-white/[0.04]"
+        style={{ margin: '62px' }}
+      />
+
+      {/* Glow core */}
+      <motion.div
+        aria-hidden
+        animate={shouldReduce ? {} : { scale: [1, 1.12, 1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute h-32 w-32 rounded-full bg-customBlue/30 blur-3xl"
+      />
+
+      {/* Center EMC badge */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.7 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.3 }}
+        className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_40px_rgba(38,145,194,0.35)] backdrop-blur-xl"
+      >
+        <span className="font-latin text-lg font-black tracking-widest text-white">EMC</span>
+        <span className="mt-0.5 text-[9px] font-black tracking-widest text-white/50">PLATFORM</span>
+      </motion.div>
+
+      {/* Orbiting items */}
+      {ORBIT_ITEMS.map((item, i) => {
+        const rad = (item.angle * Math.PI) / 180
+        const cx = Math.cos(rad) * item.r
+        const cy = Math.sin(rad) * item.r
+        return (
+          <motion.div
+            key={item.label}
+            aria-hidden
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 + i * 0.1, ease: [0.22, 0.61, 0.36, 1] }}
+            style={{ left: `calc(50% + ${cx}px)`, top: `calc(50% + ${cy}px)` }}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+          >
+            <motion.div
+              animate={shouldReduce ? {} : { y: [0, -6, 0] }}
+              transition={{ duration: 3 + i * 0.7, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+              className="flex items-center justify-center rounded-2xl border border-white/15 bg-white/[0.09] px-3 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.25)] backdrop-blur-md"
+              style={{ minWidth: `${item.size + 18}px` }}
+            >
+              <span className="whitespace-nowrap text-[11px] font-black text-white/90">{item.label}</span>
+            </motion.div>
+          </motion.div>
+        )
+      })}
+
+      {/* Rotating orbit trace */}
+      <motion.div
+        aria-hidden
+        animate={shouldReduce ? {} : { rotate: 360 }}
+        transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+        className="absolute inset-8"
+      >
+        <div
+          className="h-full w-full rounded-full"
+          style={{
+            background: 'conic-gradient(from 0deg, transparent 80%, rgba(38,145,194,0.4) 90%, transparent 100%)',
+          }}
+        />
+      </motion.div>
+    </div>
+  )
 }
 
-const staggerContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
+// ── Animated dot grid ─────────────────────────────────────────────────────────
+
+function DotGrid() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const frameRef = useRef<number>(0)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    function resize() {
+      if (!canvas) return
+      canvas.width = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    let t = 0
+    function draw() {
+      if (!canvas || !ctx) return
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      const spacing = 36
+      for (let x = 0; x < canvas.width; x += spacing) {
+        for (let y = 0; y < canvas.height; y += spacing) {
+          const wave = Math.sin(t * 0.8 + x * 0.015 + y * 0.015)
+          const alpha = (wave + 1) / 2 * 0.2 + 0.03
+          ctx.beginPath()
+          ctx.arc(x, y, 1.2, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(38, 145, 194, ${alpha})`
+          ctx.fill()
+        }
+      }
+      t += 0.018
+      frameRef.current = requestAnimationFrame(draw)
+    }
+    draw()
+
+    return () => {
+      cancelAnimationFrame(frameRef.current)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-60"
+    />
+  )
 }
 
-const staggerItem = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.42, ease: [0.22, 0.61, 0.36, 1] as const },
-  },
+// ── Stat pill ─────────────────────────────────────────────────────────────────
+
+function StatPill({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-md">
+      <span className="font-latin text-2xl font-black tabular-nums text-white" dir="ltr">{value}</span>
+      <span className="text-xs font-bold leading-4 text-white/55">{label}</span>
+    </div>
+  )
 }
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
 
 export default function HomeCinematicHero() {
   return (
-    <section className="relative isolate overflow-hidden bg-white pt-[4.75rem] lg:pt-[5.25rem]" dir="rtl">
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-emc-hero bg-cover" />
+    <section
+      dir="rtl"
+      className="relative isolate min-h-[100svh] overflow-hidden bg-deepBlue pt-[4.75rem] lg:pt-[5.25rem]"
+    >
+      {/* Canvas dot grid */}
+      <DotGrid />
+
+      {/* Ambient glow orbs */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.35] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.65)_0%,transparent_70%)]"
+        className="pointer-events-none absolute right-[-10%] top-[-5%] h-[42rem] w-[42rem] rounded-full bg-customBlue/[0.18] blur-[120px]"
       />
-      <div aria-hidden className="absolute right-[-18%] top-[8%] h-[min(52rem,90vw)] w-[min(52rem,90vw)] rounded-full bg-customBlue/[0.09] blur-3xl animate-soft-float" />
-      <div aria-hidden className="absolute left-[-12%] bottom-[5%] h-[min(42rem,85vw)] w-[min(42rem,85vw)] rounded-full bg-customOrange/[0.07] blur-3xl animate-soft-float [animation-delay:1.8s]" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-[-10%] left-[-5%] h-[32rem] w-[32rem] rounded-full bg-customOrange/[0.1] blur-[100px]"
+      />
+      {/* Gradient fade to bottom */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-deepBlue to-transparent"
+      />
 
-      <div className="relative mx-auto max-w-[1540px] px-4 pb-12 pt-10 sm:px-6 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:px-10 lg:pb-20 lg:pt-14">
+      <div className="relative mx-auto grid max-w-[1540px] items-center gap-10 px-4 pb-16 pt-12 sm:px-6 lg:min-h-[calc(100svh-5.25rem)] lg:grid-cols-[1fr_auto] lg:gap-8 lg:px-10 lg:pb-20">
+        {/* ── Text column ── */}
         <motion.div
-          variants={fadeOrchestra}
           initial="hidden"
           animate="visible"
-          className="flex flex-col justify-center text-right"
+          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          className="flex flex-col text-right"
         >
-          <motion.div variants={fadeUp} className="mb-6 flex flex-wrap items-center justify-end gap-3">
-            <span className="emc-eyebrow inline-flex items-center gap-2 rounded-full border border-customBlue/25 bg-white/90 px-4 py-2 text-[11px] shadow-emc-xs backdrop-blur-md">
-              <Cpu size={14} className="text-customBlue" aria-hidden />
-              LMS · AI · SaaS
-            </span>
-            <span className="rounded-full border border-deepBlue/10 bg-white/80 px-4 py-2 text-xs font-black text-foreground/85 backdrop-blur-md">
-              المركز التعليمي الرائد EMC
+          {/* Eyebrow badge */}
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
+            className="mb-8 flex justify-start"
+          >
+            <span className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.08] px-5 py-2.5 text-xs font-black tracking-wide text-white/80 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-customOrange" aria-hidden />
+              منصة تعليمية متكاملة · LMS · AI · مجتمع
             </span>
           </motion.div>
 
+          {/* Headline */}
           <motion.h1
-            variants={fadeUp}
-            className="font-display text-[2.35rem] font-black leading-[1.12] tracking-tight text-deepBlue sm:text-5xl lg:text-[3.45rem] xl:text-[3.75rem]"
+            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 0.61, 0.36, 1] } } }}
+            className="font-display text-[2.6rem] font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.8rem] xl:text-[4.2rem]"
           >
-            منصّة تشغيل تعليمية مؤسّسية توحّد المتعلّم والمدرِّب وقيادة الجودة في تجربة رقمية واحدة على امتداد LMS و&nbsp;AI
+            ابنِ مسيرتك
+            <br />
+            <span
+              className="bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(135deg, #2691C2 0%, #5bb8e8 40%, #EC943C 100%)' }}
+            >
+              بمنهج يقود للعمق
+            </span>
+            <br />
+            لا مجرد محتوى
           </motion.h1>
 
+          {/* Subheadline */}
           <motion.p
-            variants={fadeUp}
-            className="mx-auto mr-0 mt-7 max-w-xl text-lg font-medium leading-9 text-foreground/75 lg:max-w-none lg:text-xl lg:leading-[2.1rem]"
+            variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } } }}
+            className="mt-7 max-w-lg text-lg font-medium leading-9 text-white/60 lg:text-xl"
           >
-            منصّة EMC تجمع المحتوى، الجلسات، التقييم، وتقارير الأداء — بهوية عربية واضحة ومزج تقني احترافي مع بنيتكم الحالية،
-            دون إعادة اختراع عجلة تشغيلكم.
+            ورش تنفيذية، دورات معتمدة، مسارات متكاملة — بإشراف مدربين متخصصين ومنصة LMS احترافية تتابع كل خطوة.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="mt-10 flex flex-wrap justify-end gap-4">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          {/* CTAs */}
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
+            className="mt-10 flex flex-wrap justify-start gap-3"
+          >
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-2xl bg-accent-gradient px-9 py-4 text-base font-extrabold text-white shadow-emc-glow-accent transition-all duration-300 hover:shadow-[0_28px_52px_-14px_rgba(236,148,60,0.52)]"
+                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(38,145,194,0.6)] transition-all duration-300 hover:bg-[#1e7dab] hover:shadow-[0_24px_50px_-14px_rgba(38,145,194,0.7)]"
               >
-                <span aria-hidden className="absolute inset-0 bg-emc-shimmer opacity-0 transition-opacity duration-700 group-hover:animate-shimmer group-hover:opacity-40" />
-                استكشف المسارات والدورات
-                <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-1" />
+                <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
+                استكشف البرامج والمسارات
+                <ArrowLeft size={19} className="transition-transform group-hover:-translate-x-1" aria-hidden />
               </Link>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 rounded-2xl border border-deepBlue/[0.12] bg-white/95 px-8 py-4 text-base font-extrabold text-deepBlue shadow-emc-sm backdrop-blur-md transition-all hover:border-customBlue/35 hover:shadow-emc-md"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.08] px-7 py-4 text-base font-extrabold text-white backdrop-blur-md transition-all hover:border-white/30 hover:bg-white/[0.14]"
               >
-                إنشاء حساب
+                إنشاء حساب مجاني
               </Link>
             </motion.div>
-            <Link
-              to="/contact"
-              className="inline-flex items-center px-2 py-4 text-sm font-black text-customBlue underline-offset-8 transition hover:text-deepBlue hover:underline"
-            >
-              استشارة للمؤسسات
-            </Link>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="mt-12 flex flex-wrap justify-end gap-6 border-t border-deepBlue/[0.06] pt-10">
-            {[
-              { Icon: Users, label: 'مجتمع متعلم', sub: 'طلاب · مهنيون · شركاء' },
-              { Icon: Gauge, label: 'أداء قابل للقياس', sub: 'تحليلات وتقارير' },
-              { Icon: Video, label: 'ورش مباشرة', sub: 'جداول ذكية' },
-            ].map(({ Icon, label, sub }) => (
-              <div key={label} className="flex items-center gap-3 text-right">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-customBlue/10 text-customBlue ring-1 ring-customBlue/15">
-                  <Icon size={22} strokeWidth={2} aria-hidden />
-                </span>
-                <div>
-                  <p className="text-sm font-black text-deepBlue">{label}</p>
-                  <p className="text-xs font-semibold text-foreground/55">{sub}</p>
-                </div>
-              </div>
-            ))}
+          {/* Stats row */}
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.1 } } }}
+            className="mt-12 flex flex-wrap justify-start gap-3 border-t border-white/[0.08] pt-10"
+          >
+            <StatPill value="+850" label="متعلّم" />
+            <StatPill value="+420" label="خريج معتمد" />
+            <StatPill value="+95" label="ورشة مباشرة" />
+            <StatPill value="+32" label="مسار ودورة" />
           </motion.div>
         </motion.div>
 
+        {/* ── Orbital visual column ── */}
         <motion.div
-          initial={{ opacity: 0, y: 28, rotateX: 8 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
-          transition={{ duration: 0.85, ease: [0.22, 0.61, 0.36, 1] }}
-          style={{ perspective: '1200px' }}
-          className="relative mt-14 lg:mt-8"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: [0.22, 0.61, 0.36, 1], delay: 0.2 }}
+          className="hidden justify-center lg:flex"
+          aria-hidden
         >
-          <div aria-hidden className="absolute inset-[-8%] rounded-[2rem] bg-gradient-to-bl from-customBlue/[0.12] via-transparent to-customOrange/[0.1] blur-2xl lg:rounded-[2.5rem]" />
-          <div className="relative overflow-hidden rounded-[1.85rem] border border-deepBlue/[0.08] bg-white/90 shadow-emc-lg ring-1 ring-white backdrop-blur-2xl">
-            <div className="flex items-center justify-between border-b border-deepBlue/[0.06] bg-emcBg/80 px-5 py-3.5">
-              <div className="flex gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-customBlue/80 ring-1 ring-customBlue/30" />
-                <span className="h-2.5 w-2.5 rounded-full bg-customOrange/85 ring-1 ring-customOrange/35" />
-                <span className="h-2.5 w-2.5 rounded-full bg-deepBlue/45" />
-              </div>
-              <span className="text-[10px] font-black tracking-wide text-foreground/50">معاينة لوحة التحكم</span>
-            </div>
-
-            <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="sm:col-span-2 grid gap-3 sm:grid-cols-3"
-              >
-                {[
-                  { t: 'تقدّم المتعلّم', v: '88%', c: 'text-customBlue' },
-                  { t: 'الجلسات القادمة', v: '6', c: 'text-customOrange' },
-                  { t: 'شهادات جاهزة', v: '32', c: 'text-deepBlue' },
-                ].map((k) => (
-                  <motion.div
-                    key={k.t}
-                    variants={staggerItem}
-                    className="rounded-2xl border border-deepBlue/[0.06] bg-white px-4 py-3 shadow-emc-xs"
-                  >
-                    <p className="text-[11px] font-bold text-foreground/50">{k.t}</p>
-                    <p className={`font-latin mt-1 text-2xl font-black tabular-nums tracking-tight ${k.c}`} dir="ltr">
-                      {k.v}
-                    </p>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              <div className="rounded-2xl border border-deepBlue/[0.06] bg-gradient-to-br from-brand-50/80 to-white p-4 sm:col-span-2">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-black text-deepBlue">المسارات النشطة</p>
-                  <Layers size={18} className="text-customBlue" aria-hidden />
-                </div>
-                <div className="space-y-2">
-                  {['ذكاء اصطناعي تطبيقي', 'تحليلات البيانات', 'تمكين أكاديمي'].map((row) => (
-                    <div
-                      key={row}
-                      className="flex items-center justify-between rounded-xl border border-white/60 bg-white/90 px-3 py-2.5 text-sm font-bold text-deepBlue shadow-sm"
-                    >
-                      {row}
-                      <span className="text-[10px] font-black text-customOrange">مباشر</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-deepBlue/[0.06] bg-deepBlue p-4 text-white sm:col-span-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold text-white/60">ورشة جماعية</p>
-                    <p className="mt-1 text-sm font-black leading-relaxed">أتمتة سير العمل بالذكاء الاصطناعي</p>
-                  </div>
-                  <BookOpen className="shrink-0 text-customOrange" size={22} />
-                </div>
-                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-l from-customOrange to-customBlue"
-                    initial={{ width: '12%' }}
-                    animate={{ width: '72%' }}
-                    transition={{ duration: 1.4, delay: 0.6, ease: [0.22, 0.61, 0.36, 1] }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <motion.div
-            aria-hidden
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -left-4 top-1/4 hidden rounded-2xl border border-customBlue/20 bg-white/95 px-4 py-3 shadow-emc-md lg:flex"
-          >
-            <Sparkles className="text-customOrange" size={22} />
-          </motion.div>
+          <OrbitalVisual />
         </motion.div>
       </div>
+
+      {/* Bottom edge gradient */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-l from-transparent via-customBlue/30 to-transparent"
+      />
     </section>
   )
 }

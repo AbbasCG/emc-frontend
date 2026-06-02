@@ -12,7 +12,7 @@ export default function CertificateVerificationResult({ result }: { result: Cert
       className="mx-auto max-w-lg rounded-[1.35rem] bg-white p-8 shadow-2xl ring-1 ring-deepBlue/[0.08]"
     >
       <div className="flex flex-col items-center text-center">
-        <img src={logo} alt="EMC" className="h-12 w-auto object-contain" />
+        <img src={logo} alt="EMC" className="h-12 w-auto object-contain" width={160} height={48} loading="lazy" />
         {result.valid ? (
           <BadgeCheck className="mt-6 text-emerald-600" size={48} />
         ) : (

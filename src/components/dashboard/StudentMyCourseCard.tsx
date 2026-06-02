@@ -81,7 +81,7 @@ export default function StudentMyCourseCard({
             aria-hidden
             className="absolute inset-0 bg-gradient-to-br from-deepBlue via-deepBlue to-customBlue flex items-center justify-center"
           >
-            <img src={logo} alt="" className="h-16 w-auto opacity-92 drop-shadow-lg" draggable={false} />
+            <img src={logo} alt="" className="h-16 w-auto opacity-92 drop-shadow-lg" width={160} height={64} loading="lazy" draggable={false} />
           </div>
         : <img
             src={imageCandidates[srcIndex] ?? logo}

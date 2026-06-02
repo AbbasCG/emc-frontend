@@ -1,87 +1,162 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, HelpCircle } from 'lucide-react'
-import SectionHeader from '@/components/sections/SectionHeader'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, Plus } from 'lucide-react'
 
 const faqs = [
   {
     q: 'هل EMC منصة دورات فقط؟',
-    a: 'لا. EMC هي منظومة تشغيل تعليمية تجمع بين الموقع العام، إدارة البرامج، التسجيل، والمسارات التعليمية — مع أساس قوي لتوسيع نظام إدارة التعلم لاحقاً.',
+    a: 'لا. EMC منظومة تشغيل تعليمية متكاملة تجمع بين إدارة البرامج، التسجيل، المسارات التعليمية، شهادات رقمية، وورش مباشرة — مع نظام LMS احترافي مدمج.',
   },
   {
-    q: 'كيف يتم التسجيل في الدورة المدفوعة؟',
-    a: 'تختار الدورة ثم تكمل البيانات وتختار مزود الدفع. في بيئة التطوير يمكنك تجربة الدفع التجريبي من صفحة محاكاة آمنة قبل ربط بوابات الدفع المعتمدة في بيئة الإنتاج.',
+    q: 'كيف يتم التسجيل في دورة مدفوعة؟',
+    a: 'تختار الدورة، تكمل بياناتك، وتختار مزود الدفع المناسب. العملية مبسّطة وتأخذ دقائق — وتحصل على تأكيد فوري بعد إتمام الدفع.',
   },
   {
     q: 'هل يمكن للمؤسسات طلب ورشة مخصصة؟',
-    a: 'نعم — استخدم نموذج «تقديم ورشة» لإرسال التفاصيل، وسيتواصل الفريق بعد المراجعة الداخلية.',
+    a: 'نعم — استخدم نموذج «تقديم ورشة» لإرسال التفاصيل. يتواصل الفريق بعد المراجعة الداخلية لتصميم البرنامج المناسب لمؤسستك.',
   },
   {
-    q: 'ما الدورات المتاحة حالياً؟',
-    a: 'يُعرض محتوى البرامج مباشرةً من لوحة الإدارة عبر واجهة البرمجة. إذا لم يكن الخادم متصلاً، تُعرض الواجهة حالة فارغة واضحة بدل بيانات وهمية.',
+    q: 'من يستفيد من برامج EMC؟',
+    a: 'طلاب جامعيون، خريجون، محترفون في مسيرة التطوير، رواد أعمال، فرق مؤسسية — أي شخص يريد بناء مهارة حقيقية قابلة للتطبيق.',
   },
   {
     q: 'كيف أنشئ حساباً كطالب؟',
-    a: 'من صفحة «إنشاء حساب» أدخل بياناتك ثم انتقل إلى لوحة المتعلّم لمتابعة التسجيلات والجلسات.',
+    a: 'من صفحة «إنشاء حساب» أدخل بياناتك ثم انتقل إلى لوحة المتعلّم لمتابعة التسجيلات والجلسات والمواد — كل شيء في مكان واحد.',
   },
-]
+] as const
 
 export default function HomeFaqSection() {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <section className="border-y border-deepBlue/[0.05] bg-white px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <SectionHeader
-          align="right"
-          className="!mr-0 !text-right"
-          eyebrow="أسئلة شائعة"
-          title="كل ما تحتاج معرفته قبل البدء"
-          description="إجابات موجزة حول التسجيل، الورش، وطبيعة منظومة EMC الرقمية."
-        />
+    <section
+      dir="rtl"
+      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f4f7fb] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+    >
+      {/* Decorative blobs */}
+      <div aria-hidden className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-customBlue/[0.07] blur-[80px]" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-10 -left-10 h-56 w-56 rounded-full bg-customOrange/[0.06] blur-[60px]" />
 
-        <div className="mt-10 space-y-3">
-          {faqs.map((item, i) => {
-            const isOpen = open === i
-            return (
-              <div
-                key={item.q}
-                className="overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-white shadow-[0_16px_40px_-28px_rgba(15,42,67,0.2)] ring-1 ring-white/80"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center gap-3 px-5 py-4 text-right transition hover:bg-emcBg/80"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-customBlue/[0.08] text-customBlue ring-1 ring-customBlue/15">
-                    <HelpCircle size={20} />
+      <div className="relative mx-auto max-w-[1540px]">
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.5fr] lg:gap-20">
+
+          {/* Left column — section info */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.55 }}
+            className="text-right lg:sticky lg:top-28 lg:self-start"
+          >
+            <p className="text-xs font-black tracking-widest text-customBlue uppercase">أسئلة شائعة</p>
+            <h2 className="mt-4 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.5rem]">
+              كل ما تحتاج<br className="hidden sm:block" />
+              معرفته قبل البدء
+            </h2>
+            <p className="mt-5 text-base font-medium leading-8 text-foreground/60">
+              إجابات واضحة عن التسجيل، البرامج، وطبيعة تجربة التعلّم في منظومة EMC.
+            </p>
+
+            {/* Trust bullets */}
+            <ul className="mt-8 space-y-3.5">
+              {[
+                'منصة لجميع مستويات الخبرة',
+                'دعم مباشر باللغة العربية',
+                'شهادات معتمدة قابلة للتحقق',
+              ].map((item) => (
+                <li key={item} className="flex items-center justify-start gap-3 text-sm font-semibold text-foreground/65">
+                  {item}
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-customBlue/15">
+                    <span aria-hidden className="h-2 w-2 rounded-full bg-customBlue" />
                   </span>
-                  <span className="flex-1 text-sm font-black leading-relaxed text-deepBlue">{item.q}</span>
-                  <ChevronDown
-                    size={20}
-                    className={['shrink-0 text-deepBlue/40 transition-transform', isOpen ? '-rotate-180' : ''].join(
-                      ' ',
-                    )}
-                  />
-                </button>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.28 }}
-                      className="border-t border-deepBlue/[0.06]"
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-10">
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 text-sm font-black text-customBlue underline-offset-4 hover:underline"
+              >
+                سؤال آخر؟ تواصل معنا
+                <ArrowLeft size={15} aria-hidden />
+              </Link>
+            </div>
+          </motion.div>
+
+          {/* Right column — accordion */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.55, delay: 0.1 }}
+            className="space-y-3"
+          >
+            {faqs.map((item, i) => {
+              const isOpen = open === i
+              return (
+                <div
+                  key={item.q}
+                  className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
+                    isOpen
+                      ? 'border-customBlue/20 bg-white shadow-emc-md'
+                      : 'border-deepBlue/[0.06] bg-white/70 shadow-emc-xs hover:border-deepBlue/10 hover:bg-white'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    className="flex w-full items-center gap-4 px-6 py-5 text-right"
+                    aria-expanded={isOpen}
+                  >
+                    {/* Number */}
+                    <span
+                      aria-hidden
+                      className={`font-latin shrink-0 text-xs font-black tabular-nums transition-colors ${
+                        isOpen ? 'text-customBlue' : 'text-deepBlue/20'
+                      }`}
                     >
-                      <p className="px-5 pb-5 pt-3 text-right text-sm font-medium leading-8 text-deepBlue/72">
-                        {item.a}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )
-          })}
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {/* Question */}
+                    <span className={`flex-1 text-right text-base font-black leading-relaxed transition-colors ${
+                      isOpen ? 'text-customBlue' : 'text-deepBlue'
+                    }`}>
+                      {item.q}
+                    </span>
+                    {/* Toggle icon */}
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+                        isOpen
+                          ? 'rotate-45 border-customBlue/30 bg-customBlue/10 text-customBlue'
+                          : 'border-deepBlue/10 bg-transparent text-deepBlue/40'
+                      }`}
+                      aria-hidden
+                    >
+                      <Plus size={16} />
+                    </span>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
+                        className="overflow-hidden border-t border-customBlue/10"
+                      >
+                        <p className="px-6 pb-6 pt-4 text-right text-[15px] font-medium leading-8 text-foreground/65">
+                          {item.a}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )
+            })}
+          </motion.div>
         </div>
       </div>
     </section>

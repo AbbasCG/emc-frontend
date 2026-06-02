@@ -166,7 +166,7 @@ export default function Navbar() {
           to="/"
           className="relative z-20 flex shrink-0 items-center rounded-2xl p-1 ring-deepBlue/0 transition hover:bg-emcBg/90 hover:ring-1 hover:ring-customBlue/18"
         >
-          <img src={logo} alt="EMC" className="h-9 w-auto sm:h-10 lg:h-[2.5rem]" />
+          <img src={logo} alt="EMC" className="h-9 w-auto sm:h-10 lg:h-[2.5rem]" width={160} height={40} loading="eager" fetchPriority="high" />
         </Link>
 
         <nav

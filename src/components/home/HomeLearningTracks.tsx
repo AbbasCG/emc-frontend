@@ -5,69 +5,96 @@ import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
 const tracks = [
   {
-    title: 'مسار مهندس ذكاء اصطناعي',
-    desc: 'مشاريع واقعية، MLOps، هندسة البرومت، وتسليم منتج ذكاء اصطناعي عملي للسوق.',
-    href: '/courses',
-    accent: 'from-customBlue/[0.12] to-accent-50/70',
+    num: '01',
+    title: 'مهندس ذكاء اصطناعي',
+    sub: 'AI Engineer',
+    desc: 'من الصفر إلى MLOps — هندسة نماذج حقيقية، بيئات إنتاج، وتسليم منتج ذكاء اصطناعي قابل للنشر.',
+    pills: ['PyTorch & TensorFlow', 'MLOps & Deployment', 'Prompt Engineering', 'LLM Applications'],
     icon: Brain,
+    accentBg: 'bg-customBlue',
+    featured: true,
+    href: '/courses',
   },
   {
-    title: 'مسار عالم بيانات',
-    desc: 'نمذجة، تعلّم الآلة، ومختبر تحليلي يعكس بيئة الفرق المنتِجة.',
-    href: '/courses',
-    accent: 'from-brand-50 to-customOrange/[0.08]',
+    num: '02',
+    title: 'عالم بيانات',
+    sub: 'Data Scientist',
+    desc: 'نمذجة، تعلّم آلة، وتحليل متقدم يعكس بيئة الفرق المنتجة في القطاعات الحقيقية.',
+    pills: ['Python & R', 'ML Algorithms', 'Data Pipelines', 'Model Validation'],
     icon: CircuitBoard,
+    accentBg: 'bg-customOrange',
+    featured: false,
+    href: '/courses',
   },
   {
-    title: 'مسار محلّل بيانات',
-    desc: 'قراءات لوحية، KPIs احترافية، واختبارات جودة لتقارير تُعرض للإدارات.',
-    href: '/courses',
-    accent: 'from-brand-50/90 to-deepBlue/[0.06]',
+    num: '03',
+    title: 'محلّل بيانات',
+    sub: 'Data Analyst',
+    desc: 'لوحات KPI، قراءة تحليلية، وإنتاج تقارير تُعرض على الإدارة وتُغيّر القرار.',
+    pills: ['SQL & BI Tools', 'Dashboarding', 'Statistics', 'Data Storytelling'],
     icon: LineChart,
+    accentBg: 'bg-deepBlue',
+    featured: false,
+    href: '/courses',
   },
   {
-    title: 'مسار أعمال الذكاء الاصطناعي',
-    desc: 'حوكمة، أخلاقيات، نماذج أعمال ذكاء اصطناعي، ودمج المعرفة داخل الشركات.',
-    href: '/courses',
-    accent: 'from-customOrange/[0.1] to-brand-50/80',
+    num: '04',
+    title: 'أعمال الذكاء الاصطناعي',
+    sub: 'AI Business',
+    desc: 'حوكمة، أخلاقيات، نماذج أعمال ذكاء اصطناعي، ودمجه داخل المؤسسات.',
+    pills: ['AI Strategy', 'Governance & Ethics', 'Change Management', 'ROI Measurement'],
     icon: Briefcase,
+    accentBg: 'bg-customBlue',
+    featured: false,
+    href: '/courses',
   },
   {
-    title: 'مسار التميز الأكاديمي',
-    desc: 'تصميم تعليمي عميق، تأهيل الأساتذة، وقياس تأثّر المتعلّم وفقّ معايير جودة دولية.',
-    href: '/courses',
-    accent: 'from-deepBlue/[0.08] to-brand-50',
+    num: '05',
+    title: 'التميز الأكاديمي',
+    sub: 'Academic Excellence',
+    desc: 'تصميم تعليمي متعمّق، تأهيل أكاديمي، وقياس تأثر المتعلّم وفق معايير جودة دولية.',
+    pills: ['Instructional Design', 'Quality Standards', 'Research Methods', 'Academic Writing'],
     icon: BadgeCheck,
+    accentBg: 'bg-customOrange',
+    featured: false,
+    href: '/courses',
   },
 ] as const
 
+// Static col-span classes for the 3-col grid:
+// Row 1: AI (2) + DataSci (1) = 3
+// Row 2: DataAnalyst (1) + AIBusiness (1) + Academic (1) = 3
+const colSpan = ['lg:col-span-2', 'lg:col-span-1', 'lg:col-span-1', 'lg:col-span-1', 'lg:col-span-1'] as const
+
 export default function HomeLearningTracks() {
   return (
-    <section id="tracks" className="scroll-mt-28 bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
+    <section id="tracks" dir="rtl" className="scroll-mt-28 bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
       <div className="mx-auto max-w-[1540px]">
-        <div className="flex flex-col justify-between gap-6 text-right lg:flex-row lg:items-end">
-          <div className="max-w-3xl space-y-4">
-            <p className="text-xs font-black text-customBlue">مجالات التعلّم العميق</p>
-            <h2 className="font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.75rem]">
-              مسارات تعلّم ثقيلة النتائج للاقتصاد الرقمي
+        {/* Header */}
+        <div className="mb-14 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-xs font-black tracking-widest text-customBlue uppercase">مسارات التعلّم</p>
+            <h2 className="font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.8rem]">
+              خمسة مسارات تُحوّل<br className="hidden sm:block" /> الطموح إلى مهارة قابلة للسوق
             </h2>
-            <p className="text-lg font-semibold leading-9 text-foreground/72">
-              نصمّم تجربة متكاملة: محتوى، تمارين، تقييم مستمر، وورش تنفيذ مع مدربين رائدين.
+            <p className="text-base font-semibold leading-8 text-foreground/65">
+              كل مسار مبني على منهجية تعليمية واضحة — محتوى، تمارين، تقييم، وورش تطبيقية مع مدربين متخصصين.
             </p>
           </div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="shrink-0">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} className="shrink-0">
             <Link
               to="/courses"
-              className="inline-flex items-center gap-2 rounded-full border border-deepBlue/[0.1] bg-white px-6 py-3 text-sm font-black text-deepBlue shadow-emc-sm backdrop-blur-sm transition-colors hover:border-customBlue/35"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-deepBlue/10 px-7 py-3.5 text-sm font-black text-deepBlue transition-all hover:border-customBlue/40 hover:text-customBlue"
             >
-              عرض كامل المسارات
-              <ArrowLeft size={17} aria-hidden />
+              عرض جميع المسارات
+              <ArrowLeft size={16} aria-hidden />
             </Link>
           </motion.div>
         </div>
 
+        {/* Cards — 3-col on desktop with featured first card spanning 2 cols */}
         <motion.div
-          className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-12"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -75,39 +102,46 @@ export default function HomeLearningTracks() {
         >
           {tracks.map((t, i) => {
             const Icon = t.icon
-            const featured = i === 0 || i === 3
             return (
               <motion.article
-                key={t.title}
+                key={t.num}
                 variants={staggerItem}
-                className={`group relative overflow-hidden rounded-[1.6rem] border border-deepBlue/[0.07] bg-white p-8 shadow-emc-sm backdrop-blur-sm transition-[transform,box-shadow] hover:-translate-y-1 hover:shadow-emc-md ${
-                  featured ? 'xl:col-span-7' : 'xl:col-span-5'
-                }`}
+                className={`group relative flex flex-col overflow-hidden rounded-[1.75rem] border border-deepBlue/[0.07] bg-white shadow-emc-sm ring-1 ring-deepBlue/[0.03] transition-all duration-300 hover:-translate-y-1 hover:shadow-emc-lg ${colSpan[i]}`}
               >
-                <div
-                  aria-hidden
-                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${t.accent}`}
-                />
-                <div className="relative flex h-full flex-col text-right">
-                  <div className="mb-6 flex items-start justify-between gap-4">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-emc-xs ring-1 ring-deepBlue/[0.05] transition-transform duration-300 group-hover:rotate-[-3deg] group-hover:scale-105">
-                      <Icon size={28} strokeWidth={2} className="text-customBlue" aria-hidden />
-                    </span>
-                    <Link
-                      to={t.href}
-                      className="text-[11px] font-black tracking-wide text-customOrange underline-offset-4 transition hover:text-deepBlue"
-                    >
-                      تفاصيل المسار
-                    </Link>
+                {/* Colored header band */}
+                <div className={`relative overflow-hidden px-6 pb-6 pt-6 ${t.accentBg}`}>
+                  <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/10" />
+                  <div aria-hidden className="pointer-events-none absolute -bottom-6 left-0 h-16 w-16 rounded-full bg-black/[0.08]" />
+                  <div className="relative flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-latin text-[10px] font-black tracking-widest text-white/60">{t.sub}</p>
+                      <h3 className={`mt-1.5 font-black leading-tight text-white ${t.featured ? 'text-2xl sm:text-3xl' : 'text-xl'}`}>
+                        {t.title}
+                      </h3>
+                    </div>
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-white transition-transform duration-300 group-hover:rotate-[-6deg] group-hover:scale-110">
+                      <Icon size={24} aria-hidden />
+                    </div>
                   </div>
-                  <h3 className="text-xl font-black text-deepBlue sm:text-2xl">{t.title}</h3>
-                  <p className="mt-4 flex-1 text-[15px] font-semibold leading-relaxed text-foreground/68">
-                    {t.desc}
-                  </p>
-                  <div className="mt-8 flex justify-end border-t border-deepBlue/[0.06] pt-6">
-                    <Link to={t.href} className="inline-flex items-center gap-2 text-sm font-black text-deepBlue">
-                      اعرف المحتوى والأهداف
-                      <ArrowLeft size={17} aria-hidden />
+                  <span aria-hidden className="absolute bottom-3 left-5 font-latin text-[5rem] font-black leading-none text-white/[0.07]">
+                    {t.num}
+                  </span>
+                </div>
+
+                {/* Body */}
+                <div className="flex flex-1 flex-col p-6">
+                  <p className="text-sm font-semibold leading-7 text-foreground/65">{t.desc}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {t.pills.map((pill) => (
+                      <span key={pill} className="rounded-lg border border-deepBlue/[0.08] bg-emcBg px-2.5 py-1 text-[10px] font-black text-foreground/60">
+                        {pill}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-auto pt-6">
+                    <Link to={t.href} className="group/link inline-flex items-center gap-1.5 text-xs font-black text-customBlue transition-all hover:gap-2.5">
+                      استعرض المنهج كاملاً
+                      <ArrowLeft size={14} className="transition-transform group-hover/link:-translate-x-1" aria-hidden />
                     </Link>
                   </div>
                 </div>

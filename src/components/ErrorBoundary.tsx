@@ -22,6 +22,20 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     if (import.meta.env.DEV) console.error('[ErrorBoundary]', error, info.componentStack)
+
+    // Report to Sentry when installed and DSN is set
+    if (import.meta.env.VITE_SENTRY_DSN) {
+      const pkg = '@sentry/react'
+      import(/* @vite-ignore */ pkg)
+        .then((S: Record<string, unknown>) => {
+          if (typeof S['captureException'] === 'function') {
+            ;(S['captureException'] as (e: unknown, ctx?: unknown) => void)(error, {
+              contexts: { react: { componentStack: info.componentStack } },
+            })
+          }
+        })
+        .catch(() => {})
+    }
   }
 
   handleReload = () => {

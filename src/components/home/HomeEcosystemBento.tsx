@@ -13,171 +13,311 @@ import {
 } from 'lucide-react'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
-const cells = [
+const capabilities = [
   {
+    id: 'lms',
     title: 'LMS موحّد للمسارات',
-    desc: 'جلسات، واجبات، تتبّع تقدّم، وتجربة متعلّم حديثة على قياس المؤسسة.',
+    desc: 'جلسات ذكية، واجبات تفاعلية، تتبّع تقدّم آني — تجربة متعلّم مبنية على بيانات حقيقية.',
     href: '/platform',
     icon: BookOpen,
-    span: 'md:col-span-2 md:row-span-2 lg:col-span-6 lg:row-span-2',
-    gradient: 'from-brand-50/95 via-white to-white',
-    featured: true as const,
+    color: '#2691C2',
+    featured: true,
   },
   {
+    id: 'certs',
     title: 'شهادات رقمية',
-    desc: 'إصدار موثّق، تتبّع، وربط بالإنجازات القابلة للتحقق.',
+    desc: 'إصدار موثّق قابل للتحقق الفوري، مربوط بالإنجاز الفعلي لكل مسار.',
     href: '/courses',
     icon: Award,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-customOrange/[0.08] to-white',
-    featured: false as const,
+    color: '#EC943C',
+    featured: false,
   },
   {
+    id: 'admin',
     title: 'لوحات إدارية',
-    desc: 'رؤية تشغيلية للبرامج، الفرق، والامتثال.',
+    desc: 'رؤية تشغيلية كاملة للبرامج والفرق والامتثال — جاهزة للعرض القيادي.',
     href: '/departments',
     icon: LayoutDashboard,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-deepBlue/[0.06] to-white',
-    featured: false as const,
+    color: '#2691C2',
+    featured: false,
   },
   {
+    id: 'portal',
     title: 'بوابة الطالب',
-    desc: 'تسجيلات، جداول، مواد، ومراجعات موحّدة.',
+    desc: 'تسجيل، جداول، مواد، واجبات — كل ما يحتاجه المتعلّم في مكان واحد.',
     href: '/dashboard',
     icon: UserRound,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-brand-50 to-white',
-    featured: false as const,
+    color: '#EC943C',
+    featured: false,
   },
   {
+    id: 'analytics',
     title: 'تحليلات وتقارير',
-    desc: 'مؤشرات أداء تعليمي جاهزة للعرض القيادي.',
+    desc: 'مؤشرات أداء تعليمي متقدمة — استخرج القرار من البيانات لا من التخمين.',
     href: '/impact',
     icon: BarChart3,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-customBlue/[0.07] to-white',
-    featured: false as const,
+    color: '#2691C2',
+    featured: false,
   },
   {
+    id: 'workshops',
     title: 'ورش مباشرة',
-    desc: 'تنسيق حضور، بث، وتسجيلات تلقائية.',
+    desc: 'تنسيق حضور، بث مباشر، وتسجيلات تلقائية — كل ورشة موثّقة ومتاحة.',
     href: '/submit-workshop',
     icon: Video,
-    span: 'md:col-span-1 lg:col-span-4',
-    gradient: 'from-accent-50/90 to-white',
-    featured: false as const,
+    color: '#EC943C',
+    featured: false,
   },
   {
-    title: 'تكاملات ذكاء اصطناعي',
-    desc: 'مساعد المعرفة، تلخيص المحتوى، وأتمتة خفيفة دون كسر الجودة.',
+    id: 'ai',
+    title: 'تكاملات الذكاء الاصطناعي',
+    desc: 'مساعد معرفة، تلخيص تلقائي، وتوصيات مخصصة لكل مسار متعلم.',
     href: '/platform',
     icon: Bot,
-    span: 'md:col-span-1 lg:col-span-4',
-    gradient: 'from-brand-50/80 to-accent-50/40',
-    featured: false as const,
+    color: '#2691C2',
+    featured: false,
   },
   {
+    id: 'knowledge',
     title: 'مجالات المعرفة',
-    desc: 'اثنا عشر محوراً تعريفياً مع روابط ذكية للبرامج.',
+    desc: 'اثنا عشر محوراً تعريفياً متصلاً بذكاء مع البرامج والمدربين والمخرجات.',
     href: '/tracks',
     icon: Sparkles,
-    span: 'md:col-span-2 lg:col-span-4',
-    gradient: 'from-deepBlue/[0.07] via-white to-brand-50/50',
-    featured: false as const,
+    color: '#EC943C',
+    featured: false,
   },
 ] as const
 
-export default function HomeEcosystemBento() {
-  return (
-    <section className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
-      <div aria-hidden className="pointer-events-none absolute -left-40 top-24 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.06] blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-customOrange/[0.07] blur-3xl" />
+type Cap = (typeof capabilities)[number]
 
-      <div className="relative mx-auto max-w-[1540px]">
-        <div className="mb-14 max-w-3xl text-right">
-          <p className="text-xs font-black text-customBlue">طبقة المنظومة الرقمية</p>
-          <h2 className="mt-3 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.65rem]">
-            منظومة EMC — من LMS إلى قرارات الجودة
-          </h2>
-          <p className="mt-5 text-lg font-semibold leading-9 text-foreground/72">
-            وحدات متكاملة تعمل كمنصّة SaaS تعليمية: هوية واحدة وجودة موحّدة وتكامل سلس مع فرقكم التقنية والتعليمية.
-          </p>
+function FeaturedCard({ c }: { c: Cap }) {
+  const Icon = c.icon
+  return (
+    <motion.article
+      variants={staggerItem}
+      whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
+      className="group relative col-span-1 row-span-2 flex flex-col overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] p-8 text-right backdrop-blur-md sm:col-span-2 lg:col-span-2 lg:row-span-2"
+    >
+      {/* Background glow on hover */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-[1.75rem] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: `radial-gradient(ellipse at top right, ${c.color}18, transparent 60%)` }}
+      />
+      {/* Top gradient line */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px rounded-t-[1.75rem]"
+        style={{ background: `linear-gradient(90deg, transparent, ${c.color}60, transparent)` }}
+      />
+
+      {/* Icon */}
+      <div
+        className="relative mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 transition-all duration-300 group-hover:scale-105 group-hover:border-white/20"
+        style={{ backgroundColor: `${c.color}20` }}
+      >
+        <Icon size={30} style={{ color: c.color }} aria-hidden />
+        {/* Icon glow */}
+        <div
+          aria-hidden
+          className="absolute inset-0 rounded-2xl blur-xl opacity-0 transition-opacity group-hover:opacity-60"
+          style={{ backgroundColor: c.color }}
+        />
+      </div>
+
+      <h3 className="relative text-2xl font-black text-white">{c.title}</h3>
+      <p className="relative mt-4 flex-1 text-[15px] font-medium leading-8 text-white/55">{c.desc}</p>
+
+      {/* Feature list */}
+      <ul className="relative mt-8 space-y-3">
+        {[
+          'تتبّع تقدّم الطلاب لحظياً',
+          'واجبات وتقييم متكامل',
+          'شهادات إتمام موثّقة',
+          'تكامل مع بوابات المدربين',
+        ].map((feat) => (
+          <li key={feat} className="flex items-center justify-start gap-3 text-sm font-semibold text-white/55">
+            {feat}
+            <span
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+              style={{ backgroundColor: `${c.color}20` }}
+              aria-hidden
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: c.color }} />
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        to={c.href}
+        className="relative mt-8 inline-flex items-center gap-2 self-start rounded-xl border border-white/10 px-5 py-2.5 text-sm font-black text-white/70 transition-all duration-200 hover:border-white/25 hover:text-white"
+      >
+        استعرض المنصة
+        <ArrowLeft size={15} aria-hidden />
+      </Link>
+    </motion.article>
+  )
+}
+
+function RegularCard({ c }: { c: Cap }) {
+  const Icon = c.icon
+  return (
+    <motion.article
+      variants={staggerItem}
+      whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
+      className="group relative flex flex-col overflow-hidden rounded-[1.6rem] border border-white/[0.07] bg-white/[0.03] p-6 text-right backdrop-blur-sm transition-colors duration-300 hover:border-white/[0.14] hover:bg-white/[0.06]"
+    >
+      {/* Glow on hover */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-[1.6rem] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: `radial-gradient(ellipse at top right, ${c.color}12, transparent 55%)` }}
+      />
+      {/* Top accent line */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px rounded-t-[1.6rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: `linear-gradient(90deg, transparent, ${c.color}50, transparent)` }}
+      />
+
+      <div className="relative flex flex-col flex-1">
+        {/* Icon */}
+        <div
+          className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 transition-all duration-300 group-hover:scale-[1.08] group-hover:border-white/20"
+          style={{ backgroundColor: `${c.color}18` }}
+        >
+          <Icon size={22} style={{ color: c.color }} aria-hidden />
         </div>
 
+        <h3 className="text-base font-black text-white">{c.title}</h3>
+        <p className="mt-2.5 flex-1 text-sm font-medium leading-7 text-white/45">{c.desc}</p>
+
+        <Link
+          to={c.href}
+          className="relative mt-5 inline-flex items-center gap-1.5 self-end text-xs font-black transition-all"
+          style={{ color: `${c.color}90` }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = c.color }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = `${c.color}90` }}
+        >
+          التفاصيل
+          <ArrowLeft size={13} aria-hidden />
+        </Link>
+      </div>
+    </motion.article>
+  )
+}
+
+export default function HomeEcosystemBento() {
+  const featured = capabilities[0]!
+  const rest = capabilities.slice(1)
+
+  return (
+    <section
+      dir="rtl"
+      className="relative overflow-hidden bg-[#0d1b2a] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+    >
+      {/* Ambient glows */}
+      <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-customOrange/[0.08] blur-[80px]" />
+
+      {/* Subtle grid overlay */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)`,
+          backgroundSize: '48px 48px',
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1540px]">
+        {/* Section header */}
         <motion.div
-          className="grid auto-rows-fr gap-4 md:grid-cols-2 lg:grid-cols-12"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
+          className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
+        >
+          <div className="text-right">
+            <p className="text-xs font-black tracking-widest text-customBlue uppercase">قدرات المنصة</p>
+            <h2 className="mt-4 font-display text-3xl font-black leading-tight text-white sm:text-4xl xl:text-[2.8rem]">
+              كل أداة تحتاجها —{' '}
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: 'linear-gradient(90deg, #2691C2 30%, #EC943C 100%)' }}
+              >
+                في منظومة واحدة
+              </span>
+            </h2>
+            <p className="mt-4 max-w-xl text-base font-medium leading-8 text-white/45">
+              وحدات متكاملة تعمل كمنصة SaaS تعليمية — هوية واحدة، جودة موحّدة، وتكامل تقني بلا احتكاك.
+            </p>
+          </div>
+          <Link
+            to="/platform"
+            className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-white/[0.1] bg-white/[0.06] px-6 py-3.5 text-sm font-black text-white/70 backdrop-blur-md transition-all hover:border-white/20 hover:text-white"
+          >
+            استعرض المنصة
+            <ArrowLeft size={15} aria-hidden />
+          </Link>
+        </motion.div>
+
+        {/* Bento grid */}
+        <motion.div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-[auto_auto]"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
         >
-          {cells.map((c) => {
-            const Icon = c.icon
-            return (
-              <motion.article
-                key={c.title}
-                variants={staggerItem}
-                whileHover={{ y: -4, transition: { type: 'spring', stiffness: 420, damping: 24 } }}
-                className={[
-                  'group relative flex flex-col overflow-hidden rounded-[1.55rem] border border-deepBlue/[0.07] bg-gradient-to-br p-7 text-right shadow-emc-sm ring-1 ring-white/70 backdrop-blur-sm transition-shadow hover:shadow-emc-md',
-                  c.span,
-                  c.gradient,
-                ].join(' ')}
-              >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(38,145,194,0.12),transparent_58%)] opacity-70" />
-                <div className="relative flex flex-1 flex-col">
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-customBlue shadow-emc-xs ring-1 ring-deepBlue/[0.05] transition-transform duration-300 group-hover:scale-105">
-                    <Icon size={24} strokeWidth={2.2} aria-hidden />
-                  </span>
-                  <h3 className={`mt-5 font-black text-deepBlue ${c.featured ? 'text-2xl sm:text-[1.65rem]' : 'text-xl'}`}>
-                    {c.title}
-                  </h3>
-                  <p className={`mt-3 flex-1 font-semibold leading-relaxed text-foreground/70 ${c.featured ? 'text-base lg:max-w-[94%]' : 'text-sm'}`}>
-                    {c.desc}
-                  </p>
-                  {c.featured ? (
-                    <div className="relative mt-8 overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white/90 p-4 shadow-emc-xs">
-                      <div className="mb-3 flex items-center justify-between text-xs font-black text-foreground/45">
-                        <span>معاينة مسار</span>
-                        <span className="text-[10px] font-black text-foreground/45">مؤشر آنٍ</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[72, 88, 64].map((n, idx) => (
-                          <div
-                            key={idx}
-                            className="rounded-xl border border-brand-100 bg-brand-50/60 px-2 py-2 text-center"
-                          >
-                            <p className="font-latin text-lg font-black tabular-nums text-customBlue">{n}%</p>
-                            <p className="mt-1 text-[10px] font-bold text-deepBlue/55">مؤشر {idx + 1}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <motion.div
-                        className="mt-3 h-2 overflow-hidden rounded-full bg-deepBlue/[0.06]"
-                        initial={false}
-                      >
-                        <motion.div
-                          className="h-full rounded-full bg-gradient-to-l from-customOrange to-customBlue"
-                          initial={{ width: '18%' }}
-                          whileInView={{ width: '81%' }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1.2, ease: [0.22, 0.61, 0.36, 1] }}
-                        />
-                      </motion.div>
+          {/* Featured card — spans 2 cols × 2 rows on large */}
+          <FeaturedCard c={featured} />
+
+          {/* Regular cards — 6 across remaining 2 cols */}
+          {rest.slice(0, 6).map((c) => (
+            <RegularCard key={c.id} c={c} />
+          ))}
+
+          {/* Last wide card — spans 2 cols on large */}
+          <motion.article
+            variants={staggerItem}
+            whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
+            className="group relative col-span-1 flex flex-col overflow-hidden rounded-[1.6rem] border border-white/[0.07] bg-white/[0.03] p-6 text-right backdrop-blur-sm transition-colors duration-300 hover:border-white/[0.14] hover:bg-white/[0.06] sm:col-span-2"
+          >
+            {(() => {
+              const c = rest[6]!
+              const Icon = c.icon
+              return (
+                <>
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-[1.6rem] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                    style={{ background: `radial-gradient(ellipse at top right, ${c.color}12, transparent 55%)` }}
+                  />
+                  <div className="relative flex items-start gap-5">
+                    <div
+                      className="mb-5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 transition-all duration-300 group-hover:scale-[1.08]"
+                      style={{ backgroundColor: `${c.color}18` }}
+                    >
+                      <Icon size={22} style={{ color: c.color }} aria-hidden />
                     </div>
-                  ) : null}
-                  <Link
-                    to={c.href}
-                    className="relative mt-6 inline-flex items-center gap-2 self-end text-sm font-black text-customBlue transition hover:text-deepBlue"
-                  >
-                    التفاصيل
-                    <ArrowLeft size={16} strokeWidth={2.5} aria-hidden />
-                  </Link>
-                </div>
-              </motion.article>
-            )
-          })}
+                    <div className="flex-1">
+                      <h3 className="text-base font-black text-white">{c.title}</h3>
+                      <p className="mt-2 text-sm font-medium leading-7 text-white/45">{c.desc}</p>
+                    </div>
+                    <Link
+                      to={c.href}
+                      className="shrink-0 self-center text-xs font-black text-white/40 transition hover:text-white"
+                    >
+                      <ArrowLeft size={18} aria-hidden />
+                    </Link>
+                  </div>
+                </>
+              )
+            })()}
+          </motion.article>
         </motion.div>
       </div>
     </section>

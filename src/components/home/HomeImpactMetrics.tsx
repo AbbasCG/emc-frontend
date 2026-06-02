@@ -1,95 +1,76 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { BookOpen, GraduationCap, Users, Video } from 'lucide-react'
-import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
 const metrics = [
-  { raw: '+850', label: 'متعلّم في المنظومة', icon: Users },
-  { raw: '+32', label: 'مسار وبرنامج مكثّف', icon: BookOpen },
-  { raw: '+420', label: 'خريج معتمد', icon: GraduationCap },
-  { raw: '+95', label: 'ورشة وتجربة مباشرة', icon: Video },
+  { raw: 850, suffix: '+', label: 'متعلّم نشط', sub: 'في المنظومة الآن' },
+  { raw: 420, suffix: '+', label: 'خريج معتمد', sub: 'شهادات موثّقة' },
+  { raw: 95, suffix: '+', label: 'ورشة تنفيذية', sub: 'حضورية وعن بُعد' },
+  { raw: 32, suffix: '+', label: 'مسار وبرنامج', sub: 'متخصص ومنظّم' },
 ] as const
 
-function AnimatedFigure({ value }: { value: string }) {
+function Counter({ target, suffix }: { target: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.45 })
-  const [display, setDisplay] = useState(0)
-  const digits = value.replace(/\D/g, '')
-  const numeric = digits ? parseInt(digits, 10) : NaN
-  const animate = !Number.isNaN(numeric)
+  const inView = useInView(ref, { once: true, amount: 0.5 })
+  const [val, setVal] = useState(0)
 
   useEffect(() => {
-    if (!isInView || !animate) return
+    if (!inView) return
     const start = performance.now()
-    const duration = 1200
-    let frame = 0
-    function tick(now: number) {
-      const t = Math.min((now - start) / duration, 1)
-      const eased = 1 - (1 - t) ** 3
-      setDisplay(Math.round(eased * numeric))
-      if (t < 1) frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [isInView, animate, numeric])
-
-  if (!animate) {
-    return (
-      <span ref={ref} className="font-latin emc-display-num">
-        {value}
-      </span>
-    )
-  }
+    const dur = 1400
+    const id = requestAnimationFrame(function tick(now) {
+      const t = Math.min((now - start) / dur, 1)
+      setVal(Math.round((1 - (1 - t) ** 3) * target))
+      if (t < 1) requestAnimationFrame(tick)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [inView, target])
 
   return (
-    <span ref={ref} className="font-latin emc-display-num">
-      +{display}
+    <span ref={ref} className="font-latin">
+      {suffix}{val}
     </span>
   )
 }
 
 export default function HomeImpactMetrics() {
   return (
-    <section className="relative overflow-hidden bg-deepBlue px-4 py-16 text-white sm:px-6 lg:px-10 lg:py-24" dir="rtl">
+    <section dir="rtl" className="relative overflow-hidden bg-[#0d1b2a] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
+      {/* Subtle grid */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.07] [mask-image:linear-gradient(180deg,rgba(255,255,255,0.9),transparent_85%)]"
+        className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.05]"
       />
-      <div aria-hidden className="pointer-events-none absolute right-[-20%] top-[-40%] h-[32rem] w-[32rem] rounded-full bg-customBlue/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute bottom-[-30%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-customOrange/15 blur-3xl" />
+      {/* Glows */}
+      <div aria-hidden className="pointer-events-none absolute -right-40 -top-20 h-[28rem] w-[28rem] rounded-full bg-customBlue/20 blur-[100px]" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-20 left-0 h-80 w-80 rounded-full bg-customOrange/10 blur-[80px]" />
 
       <div className="relative mx-auto max-w-[1540px]">
-        <div className="mb-12 max-w-2xl text-right">
-          <p className="text-xs font-black text-customOrange">مؤشرات الأثر</p>
-          <h2 className="mt-3 font-display text-3xl font-black sm:text-4xl">أرقام تعكس نضج المنصة</h2>
-          <p className="mt-4 text-base font-semibold leading-8 text-white/70">
-            مؤشرات تشغيلية معتمدة على نشاط البرامج والمجتمع — وليست زينة بصرية.
-          </p>
-        </div>
-
-        <motion.div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          {metrics.map(({ raw, label, icon: Icon }) => (
-            <motion.div key={label} variants={staggerItem}>
-              <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-8 shadow-emc-xl backdrop-blur-xl transition-colors hover:bg-white/[0.1]">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -right-6 -top-10 h-32 w-32 rounded-full bg-customBlue/20 blur-2xl transition-opacity group-hover:opacity-90"
-                />
-                <Icon className="relative text-customOrange" size={26} strokeWidth={2} aria-hidden />
-                <p className="relative mt-6 font-latin text-4xl font-black tabular-nums text-white sm:text-[2.65rem]">
-                  <AnimatedFigure value={raw} />
-                </p>
-                <p className="relative mt-3 text-sm font-black text-white/72">{label}</p>
-              </div>
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+          {metrics.map((m, i) => (
+            <motion.div
+              key={m.label}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-6 text-right backdrop-blur-sm transition-colors hover:border-customBlue/30 hover:bg-white/[0.07] sm:p-8"
+            >
+              <div aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-customBlue/15 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
+              {/* Big number */}
+              <p className="text-[2.6rem] font-black tabular-nums leading-none text-white sm:text-[3.2rem] lg:text-[3.6rem]">
+                <Counter target={m.raw} suffix={m.suffix} />
+              </p>
+              {/* Label */}
+              <p className="mt-4 text-base font-black text-white/80 sm:text-lg">{m.label}</p>
+              <p className="mt-1 text-xs font-semibold text-white/40">{m.sub}</p>
+              {/* Bottom accent line */}
+              <div
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-[2px] origin-right scale-x-0 bg-gradient-to-l from-customBlue to-transparent transition-transform duration-500 group-hover:scale-x-100"
+              />
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )
