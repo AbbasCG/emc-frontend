@@ -25,6 +25,11 @@ interface RegisterAccountInput {
   email: string
   password: string
   password_confirmation: string
+  country_code: string
+  phone_country_code: string
+  phone: string
+  city: string
+  gender: string
 }
 
 interface AuthContextValue {

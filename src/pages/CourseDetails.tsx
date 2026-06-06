@@ -357,7 +357,7 @@ export default function CourseDetails() {
               تفاصيل البرنامج التدريبي
             </span>
 
-            <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+            <div className="mt-3 flex flex-wrap items-center justify-start gap-2">
               <span
                 className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${
                   registration.open ? 'bg-emerald-50 text-emerald-800 ring-emerald-100' : 'bg-orange-50 text-orange-800 ring-orange-100'
