@@ -27,6 +27,10 @@ export type AdminManagedUser = {
   role?: string | null
   /** When absent, treated as «active» in UI KPIs unless backend adds explicit flag later. */
   is_active?: boolean | null
+  /** Backend status string: 'active' | 'inactive' | 'suspended' | etc. */
+  status?: string | null
+  /** Filled when user is soft-deleted. */
+  deleted_at?: string | null
   created_at?: string | null
   updated_at?: string | null
   /** Optional fields when Laravel serializes richer admin user payloads — otherwise UI shows «—». */
@@ -34,6 +38,7 @@ export type AdminManagedUser = {
   department?: string | null
   city?: string | null
   country?: string | null
+  gender?: string | null
   how_did_you_hear_about_us?: string | null
   avatar_url?: string | null
   email_verified_at?: string | null
@@ -167,16 +172,31 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
 
   const related = relateNotesFromRaw(raw)
 
+  const deletedRaw = raw.deleted_at ?? raw.deletedAt
+  const deleted_at =
+    deletedRaw != null && String(deletedRaw).trim() !== '' ? String(deletedRaw) : null
+
+  const statusRaw = raw.status ?? raw.account_status ?? raw.user_status
+  const status =
+    statusRaw != null && String(statusRaw).trim() !== '' ? String(statusRaw).trim().toLowerCase() : null
+
+  const genderRaw = raw.gender ?? raw.sex
+  const gender =
+    genderRaw != null && String(genderRaw).trim() !== '' ? String(genderRaw).trim().toLowerCase() : null
+
   return {
     id: Number.isFinite(id) ? Math.trunc(id) : 0,
     name,
     email: String(raw.email ?? ''),
     role: roleStr,
     is_active,
+    status,
+    deleted_at,
     phone,
     department,
     city,
     country,
+    gender,
     how_did_you_hear_about_us: how,
     avatar_url,
     email_verified_at,
@@ -228,8 +248,12 @@ export function getAdminUserMutationMessage(err: unknown): string {
 }
 
 export async function fetchAdminUsers(): Promise<AdminManagedUser[]> {
-  const res = await apiClient.get<unknown>(BASE, silent)
+  const res = await apiClient.get<unknown>(BASE, { ...silent, params: { status: 'all' } })
   return unwrapAdminUsersList(res.data)
+}
+
+export async function restoreAdminUser(id: number): Promise<void> {
+  await apiClient.post(`${BASE}/${id}/restore`, {}, silent)
 }
 
 export async function fetchAdminUser(id: number): Promise<AdminManagedUser> {

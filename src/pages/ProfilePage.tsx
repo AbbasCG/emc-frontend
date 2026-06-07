@@ -12,7 +12,7 @@ import {
   UserRound,
   XCircle,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast, { loadingToast, successToast, errorToast } from '@/lib/toast'
 import {
   deleteOwnProfile,
   deleteProfileAvatar,
@@ -133,6 +133,7 @@ export default function ProfilePage() {
     }
 
     setSaving(true)
+    const tid = loadingToast('جاري حفظ الملف الشخصي...')
     try {
       const payload = {
         name: name.trim() || undefined,
@@ -145,12 +146,12 @@ export default function ProfilePage() {
       const next = await updateProfile(payload)
       setProfile(next)
       await refreshUser()
-      toast.success('تم حفظ الملف الشخصي')
+      successToast('تم حفظ الملف الشخصي', tid)
       if (emailTouched) {
         toast.message('سيتم طلب تأكيد البريد الإلكتروني الجديد إذا لزم الأمر')
       }
     } catch (e) {
-      toast.error(getApiErrorMessage(e))
+      errorToast(getApiErrorMessage(e), tid)
     } finally {
       setSaving(false)
     }
@@ -159,13 +160,14 @@ export default function ProfilePage() {
   async function onPickAvatar(file: File | undefined) {
     if (!file) return
     setAvatarBusy(true)
+    const tid = loadingToast('جاري رفع الصورة...')
     try {
       const next = await uploadProfileAvatar(file)
       setProfile(next)
       await refreshUser()
-      toast.success('تم تحديث صورة الملف')
+      successToast('تم تحديث صورة الملف', tid)
     } catch (e) {
-      toast.error(getApiErrorMessage(e))
+      errorToast(getApiErrorMessage(e), tid)
     } finally {
       setAvatarBusy(false)
     }
@@ -173,13 +175,15 @@ export default function ProfilePage() {
 
   async function onRemoveAvatar() {
     setAvatarBusy(true)
+    const tid = loadingToast('جاري إزالة الصورة...')
     try {
       const next = await deleteProfileAvatar()
       setProfile(next)
       await refreshUser()
-      toast.success('تمت إزالة الصورة')
+      successToast('تمت إزالة الصورة', tid)
     } catch {
       toast.warning('لم يعرّف الخادم مسارًا لإزالة الصورة، أو لا تتوفر هذه الميزة.')
+      toast.dismiss(tid)
     } finally {
       setAvatarBusy(false)
     }

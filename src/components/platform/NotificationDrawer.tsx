@@ -7,6 +7,7 @@ import {
   CheckCheck,
   ClipboardList,
   CreditCard,
+  HeartHandshake,
   Mail,
   Ticket,
   UserPlus,
@@ -29,6 +30,7 @@ const icons: Record<NotificationType, typeof Bell> = {
   meeting_invite: CalendarClock,
   support_reply: Mail,
   partner_update: Briefcase,
+  volunteer_request: HeartHandshake,
 }
 
 type Props = {

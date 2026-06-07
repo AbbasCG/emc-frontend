@@ -51,7 +51,7 @@ export function normalizeNotificationInternalPath(rawPath: string): string {
   }
 
   /** Explicit backend routes → dashboard */
-  const table: Array<[RegExp, string]> = [
+  const table: Array<[RegExp, string | ((m: RegExpExecArray) => string)]> = [
     [/^\/student\/registrations(?:\/\d+)?$/u, '/dashboard/student/registrations'],
     [/^\/student\/courses(?:\/[\w.-]*)?$/u, '/dashboard/student/courses'],
     [/^\/student\/available-courses$/u, '/dashboard/student/available-courses'],
@@ -61,12 +61,21 @@ export function normalizeNotificationInternalPath(rawPath: string): string {
       /^\/super-admin\/crud\/registrations(?:\/\d+)?$/u,
       '/dashboard/super-admin/crud/registrations',
     ],
+    [
+      /^\/admin\/volunteer-requests(?:\/(\d+))?$/u,
+      (m) => m[1] ? `/dashboard/super-admin/volunteer-requests/${m[1]}` : '/dashboard/super-admin/volunteer-requests',
+    ],
+    [
+      /^\/volunteer-requests(?:\/(\d+))?$/u,
+      (m) => m[1] ? `/dashboard/super-admin/volunteer-requests/${m[1]}` : '/dashboard/super-admin/volunteer-requests',
+    ],
   ]
 
   let mapped = false
   for (const [re, dest] of table) {
-    if (re.test(pathname)) {
-      pathname = dest
+    const m = re.exec(pathname)
+    if (m) {
+      pathname = typeof dest === 'function' ? dest(m) : dest
       mapped = true
       break
     }

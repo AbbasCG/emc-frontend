@@ -35,6 +35,7 @@ const Register           = lazy(() => import('./pages/Register'))
 const Signup             = lazy(() => import('./pages/Signup'))
 const SubmitWorkshop     = lazy(() => import('./pages/SubmitWorkshop'))
 const Team               = lazy(() => import('./pages/Team'))
+const VolunteerApply     = lazy(() => import('./pages/VolunteerApply'))
 const ThankYou           = lazy(() => import('./pages/ThankYou'))
 const Tracks             = lazy(() => import('./pages/Tracks'))
 const Volunteer          = lazy(() => import('./pages/Volunteer'))
@@ -161,6 +162,7 @@ const HrDocumentsPage   = lazy(() => import('./pages/hr/HrDocumentsPage'))
 
 // ── Lazy: dashboard pages — super admin ──────────────────────────────────────
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
+const VolunteerRequestsPage       = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
 const SuperAdminAuditLogsPage     = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
@@ -173,6 +175,9 @@ const TracksManagementPage        = lazy(() => import('./pages/super-admin/crud/
 const WorkshopsManagementPage     = lazy(() => import('./pages/super-admin/crud/WorkshopsManagementPage'))
 const RegistrationsManagementPage = lazy(() => import('./pages/super-admin/crud/RegistrationsManagementPage'))
 const PartnersManagementPage      = lazy(() => import('./pages/super-admin/crud/PartnersManagementPage'))
+
+// ── Lazy: internal members page ──────────────────────────────────────────────
+const MembersPage = lazy(() => import('./pages/dashboard/MembersPage'))
 
 // ── Lazy: settings, profile, calendar, error pages ───────────────────────────
 const NotificationPreferencesPage = lazy(() => import('./pages/settings/NotificationPreferencesPage'))
@@ -234,7 +239,8 @@ function App() {
               <Route path="/impact"       element={<Suspense fallback={<RouteFallback />}><Impact /></Suspense>} />
               <Route path="/ar/impact"    element={<Suspense fallback={<RouteFallback />}><Impact /></Suspense>} />
               <Route path="/partnerships" element={<Suspense fallback={<RouteFallback />}><Partnerships /></Suspense>} />
-              <Route path="/volunteer"    element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
+              <Route path="/volunteer"       element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
+              <Route path="/volunteer/apply" element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
               <Route path="/support" element={<Suspense fallback={<RouteFallback />}><SupportPage /></Suspense>} />
               <Route path="/forms/:slug" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
               <Route path="/partnerships/apply" element={<Suspense fallback={<RouteFallback />}><PartnershipApplyPage /></Suspense>} />
@@ -279,6 +285,8 @@ function App() {
 
                   <Route path="/dashboard" element={<RoleRedirect />} />
                   <Route path="/dashboard/super-admin" element={<SuperAdminOverviewPage />} />
+                  <Route path="/dashboard/super-admin/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
                   <Route
                     path="/dashboard/super-admin/crud/partnerships"
@@ -349,6 +357,8 @@ function App() {
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
+
+                  <Route path="/dashboard/members" element={<Suspense fallback={<RouteFallback />}><MembersPage /></Suspense>} />
 
                   <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />
                   <Route path="/dashboard/profile" element={<ProfilePage />} />

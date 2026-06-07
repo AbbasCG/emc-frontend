@@ -1,557 +1,511 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Activity,
   Building2,
-  ChevronDown,
-  CircuitBoard,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
   RefreshCw,
-  Target,
+  Search,
   Users,
-  Workflow,
+  X,
+  ClipboardList,
+  HeartHandshake,
+  UserCheck,
+  BookOpen,
+  Info,
 } from 'lucide-react'
 import { fetchWorkspaceDepartmentsForSuperAdmin } from '@/api/superAdminOpsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import type { WorkspaceDepartment } from '@/types/operations'
-import { getDepartmentName } from '@/utils/workspaceDepartment'
-import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
-import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
+import { computeDeptHealth, getDepartmentName } from '@/utils/workspaceDepartment'
+import { errorToast } from '@/lib/toast'
+import { SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 import { EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
-import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
-import {
-  EntityDetailDrawer,
-  EntityDetailField,
-  EntityDetailSection,
-} from '@/pages/super-admin/crud/shared/EntityDetailDrawer'
-import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
-import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
-import {
-  EnterpriseBarChartRtl,
-  EnterpriseTinyArea,
-} from '@/pages/super-admin/crud/shared/enterprise/charts'
-import {
-  AnimatedTabular,
-  EnterpriseCrudHero,
-  EnterpriseMetricTile,
-  EnterpriseTableSkeleton,
-} from '@/pages/super-admin/crud/shared/enterprise/EnterpriseMetrics'
-import {
-  SaGlassCard,
-  SaPageRoot,
-} from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
-import {
-  CrudCardTable,
-  CrudTable,
-  Th,
-  Tr,
-  Td,
-} from '@/pages/super-admin/crud/shared/TableChrome'
 
-function healthBadge(h: WorkspaceDepartment['status']) {
-  if (h === 'healthy') return <CrudBadge variant="success">سليم</CrudBadge>
-  if (h === 'risk') return <CrudBadge variant="danger">خطر</CrudBadge>
-  return <CrudBadge variant="accent">انتباه</CrudBadge>
+/* ── Status helpers ──────────────────────────────────────────────────────── */
+
+function statusLabel(s: WorkspaceDepartment['status']) {
+  if (s === 'healthy') return 'سليم'
+  if (s === 'risk') return 'خطر'
+  return 'انتباه'
 }
 
-function spineTone(status: WorkspaceDepartment['status']) {
-  if (status === 'risk') return 'border-rose-200/85 bg-gradient-to-bl from-rose-50/90 to-white'
-  if (status === 'healthy') return 'border-emerald-200/80 bg-gradient-to-bl from-emerald-50/70 to-white'
-  return 'border-amber-200/75 bg-gradient-to-bl from-amber-50/75 to-white'
+function StatusBadge({ status }: { status: WorkspaceDepartment['status'] }) {
+  const cls =
+    status === 'healthy'
+      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+      : status === 'risk'
+        ? 'bg-rose-50 text-rose-700 ring-rose-200'
+        : 'bg-amber-50 text-amber-700 ring-amber-200'
+  const Icon =
+    status === 'healthy' ? CheckCircle2 : status === 'risk' ? AlertCircle : AlertTriangle
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${cls}`}>
+      <Icon className="h-3 w-3" aria-hidden />
+      {statusLabel(status)}
+    </span>
+  )
 }
+
+/* ── KPI tile ────────────────────────────────────────────────────────────── */
+
+function KpiTile({
+  label,
+  value,
+  icon: Icon,
+  accent,
+}: {
+  label: string
+  value: number | string
+  icon: React.ElementType
+  accent: 'blue' | 'orange' | 'success' | 'danger'
+}) {
+  const colorMap = {
+    blue: 'from-[#2691C2]/10 to-transparent text-[#2691C2] ring-[#2691C2]/20',
+    orange: 'from-[#EC943C]/10 to-transparent text-[#EC943C] ring-[#EC943C]/20',
+    success: 'from-emerald-100/70 to-transparent text-emerald-700 ring-emerald-200',
+    danger: 'from-rose-100/70 to-transparent text-rose-700 ring-rose-200',
+  }
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-white/70 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-sm ring-1 ring-black/[0.04]">
+      <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br ring-1 ${colorMap[accent]}`}>
+        <Icon className="h-5 w-5" aria-hidden />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+        <p className="mt-0.5 text-2xl font-black tracking-tight text-[#22334A]">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+/* ── Department card ─────────────────────────────────────────────────────── */
+
+function DeptCard({ dept }: { dept: WorkspaceDepartment }) {
+  const navigate = useNavigate()
+  const name = getDepartmentName(dept)
+  const initial = name.charAt(0) || 'إ'
+  const health = computeDeptHealth(dept)
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="group flex flex-col rounded-3xl border border-white/60 bg-white shadow-[0_8px_40px_rgba(34,51,74,0.07)] transition hover:shadow-[0_12px_48px_rgba(34,51,74,0.12)]"
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 rounded-t-3xl bg-gradient-to-bl from-[#22334A]/[0.03] to-transparent px-5 pt-5 pb-4">
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2] to-[#22334A] text-base font-black text-white shadow ring-2 ring-white">
+            {initial}
+          </span>
+          <div className="min-w-0">
+            <h3 className="truncate font-black text-[#22334A] text-[15px] leading-snug">{name}</h3>
+            {dept.name_en ? (
+              <p className="text-[11px] font-semibold text-slate-400">{dept.name_en}</p>
+            ) : (
+              <p className="text-[11px] font-semibold text-slate-400">#{dept.id}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <StatusBadge status={health.status} />
+        </div>
+      </div>
+
+      {/* Status reason */}
+      <div className="mx-5 mb-3">
+        {health.reasons.length > 0 && health.status !== 'healthy' ? (
+          <div className="flex items-start gap-1.5 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+            <Info className="mt-0.5 h-3 w-3 shrink-0 text-slate-400" aria-hidden />
+            <p className="text-[11px] font-semibold leading-relaxed text-slate-500">
+              {health.reasons[0]}
+              {health.reasons.length > 1 ? ` · ${health.reasons[1]}` : ''}
+            </p>
+          </div>
+        ) : health.status === 'healthy' ? (
+          <div className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">
+            <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden />
+            <p className="text-[11px] font-semibold text-emerald-700">جميع المؤشرات سليمة</p>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Description */}
+      {dept.description ? (
+        <p className="px-5 pb-3 text-[12px] font-semibold leading-relaxed text-slate-500 line-clamp-2">
+          {dept.description}
+        </p>
+      ) : null}
+
+      {/* Stats chips */}
+      <div className="mx-5 mb-4 flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-[11px] font-black text-[#22334A] ring-1 ring-slate-200">
+          <Users className="h-3.5 w-3.5 text-[#2691C2]" aria-hidden />
+          {dept.members_count} عضو
+        </span>
+        {(dept.leaders_count ?? 0) > 0 ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-black text-emerald-700 ring-1 ring-emerald-200">
+            <UserCheck className="h-3.5 w-3.5" aria-hidden />
+            {dept.leaders_count} قائد
+          </span>
+        ) : dept.leader_name ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-[11px] font-black text-[#22334A] ring-1 ring-slate-200">
+            <UserCheck className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+            {dept.leader_name}
+          </span>
+        ) : null}
+        {(dept.courses_count ?? 0) > 0 ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-[11px] font-black text-sky-700 ring-1 ring-sky-200">
+            <BookOpen className="h-3.5 w-3.5" aria-hidden />
+            {dept.courses_count} دورة
+          </span>
+        ) : null}
+        {dept.open_tasks_count !== null && (dept.open_tasks_count ?? 0) > 0 ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-black text-amber-700 ring-1 ring-amber-200">
+            <ClipboardList className="h-3.5 w-3.5" aria-hidden />
+            {dept.open_tasks_count} مهمة
+          </span>
+        ) : null}
+      </div>
+
+      {/* Divider */}
+      <div className="mx-5 border-t border-slate-100" />
+
+      {/* Actions */}
+      <div className="flex flex-wrap gap-2 px-5 py-4">
+        <button
+          type="button"
+          onClick={() => navigate(`/dashboard/admin/departments/${dept.id}`)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#22334A]/10 bg-[#22334A]/[0.04] px-3 py-2 text-[11px] font-black text-[#22334A] transition hover:bg-[#22334A]/[0.08]"
+        >
+          التفاصيل
+        </button>
+        <Link
+          to={`/dashboard/super-admin/crud/team?department=${dept.id}`}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#2691C2]/15 bg-[#2691C2]/[0.06] px-3 py-2 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.12]"
+        >
+          <Users className="h-3.5 w-3.5" aria-hidden />
+          الفريق
+        </Link>
+        <Link
+          to={`/dashboard/super-admin/volunteer-requests?department=${encodeURIComponent(getDepartmentName(dept))}`}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EC943C]/15 bg-[#EC943C]/[0.06] px-3 py-2 text-[11px] font-black text-[#EC943C] transition hover:bg-[#EC943C]/[0.12]"
+        >
+          <HeartHandshake className="h-3.5 w-3.5" aria-hidden />
+          متطوعون
+        </Link>
+        {(dept.courses_count ?? 0) > 0 ? (
+          <Link
+            to={`/dashboard/super-admin/crud/programs?department=${dept.id}`}
+            className="inline-flex items-center justify-center gap-1 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] font-black text-sky-700 transition hover:bg-sky-100"
+            title="البرامج والدورات"
+          >
+            <BookOpen className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        ) : null}
+      </div>
+    </motion.div>
+  )
+}
+
+/* ── Detail drawer ───────────────────────────────────────────────────────── */
+
+function DetailDrawer({
+  dept,
+  onClose,
+}: {
+  dept: WorkspaceDepartment | null
+  onClose: () => void
+}) {
+  const navigate = useNavigate()
+
+  return (
+    <AnimatePresence>
+      {dept ? (
+        <>
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.aside
+            key="drawer"
+            dir="rtl"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+            className="fixed inset-y-0 start-0 z-[210] flex w-full max-w-sm flex-col bg-white shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2] to-[#22334A] text-lg font-black text-white shadow">
+                  <Building2 className="h-6 w-6" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="font-black text-[#22334A] leading-snug">{getDepartmentName(dept)}</h2>
+                  {dept.name_en ? (
+                    <p className="text-[11px] text-slate-400">{dept.name_en}</p>
+                  ) : (
+                    <p className="text-[11px] text-slate-400">#{dept.id}</p>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200 text-slate-400 transition hover:text-[#22334A]"
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {(() => {
+                const health = computeDeptHealth(dept)
+                return (
+                  <div className="space-y-2">
+                    <StatusBadge status={health.status} />
+                    {health.reasons.map((r, i) => (
+                      <div key={i} className="flex items-start gap-1.5 rounded-xl bg-slate-50 px-3 py-2">
+                        <Info className="mt-0.5 h-3 w-3 shrink-0 text-slate-400" aria-hidden />
+                        <p className="text-[11px] font-semibold text-slate-600">{r}</p>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+
+              {dept.description ? (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">الوصف</p>
+                  <p className="text-[13px] font-semibold leading-relaxed text-slate-600">{dept.description}</p>
+                </div>
+              ) : null}
+
+              <dl className="space-y-2">
+                {[
+                  { label: 'الأعضاء', value: dept.members_count },
+                  { label: 'القادة', value: dept.leaders_count ?? '—' },
+                  { label: 'القائد', value: dept.leader_name ?? '—' },
+                  { label: 'الدورات', value: dept.courses_count ?? '—' },
+                  { label: 'طلبات التطوع', value: dept.volunteer_requests_count ?? '—' },
+                  { label: 'بنود قيد الانتظار', value: dept.pending_items_count ?? '—' },
+                  ...(dept.open_tasks_count !== null
+                    ? [{ label: 'مهام مفتوحة', value: dept.open_tasks_count ?? 0 }]
+                    : [{ label: 'نظام المهام', value: 'غير مرتبط حالياً' }]),
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                    <dt className="text-[12px] font-black text-slate-500">{label}</dt>
+                    <dd className="text-[13px] font-black text-[#22334A]">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            <div className="border-t border-slate-100 px-6 py-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => { navigate(`/dashboard/admin/departments/${dept.id}`); onClose() }}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+              >
+                التفاصيل الكاملة
+              </button>
+              <Link
+                to={`/dashboard/super-admin/crud/team?department=${dept.id}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-[#22334A]/15 bg-[#22334A]/[0.05] px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-[#22334A]/[0.09]"
+                onClick={onClose}
+              >
+                <Users className="h-4 w-4" aria-hidden />
+                الفريق
+              </Link>
+            </div>
+          </motion.aside>
+        </>
+      ) : null}
+    </AnimatePresence>
+  )
+}
+
+/* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default function DepartmentsManagementPage() {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState<WorkspaceDepartment[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
   const [q, setQ] = useState('')
-  const [health, setHealth] = useState<'all' | WorkspaceDepartment['status']>('all')
-  const [view, setView] = useState<WorkspaceDepartment | null>(null)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceDepartment['status']>('all')
+  const [detail, setDetail] = useState<WorkspaceDepartment | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
     try {
       const list = await fetchWorkspaceDepartmentsForSuperAdmin()
-      const safeDepartments = Array.isArray(list) ? list : []
-      setRows(safeDepartments)
+      setRows(Array.isArray(list) ? list : [])
     } catch (e) {
       setRows([])
-      setLoadError(getApiErrorMessage(e))
+      const msg = getApiErrorMessage(e)
+      setLoadError(msg)
+      errorToast('تعذر تحميل بيانات الإدارات')
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  useEffect(() => { void load() }, [load])
+
+  // Derive health for each row so filters use computed status
+  const rowsWithHealth = useMemo(
+    () => rows.map((r) => ({ dept: r, health: computeDeptHealth(r) })),
+    [rows],
+  )
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()
-    return rows.filter((r) => {
-      if (health !== 'all' && r.status !== health) return false
-      const deptHay = `${getDepartmentName(r) ?? ''}`.toLowerCase()
-      const hay = `${deptHay} ${(r.leader_name ?? '').toLowerCase()} ${(r.description ?? '').toLowerCase()}`
-      return !t || hay.includes(t)
+    return rowsWithHealth.filter(({ dept, health }) => {
+      if (statusFilter !== 'all' && health.status !== statusFilter) return false
+      if (!t) return true
+      const hay = `${getDepartmentName(dept)} ${dept.leader_name ?? ''} ${dept.description ?? ''}`.toLowerCase()
+      return hay.includes(t)
     })
-  }, [rows, q, health])
+  }, [rowsWithHealth, q, statusFilter])
 
-  const totalTasks = rows.reduce((acc, r) => acc + (r.open_tasks ?? 0), 0)
-  const totalMeetings = rows.reduce((a, r) => a + (r.meetings_week ?? 0), 0)
-  const spotlight = [...filtered].sort((a, b) => {
-    const diff = (b.open_tasks ?? 0) - (a.open_tasks ?? 0)
-    if (diff !== 0) return diff
-    if (a.status !== b.status) return a.status === 'risk' ? -1 : 1
-    const na = getDepartmentName(a) ?? ''
-    const nb = getDepartmentName(b) ?? ''
-    return na.localeCompare(nb, 'ar')
-  })[0]
-
-  const avgHealthScores = rows.filter((r) => typeof r.health_score === 'number' && !Number.isNaN(r.health_score))
-  const healthAvg =
-    avgHealthScores.length > 0 ?
-      avgHealthScores.reduce((a, r) => a + (r.health_score ?? 0), 0) / avgHealthScores.length
-    : null
-
-  const barData = [...filtered].sort((a, b) => (b.open_tasks ?? 0) - (a.open_tasks ?? 0)).slice(0, 8)
-
-  const areaSeries =
-    filtered.length ?
-      [...filtered]
-        .slice(0, 12)
-        .map((d, idx) => ({ idx, v: (d.members_count ?? 0) + (d.open_tasks ?? 0) * 0.4 }))
-    : []
-  const loadDen = filtered.length === 0 ? 1 : Math.max(1, ...filtered.map((x) => x.open_tasks ?? 0))
-
-  const statusMix = rows.reduce(
-    (acc, r) => {
-      const st = r.status ?? 'attention'
-      if (st === 'healthy') acc.healthy += 1
-      else if (st === 'risk') acc.risk += 1
-      else acc.attention += 1
+  const totalMembers = rows.reduce((acc, r) => acc + r.members_count, 0)
+  const statusMix = rowsWithHealth.reduce(
+    (acc, { health }) => {
+      if (health.status === 'healthy') acc.healthy++
+      else if (health.status === 'risk') acc.risk++
+      else acc.attention++
       return acc
     },
     { healthy: 0, attention: 0, risk: 0 },
   )
 
   return (
-    <SaPageRoot className="space-y-8 pb-14">
-      <EnterpriseCrudHero
-        eyebrow="Org Spine · Workforce Load"
-        title="الإدارات — لوحة تنظيمية تشغيلية"
-        subtitle="هيكلة مساحة العمل، حمولة مهام المرصودة، ومؤشر الصحة حيث يصدّره الخادم؛ لا نقترح مصروفًا أو ميزانية قبل توفر حقولمالية موثَّقة من الـAPI."
-        variant="navy"
-        actions={
-          <>
+    <SaPageRoot className="space-y-8 pb-16">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] to-[#1a2840] px-8 py-10 shadow-xl">
+        <div className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[#2691C2]/20 blur-[80px]" aria-hidden />
+        <div className="pointer-events-none absolute -start-16 bottom-0 h-48 w-48 rounded-full bg-[#EC943C]/15 blur-[60px]" aria-hidden />
+        <div className="relative flex flex-wrap items-start justify-between gap-6">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#2691C2]">إدارة المنظومة التنظيمية</p>
+            <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">الإدارات</h1>
+            <p className="mt-2 max-w-lg text-[13px] font-semibold leading-relaxed text-white/60">
+              استعرض الوحدات التنظيمية مع حالتها الفعلية وأسبابها، وانتقل إلى فريق أو طلبات تطوع كل إدارة.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-[18px] border border-white/28 bg-white/95 px-4 py-2.5 text-[12px] font-black text-deepBlue shadow backdrop-blur-md"
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white backdrop-blur transition hover:bg-white/15 disabled:opacity-60"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
             <Link
-              to="/dashboard/admin/departments"
-              className="inline-flex items-center gap-2 rounded-[18px] bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-white shadow-lg"
+              to="/dashboard/super-admin/crud/team"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:opacity-90"
             >
-              <CircuitBoard className="h-4 w-4" aria-hidden />
-              مساحة التشغيل
+              <Users className="h-4 w-4" aria-hidden />
+              الفريق
             </Link>
-          </>
-        }
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <EnterpriseMetricTile
-          accent="blue"
-          icon={Building2}
-          label="وحدات الإدارات"
-          value={<AnimatedTabular value={rows.length} />}
-          hint={`آخر مراجعة مخطط صحّي تقريبي: سليم ${statusMix.healthy} · انتباه ${statusMix.attention} · خطر ${statusMix.risk}`}
-        />
-        <EnterpriseMetricTile
-          accent="orange"
-          icon={Target}
-          label="حمولة مهام مفتوحة"
-          value={<AnimatedTabular value={totalTasks} />}
-          deltaLabel={`${rows.length === 0 ? '—' : (totalTasks / rows.length).toFixed(1)} متوسط مهام على الإدارة`}
-        />
-        <EnterpriseMetricTile
-          accent="mint"
-          icon={Activity}
-          label="مجموع لقاءات أسبوعية مرصودة"
-          value={<AnimatedTabular value={Math.round(totalMeetings)} />}
-        />
-        <EnterpriseMetricTile
-          accent="navy"
-          icon={Workflow}
-          label="مجمّح الصحة المرصود من الخلفية"
-          value={healthAvg == null ? '—' : <AnimatedTabular value={healthAvg.toFixed(1)} />}
-          hint={healthAvg == null ? 'لم يصدِّر GET حقل نقاط صحة رقمي لهذه العيّنة.' : 'على مجموعة تعرض health_score ضمن الإجابة فقط'}
-        />
-      </div>
-
-      <CrudToolbar sticky searchValue={q} onSearchChange={setQ} searchPlaceholder="بحث اسم الإدارة، القائد، أو جزء من وصف مهام…">
-        <MiniSelect
-          label="الجودة الصحّية"
-          value={health}
-          onChange={(v) => setHealth(v === 'all' ? 'all' : (v as WorkspaceDepartment['status']))}
-          options={[
-            { value: 'all', labelAr: 'الجميع' },
-            { value: 'healthy', labelAr: 'سليم' },
-            { value: 'attention', labelAr: 'انتباه' },
-            { value: 'risk', labelAr: 'خطر' },
-          ]}
-        />
-      </CrudToolbar>
-
-      {loadError && !loading ?
-        <ErrorPanel title="تعذر تحميل بيانات الإدارات" hint={loadError} />
-      : null}
-
-      {loading && rows.length === 0 ?
-        <EnterpriseTableSkeleton cols={6} rows={8} />
-      : null}
-
-      {!loading && !loadError && rows.length === 0 ?
-        <EmptyPanel
-          title="لا توجد إدارات متاحة حاليًا"
-          subtitle="لم تُرجِع نقطة العمليات أي وحدة الآن؛ جرّب التحديث لاحقاً أو راجع صلاحية GET /operations/departments."
-        />
-      : null}
-
-      {!loadError && rows.length > 0 ?
-        <>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <motion.div layout className="space-y-5">
-          <SaGlassCard className="relative overflow-hidden p-6" glow="blue">
-            <div className="absolute -start-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-[#2691C2]/10 blur-[80px]" aria-hidden />
-            <div className="relative flex flex-wrap items-start justify-between gap-4 text-right rtl:text-right">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-600">محور التركيز</p>
-                {spotlight ?
-                  <>
-                    <h2 className="mt-3 text-xl font-black text-deepBlue">{getDepartmentName(spotlight)}</h2>
-                    <p className="mt-2 max-w-xl text-[12px] font-semibold leading-relaxed text-muted-700">
-                      {spotlight.description?.trim() ??
-                        'لا يتوفر ملخص مهام نشِطة من الوصف الآن؛ تُكمَّل هذه البطاقة عند ظهور وصف تهيئة في الاستجابة.'}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-3 justify-start">
-                      {healthBadge(spotlight.status)}
-                      <span className="inline-flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-4 py-1.5 text-[11px] font-black text-deepBlue shadow-sm">
-                        <Users className="h-4 w-4 text-customBlue" aria-hidden />
-                        {spotlight.members_count ?? 0} موظفي إداريين · {spotlight.leader_name ?? 'بحاجة تعيين قائدة'}
-                      </span>
-                      <span className="inline-flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-1.5 text-[11px] font-black text-accent-950 shadow-sm ring-1 ring-accent-200/50">
-                        {spotlight.open_tasks ?? 0} مهمة مفتوحة · {(spotlight.meetings_week ?? 0)} لقاء أسبوعي
-                      </span>
-                    </div>
-                  </>
-                : (
-                  <p className="mt-3 font-bold text-muted-600">لم نُظهر وحدة تنفيذية بعد — فارغ وفق المرشح.</p>
-                )}
-              </div>
-              <div className="min-w-[12rem] flex-1 text-right rtl:text-right">
-                <p className="text-[11px] font-black text-muted-600">مؤشر نشاط ظرفيّ</p>
-                <p className="mt-1 text-[11px] font-semibold text-muted-500">أعضاء + ضبط مهام (مركّبة من حقول موجودة بالفعل).</p>
-                <div className="mt-3 rounded-3xl border border-white/65 bg-white/70 p-2 shadow-inner backdrop-blur">
-                  {areaSeries.length ?
-                    <EnterpriseTinyArea data={areaSeries} />
-                  : (
-                    <p className="px-2 py-6 text-[11px] font-bold text-muted-500 rtl:text-center">بدون نقاط ظرف مركّبة</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </SaGlassCard>
-
-          <SaGlassCard className="p-6" glow="orange">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-ink-100/70 pb-4 text-right">
-              <div>
-                <p className="text-[11px] font-black text-muted-600">خطّ التراص التنفيذي</p>
-                <p className="mt-1 text-sm font-black text-deepBlue">أدوار على محور واحد وفق المرشحات الحالية</p>
-              </div>
-              <Workflow className="h-9 w-9 text-accent-600/55" aria-hidden />
-            </div>
-            {!filtered.length ?
-              <p className="px-4 py-10 text-[13px] font-bold leading-relaxed text-muted-600 rtl:text-center">
-                لا توجد وحدات تطابق المرشّح ضمن هذا العمود — استخدم بحث الاسم أسفله لإظهار نتائج أخرى.
-              </p>
-            :
-              <div className="space-y-3">
-                {[...filtered]
-                  .sort((a, b) => (b.open_tasks ?? 0) - (a.open_tasks ?? 0))
-                  .slice(0, 10)
-                  .map((d, i) => (
-                    <motion.button
-                      type="button"
-                      key={d.id}
-                      initial={{ opacity: 0, x: 24 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.28, delay: i * 0.035 }}
-                      onClick={() => setView(d)}
-                      className={`flex w-full items-center gap-4 rounded-[22px] border px-5 py-3 text-start shadow-[0_14px_50px_-32px_rgba(15,23,42,0.55)] backdrop-blur ${spineTone(d.status)}`}
-                    >
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/92 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/15">
-                        {i + 1}
-                      </span>
-                      <div className="min-w-0 flex-1 rtl:text-right">
-                        <div className="flex flex-wrap items-center justify-between gap-2 rtl:flex-row-reverse">
-                          <p className="truncate font-black text-deepBlue">{getDepartmentName(d)}</p>
-                          <div className="flex gap-2 opacity-95">{healthBadge(d.status)}</div>
-                        </div>
-                        <p className="mt-1 truncate text-[12px] font-bold text-muted-600">
-                          {d.leader_name ?? 'بحاجة تسمية قائدة'} · {d.members_count ?? 0} مشاركون · {d.open_tasks ?? 0} مهام مفتوحة
-                        </p>
-                      </div>
-                      <Building2 className="h-5 w-5 shrink-0 opacity-55" aria-hidden />
-                    </motion.button>
-                  ))}
-              </div>
-            }
-          </SaGlassCard>
-        </motion.div>
-
-        <div className="space-y-4">
-          <SaGlassCard className="flex flex-col gap-3 p-5 text-right" glow="orange">
-            <p className="text-[11px] font-black text-deepBlue">حمولة مهام حسب وحدة تنظيمية</p>
-            <p className="text-[11px] font-semibold text-muted-600">مصدر عدّادات مهام المرصود من GET؛ أعلى حمولة إلى أقل.</p>
-            <div className="rounded-3xl bg-white/[0.45] px-2 py-1 ring-1 ring-ink-100/60 backdrop-blur">
-              <EnterpriseBarChartRtl
-                data={barData.map((r) => ({ nameAr: getDepartmentName(r), حمولة: r.open_tasks ?? 0 }))}
-                dataKey="حمولة"
-                nameKey="nameAr"
-                gradientId="dept-load"
-              />
-            </div>
-            {!barData.length && !loading ? <p className="text-[12px] font-bold text-muted-500">لا بيانات لرسم عمود مرئي الآن.</p> : null}
-          </SaGlassCard>
-          <SaGlassCard className="p-5 text-right" glow="blue">
-            <p className="text-[11px] font-black text-muted-600">مزامنة LMS</p>
-            <p className="mt-3 text-[12px] font-semibold leading-relaxed text-muted-700">
-              ربط تقدّم الطلاب وحزم المحتوى يبقى عبر نقاط مسؤولة خارج هذه القائمة. استخدم الوحدات المرجعية أدناه عند
-              المراجعة الميدانية الفعلية.
-            </p>
-            <Link
-              to="/dashboard/admin/departments"
-              className="mt-5 inline-flex w-full items-center justify-center rounded-[18px] border border-deepBlue/[0.1] bg-deepBlue/[0.05] px-4 py-2.5 text-[11px] font-black text-deepBlue transition hover:bg-deepBlue/[0.08]"
-            >
-              فتح وحدة الموظّف التفصيلية
-            </Link>
-          </SaGlassCard>
+          </div>
         </div>
       </div>
 
-      {!filtered.length ?
-        <EmptyPanel title="لا نتائج للمرشّح الحالي" subtitle="عدِّل البحث أو مرشّح الجودة الصحّية لإظهار وحدات أخرى." />
-      :
-        <CrudCardTable>
-          <CrudTable>
-            <thead>
-              <tr>
-                <Th>الإدارة</Th>
-                <Th>قيادة وحضور عمل</Th>
-                <Th>حمولة مهام مفتوحة</Th>
-                <Th className="whitespace-nowrap">لقاءات أسبوعية مرصودة</Th>
-                <Th className="whitespace-nowrap">مؤشر صحّة</Th>
-                <Th className="text-end whitespace-nowrap">إجراءات</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r) => {
-                const open = expanded === r.id
-                return (
-                  <Fragment key={r.id}>
-                    <Tr muted={false}>
-                      <Td>
-                        <button
-                          type="button"
-                          onClick={() => setExpanded((id) => (id === r.id ? null : r.id))}
-                          className="flex w-full min-w-0 items-center gap-3 text-right rtl:flex-row-reverse"
-                        >
-                          <ChevronDown
-                            className={`h-5 w-5 shrink-0 text-muted-600 transition-transform ${open ? '-rotate-180' : ''}`}
-                            aria-hidden
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-black text-deepBlue">{getDepartmentName(r)}</p>
-                            <p className="text-[11px] font-bold text-muted-500">معرّف داخلي #{r.id}</p>
-                          </div>
-                          {healthBadge(r.status)}
-                        </button>
-                      </Td>
-                      <Td className="text-[12px] font-bold rtl:text-right">
-                        <div className="flex flex-wrap items-center gap-2 rtl:flex-row-reverse">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black text-slate-800 ring-1 ring-slate-200">
-                            <Users className="h-3.5 w-3.5" aria-hidden />
-                            {r.members_count ?? 0}
-                          </span>
-                          <span className="text-muted-700">{r.leader_name ?? 'بحاجة تسمية'}</span>
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex items-center gap-3 rtl:flex-row-reverse">
-                          <span className="tabular-nums text-lg font-black text-accent-800">{r.open_tasks ?? 0}</span>
-                          <div className="h-2 flex-1 max-w-[7rem] overflow-hidden rounded-full bg-slate-100 ring-1 ring-ink-100/80">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-l from-customBlue to-accent-400 transition-all"
-                              style={{ width: `${Math.min(100, ((r.open_tasks ?? 0) / loadDen) * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </Td>
-                      <Td className="tabular-nums font-black text-muted-700">{r.meetings_week ?? '—'}</Td>
-                      <Td>
-                        <div className="flex flex-col items-end gap-1">
-                          <span>{healthBadge(r.status)}</span>
-                          <span className="text-[11px] font-bold text-muted-500">
-                            {typeof r.health_score === 'number' ? `${r.health_score.toFixed(1)} نقاط` : 'لا يصدّره الخادم'}
-                          </span>
-                        </div>
-                      </Td>
-                      <Td className="text-end">
-                        <RowActionsMenu
-                          ariaLabel={getDepartmentName(r)}
-                          actions={[
-                            { key: 'v', label: 'لمحة تنفيذية', onClick: () => setView(r) },
-                            {
-                              key: 'deptdash',
-                              label: 'تفاصيل التشغيل',
-                              onClick: () => navigate(`/dashboard/admin/departments/${r.id}`),
-                            },
-                          ]}
-                        />
-                      </Td>
-                    </Tr>
-                    <AnimatePresence initial={false}>
-                      {open ?
-                        <motion.tr
-                          layout
-                          key={`exp-${r.id}`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="bg-brand-500/[0.03]"
-                        >
-                          <Td colSpan={6} className="!border-t-0">
-                            <div className="px-10 py-6 text-[13px] font-semibold leading-relaxed text-muted-700 rtl:text-right">
-                              {r.description?.trim() ??
-                                'لا يتوفر مسار مهام نصّي موسّع؛ أضف حقول تهيئة عند جهوزية نقطة الموظّف التفاعلية لتوسيع هذا القسم التشغيلي.'}
-                              <div className="mt-4 flex flex-wrap gap-2 rtl:flex-row-reverse">
-                                <CrudBadge variant="brand">{(r.open_tasks ?? 0).toLocaleString('ar')} مهمة مفتوحة</CrudBadge>
-                                <CrudBadge variant={r.status === 'healthy' ? 'success' : 'accent'}>
-                                  لقاءات أسبوعية مرصودة: {(r.meetings_week ?? 0).toLocaleString('ar')} جلسات
-                                </CrudBadge>
-                              </div>
-                            </div>
-                          </Td>
-                        </motion.tr>
-                      : null}
-                    </AnimatePresence>
-                  </Fragment>
-                )
-              })}
-            </tbody>
-          </CrudTable>
-        </CrudCardTable>
-      }
-        </>
-      : null}
+      {/* KPIs */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiTile icon={Building2} label="إجمالي الإدارات" value={rows.length} accent="blue" />
+        <KpiTile icon={Users} label="إجمالي الأعضاء" value={totalMembers} accent="orange" />
+        <KpiTile icon={CheckCircle2} label="إدارات سليمة" value={statusMix.healthy} accent="success" />
+        <KpiTile icon={AlertCircle} label="إدارات في خطر" value={statusMix.risk} accent="danger" />
+      </div>
 
-      <EntityDetailDrawer
-        open={view !== null}
-        onClose={() => setView(null)}
-        title={view ? getDepartmentName(view) : ''}
-        subtitle="وحدة تنظيمية · GET /operations/departments"
-        avatar={
-          view ?
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2] to-[#22334A] text-lg font-black text-white shadow-lg ring-4 ring-white/90">
-              <Building2 className="h-7 w-7" aria-hidden />
-            </span>
-          : null
-        }
-        badges={view ? <>{healthBadge(view.status)}</> : null}
-        footerSlot={
-          <EntityActionMenu
-            onClose={() => setView(null)}
-            onEdit={() => view && navigate(`/dashboard/admin/departments/${view.id}`)}
-            editLabel="لوحة التشغيل التفصيلية"
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="بحث باسم الإدارة أو القائد..."
+            className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pe-4 ps-10 text-[13px] font-semibold text-[#22334A] placeholder:text-slate-400 outline-none ring-[#2691C2]/30 transition focus:ring-2"
           />
-        }
-        tabs={
-          view ?
-            [
-              {
-                id: 'overview',
-                labelAr: 'نظرة عامة',
-                content: (
-                  <div className="space-y-4">
-                    <EntityDetailSection title="ملخص تنظيمي" icon={<Target className="h-4 w-4" aria-hidden />}>
-                      <p className="text-[13px] font-semibold leading-relaxed text-muted-700">
-                        {view.description?.trim() ?? 'لا وصف موسّع مرصود من الخادم لهذه الوحدة.'}
-                      </p>
-                    </EntityDetailSection>
-                    <EntityDetailSection title="مؤشرات تشغيلية" icon={<Activity className="h-4 w-4" aria-hidden />}>
-                      <dl className="grid gap-3 sm:grid-cols-2">
-                        <EntityDetailField label="معرّف الإدارة" value={<span className="font-mono">#{view.id}</span>} />
-                        <EntityDetailField label="الاسم المعروض" value={getDepartmentName(view)} />
-                        <EntityDetailField label="قائد مسجّل" value={view.leader_name ?? '—'} />
-                        <EntityDetailField label="أعضاء (عدّاد)" value={view.members_count ?? 0} />
-                        <EntityDetailField label="مهام مفتوحة" value={view.open_tasks ?? 0} />
-                        <EntityDetailField
-                          label="لقاءات أسبوعية"
-                          value={view.meetings_week ?? '—'}
-                        />
-                        <EntityDetailField
-                          label="نقاط صحّة"
-                          value={
-                            typeof view.health_score === 'number' ?
-                              view.health_score.toFixed(1)
-                            : 'لا يصدّر الخادم قيمة رقمية'
-                          }
-                        />
-                      </dl>
-                    </EntityDetailSection>
-                  </div>
-                ),
-              },
-              {
-                id: 'context',
-                labelAr: 'السياق التشغيلي',
-                content: (
-                  <EntityDetailSection title="حمولة ورصد" icon={<Workflow className="h-4 w-4" aria-hidden />}>
-                    <ul className="space-y-2 text-[13px] font-semibold text-muted-700 rtl:text-right">
-                      <li>حالة الصحّة المرصودة: {healthBadge(view.status)}</li>
-                      <li>
-                        المهام المفتوحة نسبةً للمجموعة الحالية تُستنتج في الجدول الرئيسي؛ راجع التوسيع النصّي لكل صفّ.
-                      </li>
-                    </ul>
-                  </EntityDetailSection>
-                ),
-              },
-              {
-                id: 'activity',
-                labelAr: 'النشاط',
-                content: (
-                  <EntityDetailSection title="سجل زمني مبدئي" icon={<Activity className="h-4 w-4" aria-hidden />}>
-                    <p className="text-[12px] font-semibold text-muted-600">
-                      لا حقل «آخر من عدّل» في مجموعة العمليات الحالية؛ يُعرض هنا وصف تذكيري حتى يتوفّر تدقيق خلفي.
-                    </p>
-                    <EntityDetailField
-                      label="مصدر البيانات"
-                      value="GET /operations/departments — بلا حقل تدقيق مستخدم في الاستجابة الحالية"
-                    />
-                  </EntityDetailSection>
-                ),
-              },
-            ]
-          : undefined
-        }
-      />
+          {q ? (
+            <button type="button" onClick={() => setQ('')} className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#22334A]">
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+        {(['all', 'healthy', 'attention', 'risk'] as const).map((s) => {
+          const labels = { all: 'الجميع', healthy: 'سليم', attention: 'انتباه', risk: 'خطر' }
+          const counts = { all: rows.length, ...statusMix }
+          const active = statusFilter === s
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatusFilter(s)}
+              className={[
+                'inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-[12px] font-black transition ring-1',
+                active ? 'bg-[#22334A] text-white ring-[#22334A]' : 'bg-white text-slate-500 ring-slate-200 hover:ring-[#2691C2]/40',
+              ].join(' ')}
+            >
+              {labels[s]}
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                {counts[s]}
+              </span>
+            </button>
+          )
+        })}
+        {!loading && rows.length > 0 ? (
+          <span className="ms-auto text-[12px] font-black text-slate-400">{filtered.length} من {rows.length}</span>
+        ) : null}
+      </div>
+
+      {/* States */}
+      {loadError && !loading ? <ErrorPanel title="تعذر تحميل بيانات الإدارات" hint={loadError} /> : null}
+
+      {loading ? (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-64 animate-pulse rounded-3xl bg-slate-100" />
+          ))}
+        </div>
+      ) : null}
+
+      {!loading && !loadError && rows.length === 0 ? (
+        <EmptyPanel title="لا توجد إدارات متاحة حاليًا" subtitle="لم تُرجع نقطة النهاية أي وحدة. جرّب التحديث أو تحقق من صلاحية GET /operations/departments." />
+      ) : null}
+
+      {!loading && !loadError && rows.length > 0 && filtered.length === 0 ? (
+        <EmptyPanel title="لا نتائج للمرشح الحالي" subtitle="عدّل البحث أو غيّر فلتر الحالة لإظهار إدارات أخرى." />
+      ) : null}
+
+      {/* Cards grid */}
+      {!loading && filtered.length > 0 ? (
+        <motion.div layout className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <AnimatePresence mode="popLayout">
+            {filtered.map(({ dept }) => (
+              <DeptCard key={dept.id} dept={dept} />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      ) : null}
+
+      <DetailDrawer dept={detail} onClose={() => setDetail(null)} />
     </SaPageRoot>
   )
 }

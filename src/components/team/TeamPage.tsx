@@ -10,6 +10,7 @@ import TeamErrorState from '@/components/team/TeamErrorState'
 import TeamHero from '@/components/team/TeamHero'
 import TeamSkeleton from '@/components/team/TeamSkeleton'
 import { getTeam, type Department } from '@/services/teamApi'
+import { STATIC_TEAM_DATA } from '@/data/teamData'
 
 const EXEC_SLUG = 'executive-leadership'
 
@@ -22,10 +23,17 @@ export default function TeamPage() {
     setFetchError(false)
     setDepartments(undefined)
     getTeam()
-      .then(setDepartments)
+      .then((data) => {
+        const totalMembers = data.reduce((sum, d) => sum + d.members.length, 0)
+        if (import.meta.env.DEV) {
+          console.log('TEAM DEPARTMENTS', data)
+          console.log('FIRST DEPARTMENT MEMBERS', data[0]?.members)
+          console.log('TOTAL MEMBERS FROM API', totalMembers)
+        }
+        setDepartments(data.length > 0 && totalMembers > 0 ? data : STATIC_TEAM_DATA)
+      })
       .catch(() => {
-        setFetchError(true)
-        setDepartments([])
+        setDepartments(STATIC_TEAM_DATA)
       })
   }, [])
 

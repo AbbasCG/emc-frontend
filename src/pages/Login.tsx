@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import axios from 'axios'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AlertCircle, LockKeyhole, LogIn, Mail } from 'lucide-react'
 import { useEffect } from 'react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
@@ -66,6 +67,13 @@ export default function Login() {
       const payload = await login(email, password)
       navigate(getPostLoginRedirect(payload.user, from), { replace: true })
     } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        const msg = (err.response.data as { message?: string } | undefined)?.message ?? ''
+        if (msg === 'Account is suspended.' || msg.toLowerCase().includes('suspended')) {
+          setError('تم تعطيل الحساب، يرجى التواصل مع الإدارة')
+          return
+        }
+      }
       setError(getApiErrorMessage(err))
     } finally {
       setIsLoading(false)

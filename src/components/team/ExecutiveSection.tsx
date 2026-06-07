@@ -18,7 +18,7 @@ export default function ExecutiveSection({ department }: Props) {
   return (
     <section aria-labelledby="exec-heading" className="mb-20 lg:mb-28" dir="rtl">
       <div className="mx-auto mb-12 max-w-[1540px] text-right">
-        <div className="mb-6 flex flex-wrap items-center justify-end gap-4">
+        <div className="mb-6 flex flex-wrap items-center justify-start gap-4">
           <span className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/[0.08] bg-white px-4 py-2 shadow-emc-sm ring-1 ring-customBlue/15">
             <Icon className="text-customOrange" size={22} strokeWidth={2} aria-hidden />
             <span className="text-sm font-black text-deepBlue">{department.name_ar}</span>

@@ -15,7 +15,7 @@ export default function DepartmentTabs({ departments, activeSlug, onChange }: Pr
 
   return (
     <div dir="rtl" className="border-b border-deepBlue/[0.07] pb-px">
-      <div className="relative flex gap-1 overflow-x-auto py-4 scrollbar-hide lg:flex-wrap lg:justify-end lg:gap-2">
+      <div className="relative flex gap-1 overflow-x-auto py-4 scrollbar-hide lg:flex-wrap lg:justify-start lg:gap-2">
         {tabs.map((t) => {
           const pressed = activeSlug === t.slug
           return (

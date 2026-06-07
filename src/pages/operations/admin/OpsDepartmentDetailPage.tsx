@@ -1,261 +1,388 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Calendar,
+  AlertCircle,
+  AlertTriangle,
+  BookOpen,
+  Building2,
+  CheckCircle2,
   ChevronLeft,
-  FileStack,
-  FolderOpen,
-  LayoutGrid,
+  ClipboardList,
+  HeartHandshake,
+  Info,
+  RefreshCw,
+  UserCheck,
   Users,
 } from 'lucide-react'
-import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
-import TaskCard from '@/components/operations/TaskCard'
-import MeetingCard from '@/components/operations/MeetingCard'
-import { fetchDepartmentDetail } from '@/api/operationsApi'
-import { fetchTasks } from '@/api/tasksApi'
-import { fetchMeetings } from '@/api/meetingsApi'
-import DepartmentHealthBadge from '@/components/operations/DepartmentHealthBadge'
-import type { DepartmentDetail, OpsMeeting, OpsTask } from '@/types/operations'
+import { fetchAdminDepartmentById } from '@/api/superAdminOpsApi'
+import type { AdminDepartment } from '@/types/operations'
+import { errorToast } from '@/lib/toast'
 
-const tabs = [
-  { id: 'overview', label: 'نظرة عامة' },
-  { id: 'sections', label: 'محاور' },
-  { id: 'members', label: 'الأعضاء' },
-  { id: 'tasks', label: 'المهام' },
-  { id: 'meetings', label: 'الاجتماعات' },
-  { id: 'files', label: 'ملفات' },
-  { id: 'kpi', label: 'مؤشرات' },
-] as const
+/* ── Status helpers ─────────────────────────────────────────────────────── */
 
-type TabId = (typeof tabs)[number]['id']
+function statusLabel(s: AdminDepartment['status']) {
+  if (s === 'healthy') return 'سليم'
+  if (s === 'risk') return 'خطر'
+  return 'انتباه'
+}
+
+function StatusBadge({ status }: { status: AdminDepartment['status'] }) {
+  const cls =
+    status === 'healthy'
+      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+      : status === 'risk'
+        ? 'bg-rose-50 text-rose-700 ring-rose-200'
+        : 'bg-amber-50 text-amber-700 ring-amber-200'
+  const Icon =
+    status === 'healthy' ? CheckCircle2 : status === 'risk' ? AlertCircle : AlertTriangle
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-black ring-1 ${cls}`}>
+      <Icon className="h-3.5 w-3.5" aria-hidden />
+      {statusLabel(status)}
+    </span>
+  )
+}
+
+function computeReasons(d: AdminDepartment): string[] {
+  if (d.status === 'healthy') return ['جميع المؤشرات سليمة']
+  const reasons: string[] = []
+  if (d.leaders_count === 0) reasons.push('لا يوجد قائد معيّن')
+  if (d.members_count === 0) reasons.push('لا يوجد أعضاء مرتبطون')
+  if (d.volunteer_requests_count > 0) reasons.push(`${d.volunteer_requests_count} طلب تطوع قيد المراجعة`)
+  if (d.open_tasks_count !== null && d.open_tasks_count > 0) reasons.push(`${d.open_tasks_count} مهمة مفتوحة`)
+  if (d.pending_items_count > 0) reasons.push(`${d.pending_items_count} بنود قيد الانتظار`)
+  return reasons.length ? reasons : ['تحتاج إلى مراجعة']
+}
+
+/* ── Metric card ────────────────────────────────────────────────────────── */
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  accent,
+  linkTo,
+  linkLabel,
+}: {
+  icon: React.ElementType
+  label: string
+  value: number | string
+  accent: 'blue' | 'orange' | 'emerald' | 'amber' | 'sky' | 'rose'
+  linkTo?: string
+  linkLabel?: string
+}) {
+  const colorMap = {
+    blue: 'text-[#2691C2] bg-[#2691C2]/10 ring-[#2691C2]/20',
+    orange: 'text-[#EC943C] bg-[#EC943C]/10 ring-[#EC943C]/20',
+    emerald: 'text-emerald-700 bg-emerald-50 ring-emerald-200',
+    amber: 'text-amber-700 bg-amber-50 ring-amber-200',
+    sky: 'text-sky-700 bg-sky-50 ring-sky-200',
+    rose: 'text-rose-700 bg-rose-50 ring-rose-200',
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${colorMap[accent]}`}>
+          <Icon className="h-5 w-5" aria-hidden />
+        </span>
+        <p className="text-2xl font-black text-[#22334A] tabular-nums">{value}</p>
+      </div>
+      <p className="text-[12px] font-black text-slate-500">{label}</p>
+      {linkTo && linkLabel ? (
+        <Link
+          to={linkTo}
+          className="inline-flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline"
+        >
+          {linkLabel}
+          <ChevronLeft className="h-3 w-3" aria-hidden />
+        </Link>
+      ) : null}
+    </div>
+  )
+}
+
+/* ── Section wrapper ────────────────────────────────────────────────────── */
+
+function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-4">
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#22334A]/[0.06] text-[#22334A]">
+          <Icon className="h-4 w-4" aria-hidden />
+        </span>
+        <h2 className="font-black text-[#22334A]">{title}</h2>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function EmptyNote({ text }: { text: string }) {
+  return (
+    <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-[13px] font-semibold text-slate-400">
+      {text}
+    </p>
+  )
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default function OpsDepartmentDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const location = useLocation()
-  const departmentsListPath = location.pathname.startsWith('/dashboard/department')
-    ? '/dashboard/department'
-    : '/dashboard/admin/departments'
 
-  const [detail, setDetail] = useState<DepartmentDetail | null>(null)
-  const [tasks, setTasks] = useState<OpsTask[]>([])
-  const [meetings, setMeetings] = useState<OpsMeeting[]>([])
-  const [tab, setTab] = useState<TabId>('overview')
+  const [dept, setDept] = useState<AdminDepartment | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  async function loadDept() {
+  async function load() {
     if (!id) return
     setLoadError(null)
     setLoading(true)
     try {
-      const [d, t, m] = await Promise.all([
-        fetchDepartmentDetail(id),
-        fetchTasks(),
-        fetchMeetings(),
-      ])
-      setDetail(d)
-      setTasks(t.filter((x) => x.department_id === id))
-      setMeetings(m.filter((x) => x.department_id === id))
+      const data = await fetchAdminDepartmentById(id)
+      setDept(data)
     } catch {
       setLoadError('تعذّر تحميل بيانات الإدارة. تحقق من الاتصال وأعد المحاولة.')
+      errorToast('تعذّر تحميل بيانات الإدارة')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { void loadDept() }, [id])
+  useEffect(() => { void load() }, [id])
 
-  const title = detail?.title ?? 'إدارة'
-
-  const tabContent = useMemo(() => {
-    if (!detail) return null
-    switch (tab) {
-      case 'overview':
-        return (
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl bg-white p-6 ring-1 ring-deepBlue/[0.06]">
-              <h3 className="text-sm font-black text-deepBlue">الوصف</h3>
-              <p className="mt-3 text-sm font-medium leading-relaxed text-slate-600">{detail.description}</p>
-              <dl className="mt-6 grid gap-3 text-right text-xs font-bold text-slate-500">
-                <div className="flex justify-between gap-2">
-                  <dt>القائد</dt>
-                  <dd className="text-deepBlue">{detail.leader_name ?? '—'}</dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt>المهام المفتوحة</dt>
-                  <dd className="text-customOrange">{detail.open_tasks}</dd>
-                </div>
-              </dl>
-            </div>
-            <div className="rounded-2xl bg-deepBlue text-white p-6 shadow-xl ring-1 ring-white/10">
-              <h3 className="text-sm font-black text-white/90">لقطة صحة</h3>
-              <div className="mt-4 flex items-center justify-between">
-                <DepartmentHealthBadge health={detail.status} />
-                <span className="text-4xl font-black text-customOrange">{detail.health_score ?? '—'}</span>
-              </div>
-              <p className="mt-4 text-xs font-semibold leading-relaxed text-white/65">
-                تُحدَّث المؤشرات تلقائياً عند ربط مسارات `/operations/departments/:id` بالخادم.
-              </p>
-            </div>
-          </div>
-        )
-      case 'sections':
-        return (
-          <ul className="space-y-4">
-            {(detail.sections ?? []).map((s, i) => (
-              <li
-                key={i}
-                className="rounded-2xl border border-deepBlue/[0.06] bg-white px-5 py-4 text-right shadow-sm"
-              >
-                <p className="text-xs font-black text-customBlue">{s.title}</p>
-                <p className="mt-2 text-sm font-medium text-slate-600">{s.body}</p>
-              </li>
-            ))}
-          </ul>
-        )
-      case 'members':
-        return (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(detail.members_preview ?? []).map((m, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 ring-1 ring-deepBlue/[0.06]"
-              >
-                <Users size={18} className="text-customBlue" />
-                <div className="text-right">
-                  <p className="text-sm font-black text-deepBlue">{m.name}</p>
-                  <p className="text-[11px] font-bold text-slate-500">{m.role}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
-      case 'tasks':
-        return (
-          <div className="grid gap-3 md:grid-cols-2">
-            {tasks.map((t) => (
-              <TaskCard key={t.id} task={t} onOpen={() => navigate('/dashboard/admin/tasks')} />
-            ))}
-          </div>
-        )
-      case 'meetings':
-        return (
-          <div className="grid gap-4 md:grid-cols-2">
-            {meetings.map((m) => (
-              <MeetingCard key={m.id} m={m} />
-            ))}
-          </div>
-        )
-      case 'files':
-        return (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-16 text-center">
-            <FileStack className="mx-auto text-slate-300" size={40} />
-            <p className="mt-4 text-sm font-black text-deepBlue">مكتبة الملفات</p>
-            <p className="mt-2 text-xs font-semibold text-slate-500">
-              placeholder — رفع المستندات ومزامنة التخزين عبر Phase 3 backend.
-            </p>
-          </div>
-        )
-      case 'kpi':
-        return (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {(detail.kpi_placeholder ?? []).map((k) => (
-              <div
-                key={k}
-                className="rounded-2xl bg-gradient-to-br from-white to-sky-50/50 p-5 text-right ring-1 ring-deepBlue/[0.06]"
-              >
-                <LayoutGrid className="text-customOrange" size={20} />
-                <p className="mt-3 text-sm font-black text-deepBlue">{k}</p>
-                <p className="mt-2 text-[11px] font-bold text-slate-500">بانتظار البيانات الحية</p>
-              </div>
-            ))}
-          </div>
-        )
-      default:
-        return null
-    }
-  }, [detail, tab, tasks, meetings])
-
-  if (loading || !id) return <OpsPageSkeleton />
-  if (loadError) return (
-    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
-      <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void loadDept()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
-    </div>
-  )
-  if (!detail) {
+  if (loading) {
     return (
-      <div className="rounded-2xl bg-white p-10 text-center font-black text-deepBlue ring-1 ring-deepBlue/[0.06]">
+      <div dir="rtl" className="space-y-6">
+        <div className="h-40 animate-pulse rounded-3xl bg-slate-100" />
+        <div className="grid gap-4 sm:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
+          ))}
+        </div>
+        <div className="h-48 animate-pulse rounded-2xl bg-slate-100" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+        <AlertCircle className="mx-auto h-8 w-8 text-rose-500" aria-hidden />
+        <p className="mt-3 font-black text-rose-800">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#22334A] px-6 py-2.5 text-sm font-black text-white"
+        >
+          <RefreshCw className="h-4 w-4" aria-hidden />
+          إعادة المحاولة
+        </button>
+      </div>
+    )
+  }
+
+  if (!dept) {
+    return (
+      <div dir="rtl" className="rounded-2xl bg-white p-10 text-center font-black text-[#22334A] ring-1 ring-[#22334A]/[0.06]">
         لم يتم العثور على الإدارة.
       </div>
     )
   }
 
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <Link
-          to={departmentsListPath}
-          className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
-        >
-          <ChevronLeft size={14} />
-          كل الإدارات
-        </Link>
-      </div>
+  const reasons = computeReasons(dept)
 
-      <motion.header
+  return (
+    <div dir="rtl" className="space-y-6">
+      {/* Back */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1 text-[12px] font-black text-[#2691C2] transition hover:text-[#22334A]"
+      >
+        <ChevronLeft className="h-4 w-4 rotate-180" aria-hidden />
+        الإدارات
+      </button>
+
+      {/* Hero header */}
+      <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-[1.35rem] bg-white p-8 text-right shadow-lg ring-1 ring-deepBlue/[0.06]"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] to-[#1a2840] px-8 py-8 shadow-xl"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <DepartmentHealthBadge health={detail.status} />
-          <div>
-            <h1 className="text-2xl font-black text-deepBlue">{title}</h1>
-            <p className="mt-2 max-w-2xl text-sm font-semibold text-slate-600">{detail.description}</p>
-            <div className="mt-4 flex flex-wrap justify-end gap-4 text-[11px] font-bold text-slate-500">
-              <span className="inline-flex items-center gap-1">
-                <Users size={14} /> {detail.members_count} أعضاء
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Calendar size={14} /> {detail.meetings_week ?? 0} اجتماعات / أسبوع
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <FolderOpen size={14} /> {detail.open_tasks} مهام
-              </span>
+        <div className="pointer-events-none absolute -end-20 -top-20 h-60 w-60 rounded-full bg-[#2691C2]/20 blur-[70px]" aria-hidden />
+        <div className="relative flex flex-wrap items-start justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/10 text-2xl font-black text-white ring-2 ring-white/20">
+              <Building2 className="h-7 w-7" aria-hidden />
+            </span>
+            <div>
+              <h1 className="text-2xl font-black text-white">{dept.name_ar}</h1>
+              {dept.name_en ? (
+                <p className="mt-1 text-[13px] font-semibold text-white/55">{dept.name_en}</p>
+              ) : null}
+              {dept.description_ar ? (
+                <p className="mt-2 max-w-xl text-[13px] font-semibold leading-relaxed text-white/65">{dept.description_ar}</p>
+              ) : null}
             </div>
           </div>
+          <div className="flex flex-col items-end gap-2">
+            <StatusBadge status={dept.status} />
+            {reasons.map((r, i) => (
+              <div key={i} className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5">
+                <Info className="h-3 w-3 text-white/60" aria-hidden />
+                <p className="text-[11px] font-semibold text-white/80">{r}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </motion.header>
+      </motion.div>
 
-      <div className="flex flex-wrap justify-end gap-2 rounded-2xl bg-deepBlue/[0.03] p-2 ring-1 ring-deepBlue/[0.06]">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={[
-              'rounded-xl px-4 py-2 text-xs font-black transition',
-              tab === t.id
-                ? 'bg-deepBlue text-white shadow-md'
-                : 'bg-white text-deepBlue ring-1 ring-deepBlue/[0.08] hover:border-customBlue/20',
-            ].join(' ')}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Metrics grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard
+          icon={Users}
+          label="إجمالي الأعضاء"
+          value={dept.members_count}
+          accent="blue"
+          linkTo={`/dashboard/super-admin/crud/team?department=${dept.id}`}
+          linkLabel="عرض الفريق"
+        />
+        <MetricCard
+          icon={UserCheck}
+          label="القادة"
+          value={dept.leaders_count}
+          accent="emerald"
+        />
+        <MetricCard
+          icon={BookOpen}
+          label="الدورات والبرامج"
+          value={dept.courses_count}
+          accent="sky"
+          linkTo={dept.courses_count > 0 ? `/dashboard/super-admin/crud/programs?department=${dept.id}` : undefined}
+          linkLabel={dept.courses_count > 0 ? 'عرض البرامج' : undefined}
+        />
+        <MetricCard
+          icon={HeartHandshake}
+          label="طلبات التطوع"
+          value={dept.volunteer_requests_count}
+          accent="orange"
+          linkTo={`/dashboard/super-admin/volunteer-requests?department=${encodeURIComponent(dept.name_ar)}`}
+          linkLabel="عرض الطلبات"
+        />
+        <MetricCard
+          icon={AlertTriangle}
+          label="بنود قيد الانتظار"
+          value={dept.pending_items_count}
+          accent={dept.pending_items_count >= 10 ? 'rose' : dept.pending_items_count > 0 ? 'amber' : 'emerald'}
+        />
+        {dept.open_tasks_count !== null ? (
+          <MetricCard
+            icon={ClipboardList}
+            label="مهام مفتوحة"
+            value={dept.open_tasks_count}
+            accent={dept.open_tasks_count > 0 ? 'amber' : 'emerald'}
+          />
+        ) : (
+          <div className="flex flex-col justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5">
+            <p className="text-[11px] font-black text-slate-400">نظام المهام</p>
+            <p className="mt-1 text-[12px] font-semibold text-slate-500">لا يوجد نظام مهام مرتبط حالياً</p>
+          </div>
+        )}
       </div>
 
-      <motion.div
-        key={tab}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {tabContent}
-      </motion.div>
+      {/* Section: Leader */}
+      <Section title="القيادة" icon={UserCheck}>
+        {dept.leader_name ? (
+          <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-100">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 font-black text-emerald-700">
+              {dept.leader_name.charAt(0)}
+            </span>
+            <div>
+              <p className="font-black text-[#22334A]">{dept.leader_name}</p>
+              <p className="text-[11px] text-slate-500">قائد الإدارة</p>
+            </div>
+          </div>
+        ) : (
+          <EmptyNote text="لا يوجد قائد معيّن بعد" />
+        )}
+      </Section>
+
+      {/* Section: Team */}
+      <Section title="الفريق المرتبط" icon={Users}>
+        {dept.members_count > 0 ? (
+          <div className="space-y-3">
+            <p className="text-[13px] font-semibold text-slate-600">
+              يضم هذا القسم <span className="font-black text-[#22334A]">{dept.members_count}</span> عضو، منهم{' '}
+              <span className="font-black text-[#22334A]">{dept.leaders_count}</span> قائد.
+            </p>
+            <Link
+              to={`/dashboard/super-admin/crud/team?department=${dept.id}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+            >
+              <Users className="h-4 w-4" aria-hidden />
+              عرض أعضاء الإدارة
+            </Link>
+          </div>
+        ) : (
+          <EmptyNote text="لا يوجد أعضاء مرتبطون بهذه الإدارة" />
+        )}
+      </Section>
+
+      {/* Section: Volunteer requests */}
+      <Section title="طلبات التطوع المرتبطة" icon={HeartHandshake}>
+        {dept.volunteer_requests_count > 0 ? (
+          <div className="space-y-3">
+            <p className="text-[13px] font-semibold text-slate-600">
+              يوجد <span className="font-black text-[#22334A]">{dept.volunteer_requests_count}</span> طلب تطوع مرتبط بهذه الإدارة.
+            </p>
+            <Link
+              to={`/dashboard/super-admin/volunteer-requests?department=${encodeURIComponent(dept.name_ar)}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+            >
+              <HeartHandshake className="h-4 w-4" aria-hidden />
+              عرض الطلبات
+            </Link>
+          </div>
+        ) : (
+          <EmptyNote text="لا توجد طلبات تطوع مرتبطة بهذه الإدارة" />
+        )}
+      </Section>
+
+      {/* Section: Programs/courses */}
+      <Section title="البرامج والدورات المرتبطة" icon={BookOpen}>
+        {dept.courses_count > 0 ? (
+          <div className="space-y-3">
+            <p className="text-[13px] font-semibold text-slate-600">
+              يوجد <span className="font-black text-[#22334A]">{dept.courses_count}</span> برنامج أو دورة مرتبطة بهذه الإدارة.
+            </p>
+            <Link
+              to={`/dashboard/super-admin/crud/programs?department=${dept.id}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden />
+              عرض البرامج
+            </Link>
+          </div>
+        ) : (
+          <EmptyNote text="لا توجد برامج مرتبطة بهذه الإدارة" />
+        )}
+      </Section>
+
+      {/* Section: Open tasks (conditional) */}
+      {dept.open_tasks_count !== null ? (
+        <Section title="المهام المفتوحة" icon={ClipboardList}>
+          {dept.open_tasks_count > 0 ? (
+            <p className="text-[13px] font-semibold text-slate-600">
+              يوجد <span className="font-black text-amber-700">{dept.open_tasks_count}</span> مهمة مفتوحة حاليًا في هذه الإدارة.
+            </p>
+          ) : (
+            <EmptyNote text="لا توجد مهام مفتوحة في هذه الإدارة حالياً" />
+          )}
+        </Section>
+      ) : null}
     </div>
   )
 }

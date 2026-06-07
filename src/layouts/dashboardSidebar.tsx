@@ -70,7 +70,12 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/super-admin/audit-logs',
   '/dashboard/admin/operations',
   '/dashboard/learning',
+  '/dashboard/members',
 ])
+
+function membersNavItem(): SidebarNavItem {
+  return { label: 'الأعضاء', href: '/dashboard/members', icon: UserCheck }
+}
 
 function communicationsBlock(): SidebarNavGroup[] {
   return [
@@ -114,7 +119,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
         { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar },
         { label: 'النماذج', href: '/dashboard/admin/forms', icon: FileText },
-        { label: 'المتطوعون', href: '/dashboard/admin/volunteers', icon: Users },
+        membersNavItem(),
+        { label: 'طلبات التطوع', href: '/dashboard/admin/volunteers', icon: HeartHandshake },
         { label: 'الشركاء', href: '/dashboard/admin/partners', icon: Briefcase },
         { label: 'طلبات الشراكة', href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
         { label: 'التسويق', href: '/dashboard/admin/marketing', icon: Megaphone },
@@ -213,6 +219,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الأدوار والصلاحيات', href: '/dashboard/super-admin/crud/roles', icon: ShieldCheck },
         { label: 'الإدارات', href: '/dashboard/super-admin/crud/departments', icon: Building2 },
         { label: 'الفريق', href: '/dashboard/super-admin/crud/team', icon: UserCheck },
+        membersNavItem(),
         { label: 'الطلاب', href: '/dashboard/super-admin/crud/students', icon: GraduationCap },
         { label: 'المدربون', href: '/dashboard/super-admin/crud/instructors', icon: UserCog },
         { label: 'البرامج', href: '/dashboard/super-admin/crud/programs', icon: BookMarked },
@@ -220,6 +227,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الورش', href: '/dashboard/super-admin/crud/workshops', icon: Sparkles },
         { label: 'التسجيلات', href: '/dashboard/super-admin/crud/registrations', icon: ClipboardList },
         { label: 'الشراكات', href: '/dashboard/super-admin/crud/partners', icon: HeartHandshake },
+        { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
       ],
     },
     {
@@ -270,13 +278,14 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
   if (n === 'executive_admin') {
     return [
       { items: [{ label: 'اللوحة التنفيذية', href: '/dashboard/executive', icon: LayoutDashboard }] },
-        {
+      {
         title: 'القرار والمتابعة',
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
+          membersNavItem(),
         ],
       },
       ...communicationsBlock(),
@@ -291,6 +300,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         items: [
           { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: ClipboardList },
           { label: 'المعاملات', href: '/dashboard/finance/transactions', icon: BarChart3 },
+          membersNavItem(),
         ],
       },
       ...communicationsBlock(),
@@ -299,7 +309,12 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
 
   if (n === 'quality_manager') {
     return [
-      { items: [{ label: 'مراجعة الجودة', href: '/dashboard/quality', icon: ClipboardCheck }] },
+      {
+        items: [
+          { label: 'مراجعة الجودة', href: '/dashboard/quality', icon: ClipboardCheck },
+          membersNavItem(),
+        ],
+      },
       ...communicationsBlock(),
     ]
   }
@@ -310,8 +325,9 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         title: 'الفريق والانضمام',
         items: [
+          membersNavItem(),
           { label: 'أعضاء الفريق', href: '/dashboard/hr/team', icon: Users },
-          { label: 'المتطوعون', href: '/dashboard/hr/volunteers', icon: HeartHandshake },
+          { label: 'طلبات التطوع', href: '/dashboard/hr/volunteers', icon: HeartHandshake },
           { label: 'المدربون', href: '/dashboard/hr/instructors', icon: GraduationCap },
           { label: 'طلبات الانضمام', href: '/dashboard/hr/applications', icon: ClipboardList },
         ],
@@ -331,21 +347,36 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
 
   if (n === 'marketing_manager') {
     return [
-      { items: [{ label: 'التسويق', href: '/dashboard/marketing', icon: Megaphone }] },
+      {
+        items: [
+          { label: 'التسويق', href: '/dashboard/marketing', icon: Megaphone },
+          membersNavItem(),
+        ],
+      },
       ...communicationsBlock(),
     ]
   }
 
   if (n === 'support_agent') {
     return [
-      { items: [{ label: 'تذاكر الدعم', href: '/dashboard/support', icon: ShieldQuestion }] },
+      {
+        items: [
+          { label: 'تذاكر الدعم', href: '/dashboard/support', icon: ShieldQuestion },
+          membersNavItem(),
+        ],
+      },
       ...communicationsBlock(),
     ]
   }
 
   if (n === 'volunteer') {
     return [
-      { items: [{ label: 'المتطوعون', href: '/dashboard/volunteer', icon: Users }] },
+      {
+        items: [
+          { label: 'طلبات التطوع', href: '/dashboard/volunteer', icon: HeartHandshake },
+          membersNavItem(),
+        ],
+      },
       ...communicationsBlock(),
     ]
   }
@@ -355,7 +386,10 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       { items: [{ label: 'إدارتي', href: '/dashboard/department', icon: Building2 }] },
       {
         title: 'التعلّم والبرامج',
-        items: [{ label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked }],
+        items: [
+          { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
+          membersNavItem(),
+        ],
       },
       ...communicationsBlock(),
     ]
@@ -370,6 +404,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'البرامج المشتركة', href: '/dashboard/partner/programs', icon: Briefcase },
           { label: 'التقارير', href: '/dashboard/partner/reports', icon: PieChart },
           { label: 'المستندات', href: '/dashboard/partner/documents', icon: FolderOpen },
+          membersNavItem(),
         ],
       },
       ...communicationsBlock(),

@@ -1,6 +1,6 @@
 import { Copy, RefreshCw, Save } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import type { AiGenerationKind } from '@/types/ai'
 
 const options: { value: AiGenerationKind; label: string }[] = [

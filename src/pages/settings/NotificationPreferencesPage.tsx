@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { loadingToast, successToast, errorToast } from '@/lib/toast'
 import { fetchNotificationPreferences, updateNotificationPreferences } from '@/api/notificationPreferencesApi'
 import NotificationPreferenceRow from '@/components/enterprise/NotificationPreferenceRow'
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
@@ -29,10 +29,16 @@ export default function NotificationPreferencesPage() {
 
   async function onSave() {
     setSaving(true)
-    const next = await updateNotificationPreferences(rows)
-    setRows(next)
-    setSaving(false)
-    toast.success('تم حفظ التفضيلات')
+    const tid = loadingToast('جاري حفظ التفضيلات...')
+    try {
+      const next = await updateNotificationPreferences(rows)
+      setRows(next)
+      successToast('تم حفظ التفضيلات', tid)
+    } catch {
+      errorToast('فشل حفظ التفضيلات. حاول مرة أخرى.', tid)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

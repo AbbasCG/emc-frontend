@@ -23,6 +23,7 @@ import { PublicPageHero } from '@/components/public'
 import { submitContactMessage } from '@/api/contactApi'
 import { siteContact } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
+import { loadingToast, successToast, errorToast } from '@/lib/toast'
 
 const optionCards = [
   {
@@ -93,6 +94,7 @@ export default function Contact() {
       return
     }
 
+    const tid = loadingToast('جاري إرسال رسالتك...')
     try {
       setIsSubmitting(true)
       await submitContactMessage({
@@ -105,8 +107,10 @@ export default function Contact() {
       })
       setIsSubmitted(true)
       form.reset()
+      successToast('تم إرسال رسالتك بنجاح. سيتواصل الفريق معك قريباً.', tid)
     } catch {
       setSubmitError('تعذر إرسال الرسالة. تحقق من الاتصال بالخادم أو حاول لاحقاً.')
+      errorToast('تعذر إرسال الرسالة. حاول مرة أخرى.', tid)
     } finally {
       setIsSubmitting(false)
     }

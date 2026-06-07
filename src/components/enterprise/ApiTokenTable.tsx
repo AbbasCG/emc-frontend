@@ -1,5 +1,5 @@
 import { Copy, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import type { ApiAccessTokenRow } from '@/types/phase7'
 
 export default function ApiTokenTable({

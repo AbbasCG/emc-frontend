@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import * as authApi from '../api/authApi'
 import type { User } from '../types'
 import {

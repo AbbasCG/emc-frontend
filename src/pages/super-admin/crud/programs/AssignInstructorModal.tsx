@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Loader2, Search, UserRound } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { assignInstructorToCourse } from '@/api/adminCoursesApi'
 import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'

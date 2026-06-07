@@ -28,6 +28,7 @@ import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
+import { infoToast } from '@/lib/toast'
 import { UserAvatar } from '@/components/UserAvatar'
 
 // ---------------------------------------------------------------------------
@@ -53,6 +54,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/super-admin/crud/workshops': 'الورش — السوبر مشرف',
   '/dashboard/super-admin/crud/registrations': 'التسجيلات — السوبر مشرف',
   '/dashboard/super-admin/crud/partners': 'الشراكات — السوبر مشرف',
+  '/dashboard/super-admin/volunteer-requests': 'طلبات التطوع',
   '/dashboard/executive': 'اللوحة التنفيذية',
   '/dashboard/finance': 'لوحة المالية',
   '/dashboard/quality': 'مراجعة الجودة',
@@ -575,6 +577,7 @@ export default function DashboardLayout() {
       prev.map((x) => ({ ...x, is_read: true, read_at: x.read_at ?? stamp })),
     )
     await markAllNotificationsRead()
+    infoToast('تم تعيين جميع الإشعارات كمقروءة')
   }
 
   return (

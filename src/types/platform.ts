@@ -96,6 +96,7 @@ export type NotificationType =
   | 'meeting_invite'
   | 'support_reply'
   | 'partner_update'
+  | 'volunteer_request'
 
 export type PlatformNotification = {
   id: number

@@ -11,7 +11,7 @@ import {
   LayoutGrid,
   RefreshCw,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'

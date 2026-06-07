@@ -1,10 +1,11 @@
 import { ArrowLeft, CalendarClock, BookOpen, LayoutList } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import logo from '@/assets/logo.png'
 import type { Course, Enrollment } from '@/types'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
+import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
 
 function hasScheduledDate(course: Course): boolean {
   const d = course.start_date
@@ -21,36 +22,18 @@ function formatScheduleLine(course: Course): string | null {
   return d
 }
 
-function normalizeImageUrl(src: string): string | null {
-  const s = String(src).trim()
-  if (!s) return null
-  if (s.startsWith('//')) return `https:${s}`
-  return s
-}
-
 function statusArabic(enrollment: Enrollment): string {
   if (enrollment.status === 'completed') return 'مكتملة'
   if (enrollment.status === 'pending') return 'معلّقة'
   return 'نشطة'
 }
 
-export default function StudentMyCourseCard({
-  enrollment,
-}: {
-  enrollment: Enrollment
-}) {
+export default function StudentMyCourseCard({ enrollment }: { enrollment: Enrollment }) {
   const { course, completed_sessions, total_sessions, status } = enrollment
 
-  const imageCandidates = useMemo(() => {
-    const raw =
-      [course.course_image, course.cover_image, (course as { image_url?: string }).image_url]
-        .map((x) => (x != null ? normalizeImageUrl(String(x)) : null))
-        .filter((x): x is string => x != null && x !== '')
-    return raw
-  }, [course])
-
-  const [srcIndex, setSrcIndex] = useState(0)
-  const showGradient = srcIndex >= imageCandidates.length
+  const imageUrl = resolveCourseCoverImageUrl(course)
+  const [imgError, setImgError] = useState(false)
+  const showFallback = !imageUrl || imgError
 
   const pct =
     total_sessions > 0 ? Math.round((completed_sessions / total_sessions) * 100)
@@ -76,35 +59,40 @@ export default function StudentMyCourseCard({
     >
       {/* Media */}
       <div className="relative h-36 overflow-hidden sm:h-40">
-        {showGradient ?
+        {showFallback ? (
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-br from-deepBlue via-deepBlue to-customBlue flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-deepBlue via-deepBlue to-customBlue"
           >
-            <img src={logo} alt="" className="h-16 w-auto opacity-92 drop-shadow-lg" width={160} height={64} loading="lazy" draggable={false} />
+            <img
+              src={logo}
+              alt=""
+              className="h-16 w-auto opacity-92 drop-shadow-lg"
+              width={160}
+              height={64}
+              loading="lazy"
+              draggable={false}
+            />
           </div>
-        : <img
-            src={imageCandidates[srcIndex] ?? logo}
+        ) : (
+          <img
+            src={imageUrl!}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-            onError={() => {
-              setSrcIndex((i) => i + 1)
-            }}
+            onError={() => setImgError(true)}
           />
-        }
+        )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/85 via-deepBlue/10 to-transparent pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deepBlue/85 via-deepBlue/10 to-transparent" />
 
         <div className="absolute right-3 top-3 flex flex-wrap gap-2">
-          <span
-            className={`rounded-full px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-[2px] ${badgeColor}`}
-          >
+          <span className={`rounded-full px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-[2px] ${badgeColor}`}>
             {statusArabic(enrollment)}
           </span>
         </div>
 
-        <div className="absolute bottom-2.5 right-3 left-3">
+        <div className="absolute bottom-2.5 left-3 right-3">
           <h3 className="line-clamp-2 text-right text-[15px] font-black leading-snug text-white drop-shadow-sm sm:text-[16px]">
             {course.title}
           </h3>
@@ -121,14 +109,12 @@ export default function StudentMyCourseCard({
           </span>
         </p>
 
-        {scheduleLine ?
+        {scheduleLine ? (
           <div className="mt-3 flex items-start gap-2 rounded-2xl border border-customBlue/15 bg-customBlue/[0.06] px-3 py-2.5 text-[11px] font-bold leading-relaxed text-deepBlue">
             <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-customBlue" aria-hidden />
-            <span dir="ltr" className="flex-1 text-right">
-              {scheduleLine}
-            </span>
+            <span dir="ltr" className="flex-1 text-right">{scheduleLine}</span>
           </div>
-        : (
+        ) : (
           <div className="mt-3 rounded-2xl border border-orange-200/90 bg-orange-50/90 px-3 py-2.5 text-[11px] font-bold leading-relaxed text-deepBlue">
             سيتم إشعارك عند تحديد الموعد
           </div>
@@ -145,7 +131,9 @@ export default function StudentMyCourseCard({
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <motion.div
               className={`h-full rounded-full ${
-                isCompleted ? 'bg-emerald-500' : pct > 0 ? 'bg-gradient-to-l from-customBlue to-customBlue/80' : 'bg-slate-300'
+                isCompleted ? 'bg-emerald-500'
+                : pct > 0 ? 'bg-gradient-to-l from-customBlue to-customBlue/80'
+                : 'bg-slate-300'
               }`}
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}

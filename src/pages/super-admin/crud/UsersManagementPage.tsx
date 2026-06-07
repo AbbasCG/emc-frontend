@@ -16,7 +16,7 @@ import {
   Users,
   UserSquare2,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
@@ -28,6 +28,7 @@ import {
   fetchAdminUser,
   fetchAdminUsers,
   getAdminUserMutationMessage,
+  restoreAdminUser,
   updateAdminUser,
   type AdminManagedUser,
   type CreateAdminUserInput,
@@ -92,11 +93,17 @@ const USER_CREATE_STEP_META: readonly WizardStepMeta[] = [
   { id: 4, title: 'المراجعة والحفظ', hint: 'تأكيد ثم الإنشاء' },
 ]
 
+function isDeleted(u: AdminManagedUser): boolean {
+  return !!u.deleted_at
+}
+
 function isEffectivelyActive(u: AdminManagedUser): boolean {
+  if (isDeleted(u)) return false
   return u.is_active !== false
 }
 
-function statusBadge(u: AdminManagedUser): 'active' | 'inactive' | 'unknown' {
+function statusBadge(u: AdminManagedUser): 'active' | 'inactive' | 'deleted' | 'unknown' {
+  if (isDeleted(u)) return 'deleted'
   if (u.is_active === false) return 'inactive'
   if (u.is_active === true) return 'active'
   return 'unknown'
@@ -137,7 +144,7 @@ export default function UsersManagementPage() {
 
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'deleted'>('all')
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [joinedFilter, setJoinedFilter] = useState<'all' | 'month' | 'quarter' | 'year'>('all')
 
@@ -268,8 +275,9 @@ export default function UsersManagementPage() {
     const q = query.trim().toLowerCase()
     return rows.filter((u) => {
       if (roleFilter !== 'all' && normalizeRole(u.role) !== roleFilter) return false
-      if (statusFilter === 'active' && !isEffectivelyActive(u)) return false
-      if (statusFilter === 'inactive' && u.is_active !== false) return false
+      if (statusFilter === 'active' && (u.is_active === false || isDeleted(u))) return false
+      if (statusFilter === 'inactive' && (u.is_active !== false || isDeleted(u))) return false
+      if (statusFilter === 'deleted' && !isDeleted(u)) return false
 
       const deptNorm = u.department?.trim() ?? ''
       if (departmentFilter !== 'all' && deptNorm !== departmentFilter) return false
@@ -503,6 +511,19 @@ export default function UsersManagementPage() {
     }
   }
 
+  async function executeRestore(u: AdminManagedUser) {
+    setSaving(true)
+    try {
+      await restoreAdminUser(u.id)
+      toast.success('تمت استعادة الحساب بنجاح')
+      void load()
+    } catch (e) {
+      toast.warning(getAdminUserMutationMessage(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const chromeSubtitle =
     forbidden ?
       ADMIN_USER_FORBIDDEN_AR
@@ -631,11 +652,12 @@ export default function UsersManagementPage() {
             <MiniSelect
               label="الحالة"
               value={statusFilter}
-              onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'inactive')}
+              onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'inactive' | 'deleted')}
               options={[
                 { value: 'all', labelAr: 'كل الحالات' },
                 { value: 'active', labelAr: 'نشط' },
                 { value: 'inactive', labelAr: 'موقوف' },
+                { value: 'deleted', labelAr: 'محذوف' },
               ]}
             />
             <MiniSelect
@@ -751,7 +773,9 @@ export default function UsersManagementPage() {
                               </Td>
                               <Td className="max-w-[8rem] text-[11px] font-semibold">{u.department ?? '—'}</Td>
                               <Td>
-                                {st === 'inactive' ?
+                                {st === 'deleted' ?
+                                  <CrudBadge variant="danger">محذوف</CrudBadge>
+                                : st === 'inactive' ?
                                   <CrudBadge variant="danger">موقوف</CrudBadge>
                                 : st === 'active' ?
                                   <CrudBadge variant="success">نشط</CrudBadge>
@@ -774,10 +798,11 @@ export default function UsersManagementPage() {
                                   ariaLabel={`إجراءات ${u.name}`}
                                   actions={[
                                     { key: 'view', label: 'لوحة تنفيذية', onClick: () => openEnterpriseView(u) },
-                                    { key: 'edit', label: 'تحرير', disabled: !editOk, onClick: () => void openEdit(u.id) },
+                                    { key: 'edit', label: 'تحرير', disabled: !editOk || isDeleted(u), onClick: () => void openEdit(u.id) },
                                     ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
                                     !isImpersonating &&
-                                    Number(currentUser?.id ?? 0) !== Number(u.id) ?
+                                    Number(currentUser?.id ?? 0) !== Number(u.id) &&
+                                    !isDeleted(u) ?
                                       [
                                         {
                                           key: 'impersonate',
@@ -786,11 +811,21 @@ export default function UsersManagementPage() {
                                         },
                                       ]
                                     : []),
+                                    ...(isDeleted(u) && normalizeRole(currentUser?.role ?? '') === 'super_admin' ?
+                                      [
+                                        {
+                                          key: 'restore',
+                                          label: 'استعادة الحساب',
+                                          disabled: saving,
+                                          onClick: () => void executeRestore(u),
+                                        },
+                                      ]
+                                    : []),
                                     {
                                       key: 'del',
                                       label: 'حذف',
                                       destructive: true,
-                                      disabled: !delOk,
+                                      disabled: !delOk || isDeleted(u),
                                       onClick: () => {
                                         setFocusedId(u.id)
                                         setDeleteAck(false)
@@ -1176,7 +1211,7 @@ function PasswordInlineTools({
     const next = generateSecurePassword()
     setPw(next)
     setPwConf(next)
-    toast('تم توليد كلمة مرور — راجع قبل الحفظ أو النسخ')
+    toast.message('تم توليد كلمة مرور — راجع قبل الحفظ أو النسخ')
   }
 
   async function copy() {

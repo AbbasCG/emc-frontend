@@ -1,23 +1,41 @@
-import { Toaster } from 'sonner'
+import { Toaster } from 'react-hot-toast'
 
 /**
- * Global toast host — mount once inside `BrowserRouter`.
- * Arabic copy is passed at call sites (`toast.success('…')`).
+ * Global toast host — mount once inside BrowserRouter.
+ * Uses react-hot-toast with EMC branding and RTL support.
  */
 export default function AppToaster() {
   return (
     <Toaster
-      dir="rtl"
-      position="top-center"
-      richColors
-      closeButton
+      position="top-right"
+      reverseOrder={false}
       toastOptions={{
-        classNames: {
-          toast:
-            'items-start gap-3 border border-slate-200/80 bg-white font-sans shadow-lg text-right',
-          title: 'font-black text-deepBlue',
-          description: 'font-medium text-slate-600',
-          closeButton: 'left-auto right-2',
+        duration: 5000,
+        style: {
+          fontFamily: 'inherit',
+          direction: 'rtl',
+          textAlign: 'right',
+          borderRadius: '14px',
+          border: '1px solid rgba(34,51,74,0.08)',
+          boxShadow: '0 8px 32px rgba(34,51,74,0.12)',
+          padding: '12px 16px',
+          color: '#22334A',
+          background: '#ffffff',
+          fontSize: '14px',
+          fontWeight: '600',
+          maxWidth: '420px',
+          lineHeight: '1.6',
+        },
+        success: {
+          iconTheme: { primary: '#22c55e', secondary: '#ffffff' },
+        },
+        error: {
+          iconTheme: { primary: '#ef4444', secondary: '#ffffff' },
+          duration: 6000,
+        },
+        loading: {
+          iconTheme: { primary: '#2691C2', secondary: '#ffffff' },
+          duration: Infinity,
         },
       }}
     />

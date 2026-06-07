@@ -1,5 +1,5 @@
 import { Download } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { fetchCalendarIcsBlob } from '@/api/calendarApi'
 import type { CalendarFilterKind } from '@/types/phase7'
 

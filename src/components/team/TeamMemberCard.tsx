@@ -63,7 +63,7 @@ export default function TeamMemberCard({ member, departmentBadge, featured }: Pr
         </span>
 
         {(member.is_executive || member.is_leader) && (
-          <div className="mt-0.5 flex flex-wrap justify-end gap-1">
+          <div className="mt-0.5 flex flex-wrap justify-start gap-1">
             {member.is_executive ? (
               <span className="rounded-lg border border-deepBlue/15 bg-deepBlue px-2 py-0.5 text-[9px] font-black text-white sm:text-[10px]">
                 الإدارة العليا

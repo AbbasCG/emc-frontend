@@ -55,16 +55,40 @@ export type WorkspaceDepartment = {
   /** Primary label from API when present; optional when backend only sends name_ar/name/etc. */
   title?: string
   name_ar?: string | null
+  name_en?: string | null
   name?: string | null
   department_name?: string | null
   label?: string | null
   description?: string
   leader_name?: string | null
   members_count: number
+  /** Real backend count — null means tasks system not connected */
+  open_tasks_count?: number | null
+  /** Legacy field from /operations/departments */
   open_tasks: number
+  leaders_count?: number
+  courses_count?: number
+  volunteer_requests_count?: number
+  pending_items_count?: number
   meetings_week?: number
   status: DepartmentHealth
   health_score?: number
+}
+
+/** Rich admin department detail — from GET /admin/departments/:id */
+export type AdminDepartment = {
+  id: string | number
+  name_ar: string
+  name_en?: string | null
+  description_ar?: string | null
+  leader_name?: string | null
+  members_count: number
+  leaders_count: number
+  courses_count: number
+  volunteer_requests_count: number
+  pending_items_count: number
+  open_tasks_count: number | null
+  status: DepartmentHealth
 }
 
 export type DepartmentDetail = WorkspaceDepartment & {

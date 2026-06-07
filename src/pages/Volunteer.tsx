@@ -197,21 +197,20 @@ export default function Volunteer() {
           transition={{ duration: 0.5 }}
           className="mx-auto max-w-7xl rounded-3xl bg-deepBlue p-8 text-right text-white shadow-2xl lg:p-10"
         >
-          <h2 className="text-2xl font-black">نموذج التقديم</h2>
+          <h2 className="text-2xl font-black">هل أنت مستعد للانضمام؟</h2>
           <p className="mt-4 max-w-3xl leading-9 text-slate-200">
-            نستخدم صفحة التواصل لاستقبال طلبات الانضمام والتطوع. اختر موضوعاً مناسباً واذكر المجال
-            الذي ترغب بالمساهمة فيه، وسيتم توجيه رسالتك للإدارة المعنية.
+            قدّم طلبك عبر النموذج المخصص — أدخل بياناتك، اختر قسمك، وشارك خبرتك. سنراجع طلبك ونتواصل معك قريبًا.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              to="/contact"
-              className="inline-flex rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white"
+              to="/volunteer/apply"
+              className="inline-flex rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg shadow-orange-900/25 transition hover:brightness-105"
             >
               تقديم طلب
             </Link>
             <Link
               to="/team"
-              className="inline-flex rounded-xl border border-white/25 px-7 py-4 text-sm font-extrabold text-white hover:bg-white/10"
+              className="inline-flex rounded-xl border border-white/25 px-7 py-4 text-sm font-extrabold text-white transition hover:bg-white/10"
             >
               التعرف على الفريق
             </Link>
@@ -222,8 +221,8 @@ export default function Volunteer() {
       <CTASection
         title="كن جزءاً من بناء تجربة تعليمية احترافية"
         description="التطوع في EMC يعني مسؤولية وجودة. إذا كان هذا يتماشى مع قيمك، نحن نرحب بتواصلك."
-        primaryLabel="تواصل معنا"
-        primaryHref="/contact"
+        primaryLabel="تقديم طلب التطوع"
+        primaryHref="/volunteer/apply"
         secondaryLabel="الشراكات"
         secondaryHref="/partnerships"
       />

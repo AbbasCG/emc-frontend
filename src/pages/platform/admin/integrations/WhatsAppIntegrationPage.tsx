@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { fetchWhatsAppIntegration, sendWhatsAppTestMessage } from '@/api/integrationsApi'
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import type { WhatsAppIntegrationPreview } from '@/types/phase7'

@@ -15,7 +15,7 @@ import {
   UserPlus,
   BookOpen,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import api from '../api/axios'
 import { submitCourseRegistration, type CourseRegisterBody } from '../api/registrationsApi'
 import { fetchProfileUser, updateProfile } from '@/api/profileApi'

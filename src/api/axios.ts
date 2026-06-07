@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { getApiErrorMessage } from './apiErrors'
 
 // Storage keys — must stay in sync with `src/lib/impersonationSession.ts` (+ AuthContext exports).

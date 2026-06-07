@@ -202,30 +202,33 @@ export default function StudentMyCoursesPage() {
             ))}
           </div>
 
-          {/* Tabs */}
-          <div className="rounded-3xl border border-deepBlue/[0.06] bg-white/[0.65] p-2 shadow-inner ring-1 ring-deepBlue/[0.03] backdrop-blur-sm">
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-between">
-              {(Object.keys(tabLabels) as CoursesTabId[]).map((id) => {
-                const selected = tab === id
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setTab(id)}
-                    role="tab"
-                    aria-selected={selected}
-                    className={`rounded-2xl px-4 py-3 text-center text-[12px] font-black transition sm:flex-1 ${
-                      selected ?
-                        'bg-gradient-to-bl from-deepBlue to-[#2a4460] text-white shadow-lg shadow-deepBlue/20'
-                      : 'text-deepBlue/60 hover:bg-white/80 hover:text-deepBlue'
-                    }`}
-                  >
-                    {tabLabels[id]}
-                    <span className="mr-1.5 text-[11px] font-bold opacity-85">({buckets[id].length})</span>
-                  </button>
-                )
-              })}
-            </div>
+          {/* Tabs — segmented control */}
+          <div className="flex flex-wrap gap-2" role="tablist">
+            {(Object.keys(tabLabels) as CoursesTabId[]).map((id) => {
+              const selected = tab === id
+              const count = buckets[id].length
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTab(id)}
+                  role="tab"
+                  aria-selected={selected}
+                  className={`inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[12px] font-black transition-all ${
+                    selected
+                      ? 'bg-deepBlue text-white shadow-md shadow-deepBlue/25'
+                      : 'border border-deepBlue/[0.1] bg-white text-deepBlue/65 hover:border-deepBlue/20 hover:text-deepBlue'
+                  }`}
+                >
+                  {tabLabels[id]}
+                  {count > 0 && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none tabular-nums ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           {/* Content */}

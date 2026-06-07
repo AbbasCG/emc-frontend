@@ -18,7 +18,7 @@ import {
   Trash2,
   UserCircle2,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import type { CatalogTrackRow } from '@/api/superAdminCatalogApi'
 import { upsertCourse, type CourseUpsertPayload, type OpsDepartmentOption } from '@/api/adminCoursesApi'

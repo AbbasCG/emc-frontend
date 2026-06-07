@@ -32,7 +32,7 @@ export default function DepartmentSection({ department }: Props) {
     >
       <div className="relative overflow-hidden rounded-[1.75rem] border border-deepBlue/[0.07] bg-gradient-to-bl from-brand-50/95 via-white to-white p-7 shadow-emc-lg ring-1 ring-white sm:p-10">
         <div aria-hidden className="pointer-events-none absolute -left-28 top-0 h-72 w-72 rounded-full bg-customBlue/[0.07] blur-3xl" />
-        <div className="relative flex flex-col gap-8 text-right lg:flex-row-reverse lg:items-start lg:justify-between">
+        <div className="relative flex flex-col gap-8 text-right lg:items-start lg:justify-between">
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-3 rounded-xl border border-white/80 bg-white/90 px-3 py-2 shadow-emc-xs backdrop-blur-sm">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-deepBlue/[0.04] text-customBlue ring-1 ring-deepBlue/[0.06]">
