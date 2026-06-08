@@ -13,7 +13,15 @@
       "Bash(npm run *)",
       "Bash(grep -v \"import.meta.env.DEV\\\\|if.*DEV\\\\|DEV.*console\\\\|//.*console\")",
       "Bash(npm test *)",
-      "Bash(grep -v \"import.meta.env.DEV\\\\|if.*DEV\\\\|DEV.*&&\\\\|\\\\!import.meta\\\\|//.*console\\\\|\\\\.test\\\\.\\\\|setup\\\\.ts\")"
+      "Bash(grep -v \"import.meta.env.DEV\\\\|if.*DEV\\\\|DEV.*&&\\\\|\\\\!import.meta\\\\|//.*console\\\\|\\\\.test\\\\.\\\\|setup\\\\.ts\")",
+      "Bash(graphify query *)",
+      "Bash(python3 -c \"import graphify; print\\('ok'\\)\")",
+      "PowerShell($py = Get-Content graphify-out\\\\.graphify_python -Raw; & $py.Trim\\(\\) -c \"from graphify.query import query_graph; import json; from pathlib import Path; result = query_graph\\(Path\\('graphify-out/graph.json'\\), 'useAuth routing role guards finance dashboard instructor'\\); print\\(result\\)\" 2>&1)",
+      "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py -c \"import graphify; print\\(dir\\(graphify\\)\\)\" 2>&1)",
+      "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py -c \"import pkgutil, graphify; [print\\(m.name\\) for m in pkgutil.iter_modules\\(graphify.__path__\\)]\" 2>&1)",
+      "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py -c \"from graphify.analyze import query_graph; print\\('found'\\)\" 2>&1)",
+      "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py graphify-out/_query_auth.py 2>&1)",
+      "Bash(grep -oP '`[^`]+`|'\"'\"'[^'\"'\"']+'\"'\"'')"
     ]
   }
 }

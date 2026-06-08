@@ -97,6 +97,12 @@ export type NotificationType =
   | 'support_reply'
   | 'partner_update'
   | 'volunteer_request'
+  | 'course_update'
+  | 'instructor_assigned'
+  | 'schedule_update'
+  | 'placement_result'
+  | 'placement_test_completed'
+  | 'oral_assessment_booked'
 
 export type PlatformNotification = {
   id: number

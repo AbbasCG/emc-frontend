@@ -2,14 +2,17 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo } from 'react'
 import {
   Bell,
+  BookOpen,
   Briefcase,
   CalendarClock,
   CheckCheck,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   HeartHandshake,
   Mail,
   Ticket,
+  UserCheck,
   UserPlus,
   Video,
   X,
@@ -20,17 +23,23 @@ import { isNotificationUnread } from '@/api/notificationsApi'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
 
 const icons: Record<NotificationType, typeof Bell> = {
-  registration: UserPlus,
+  registration:       UserPlus,
   course_registration: UserPlus,
-  payment: CreditCard,
-  session_reminder: Video,
-  assignment_due: ClipboardList,
+  payment:            CreditCard,
+  session_reminder:   Video,
+  assignment_due:     ClipboardList,
   certificate_issued: Ticket,
-  task_assigned: ClipboardList,
-  meeting_invite: CalendarClock,
-  support_reply: Mail,
-  partner_update: Briefcase,
-  volunteer_request: HeartHandshake,
+  task_assigned:      ClipboardList,
+  meeting_invite:     CalendarClock,
+  support_reply:      Mail,
+  partner_update:     Briefcase,
+  volunteer_request:  HeartHandshake,
+  course_update:      BookOpen,
+  instructor_assigned: UserCheck,
+  schedule_update:    CalendarClock,
+  placement_result:          ClipboardCheck,
+  placement_test_completed:  ClipboardCheck,
+  oral_assessment_booked:    CalendarClock,
 }
 
 type Props = {

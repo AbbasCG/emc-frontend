@@ -116,10 +116,16 @@ export type TeachingCourseLms = {
   title: string
   slug?: string | null
   student_count?: number
+  enrolled_students_count?: number | null
+  placement_completed_count?: number | null
+  oral_pending_count?: number | null
+  oral_booked_count?: number | null
   status?: string
   start_date?: string | null
   end_date?: string | null
   meeting_link?: string | null
+  thumbnail?: string | null
+  image?: string | null
 }
 
 export type InstructorSubmission = {

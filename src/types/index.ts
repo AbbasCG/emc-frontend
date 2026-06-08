@@ -73,6 +73,10 @@ export type Course = {
     sort_order?: number
   }[]
 
+  /** Placement test requirement — set when backend indicates test is needed */
+  requires_placement_test?: boolean
+  requires_placement?: boolean
+
   /** Admin/catalog extensions — backends may omit any of these */
   program_kind?: string | null
   /** بعض الـ APIs تستخدم program_type بدلاً من program_kind */
@@ -115,6 +119,11 @@ export type Enrollment = {
   completed_sessions: number
   total_sessions: number
   status: 'active' | 'completed' | 'pending'
+  /** Placement test state from backend — preserved through normalization pipeline */
+  placement_status?: string | null
+  placement_score?: number | null
+  placement_total?: number | null
+  can_start_learning?: boolean | null
 }
 
 export type UpcomingSession = {

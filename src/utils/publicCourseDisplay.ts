@@ -24,7 +24,7 @@ function absMediaUrl(raw: unknown): string | null {
 /** حقول الغلاف الشائعة من لوحة الإدارة */
 export function resolveCourseCoverImageUrl(course: Course): string | null {
   const x = course as Record<string, unknown>
-  const keys = ['image_url', 'cover_image_url', 'course_image', 'image', 'thumbnail', 'cover_image', 'hero_image']
+  const keys = ['image_url', 'cover_image_url', 'course_image', 'image', 'thumbnail', 'cover_image', 'hero_image', 'media_url']
   for (const k of keys) {
     const resolved = absMediaUrl(x[k])
     if (resolved) return resolved

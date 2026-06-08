@@ -41,11 +41,14 @@ function enrollmentFromRegistration(r: StudentRegistrationRow): Enrollment {
       course_image: r.course_cover_url ?? undefined,
       image_url: r.course_cover_url ?? undefined,
       cover_image: r.course_cover_url ?? undefined,
+      requires_placement_test: r.requires_placement_test,
     }),
     enrolled_at: r.enrolled_at ?? '',
     completed_sessions: 0,
     total_sessions: 0,
     status: mapBackendRegStatus(r.status),
+    placement_status: r.placement_status ?? null,
+    can_start_learning: r.can_start_learning ?? null,
   }
 }
 
@@ -63,11 +66,19 @@ function enrollmentFromListedCourse(c: StudentListedCourse): Enrollment {
       start_date: c.start_date ?? undefined,
       start_time: c.start_time ?? undefined,
       meeting_link: c.meeting_link ?? undefined,
+      requires_placement_test: c.requires_placement_test,
+      // Pass cover image through so card can display it
+      image_url: c.cover_url ?? undefined,
+      course_image: c.cover_url ?? undefined,
     }),
     enrolled_at: '',
     completed_sessions: completed,
     total_sessions: totalSessions,
     status,
+    placement_status: c.placement_status ?? null,
+    placement_score: c.placement_score ?? null,
+    placement_total: c.placement_total ?? null,
+    can_start_learning: c.can_start_learning ?? null,
   }
 }
 
@@ -103,6 +114,14 @@ export function mergeStudentEnrollments(
     const completed =
       pct > 0 ? Math.min(totalSessions, Math.max(0, Math.round((pct / 100) * totalSessions))) : prev.completed_sessions
 
+    // Prefer listed-course placement data (fresher) over registration data
+    const mergedRequires =
+      c.requires_placement_test ?? prev.course.requires_placement_test
+    const mergedPlacementStatus = c.placement_status ?? prev.placement_status ?? null
+    const mergedCanStart = c.can_start_learning ?? prev.can_start_learning ?? null
+    const mergedScore = c.placement_score ?? prev.placement_score ?? null
+    const mergedTotal = c.placement_total ?? prev.placement_total ?? null
+
     byCourseId.set(c.id, {
       ...prev,
       course: skeletonCourse(
@@ -114,12 +133,19 @@ export function mergeStudentEnrollments(
           start_date: c.start_date ?? prev.course.start_date ?? undefined,
           start_time: c.start_time ?? prev.course.start_time ?? undefined,
           meeting_link: c.meeting_link ?? prev.course.meeting_link ?? undefined,
+          image_url: c.cover_url ?? prev.course.image_url ?? undefined,
+          course_image: c.cover_url ?? prev.course.course_image ?? undefined,
+          requires_placement_test: mergedRequires,
         },
       ),
       completed_sessions: Math.max(prev.completed_sessions, completed),
       total_sessions: totalSessions,
       status: c.status ? mapBackendRegStatus(c.status) : prev.status,
       enrolled_at: prev.enrolled_at || '',
+      placement_status: mergedPlacementStatus,
+      placement_score: mergedScore,
+      placement_total: mergedTotal,
+      can_start_learning: mergedCanStart,
     })
   })
 

@@ -39,5 +39,8 @@ dist-ssr
 
 codebase_analysis.md
 CLAUDE.md
+/.claude/settings.local.json
 docs/
 workflows/
+
+/graphify-out/

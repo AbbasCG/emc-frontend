@@ -54,6 +54,10 @@ const StudentMaterialsPage       = lazy(() => import('./pages/lms/student/Studen
 const StudentAssignmentsPage     = lazy(() => import('./pages/lms/student/StudentAssignmentsPage'))
 const StudentProgressPage        = lazy(() => import('./pages/lms/student/StudentProgressPage'))
 const StudentEvaluationPage      = lazy(() => import('./pages/lms/student/StudentEvaluationPage'))
+const PlacementTestPage          = lazy(() => import('./pages/lms/student/PlacementTestPage'))
+const PlacementResultPage        = lazy(() => import('./pages/lms/student/PlacementResultPage'))
+const OralBookingPage            = lazy(() => import('./pages/lms/student/OralBookingPage'))
+const StudentExamsPage           = lazy(() => import('./pages/lms/student/StudentExamsPage'))
 
 // ── Lazy: dashboard pages — instructor / teacher ──────────────────────────────
 const TeacherDashboard           = lazy(() => import('./pages/TeacherDashboard'))
@@ -61,6 +65,12 @@ const InstructorAssignedCoursesPage  = lazy(() => import('./pages/lms/instructor
 const InstructorSessionsPage     = lazy(() => import('./pages/lms/instructor/InstructorSessionsPage'))
 const InstructorAttendancePage   = lazy(() => import('./pages/lms/instructor/InstructorAttendancePage'))
 const InstructorSubmissionsPage  = lazy(() => import('./pages/lms/instructor/InstructorSubmissionsPage'))
+const InstructorPlacementStudentsPage = lazy(() => import('./pages/lms/instructor/InstructorPlacementStudentsPage'))
+const InstructorOralAssessmentsPage   = lazy(() => import('./pages/lms/instructor/InstructorOralAssessmentsPage'))
+const InstructorAvailabilityPage      = lazy(() => import('./pages/lms/instructor/InstructorAvailabilityPage'))
+const InstructorAllStudentsPage       = lazy(() => import('./pages/lms/instructor/InstructorAllStudentsPage'))
+const InstructorCourseStudentsPage    = lazy(() => import('./pages/lms/instructor/InstructorCourseStudentsPage'))
+const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructor/InstructorPlacementTestsPage'))
 
 // ── Lazy: dashboard pages — admin LMS ────────────────────────────────────────
 const AdminDashboard             = lazy(() => import('./pages/AdminDashboard'))
@@ -320,9 +330,27 @@ function App() {
                   <Route path="/dashboard/student/learn/:courseId" element={<StudentCourseLearnPage />} />
                   <Route path="/dashboard/student/registrations" element={<StudentRegistrationsListPage />} />
                   <Route path="/dashboard/student/available-courses" element={<StudentAvailableCoursesPage />} />
+                  <Route path="/dashboard/student/exams" element={<StudentExamsPage />} />
+                  <Route path="/dashboard/student/courses/:courseId/placement-test" element={<PlacementTestPage />} />
+                  <Route path="/dashboard/student/courses/:courseId/placement-result" element={<PlacementResultPage />} />
+                  <Route path="/dashboard/student/courses/:courseId/oral-booking" element={<OralBookingPage />} />
+                  {/* Student-prefixed top-level routes → redirect to existing pages */}
+                  <Route path="/dashboard/student/certificates" element={<Navigate to="/dashboard/certificates" replace />} />
+                  <Route path="/dashboard/student/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
+                  <Route path="/dashboard/student/calendar" element={<Navigate to="/calendar" replace />} />
+                  <Route path="/dashboard/student/files" element={<Navigate to="/documents" replace />} />
+                  <Route path="/dashboard/student/assistant" element={<Navigate to="/ai" replace />} />
+                  <Route path="/dashboard/student/profile" element={<Navigate to="/dashboard/profile" replace />} />
+                  <Route path="/dashboard/student/course-rating" element={<Navigate to="/dashboard/student/evaluation" replace />} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
                   <Route path="/dashboard/instructor/courses" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/instructor/courses/:courseId/content" element={<CourseContentManagerPage />} />
+                  <Route path="/dashboard/instructor/courses/:courseId/placement-students" element={<InstructorPlacementStudentsPage />} />
+                  <Route path="/dashboard/instructor/oral-assessments" element={<InstructorOralAssessmentsPage />} />
+                  <Route path="/dashboard/instructor/availability" element={<InstructorAvailabilityPage />} />
+                  <Route path="/dashboard/instructor/students" element={<InstructorAllStudentsPage />} />
+                  <Route path="/dashboard/instructor/courses/:courseId/students" element={<InstructorCourseStudentsPage />} />
+                  <Route path="/dashboard/instructor/placement-tests" element={<InstructorPlacementTestsPage />} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />

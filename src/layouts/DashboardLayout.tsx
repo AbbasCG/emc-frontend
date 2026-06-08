@@ -66,15 +66,23 @@ const pageTitles: Record<string, string> = {
   '/dashboard/department': 'الإدارات',
   '/dashboard/department/programs': 'البرامج — الإدارة',
   '/dashboard/teacher':      'لوحة المدرب',
-  '/dashboard/student/sessions':     'جلساتي',
-  '/dashboard/student/courses':      'دوراتي',
-  '/dashboard/student/learn':        'مساحة التعلّم',
+  '/dashboard/student/sessions':      'جلساتي',
+  '/dashboard/student/courses':       'دوراتي',
+  '/dashboard/student/learn':         'مساحة التعلّم',
   '/dashboard/student/registrations': 'التسجيلات',
-  '/dashboard/student/available-courses': 'دورات متاحة',
-  '/dashboard/student/materials':    'المواد التعليمية',
-  '/dashboard/student/assignments':  'الواجبات',
-  '/dashboard/student/progress':     'التقدّم',
-  '/dashboard/student/evaluation':   'تقييم الدورة',
+  '/dashboard/student/available-courses': 'الدورات المتاحة',
+  '/dashboard/student/materials':     'المواد التعليمية',
+  '/dashboard/student/assignments':   'الواجبات',
+  '/dashboard/student/progress':      'التقدّم',
+  '/dashboard/student/evaluation':    'تقييم الدورة',
+  '/dashboard/student/course-rating': 'تقييم الدورة',
+  '/dashboard/student/exams':         'اختباراتي',
+  '/dashboard/student/certificates':  'شهاداتي',
+  '/dashboard/student/notifications': 'الإشعارات',
+  '/dashboard/student/calendar':      'التقويم',
+  '/dashboard/student/files':         'الملفات',
+  '/dashboard/student/assistant':     'المساعد الذكي',
+  '/dashboard/student/profile':       'الملف الشخصي',
   '/dashboard/instructor/sessions':    'جلسات المدرب',
   '/dashboard/instructor/courses':    'دوراتي المسندة',
   '/dashboard/instructor/workshops':   'ورش العمل',
@@ -186,6 +194,23 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     return getSidebarByRole(user?.role)
   }, [user?.role])
   const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>({})
+
+  // Auto-expand collapsible group when a child route is active
+  useEffect(() => {
+    const updates: Record<string, boolean> = {}
+    for (const group of groups) {
+      if (!group.collapsible || !group.title) continue
+      const hasActiveChild = group.items.some((item) =>
+        exactMatchSidebarRoutes.has(item.href)
+          ? location.pathname === item.href
+          : location.pathname.startsWith(item.href),
+      )
+      if (hasActiveChild) updates[group.title] = true
+    }
+    if (Object.keys(updates).length > 0) {
+      setCollapsibleExpanded((prev) => ({ ...prev, ...updates }))
+    }
+  }, [location.pathname, groups])
 
   function collapsibleSectionOpen(title?: string, collapsible?: boolean) {
     if (!collapsible || !title) return true

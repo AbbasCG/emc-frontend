@@ -103,6 +103,13 @@ export type StudentListedCourse = {
   start_date?: string | null
   start_time?: string | null
   meeting_link?: string | null
+  /** Placement fields — preserved so card can render correct CTA */
+  requires_placement_test?: boolean
+  placement_status?: string | null
+  can_start_learning?: boolean | null
+  placement_score?: number | null
+  placement_total?: number | null
+  cover_url?: string | null
 }
 
 function slugifyFallback(id: number): string {
@@ -146,6 +153,32 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
   const startRaw = o.start_date ?? nested?.start_date ?? o.course_start_date
   const timeRaw = o.start_time ?? nested?.start_time ?? o.study_time
   const meetRaw = o.meeting_link ?? nested?.meeting_link ?? o.join_url
+
+  // Placement fields — read from top-level AND nested course object
+  const rawRequires = o.requires_placement_test ?? o.requires_placement ?? nested?.requires_placement_test ?? nested?.requires_placement
+  const hasPlacementTestType = (nested?.placement_test_type ?? o.placement_test_type) != null
+  const rawPlacementStatus = o.placement_status ?? nested?.placement_status
+  const placementStatusStr = rawPlacementStatus != null && String(rawPlacementStatus).trim() !== '' ? String(rawPlacementStatus) : null
+  // Course requires placement if explicitly flagged OR placement_test_type exists OR a non-null non-completed status is present
+  const requiresPlacementTest =
+    !!rawRequires ||
+    hasPlacementTestType ||
+    (placementStatusStr != null && placementStatusStr !== 'completed' && placementStatusStr !== 'none')
+  const rawCanStart = o.can_start_learning ?? nested?.can_start_learning
+  const canStartLearning = rawCanStart != null ? !!rawCanStart : null
+  const rawScore = o.placement_score ?? o.written_score ?? nested?.placement_score ?? nested?.written_score
+  const placementScore = rawScore != null && Number.isFinite(Number(rawScore)) ? Number(rawScore) : null
+  const rawTotal = o.placement_total ?? o.total_questions ?? nested?.placement_total ?? nested?.total_questions
+  const placementTotal = rawTotal != null && Number.isFinite(Number(rawTotal)) ? Number(rawTotal) : null
+
+  // Cover image — check top-level and nested
+  const coverKeys = ['course_image', 'image_url', 'cover_image', 'thumbnail', 'image', 'cover', 'media_url']
+  let coverUrl: string | null = null
+  for (const k of coverKeys) {
+    const v = o[k] ?? nested?.[k]
+    if (v != null && String(v).trim() !== '') { coverUrl = String(v).trim(); break }
+  }
+
   return {
     id,
     title,
@@ -161,6 +194,12 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
     start_date: startRaw != null && String(startRaw).trim() !== '' ? String(startRaw) : null,
     start_time: timeRaw != null && String(timeRaw).trim() !== '' ? String(timeRaw) : null,
     meeting_link: meetRaw != null && String(meetRaw).trim() !== '' ? String(meetRaw) : null,
+    requires_placement_test: requiresPlacementTest,
+    placement_status: placementStatusStr,
+    can_start_learning: canStartLearning,
+    placement_score: placementScore,
+    placement_total: placementTotal,
+    cover_url: coverUrl,
   }
 }
 
@@ -336,7 +375,22 @@ export function coerceFlexibleList(payload: unknown, keys: string[]): unknown[] 
 export async function fetchStudentCoursesList(): Promise<StudentListedCourse[]> {
   try {
     const res = await apiClient.get<unknown>('/student/courses', { skipErrorToast: true })
-    return coerceFlexibleList(res.data, ['courses', 'data', 'items', 'enrollments'])
+    const rawList = coerceFlexibleList(res.data, ['courses', 'data', 'items', 'enrollments'])
+    if (import.meta.env.DEV && rawList.length > 0) {
+      const sample = rawList[0]
+      if (sample && typeof sample === 'object') {
+        const s = sample as Record<string, unknown>
+        console.log('[EMC /student/courses] raw[0] keys:', Object.keys(s))
+        console.log('[EMC /student/courses] placement fields:', {
+          requires_placement_test: s.requires_placement_test,
+          placement_status: s.placement_status,
+          can_start_learning: s.can_start_learning,
+          placement_score: s.placement_score,
+          course_nested_keys: s.course && typeof s.course === 'object' ? Object.keys(s.course as object) : 'no nested course',
+        })
+      }
+    }
+    return rawList
       .map(normalizeListedCourse)
       .filter((x): x is StudentListedCourse => x != null)
   } catch {
@@ -359,6 +413,10 @@ export type StudentRegistrationRow = {
   course_cover_url?: string | null
   /** Payment / checkout flags when backend exposes them */
   payment_status?: string | null
+  /** Placement test fields preserved from registration payload */
+  requires_placement_test?: boolean
+  placement_status?: string | null
+  can_start_learning?: boolean | null
 }
 
 function pickCourseCover(nested: Record<string, unknown> | null): string | undefined {
@@ -412,6 +470,17 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
       (o.payment as Record<string, unknown>).status
     : null)
 
+  // Placement fields from registration payload
+  const rawRequiresReg = o.requires_placement_test ?? o.requires_placement ?? nested?.requires_placement_test ?? nested?.requires_placement
+  const rawPlacementStatusReg = o.placement_status ?? nested?.placement_status
+  const placementStatusReg = rawPlacementStatusReg != null && String(rawPlacementStatusReg).trim() !== '' ? String(rawPlacementStatusReg) : null
+  const requiresPlacementTestReg =
+    !!rawRequiresReg ||
+    (nested?.placement_test_type ?? o.placement_test_type) != null ||
+    (placementStatusReg != null && placementStatusReg !== 'completed' && placementStatusReg !== 'none')
+  const rawCanStartReg = o.can_start_learning ?? nested?.can_start_learning
+  const canStartLearningReg = rawCanStartReg != null ? !!rawCanStartReg : null
+
   return {
     id,
     course_id,
@@ -426,6 +495,9 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
     meeting_link: link != null && String(link).trim() !== '' ? String(link) : null,
     instructor_name: inst,
     course_cover_url: cover ?? null,
+    requires_placement_test: requiresPlacementTestReg || undefined,
+    placement_status: placementStatusReg,
+    can_start_learning: canStartLearningReg,
   }
 }
 

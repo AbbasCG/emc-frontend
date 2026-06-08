@@ -36,6 +36,13 @@ function coalesceType(raw: unknown): NotificationType {
     'meeting_invite',
     'support_reply',
     'partner_update',
+    'volunteer_request',
+    'course_update',
+    'instructor_assigned',
+    'schedule_update',
+    'placement_result',
+    'placement_test_completed',
+    'oral_assessment_booked',
   ]
   return (allowed.includes(s as NotificationType) ? s : 'registration') as NotificationType
 }

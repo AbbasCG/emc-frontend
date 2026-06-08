@@ -56,6 +56,14 @@ export function normalizeNotificationInternalPath(rawPath: string): string {
     [/^\/student\/courses(?:\/[\w.-]*)?$/u, '/dashboard/student/courses'],
     [/^\/student\/available-courses$/u, '/dashboard/student/available-courses'],
     [/^\/instructor\/courses(?:\/[\w.-]*)?$/u, '/dashboard/instructor/courses'],
+    [
+      /^\/instructor\/courses\/(\d+)\/placement-students$/u,
+      (m) => `/dashboard/instructor/courses/${m[1]}/placement-students`,
+    ],
+    [/^\/instructor\/oral-assessments$/u, '/dashboard/instructor/oral-assessments'],
+    [/^\/instructor\/availability$/u, '/dashboard/instructor/availability'],
+    [/^\/dashboard\/instructor\/oral-assessments$/u, '/dashboard/instructor/oral-assessments'],
+    [/^\/dashboard\/instructor\/availability$/u, '/dashboard/instructor/availability'],
     [/^\/admin\/registrations(?:\/\d+)?$/u, '/dashboard/super-admin/crud/registrations'],
     [
       /^\/super-admin\/crud\/registrations(?:\/\d+)?$/u,

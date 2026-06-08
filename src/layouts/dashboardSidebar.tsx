@@ -71,6 +71,13 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/admin/operations',
   '/dashboard/learning',
   '/dashboard/members',
+  // Student-prefixed top-level routes
+  '/dashboard/student/certificates',
+  '/dashboard/student/notifications',
+  '/dashboard/student/calendar',
+  '/dashboard/student/files',
+  '/dashboard/student/assistant',
+  '/dashboard/student/profile',
 ])
 
 function membersNavItem(): SidebarNavItem {
@@ -414,48 +421,36 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
   if (n === 'instructor') {
     const home = '/dashboard/instructor'
     return [
-      { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
       {
-        title: 'التدريس والجلسات',
         items: [
-          { label: 'دوراتي المسندة', href: '/dashboard/instructor/courses', icon: BookMarked },
-          { label: 'ورشي', href: '/dashboard/instructor/workshops', icon: Sparkles },
-          { label: 'جلساتي', href: '/dashboard/instructor/sessions', icon: Calendar },
-          { label: 'الحضور', href: '/dashboard/instructor/attendance', icon: UserCheck },
-          { label: 'التسليمات', href: '/dashboard/instructor/submissions', icon: ClipboardList },
-          { label: 'كتالوج الدورات', href: '/courses', icon: BookOpen },
+          { label: 'لوحة التحكم',   href: home,                                  icon: LayoutDashboard },
+          { label: 'دوراتي',        href: '/dashboard/instructor/courses',         icon: BookMarked      },
+          { label: 'الجلسات',       href: '/dashboard/instructor/sessions',        icon: Calendar        },
+          { label: 'الحضور',        href: '/dashboard/instructor/attendance',       icon: UserCheck       },
+          { label: 'التسليمات',     href: '/dashboard/instructor/submissions',      icon: ClipboardList   },
+          { label: 'الإشعارات',     href: '/dashboard/notifications',              icon: Bell            },
+          { label: 'التقويم',       href: '/calendar',                             icon: CalendarDays    },
+          { label: 'الملفات',       href: '/documents',                            icon: FolderOpen      },
+          { label: 'الملف الشخصي',  href: '/dashboard/profile',                   icon: UserCog         },
         ],
       },
-      {
-        title: 'الموارد',
-        items: [{ label: 'المواد التعليمية', href: '/dashboard/resources', icon: FolderOpen }],
-      },
-      ...communicationsBlock(),
     ]
   }
 
   if (!n || n === 'student') {
-    const home = '/dashboard/student'
     return [
-      { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
       {
-        title: 'التعلّم',
         items: [
-          { label: 'دوراتي', href: '/dashboard/student/courses', icon: BookOpen },
-          { label: 'التسجيلات', href: '/dashboard/student/registrations', icon: ClipboardList },
-          { label: 'دورات متاحة', href: '/dashboard/student/available-courses', icon: Sparkles },
-          { label: 'جلساتي', href: '/dashboard/student/sessions', icon: Calendar },
-          { label: 'المواد', href: '/dashboard/student/materials', icon: FolderOpen },
-          { label: 'الواجبات', href: '/dashboard/student/assignments', icon: ClipboardList },
-          { label: 'التقدّم', href: '/dashboard/student/progress', icon: TrendingUp },
-          { label: 'تقييم الدورة', href: '/dashboard/student/evaluation', icon: Sparkles },
+          { label: 'لوحة التعلم',    href: '/dashboard/student',                  icon: LayoutDashboard },
+          { label: 'دوراتي',          href: '/dashboard/student/courses',           icon: BookOpen        },
+          { label: 'الشهادات',       href: '/dashboard/student/certificates',      icon: Award           },
+          { label: 'الإشعارات',      href: '/dashboard/student/notifications',     icon: Bell            },
+          { label: 'التقويم',        href: '/dashboard/student/calendar',          icon: CalendarDays    },
+          { label: 'الملفات',        href: '/dashboard/student/files',             icon: FolderOpen      },
+          { label: 'المساعد الذكي',  href: '/dashboard/student/assistant',         icon: Bot             },
+          { label: 'الملف الشخصي',   href: '/dashboard/student/profile',           icon: UserCog         },
         ],
       },
-      {
-        title: 'الإنجازات',
-        items: [{ label: 'الشهادات', href: '/dashboard/certificates', icon: GraduationCap }],
-      },
-      ...communicationsBlock(),
     ]
   }
 
