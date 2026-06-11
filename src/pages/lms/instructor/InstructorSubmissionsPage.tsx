@@ -13,7 +13,7 @@ import { InstructorEmptyState, InstructorHero } from '@/components/instructor'
 
 const columns: DataTableColumn<InstructorSubmission>[] = [
   { key: 'assignment_title', header: 'الواجب' },
-  { key: 'student_name', header: 'الطالب' },
+  { key: 'student_name',     header: 'الطالب' },
   {
     key: 'status',
     header: 'الحالة',
@@ -23,51 +23,43 @@ const columns: DataTableColumn<InstructorSubmission>[] = [
 ]
 
 export default function InstructorSubmissionsPage() {
-  const [list, setList] = useState<InstructorSubmission[]>([])
-  const [loading, setLoading] = useState(true)
-  const [apiMissing, setApiMissing] = useState(false)
-  const [detail, setDetail] = useState<SubmissionDetail | null>(null)
+  const [list,          setList]          = useState<InstructorSubmission[]>([])
+  const [loading,       setLoading]       = useState(true)
+  const [apiMissing,    setApiMissing]    = useState(false)
+  const [detail,        setDetail]        = useState<SubmissionDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
-
-  async function reload() {
-    try { setList(await fetchInstructorAssignmentsQueue()) }
-    catch { setApiMissing(true) }
-  }
-
-  useEffect(() => {
-    let alive = true
-    fetchInstructorAssignmentsQueue()
-      .then((rows) => { if (alive) setList(rows) })
-      .catch((err) => { if (!alive || axios.isCancel(err)) return; setApiMissing(true) })
-      .finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
-  }, [])
-
-  async function openRow(row: InstructorSubmission) {
-    setDetailLoading(true)
-    try {
-      setDetail(await fetchSubmissionDetail(row.id))
-    } catch {
-      setDetail({ ...row, body_text: row.body_preview ?? '' })
-    } finally {
-      setDetailLoading(false)
-    }
-  }
 
   async function load() {
     setLoading(true)
+    setApiMissing(false)
     try {
       setList(await fetchInstructorAssignmentsQueue())
-      setApiMissing(false)
     } catch (err) {
-      if (!axios.isCancel(err)) setApiMissing(true)
+      if (!axios.isCancel(err)) {
+        setApiMissing(true)
+        if (import.meta.env.DEV) console.error('[submissions] load failed:', err)
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const pending  = list.filter((r) => r.status === 'pending' || r.status === 'submitted').length
-  const reviewed = list.filter((r) => r.status === 'graded'  || r.status === 'reviewed').length
+  useEffect(() => { void load() }, [])
+
+  async function openRow(row: InstructorSubmission) {
+    setDetailLoading(true)
+    try {
+      setDetail(await fetchSubmissionDetail(row.id))
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[submissions] detail load failed:', err)
+      setDetail({ ...row, body_text: (row as Record<string, unknown>).body_preview as string ?? '' })
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  const pending  = list.filter((r) => r.status === 'pending_review').length
+  const reviewed = list.filter((r) => r.status === 'reviewed' || r.status === 'needs_revision').length
 
   return (
     <div className="space-y-6 pb-16" dir="rtl">
@@ -75,13 +67,15 @@ export default function InstructorSubmissionsPage() {
       <InstructorHero
         title="التسليمات"
         subtitle="افتح التسليم، ثم سجّل الدرجة والملاحظات"
-        pills={loading ? [] : [
-          { label: 'إجمالي', value: list.length },
-          { label: 'بانتظار المراجعة', value: pending },
-          { label: 'تمت المراجعة', value: reviewed },
-        ]}
+        backTo="/dashboard/instructor/courses"
+        backLabel="الدورات"
         onRefresh={load}
         refreshing={loading}
+        pills={loading ? [] : [
+          { label: 'إجمالي',         value: list.length },
+          { label: 'بانتظار المراجعة', value: pending    },
+          { label: 'تمت المراجعة',    value: reviewed   },
+        ]}
       />
 
       {apiMissing && import.meta.env.DEV && (
@@ -113,7 +107,7 @@ export default function InstructorSubmissionsPage() {
                   <button
                     type="button"
                     onClick={() => openRow(row)}
-                    className="rounded-xl bg-customBlue px-3 py-1.5 text-[11px] font-black text-white transition hover:brightness-105"
+                    className="rounded-xl bg-[#2691C2] px-3 py-1.5 text-[11px] font-black text-white transition hover:brightness-105"
                   >
                     مراجعة
                   </button>
@@ -137,7 +131,7 @@ export default function InstructorSubmissionsPage() {
           onClose={() => setDetail(null)}
           onSubmit={async (payload) => {
             await reviewInstructorSubmission(detail.id, payload)
-            void reload()
+            void load()
           }}
         />
       )}

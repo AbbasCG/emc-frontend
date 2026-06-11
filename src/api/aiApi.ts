@@ -40,13 +40,13 @@ export async function sendAiMessage(
   options?: { persona?: string; context_scopes?: string[]; stream?: boolean },
 ): Promise<{ reply: string; conversation_id: number; simulated_stream_chunks?: string[] }> {
   try {
-    const res = await apiClient.post<unknown>('/ai/chat', {
-      conversation_id: conversationId,
-      message,
-      persona: options?.persona,
-      context_scopes: options?.context_scopes,
-      stream: options?.stream,
-    })
+    const endpoint = conversationId != null
+      ? `/ai/conversations/${conversationId}/messages`
+      : '/ai/chat'
+    const body = conversationId != null
+      ? { message, persona: options?.persona, context_scopes: options?.context_scopes, stream: options?.stream }
+      : { conversation_id: conversationId, message, persona: options?.persona, context_scopes: options?.context_scopes, stream: options?.stream }
+    const res = await apiClient.post<unknown>(endpoint, body)
     return unwrapLms(res.data)
   } catch {
     const prefix =
@@ -75,12 +75,18 @@ export async function fetchAiRecentGenerations(): Promise<AiGenerationRecord[]> 
   }
 }
 
+const GENERATION_ROUTES: Partial<Record<AiGenerationKind, string>> = {
+  course_outline: '/ai/generate/course-outline',
+  workshop_plan: '/ai/generate/workshop',
+}
+
 export async function generateAiContent(input: {
   kind: AiGenerationKind
   prompt: string
   temperature?: number
   max_tokens?: number
 }): Promise<AiGenerationRecord> {
-  const res = await apiClient.post<unknown>('/ai/generations', input)
+  const endpoint = GENERATION_ROUTES[input.kind] ?? `/ai/generate/${input.kind}`
+  const res = await apiClient.post<unknown>(endpoint, input)
   return unwrapLms<AiGenerationRecord>(res.data)
 }

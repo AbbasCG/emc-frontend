@@ -87,7 +87,7 @@ const navLinkActive =
 
 /** Lightweight secondary actions — center nav stays visually primary */
 const loginBtnClass =
-  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-deepBlue/[0.11] bg-white/90 px-5 text-[13px] font-semibold tracking-tight text-deepBlue shadow-[0_1px_2px_rgba(34,51,74,0.045)] backdrop-blur-sm transition-all duration-200 hover:border-customBlue/25 hover:bg-white hover:text-customBlue hover:shadow-[0_6px_18px_-12px_rgba(34,51,74,0.12)]'
+  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-customBlue px-5 text-[13px] font-bold tracking-tight text-white shadow-[0_4px_18px_-4px_rgba(38,145,194,0.5)] transition-all duration-200 hover:bg-[#1a78a8] hover:shadow-[0_8px_28px_-6px_rgba(38,145,194,0.65)] active:scale-[0.98]'
 
 const dashboardBtnClass =
   'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-customBlue/[0.18] bg-gradient-to-br from-customBlue/[0.08] via-white to-deepBlue/[0.04] px-5 text-[13px] font-semibold tracking-tight text-deepBlue shadow-[0_1px_2px_rgba(34,51,74,0.05)] backdrop-blur-sm transition-colors duration-200 hover:border-customBlue/35 hover:from-customBlue/[0.12] hover:to-customBlue/[0.06] hover:text-deepBlue hover:shadow-[0_8px_22px_-14px_rgba(38,145,194,0.22)]'
@@ -96,7 +96,7 @@ const dashboardIconClass =
   'relative size-[15px] shrink-0 text-customBlue opacity-95 transition-colors duration-200 group-hover/nav:text-customBlue'
 
 const loginIconClass =
-  'relative size-[15px] shrink-0 text-deepBlue/78 transition-colors duration-200 group-hover/login:text-customBlue'
+  'relative size-[15px] shrink-0 text-white/85 transition-colors duration-200 group-hover/login:text-white'
 
 export default function Navbar() {
   const { isAuthenticated, isLoading, user, logout } = useAuth()
@@ -166,7 +166,7 @@ export default function Navbar() {
           to="/"
           className="relative z-20 flex shrink-0 items-center rounded-2xl p-1 ring-deepBlue/0 transition hover:bg-emcBg/90 hover:ring-1 hover:ring-customBlue/18"
         >
-          <img src={logo} alt="EMC" className="h-9 w-auto sm:h-10 lg:h-[2.5rem]" width={160} height={40} loading="eager" fetchPriority="high" />
+          <img src={logo} alt="EMC" className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
         </Link>
 
         <nav
@@ -305,12 +305,6 @@ export default function Navbar() {
                   <Link to="/login" className={loginBtnClass}>
                     <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
                     <span className="whitespace-nowrap">تسجيل الدخول</span>
-                  </Link>
-                </motion.span>
-                <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
-                  <Link to="/dashboard" className={dashboardBtnClass}>
-                    <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                    <span className="whitespace-nowrap">لوحة التحكم</span>
                   </Link>
                 </motion.span>
               </>
@@ -452,24 +446,14 @@ export default function Navbar() {
                       </button>
                     </>
                   ) : (
-                    <>
-                      <Link
-                        to="/login"
-                        onClick={() => setMobileOpen(false)}
-                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${loginBtnClass}`}
-                      >
-                        <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
-                        <span className="whitespace-nowrap">تسجيل الدخول</span>
-                      </Link>
-                      <Link
-                        to="/dashboard"
-                        onClick={() => setMobileOpen(false)}
-                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
-                      >
-                        <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                        <span className="whitespace-nowrap">لوحة التحكم</span>
-                      </Link>
-                    </>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${loginBtnClass}`}
+                    >
+                      <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
+                      <span className="whitespace-nowrap">تسجيل الدخول</span>
+                    </Link>
                   )}
                 </div>
               )}

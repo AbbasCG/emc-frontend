@@ -14,12 +14,15 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@sentry/react": "^10.57.0",
     "axios": "^1.15.2",
+    "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.5",
     "framer-motion": "^12.38.0",
     "i": "^0.3.7",
     "lucide-react": "^1.11.0",
+    "pdf-lib": "^1.17.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hot-toast": "^2.6.0",

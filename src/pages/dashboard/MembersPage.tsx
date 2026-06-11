@@ -1,61 +1,118 @@
-import { useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Award,
   Building2,
+  CalendarDays,
   Check,
-  ChevronDown,
-  ChevronUp,
   ClipboardCopy,
-  HeartHandshake,
-  Link2,
+  Crown,
+  Heart,
   Mail,
   Phone,
+  Plus,
   RefreshCw,
   Search,
+  Shield,
   Sparkles,
   Star,
+  Trophy,
   UserPlus,
   Users,
   X,
 } from 'lucide-react'
 import { createUserAccount, fetchMembers, type InternalMember, type MemberType } from '@/api/membersApi'
+import { grantRecognition, type GrantRecognitionPayload, type RecognitionTypeName } from '@/api/recognitionApi'
 import { toast } from '@/lib/toast'
+import { useAuth } from '@/contexts/AuthContext'
+import { normalizeRole } from '@/utils/dashboardAccess'
 
 /* ══════════════════════════════════════════════════════════════════
-   STATIC RECOGNITION DATA  (replace with API later)
+   STATIC RECOGNITION CONFIG  — replace with API (fetchRecognitions)
+   once the backend is ready. See src/api/recognitionApi.ts.
 ══════════════════════════════════════════════════════════════════ */
 
 const RECOGNITION = {
   period: 'مايو 2025',
+  month: '2025-05',
+  totalCount: 8,
   topDepartment: {
     name: 'إدارة التقنية والدعم الفني',
     leader: 'المهندس عباس باعلوي',
+    memberCount: 6,
+    reason: 'أعلى معدل إنجاز في مشاريع الدعم الفني خلال الشهر',
   },
-  topVolunteers: ['الأستاذة أُلفت', 'الأستاذة أمان زيد'],
-  departmentStars: [
-    { dept: 'إدارة التقنية والدعم الفني', name: 'المهندس عباس باعلوي' },
-    { dept: 'إدارة البرامج والمسارات', name: '—' },
-    { dept: 'إدارة التسويق والإعلام', name: '—' },
-    { dept: 'إدارة الموارد البشرية', name: '—' },
+  topMembers: [
+    { name: 'الأستاذة أُلفت', initials: 'أل', type: 'تكريم فردي' },
+    { name: 'الأستاذة أمان زيد', initials: 'أز', type: 'مساهمة مميزة' },
   ],
-}
+  departmentRecognitions: [
+    { dept: 'إدارة التقنية والدعم الفني', recognitionType: 'أفضل إدارة', member: null, achievement: 'أعلى معدل إنجاز' },
+    { dept: 'إدارة البرامج والمسارات', recognitionType: 'تكريم فردي', member: 'الأستاذة أُلفت', achievement: null },
+    { dept: 'إدارة الموارد البشرية', recognitionType: 'تكريم فردي', member: 'الأستاذة أمان زيد', achievement: null },
+    { dept: 'الإدارة العليا', recognitionType: null, member: null, achievement: null },
+    { dept: 'إدارة التسويق والإعلام', recognitionType: null, member: null, achievement: null },
+    { dept: 'إدارة الشراكات والعلاقات', recognitionType: null, member: null, achievement: null },
+    { dept: 'الإدارة المالية', recognitionType: null, member: null, achievement: null },
+    { dept: 'إدارة الجودة والحوكمة', recognitionType: null, member: null, achievement: null },
+  ] as { dept: string; recognitionType: string | null; member: string | null; achievement: string | null }[],
+} as const
 
 /* ══════════════════════════════════════════════════════════════════
-   HELPERS
+   RECOGNITION TYPE OPTIONS
+══════════════════════════════════════════════════════════════════ */
+
+type RecognitionTypeOption = {
+  id: RecognitionTypeName
+  label: string
+  Icon: React.ComponentType<{ className?: string }>
+  colorClass: string
+  description: string
+}
+
+const RECOGNITION_TYPE_OPTIONS: RecognitionTypeOption[] = [
+  { id: 'individual',       label: 'تكريم فردي',      Icon: Star,     colorClass: 'text-amber-600 bg-amber-50 border-amber-200',   description: 'تكريم لأداء فردي متميز' },
+  { id: 'department',       label: 'تكريم إدارة',     Icon: Building2,colorClass: 'text-[#2691C2] bg-sky-50 border-sky-200',        description: 'تكريم لإدارة بأكملها' },
+  { id: 'best_department',  label: 'أفضل إدارة',      Icon: Crown,    colorClass: 'text-amber-700 bg-amber-100 border-amber-300',   description: 'جائزة أفضل إدارة للشهر' },
+  { id: 'achievement',      label: 'إنجاز خاص',       Icon: Trophy,   colorClass: 'text-[#EC943C] bg-orange-50 border-orange-200',  description: 'إنجاز أو مشروع متميز' },
+  { id: 'contribution',     label: 'مساهمة مميزة',    Icon: Award,    colorClass: 'text-rose-600 bg-rose-50 border-rose-200',       description: 'مساهمة قيمة في المنظمة' },
+  { id: 'tech_support',     label: 'دعم فني متميز',   Icon: Shield,   colorClass: 'text-teal-600 bg-teal-50 border-teal-200',       description: 'أداء متميز في الدعم الفني' },
+  { id: 'leadership',       label: 'قيادة فريق',      Icon: Users,    colorClass: 'text-violet-600 bg-violet-50 border-violet-200', description: 'قيادة ناجحة لفريق أو مشروع' },
+  { id: 'volunteer_award',  label: 'تطوع مميز',       Icon: Heart,    colorClass: 'text-emerald-600 bg-emerald-50 border-emerald-200', description: 'تطوع ومبادرة متميزة' },
+]
+
+/* ══════════════════════════════════════════════════════════════════
+   HELPERS & CONSTANTS
 ══════════════════════════════════════════════════════════════════ */
 
 const TYPE_AR: Record<MemberType, string> = {
-  volunteer: 'متطوع',
+  volunteer: 'عضو',
   staff: 'موظف',
   partner: 'شريك',
 }
 
-const TYPE_COLORS: Record<MemberType, string> = {
-  volunteer: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  staff: 'bg-[#2691C2]/[0.08] text-[#2691C2] border-[#2691C2]/30',
-  partner: 'bg-violet-50 text-violet-700 border-violet-200',
+const TYPE_COLORS: Record<MemberType, { bg: string; text: string; border: string }> = {
+  volunteer: { bg: 'bg-[#2691C2]/[0.08]', text: 'text-[#2691C2]', border: 'border-[#2691C2]/30' },
+  staff: { bg: 'bg-[#22334A]/[0.06]', text: 'text-[#22334A]', border: 'border-[#22334A]/20' },
+  partner: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
 }
+
+const STAT_COLORS: Record<MemberType, { accent: string; bg: string }> = {
+  volunteer: { accent: '#2691C2', bg: 'rgba(38,145,194,0.08)' },
+  staff: { accent: '#22334A', bg: 'rgba(34,51,74,0.06)' },
+  partner: { accent: '#EC943C', bg: 'rgba(236,148,60,0.08)' },
+}
+
+const AVATAR_GRADIENTS = [
+  'from-[#2691C2] to-cyan-500',
+  'from-emerald-500 to-teal-500',
+  'from-violet-500 to-purple-600',
+  'from-[#EC943C] to-orange-500',
+  'from-rose-500 to-pink-500',
+  'from-[#22334A] to-[#2691C2]',
+]
+
+const GRANT_ROLES = new Set(['super_admin', 'admin', 'hr_manager', 'department_manager'])
 
 function initials(name: string): string {
   return name
@@ -64,17 +121,7 @@ function initials(name: string): string {
     .slice(0, 2)
     .map((w) => w[0] ?? '')
     .join('')
-    .toUpperCase()
 }
-
-const AVATAR_GRADIENTS: string[] = [
-  'from-blue-500 to-cyan-500',
-  'from-emerald-500 to-teal-500',
-  'from-violet-500 to-purple-600',
-  'from-amber-500 to-orange-500',
-  'from-rose-500 to-pink-500',
-  'from-indigo-500 to-blue-600',
-]
 
 function avatarGradient(id: number): string {
   return AVATAR_GRADIENTS[id % AVATAR_GRADIENTS.length]
@@ -83,35 +130,75 @@ function avatarGradient(id: number): string {
 function formatJoinedAt(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null
   try {
-    return new Date(dateStr).toLocaleDateString('ar-SA', {
+    return new Intl.DateTimeFormat('ar-u-nu-latn', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    })
+    }).format(new Date(dateStr))
   } catch {
     return null
   }
 }
 
+function currentMonthValue(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+type RecognitionBadge = {
+  label: string
+  icon: 'crown' | 'star' | 'trophy' | 'award'
+  tooltip: string
+}
+
+function getMemberBadges(member: InternalMember): RecognitionBadge[] {
+  const badges: RecognitionBadge[] = []
+
+  // Department-level: every active member in the awarded department gets the badge
+  if (
+    member.department &&
+    member.department.trim() === RECOGNITION.topDepartment.name.trim()
+  ) {
+    badges.push({
+      label: 'أفضل إدارة',
+      icon: 'crown',
+      tooltip: 'عضو في الإدارة المكرّمة لهذا الشهر',
+    })
+  }
+
+  // Individual top-member recognition
+  const nameWords = (n: string) => n.trim().split(/\s+/).filter((w) => w.length > 1)
+  const nameMatches = (a: string, b: string) => {
+    const aw = nameWords(a)
+    const bw = nameWords(b)
+    return a.includes(b) || b.includes(a) || aw.some((w) => bw.includes(w))
+  }
+
+  const isTopMember = RECOGNITION.topMembers.some((tm) => nameMatches(member.name, tm.name))
+  if (isTopMember) {
+    badges.push({
+      label: 'عضو مكرّم',
+      icon: 'star',
+      tooltip: `تكريم ${RECOGNITION.period} — تكريم فردي`,
+    })
+  }
+
+  return badges
+}
+
 /* ══════════════════════════════════════════════════════════════════
-   COMPONENTS
+   SKELETON
 ══════════════════════════════════════════════════════════════════ */
 
 function Sk({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl bg-slate-100 ${className}`} />
 }
 
-/* ── Password-shown-once modal ─────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   PASSWORD MODAL
+══════════════════════════════════════════════════════════════════ */
 
-function PasswordModal({
-  email,
-  password,
-  onClose,
-}: {
-  email: string
-  password: string
-  onClose: () => void
-}) {
+function PasswordModal({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
 
   function copy() {
@@ -121,14 +208,14 @@ function PasswordModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" dir="rtl">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.92, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 10 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
       >
-        {/* Header */}
         <div className="mb-5 flex items-start justify-between gap-2">
           <div>
             <p className="text-[15px] font-black text-[#22334A]">تم إنشاء الحساب بنجاح</p>
@@ -136,30 +223,18 @@ function PasswordModal({
               احفظ كلمة المرور الآن، لن يتم عرضها مرة أخرى.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-          >
+          <button type="button" onClick={onClose} className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
             <X className="h-4 w-4" />
           </button>
         </div>
-
-        {/* Email */}
         <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
           <p className="text-[10px] font-bold text-slate-400">البريد الإلكتروني</p>
           <p className="mt-0.5 text-[13px] font-black text-[#22334A]">{email}</p>
         </div>
-
-        {/* Password */}
         <div className="mb-5 rounded-xl border border-[#2691C2]/30 bg-[#2691C2]/[0.05] px-4 py-3">
           <p className="text-[10px] font-bold text-[#2691C2]">كلمة المرور المؤقتة</p>
-          <p className="mt-1 break-all font-mono text-[15px] font-black tracking-wider text-[#22334A]">
-            {password}
-          </p>
+          <p className="mt-1 break-all font-mono text-[15px] font-black tracking-wider text-[#22334A]">{password}</p>
         </div>
-
-        {/* Buttons */}
         <div className="flex gap-2">
           <button
             type="button"
@@ -169,11 +244,7 @@ function PasswordModal({
             {copied ? <Check className="h-3.5 w-3.5" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
             {copied ? 'تم النسخ' : 'نسخ كلمة المرور'}
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-bold text-slate-600 transition hover:bg-slate-50"
-          >
+          <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-bold text-slate-600 transition hover:bg-slate-50">
             تم
           </button>
         </div>
@@ -182,48 +253,560 @@ function PasswordModal({
   )
 }
 
-/* ── Member card ───────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   GRANT RECOGNITION MODAL
+══════════════════════════════════════════════════════════════════ */
 
-function MemberCard({
-  member,
-  idx,
-  onUpdated,
+type RecipientType = 'member' | 'department' | 'team'
+
+function GrantRecognitionModal({
+  members,
+  onClose,
 }: {
-  member: InternalMember
-  idx: number
-  onUpdated?: (updated: InternalMember) => void
+  members: InternalMember[]
+  onClose: () => void
 }) {
-  const [creating, setCreating] = useState(false)
-  // Drive from has_user_account (backend) or user_id presence — not a sentinel -1
-  const [hasAccount, setHasAccount] = useState(
-    () => Boolean(member.has_user_account) || member.user_id != null,
+  const [recipientType, setRecipientType] = useState<RecipientType>('member')
+  const [recipientId, setRecipientId] = useState('')
+  const [recognitionType, setRecognitionType] = useState<RecognitionTypeName | ''>('')
+  const [month, setMonth] = useState(currentMonthValue())
+  const [reason, setReason] = useState('')
+  const [visibility, setVisibility] = useState<'public' | 'internal'>('public')
+  const [submitting, setSubmitting] = useState(false)
+
+  const departments = useMemo(
+    () => [...new Set(members.map((m) => m.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')),
+    [members],
   )
+
+  const selectedType = RECOGNITION_TYPE_OPTIONS.find((t) => t.id === recognitionType)
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!recipientId || !recognitionType) {
+      toast.error('يرجى اختيار المستلم ونوع التكريم.')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const payload: GrantRecognitionPayload = {
+        recipient_type: recipientType,
+        recipient_id: recipientId,
+        recognition_type: recognitionType as RecognitionTypeName,
+        month,
+        title: selectedType?.label ?? recognitionType,
+        reason: reason.trim() || undefined,
+        visibility,
+      }
+      await grantRecognition(payload)
+      toast.success('تم منح التكريم بنجاح.')
+      onClose()
+    } catch {
+      toast.warning(
+        'هذه الميزة تحتاج ربط بـ API الخادم. راجع src/api/recognitionApi.ts للعقد المطلوب.',
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm" dir="rtl">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: -16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -16 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+        className="my-8 w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EC943C]/10">
+              <Sparkles className="h-4.5 w-4.5 text-[#EC943C]" />
+            </div>
+            <div>
+              <p className="text-[15px] font-black text-[#22334A]">منح تكريم جديد</p>
+              <p className="text-[10px] font-semibold text-slate-400">مركز EMC — {RECOGNITION.period}</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-5 p-6">
+          {/* Recipient type */}
+          <div>
+            <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
+              نوع المستلم
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  { val: 'member',     label: 'عضو',   Icon: Users },
+                  { val: 'department', label: 'إدارة', Icon: Building2 },
+                  { val: 'team',       label: 'فريق',  Icon: Users },
+                ] as { val: RecipientType; label: string; Icon: React.ComponentType<{ className?: string }> }[]
+              ).map(({ val, label, Icon }) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => { setRecipientType(val); setRecipientId('') }}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border py-3 text-[11px] font-bold transition ${
+                    recipientType === val
+                      ? 'border-[#2691C2] bg-[#2691C2]/[0.06] text-[#2691C2]'
+                      : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Recipient selector */}
+          <div>
+            <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
+              {recipientType === 'member' ? 'اختر العضو' : recipientType === 'department' ? 'اختر الإدارة' : 'اختر الفريق'}
+            </label>
+            <div className="relative">
+              <select
+                value={recipientId}
+                onChange={(e) => setRecipientId(e.target.value)}
+                required
+                className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pe-10 ps-3 text-[13px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-3 focus:ring-sky-100"
+              >
+                <option value="">— اختر —</option>
+                {recipientType === 'member' &&
+                  members.map((m) => (
+                    <option key={m.id} value={String(m.id)}>
+                      {m.name}{m.department ? ` · ${m.department}` : ''}
+                    </option>
+                  ))}
+                {recipientType === 'department' &&
+                  departments.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                {recipientType === 'team' && (
+                  <option value="main_team">الفريق الرئيسي</option>
+                )}
+              </select>
+              <Building2 className="pointer-events-none absolute end-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            </div>
+            {recipientType === 'department' && recipientId && (
+              <p className="mt-1.5 text-[10px] font-semibold text-[#2691C2]">
+                سيحصل جميع الأعضاء النشطين في هذه الإدارة على شارة التكريم تلقائياً.
+              </p>
+            )}
+          </div>
+
+          {/* Recognition type grid */}
+          <div>
+            <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
+              نوع التكريم
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {RECOGNITION_TYPE_OPTIONS.map((opt) => {
+                const active = recognitionType === opt.id
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setRecognitionType(opt.id)}
+                    className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-right transition ${
+                      active
+                        ? `${opt.colorClass} shadow-sm`
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    <opt.Icon className={`h-3.5 w-3.5 shrink-0 ${active ? '' : 'text-slate-400'}`} />
+                    <span className="text-[11px] font-bold">{opt.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+            {selectedType && (
+              <p className="mt-1.5 text-[10px] font-semibold text-slate-400">{selectedType.description}</p>
+            )}
+          </div>
+
+          {/* Month + visibility row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
+                الشهر
+              </label>
+              <input
+                type="month"
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+                required
+                className="h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-3 focus:ring-sky-100"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
+                الظهور
+              </label>
+              <div className="flex h-10 overflow-hidden rounded-xl border border-slate-200">
+                {(
+                  [
+                    { val: 'public' as const, label: 'عام' },
+                    { val: 'internal' as const, label: 'داخلي' },
+                  ]
+                ).map(({ val, label }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setVisibility(val)}
+                    className={`flex flex-1 items-center justify-center text-[11px] font-bold transition ${
+                      visibility === val
+                        ? 'bg-[#22334A] text-white'
+                        : 'bg-white text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Reason */}
+          <div>
+            <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
+              سبب التكريم <span className="font-semibold normal-case text-slate-400">(اختياري)</span>
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              placeholder="أضف ملاحظة أو وصفاً مختصراً لسبب التكريم..."
+              className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-[13px] font-semibold text-[#22334A] outline-none placeholder:font-normal placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-3 focus:ring-sky-100"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2.5 border-t border-slate-100 pt-3">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#EC943C] px-4 py-2.5 text-[13px] font-black text-white transition hover:bg-[#d4833a] disabled:opacity-50"
+            >
+              {submitting ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  جاري المنح...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  منح التكريم
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-bold text-slate-600 transition hover:bg-slate-50"
+            >
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RECOGNITION STRIP (compact banner)
+══════════════════════════════════════════════════════════════════ */
+
+function RecognitionStrip({
+  canGrant,
+  onGrant,
+}: {
+  canGrant: boolean
+  onGrant: () => void
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#22334A]/12 bg-white px-5 py-3.5 shadow-sm">
+      {/* Left: title + month */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50">
+          <Crown className="h-4 w-4 text-amber-600" />
+        </div>
+        <div>
+          <p className="text-[13px] font-black text-[#22334A]">
+            تكريم شهر {RECOGNITION.period}
+          </p>
+          <p className="text-[10px] font-semibold text-slate-400">مركز EMC — الأعضاء المتميزون</p>
+        </div>
+      </div>
+
+      {/* Stats chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-[#22334A]">
+          <Sparkles className="h-3 w-3 text-amber-500" />
+          {RECOGNITION.totalCount} تكريم
+        </span>
+
+        {RECOGNITION.topDepartment && (
+          <span className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
+            <Building2 className="h-3 w-3" />
+            <span className="max-w-[120px] truncate">{RECOGNITION.topDepartment.name}</span>
+          </span>
+        )}
+
+        {RECOGNITION.topMembers[0] && (
+          <span className="flex items-center gap-1.5 rounded-lg border border-[#2691C2]/25 bg-[#2691C2]/[0.06] px-2.5 py-1 text-[11px] font-bold text-[#2691C2]">
+            <Star className="h-3 w-3" />
+            <span className="max-w-[110px] truncate">{RECOGNITION.topMembers[0].name}</span>
+          </span>
+        )}
+
+        {canGrant && (
+          <button
+            type="button"
+            onClick={onGrant}
+            className="flex items-center gap-1.5 rounded-xl bg-[#EC943C] px-3.5 py-1.5 text-[12px] font-black text-white transition hover:bg-[#d4833a] active:scale-95"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            منح تكريم
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RECOGNITION SECTION (3 cards)
+══════════════════════════════════════════════════════════════════ */
+
+function RecognitionSection({ members }: { members: InternalMember[] }) {
+  // How many members are in the top dept
+  const topDeptMemberCount = useMemo(
+    () =>
+      RECOGNITION.topDepartment
+        ? members.filter((m) => m.department?.trim() === RECOGNITION.topDepartment.name.trim()).length
+        : 0,
+    [members],
+  )
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-3" dir="rtl">
+      {/* Card 1 — Best Department (compact, no big yellow) */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.05 }}
+        className="flex flex-col gap-3 rounded-2xl border border-[#22334A]/15 bg-white p-5 shadow-sm"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+              <Crown className="h-4 w-4 text-amber-600" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-amber-600">أفضل إدارة</span>
+          </div>
+          <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700">
+            {RECOGNITION.period}
+          </span>
+        </div>
+
+        <div>
+          <p className="text-[15px] font-black leading-snug text-[#22334A]">
+            {RECOGNITION.topDepartment.name}
+          </p>
+          {RECOGNITION.topDepartment.reason && (
+            <p className="mt-1 text-[11px] font-semibold text-slate-500">
+              {RECOGNITION.topDepartment.reason}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#22334A] to-[#2691C2] text-[11px] font-black text-white`}>
+            {initials(RECOGNITION.topDepartment.leader)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] font-semibold text-slate-400">بقيادة</p>
+            <p className="truncate text-[12px] font-black text-[#22334A]">
+              {RECOGNITION.topDepartment.leader}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+            <Users className="h-3.5 w-3.5 text-slate-400" />
+            <span>
+              {topDeptMemberCount > 0 ? topDeptMemberCount : RECOGNITION.topDepartment.memberCount} عضو يحملون الشارة
+            </span>
+          </div>
+          <span className="flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-600">
+            <Trophy className="h-2.5 w-2.5" />
+            فائزة
+          </span>
+        </div>
+      </motion.div>
+
+      {/* Card 2 — Top Members */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.1 }}
+        className="flex flex-col gap-3 rounded-2xl border border-[#2691C2]/15 bg-white p-5 shadow-sm"
+      >
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2691C2]/10">
+            <Star className="h-4 w-4 text-[#2691C2]" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider text-[#2691C2]">أبرز الأعضاء</span>
+        </div>
+
+        <div className="flex-1 space-y-2">
+          {RECOGNITION.topMembers.map((tm, i) => (
+            <div
+              key={tm.name}
+              className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5"
+            >
+              <div
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${i === 0 ? 'from-amber-400 to-orange-400' : 'from-[#2691C2] to-cyan-500'} text-[12px] font-black text-white`}
+              >
+                {tm.initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-1 text-[12px] font-black text-[#22334A]">{tm.name}</p>
+                <span className="inline-flex items-center gap-0.5 rounded-md bg-[#2691C2]/[0.08] px-1.5 py-0.5 text-[9px] font-bold text-[#2691C2]">
+                  {tm.type}
+                </span>
+              </div>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[9px] font-black text-amber-700">
+                #{i + 1}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1.5 rounded-xl border border-[#2691C2]/15 bg-[#2691C2]/[0.04] px-3 py-2 text-[10px] font-semibold text-[#2691C2]">
+          <Award className="h-3 w-3" />
+          تكريمات فردية لشهر {RECOGNITION.period}
+        </div>
+      </motion.div>
+
+      {/* Card 3 — Department Breakdown */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.15 }}
+        className="flex flex-col gap-3 rounded-2xl border border-[#EC943C]/15 bg-white p-5 shadow-sm"
+      >
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EC943C]/10">
+            <Building2 className="h-4 w-4 text-[#EC943C]" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider text-[#EC943C]">أبرز الإدارات</span>
+        </div>
+
+        <div className="flex-1 space-y-1.5 overflow-y-auto">
+          {RECOGNITION.departmentRecognitions.map((row) => {
+            const hasRecognition = row.recognitionType !== null
+            return (
+              <div
+                key={row.dept}
+                className={`flex items-start justify-between gap-2 rounded-xl px-3 py-2 text-[11px] transition ${
+                  hasRecognition
+                    ? 'border border-amber-100 bg-amber-50/50'
+                    : 'border border-slate-100 bg-slate-50/50'
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate text-[11px] font-bold ${hasRecognition ? 'text-[#22334A]' : 'text-slate-400'}`}>
+                    {row.dept}
+                  </p>
+                  {row.recognitionType && (
+                    <p className="text-[9px] font-semibold text-amber-600">{row.recognitionType}</p>
+                  )}
+                  {row.achievement && (
+                    <p className="text-[9px] font-semibold text-slate-500">{row.achievement}</p>
+                  )}
+                </div>
+                {row.member ? (
+                  <p className="shrink-0 max-w-[100px] truncate text-[10px] font-black text-[#22334A]">{row.member}</p>
+                ) : hasRecognition ? (
+                  <span className="shrink-0 flex items-center gap-0.5 rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
+                    <Crown className="h-2.5 w-2.5" />
+                    إدارة
+                  </span>
+                ) : (
+                  <span className="shrink-0 text-[9px] italic text-slate-300">—</span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RECOGNITION BADGE COMPONENT
+══════════════════════════════════════════════════════════════════ */
+
+function RecognitionBadgeChip({ badge }: { badge: RecognitionBadge }) {
+  return (
+    <span
+      title={badge.tooltip}
+      className={`flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${
+        badge.icon === 'crown'
+          ? 'border-amber-200 bg-amber-50 text-amber-700'
+          : badge.icon === 'star'
+            ? 'border-[#2691C2]/25 bg-[#2691C2]/[0.08] text-[#2691C2]'
+            : 'border-slate-200 bg-slate-50 text-slate-600'
+      }`}
+    >
+      {badge.icon === 'crown'  && <Crown  className="h-2.5 w-2.5" />}
+      {badge.icon === 'star'   && <Star   className="h-2.5 w-2.5" />}
+      {badge.icon === 'trophy' && <Trophy className="h-2.5 w-2.5" />}
+      {badge.icon === 'award'  && <Award  className="h-2.5 w-2.5" />}
+      {badge.label}
+    </span>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MEMBER CARD
+══════════════════════════════════════════════════════════════════ */
+
+function MemberCard({ member, idx, onUpdated }: { member: InternalMember; idx: number; onUpdated?: (updated: InternalMember) => void }) {
+  const [creating, setCreating] = useState(false)
+  const [hasAccount, setHasAccount] = useState(() => Boolean(member.has_user_account) || member.user_id != null)
   const [modal, setModal] = useState<{ email: string; password: string } | null>(null)
 
   async function handleCreateAccount() {
     setCreating(true)
     try {
       const result = await createUserAccount(member.id)
-
       if (result.already_linked) {
         toast.success('هذا العضو لديه حساب مرتبط بالفعل.')
         setHasAccount(true)
         return
       }
-
       if (result.linked_existing) {
         toast.success('تم ربط العضو بحساب موجود بنجاح.')
         setHasAccount(true)
-        const userId = result.user?.id ?? null
-        onUpdated?.({ ...member, user_id: userId, has_user_account: true, linked_user: result.user })
+        onUpdated?.({ ...member, user_id: result.user?.id ?? null, has_user_account: true, linked_user: result.user })
         return
       }
-
-      // New account created — show password modal
       if (result.created && result.temporary_password && member.email) {
         setHasAccount(true)
-        const userId = result.user?.id ?? null
-        onUpdated?.({ ...member, user_id: userId, has_user_account: true, linked_user: result.user })
+        onUpdated?.({ ...member, user_id: result.user?.id ?? null, has_user_account: true, linked_user: result.user })
         setModal({ email: member.email, password: result.temporary_password })
       }
     } catch (err: unknown) {
@@ -235,233 +818,155 @@ function MemberCard({
   }
 
   const joinedLabel = formatJoinedAt(member.joined_at ?? member.created_at)
+  const badges = getMemberBadges(member)
+  const typeStyle = TYPE_COLORS[member.member_type]
+  // Don't show role_label if it's just the same as the type name (e.g. "موظف" = "staff")
+  const showRoleLabel = member.role_label && member.role_label.trim() !== TYPE_AR[member.member_type]
 
   return (
     <>
       <AnimatePresence>
-        {modal && (
-          <PasswordModal
-            email={modal.email}
-            password={modal.password}
-            onClose={() => setModal(null)}
-          />
-        )}
+        {modal && <PasswordModal email={modal.email} password={modal.password} onClose={() => setModal(null)} />}
       </AnimatePresence>
 
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.22, delay: Math.min(idx * 0.04, 0.4) }}
-        className="group relative flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_4px_0_rgba(15,23,42,0.05)] transition hover:border-[#2691C2]/30 hover:shadow-[0_4px_16px_0_rgba(38,145,194,0.08)]"
+        transition={{ duration: 0.25, delay: Math.min(idx * 0.04, 0.4) }}
+        whileHover={{ y: -2, transition: { duration: 0.15 } }}
+        className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_0_rgba(15,23,42,0.06)] transition-shadow hover:border-[#2691C2]/30 hover:shadow-[0_8px_24px_0_rgba(38,145,194,0.12)]"
       >
+        {/* Color accent bar */}
+        <div className={`h-[3px] w-full bg-gradient-to-l ${avatarGradient(member.id)}`} aria-hidden />
+
         {/* New badge */}
         {member.is_new && (
-          <span className="absolute -top-2 -start-2 z-10 rounded-xl border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 shadow-sm">
-            عضو جديد
+          <span className="absolute top-3 start-3 z-10 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 shadow-sm">
+            جديد
           </span>
         )}
 
-        {/* Avatar + type badge */}
-        <div className="flex items-start justify-between gap-2">
-          <div
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${avatarGradient(member.id)} text-[13px] font-black text-white shadow-sm`}
-          >
-            {member.avatar_url ? (
-              <img
-                src={member.avatar_url}
-                alt={member.name}
-                className="h-full w-full rounded-2xl object-cover"
-              />
-            ) : (
-              initials(member.name)
-            )}
+        <div className="flex flex-col gap-3 p-4">
+          {/* Header: Avatar + Name + Type badge */}
+          <div className="flex items-start gap-3">
+            <div className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${avatarGradient(member.id)} text-[14px] font-black text-white shadow-sm`}>
+              {member.avatar_url ? (
+                <img src={member.avatar_url} alt={member.name} className="h-full w-full rounded-2xl object-cover" />
+              ) : (
+                initials(member.name)
+              )}
+              {hasAccount && (
+                <span className="absolute -bottom-1 -end-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#2691C2]">
+                  <Check className="h-2 w-2 text-white" />
+                </span>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-1">
+                <p className="line-clamp-2 text-[14px] font-black leading-tight text-[#22334A]">
+                  {member.name}
+                </p>
+                <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-[10px] font-bold ${typeStyle.bg} ${typeStyle.text} ${typeStyle.border}`}>
+                  {TYPE_AR[member.member_type]}
+                </span>
+              </div>
+              {member.department && (
+                <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+                  <Building2 className="h-3 w-3 shrink-0" />
+                  <span className="truncate font-semibold">{member.department}</span>
+                </div>
+              )}
+              {showRoleLabel && (
+                <p className="mt-0.5 line-clamp-1 text-[11px] font-medium text-slate-400">{member.role_label}</p>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <span
-              className={`rounded-xl border px-2.5 py-1 text-[10px] font-bold ${TYPE_COLORS[member.member_type]}`}
-            >
-              {TYPE_AR[member.member_type]}
+
+          {/* Recognition badges */}
+          {badges.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {badges.map((badge) => (
+                <RecognitionBadgeChip key={badge.label} badge={badge} />
+              ))}
+            </div>
+          )}
+
+          {/* Contact */}
+          {(member.email ?? member.phone) && (
+            <div className="space-y-1 rounded-xl bg-slate-50/80 p-2.5">
+              {member.email && (
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                  <Mail className="h-3 w-3 shrink-0 text-slate-400" />
+                  <span className="truncate font-medium">{member.email}</span>
+                </div>
+              )}
+              {member.phone && (
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                  <Phone className="h-3 w-3 shrink-0 text-slate-400" />
+                  <span className="font-medium">{member.phone}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Skills */}
+          {member.skills && (
+            <p className="line-clamp-1 text-[11px] font-medium text-slate-400">{member.skills}</p>
+          )}
+
+          {/* Source badge */}
+          {member.volunteer_request_id && (
+            <span className="self-start rounded-lg border border-[#2691C2]/20 bg-[#2691C2]/[0.06] px-2 py-0.5 text-[10px] font-bold text-[#2691C2]">
+              منضم عبر طلب عضوية
             </span>
-            {hasAccount && (
-              <span className="flex items-center gap-1 rounded-lg border border-[#2691C2]/25 bg-[#2691C2]/[0.07] px-2 py-0.5 text-[10px] font-bold text-[#2691C2]">
-                <Link2 className="h-2.5 w-2.5" />
-                مرتبط بحساب
-              </span>
+          )}
+
+          {/* Footer */}
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
+            {joinedLabel ? (
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
+                <CalendarDays className="h-3 w-3 shrink-0" />
+                <span>{joinedLabel}</span>
+              </div>
+            ) : (
+              <span />
             )}
           </div>
-        </div>
 
-        {/* Name + dept */}
-        <div className="flex-1">
-          <p className="text-[14px] font-black leading-snug text-[#22334A]">{member.name}</p>
-          {member.department && (
-            <p className="mt-0.5 text-[11px] font-semibold text-slate-400">{member.department}</p>
+          {/* Create account */}
+          {!hasAccount && member.email && (
+            <button
+              type="button"
+              onClick={handleCreateAccount}
+              disabled={creating}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#2691C2]/40 bg-[#2691C2]/[0.04] px-3 py-2 text-[11px] font-bold text-[#2691C2] transition hover:border-[#2691C2]/70 hover:bg-[#2691C2]/[0.08] disabled:opacity-50"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              {creating ? 'جاري الإنشاء...' : 'إنشاء حساب'}
+            </button>
           )}
-          {member.role_label && (
-            <p className="mt-0.5 text-[11px] font-medium text-slate-400">{member.role_label}</p>
-          )}
         </div>
-
-        {/* Contact info */}
-        {(member.email ?? member.phone) && (
-          <div className="space-y-1">
-            {member.email && (
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                <Mail className="h-3 w-3 shrink-0" />
-                <span className="truncate font-medium">{member.email}</span>
-              </div>
-            )}
-            {member.phone && (
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                <Phone className="h-3 w-3 shrink-0" />
-                <span className="font-medium">{member.phone}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Skills */}
-        {member.skills && (
-          <p className="line-clamp-1 text-[11px] font-medium text-slate-400">{member.skills}</p>
-        )}
-
-        {/* Source badge */}
-        {member.volunteer_request_id && (
-          <span className="self-start rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-            محوّل من طلب تطوع
-          </span>
-        )}
-
-        {/* Joined date */}
-        {joinedLabel && (
-          <p className="text-[10px] font-semibold text-slate-400">انضم: {joinedLabel}</p>
-        )}
-
-        {/* Create account — only when not linked and has email */}
-        {!hasAccount && member.email && (
-          <button
-            type="button"
-            onClick={handleCreateAccount}
-            disabled={creating}
-            className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#2691C2]/40 bg-[#2691C2]/[0.04] px-3 py-2 text-[11px] font-bold text-[#2691C2] transition hover:border-[#2691C2]/70 hover:bg-[#2691C2]/[0.08] disabled:opacity-50"
-          >
-            <UserPlus className="h-3.5 w-3.5" />
-            {creating ? 'جاري الإنشاء...' : 'إنشاء حساب'}
-          </button>
-        )}
       </motion.div>
     </>
   )
 }
 
-/* ── Recognition card ──────────────────────────────────────────── */
-
-function RecognitionCard() {
-  const [expanded, setExpanded] = useState(false)
-
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border border-amber-200/70 bg-gradient-to-l from-amber-50 to-yellow-50 shadow-sm"
-      dir="rtl"
-    >
-      {/* Header — always visible */}
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center gap-4 px-6 py-4 text-right transition hover:bg-amber-50/60"
-      >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-          <Award className="h-5 w-5 text-amber-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-black text-[#22334A]">
-            تكريم شهر {RECOGNITION.period} — مركز EMC
-          </p>
-          <p className="mt-0.5 text-[11px] font-semibold text-amber-700">
-            الأعضاء المتميزون هذا الشهر
-          </p>
-        </div>
-        {expanded ? (
-          <ChevronUp className="h-4 w-4 shrink-0 text-amber-500" />
-        ) : (
-          <ChevronDown className="h-4 w-4 shrink-0 text-amber-500" />
-        )}
-      </button>
-
-      {/* Body — collapsible */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <div className="space-y-3 border-t border-amber-200/60 px-6 pb-5 pt-4">
-              {/* Best department */}
-              <div className="flex items-start gap-3 rounded-xl border border-amber-200/50 bg-white/60 px-4 py-3">
-                <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                <div>
-                  <p className="text-[11px] font-semibold text-amber-600">
-                    أفضل إدارة خلال شهر {RECOGNITION.period}
-                  </p>
-                  <p className="mt-0.5 text-[13px] font-black text-[#22334A]">
-                    {RECOGNITION.topDepartment.name}
-                  </p>
-                  <p className="text-[11px] font-semibold text-slate-500">
-                    بقيادة: {RECOGNITION.topDepartment.leader}
-                  </p>
-                </div>
-              </div>
-
-              {/* Best volunteers */}
-              <div className="flex items-start gap-3 rounded-xl border border-amber-200/50 bg-white/60 px-4 py-3">
-                <Star className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                <div>
-                  <p className="text-[11px] font-semibold text-amber-600">أفضل المتطوعين</p>
-                  <p className="mt-0.5 text-[13px] font-black text-[#22334A]">
-                    {RECOGNITION.topVolunteers.join('، ')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Department stars */}
-              <div className="rounded-xl border border-amber-200/50 bg-white/60 px-4 py-3">
-                <p className="mb-2 text-[11px] font-semibold text-amber-600">
-                  أبرز المتطوعين حسب الإدارات
-                </p>
-                <div className="space-y-1.5">
-                  {RECOGNITION.departmentStars.map((row) => (
-                    <div
-                      key={row.dept}
-                      className="flex items-center justify-between gap-2 text-[12px]"
-                    >
-                      <span className="font-semibold text-slate-500">{row.dept}</span>
-                      <span className="font-black text-[#22334A]">{row.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-/* ── Group section header ──────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   GROUP HEADER
+══════════════════════════════════════════════════════════════════ */
 
 function GroupHeader({ label, count }: { label: string; count: number }) {
   return (
-    <div className="mb-3 flex items-center gap-3">
-      <div className="h-px flex-1 bg-slate-200" />
-      <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-black text-slate-500">
+    <div className="mb-4 flex items-center gap-3">
+      <div className="h-px flex-1 bg-gradient-to-l from-slate-200 to-transparent" />
+      <span className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-[12px] font-black text-[#22334A] shadow-sm">
         {label}
-        <span className="mr-1.5 font-mono tabular-nums text-slate-400">({count})</span>
+        <span className="mr-1.5 rounded-lg bg-[#2691C2]/[0.08] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[#2691C2]">
+          {count}
+        </span>
       </span>
-      <div className="h-px flex-1 bg-slate-200" />
+      <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
     </div>
   )
 }
@@ -473,21 +978,25 @@ function GroupHeader({ label, count }: { label: string; count: number }) {
 type ViewMode = 'all' | 'new' | 'by_dept' | 'by_type'
 
 const VIEW_TABS: { mode: ViewMode; label: string }[] = [
-  { mode: 'all', label: 'جميع الأعضاء' },
-  { mode: 'new', label: 'الأعضاء الجدد' },
+  { mode: 'all',     label: 'جميع الأعضاء' },
+  { mode: 'new',     label: 'الأعضاء الجدد' },
   { mode: 'by_dept', label: 'حسب الإدارة' },
   { mode: 'by_type', label: 'حسب النوع' },
 ]
 
 /* ══════════════════════════════════════════════════════════════════
-   PAGE COMPONENT
+   PAGE
 ══════════════════════════════════════════════════════════════════ */
 
 export default function MembersPage() {
+  const { user } = useAuth()
+  const canGrant = GRANT_ROLES.has(normalizeRole(user?.role) ?? '')
+
   const [members, setMembers] = useState<InternalMember[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('all')
   const [search, setSearch] = useState('')
+  const [showGrantModal, setShowGrantModal] = useState(false)
   const [refreshTs, setRefreshTs] = useState(new Date())
 
   async function load() {
@@ -504,7 +1013,6 @@ export default function MembersPage() {
     setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)))
   }
 
-  /* ── filtered + grouped ─────────────────────────────────────────── */
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     let list = members
@@ -517,7 +1025,6 @@ export default function MembersPage() {
     return list
   }, [members, viewMode, search])
 
-  /* Grouped views */
   const byDept = useMemo(() => {
     if (viewMode !== 'by_dept') return null
     const map = new Map<string, InternalMember[]>()
@@ -540,142 +1047,165 @@ export default function MembersPage() {
       arr.push(m)
       map.set(m.member_type, arr)
     })
-    return order.map((t) => [t, map.get(t) ?? []] as [MemberType, InternalMember[]]).filter(([, arr]) => arr.length > 0)
+    return order
+      .map((t) => [t, map.get(t) ?? []] as [MemberType, InternalMember[]])
+      .filter(([, arr]) => arr.length > 0)
   }, [filtered, viewMode])
 
   const newCount = members.filter((m) => m.is_new).length
 
-  // suppress unused warning — refreshTs is intentionally tracked for future use
   void refreshTs
 
   return (
     <div className="space-y-5 pb-8" dir="rtl">
-      {/* ── Page header ─────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
-        <div>
-          <h1 className="text-[18px] font-black text-[#22334A]">الأعضاء</h1>
-          <p className="mt-0.5 text-[11px] font-medium text-slate-400">
-            الفريق الداخلي — الأعضاء المحوّلون والموظفون والشركاء
-          </p>
+      {/* Grant Recognition Modal */}
+      <AnimatePresence>
+        {showGrantModal && (
+          <GrantRecognitionModal
+            members={members}
+            onClose={() => setShowGrantModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Page header ──────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-2xl border border-[#22334A]/10 bg-gradient-to-l from-[#22334A] via-[#2a3f5a] to-[#2691C2]/70 p-6 text-white shadow-lg">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-10 -end-10 h-36 w-36 rounded-full bg-white/5" />
+          <div className="absolute -bottom-6 start-16 h-24 w-24 rounded-full bg-white/5" />
+          <div className="absolute top-1/2 end-1/3 h-16 w-16 -translate-y-1/2 rounded-full bg-[#2691C2]/20" />
         </div>
-        <div className="flex items-center gap-2.5">
-          {newCount > 0 && (
-            <span className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-black text-amber-700">
-              <Sparkles className="h-3.5 w-3.5" />
-              {newCount} عضو جديد
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            تحديث
-          </button>
+        <div className="relative flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-[22px] font-black text-white">الأعضاء</h1>
+            </div>
+            <p className="mt-1.5 text-[12px] font-medium text-white/60">
+              الفريق الداخلي — الأعضاء المحوّلون والموظفون والشركاء
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {!loading && members.length > 0 && (
+              <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-sm">
+                <span className="font-mono text-[20px] font-black tabular-nums text-white">
+                  {members.length}
+                </span>
+                <span className="text-[11px] font-semibold text-white/70">عضو</span>
+              </div>
+            )}
+            {newCount > 0 && (
+              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-300/30 bg-emerald-400/20 px-3 py-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+                <span className="text-[11px] font-black text-emerald-300">{newCount} جديد</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-[12px] font-bold text-white/80 backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-40"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              تحديث
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Recognition card ──────────────────────────────────────── */}
-      <RecognitionCard />
+      {/* ── Compact recognition strip ────────────────────────────── */}
+      <RecognitionStrip
+        canGrant={canGrant}
+        onGrant={() => setShowGrantModal(true)}
+      />
+
+      {/* ── Recognition cards ────────────────────────────────────── */}
+      <RecognitionSection members={members} />
 
       {/* ── Stats bar ────────────────────────────────────────────── */}
       {!loading && members.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
-          {(
-            [
-              { type: 'staff' as MemberType, icon: Users, color: '#2691C2' },
-              { type: 'volunteer' as MemberType, icon: HeartHandshake, color: '#10b981' },
-              { type: 'partner' as MemberType, icon: Award, color: '#7c3aed' },
-            ] as const
-          ).map(({ type, icon: Icon, color }) => {
+          {(['staff', 'volunteer', 'partner'] as MemberType[]).map((type) => {
             const count = members.filter((m) => m.member_type === type).length
+            const { accent, bg } = STAT_COLORS[type]
             return (
               <button
                 key={type}
                 type="button"
-                onClick={() => {
-                  setViewMode('by_type')
-                  setSearch('')
-                }}
-                className="flex flex-col gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm transition hover:border-[#2691C2]/30"
+                onClick={() => { setViewMode('by_type'); setSearch('') }}
+                className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
               >
-                <div
-                  className="flex h-7 w-7 items-center justify-center rounded-lg"
-                  style={{ background: `${color}16` }}
-                >
-                  <Icon className="h-3.5 w-3.5" style={{ color }} />
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: bg }}>
+                  <Users className="h-4 w-4" style={{ color: accent }} />
                 </div>
-                <p className="font-mono text-[20px] font-black tabular-nums" style={{ color }}>
+                <p className="font-mono text-[22px] font-black tabular-nums" style={{ color: accent }}>
                   {count}
                 </p>
-                <p className="text-[11px] font-semibold text-slate-500">{TYPE_AR[type]}</p>
+                <p className="text-[11px] font-bold text-slate-500">{TYPE_AR[type]}</p>
               </button>
             )
           })}
         </div>
       )}
 
-      {/* ── View tabs ─────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2">
-        {VIEW_TABS.map(({ mode, label }) => {
-          const active = viewMode === mode
-          return (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setViewMode(mode)}
-              className={`rounded-xl px-4 py-2 text-[12px] font-black transition ${
-                active
-                  ? 'bg-[#22334A] text-white shadow-md'
-                  : 'border border-slate-200 bg-white text-[#22334A]/60 hover:text-[#22334A]'
-              }`}
-            >
-              {label}
-              {mode === 'new' && newCount > 0 && (
-                <span
-                  className={`mr-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-black tabular-nums ${
-                    active ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
-                  }`}
-                >
-                  {newCount}
-                </span>
-              )}
-            </button>
-          )
-        })}
+      {/* ── Filters ──────────────────────────────────────────────── */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 p-1">
+          {VIEW_TABS.map(({ mode, label }) => {
+            const active = viewMode === mode
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                className={`relative flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-bold transition-all ${
+                  active
+                    ? 'bg-[#22334A] text-white shadow-md'
+                    : 'text-slate-500 hover:bg-white hover:text-[#22334A]'
+                }`}
+              >
+                {label}
+                {mode === 'new' && newCount > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black tabular-nums ${active ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
+                    {newCount}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="بحث بالاسم أو الإدارة أو المهارات..."
+            dir="rtl"
+            className="h-11 w-full rounded-2xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-semibold text-[#22334A] outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+          />
+        </div>
       </div>
 
-      {/* ── Search ────────────────────────────────────────────────── */}
-      <div className="relative">
-        <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="بحث بالاسم أو الإدارة أو المهارات..."
-          dir="rtl"
-          className="h-11 w-full rounded-2xl border border-slate-200 bg-white pr-10 pl-4 text-sm font-semibold text-[#22334A] outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
-        />
-      </div>
-
-      {/* ── Content ───────────────────────────────────────────────── */}
+      {/* ── Content ──────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Sk key={i} className="h-52" />
-          ))}
+          {Array.from({ length: 8 }).map((_, i) => <Sk key={i} className="h-60" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
-          <Users className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-4 font-black text-[#22334A]">
-            {members.length === 0 ? 'لا توجد بيانات كافية بعد' : 'لا نتائج تطابق البحث'}
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+            <Users className="h-8 w-8 text-slate-300" />
+          </div>
+          <p className="mt-4 text-[15px] font-black text-[#22334A]">
+            {members.length === 0 ? 'لا توجد بيانات بعد' : 'لا نتائج تطابق البحث'}
           </p>
-          <p className="mt-1 text-sm font-semibold text-slate-400">
+          <p className="mt-1 text-[12px] font-semibold text-slate-400">
             {members.length === 0
-              ? 'قبل طلبات التطوع وحوّل المتطوعين إلى أعضاء لتظهر هنا'
+              ? 'أضف الأعضاء وحوّل طلبات الانتساب لتظهر هنا'
               : 'جرّب تغيير الفلتر أو مصطلح البحث'}
           </p>
         </div>
@@ -685,9 +1215,7 @@ export default function MembersPage() {
             <div key={dept}>
               <GroupHeader label={dept} count={deptMembers.length} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {deptMembers.map((m, idx) => (
-                  <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />
-                ))}
+                {deptMembers.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />)}
               </div>
             </div>
           ))}
@@ -698,25 +1226,20 @@ export default function MembersPage() {
             <div key={type}>
               <GroupHeader label={TYPE_AR[type]} count={typeMembers.length} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {typeMembers.map((m, idx) => (
-                  <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />
-                ))}
+                {typeMembers.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />)}
               </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((m, idx) => (
-            <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />
-          ))}
+          {filtered.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />)}
         </div>
       )}
 
-      {/* Footer count */}
       {!loading && filtered.length > 0 && (
         <p className="text-center font-mono text-[11px] font-semibold text-slate-400">
-          {filtered.length} عضو
+          {filtered.length} من الأعضاء
         </p>
       )}
     </div>

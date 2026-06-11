@@ -217,10 +217,19 @@ export default function StudentExamsPage() {
                   <div className="px-5 py-4">
                     <p className="text-[10px] font-black uppercase tracking-widest text-deepBlue/35">المستوى النهائي</p>
                     {attempt.final_level ? (
-                      <div className="mt-1 flex items-center gap-1.5 text-emerald-600">
-                        <CheckCircle className="h-4 w-4" aria-hidden />
-                        <span className="text-[14px] font-black">{attempt.final_level}</span>
-                      </div>
+                      <>
+                        <div className="mt-1 flex items-center gap-1.5 text-emerald-600">
+                          <CheckCircle className="h-4 w-4" aria-hidden />
+                          <span className="text-[14px] font-black">{attempt.final_level}</span>
+                        </div>
+                        {attempt.oral_score != null && (
+                          <p className="mt-0.5 text-[10px] font-semibold text-deepBlue/45">
+                            درجة المقابلة: {attempt.oral_score}
+                          </p>
+                        )}
+                      </>
+                    ) : attempt.status === 'oral_completed' ? (
+                      <p className="mt-1 text-[12px] font-semibold text-amber-600">بانتظار اعتماد المستوى</p>
                     ) : attempt.status === 'completed' ? (
                       <div className="mt-1 flex items-center gap-1.5 text-emerald-600">
                         <Award className="h-4 w-4" aria-hidden />

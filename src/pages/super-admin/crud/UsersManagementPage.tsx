@@ -3,10 +3,11 @@ import axios from 'axios'
 import {
   Ban,
   ChevronDown,
-  Clock3,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   Mail,
-  Radio,
+  MailCheck,
   RefreshCw,
   Shield,
   ShieldCheck,
@@ -15,6 +16,7 @@ import {
   UserCircle2,
   Users,
   UserSquare2,
+  X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -147,6 +149,10 @@ export default function UsersManagementPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'deleted'>('all')
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [joinedFilter, setJoinedFilter] = useState<'all' | 'month' | 'quarter' | 'year'>('all')
+  const [verifiedFilter, setVerifiedFilter] = useState<'all' | 'verified' | 'unverified'>('all')
+  const [perPage, setPerPage] = useState(15)
+  const [page, setPage] = useState(1)
+  const [debouncedQuery, setDebouncedQuery] = useState('')
 
   const includeSuperAdminAssignment = canOfferSuperAdminRoleOption(currentUser?.role)
   const roleOptionsForm = useMemo(
@@ -180,6 +186,15 @@ export default function UsersManagementPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300)
+    return () => clearTimeout(t)
+  }, [query])
+
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedQuery, roleFilter, statusFilter, departmentFilter, joinedFilter, verifiedFilter, perPage])
 
   const impersonatePreview = useCallback(
     async (target: AdminManagedUser) => {
@@ -223,6 +238,8 @@ export default function UsersManagementPage() {
     const admins = rows.filter((u) => MANAGER_ROLE_SET.has(String(normalizeRole(u.role))))
     const instructors = rows.filter((u) => normalizeRole(u.role) === 'instructor').length
     const students = rows.filter((u) => normalizeRole(u.role) === 'student').length
+    const verified = rows.filter((u) => verifiedDot(u) === 'yes').length
+    const unverified = rows.filter((u) => verifiedDot(u) !== 'yes').length
 
     const monthStart = startOfCalendarMonth(now).getTime()
     const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
@@ -260,6 +277,8 @@ export default function UsersManagementPage() {
       admins: admins.length,
       instructors,
       students,
+      verified,
+      unverified,
       newThisMonth,
       growthHint,
       growthShort,
@@ -272,7 +291,7 @@ export default function UsersManagementPage() {
     const monthStartMs = startOfCalendarMonth(now).getTime()
     const quarterMs = monthStartMs - MS_DAY * 90
     const yearStartMs = new Date(now.getFullYear(), 0, 1).getTime()
-    const q = query.trim().toLowerCase()
+    const q = debouncedQuery.trim().toLowerCase()
     return rows.filter((u) => {
       if (roleFilter !== 'all' && normalizeRole(u.role) !== roleFilter) return false
       if (statusFilter === 'active' && (u.is_active === false || isDeleted(u))) return false
@@ -289,19 +308,30 @@ export default function UsersManagementPage() {
         if (joinedFilter === 'year' && !(t !== null && t >= yearStartMs && t <= nowMs)) return false
       }
 
+      if (verifiedFilter === 'verified' && verifiedDot(u) !== 'yes') return false
+      if (verifiedFilter === 'unverified' && verifiedDot(u) === 'yes') return false
+
       if (!q) return true
       const haystack = `${u.name} ${u.email} ${u.phone ?? ''} ${u.id} ${u.department ?? ''} ${normalizeRole(u.role ?? null)}`.toLowerCase()
       return haystack.includes(q)
     })
   }, [
     rows,
-    query,
+    debouncedQuery,
     roleFilter,
     statusFilter,
     departmentFilter,
     joinedFilter,
+    verifiedFilter,
     now,
   ])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const safePage = Math.min(Math.max(1, page), totalPages)
+  const paginated = useMemo(() => {
+    const start = (safePage - 1) * perPage
+    return filtered.slice(start, start + perPage)
+  }, [filtered, safePage, perPage])
 
   const actorId = currentUser?.id ?? 0
 
@@ -573,66 +603,15 @@ export default function UsersManagementPage() {
       />
 
       {!forbidden ?
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4">
-          <EnterpriseMetricTile
-            accent="blue"
-            icon={Users}
-            label="إجمالي المستخدمين"
-            value={enterpriseKpis.total}
-            hint="جميع الهويات المُرسلة ضمن مجموعة الإدارة"
-          />
-          <EnterpriseMetricTile
-            accent="mint"
-            icon={ShieldCheck}
-            label="نشطون"
-            value={enterpriseKpis.active}
-            deltaLabel={`موقوف: ${enterpriseKpis.suspended}`}
-            hint={enterpriseKpis.suspended === 0 ? undefined : `${enterpriseKpis.suspended} موقوف واضحة من حقل الخادم`}
-          />
-          <EnterpriseMetricTile
-            accent="navy"
-            icon={Shield}
-            label="فريق الإداريين"
-            value={enterpriseKpis.admins}
-            hint="أعضاء بتصنيف أدوار حوكمية وفق مجموعة المنصّة"
-          />
-          <EnterpriseMetricTile
-            accent="orange"
-            icon={UserSquare2}
-            label="مدربون / طلاب"
-            value={`${enterpriseKpis.instructors} / ${enterpriseKpis.students}`}
-            hint="حسب اسم الدور المُطبَّق"
-          />
-          <EnterpriseMetricTile
-            accent="blue"
-            icon={TrendingUp}
-            label="انضموا هذا الشهر"
-            value={enterpriseKpis.newThisMonth}
-            deltaLabel={<span>{enterpriseKpis.growthShort}</span>}
-            hint={enterpriseKpis.growthHint}
-          />
-          <EnterpriseMetricTile
-            accent="mint"
-            icon={Radio}
-            label="نشاط ظاهر خلال 24 ساعة"
-            value={enterpriseKpis.recent24}
-            hint="بناءً على أحدث قيم بين آخر ظهور/تحديث عند وجود الطابع الزمني"
-          />
-          <EnterpriseMetricTile
-            accent="navy"
-            icon={Ban}
-            label="موقوفون"
-            value={enterpriseKpis.suspended}
-            hint="عند ضبط الخادم is_active إلى false فقط"
-          />
-          <EnterpriseMetricTile
-            accent="orange"
-            icon={Clock3}
-            label="مزامنة مباشرة مع API الإداري"
-            value={loading ? '…' : 'جاهزة'}
-            loading={loading}
-            hint="جميع المرشّحات تقيِّد القائمة المحمّلة محلّيًا لتفادي التخمينات"
-          />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <EnterpriseMetricTile accent="blue" icon={Users} label="إجمالي المستخدمين" value={enterpriseKpis.total} hint="جميع الهويات المُرسَلَة ضمن مجموعة الإدارة" />
+          <EnterpriseMetricTile accent="mint" icon={ShieldCheck} label="نشطون" value={enterpriseKpis.active} deltaLabel={`موقوف: ${enterpriseKpis.suspended}`} />
+          <EnterpriseMetricTile accent="navy" icon={Ban} label="موقوفون / غير نشطين" value={enterpriseKpis.suspended} hint="حسابات مقيّدة (is_active = false)" />
+          <EnterpriseMetricTile accent="mint" icon={MailCheck} label="بريد موثَّق" value={enterpriseKpis.verified} hint="مستخدمون أتمّوا توثيق بريدهم الإلكتروني" />
+          <EnterpriseMetricTile accent="orange" icon={Mail} label="بريد غير موثَّق" value={enterpriseKpis.unverified} hint="لم يُتمّ المستخدم توثيق بريده بعد" />
+          <EnterpriseMetricTile accent="navy" icon={Shield} label="إداريون وموظفون" value={enterpriseKpis.admins} hint="أدوار حوكمية وفق مجموعة المنصّة" />
+          <EnterpriseMetricTile accent="blue" icon={UserSquare2} label="مدربون" value={enterpriseKpis.instructors} hint="حسب اسم الدور instructor" />
+          <EnterpriseMetricTile accent="orange" icon={UserCircle2} label="طلاب" value={enterpriseKpis.students} hint="حسب اسم الدور student" />
         </div>
       : null}
 
@@ -661,6 +640,16 @@ export default function UsersManagementPage() {
               ]}
             />
             <MiniSelect
+              label="توثيق البريد"
+              value={verifiedFilter}
+              onChange={(v) => setVerifiedFilter(v as 'all' | 'verified' | 'unverified')}
+              options={[
+                { value: 'all', labelAr: 'الكل' },
+                { value: 'verified', labelAr: 'موثَّق' },
+                { value: 'unverified', labelAr: 'غير موثَّق' },
+              ]}
+            />
+            <MiniSelect
               label="الإدارة"
               value={departmentFilter}
               onChange={setDepartmentFilter}
@@ -673,10 +662,20 @@ export default function UsersManagementPage() {
               options={[
                 { value: 'all', labelAr: 'الكل' },
                 { value: 'month', labelAr: 'هذا الشهر' },
-                { value: 'quarter', labelAr: '+90 يومًا' },
+                { value: 'quarter', labelAr: '+90 يوماً' },
                 { value: 'year', labelAr: 'هذا العام' },
               ]}
             />
+            {(roleFilter !== 'all' || statusFilter !== 'all' || verifiedFilter !== 'all' || departmentFilter !== 'all' || joinedFilter !== 'all' || query.trim()) ?
+              <button
+                type="button"
+                onClick={() => { setQuery(''); setRoleFilter('all'); setStatusFilter('all'); setVerifiedFilter('all'); setDepartmentFilter('all'); setJoinedFilter('all') }}
+                className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 hover:bg-rose-100 transition-colors"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden />
+                مسح التصفية
+              </button>
+            : null}
           </CrudToolbar>
 
           {loading ?
@@ -708,7 +707,7 @@ export default function UsersManagementPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.length === 0 ?
+                    {paginated.length === 0 ?
                       <tr>
                         <Td colSpan={13} className="p-0">
                           <EmptyPanel
@@ -717,7 +716,7 @@ export default function UsersManagementPage() {
                           />
                         </Td>
                       </tr>
-                    : filtered.map((u) => {
+                    : paginated.map((u) => {
                         const st = statusBadge(u)
                         const editOk = canEditAdminUserRow(currentUser?.role, u.role)
                         const delOk =
@@ -862,6 +861,77 @@ export default function UsersManagementPage() {
                   </tbody>
                 </CrudTable>
               </CrudCardTable>
+
+              {/* Pagination footer */}
+              {filtered.length > 0 &&
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-100/60 bg-white/60 px-5 py-3 backdrop-blur-sm">
+                  {/* Left: per-page selector + count text */}
+                  <div className="flex items-center gap-3 text-[12px] font-semibold text-muted-600">
+                    <span>عرض</span>
+                    <select
+                      value={perPage}
+                      onChange={(e) => setPerPage(Number(e.target.value))}
+                      className="rounded-xl border border-ink-100 bg-white px-2 py-1 text-[12px] font-black text-deepBlue shadow-sm focus:outline-none focus:ring-2 focus:ring-customBlue/30"
+                    >
+                      {[15, 25, 50, 100].map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                    <span>
+                      {`${(safePage - 1) * perPage + 1} إلى ${Math.min(safePage * perPage, filtered.length)} من ${filtered.length} مستخدم`}
+                    </span>
+                  </div>
+
+                  {/* Right: page navigation */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setPage(safePage - 1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-ink-100 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
+                      aria-label="الصفحة السابقة"
+                    >
+                      <ChevronRight className="h-4 w-4" aria-hidden />
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                      .reduce<(number | '…')[]>((acc, p, i, arr) => {
+                        if (i > 0 && (arr[i - 1] as number) !== p - 1) acc.push('…')
+                        acc.push(p)
+                        return acc
+                      }, [])
+                      .map((p, i) =>
+                        p === '…' ?
+                          <span key={`ellipsis-${i}`} className="px-1 text-[12px] text-muted-400">…</span>
+                        :
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setPage(p as number)}
+                            className={`flex h-8 w-8 items-center justify-center rounded-xl border text-[12px] font-black shadow-sm transition ${
+                              safePage === p
+                                ? 'border-customBlue bg-customBlue text-white'
+                                : 'border-ink-100 bg-white text-deepBlue hover:border-customBlue/40 hover:bg-brand-50'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                      )
+                    }
+
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setPage(safePage + 1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-ink-100 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
+                      aria-label="الصفحة التالية"
+                    >
+                      <ChevronLeft className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                </div>
+              }
             </motion.div>
           }
         </div>

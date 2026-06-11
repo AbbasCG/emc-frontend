@@ -11,9 +11,24 @@ import {
  * Must wrap dashboard routes (not the public site).
  */
 export default function DashboardAccessGuard() {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
   const location = useLocation()
   const pathname = location.pathname
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex min-h-[50vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        aria-label="جارٍ التحميل"
+      >
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-customBlue border-t-transparent" />
+      </div>
+    )
+  }
+
   const role = normalizeRole(user?.role ?? null)
   const home = getDashboardPathByRole(role)
 

@@ -37,8 +37,15 @@ type WorkshopFormValues = {
   speaker_job_title: string
   topics: string
   target_audience: string
-  proposed_date: string
-  proposed_time: string
+  proposed_date_1: string
+  proposed_start_time_1: string
+  proposed_end_time_1: string
+  proposed_date_2: string
+  proposed_start_time_2: string
+  proposed_end_time_2: string
+  proposed_date_3: string
+  proposed_start_time_3: string
+  proposed_end_time_3: string
   price_type: 'free' | 'paid'
   price_amount: string
 }
@@ -77,8 +84,15 @@ const initialForm: WorkshopFormValues = {
   speaker_job_title: '',
   topics: '',
   target_audience: '',
-  proposed_date: '',
-  proposed_time: '',
+  proposed_date_1: '',
+  proposed_start_time_1: '',
+  proposed_end_time_1: '',
+  proposed_date_2: '',
+  proposed_start_time_2: '',
+  proposed_end_time_2: '',
+  proposed_date_3: '',
+  proposed_start_time_3: '',
+  proposed_end_time_3: '',
   price_type: 'free',
   price_amount: '',
 }
@@ -315,8 +329,15 @@ export default function SubmitWorkshop() {
     if (targetStep === 3) {
       required('topics', 'يرجى كتابة محاور الورشة.')
       required('target_audience', 'يرجى تحديد الجمهور المستهدف.')
-      required('proposed_date', 'يرجى اختيار التاريخ المقترح.')
-      required('proposed_time', 'يرجى اختيار الوقت المقترح.')
+      required('proposed_date_1', 'يرجى اختيار تاريخ الخيار الأول.')
+      required('proposed_start_time_1', 'يرجى اختيار وقت البداية للخيار الأول.')
+      required('proposed_end_time_1', 'يرجى اختيار وقت الانتهاء للخيار الأول.')
+      required('proposed_date_2', 'يرجى اختيار تاريخ الخيار الثاني.')
+      required('proposed_start_time_2', 'يرجى اختيار وقت البداية للخيار الثاني.')
+      required('proposed_end_time_2', 'يرجى اختيار وقت الانتهاء للخيار الثاني.')
+      required('proposed_date_3', 'يرجى اختيار تاريخ الخيار الثالث.')
+      required('proposed_start_time_3', 'يرجى اختيار وقت البداية للخيار الثالث.')
+      required('proposed_end_time_3', 'يرجى اختيار وقت الانتهاء للخيار الثالث.')
       if (selectedLocations.length === 0) errors.location_types = ['يرجى اختيار طريقة تنفيذ واحدة على الأقل.']
     }
 
@@ -365,8 +386,17 @@ export default function SubmitWorkshop() {
     }
 
     const payload = new FormData()
+    // Append all fields except the split time fields (we combine them)
+    const skipKeys = new Set(['proposed_start_time_1','proposed_end_time_1','proposed_start_time_2','proposed_end_time_2','proposed_start_time_3','proposed_end_time_3'])
     Object.entries(form).forEach(([key, value]) => {
-      payload.append(key, value)
+      if (!skipKeys.has(key)) payload.append(key, value)
+    })
+    // Combine start + end time into proposed_time_N as "HH:MM - HH:MM"
+    ;([1, 2, 3] as const).forEach((n) => {
+      const s = form[`proposed_start_time_${n}` as keyof WorkshopFormValues]
+      const e = form[`proposed_end_time_${n}` as keyof WorkshopFormValues]
+      if (s && e) payload.set(`proposed_time_${n}`, `${s} - ${e}`)
+      else if (s) payload.set(`proposed_time_${n}`, s)
     })
     selectedCategories.forEach((category) => payload.append('categories[]', category))
     selectedLocations.forEach((locationType) => payload.append('location_types[]', locationType))
@@ -407,10 +437,15 @@ export default function SubmitWorkshop() {
       value: selectedLocations.length ? selectedLocations.join('، ') : '',
     },
     {
-      label: 'التاريخ المقترح',
+      label: 'الموعد المقترح (الأول)',
       value:
-        form.proposed_date || form.proposed_time ?
-          [form.proposed_date, form.proposed_time].filter(Boolean).join(' · ')
+        form.proposed_date_1 ?
+          [
+            form.proposed_date_1,
+            form.proposed_start_time_1 && form.proposed_end_time_1
+              ? `${form.proposed_start_time_1} - ${form.proposed_end_time_1}`
+              : form.proposed_start_time_1,
+          ].filter(Boolean).join(' · ')
         : '',
     },
   ]
@@ -727,29 +762,55 @@ export default function SubmitWorkshop() {
                         maxLength={500}
                       />
 
-                      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                        <AppInput
-                          variant="emc"
-                          label="التاريخ المقترح"
-                          name="proposed_date"
-                          type="date"
-                          value={form.proposed_date}
-                          onChange={(value) => updateField('proposed_date', value)}
-                          error={getError('proposed_date')}
-                          required
-                          icon="calendar"
-                        />
-                        <AppInput
-                          variant="emc"
-                          label="الوقت المقترح"
-                          name="proposed_time"
-                          type="time"
-                          value={form.proposed_time}
-                          onChange={(value) => updateField('proposed_time', value)}
-                          error={getError('proposed_time')}
-                          required
-                          icon="time"
-                        />
+                      <div className="space-y-4">
+                        <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#2691C2]">
+                          المواعيد المقترحة — يرجى إدخال ثلاثة خيارات
+                        </p>
+                        {([1, 2, 3] as const).map((n) => (
+                          <div
+                            key={n}
+                            className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4"
+                          >
+                            <p className="mb-3 text-[12px] font-black text-[#22334A]">
+                              الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
+                            </p>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                              <AppInput
+                                variant="emc"
+                                label="التاريخ"
+                                name={`proposed_date_${n}`}
+                                type="date"
+                                value={form[`proposed_date_${n}` as keyof WorkshopFormValues]}
+                                onChange={(value) => updateField(`proposed_date_${n}` as keyof WorkshopFormValues, value)}
+                                error={getError(`proposed_date_${n}`)}
+                                required
+                                icon="calendar"
+                              />
+                              <AppInput
+                                variant="emc"
+                                label="وقت البداية"
+                                name={`proposed_start_time_${n}`}
+                                type="time"
+                                value={form[`proposed_start_time_${n}` as keyof WorkshopFormValues]}
+                                onChange={(value) => updateField(`proposed_start_time_${n}` as keyof WorkshopFormValues, value)}
+                                error={getError(`proposed_start_time_${n}`)}
+                                required
+                                icon="time"
+                              />
+                              <AppInput
+                                variant="emc"
+                                label="وقت الانتهاء"
+                                name={`proposed_end_time_${n}`}
+                                type="time"
+                                value={form[`proposed_end_time_${n}` as keyof WorkshopFormValues]}
+                                onChange={(value) => updateField(`proposed_end_time_${n}` as keyof WorkshopFormValues, value)}
+                                error={getError(`proposed_end_time_${n}`)}
+                                required
+                                icon="time"
+                              />
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
                       <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">

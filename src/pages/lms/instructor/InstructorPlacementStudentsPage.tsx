@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { BackButton } from '@/components/shared/BackButton'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowRight,
   BookOpen,
   CheckCircle,
   ChevronDown,
-  ClipboardCheck,
-  RefreshCw,
+  Mic,
   User,
   X,
 } from 'lucide-react'
@@ -17,11 +14,14 @@ import {
   fetchInstructorPlacementStudents,
   getLevelFromScore,
   PLACEMENT_LEVELS,
+  progressFromStatus,
   type PlacementStudentRow,
 } from '@/api/placementApi'
+import type { InstructorStudentRow } from '@/api/instructorApi'
 import toast from '@/lib/toast'
+import { InstructorHero, InstructorStudentCard, InstructorStudentDrawer } from '@/components/instructor'
 
-/* ── CEFR data ───────────────────────────────────────────────────────────── */
+/* ── CEFR map ─────────────────────────────────────────────────────────────── */
 
 const CEFR_MAP: Record<string, { cefr: string; arabic: string; bg: string; text: string }> = {
   beginner:           { cefr: 'Starter', arabic: 'مبتدئ',         bg: 'bg-slate-100',   text: 'text-slate-600'   },
@@ -32,27 +32,11 @@ const CEFR_MAP: Record<string, { cefr: string; arabic: string; bg: string; text:
   advanced:           { cefr: 'C1',      arabic: 'متقدم',          bg: 'bg-violet-100',  text: 'text-violet-700'  },
 }
 
-/* ── Status display ─────────────────────────────────────────────────────── */
-
-const STATUS_AR: Record<string, string> = {
-  not_started:       'لم يبدأ',
-  in_progress:       'جارٍ',
-  written_submitted: 'اكتمل الاختبار الكتابي',
-  oral_booked:       'المقابلة محجوزة',
-  oral_completed:    'المقابلة منتهية',
-  completed:         'مكتمل',
+function cefrBadge(level: string | null | undefined) {
+  return CEFR_MAP[level ?? ''] ?? null
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  not_started:       'bg-slate-100 text-slate-500',
-  in_progress:       'bg-sky-100 text-sky-700',
-  written_submitted: 'bg-amber-100 text-amber-700',
-  oral_booked:       'bg-blue-100 text-blue-700',
-  oral_completed:    'bg-violet-100 text-violet-700',
-  completed:         'bg-emerald-100 text-emerald-700',
-}
-
-/* ── Level reference table ─────────────────────────────────────────────── */
+/* ── Level reference ─────────────────────────────────────────────────────── */
 
 const LEVEL_REF = [
   { range: '1–6',   cefr: 'Starter', arabic: 'مبتدئ',         bg: 'bg-slate-100',   text: 'text-slate-600'   },
@@ -63,95 +47,132 @@ const LEVEL_REF = [
   { range: '63–70', cefr: 'C1',      arabic: 'متقدم',          bg: 'bg-violet-100',  text: 'text-violet-700'  },
 ]
 
-/* ── Helper: build CEFR badge label ──────────────────────────────────────── */
+/* ── Adapter: PlacementStudentRow → InstructorStudentRow ─────────────────── */
 
-function cefrBadge(levelKey: string | null) {
-  if (!levelKey) return null
-  return CEFR_MAP[levelKey] ?? null
+function toStudentRow(row: PlacementStudentRow, courseId: string): InstructorStudentRow {
+  return {
+    id:                row.student_id,
+    name:              row.student_name,
+    email:             row.email,
+    course_id:         Number(courseId),
+    course_title:      null,
+    enrollment_status: null,
+    placement_status:  row.status,
+    written_score:     row.written_score,
+    total_questions:   row.total_questions,
+    written_level:     row.written_level,
+    oral_booking_at:   row.oral_booking_at,
+    final_level:       row.final_level,
+    oral_score:        row.oral_score,
+    instructor_notes:  row.notes,
+    enrolled_at:       null,
+    avatar_url:        row.avatar_url,
+    attempt_id:        row.attempt_id,
+  }
 }
 
-function toDMY(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  const s = iso.slice(0, 10)
-  if (s.length < 10) return '—'
-  const [y, m, d] = s.split('-')
-  return `${d}/${m}/${y}`
+/* ── Oral form type ──────────────────────────────────────────────────────── */
+
+type OralForm = {
+  final_level:         string
+  notes:               string
+  score_speaking:      string
+  score_pronunciation: string
+  score_vocabulary:    string
+  score_grammar:       string
+  score_fluency:       string
 }
 
-function toHM(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  const t = iso.slice(11, 16)
-  if (/^\d{2}:\d{2}$/.test(t)) return t
-  try {
-    const dt = new Date(iso)
-    if (!isNaN(dt.getTime())) return `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
-  } catch { /* */ }
-  return '—'
-}
+const ORAL_SCORES: { key: keyof OralForm; label: string; max: number }[] = [
+  { key: 'score_speaking',      label: 'التحدث',   max: 20 },
+  { key: 'score_pronunciation', label: 'النطق',    max: 20 },
+  { key: 'score_vocabulary',    label: 'المفردات',  max: 20 },
+  { key: 'score_grammar',       label: 'القواعد',   max: 20 },
+  { key: 'score_fluency',       label: 'الطلاقة',   max: 20 },
+]
 
-function toDMYHM(iso: string | null | undefined): string {
-  const date = toDMY(iso)
-  const time = toHM(iso)
-  if (date === '—') return '—'
-  if (time === '—' || time === '00:00') return date
-  return `${date}، ${time}`
+function emptyForm(row?: PlacementStudentRow): OralForm {
+  const estimated = row?.written_score != null
+    ? getLevelFromScore(row.written_score, row.total_questions ?? 70).level
+    : ''
+  return {
+    final_level:         row?.final_level ?? estimated,
+    notes:               row?.notes ?? '',
+    score_speaking:      '',
+    score_pronunciation: '',
+    score_vocabulary:    '',
+    score_grammar:       '',
+    score_fluency:       '',
+  }
 }
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export default function InstructorPlacementStudentsPage() {
   const { courseId } = useParams<{ courseId: string }>()
-  const [students, setStudents]   = useState<PlacementStudentRow[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [selected, setSelected]   = useState<PlacementStudentRow | null>(null)
-  const [form, setForm]           = useState({ final_level: '', oral_score: '', notes: '' })
-  const [saving, setSaving]       = useState(false)
-  const [showRef, setShowRef]     = useState(false)
+  const [students,    setStudents]   = useState<PlacementStudentRow[]>([])
+  const [loading,     setLoading]    = useState(true)
+  const [drawerRow,   setDrawerRow]  = useState<PlacementStudentRow | null>(null)
+  const [modalRow,    setModalRow]   = useState<PlacementStudentRow | null>(null)
+  const [form,        setForm]       = useState<OralForm>(emptyForm())
+  const [saving,      setSaving]     = useState(false)
+  const [showRef,     setShowRef]    = useState(false)
 
   async function load() {
     if (!courseId) return
     setLoading(true)
-    try {
-      const data = await fetchInstructorPlacementStudents(courseId)
-      setStudents(data)
-    } catch {
+    try { setStudents(await fetchInstructorPlacementStudents(courseId)) }
+    catch (err) {
       toast.error('تعذّر تحميل قائمة الطلاب')
-    } finally {
-      setLoading(false)
+      if (import.meta.env.DEV) console.error('[placement-students] load failed:', err)
     }
+    finally { setLoading(false) }
   }
 
   useEffect(() => { void load() }, [courseId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function openModal(row: PlacementStudentRow) {
-    setSelected(row)
-    const estimated = row.written_score != null
-      ? getLevelFromScore(row.written_score, row.total_questions ?? 70).level : ''
-    setForm({
-      final_level: row.final_level ?? estimated,
-      oral_score:  row.oral_score != null ? String(row.oral_score) : '',
-      notes:       row.notes ?? '',
-    })
+  function openDrawer(row: PlacementStudentRow) {
+    setDrawerRow(row)
   }
 
+  function openModal(row: PlacementStudentRow) {
+    setModalRow(row)
+    setForm(emptyForm(row))
+    setDrawerRow(null)
+  }
+
+  const totalOralScore = useMemo(() => {
+    const parts = ORAL_SCORES.map((s) => form[s.key])
+    if (parts.some((v) => v === '')) return null
+    const nums = parts.map(Number)
+    if (nums.some((n) => isNaN(n))) return null
+    return nums.reduce((a, b) => a + b, 0)
+  }, [form])
+
   async function handleSave() {
-    if (!courseId || !selected) return
+    if (!courseId || !modalRow) return
+    if (!form.final_level) { toast.warning('يجب اختيار المستوى النهائي'); return }
+    if (!modalRow.booking_id) {
+      toast.error('تعذر تحديد الطالب، يرجى تحديث الصفحة والمحاولة مرة أخرى')
+      return
+    }
     setSaving(true)
     try {
-      await completeOralAssessment(courseId, selected.attempt_id, {
-        final_level: form.final_level,
-        ...(form.oral_score ? { oral_score: Number(form.oral_score) } : {}),
-        ...(form.notes.trim() ? { notes: form.notes.trim() } : {}),
+      await completeOralAssessment(modalRow.booking_id, {
+        final_level: CEFR_MAP[form.final_level]?.cefr ?? form.final_level,
+        ...(totalOralScore != null ? { oral_score: totalOralScore } : {}),
+        ...(form.notes.trim() ? { instructor_notes: form.notes.trim() } : {}),
       })
       toast.success('تم حفظ نتيجة التقييم بنجاح')
-      setSelected(null)
+      setModalRow(null)
       void load()
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      // Show readable message on SQL or server errors
-      const display = msg?.toLowerCase().includes('sql') || msg?.toLowerCase().includes('sqlstate')
-        ? 'تعذّر حفظ الموعد. يرجى التحقق من إعدادات الخادم.'
-        : (msg ?? 'تعذّر حفظ التقييم')
+      if (import.meta.env.DEV) console.error('[placement-students] save failed:', err)
+      const display =
+        msg?.toLowerCase().includes('sql') || msg?.toLowerCase().includes('sqlstate')
+          ? 'تعذّر حفظ الموعد. يرجى التحقق من إعدادات الخادم.'
+          : (msg ?? 'تعذّر حفظ التقييم')
       toast.error(display)
     } finally {
       setSaving(false)
@@ -159,46 +180,47 @@ export default function InstructorPlacementStudentsPage() {
   }
 
   /* ── Stats ─────────────────────────────────────────────────────────────── */
+
   const stats = [
-    { label: 'إجمالي الطلاب',    count: students.length,                                                  color: '#2691C2' },
-    { label: 'اكتمل الاختبار',   count: students.filter((s) => s.status === 'written_submitted').length,  color: '#f59e0b' },
-    { label: 'بانتظار المقابلة', count: students.filter((s) => s.status === 'oral_booked').length,        color: '#3b82f6' },
-    { label: 'مكتمل',            count: students.filter((s) => s.status === 'completed').length,          color: '#10b981' },
+    { label: 'إجمالي الطلاب',   count: students.length,                                                 color: '#2691C2' },
+    { label: 'اكتمل الاختبار',  count: students.filter((s) => s.status === 'written_submitted').length, color: '#f59e0b' },
+    { label: 'المقابلة محجوزة', count: students.filter((s) => s.status === 'oral_booked').length,       color: '#7c3aed' },
+    { label: 'مستوى معتمد',     count: students.filter((s) => s.status === 'completed').length,         color: '#10b981' },
   ]
+
+  /* ── Drawer student row (adapted) ───────────────────────────────────────── */
+
+  const drawerStudent = drawerRow && courseId ? toStudentRow(drawerRow, courseId) : null
 
   return (
     <div className="space-y-5 pb-16" dir="rtl">
 
-      {/* ── Header ───────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <BackButton to="/dashboard/instructor/courses" label="العودة إلى الدورات" className="mb-1.5" />
-          <h1 className="text-[20px] font-black text-deepBlue">نتائج تحديد المستوى</h1>
-          <p className="mt-0.5 text-[12px] font-semibold text-deepBlue/45">
-            الاختبار الكتابي · المقابلات الشفوية · المستويات النهائية
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowRef((v) => !v)}
-            className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-[11px] font-bold text-deepBlue/55 shadow-sm transition hover:bg-slate-50"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            جدول المستويات
-            <ChevronDown className={`h-3 w-3 transition-transform ${showRef ? 'rotate-180' : ''}`} />
-          </button>
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-[11px] font-bold text-deepBlue/55 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            تحديث
-          </button>
-        </div>
-      </div>
+      {/* ── Hero ────────────────────────────────────────────────────────── */}
+      <InstructorHero
+        title="نتائج تحديد المستوى"
+        subtitle="الاختبار الكتابي · المقابلات الشفوية · المستويات النهائية"
+        backTo="/dashboard/instructor/courses"
+        backLabel="الدورات"
+        onRefresh={load}
+        refreshing={loading}
+        pills={loading ? [] : [
+          { label: 'إجمالي الطلاب',    value: stats[0].count },
+          { label: 'اكتمل الاختبار',   value: stats[1].count },
+          { label: 'المقابلة محجوزة',  value: stats[2].count },
+          { label: 'مستوى معتمد',      value: stats[3].count },
+        ]}
+      >
+        {/* Level reference toggle */}
+        <button
+          type="button"
+          onClick={() => setShowRef((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black text-white/70 transition hover:bg-white/20 hover:text-white"
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          جدول المستويات
+          <ChevronDown className={`h-3 w-3 transition-transform ${showRef ? 'rotate-180' : ''}`} />
+        </button>
+      </InstructorHero>
 
       {/* ── Level reference (collapsible) ─────────────────────────────── */}
       <AnimatePresence>
@@ -216,9 +238,7 @@ export default function InstructorPlacementStudentsPage() {
               <div className="grid grid-cols-3 gap-px bg-slate-100 sm:grid-cols-6">
                 {LEVEL_REF.map((r) => (
                   <div key={r.cefr} className="flex flex-col items-center gap-1 bg-white px-2 py-3 text-center">
-                    <span className={`rounded-xl px-2.5 py-1 text-[11px] font-black ${r.bg} ${r.text}`}>
-                      {r.cefr}
-                    </span>
+                    <span className={`rounded-xl px-2.5 py-1 text-[11px] font-black ${r.bg} ${r.text}`}>{r.cefr}</span>
                     <span className="font-mono text-[10px] font-black text-deepBlue/40">{r.range}</span>
                     <span className="text-[9px] font-semibold text-deepBlue/55">{r.arabic}</span>
                   </div>
@@ -229,24 +249,10 @@ export default function InstructorPlacementStudentsPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Stats ────────────────────────────────────────────────────── */}
-      {!loading && students.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {stats.map(({ label, count, color }) => (
-            <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="font-mono text-[24px] font-black tabular-nums" style={{ color }}>{count}</p>
-              <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/50">{label}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Students list ─────────────────────────────────────────────── */}
+      {/* ── Students cards ────────────────────────────────────────────── */}
       {loading ? (
-        <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-2xl bg-slate-100" />
-          ))}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[1,2,3,4].map((i) => <div key={i} className="h-44 animate-pulse rounded-3xl bg-slate-100" />)}
         </div>
       ) : students.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-16 text-center">
@@ -257,269 +263,180 @@ export default function InstructorPlacementStudentsPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-[13px]">
-              <thead className="border-b border-slate-100 bg-slate-50/80">
-                <tr>
-                  {['الطالب', 'الدرجة', 'مستوى CEFR', 'الاختبار الكتابي', 'موعد المقابلة', 'المستوى النهائي', ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-[10px] font-black text-deepBlue/45">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {students.map((row) => {
-                  const score     = row.written_score
-                  const total     = row.total_questions ?? 70
-                  const estimated = score != null ? getLevelFromScore(score, total) : null
-                  const badge     = cefrBadge(estimated?.level ?? null)
-                  const finalBadge = cefrBadge(row.final_level)
-                  const pct = row.percentage != null
-                    ? row.percentage
-                    : score != null && total > 0
-                      ? Math.round((score / total) * 100)
-                      : null
-
-                  const canAssess =
-                    row.status === 'oral_booked' ||
-                    row.status === 'oral_completed' ||
-                    row.status === 'completed'
-
-                  const statusNeedsOral = row.status === 'written_submitted'
-
-                  return (
-                    <motion.tr
-                      key={row.attempt_id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="transition hover:bg-slate-50/60"
-                    >
-                      {/* Student */}
-                      <td className="px-4 py-3.5">
-                        <p className="font-black text-deepBlue">{row.student_name}</p>
-                        <p className="text-[10px] font-semibold text-deepBlue/35">{row.email}</p>
-                      </td>
-
-                      {/* Score + percentage */}
-                      <td className="px-4 py-3.5">
-                        {score != null ? (
-                          <div>
-                            <span className="font-mono font-black tabular-nums text-deepBlue">
-                              {score}<span className="text-deepBlue/30">/{total}</span>
-                            </span>
-                            {pct != null && (
-                              <p className="mt-0.5 font-mono text-[10px] font-semibold text-deepBlue/40">{pct}%</p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-deepBlue/20">—</span>
-                        )}
-                      </td>
-
-                      {/* CEFR level — always show "A2 / ما قبل المتوسط" format */}
-                      <td className="px-4 py-3.5">
-                        {badge ? (
-                          <span className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-black ${badge.bg} ${badge.text}`}>
-                            <span className="font-mono">{badge.cefr}</span>
-                            <span className="opacity-50">·</span>
-                            <span>{badge.arabic}</span>
-                          </span>
-                        ) : (
-                          <span className="text-deepBlue/20">—</span>
-                        )}
-                      </td>
-
-                      {/* Written test status */}
-                      <td className="px-4 py-3.5">
-                        <div className="space-y-1">
-                          {/* Status badge */}
-                          <span className={`inline-flex items-center gap-1 rounded-xl px-2 py-0.5 text-[10px] font-black ${STATUS_COLOR[row.status] ?? 'bg-slate-100 text-slate-500'}`}>
-                            {statusNeedsOral
-                              ? <><ClipboardCheck className="h-3 w-3" /> بانتظار المقابلة الشفوية</>
-                              : STATUS_AR[row.status] ?? row.status}
-                          </span>
-                          {/* Submitted date */}
-                          {row.submitted_at && (
-                            <p className="text-[10px] font-semibold text-deepBlue/35">
-                              {toDMY(row.submitted_at)}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Oral booking date */}
-                      <td className="px-4 py-3.5">
-                        {row.oral_booking_at ? (
-                          <span className="font-mono text-[11px] font-semibold tabular-nums text-deepBlue/65">
-                            {toDMYHM(row.oral_booking_at)}
-                          </span>
-                        ) : (
-                          <span className="text-deepBlue/20">—</span>
-                        )}
-                      </td>
-
-                      {/* Final level */}
-                      <td className="px-4 py-3.5">
-                        {finalBadge ? (
-                          <span className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-black ${finalBadge.bg} ${finalBadge.text}`}>
-                            <span className="font-mono">{finalBadge.cefr}</span>
-                            <span className="opacity-50">·</span>
-                            <span>{finalBadge.arabic}</span>
-                          </span>
-                        ) : row.final_level ? (
-                          <span className="rounded-xl bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-700">
-                            {PLACEMENT_LEVELS.find((l) => l.level === row.final_level)?.label ?? row.final_level}
-                          </span>
-                        ) : (
-                          <span className="text-deepBlue/20">—</span>
-                        )}
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-4 py-3.5">
-                        {canAssess && (
-                          <button
-                            type="button"
-                            onClick={() => openModal(row)}
-                            className={`rounded-xl border px-3 py-1.5 text-[11px] font-black transition ${
-                              row.status === 'completed'
-                                ? 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'
-                                : 'border-customBlue/30 bg-customBlue/[0.07] text-customBlue hover:bg-customBlue/[0.14]'
-                            }`}
-                          >
-                            {row.status === 'completed' ? 'تعديل' : 'تقييم شفوي'}
-                          </button>
-                        )}
-                      </td>
-                    </motion.tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {students.map((row, i) => {
+            const progress  = progressFromStatus(row.status)
+            const canAssess = progress.oral_booked
+            return (
+              <InstructorStudentCard
+                key={row.attempt_id}
+                student={toStudentRow(row, courseId!)}
+                index={i}
+                onClick={() => openDrawer(row)}
+                onAssess={canAssess ? () => openModal(row) : undefined}
+                assessLabel={progress.level_approved ? 'تعديل التقييم' : 'بدء التقييم'}
+                assessed={progress.level_approved}
+              />
+            )
+          })}
         </div>
       )}
 
+      {/* ── Student detail drawer ─────────────────────────────────────── */}
+      <InstructorStudentDrawer
+        student={drawerStudent}
+        onClose={() => setDrawerRow(null)}
+        onStartAssessment={
+          drawerRow && progressFromStatus(drawerRow.status).oral_booked && !progressFromStatus(drawerRow.status).level_approved
+            ? () => openModal(drawerRow)
+            : undefined
+        }
+      />
+
       {/* ── Oral assessment modal ─────────────────────────────────────── */}
       <AnimatePresence>
-        {selected && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" dir="rtl">
+        {modalRow && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm" dir="rtl">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+              className="relative my-4 w-full max-w-lg rounded-3xl bg-white shadow-[0_32px_80px_-20px_rgba(15,23,42,0.4)]"
             >
-              <div className="mb-5 flex items-start justify-between">
-                <div>
-                  <h2 className="text-[16px] font-black text-deepBlue">التقييم الشفوي</h2>
-                  <p className="mt-0.5 text-[12px] font-semibold text-deepBlue/50">{selected.student_name}</p>
+              {/* Modal header */}
+              <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-l from-[#22334A] to-[#1a2d44] px-6 py-5 text-white">
+                <div className="pointer-events-none absolute -left-4 top-0 h-20 w-20 rounded-full bg-[#EC943C]/20 blur-[40px]" />
+                <div className="relative flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-violet-300" />
+                      <h2 className="text-[15px] font-black">التقييم الشفوي</h2>
+                    </div>
+                    <p className="mt-1 text-[12px] font-semibold text-white/55">{modalRow.student_name}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setModalRow(null)}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100"
-                >
-                  <X className="h-5 w-5" />
-                </button>
               </div>
 
-              {/* Written summary */}
-              {selected.written_score != null && (
-                <div className="mb-5 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-[13px]">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-deepBlue/55">الدرجة الكتابية</span>
-                    <span className="font-mono font-black tabular-nums text-deepBlue">
-                      {selected.written_score}/{selected.total_questions ?? '—'}
-                    </span>
-                  </div>
-                  {selected.written_level && (() => {
-                    const b = cefrBadge(selected.written_level)
-                    return b ? (
-                      <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-deepBlue/45">المستوى التقديري</span>
-                        <span className={`rounded-xl px-2.5 py-0.5 font-black ${b.bg} ${b.text}`}>
-                          {b.cefr} · {b.arabic}
+              <div className="p-6">
+                {/* Written summary */}
+                {modalRow.written_score != null && (() => {
+                  const b = cefrBadge(
+                    getLevelFromScore(modalRow.written_score, modalRow.total_questions ?? 70).level
+                  )
+                  return (
+                    <div className="mb-5 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-deepBlue/55">الدرجة الكتابية</span>
+                        <span className="font-mono font-black tabular-nums text-deepBlue">
+                          {modalRow.written_score}/{modalRow.total_questions ?? '—'}
                         </span>
                       </div>
-                    ) : null
-                  })()}
+                      {b && (
+                        <div className="mt-1.5 flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-deepBlue/45">المستوى التقديري</span>
+                          <span className={`rounded-xl px-2.5 py-0.5 text-[11px] font-black ${b.bg} ${b.text}`}>
+                            {b.cefr} · {b.arabic}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+
+                {/* Oral score inputs */}
+                <div className="mb-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-[11px] font-black text-deepBlue/55">درجات المقابلة الشفوية</p>
+                    {totalOralScore != null && (
+                      <span className="font-mono text-[11px] font-black tabular-nums text-[#2691C2]">
+                        المجموع: {totalOralScore}/100
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {ORAL_SCORES.map(({ key, label, max }) => (
+                      <label key={key} className="block text-[10px] font-black text-deepBlue/50">
+                        {label}
+                        <span className="font-mono font-normal text-deepBlue/30"> (0–{max})</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max={max}
+                          value={form[key]}
+                          onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                          dir="ltr"
+                          placeholder="—"
+                          className="mt-1 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-2 focus:ring-sky-100"
+                        />
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              )}
 
-              {/* Final level selector */}
-              <div className="mb-4">
-                <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
-                  المستوى النهائي <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={form.final_level}
-                  onChange={(e) => setForm((f) => ({ ...f, final_level: e.target.value }))}
-                  dir="rtl"
-                  className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 pl-8 text-[13px] font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
-                >
-                  <option value="">اختر المستوى</option>
-                  {PLACEMENT_LEVELS.map((lvl) => {
-                    const b = CEFR_MAP[lvl.level]
-                    return (
-                      <option key={lvl.level} value={lvl.level}>
-                        {b ? `${b.cefr} — ${b.arabic}` : lvl.label}
-                      </option>
-                    )
-                  })}
-                </select>
-              </div>
+                {/* Final level select */}
+                <div className="mb-4">
+                  <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
+                    المستوى النهائي <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.final_level}
+                    onChange={(e) => setForm((f) => ({ ...f, final_level: e.target.value }))}
+                    dir="rtl"
+                    className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 pl-8 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                  >
+                    <option value="">اختر المستوى النهائي</option>
+                    {PLACEMENT_LEVELS.map((lvl) => {
+                      const b = CEFR_MAP[lvl.level]
+                      return (
+                        <option key={lvl.level} value={lvl.level}>
+                          {b ? `${b.cefr} — ${b.arabic}` : lvl.label}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
 
-              {/* Oral score */}
-              <div className="mb-4">
-                <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
-                  درجة المقابلة الشفوية
-                  <span className="mr-1 font-normal text-deepBlue/35">(اختياري، 0–100)</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={form.oral_score}
-                  onChange={(e) => setForm((f) => ({ ...f, oral_score: e.target.value }))}
-                  placeholder="مثال: 85"
-                  dir="ltr"
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
-                />
-              </div>
+                {/* Notes */}
+                <div className="mb-6">
+                  <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
+                    ملاحظات المعلم <span className="font-normal text-deepBlue/35">(اختياري)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={form.notes}
+                    onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                    placeholder="ملاحظات حول أداء الطالب في المقابلة..."
+                    dir="rtl"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                  />
+                </div>
 
-              {/* Notes */}
-              <div className="mb-6">
-                <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
-                  ملاحظات <span className="font-normal text-deepBlue/35">(اختياري)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={form.notes}
-                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                  placeholder="ملاحظات حول أداء الطالب في المقابلة..."
-                  dir="rtl"
-                  className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => void handleSave()}
-                  disabled={!form.final_level || saving}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-customBlue px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  {saving ? 'جاري الحفظ...' : 'اعتماد المستوى'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-[13px] font-black text-deepBlue/65 transition hover:bg-slate-50"
-                >
-                  إلغاء
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void handleSave()}
+                    disabled={!form.final_level || saving || !modalRow.booking_id}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    {saving ? 'جاري الحفظ...' : 'اعتماد المستوى'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalRow(null)}
+                    className="rounded-2xl border border-slate-200 px-4 py-3 text-[13px] font-black text-deepBlue/65 transition hover:bg-slate-50"
+                  >
+                    إلغاء
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

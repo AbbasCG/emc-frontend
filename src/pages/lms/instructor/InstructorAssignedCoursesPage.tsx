@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -14,10 +14,9 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react'
-import { fetchInstructorCourses, fetchInstructorLmsDashboard } from '@/api/instructorApi'
+import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import { useAuth } from '@/contexts/AuthContext'
-
 /* ── Status maps ─────────────────────────────────────────────────────────── */
 
 const STATUS_COLOR: Record<string, string> = {
@@ -36,7 +35,7 @@ const STATUS_AR: Record<string, string> = {
   upcoming:  'قادم',
 }
 
-/* ── Quick action cards ──────────────────────────────────────────────────── */
+/* ── Quick actions ───────────────────────────────────────────────────────── */
 
 const QUICK_ACTIONS = [
   { label: 'كل طلابي',               href: '/dashboard/instructor/students',          icon: Users          },
@@ -60,15 +59,12 @@ export default function InstructorAssignedCoursesPage() {
     setLoading(true)
     setError(false)
     try {
-      const [list, dash] = await Promise.all([
-        fetchInstructorCourses(),
-        fetchInstructorLmsDashboard(),
-      ])
-      const merged = list.length > 0 ? list : (dash.assigned_courses ?? [])
-      setRows(Array.isArray(merged) ? merged : [])
-    } catch {
+      const list = await fetchInstructorCourses()
+      setRows(Array.isArray(list) ? list : [])
+    } catch (err) {
       setError(true)
       setRows([])
+      if (import.meta.env.DEV) console.error('[courses] load failed:', err)
     } finally {
       setLoading(false)
     }
@@ -76,9 +72,12 @@ export default function InstructorAssignedCoursesPage() {
 
   useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totalStudents = rows.reduce((s, c) => s + (c.enrolled_students_count ?? c.student_count ?? 0), 0)
-  const totalPlaced   = rows.reduce((s, c) => s + (c.placement_completed_count ?? 0), 0)
-  const totalOralBook = rows.reduce((s, c) => s + (c.oral_booked_count ?? 0), 0)
+  const kpi = useMemo(() => ({
+    courses:  rows.length,
+    students: rows.reduce((s, c) => s + (c.enrolled_students_count ?? c.students_count ?? c.student_count ?? 0), 0),
+    written:  rows.reduce((s, c) => s + (c.written_tests_count ?? c.written_completed_count ?? c.placement_completed_count ?? 0), 0),
+    final:    rows.reduce((s, c) => s + (c.final_level_count ?? c.oral_completed_count ?? 0), 0),
+  }), [rows])
 
   return (
     <div className="space-y-6 pb-16 text-right" dir="rtl">
@@ -87,10 +86,10 @@ export default function InstructorAssignedCoursesPage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-deepBlue via-[#1a2d44] to-customBlue shadow-[0_24px_60px_-20px_rgba(34,51,74,0.55)]"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] shadow-[0_24px_60px_-20px_rgba(34,51,74,0.55)]"
       >
-        <div aria-hidden className="pointer-events-none absolute -left-20 -top-12 h-72 w-72 rounded-full bg-customOrange/15 blur-[100px]" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-20 h-56 w-56 rounded-full bg-customBlue/25 blur-[80px]" />
+        <div aria-hidden className="pointer-events-none absolute -left-20 -top-12 h-72 w-72 rounded-full bg-[#EC943C]/15 blur-[100px]" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-20 h-56 w-56 rounded-full bg-[#2691C2]/25 blur-[80px]" />
 
         <div className="relative px-6 pb-6 pt-7 sm:px-10">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -98,10 +97,10 @@ export default function InstructorAssignedCoursesPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">مدرّب EMC</p>
               <h1 className="mt-1 text-[1.75rem] font-black leading-tight text-white">دوراتي المسندة</h1>
               {user?.name && (
-                <p className="mt-1 text-[12px] font-semibold text-white/55">أهلًا {user.name}</p>
+                <p className="mt-1 text-[12px] font-semibold text-white/55">أهلًا، {user.name}</p>
               )}
               <p className="mt-2 max-w-lg text-[11px] font-medium leading-loose text-white/40">
-                تابع دوراتك، طلابك، اختبارات تحديد المستوى، المقابلات، والمواعيد من مكان واحد.
+                تابع دوراتك وطلابك واختبارات تحديد المستوى والمقابلات من مكان واحد.
               </p>
             </div>
             <button
@@ -117,12 +116,12 @@ export default function InstructorAssignedCoursesPage() {
 
           {!loading && (
             <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {[
-                { label: 'دورة مسندة',    value: rows.length   },
-                { label: 'طالب مسجّل',    value: totalStudents },
-                { label: 'اختبار مكتمل',  value: totalPlaced   },
-                { label: 'مقابلة محجوزة', value: totalOralBook },
-              ].map(({ label, value }) => (
+              {([
+                { label: 'دورة مسندة',    value: kpi.courses   },
+                { label: 'طالب مسجّل',    value: kpi.students  },
+                { label: 'اختبار مكتمل',  value: kpi.written   },
+                { label: 'نتيجة معتمدة',  value: kpi.final     },
+              ] as const).map(({ label, value }) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.07] px-4 py-3 backdrop-blur-sm">
                   <p className="font-mono text-[22px] font-black tabular-nums text-white">{value}</p>
                   <p className="mt-0.5 text-[10px] font-semibold text-white/45">{label}</p>
@@ -133,7 +132,7 @@ export default function InstructorAssignedCoursesPage() {
         </div>
       </motion.div>
 
-      {/* ── Quick action cards ─────────────────────────────────────────────── */}
+      {/* ── Quick actions ─────────────────────────────────────────────────── */}
       <section>
         <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-deepBlue/30">وصول سريع</p>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
@@ -146,7 +145,7 @@ export default function InstructorAssignedCoursesPage() {
             >
               <Link
                 to={href}
-                className="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2 py-3.5 text-center text-[10px] font-black text-deepBlue/65 shadow-sm transition hover:border-customBlue/30 hover:bg-customBlue/[0.04] hover:text-customBlue"
+                className="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2 py-3.5 text-center text-[10px] font-black text-deepBlue/65 shadow-sm transition hover:border-[#2691C2]/30 hover:bg-[#2691C2]/[0.04] hover:text-[#2691C2]"
               >
                 <Icon className="h-5 w-5" />
                 <span className="leading-tight">{label}</span>
@@ -156,7 +155,7 @@ export default function InstructorAssignedCoursesPage() {
         </div>
       </section>
 
-      {/* ── Course grid ─────────────────────────────────────────────────────── */}
+      {/* ── Course grid ───────────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((i) => (
@@ -170,7 +169,7 @@ export default function InstructorAssignedCoursesPage() {
           <button
             type="button"
             onClick={() => void load()}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-customBlue px-5 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             إعادة المحاولة
@@ -200,25 +199,52 @@ export default function InstructorAssignedCoursesPage() {
 /* ── CourseCard ───────────────────────────────────────────────────────────── */
 
 function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: number }) {
-  const enrolled  = c.enrolled_students_count ?? c.student_count ?? null
-  const placed    = c.placement_completed_count ?? null
-  const oralPend  = c.oral_pending_count ?? null
+  const enrolled  = c.enrolled_students_count ?? c.students_count ?? c.student_count ?? null
+  const written   = c.written_tests_count ?? c.written_completed_count ?? c.placement_completed_count ?? null
+  const oralPend  = c.oral_pending_count ?? c.waiting_oral_count ?? null
   const oralBook  = c.oral_booked_count ?? null
+  const finalLvl  = c.final_level_count ?? c.oral_completed_count ?? null
   const statusKey = (c.status ?? '').toLowerCase()
 
   const metrics = [
-    { label: 'الطلاب',       value: enrolled, color: 'text-customBlue'   },
-    { label: 'اختبارات',     value: placed,   color: 'text-customOrange' },
-    { label: 'ينتظر مقابلة', value: oralPend, color: 'text-amber-500'    },
-    { label: 'محجوز',        value: oralBook,  color: 'text-emerald-600'  },
+    { label: 'الطلاب',           value: enrolled, color: 'text-[#2691C2]'   },
+    { label: 'اختبارات مكتملة',  value: written,  color: 'text-[#EC943C]'  },
+    { label: 'بانتظار المقابلة', value: oralPend, color: 'text-amber-500'   },
+    { label: 'مقابلات محجوزة',   value: oralBook, color: 'text-violet-600'  },
+    { label: 'نتائج معتمدة',     value: finalLvl, color: 'text-emerald-600' },
   ]
 
   const actions = [
-    { label: 'طلاب الدورة',   icon: BookOpen,       href: `/dashboard/instructor/courses/${c.id}/students`,           cls: 'border-customBlue/20 bg-customBlue/[0.05] text-customBlue hover:bg-customBlue/[0.12]'         },
-    { label: 'تحديد المستوى', icon: ClipboardCheck, href: `/dashboard/instructor/courses/${c.id}/placement-students`, cls: 'border-customOrange/20 bg-customOrange/[0.05] text-customOrange hover:bg-customOrange/[0.12]' },
-    { label: 'المقابلات',     icon: MessageSquare,  href: '/dashboard/instructor/oral-assessments',                   cls: 'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100'                         },
-    { label: 'التوفر',        icon: CalendarDays,   href: '/dashboard/instructor/availability',                       cls: 'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100'                           },
-    { label: 'المحتوى',       icon: Layers,         href: `/dashboard/instructor/courses/${c.id}/content`,            cls: 'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100'                           },
+    {
+      label: 'طلاب الدورة',
+      icon:  BookOpen,
+      href:  `/dashboard/instructor/courses/${c.id}/students`,
+      cls:   'border-[#2691C2]/20 bg-[#2691C2]/[0.05] text-[#2691C2] hover:bg-[#2691C2]/[0.12]',
+    },
+    {
+      label: 'تحديد المستوى',
+      icon:  ClipboardCheck,
+      href:  `/dashboard/instructor/courses/${c.id}/placement-students`,
+      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
+    },
+    {
+      label: 'المقابلات',
+      icon:  MessageSquare,
+      href:  '/dashboard/instructor/oral-assessments',
+      cls:   'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100',
+    },
+    {
+      label: 'التوفر',
+      icon:  CalendarDays,
+      href:  '/dashboard/instructor/availability',
+      cls:   'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100',
+    },
+    {
+      label: 'المحتوى',
+      icon:  Layers,
+      href:  `/dashboard/instructor/courses/${c.id}/content`,
+      cls:   'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100',
+    },
   ]
 
   return (
@@ -228,11 +254,11 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       transition={{ delay: index * 0.05 }}
       className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:shadow-md"
     >
-      {/* Course image or gradient fallback */}
-      {c.thumbnail ?? c.image ? (
+      {/* Image or gradient banner */}
+      {(c.thumbnail ?? (c as Record<string, unknown>).image) ? (
         <div className="relative h-36 overflow-hidden">
           <img
-            src={(c.thumbnail ?? c.image)!}
+            src={((c.thumbnail ?? (c as Record<string, unknown>).image) as string)}
             alt={c.title}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
@@ -244,8 +270,8 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
           )}
         </div>
       ) : (
-        <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gradient-to-bl from-deepBlue/90 to-customBlue">
-          <div aria-hidden className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-customOrange/20 blur-2xl" />
+        <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2]">
+          <div aria-hidden className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-[#EC943C]/20 blur-2xl" />
           <BookMarked className="relative h-8 w-8 text-white/20" />
           {c.status && (
             <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-0.5 text-[9px] font-black ${STATUS_COLOR[statusKey] ?? 'bg-white/15 text-white'}`}>
@@ -256,11 +282,10 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       )}
 
       <div className="flex flex-1 flex-col p-4">
-        {/* Title */}
         <h2 className="line-clamp-2 text-[14px] font-black leading-snug text-deepBlue">{c.title}</h2>
 
-        {/* Metric tiles — 4-col grid */}
-        <div className="mt-3 grid grid-cols-4 gap-1.5">
+        {/* Metric tiles */}
+        <div className="mt-3 grid grid-cols-5 gap-1.5">
           {metrics.map(({ label, value, color }) => (
             <div key={label} className="rounded-xl bg-slate-50 px-1 py-2 text-center">
               <p className={`font-mono text-[16px] font-black tabular-nums ${color}`}>
@@ -271,7 +296,7 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
           ))}
         </div>
 
-        {/* Action buttons — icon + text, flex-wrap */}
+        {/* Action buttons */}
         <div className="mt-auto flex flex-wrap gap-1.5 pt-4">
           {actions.map(({ label, icon: Icon, href, cls }) => (
             <Link
@@ -288,3 +313,4 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
     </motion.article>
   )
 }
+

@@ -78,6 +78,13 @@ function enrollmentFromListedCourse(c: StudentListedCourse): Enrollment {
     placement_status: c.placement_status ?? null,
     placement_score: c.placement_score ?? null,
     placement_total: c.placement_total ?? null,
+    placement_percentage: c.placement_percentage ?? null,
+    placement_estimated_level: c.placement_estimated_level ?? null,
+    oral_booking_status: c.oral_booking_status ?? null,
+    oral_booking_starts_at: c.oral_booking_starts_at ?? null,
+    oral_booking_ends_at: c.oral_booking_ends_at ?? null,
+    oral_final_level: c.oral_final_level ?? null,
+    oral_score: c.oral_score ?? null,
     can_start_learning: c.can_start_learning ?? null,
   }
 }
@@ -121,6 +128,13 @@ export function mergeStudentEnrollments(
     const mergedCanStart = c.can_start_learning ?? prev.can_start_learning ?? null
     const mergedScore = c.placement_score ?? prev.placement_score ?? null
     const mergedTotal = c.placement_total ?? prev.placement_total ?? null
+    const mergedPct = c.placement_percentage ?? prev.placement_percentage ?? null
+    const mergedEstLevel = c.placement_estimated_level ?? prev.placement_estimated_level ?? null
+    const mergedOralStatus = c.oral_booking_status ?? prev.oral_booking_status ?? null
+    const mergedOralStartsAt = c.oral_booking_starts_at ?? prev.oral_booking_starts_at ?? null
+    const mergedOralEndsAt = c.oral_booking_ends_at ?? prev.oral_booking_ends_at ?? null
+    const mergedOralFinalLevel = c.oral_final_level ?? prev.oral_final_level ?? null
+    const mergedOralScore = c.oral_score ?? prev.oral_score ?? null
 
     byCourseId.set(c.id, {
       ...prev,
@@ -145,6 +159,13 @@ export function mergeStudentEnrollments(
       placement_status: mergedPlacementStatus,
       placement_score: mergedScore,
       placement_total: mergedTotal,
+      placement_percentage: mergedPct,
+      placement_estimated_level: mergedEstLevel,
+      oral_booking_status: mergedOralStatus,
+      oral_booking_starts_at: mergedOralStartsAt,
+      oral_booking_ends_at: mergedOralEndsAt,
+      oral_final_level: mergedOralFinalLevel,
+      oral_score: mergedOralScore,
       can_start_learning: mergedCanStart,
     })
   })

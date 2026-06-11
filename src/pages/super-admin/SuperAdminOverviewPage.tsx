@@ -395,7 +395,11 @@ function HealthBar({ score }: { score: number }) {
 ══════════════════════════════════════════════════════════════════ */
 
 export default function SuperAdminOverviewPage() {
-  const [loading, setLoading] = useState(true)
+  // Split loading into phases: KPIs first, secondary data after
+  const [kpiLoading, setKpiLoading] = useState(true)
+  const [detailLoading, setDetailLoading] = useState(true)
+  const loading = kpiLoading // alias for backward compat in chart/activity sections
+
   const [users, setUsers] = useState<AdminManagedUser[]>([])
   const [volunteers, setVolunteers] = useState<OpsVolunteer[]>([])
   const [registrations, setRegistrations] = useState<AdminRegistrationListRow[]>([])
@@ -406,19 +410,27 @@ export default function SuperAdminOverviewPage() {
   const [refreshTs, setRefreshTs] = useState(new Date())
 
   const load = useCallback(async () => {
-    setLoading(true)
-    const [uR, vR, rR, cR, iR, dR] = await Promise.allSettled([
+    setKpiLoading(true)
+    setDetailLoading(true)
+
+    // Phase 1 — critical KPIs: users, registrations, courses (show fast)
+    const [uR, rR, cR] = await Promise.allSettled([
       fetchAdminUsers(),
-      fetchVolunteers(),
       fetchAdminRegistrations(),
       fetchCoursesStrict(),
+    ])
+    if (uR.status === 'fulfilled') setUsers(uR.value)
+    if (rR.status === 'fulfilled') setRegistrations(rR.value)
+    if (cR.status === 'fulfilled' && cR.value.ok) setCourses(cR.value.rows)
+    setKpiLoading(false)
+
+    // Phase 2 — secondary: volunteers, instructors, departments, finance
+    const [vR, iR, dR] = await Promise.allSettled([
+      fetchVolunteers(),
       fetchAdminInstructorsDirectory(),
       fetchWorkspaceDepartmentsForSuperAdmin(),
     ])
-    if (uR.status === 'fulfilled') setUsers(uR.value)
     if (vR.status === 'fulfilled') setVolunteers(vR.value)
-    if (rR.status === 'fulfilled') setRegistrations(rR.value)
-    if (cR.status === 'fulfilled' && cR.value.ok) setCourses(cR.value.rows)
     if (iR.status === 'fulfilled') setInstructors(iR.value.rows)
     if (dR.status === 'fulfilled') setDepartments(dR.value)
     try {
@@ -428,7 +440,7 @@ export default function SuperAdminOverviewPage() {
       /* مالية اختيارية */
     }
     setRefreshTs(new Date())
-    setLoading(false)
+    setDetailLoading(false)
   }, [])
 
   useEffect(() => {
@@ -656,17 +668,17 @@ export default function SuperAdminOverviewPage() {
             disabled={loading}
             className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${kpiLoading || detailLoading ? 'animate-spin' : ''}`} />
             تحديث
           </button>
         </div>
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          شريط المؤشرات الرئيسية
+          شريط المؤشرات الرئيسية (يظهر فور اكتمال بيانات الطلاب والتسجيلات)
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <Card noPad className="overflow-hidden">
-        {loading ? (
+        {kpiLoading ? (
           <div className="flex divide-x divide-slate-100 rtl:divide-x-reverse">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="flex-1 p-5">
@@ -680,7 +692,7 @@ export default function SuperAdminOverviewPage() {
           <div className="flex divide-x divide-slate-100 rtl:divide-x-reverse">
             {kpiItems.map((item) => (
               <div key={item.labelAr} className="flex-1 min-w-0">
-                <KpiCell item={item} loading={loading} />
+                <KpiCell item={item} loading={false} />
               </div>
             ))}
           </div>
@@ -726,7 +738,7 @@ export default function SuperAdminOverviewPage() {
       </Card>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          التحليلات — مخططات كبيرة
+          التحليلات — مخططات كبيرة (تظهر فور اكتمال جميع البيانات)
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* مخطط نمو الطلاب */}
@@ -736,7 +748,7 @@ export default function SuperAdminOverviewPage() {
               <h3 className="text-[13px] font-bold text-[#22334A]">نمو الطلاب</h3>
               <p className="text-[11px] font-medium text-slate-400">آخر 6 أشهر</p>
             </div>
-            {!loading && students.length > 0 && (
+            {!kpiLoading && students.length > 0 && (
               <div className="text-end">
                 <p className="font-mono text-[22px] font-bold leading-none text-emerald-600">
                   {formatNumberEn(students.length)}
@@ -745,7 +757,7 @@ export default function SuperAdminOverviewPage() {
               </div>
             )}
           </div>
-          {loading ? (
+          {kpiLoading ? (
             <Sk className="h-[260px]" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
@@ -801,7 +813,7 @@ export default function SuperAdminOverviewPage() {
               </div>
             )}
           </div>
-          {loading ? (
+          {kpiLoading ? (
             <Sk className="h-[260px]" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
@@ -908,7 +920,7 @@ export default function SuperAdminOverviewPage() {
               إدارة
             </Link>
           </div>
-          {loading ? (
+          {detailLoading ? (
             <div className="space-y-2 p-5">
               {Array.from({ length: 5 }).map((_, i) => <Sk key={i} className="h-10" />)}
             </div>
@@ -1016,7 +1028,7 @@ export default function SuperAdminOverviewPage() {
             sub="مرتبون حسب الدورات"
             action={{ label: 'الكل', href: '/dashboard/super-admin/crud/instructors' }}
           />
-          {loading ? (
+          {detailLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => <Sk key={i} className="h-11" />)}
             </div>
@@ -1078,7 +1090,7 @@ export default function SuperAdminOverviewPage() {
             sub="توزيع الحالات"
             action={{ label: 'إدارة', href: '/dashboard/super-admin/volunteer-requests' }}
           />
-          {loading ? (
+          {detailLoading ? (
             <div className="space-y-3">
               <Sk className="h-16" />
               <Sk className="h-28" />
@@ -1154,7 +1166,7 @@ export default function SuperAdminOverviewPage() {
         {/* سجل النشاط الأخير */}
         <Card accent="#2691C2">
           <SectionHead title="سجل النشاط الأخير" sub="آخر الأحداث" />
-          {loading ? (
+          {detailLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 6 }).map((_, i) => <Sk key={i} className="h-10" />)}
             </div>

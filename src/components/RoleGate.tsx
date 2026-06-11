@@ -32,15 +32,16 @@ function RoleGate({ allow, redirectTo = '/403' }: Props) {
     )
   }
 
-  const role = user?.role
-  if (normalizeRole(role) === 'super_admin') {
+  const normalizedRole = normalizeRole(user?.role ?? null)
+
+  if (normalizedRole === 'super_admin') {
     return <Outlet />
   }
 
-  const normalizedRole = role != null && String(role).trim() !== '' ? String(role).trim() : ''
   const allowed =
-    normalizedRole !== '' &&
-    allow.some((a) => String(a).trim().toLowerCase() === normalizedRole.toLowerCase())
+    normalizedRole != null &&
+    allow.some((a) => normalizeRole(String(a)) === normalizedRole)
+
   if (!allowed) {
     return <Navigate to={redirectTo} replace state={{ from: location.pathname }} />
   }

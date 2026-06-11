@@ -25,12 +25,16 @@ export type InstructorStudentRow = {
   written_level: string | null
   oral_booking_at: string | null
   final_level: string | null
+  oral_score: number | null
+  instructor_notes: string | null
   enrolled_at: string | null
+  avatar_url: string | null
+  attempt_id: number | null
 }
 
 function normalizeInstructorStudentRow(r: unknown): InstructorStudentRow {
   if (!r || typeof r !== 'object') {
-    return { id: 0, name: '', email: '', course_id: null, course_title: null, enrollment_status: null, placement_status: null, written_score: null, total_questions: null, written_level: null, oral_booking_at: null, final_level: null, enrolled_at: null }
+    return { id: 0, name: '', email: '', course_id: null, course_title: null, enrollment_status: null, placement_status: null, written_score: null, total_questions: null, written_level: null, oral_booking_at: null, final_level: null, oral_score: null, instructor_notes: null, enrolled_at: null, avatar_url: null, attempt_id: null }
   }
   const o = r as Record<string, unknown>
   const att =
@@ -78,8 +82,15 @@ function normalizeInstructorStudentRow(r: unknown): InstructorStudentRow {
     oral_booking_at:   oralBookingAt,
     final_level:       o.final_level  != null ? String(o.final_level)  :
                        att?.final_level != null ? String(att.final_level) : null,
+    oral_score:        o.oral_score   != null ? Number(o.oral_score)   :
+                       att?.oral_score != null ? Number(att.oral_score) : null,
+    instructor_notes:  o.instructor_notes != null ? String(o.instructor_notes) : null,
     enrolled_at:       o.enrolled_at  != null ? String(o.enrolled_at)  :
                        o.created_at   != null ? String(o.created_at)   : null,
+    avatar_url:        o.avatar_url  != null ? String(o.avatar_url)  :
+                       o.profile_photo_url != null ? String(o.profile_photo_url) : null,
+    attempt_id:        o.attempt_id  != null ? Number(o.attempt_id)  :
+                       att?.id       != null ? Number(att.id)        : null,
   }
 }
 
@@ -126,8 +137,12 @@ export async function putInstructorAttendance(
 }
 
 export async function fetchInstructorAttendanceSession(sessionId: number): Promise<AttendanceRow[]> {
-  const res = await apiClient.get<unknown>(`/instructor/attendance/${sessionId}`)
-  return asList<AttendanceRow>(res.data)
+  try {
+    const res = await apiClient.get<unknown>(`/instructor/attendance/${sessionId}`, { skipErrorToast: true } as Record<string, unknown>)
+    return asList<AttendanceRow>(res.data)
+  } catch {
+    return []
+  }
 }
 
 export async function fetchInstructorAssignmentsQueue(): Promise<InstructorSubmission[]> {
@@ -136,7 +151,7 @@ export async function fetchInstructorAssignmentsQueue(): Promise<InstructorSubmi
 }
 
 export async function fetchSubmissionDetail(submissionId: number): Promise<SubmissionDetail> {
-  const res = await apiClient.get<unknown>(`/instructor/submissions/${submissionId}`)
+  const res = await apiClient.get<unknown>(`/instructor/submissions/${submissionId}`, { skipErrorToast: true } as Record<string, unknown>)
   return unwrapLms<SubmissionDetail>(res.data)
 }
 

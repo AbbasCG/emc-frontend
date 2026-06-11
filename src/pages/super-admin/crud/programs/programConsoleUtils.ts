@@ -61,6 +61,21 @@ export function isUpcomingCourse(c: Course, from = Date.now(), horizonDays = 365
   return t >= from && t <= from + horizonDays * 86_400_000
 }
 
+export function isArchivedCourse(c: Course): boolean {
+  const s = String(c.status ?? '').toLowerCase()
+  return s === 'archived'
+}
+
+export function isDraftCourse(c: Course): boolean {
+  if (isPublishedCourse(c)) return false
+  if (isArchivedCourse(c)) return false
+  return true
+}
+
+export function isScheduledCourse(c: Course): boolean {
+  return !missingCourseDate(c)
+}
+
 export function countNewRegsForCourse(rows: AdminRegistrationRow[], courseId: number, days = 7): number {
   const cutoff = Date.now() - days * 86_400_000
   let n = 0

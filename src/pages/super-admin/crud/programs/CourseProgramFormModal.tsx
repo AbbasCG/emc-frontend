@@ -172,7 +172,7 @@ function ModernDatePicker({ label, value, onChange, error }: DatePickerProps) {
               <ChevronRight className="h-4 w-4" />
             </button>
             <span className="text-sm font-black text-[#22334A]">
-              {cursor.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}
+              {(['يناير','فبراير','مارس','إبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][cursor.getMonth()])} {cursor.getFullYear()}
             </span>
             <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#22334A]">
               <ChevronLeft className="h-4 w-4" />
@@ -387,6 +387,7 @@ export function CourseProgramFormModal({
   const [outline, setOutline] = useState('')
   const [keywords, setKeywords] = useState('')
   const [adminNotes, setAdminNotes] = useState('')
+  const [requiresPlacementTest, setRequiresPlacementTest] = useState(false)
 
   const resetFromInitial = useCallback(() => {
     if (!initial) {
@@ -414,10 +415,10 @@ export function CourseProgramFormModal({
       setMeetingLink('')
       setDurationText('')
       setTrainingHours('')
-      setLanguage('')
+      setLanguage('عربي')
       setLevel('')
       setTargetAudience('')
-      setCertificate('')
+      setCertificate('شهادة حضور')
       setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
       setLearnText('')
       setPrerequisites('')
@@ -425,6 +426,7 @@ export function CourseProgramFormModal({
       setOutline('')
       setKeywords('')
       setAdminNotes('')
+      setRequiresPlacementTest(false)
       setInstructorQuery('')
       setImageFile(null)
       setImagePreviewUrl((u) => {
@@ -480,6 +482,7 @@ export function CourseProgramFormModal({
     )
     setKeywords(normalizeListText((initial as { keywords?: unknown; tags?: unknown }).keywords ?? (initial as { tags?: unknown }).tags))
     setAdminNotes((initial as { notes?: string | null }).notes ?? initial.admin_notes ?? '')
+    setRequiresPlacementTest(Boolean((initial as Record<string, unknown>).requires_placement_test))
     setLearnText(
       normalizeListText(initial.features),
     )
@@ -576,11 +579,13 @@ export function CourseProgramFormModal({
       outline,
       keywords,
       adminNotes,
+      requiresPlacementTest,
     }
     try {
       localStorage.setItem(k, JSON.stringify(pack))
+      const _t = new Date()
       setLocalDraftSavedAt(
-        new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        `${String(_t.getHours()).padStart(2, '0')}:${String(_t.getMinutes()).padStart(2, '0')}:${String(_t.getSeconds()).padStart(2, '0')}`,
       )
     } catch {
       /* quota */
@@ -624,6 +629,7 @@ export function CourseProgramFormModal({
     outline,
     keywords,
     adminNotes,
+    requiresPlacementTest,
   ])
 
   useEffect(() => {
@@ -675,6 +681,7 @@ export function CourseProgramFormModal({
       if (str(p.outline)) setOutline(str(p.outline))
       if (str(p.keywords)) setKeywords(str(p.keywords))
       if (str(p.adminNotes)) setAdminNotes(str(p.adminNotes))
+      if (bool(p.requiresPlacementTest) !== undefined) setRequiresPlacementTest(bool(p.requiresPlacementTest)!)
       toast.success('تمت استعادة المسودة')
     } catch {
       toast.error('تعذّر قراءة المسودة')
@@ -764,6 +771,16 @@ export function CourseProgramFormModal({
     },
     [clearField],
   )
+
+  const isWorkshop = kind === 'workshop'
+
+  useEffect(() => {
+    if (kind === 'workshop') {
+      setSessionFormat('ورشة / لقاء واحد')
+    } else if (sessionFormat === 'ورشة / لقاء واحد') {
+      setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
+    }
+  }, [kind]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const showLocationField = locationType === 'offline' || locationType === 'hybrid'
 
@@ -884,6 +901,7 @@ export function CourseProgramFormModal({
       certificate: certificate.trim() || undefined,
       study_days: outline.trim() || undefined,
       notes: adminNotes.trim() || undefined,
+      requires_placement_test: requiresPlacementTest,
       features: featuresLines,
       learning_outcomes: outcomesLines,
       requirements: requirementsLines,
@@ -910,6 +928,7 @@ export function CourseProgramFormModal({
       setSavedCourse(course)
       setLastSavedAsPublished(String(payload.status).toLowerCase() === 'published')
       setSuccessOpen(true)
+      onSaved()
     } catch (e) {
       setFieldErrors(withArabicValidationMessages(getLaravelFieldErrors(e)))
       toast.error(getApiErrorMessage(e))
@@ -936,6 +955,7 @@ export function CourseProgramFormModal({
       { label: 'حالة النشر', value: STATUS_OPTIONS.find((s) => s.v === status)?.label ?? status },
       { label: 'التسجيل', value: registrationOpen ? 'مفتوح' : 'مغلق' },
       { label: 'جدولة', value: `${startDate || '—'} · ${endDate || '—'}` },
+      { label: 'اختبار تحديد المستوى', value: requiresPlacementTest ? 'نعم' : 'لا' },
     ],
     [
       title,
@@ -954,6 +974,7 @@ export function CourseProgramFormModal({
       registrationOpen,
       startDate,
       endDate,
+      requiresPlacementTest,
     ],
   )
 
@@ -1479,45 +1500,99 @@ export function CourseProgramFormModal({
       return (
         <FormSectionCard title="التفاصيل التعليمية" eyebrow="الخطوة 3" icon={GraduationCap}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-[11px] font-black text-[#22334A]">
-              المدة (نص للزائر)
-              <input value={durationText} onChange={(e) => setDurationText(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مثال: 4 أسابيع" />
-            </label>
-            <label className="block text-[11px] font-black text-[#22334A]">
-             عدد الساعات التدريبية
-              <input
-                value={trainingHours}
-                onChange={(e) => setTrainingHours(e.target.value)}
-                inputMode="decimal"
-                className={EMC_WIZARD_INPUT_BASE}
-              />
-            </label>
+            {/* Duration & training hours — hidden entirely for workshops */}
+            {!isWorkshop && (
+              <label className="block text-[11px] font-black text-[#22334A]">
+                المدة (نص للزائر)
+                <input value={durationText} onChange={(e) => setDurationText(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مثال: 4 أسابيع" />
+              </label>
+            )}
+
+            {!isWorkshop && (
+              <label className="block text-[11px] font-black text-[#22334A]">
+                عدد الساعات التدريبية
+                <input value={trainingHours} onChange={(e) => setTrainingHours(e.target.value)} inputMode="decimal" className={EMC_WIZARD_INPUT_BASE} />
+              </label>
+            )}
+
+            {/* Language — dropdown */}
             <label className="block text-[11px] font-black text-[#22334A]">
               لغة الدورة
-              <input value={language} onChange={(e) => setLanguage(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="العربية" />
+              <select value={language} onChange={(e) => setLanguage(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
+                <option value="">— اختياري —</option>
+                <option value="عربي">عربي</option>
+                <option value="إنجليزي">إنجليزي</option>
+              </select>
             </label>
+
+            {/* Level — dropdown, hidden for workshops */}
+            {!isWorkshop && (
+              <label className="block text-[11px] font-black text-[#22334A]">
+                المستوى
+                <select value={level} onChange={(e) => setLevel(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
+                  <option value="">— اختياري —</option>
+                  <option value="مبتدئ">مبتدئ</option>
+                  <option value="متوسط">متوسط</option>
+                  <option value="متقدم">متقدم</option>
+                </select>
+              </label>
+            )}
+
+            {/* Target audience */}
             <label className="block text-[11px] font-black text-[#22334A]">
-              المستوى
-              <input value={level} onChange={(e) => setLevel(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مبتدئ / متوسط…" />
-            </label>
-            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
               الفئة المستهدفة
               <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
             </label>
-            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+
+            {/* Certificate — dropdown */}
+            <label className="block text-[11px] font-black text-[#22334A]">
               الشهادة المتاحة
-              <input value={certificate} onChange={(e) => setCertificate(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
+              <select value={certificate} onChange={(e) => setCertificate(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
+                <option value="">— اختياري —</option>
+                <option value="لا توجد شهادة">لا توجد شهادة</option>
+                <option value="شهادة حضور">شهادة حضور</option>
+                <option value="شهادة إتمام">شهادة إتمام</option>
+                <option value="شهادة مشاركة">شهادة مشاركة</option>
+              </select>
             </label>
+
+            {/* Placement test toggle */}
+            <div className="sm:col-span-2">
+              <p className="mb-2 text-[11px] font-black text-[#22334A]">هل يتطلب اختبار تحديد مستوى؟</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRequiresPlacementTest(false)}
+                  className={`rounded-xl border py-2.5 text-[12px] font-black transition ${
+                    !requiresPlacementTest
+                      ? 'border-[#22334A] bg-[#22334A] text-white shadow-md'
+                      : 'border-slate-200 bg-white text-[#22334A]/50 hover:bg-slate-50'
+                  }`}
+                >
+                  لا
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRequiresPlacementTest(true)}
+                  className={`rounded-xl border py-2.5 text-[12px] font-black transition ${
+                    requiresPlacementTest
+                      ? 'border-[#2691C2] bg-[#2691C2] text-white shadow-md'
+                      : 'border-slate-200 bg-white text-[#22334A]/50 hover:bg-slate-50'
+                  }`}
+                >
+                  نعم
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* What you'll learn — always shown */}
           <label className="block text-[11px] font-black text-[#22334A]">
             ماذا ستتعلم؟ (سطر لكل نقطة)
             <textarea
               value={learnText}
-              onChange={(e) => {
-                setLearnText(e.target.value)
-                clearField('features')
-              }}
-              rows={5}
+              onChange={(e) => { setLearnText(e.target.value); clearField('features') }}
+              rows={4}
               className={EMC_WIZARD_INPUT_BASE}
               placeholder={'سطر 1\nسطر 2'}
             />
@@ -1525,59 +1600,54 @@ export function CourseProgramFormModal({
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'features')}</span>
             : null}
           </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
-            المتطلبات المسبقة
-            <textarea
-              value={prerequisites}
-              onChange={(e) => {
-                setPrerequisites(e.target.value)
-                clearField('requirements')
-              }}
-              rows={3}
-              className={EMC_WIZARD_INPUT_BASE}
-            />
-            {fieldErrorFor(fieldErrors, 'requirements') ?
-              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'requirements')}</span>
-            : null}
-          </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
-            المخرجات التعليمية
-            <textarea
-              value={learningOutcomes}
-              onChange={(e) => {
-                setLearningOutcomes(e.target.value)
-                clearField('learning_outcomes')
-              }}
-              rows={3}
-              className={EMC_WIZARD_INPUT_BASE}
-            />
-            {fieldErrorFor(fieldErrors, 'learning_outcomes') ?
-              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'learning_outcomes')}</span>
-            : null}
-          </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
-            محاور الدورة
-            <textarea
-              value={outline}
-              onChange={(e) => {
-                setOutline(e.target.value)
-                clearField('curriculum_topics')
-              }}
-              rows={3}
-              className={EMC_WIZARD_INPUT_BASE}
-            />
-            {fieldErrorFor(fieldErrors, 'curriculum_topics') ?
-              <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'curriculum_topics')}</span>
-            : null}
-          </label>
+
+          {/* Course-only fields: hide for workshops */}
+          {!isWorkshop && (
+            <>
+              <label className="block text-[11px] font-black text-[#22334A]">
+                المتطلبات المسبقة
+                <textarea
+                  value={prerequisites}
+                  onChange={(e) => { setPrerequisites(e.target.value); clearField('requirements') }}
+                  rows={3}
+                  className={EMC_WIZARD_INPUT_BASE}
+                />
+                {fieldErrorFor(fieldErrors, 'requirements') ?
+                  <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'requirements')}</span>
+                : null}
+              </label>
+              <label className="block text-[11px] font-black text-[#22334A]">
+                المخرجات التعليمية
+                <textarea
+                  value={learningOutcomes}
+                  onChange={(e) => { setLearningOutcomes(e.target.value); clearField('learning_outcomes') }}
+                  rows={3}
+                  className={EMC_WIZARD_INPUT_BASE}
+                />
+                {fieldErrorFor(fieldErrors, 'learning_outcomes') ?
+                  <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'learning_outcomes')}</span>
+                : null}
+              </label>
+              <label className="block text-[11px] font-black text-[#22334A]">
+                محاور الدورة
+                <textarea
+                  value={outline}
+                  onChange={(e) => { setOutline(e.target.value); clearField('curriculum_topics') }}
+                  rows={3}
+                  className={EMC_WIZARD_INPUT_BASE}
+                />
+                {fieldErrorFor(fieldErrors, 'curriculum_topics') ?
+                  <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'curriculum_topics')}</span>
+                : null}
+              </label>
+            </>
+          )}
+
           <label className="block text-[11px] font-black text-[#22334A]">
             الكلمات المفتاحية (مفصولة بفواصل)
             <input
               value={keywords}
-              onChange={(e) => {
-                setKeywords(e.target.value)
-                clearField('keywords')
-              }}
+              onChange={(e) => { setKeywords(e.target.value); clearField('keywords') }}
               className={EMC_WIZARD_INPUT_BASE}
               placeholder="كلمات، مفتاحية"
             />
@@ -1693,6 +1763,8 @@ export function CourseProgramFormModal({
     adminNotes,
     editing,
     showLocationField,
+    isWorkshop,
+    requiresPlacementTest,
     clearField,
     pickImageFile,
     fieldErrors,
@@ -1714,8 +1786,7 @@ export function CourseProgramFormModal({
         open={open && !successOpen}
         onClose={onClose}
         title={editing ? 'تعديل برنامج / دورة' : 'إنشاء برنامج / دورة'}
-        subtitle="إدارة كاملة للحقول الظاهرة في صفحة الدورة العامة — دون تعارض مع واجهة البرنامج."
-        eyebrow="Programs · LMS"
+        eyebrow={`Programs · LMS${isWorkshop ? ' · ورشة' : ''}`}
         stepsMeta={STEP_META}
         currentStep={currentStep}
         onStepSelect={(id) => {

@@ -8,9 +8,9 @@ import { SessionCard } from '@/components/lms'
 import { InstructorEmptyState, InstructorHero } from '@/components/instructor'
 
 export default function InstructorSessionsPage() {
-  const [sessions, setSessions] = useState<LmsSession[]>([])
-  const [loading, setLoading] = useState(true)
-  const [apiMissing, setApiMissing] = useState(false)
+  const [sessions,    setSessions]   = useState<LmsSession[]>([])
+  const [loading,     setLoading]    = useState(true)
+  const [apiMissing,  setApiMissing] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -18,7 +18,10 @@ export default function InstructorSessionsPage() {
       setSessions(await fetchInstructorSessions())
       setApiMissing(false)
     } catch (err) {
-      if (!axios.isCancel(err)) setApiMissing(true)
+      if (!axios.isCancel(err)) {
+        setApiMissing(true)
+        if (import.meta.env.DEV) console.error('[sessions] load failed:', err)
+      }
     } finally {
       setLoading(false)
     }
@@ -27,7 +30,7 @@ export default function InstructorSessionsPage() {
   useEffect(() => { void load() }, [])
 
   const upcoming = sessions.filter((s) => s.status !== 'completed')
-  const past = sessions.filter((s) => s.status === 'completed')
+  const past     = sessions.filter((s) => s.status === 'completed')
 
   return (
     <div className="space-y-6 pb-16" dir="rtl">
@@ -35,12 +38,14 @@ export default function InstructorSessionsPage() {
       <InstructorHero
         title="الجلسات"
         subtitle="جلساتك المجدولة والمنتهية في دوراتك"
-        pills={loading ? [] : [
-          { label: 'قادمة', value: upcoming.length },
-          { label: 'منتهية', value: past.length },
-        ]}
+        backTo="/dashboard/instructor/courses"
+        backLabel="الدورات"
         onRefresh={load}
         refreshing={loading}
+        pills={loading ? [] : [
+          { label: 'قادمة',  value: upcoming.length },
+          { label: 'منتهية', value: past.length     },
+        ]}
       />
 
       {apiMissing && import.meta.env.DEV && (
@@ -60,7 +65,7 @@ export default function InstructorSessionsPage() {
 
           <section>
             <div className="mb-3 flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-customBlue" />
+              <Clock className="h-3.5 w-3.5 text-[#2691C2]" />
               <h2 className="text-[12px] font-black uppercase tracking-widest text-deepBlue/45">جلسات قادمة</h2>
             </div>
             {upcoming.length === 0 ? (

@@ -301,7 +301,6 @@ export default function InstructorAvailabilityPage() {
 
   const allDates = useMemo(() => [...grouped.keys()].sort(), [grouped])
   const upcoming = useMemo(() => allDates.filter((d) => d >= TODAY), [allDates])
-  const past     = useMemo(() => allDates.filter((d) => d < TODAY),  [allDates])
 
   const { startISO: weekStart, endISO: weekEnd } = getWeekBounds()
   const thisWeekCount  = slots.filter((s) => { const d = s.starts_at.slice(0, 10); return d >= weekStart && d <= weekEnd }).length

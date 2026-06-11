@@ -41,6 +41,7 @@ import {
   Users,
   Wallet,
   Webhook as WebhookIcon,
+  Presentation,
 } from 'lucide-react'
 import { normalizeRole } from '@/utils/dashboardAccess'
 
@@ -130,6 +131,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'طلبات التطوع', href: '/dashboard/admin/volunteers', icon: HeartHandshake },
         { label: 'الشركاء', href: '/dashboard/admin/partners', icon: Briefcase },
         { label: 'طلبات الشراكة', href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
+        { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
         { label: 'التسويق', href: '/dashboard/admin/marketing', icon: Megaphone },
         { label: 'تذاكر الدعم', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
       ],
@@ -235,6 +237,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'التسجيلات', href: '/dashboard/super-admin/crud/registrations', icon: ClipboardList },
         { label: 'الشراكات', href: '/dashboard/super-admin/crud/partners', icon: HeartHandshake },
         { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
+        { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
       ],
     },
     {
@@ -292,6 +295,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
       },
@@ -307,6 +311,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         items: [
           { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: ClipboardList },
           { label: 'المعاملات', href: '/dashboard/finance/transactions', icon: BarChart3 },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
       },
@@ -319,6 +324,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'مراجعة الجودة', href: '/dashboard/quality', icon: ClipboardCheck },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
       },
@@ -357,6 +363,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'التسويق', href: '/dashboard/marketing', icon: Megaphone },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
       },
@@ -395,6 +402,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         title: 'التعلّم والبرامج',
         items: [
           { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
       },

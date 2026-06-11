@@ -31,6 +31,94 @@ export type PlacementStatus =
   | 'oral_completed'
   | 'completed'
 
+/**
+ * Authoritative per-step progress derived from the API-returned status.
+ * All placement UI must read from this object — never re-derive from
+ * local fields (score, booking date, etc.).
+ */
+export type PlacementProgress = {
+  status: PlacementStatus
+  /** Written test has been submitted */
+  written_done: boolean
+  /** Oral interview slot is booked */
+  oral_booked: boolean
+  /** Instructor completed the oral assessment */
+  oral_done: boolean
+  /** Final level has been approved (status === 'completed') */
+  level_approved: boolean
+  /** Student may start the course */
+  can_start: boolean
+}
+
+const WRITTEN_STATUSES: PlacementStatus[] = ['written_submitted', 'oral_booked', 'oral_completed', 'completed']
+const ORAL_BOOKED_STATUSES: PlacementStatus[] = ['oral_booked', 'oral_completed', 'completed']
+const ORAL_DONE_STATUSES: PlacementStatus[] = ['oral_completed', 'completed']
+
+/**
+ * Canonical student placement states — exhaustive, ordered by progression.
+ * Use deriveStudentPlacementState() to map any enrollment or status to one of these.
+ */
+export type StudentPlacementState =
+  | 'NOT_STARTED'
+  | 'WRITTEN_IN_PROGRESS'
+  | 'WRITTEN_COMPLETED'
+  | 'ORAL_BOOKED'
+  | 'ORAL_COMPLETED_PENDING_APPROVAL'
+  | 'LEVEL_APPROVED'
+  | 'COURSE_ACTIVE'
+  | 'COURSE_COMPLETED'
+
+/**
+ * Derives the canonical StudentPlacementState from placement fields.
+ *
+ * @param requiresPlacement  - Whether the course requires a placement test
+ * @param status             - Canonical placement status string
+ * @param canStartLearning   - Backend flag indicating level is approved
+ * @param courseStatus       - Enrollment status ('active'|'completed'|'pending')
+ * @param progressPct        - Course progress percentage (0–100)
+ */
+export function deriveStudentPlacementState(
+  requiresPlacement: boolean,
+  status: PlacementStatus | string | null | undefined,
+  canStartLearning: boolean | null | undefined,
+  courseStatus?: string | null,
+  progressPct?: number,
+): StudentPlacementState {
+  if (courseStatus === 'completed') return 'COURSE_COMPLETED'
+
+  if (!requiresPlacement) {
+    return progressPct && progressPct > 0 ? 'COURSE_ACTIVE' : 'LEVEL_APPROVED'
+  }
+
+  const p = progressFromStatus(status, !!(canStartLearning))
+
+  if (p.can_start) {
+    return progressPct && progressPct > 0 ? 'COURSE_ACTIVE' : 'LEVEL_APPROVED'
+  }
+  if (p.oral_done)    return 'ORAL_COMPLETED_PENDING_APPROVAL'
+  if (p.oral_booked)  return 'ORAL_BOOKED'
+  if (p.written_done) return 'WRITTEN_COMPLETED'
+  if (p.status === 'in_progress') return 'WRITTEN_IN_PROGRESS'
+  return 'NOT_STARTED'
+}
+
+/** Single source of truth — call once, read everywhere. */
+export function progressFromStatus(
+  status: PlacementStatus | string | null | undefined,
+  canStartOverride = false,
+): PlacementProgress {
+  const s = (status ?? 'not_started') as PlacementStatus
+  const level_approved = s === 'completed'
+  return {
+    status: s,
+    written_done:  WRITTEN_STATUSES.includes(s),
+    oral_booked:   ORAL_BOOKED_STATUSES.includes(s),
+    oral_done:     ORAL_DONE_STATUSES.includes(s),
+    level_approved,
+    can_start:     level_approved || canStartOverride,
+  }
+}
+
 export type PlacementAttempt = {
   id: number
   course_id: number
@@ -109,6 +197,7 @@ export type OralSlot = {
 
 export type PlacementStudentRow = {
   attempt_id: number
+  booking_id: number
   student_id: number
   student_name: string
   email: string
@@ -122,6 +211,7 @@ export type PlacementStudentRow = {
   notes: string | null
   submitted_at: string | null
   percentage: number | null
+  avatar_url: string | null
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -216,6 +306,7 @@ function coalesceStatus(raw: unknown): PlacementStatus {
     pending_interview:  'written_submitted',
     test_completed:     'written_submitted',
     written_completed:  'written_submitted',
+    booked:             'oral_booked',
   }
   if (s in ALIAS) return ALIAS[s]
   const allowed: PlacementStatus[] = [
@@ -418,19 +509,40 @@ export async function fetchPlacementStatus(courseId: string | number): Promise<P
         ? (payload.data as Record<string, unknown>)
         : payload
 
-    // Find the raw attempt object from any known path
+    // Some backends nest all placement fields under a placement_progress key
+    const pp: Record<string, unknown> =
+      payload.placement_progress != null && typeof payload.placement_progress === 'object' && !Array.isArray(payload.placement_progress)
+        ? payload.placement_progress as Record<string, unknown>
+        : inner.placement_progress != null && typeof inner.placement_progress === 'object' && !Array.isArray(inner.placement_progress)
+          ? inner.placement_progress as Record<string, unknown>
+          : {}
+
+    // Find the raw attempt object — check explicit attempt/result keys first
     let rawAttempt: Record<string, unknown> | null = null
     for (const candidate of [
-      payload.attempt,
-      payload.result,
-      inner.attempt,
-      inner.result,
+      payload.attempt, payload.result,
+      inner.attempt,   inner.result,
+      pp.attempt,      pp.result,
     ]) {
       if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
         rawAttempt = candidate as Record<string, unknown>
         break
       }
     }
+
+    // Fallback: written_test holds the written-step result.
+    // Its status "completed" means the step is done = placement "written_submitted".
+    // Remap before normalizing so downstream placement status logic is correct.
+    if (!rawAttempt) {
+      for (const candidate of [payload.written_test, inner.written_test, pp.written_test]) {
+        if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+          const wt = candidate as Record<string, unknown>
+          rawAttempt = wt.status === 'completed' ? { ...wt, status: 'written_submitted' } : wt
+          break
+        }
+      }
+    }
+
     // Fallback: payload itself looks like an attempt (has id + written_score field)
     if (!rawAttempt && payload.id != null && payload.written_score !== undefined) {
       rawAttempt = payload
@@ -443,6 +555,8 @@ export async function fetchPlacementStatus(courseId: string | number): Promise<P
       payload.placement_status ??
       inner.status ??
       inner.placement_status ??
+      pp.status ??
+      pp.placement_status ??
       (typeof res.data === 'string' ? res.data : undefined),
     )
     const attemptStatus = rawAttempt?.status ? coalesceStatus(rawAttempt.status) : null
@@ -458,19 +572,27 @@ export async function fetchPlacementStatus(courseId: string | number): Promise<P
 
     // can_book_oral: explicit backend flag OR derive from status
     const canBookOral = !!(
-      payload.can_book_oral ?? inner.can_book_oral ??
+      payload.can_book_oral ?? inner.can_book_oral ?? pp.can_book_oral ??
       (attempt?.status === 'written_submitted')
     )
 
     // can_take_written_test: explicit backend flag OR derive (false if attempt exists in terminal state)
     const canTakeWrittenTest = !!(
-      payload.can_take_written_test ?? inner.can_take_written_test ??
+      payload.can_take_written_test ?? inner.can_take_written_test ?? pp.can_take_written_test ??
       !(attempt != null && (TERMINAL.includes(attempt.status) || attempt.status === 'in_progress'))
     )
 
     // Extract oral_booking from all known response paths
     let rawOralBooking: Record<string, unknown> | null = null
-    for (const candidate of [payload.oral_booking, inner.oral_booking, rawAttempt?.oral_booking]) {
+    for (const candidate of [
+      payload.oral_booking,
+      payload.oral_assessment,
+      inner.oral_booking,
+      inner.oral_assessment,
+      pp.oral_booking,
+      pp.oral_assessment,
+      rawAttempt?.oral_booking,
+    ]) {
       if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
         rawOralBooking = candidate as Record<string, unknown>
         break
@@ -495,7 +617,7 @@ export async function fetchPlacementStatus(courseId: string | number): Promise<P
 
     // can_start_learning: explicit flag or derive from completed status / can_start_course
     const canStartLearning = !!(
-      payload.can_start_learning ?? inner.can_start_learning ??
+      payload.can_start_learning ?? inner.can_start_learning ?? pp.can_start_learning ??
       rawAttempt?.can_start_course ??
       (attempt?.status === 'completed')
     )
@@ -780,47 +902,74 @@ const INSTRUCTOR_STATUS_MAP: Record<string, string> = {
 }
 
 function normalizeStudentRow(r: Record<string, unknown>): PlacementStudentRow {
-  // Support nested placement_attempt (new backend format) AND flat format
+  // Support nested placement_attempt (legacy) AND flat fields AND placement_progress nesting
   const att: Record<string, unknown> =
     r.placement_attempt != null && typeof r.placement_attempt === 'object' && !Array.isArray(r.placement_attempt)
       ? (r.placement_attempt as Record<string, unknown>)
       : r
 
+  // Some controllers nest score/level under placement_progress.written_test
+  const ppWt: Record<string, unknown> = (() => {
+    const pp = r.placement_progress
+    if (!pp || typeof pp !== 'object' || Array.isArray(pp)) return {}
+    const wt = (pp as Record<string, unknown>).written_test
+    return (wt && typeof wt === 'object' && !Array.isArray(wt)) ? (wt as Record<string, unknown>) : {}
+  })()
+  const ppOa: Record<string, unknown> = (() => {
+    const pp = r.placement_progress
+    if (!pp || typeof pp !== 'object' || Array.isArray(pp)) return {}
+    const oa = (pp as Record<string, unknown>).oral_assessment
+    return (oa && typeof oa === 'object' && !Array.isArray(oa)) ? (oa as Record<string, unknown>) : {}
+  })()
+  const ppStatus: string | null = (() => {
+    const pp = r.placement_progress
+    if (!pp || typeof pp !== 'object' || Array.isArray(pp)) return null
+    const s = (pp as Record<string, unknown>).status
+    return s != null ? String(s) : null
+  })()
+
   const score =
     att.score          != null ? Number(att.score)          :
     att.written_score  != null ? Number(att.written_score)  :
-    r.written_score    != null ? Number(r.written_score)    : null
+    r.written_score    != null ? Number(r.written_score)    :
+    ppWt.score         != null ? Number(ppWt.score)         : null
 
   const total =
-    att.total_questions != null ? Number(att.total_questions) :
-    r.total_questions   != null ? Number(r.total_questions)   : null
+    att.total_questions  != null ? Number(att.total_questions)  :
+    r.total_questions    != null ? Number(r.total_questions)    :
+    ppWt.total_questions != null ? Number(ppWt.total_questions) : null
 
   const pct =
     score != null && total != null && total > 0
       ? Math.round((score / total) * 100)
-      : (att.percentage ?? r.percentage) != null
-        ? Number(att.percentage ?? r.percentage)
+      : (att.percentage ?? r.percentage ?? ppWt.percentage) != null
+        ? Number(att.percentage ?? r.percentage ?? ppWt.percentage)
         : null
 
   const levelStr = String(
     att.estimated_level ?? att.written_level ?? att.level ??
-    r.written_level ?? r.estimated_level ?? '',
+    r.written_level ?? r.estimated_level ??
+    ppWt.estimated_level ?? '',
   ) || null
 
   const submittedAt =
     String(att.submitted_at ?? att.completed_at ?? r.submitted_at ?? r.completed_at ?? '') || null
 
-  // Extract oral booking: may be nested under oral_booking object
+  // Extract oral booking: nested object, then flat field, then placement_progress.oral_assessment
   const oralObj: Record<string, unknown> | null =
     r.oral_booking != null && typeof r.oral_booking === 'object' && !Array.isArray(r.oral_booking)
       ? (r.oral_booking as Record<string, unknown>)
       : null
   const oralBookingAt =
-    oralObj != null
-      ? (oralObj.starts_at != null ? String(oralObj.starts_at) : oralObj.booking_at != null ? String(oralObj.booking_at) : null)
-      : (r.oral_booking_at != null ? String(r.oral_booking_at) : null)
+    oralObj?.starts_at != null     ? String(oralObj.starts_at)     :
+    oralObj?.booking_at != null    ? String(oralObj.booking_at)     :
+    r.oral_booking_at   != null    ? String(r.oral_booking_at)      :
+    ppOa.starts_at      != null    ? String(ppOa.starts_at)         : null
 
-  const rawStatus = String(r.status ?? r.placement_status ?? att.status ?? 'not_started')
+  // Status: prefer explicit placement_status > placement_progress.status > legacy r.status
+  const rawStatus = String(
+    r.placement_status ?? ppStatus ?? r.status ?? att.status ?? 'not_started'
+  )
   const mappedStatus = INSTRUCTOR_STATUS_MAP[rawStatus] ?? rawStatus
 
   if (import.meta.env.DEV) {
@@ -828,7 +977,8 @@ function normalizeStudentRow(r: Record<string, unknown>): PlacementStudentRow {
   }
 
   return {
-    attempt_id:      Number(att.id ?? r.attempt_id ?? 0),
+    attempt_id:      Number(att.id ?? r.attempt_id ?? ppWt.id ?? 0),
+    booking_id:      Number(ppOa.id ?? r.booking_id ?? r.oral_assessment_booking_id ?? 0),
     student_id:      Number(r.student_id ?? 0),
     student_name:    String(r.student_name ?? r.name ?? ''),
     email:           String(r.student_email ?? r.email ?? ''),
@@ -836,12 +986,15 @@ function normalizeStudentRow(r: Record<string, unknown>): PlacementStudentRow {
     total_questions: total,
     written_level:   levelStr,
     oral_booking_at: oralBookingAt,
-    final_level:     r.final_level != null ? String(r.final_level) : null,
-    oral_score:      r.oral_score  != null ? Number(r.oral_score)  : null,
+    final_level:     r.final_level  != null ? String(r.final_level)  :
+                     ppOa.final_level != null ? String(ppOa.final_level) : null,
+    oral_score:      r.oral_score   != null ? Number(r.oral_score)   : null,
     status:          coalesceStatus(mappedStatus),
     notes:           r.notes != null ? String(r.notes) : null,
     submitted_at:    submittedAt,
     percentage:      pct,
+    avatar_url:      r.avatar_url != null ? String(r.avatar_url) :
+                     r.profile_photo_url != null ? String(r.profile_photo_url) : null,
   }
 }
 
@@ -862,12 +1015,11 @@ export async function fetchInstructorPlacementStudents(
 }
 
 export async function completeOralAssessment(
-  courseId: string | number,
-  attemptId: number,
-  data: { final_level: string; oral_score?: number; notes?: string },
+  bookingId: number,
+  data: { final_level: string; oral_score?: number; instructor_notes?: string },
 ): Promise<void> {
-  await apiClient.post<unknown>(
-    `/instructor/courses/${courseId}/placement-students/${attemptId}/complete`,
+  await apiClient.patch<unknown>(
+    `/instructor/oral-assessments/${bookingId}/complete`,
     data,
     silent,
   )
@@ -893,6 +1045,8 @@ export type InstructorOralAssessment = {
   final_level: string | null
   oral_score: number | null
   notes: string | null
+  instructor_notes: string | null
+  avatar_url: string | null
 }
 
 function resolveCourseTitle(r: Record<string, unknown>): string {
@@ -942,10 +1096,13 @@ function normalizeOralAssessment(r: Record<string, unknown>): InstructorOralAsse
     oral_booking_ends_at: oralBooking?.ends_at  != null ? String(oralBooking.ends_at) :
                           r.oral_booking_ends_at != null ? String(r.oral_booking_ends_at) :
                           r.ends_at              != null ? String(r.ends_at)             : null,
-    status:               coalesceStatus(r.status ?? r.placement_status),
-    final_level:          r.final_level != null ? String(r.final_level) : null,
-    oral_score:           r.oral_score  != null ? Number(r.oral_score)  : null,
-    notes:                r.notes       != null ? String(r.notes)       : null,
+    status:           coalesceStatus(r.placement_status ?? r.status),
+    final_level:      r.final_level != null ? String(r.final_level) : null,
+    oral_score:       r.oral_score  != null ? Number(r.oral_score)  : null,
+    notes:            r.notes       != null ? String(r.notes)       : null,
+    instructor_notes: r.instructor_notes != null ? String(r.instructor_notes) : null,
+    avatar_url:       r.avatar_url != null ? String(r.avatar_url) :
+                      r.profile_photo_url != null ? String(r.profile_photo_url) : null,
   }
 }
 
@@ -1039,6 +1196,9 @@ export type InstructorPlacementTestRow = {
   total_questions: number | null
   percentage: number | null
   written_level: string | null
+  oral_score: number | null
+  oral_booking_ends_at: string | null
+  avatar_url: string | null
   status: PlacementStatus
   submitted_at: string | null
   oral_booking_at: string | null
@@ -1047,7 +1207,7 @@ export type InstructorPlacementTestRow = {
 
 function normalizePlacementTestRow(r: unknown): InstructorPlacementTestRow {
   if (!r || typeof r !== 'object') {
-    return { attempt_id: 0, student_id: 0, student_name: '', student_email: '', course_id: 0, course_title: '', written_score: null, total_questions: null, percentage: null, written_level: null, status: 'not_started', submitted_at: null, oral_booking_at: null, final_level: null }
+    return { attempt_id: 0, student_id: 0, student_name: '', student_email: '', course_id: 0, course_title: '', written_score: null, total_questions: null, percentage: null, written_level: null, oral_score: null, oral_booking_ends_at: null, avatar_url: null, status: 'not_started', submitted_at: null, oral_booking_at: null, final_level: null }
   }
   const o  = r as Record<string, unknown>
   const att = o.placement_attempt != null && typeof o.placement_attempt === 'object' && !Array.isArray(o.placement_attempt)
@@ -1074,11 +1234,14 @@ function normalizePlacementTestRow(r: unknown): InstructorPlacementTestRow {
     written_score: score,
     total_questions: total,
     percentage:    pct,
-    written_level: String(att?.written_level ?? att?.estimated_level ?? o.written_level ?? '') || null,
-    status:        coalesceStatus(att?.status ?? o.status ?? o.placement_status),
-    submitted_at:  o.submitted_at != null ? String(o.submitted_at) : att?.submitted_at != null ? String(att.submitted_at) : null,
-    oral_booking_at: oralObj?.starts_at != null ? String(oralObj.starts_at) : o.oral_booking_at != null ? String(o.oral_booking_at) : null,
-    final_level:   o.final_level != null ? String(o.final_level) : att?.final_level != null ? String(att.final_level) : null,
+    written_level:        String(att?.written_level ?? att?.estimated_level ?? o.written_level ?? o.estimated_level ?? '') || null,
+    oral_score:           o.oral_score != null ? Number(o.oral_score) : att?.oral_score != null ? Number(att.oral_score) : null,
+    oral_booking_ends_at: oralObj?.ends_at != null ? String(oralObj.ends_at) : o.oral_booking_ends_at != null ? String(o.oral_booking_ends_at) : null,
+    avatar_url:           o.avatar_url != null ? String(o.avatar_url) : o.profile_photo_url != null ? String(o.profile_photo_url) : null,
+    status:               coalesceStatus(att?.status ?? o.status ?? o.placement_status),
+    submitted_at:         o.submitted_at != null ? String(o.submitted_at) : att?.submitted_at != null ? String(att.submitted_at) : null,
+    oral_booking_at:      oralObj?.starts_at != null ? String(oralObj.starts_at) : o.oral_booking_at != null ? String(o.oral_booking_at) : null,
+    final_level:          o.final_level != null ? String(o.final_level) : att?.final_level != null ? String(att.final_level) : null,
   }
 }
 
@@ -1092,4 +1255,47 @@ export async function fetchInstructorAllPlacementTests(): Promise<InstructorPlac
   }
   if (!raw.length && Array.isArray(res.data)) raw = res.data as unknown[]
   return raw.map(normalizePlacementTestRow)
+}
+
+/* ── Placement test answer review ────────────────────────────────────────── */
+
+export type PlacementTestAnswerRow = {
+  question_id: number
+  question_text: string
+  options: { a: string; b: string; c: string; d: string }
+  student_answer: string | null
+  correct_answer: string
+  is_correct: boolean
+  score_contribution: number | null
+}
+
+export async function fetchPlacementTestAnswers(attemptId: number): Promise<PlacementTestAnswerRow[]> {
+  const res = await apiClient.get<unknown>(`/instructor/placement-tests/${attemptId}/answers`, silent)
+  if (import.meta.env.DEV) console.log('[placement-test-answers] raw:', res.data)
+  const payload = extractPayload(res.data)
+  let raw: unknown[] = []
+  for (const key of ['data', 'answers', 'items']) {
+    if (Array.isArray(payload[key])) { raw = payload[key] as unknown[]; break }
+  }
+  if (!raw.length && Array.isArray(res.data)) raw = res.data as unknown[]
+  return raw.map((r) => {
+    const o = r as Record<string, unknown>
+    const opts = (o.options && typeof o.options === 'object' && !Array.isArray(o.options))
+      ? (o.options as Record<string, string>)
+      : {}
+    return {
+      question_id:        Number(o.question_id ?? 0),
+      question_text:      String(o.question_text ?? o.text ?? ''),
+      options: {
+        a: String(opts.a ?? o.option_a ?? ''),
+        b: String(opts.b ?? o.option_b ?? ''),
+        c: String(opts.c ?? o.option_c ?? ''),
+        d: String(opts.d ?? o.option_d ?? ''),
+      },
+      student_answer:     o.student_answer != null ? String(o.student_answer) : null,
+      correct_answer:     String(o.correct_answer ?? o.correct_option ?? ''),
+      is_correct:         !!o.is_correct,
+      score_contribution: o.score_contribution != null ? Number(o.score_contribution) : null,
+    }
+  })
 }

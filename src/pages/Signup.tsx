@@ -19,6 +19,7 @@ export default function Signup() {
   const [localPhone, setLocalPhone] = useState('')
   const [city, setCity] = useState('')
   const [gender, setGender] = useState('')
+  const [howHeard, setHowHeard] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -61,6 +62,7 @@ export default function Signup() {
         phone,
         city: city.trim(),
         gender,
+        ...(howHeard.trim() ? { how_did_you_hear_about_us: howHeard.trim() } : {}),
       }
 
       if (import.meta.env.DEV) {
@@ -263,6 +265,29 @@ export default function Signup() {
                   {fieldErrors.gender && <p className="text-xs font-semibold text-red-600">{fieldErrors.gender}</p>}
                 </label>
               </div>
+
+              {/* كيف عرفت عنا؟ */}
+              <label className="grid gap-2 text-sm font-black text-deepBlue">
+                كيف عرفت عنا؟ <span className="font-semibold text-slate-400">(اختياري)</span>
+                <span className="relative block">
+                  <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <select
+                    value={howHeard}
+                    onChange={(e) => setHowHeard(e.target.value)}
+                    className={`h-14 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 pl-10 text-right font-semibold outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100 ${howHeard ? 'text-deepBlue' : 'text-slate-400'}`}
+                  >
+                    <option value="">اختر...</option>
+                    <option value="صديق أو قريب">صديق أو قريب</option>
+                    <option value="وسائل التواصل الاجتماعي">وسائل التواصل الاجتماعي</option>
+                    <option value="إعلان">إعلان</option>
+                    <option value="فعالية أو ورشة">فعالية أو ورشة</option>
+                    <option value="بحث Google">بحث Google</option>
+                    <option value="طالب سابق">طالب سابق</option>
+                    <option value="شريك أو مؤسسة">شريك أو مؤسسة</option>
+                    <option value="أخرى">أخرى</option>
+                  </select>
+                </span>
+              </label>
 
               <motion.button
                 type="submit"

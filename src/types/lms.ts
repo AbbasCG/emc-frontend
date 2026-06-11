@@ -115,11 +115,20 @@ export type TeachingCourseLms = {
   id: number
   title: string
   slug?: string | null
-  student_count?: number
+  // Student counts (multiple backend names accepted)
+  student_count?: number | null
   enrolled_students_count?: number | null
-  placement_completed_count?: number | null
+  students_count?: number | null
+  // Canonical placement stats (backend v2)
+  written_tests_count?: number | null
   oral_pending_count?: number | null
   oral_booked_count?: number | null
+  final_level_count?: number | null
+  // Legacy / alternate field names still accepted as fallbacks
+  written_completed_count?: number | null
+  placement_completed_count?: number | null
+  waiting_oral_count?: number | null
+  oral_completed_count?: number | null
   status?: string
   start_date?: string | null
   end_date?: string | null

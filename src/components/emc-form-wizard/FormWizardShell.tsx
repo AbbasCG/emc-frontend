@@ -63,7 +63,7 @@ export function FormWizardShell({
   const inner = (
     <div
       className={cn(
-        variant === 'overlay' && 'relative flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[1.9rem] border border-white/65 bg-white/72 shadow-[0_28px_90px_-20px_rgba(15,23,42,0.45)] backdrop-blur-xl',
+        variant === 'overlay' && 'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-[1.9rem] border border-white/65 bg-white/72 shadow-[0_28px_90px_-20px_rgba(15,23,42,0.45)] backdrop-blur-xl',
         variant === 'inline' && 'w-full',
         maxWidthClassName,
         variant === 'inline' && 'space-y-6 px-4 py-6 sm:px-6',
@@ -72,16 +72,16 @@ export function FormWizardShell({
       dir="rtl"
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className={cn(EMC_WIZARD_HEADER_GRADIENT, variant === 'overlay' && 'sticky top-0 z-20 m-3 shrink-0 sm:m-4')}>
+      <div className={cn(EMC_WIZARD_HEADER_GRADIENT, variant === 'overlay' && 'm-3 shrink-0 sm:m-4 !py-3 sm:!py-4')}>
         <div className="pointer-events-none absolute -end-24 -top-24 h-56 w-56 rounded-full bg-[#2691C2]/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 start-0 h-64 w-64 rounded-full bg-[#EC943C]/20 blur-3xl" />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
+        <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 text-right">
             {eyebrow ?
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/70">{eyebrow}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">{eyebrow}</p>
             : null}
-            <h2 className="mt-1 text-2xl font-black leading-tight text-white sm:text-3xl">{title}</h2>
-            {subtitle ?
+            <h2 className={cn('font-black leading-tight text-white', variant === 'overlay' ? 'text-xl sm:text-2xl' : 'mt-1 text-2xl sm:text-3xl')}>{title}</h2>
+            {subtitle && variant !== 'overlay' ?
               <p className="mt-2 max-w-xl text-[13px] font-semibold leading-relaxed text-white/85">{subtitle}</p>
             : null}
           </div>
@@ -89,17 +89,33 @@ export function FormWizardShell({
             <button
               type="button"
               onClick={onClose}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/18"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/25 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20"
               aria-label="إغلاق"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           : null}
         </div>
 
-        <div className="relative mt-6 space-y-5">
-          <FormStepper steps={stepsMeta} currentStep={currentStep} onStepSelect={onStepSelect} />
-          <FormProgressBar percent={progressPercent} label={progressLabel} />
+        <div className={cn('relative', variant === 'overlay' ? 'mt-2 space-y-2' : 'mt-6 space-y-5')}>
+          {variant === 'overlay' ? (
+            <>
+              <FormStepper steps={stepsMeta} currentStep={currentStep} onStepSelect={onStepSelect} compact />
+              <div className="h-0.5 overflow-hidden rounded-full bg-white/15">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C]"
+                  initial={false}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <FormStepper steps={stepsMeta} currentStep={currentStep} onStepSelect={onStepSelect} />
+              <FormProgressBar percent={progressPercent} label={progressLabel} />
+            </>
+          )}
         </div>
       </div>
 

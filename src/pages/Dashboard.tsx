@@ -26,6 +26,12 @@ import { notifyNotificationsRefresh } from '@/api/notificationsApi'
 import { fetchCoursesStrict } from '@/api/superAdminCatalogApi'
 import {
   DashboardSection,
+  DashboardHero,
+  DashboardKpiCard,
+  DashboardKpiSkeleton,
+  DashboardCardGridSkeleton,
+  DashboardListSkeleton,
+  DashboardErrorWidget,
   EmptyState,
   EnrolledCourseCard,
   NotificationItem,
@@ -76,18 +82,29 @@ function deriveStatsFromLms(lms: StudentLmsDashboard): DashboardStats {
 }
 
 function hourGreeting(): string {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'صباح الخير'
-  if (hour < 18) return 'مساء الخير'
+  const h = new Date().getHours()
+  if (h < 12) return 'صباح الخير'
+  if (h < 18) return 'مساء الخير'
   return 'مساء النور'
+}
+
+function HeroChip({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      to={href}
+      className="rounded-2xl border border-white/[0.12] bg-white/[0.12] px-4 py-2 text-[11px] font-black text-white backdrop-blur-sm transition hover:border-white/[0.3] hover:bg-white/[0.18]"
+    >
+      {label}
+    </Link>
+  )
 }
 
 export default function Dashboard() {
   const { user } = useAuth()
 
   const [data, setData] = useState<StudentDashboard>(() => normalizeStudentDashboardPayload(null))
-  const [isLoading, setIsLoading] = useState(true)
-  const [dashSourceError, setDashSourceError] = useState<string | null>(null)
+  const [dashLoading, setDashLoading] = useState(true)
+  const [dashError, setDashError] = useState<string | null>(null)
   const [lmsDash, setLmsDash] = useState<StudentLmsDashboard | null>(null)
   const [lmsLoading, setLmsLoading] = useState(true)
   const [lmsError, setLmsError] = useState<string | null>(null)
@@ -105,73 +122,63 @@ export default function Dashboard() {
     setStudentRegsApi(registrations)
   }, [])
 
+  // Critical data: dashboard + LMS in parallel
   useEffect(() => {
     let isMounted = true
-    async function loadPrimaryDashboard() {
-      setIsLoading(true)
-      setLmsLoading(true)
-      setLmsError(null)
-      setDashSourceError(null)
+    setDashLoading(true)
+    setLmsLoading(true)
+    setDashError(null)
+    setLmsError(null)
 
-      const [dashResult, lmsResult] = await Promise.allSettled([
-        apiClient.get('/dashboard', { skipErrorToast: true }),
-        fetchStudentLmsDashboard(),
-      ])
-
+    void Promise.allSettled([
+      apiClient.get('/dashboard', { skipErrorToast: true }),
+      fetchStudentLmsDashboard(),
+    ]).then(([dashResult, lmsResult]) => {
       if (!isMounted) return
 
       if (dashResult.status === 'fulfilled') {
         setData(normalizeStudentDashboardPayload(dashResult.value.data))
-        setDashSourceError(null)
       } else {
         setData(normalizeStudentDashboardPayload(null))
-        setDashSourceError('تعذّر تحميل لوحة التحكم.')
+        setDashError('تعذّر تحميل لوحة التحكم.')
       }
+      setDashLoading(false)
 
       if (lmsResult.status === 'fulfilled') {
         const row = lmsResult.value
         setLmsDash(row)
-        setLmsError(null)
         if (dashResult.status === 'rejected') {
-          setData((prev) => ({
-            ...prev,
-            stats: deriveStatsFromLms(row),
-          }))
+          setData((prev) => ({ ...prev, stats: deriveStatsFromLms(row) }))
         }
       } else {
         setLmsDash(null)
         setLmsError('تعذّر تحميل بيانات التعلّم.')
       }
-
-      setIsLoading(false)
       setLmsLoading(false)
-    }
+    })
 
-    void loadPrimaryDashboard()
-    return () => {
-      isMounted = false
-    }
+    return () => { isMounted = false }
   }, [])
 
+  // Secondary: enrollment sources (non-blocking)
+  useEffect(() => {
+    void syncStudentEnrollmentSources()
+  }, [syncStudentEnrollmentSources])
+
+  // Tertiary: course catalog (non-blocking)
   useEffect(() => {
     let alive = true
     setCatalogLoading(true)
     void (async () => {
       const pack = await fetchCoursesStrict()
       if (!alive) return
-      if (pack.ok) setCatalog([...pack.rows])
-      else setCatalog([])
+      setCatalog(pack.ok ? [...pack.rows] : [])
       setCatalogLoading(false)
     })()
-    return () => {
-      alive = false
-    }
+    return () => { alive = false }
   }, [])
 
-  useEffect(() => {
-    void syncStudentEnrollmentSources()
-  }, [syncStudentEnrollmentSources])
-
+  // Refresh event handler
   useEffect(() => {
     function onStudentRefresh() {
       void syncStudentEnrollmentSources()
@@ -180,42 +187,32 @@ export default function Dashboard() {
         .then((row) => {
           setLmsDash(row)
           setLmsError(null)
-          const d = deriveStatsFromLms(row)
           setData((prev) => ({
             ...prev,
-            stats: {
-              ...d,
-              training_hours: prev.stats.training_hours,
-            },
+            stats: { ...deriveStatsFromLms(row), training_hours: prev.stats.training_hours },
           }))
         })
         .catch(() => {
           setLmsDash(null)
           setLmsError('تعذّر تحميل بيانات التعلّم.')
         })
-
       void (async () => {
         try {
           const response = await apiClient.get('/dashboard', { skipErrorToast: true })
           setData(normalizeStudentDashboardPayload(response.data))
-          setDashSourceError(null)
+          setDashError(null)
         } catch (err: unknown) {
           if (axios.isCancel(err)) return
-          setData(normalizeStudentDashboardPayload(null))
-          setDashSourceError('تعذّر تحميل لوحة التحكم.')
+          setDashError('تعذّر تحميل لوحة التحكم.')
         }
       })()
     }
-
     window.addEventListener(STUDENT_SCOPE_REFRESH_EVENT, onStudentRefresh)
     return () => window.removeEventListener(STUDENT_SCOPE_REFRESH_EVENT, onStudentRefresh)
   }, [syncStudentEnrollmentSources])
 
-  if (isLoading) return <DashboardSkeleton />
-
-  const base = data
-
-  const { stats, enrollments, upcoming_sessions: legacySessions } = base
+  // ── Derived data ──────────────────────────────────────────────────────────
+  const { stats, enrollments, upcoming_sessions: legacySessions } = data
   const enrollmentsSafe = Array.isArray(enrollments) ? enrollments : []
   const enrollmentsMerged = mergeStudentEnrollments(enrollmentsSafe, studentRegsApi, studentCoursesApi)
 
@@ -224,19 +221,11 @@ export default function Dashboard() {
     upcomingLmsRaw.length > 0 ? upcomingLmsRaw.map(mapLmsSessionToUpcoming) : [...legacySessions]
 
   const dashboardNotifications = Array.isArray(lmsDash?.notifications) ? lmsDash.notifications : []
-
   const currentLmsCourses = Array.isArray(lmsDash?.current_courses) ? [...lmsDash!.current_courses] : []
+  const pendingAssignments = Array.isArray(lmsDash?.pending_assignments) ? [...lmsDash!.pending_assignments] : []
+  const certPlaceholders = Array.isArray(lmsDash?.certificates_placeholder) ? [...lmsDash.certificates_placeholder] : []
 
-  const pendingAssignments = Array.isArray(lmsDash?.pending_assignments)
-    ? [...lmsDash!.pending_assignments]
-    : []
-
-  const certPlaceholders =
-    Array.isArray(lmsDash?.certificates_placeholder) ? [...lmsDash.certificates_placeholder] : []
-
-  const pendingDueCount =
-    pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
-
+  const pendingDueCount = pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
   const unreadCount = dashboardNotifications.filter((n) => {
     if (typeof n.is_read === 'boolean') return !n.is_read
     return n.read_at == null || String(n.read_at).trim() === ''
@@ -246,7 +235,6 @@ export default function Dashboard() {
     enrollmentsMerged.filter((e) => e.course?.slug).map((e) => String(e.course.slug)),
   )
   const browseCourses = [...catalog].filter((c) => c.slug && !enrolledSlugs.has(c.slug))
-
   const completedEnrollCount = enrollmentsMerged.filter((e) => e.status === 'completed').length
   const activeEnrollCount = enrollmentsMerged.filter((e) => e.status !== 'completed').length
 
@@ -256,105 +244,73 @@ export default function Dashboard() {
     learningLine = `تقدّمك في المحتوى: ${Math.round(lmsDash.progress_percent)}%.`
   else if (activeEnrollCount === 0 && completedEnrollCount === 0)
     learningLine = 'لم تسجل بعد — تصفّح الدورات المتاحة ضمن هذه الصفحة وابدأ.'
-  const hour = hourGreeting()
+
   const displayName = user?.name?.trim() || 'متعلّم EMC'
+  const greeting = hourGreeting()
+
+  const heroStats = lmsLoading
+    ? undefined
+    : [
+        { label: 'الدورات',    value: enrollmentsMerged.length                             },
+        { label: 'تقدّمي',     value: lmsDash ? `${Math.round(lmsDash.progress_percent)}%` : '—' },
+        { label: 'جلسات قادمة', value: Array.isArray(sessions) ? sessions.length : 0       },
+      ]
 
   return (
-    <div className="space-y-12 text-right rtl" dir="rtl">
-      {dashSourceError ?
-        <p className="rounded-2xl border border-amber-200/95 bg-amber-50/[0.7] px-4 py-3 text-[12px] font-bold leading-relaxed text-amber-950 ring-1 ring-amber-100">
-          {dashSourceError}
-        </p>
-      : null}
+    <div className="space-y-10 text-right rtl" dir="rtl">
+      {/* 1 — Hero — always visible */}
+      <DashboardHero
+        greeting={greeting}
+        name={displayName}
+        role="بوابة الطالب"
+        subtitle={learningLine}
+        quickStats={heroStats}
+        actions={
+          <>
+            <HeroChip href="/dashboard/student/materials"  label="المقررات والمواد" />
+            <HeroChip href="/dashboard/student/sessions"   label="جدول الجلسات"    />
+            <HeroChip href="/dashboard/student/evaluation" label="تقييم التجربة"   />
+            <HeroChip href="/dashboard/profile"            label="إعداد الحساب"    />
+          </>
+        }
+      />
 
-      {/* 1 — ترحيب وإجراءات سريعة */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-[1.85rem] border border-deepBlue/[0.08] bg-gradient-to-bl from-deepBlue via-[#22344a] to-[#2691C2]/90 p-[1px] shadow-xl"
-      >
-        <div className="rounded-[calc(1.85rem-1px)] bg-white/[0.04] px-6 py-7 text-white sm:px-9">
-          <p className="text-xs font-black tracking-wide text-white/55">{hour}،</p>
-          <h1 className="mt-1 text-[1.65rem] font-black leading-snug">{displayName}</h1>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-white/82">{learningLine}</p>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            <QuickChip href="/dashboard/student/materials" label="المقررات والمواد" />
-            <QuickChip href="/dashboard/student/sessions" label="جدول الجلسات" />
-            <QuickChip href="/dashboard/student/evaluation" label="تقييم التجربة" />
-            <QuickChip href="/dashboard/profile" label="إعداد الحساب" />
-          </div>
-        </div>
-      </motion.section>
-
-      {/* LMS summary row */}
-      {(lmsLoading || lmsError || lmsDash) && (
-        <div className="space-y-2">
-          {lmsLoading && (
-            <div className="grid animate-pulse gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-24 rounded-2xl bg-slate-100/90 ring-1 ring-slate-200/65" />
-              ))}
-            </div>
-          )}
-          {lmsError && !lmsLoading && (
-            <div className="rounded-2xl border border-orange-100/90 bg-orange-50/90 px-4 py-3 text-[12px] font-bold leading-relaxed text-orange-950 ring-1 ring-orange-100">
-              {lmsError}
-            </div>
-          )}
-          {!lmsLoading && lmsDash && (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <OverviewMini
-                label="التقدّم المعرفي"
-                value={`${Math.round(lmsDash.progress_percent)}%`}
-                Icon={TrendingUp}
-                tone="blue"
-              />
-              <OverviewMini
-                label="الحضور المسجل"
-                value={`${Math.round(lmsDash.attendance_percent)}%`}
-                Icon={Calendar}
-                tone="teal"
-              />
-              <OverviewMini
-                label="واجبات تنتظر التسليم"
-                value={String(pendingDueCount)}
-                Icon={ClipboardList}
-                tone="orange"
-              />
-              <OverviewMini
-                label="شهادات قيد الإصدار"
-                value={String(certPlaceholders.length)}
-                Icon={ScrollText}
-                tone="violet"
-              />
-            </div>
-          )}
-        </div>
+      {/* Error banners (per-section, not full-page block) */}
+      {dashError && !dashLoading && (
+        <DashboardErrorWidget
+          title="تعذّر تحميل لوحة التحكم"
+          description={dashError}
+          compact
+        />
       )}
 
-      {/* 2 — نظرة عامة */}
-      <DashboardSection title="نظرتي التعليمية السريعة" subtitle="كل الأرقام من بياناتك الحقيقية فقط؛ لا تهيئة وهمية.">
+      {/* 2 — LMS mini KPIs — skeleton while loading */}
+      {lmsLoading ? (
+        <DashboardKpiSkeleton count={4} />
+      ) : lmsError ? (
+        <DashboardErrorWidget title="تعذّر تحميل بيانات التعلّم" description={lmsError} compact />
+      ) : lmsDash ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DashboardKpiCard label="التقدّم المعرفي"         value={`${Math.round(lmsDash.progress_percent)}%`} icon={TrendingUp}    variant="brand"  />
+          <DashboardKpiCard label="الحضور المسجل"           value={`${Math.round(lmsDash.attendance_percent)}%`} icon={Calendar}   variant="brand"  />
+          <DashboardKpiCard label="واجبات تنتظر التسليم"   value={String(pendingDueCount)}                       icon={ClipboardList} variant="accent" />
+          <DashboardKpiCard label="شهادات قيد الإصدار"     value={String(certPlaceholders.length)}               icon={ScrollText} variant="muted"  />
+        </div>
+      ) : null}
+
+      {/* 3 — Overview stats */}
+      <DashboardSection title="نظرتي التعليمية السريعة" subtitle="كل الأرقام من بياناتك الحقيقية فقط.">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          <StatCard
-            title="الدورات المسجّلة"
-            value={String(enrollmentsMerged.length)}
-            icon={BookOpen}
-            color="blue"
-          />
-          <StatCard title="جلسات قادمة" value={String(Array.isArray(sessions) ? sessions.length : 0)} icon={Calendar} color="orange" />
-          <StatCard title="دورات مكتملة" value={String(completedEnrollCount)} icon={CheckCircle} color="green" />
-          <StatCard title="إشعار غير مقروء" value={String(unreadCount)} icon={Bell} color="purple" />
-          <StatCard
-            title="شهادات مكتسبة"
-            value={String(toFiniteStat(stats.completed_certificates, 0))}
-            icon={GraduationCap}
-            color="orange"
-          />
-          <StatCard title="مراجعات مستحقة تقريبًا" value={String(completedEnrollCount)} icon={MessageSquareQuote} color="blue" />
+          <StatCard title="الدورات المسجّلة"    value={String(enrollmentsMerged.length)}                              icon={BookOpen}           color="blue"   />
+          <StatCard title="جلسات قادمة"         value={String(Array.isArray(sessions) ? sessions.length : 0)}         icon={Calendar}           color="orange" />
+          <StatCard title="دورات مكتملة"        value={String(completedEnrollCount)}                                   icon={CheckCircle}        color="green"  />
+          <StatCard title="إشعار غير مقروء"     value={String(unreadCount)}                                            icon={Bell}               color="purple" />
+          <StatCard title="شهادات مكتسبة"       value={String(toFiniteStat(stats.completed_certificates, 0))}          icon={GraduationCap}      color="orange" />
+          <StatCard title="مراجعات مستحقة"      value={String(completedEnrollCount)}                                   icon={MessageSquareQuote} color="blue"   />
         </div>
       </DashboardSection>
 
+      {/* 4 — Pending assignments (priority) */}
       {pendingAssignments.length > 0 && (
         <DashboardSection title="أولوية الواجبات" action={{ label: 'الكل', href: '/dashboard/student/assignments' }}>
           <div className="grid gap-4 lg:grid-cols-2">
@@ -365,12 +321,14 @@ export default function Dashboard() {
         </DashboardSection>
       )}
 
-      {/* 3 — الدورات الحالية */}
+      {/* 5 — Enrolled courses */}
       <DashboardSection
         title="دوراتي والتسجيلات الحالية"
-        subtitle="مزامنة من لوحة الموحّد وجداول الطالب والتسجيلات حيث تتيحها نقطة البرمجة."
+        subtitle="مزامنة من لوحة الموحّد وجداول الطالب والتسجيلات."
       >
-        {enrollmentsMerged.length > 0 ?
+        {dashLoading ? (
+          <DashboardCardGridSkeleton count={4} cols={4} />
+        ) : enrollmentsMerged.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {enrollmentsMerged.slice(0, 8).map((e) => (
               <EnrolledCourseCard
@@ -381,7 +339,7 @@ export default function Dashboard() {
               />
             ))}
           </div>
-        : !lmsLoading && currentLmsCourses.length > 0 ?
+        ) : !lmsLoading && currentLmsCourses.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {currentLmsCourses.slice(0, 6).map((c, idx) => {
               const pct = typeof c.progress_percent === 'number' ? Math.round(c.progress_percent) : 0
@@ -391,32 +349,28 @@ export default function Dashboard() {
                   key={c.id}
                   layout
                   whileHover={{ y: -3 }}
-                  className="flex flex-col gap-4 rounded-[1.35rem] border border-deepBlue/[0.06] bg-white p-5 shadow-md ring-1 ring-white"
+                  className="flex flex-col gap-4 rounded-2xl border border-deepBlue/[0.06] bg-white p-5 shadow-sm ring-1 ring-deepBlue/[0.03]"
                 >
                   <div className="min-h-[6.75rem] overflow-hidden rounded-xl">
-                    <img
-                      alt=""
-                      src={courseImages[idx % courseImages.length]}
-                      className="h-full w-full rounded-xl object-cover"
-                    />
+                    <img alt="" src={courseImages[idx % courseImages.length]} className="h-full w-full rounded-xl object-cover" />
                   </div>
                   <div>
                     <h3 className="text-[1rem] font-black leading-snug text-deepBlue">{c.title}</h3>
-                    {c.instructor_name ?
+                    {c.instructor_name && (
                       <p className="mt-1 text-[11px] font-bold text-slate-500">مع المدرب: {c.instructor_name}</p>
-                    : null}
-                    {c.start_date != null && String(c.start_date).trim() !== '' ?
+                    )}
+                    {c.start_date != null && String(c.start_date).trim() !== '' ? (
                       <p className="mt-2 text-[11px] font-bold text-slate-600" dir="ltr">
                         {String(c.start_date).slice(0, 10)}
                         {c.start_time ? ` — ${c.start_time}` : ''}
                       </p>
-                    : (
+                    ) : (
                       <p className="mt-2 rounded-lg border border-sky-200/80 bg-sky-50/90 px-2 py-1.5 text-[10px] font-bold text-sky-950">
                         انضممت إلى الدورة القادمة — سيتم إشعارك عند تحديد الموعد
                       </p>
                     )}
                   </div>
-                  {pct > 0 || c.progress_percent !== undefined ?
+                  {pct > 0 || c.progress_percent !== undefined ? (
                     <div className="flex items-center justify-between gap-3">
                       <ProgressRing percent={pct} size={68} stroke={6} />
                       <Link
@@ -426,51 +380,48 @@ export default function Dashboard() {
                         متابعة التعلم
                       </Link>
                     </div>
-                  : <Link
+                  ) : (
+                    <Link
                       to={hrefContinue}
-                      className="rounded-2xl border border-customBlue/35 bg-brand-400/10 px-4 py-2 text-center text-[11px] font-black text-deepBlue hover:bg-brand-400/18"
+                      className="rounded-2xl border border-customBlue/35 bg-customBlue/10 px-4 py-2 text-center text-[11px] font-black text-deepBlue hover:bg-customBlue/18"
                     >
                       متابعة التعلم
                     </Link>
-                  }
-                  <p className="text-[10px] font-bold text-muted-500">
-                    الجلسة القادمة مذكورة في خانة المواعيد — راجع أيضًا جلساتي المفصّلة.
-                  </p>
+                  )}
                 </motion.div>
               )
             })}
           </div>
-        : <EmptyState
-            icon={BookOpen}
-            title="لا توجد دورات مسجلة حاليًا"
-            description="سيُعرض هنا كل تسجيل مؤكَّد مع الخادم عبر لوحة الموحّد أو مسارات الطالب والتسجيل."
-            action={{ label: 'استعرض الدورات المتاحة', href: '/courses' }}
-          />}
-      </DashboardSection>
-
-      {/* 4 — الدورات المتاحة */}
-      <DashboardSection
-        title="دورات يمكنني التسجيل لها الآن"
-        subtitle="محمّلة من نقطة عامة بحساب مسجَّل؛ إن تعذرت، يمكنك الزيارة من صفحة الكتالوج."
-        action={browseCourses.length === 0 && !catalogLoading ? undefined : { label: 'الكتالوج العام', href: '/courses' }}
-      >
-        {catalogLoading ?
-          <div className="flex min-h-[8rem] items-center justify-center rounded-2xl border border-deepBlue/[0.05] bg-slate-50/80 ring-1 ring-slate-100">
-            <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-customBlue border-t-transparent" />
-          </div>
-        : browseCourses.length === 0 ?
+        ) : (
           <EmptyState
             icon={BookOpen}
-            title={catalog.length === 0 ? 'لم تُحمَّل قائمة خارجية الآن.' : 'أنت ضمن هذه الدروس بالفعل أو القائمة خالية بعد التصفية.'}
-            description="صفحة الدورات العامة هي المصدر الموثوق عند نقص نقطة الواجهة."
+            title="لا توجد دورات مسجلة حاليًا"
+            description="سيُعرض هنا كل تسجيل مؤكَّد مع الخادم."
+            action={{ label: 'استعرض الدورات المتاحة', href: '/courses' }}
+          />
+        )}
+      </DashboardSection>
+
+      {/* 6 — Browse courses */}
+      <DashboardSection
+        title="دورات يمكنني التسجيل لها الآن"
+        action={!catalogLoading && browseCourses.length > 0 ? { label: 'الكتالوج العام', href: '/courses' } : undefined}
+      >
+        {catalogLoading ? (
+          <DashboardCardGridSkeleton count={3} cols={3} />
+        ) : browseCourses.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title={catalog.length === 0 ? 'لم تُحمَّل قائمة الدورات.' : 'أنت مسجل في هذه الدورات بالفعل أو القائمة خالية.'}
             action={{ label: 'فتح دورات المنصّة', href: '/courses' }}
           />
-        : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {browseCourses.slice(0, 6).map((c, i) => (
               <motion.div
                 key={c.id ?? i}
                 layout
-                className="rounded-[1.35rem] border border-deepBlue/[0.06] bg-white/[0.95] p-4 shadow-md ring-1 ring-white transition hover:border-customOrange/35"
+                className="rounded-2xl border border-deepBlue/[0.06] bg-white/[0.95] p-4 shadow-sm ring-1 ring-deepBlue/[0.03] transition hover:border-customOrange/35 hover:shadow-md"
               >
                 <div className="aspect-[21/10] overflow-hidden rounded-xl bg-slate-100">
                   <img
@@ -481,49 +432,44 @@ export default function Dashboard() {
                 </div>
                 <h4 className="mt-4 line-clamp-2 text-sm font-black leading-relaxed text-deepBlue">{c.title}</h4>
                 <div className="mt-5 flex justify-between gap-2">
-                  <span className="text-[11px] font-black text-muted-600">
-                    {toFiniteStat(c.price as number | string | undefined, 0) ?
-                      <>
-                        رسوم تشير إليها الكتالوج
-                      </>
-                    : 'مجانية'}
+                  <span className="text-[11px] font-black text-slate-400">
+                    {toFiniteStat(c.price as number | string | undefined, 0) ? 'برسوم' : 'مجانية'}
                   </span>
                   <Link
                     to={`/courses/${c.slug}`}
                     className="rounded-2xl bg-customOrange px-3 py-1.5 text-[11px] font-black text-white shadow-sm hover:brightness-105"
                   >
-                    {c.start_date != null && String(c.start_date).trim() !== '' && String(c.start_date) !== '—' ?
-                      'التسجيل الآن'
-                    : 'انضم إلى الدورة القادمة'}
+                    {c.start_date != null && String(c.start_date).trim() !== '' && String(c.start_date) !== '—'
+                      ? 'التسجيل الآن'
+                      : 'انضم إلى الدورة القادمة'}
                   </Link>
                 </div>
               </motion.div>
             ))}
           </div>
-        }
+        )}
       </DashboardSection>
 
-      {/* 5 + 6 — جلسات + إشعارات */}
+      {/* 7 — Sessions + Notifications */}
       <div className="grid gap-10 xl:grid-cols-[1fr_minmax(0,340px)]">
         <DashboardSection
           title="الجلسات القادمة"
           action={
-            Array.isArray(sessions) && sessions.length > 0 ?
-              { label: 'جدول الجلسات', href: '/dashboard/student/sessions' }
-            : undefined
+            Array.isArray(sessions) && sessions.length > 0
+              ? { label: 'جدول الجلسات', href: '/dashboard/student/sessions' }
+              : undefined
           }
         >
-          {Array.isArray(sessions) && sessions.length > 0 ?
+          {lmsLoading ? (
+            <DashboardListSkeleton count={3} />
+          ) : Array.isArray(sessions) && sessions.length > 0 ? (
             <ol className="relative space-y-5 border-e-2 border-customBlue/20 pe-8">
-              {upcomingLmsRaw.length > 0 ?
-                upcomingLmsRaw.slice(0, 8).map((s) => (
-                  <li key={s.id}>
-                    <SessionCard session={s} />
-                  </li>
-                ))
-              : sessions.slice(0, 8).map((s) => (
-                  <li key={s.id}>
-                    <div className="relative">
+              {upcomingLmsRaw.length > 0
+                ? upcomingLmsRaw.slice(0, 8).map((s) => (
+                    <li key={s.id}><SessionCard session={s} /></li>
+                  ))
+                : sessions.slice(0, 8).map((s) => (
+                    <li key={s.id} className="relative">
                       <span className="absolute -end-[27px] top-3 grid h-2.5 w-2.5 place-items-center rounded-full bg-customBlue ring-[5px] ring-white" />
                       <UpcomingSessionCard
                         courseName={s.course_name}
@@ -535,40 +481,46 @@ export default function Dashboard() {
                         meetingLink={s.meeting_link ?? undefined}
                         platform={s.platform ?? undefined}
                       />
-                    </div>
-                  </li>
-                ))
-              }
+                    </li>
+                  ))}
             </ol>
-          : <EmptyState icon={Calendar} title="لم تُحمّل جلسات قريبة بعد" />}
+          ) : (
+            <EmptyState icon={Calendar} title="لم تُحمّل جلسات قريبة بعد" />
+          )}
         </DashboardSection>
 
         <DashboardSection
           title="أحدث الإشعارات"
           action={{ label: 'مركز الإشعارات', href: '/dashboard/notifications' }}
         >
-          {dashboardNotifications.length > 0 ?
+          {lmsLoading ? (
+            <DashboardListSkeleton count={4} />
+          ) : dashboardNotifications.length > 0 ? (
             <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-deepBlue/[0.05] bg-white shadow-sm ring-1 ring-white">
               {dashboardNotifications.slice(0, 5).map((n, i) => (
                 <NotificationItem key={String(n.id ?? i)} notification={n} />
               ))}
             </div>
-          : <EmptyState icon={Bell} title="لا إشعارات حديثة — تحقق من مركز الإشعارات." />}
+          ) : (
+            <EmptyState icon={Bell} title="لا إشعارات حديثة." />
+          )}
         </DashboardSection>
       </div>
 
-      {/* 7 — تنبيه التقييم */}
-      <motion.section layout className="rounded-[1.35rem] border border-orange-500/22 bg-orange-500/[0.06] px-6 py-5 shadow-inner ring-1 ring-orange-400/22">
+      {/* 8 — Evaluation CTA */}
+      <motion.section
+        layout
+        className="rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-6 py-5 shadow-inner ring-1 ring-customOrange/20"
+      >
         <div className="flex flex-wrap items-center justify-between gap-4 rtl:flex-row-reverse">
-          <div className="min-w-[12rem] text-right rtl:text-right">
-            <h3 className="text-sm font-black text-deepBlue">قيِّم تجربتك قبل أن تذهب التفاصيل بعيدًا</h3>
+          <div className="min-w-[12rem] text-right">
+            <h3 className="text-sm font-black text-deepBlue">قيِّم تجربتك قبل أن تذهب التفاصيل بعيدًا</h3>
             <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-600">
-              {completedEnrollCount > 0 ?
-                <>
-                  تم تسجيل <span className="font-black text-deepBlue">{completedEnrollCount}</span> دورة كمكتملة — نشجّعك بتقييم
-                  حصّة واحدة لكل دورة حسب المتاح على الخادم.
-                </>
-              : 'سيُفعِّل هذا التنبيه تلقائيًا بعد إكمال أول دورة.'}
+              {completedEnrollCount > 0 ? (
+                <>تم تسجيل <span className="font-black text-deepBlue">{completedEnrollCount}</span> دورة كمكتملة.</>
+              ) : (
+                'سيُفعِّل هذا التنبيه تلقائيًا بعد إكمال أول دورة.'
+              )}
             </p>
           </div>
           <Link
@@ -580,86 +532,27 @@ export default function Dashboard() {
         </div>
       </motion.section>
 
-      {/* 8 — الشهادات */}
+      {/* 9 — Certificates */}
       <DashboardSection title="الشهادات المكتسبة" action={{ label: 'شهاداتي', href: '/dashboard/certificates' }}>
-        {toFiniteStat(stats.completed_certificates, 0) > 0 || certPlaceholders.length > 0 ?
+        {lmsLoading ? (
+          <DashboardCardGridSkeleton count={2} cols={2} />
+        ) : toFiniteStat(stats.completed_certificates, 0) > 0 || certPlaceholders.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-emerald-200/95 bg-emerald-50/90 px-4 py-3 text-[12px] font-black text-deepBlue ring-1 ring-emerald-100">
               عدد أكملها الخادم في الموجز:{' '}
               <span>{toFiniteStat(stats.completed_certificates, 0)}</span>
             </div>
             {certPlaceholders.slice(0, 4).map((c, i) => (
-              <div key={`${String(c.label)}-${String(i)}`} className="rounded-xl border border-dashed border-customOrange/40 bg-orange-50/45 px-4 py-3 text-right">
+              <div key={`${String(c.label)}-${i}`} className="rounded-xl border border-dashed border-customOrange/40 bg-customOrange/[0.04] px-4 py-3 text-right">
                 <p className="font-black text-deepBlue">{c.label}</p>
-                {c.note ?
-                  <p className="mt-1 text-[11px] font-semibold text-slate-600">{c.note}</p>
-                : null}
+                {c.note && <p className="mt-1 text-[11px] font-semibold text-slate-600">{c.note}</p>}
               </div>
             ))}
           </div>
-        : <EmptyState icon={ScrollText} title="لا شهادة مفعّلة في الملمس الحالي بعد" />}
+        ) : (
+          <EmptyState icon={ScrollText} title="لا شهادة مفعّلة في الملمس الحالي بعد" />
+        )}
       </DashboardSection>
-    </div>
-  )
-}
-
-function QuickChip({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      to={href}
-      className="rounded-2xl border border-white/[0.12] bg-white/[0.12] px-4 py-2 text-[11px] font-black text-white shadow-inner backdrop-blur-sm transition hover:border-white/[0.3] hover:bg-white/[0.18]"
-    >
-      {label}
-    </Link>
-  )
-}
-
-function OverviewMini({
-  label,
-  value,
-  Icon,
-  tone,
-}: {
-  label: string
-  value: string
-  Icon: typeof BookOpen
-  tone: 'blue' | 'teal' | 'orange' | 'violet'
-}) {
-  const ring =
-    tone === 'blue' ? 'from-customBlue/[0.12] ring-customBlue/18'
-    : tone === 'teal' ? 'from-teal-500/[0.1] ring-teal-400/22'
-    : tone === 'orange' ? 'from-orange-400/[0.12] ring-orange-300/35'
-    : 'from-violet-400/[0.12] ring-violet-300/38'
-  return (
-    <motion.div layout className={`rounded-[1.35rem] border border-deepBlue/[0.05] bg-gradient-to-br to-white/[0.6] px-5 py-4 shadow-sm ring-1 ${ring}`}>
-      <div className="flex items-center gap-3 rtl:flex-row-reverse">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-deepBlue/[0.07] shadow-inner ring-1 ring-white">
-          <Icon className="h-5 w-5 text-deepBlue" aria-hidden />
-        </span>
-        <div className="min-w-0 text-right rtl:text-right">
-          <p className="text-[18px] font-black leading-none text-deepBlue">{value}</p>
-          <p className="mt-1 truncate text-[10px] font-black uppercase tracking-wide text-muted-500">{label}</p>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="animate-pulse space-y-10 text-right rtl" dir="rtl">
-      <div className="h-40 rounded-[1.85rem] bg-slate-200" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-28 rounded-[1.35rem] bg-slate-100 ring-1 ring-slate-200/70" />
-        ))}
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-slate-100" />
-        ))}
-      </div>
-      <div className="h-72 rounded-[1.5rem] bg-slate-100" />
     </div>
   )
 }

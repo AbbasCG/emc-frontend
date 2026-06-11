@@ -166,11 +166,11 @@ export default function PlacementResultPage() {
     setError(false)
     void (async () => {
       try {
-        const { status, attempt: a, oral_booking: ob, can_start_learning: csl } =
+        const { status, attempt: a, oral_booking: ob, can_start_learning: csl, can_take_written_test: canTake } =
           await fetchPlacementStatus(courseId)
 
         if (import.meta.env.DEV) {
-          console.log('[placement/result] status:', status, 'attempt:', a, 'oral_booking:', ob)
+          console.log('[placement/result] status:', status, 'attempt:', a, 'oral_booking:', ob, 'canTake:', canTake)
         }
 
         // Attempt present → always show result, regardless of status
@@ -182,8 +182,9 @@ export default function PlacementResultPage() {
           return
         }
 
-        // No attempt + not started → go to test page
-        if (status === 'not_started' || status === 'placement_required') {
+        // Only redirect to test page when written test has not been taken yet
+        if (canTake && (status === 'not_started' || status === 'placement_required')) {
+          setLoading(false)
           void navigate(`/dashboard/student/courses/${courseId}/placement-test`, { replace: true })
           return
         }

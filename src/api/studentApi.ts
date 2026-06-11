@@ -109,6 +109,14 @@ export type StudentListedCourse = {
   can_start_learning?: boolean | null
   placement_score?: number | null
   placement_total?: number | null
+  placement_percentage?: number | null
+  placement_estimated_level?: string | null
+  /** Oral assessment fields extracted from placement_progress.oral_assessment */
+  oral_booking_status?: string | null
+  oral_booking_starts_at?: string | null
+  oral_booking_ends_at?: string | null
+  oral_final_level?: string | null
+  oral_score?: number | null
   cover_url?: string | null
 }
 
@@ -154,10 +162,28 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
   const timeRaw = o.start_time ?? nested?.start_time ?? o.study_time
   const meetRaw = o.meeting_link ?? nested?.meeting_link ?? o.join_url
 
-  // Placement fields — read from top-level AND nested course object
+  // Placement fields — read from top-level, placement_progress nested object, AND nested course object
+  // placement_progress is the authoritative source: backend sends placement_progress.status, never flat placement_status
+  const ppObj =
+    o.placement_progress && typeof o.placement_progress === 'object' && !Array.isArray(o.placement_progress)
+      ? (o.placement_progress as Record<string, unknown>)
+      : null
+  const ppWt =
+    ppObj?.written_test && typeof ppObj.written_test === 'object' && !Array.isArray(ppObj.written_test)
+      ? (ppObj.written_test as Record<string, unknown>)
+      : null
+  const ppOa =
+    ppObj?.oral_assessment && typeof ppObj.oral_assessment === 'object' && !Array.isArray(ppObj.oral_assessment)
+      ? (ppObj.oral_assessment as Record<string, unknown>)
+      : null
+
   const rawRequires = o.requires_placement_test ?? o.requires_placement ?? nested?.requires_placement_test ?? nested?.requires_placement
   const hasPlacementTestType = (nested?.placement_test_type ?? o.placement_test_type) != null
-  const rawPlacementStatus = o.placement_status ?? nested?.placement_status
+  // FIX #1: read from placement_progress.status first (backend wraps status inside placement_progress)
+  const rawPlacementStatus =
+    o.placement_status ??
+    ppObj?.status ??
+    nested?.placement_status
   const placementStatusStr = rawPlacementStatus != null && String(rawPlacementStatus).trim() !== '' ? String(rawPlacementStatus) : null
   // Course requires placement if explicitly flagged OR placement_test_type exists OR a non-null non-completed status is present
   const requiresPlacementTest =
@@ -166,10 +192,21 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
     (placementStatusStr != null && placementStatusStr !== 'completed' && placementStatusStr !== 'none')
   const rawCanStart = o.can_start_learning ?? nested?.can_start_learning
   const canStartLearning = rawCanStart != null ? !!rawCanStart : null
-  const rawScore = o.placement_score ?? o.written_score ?? nested?.placement_score ?? nested?.written_score
+  // FIX #2: read score/total from placement_progress.written_test when not at top-level
+  const rawScore = o.placement_score ?? o.written_score ?? ppWt?.score ?? nested?.placement_score ?? nested?.written_score
   const placementScore = rawScore != null && Number.isFinite(Number(rawScore)) ? Number(rawScore) : null
-  const rawTotal = o.placement_total ?? o.total_questions ?? nested?.placement_total ?? nested?.total_questions
+  const rawTotal = o.placement_total ?? o.total_questions ?? ppWt?.total_questions ?? nested?.placement_total ?? nested?.total_questions
   const placementTotal = rawTotal != null && Number.isFinite(Number(rawTotal)) ? Number(rawTotal) : null
+  const rawPct = ppWt?.percentage ?? null
+  const placementPercentage = rawPct != null && Number.isFinite(Number(rawPct)) ? Number(rawPct) : null
+  const rawEstLevel = ppWt?.estimated_level ?? null
+  const placementEstimatedLevel = rawEstLevel != null && String(rawEstLevel).trim() !== '' ? String(rawEstLevel) : null
+  // FIX #3: extract oral assessment data from placement_progress.oral_assessment
+  const oralBookingStatus    = ppOa?.status       != null ? String(ppOa.status)       : null
+  const oralBookingStartsAt  = ppOa?.starts_at    != null ? String(ppOa.starts_at)    : null
+  const oralBookingEndsAt    = ppOa?.ends_at      != null ? String(ppOa.ends_at)      : null
+  const oralFinalLevel       = ppOa?.final_level  != null ? String(ppOa.final_level)  : null
+  const oralScoreVal         = ppOa?.oral_score   != null && Number.isFinite(Number(ppOa.oral_score)) ? Number(ppOa.oral_score) : null
 
   // Cover image — check top-level and nested
   const coverKeys = ['course_image', 'image_url', 'cover_image', 'thumbnail', 'image', 'cover', 'media_url']
@@ -199,6 +236,13 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
     can_start_learning: canStartLearning,
     placement_score: placementScore,
     placement_total: placementTotal,
+    placement_percentage: placementPercentage,
+    placement_estimated_level: placementEstimatedLevel,
+    oral_booking_status: oralBookingStatus,
+    oral_booking_starts_at: oralBookingStartsAt,
+    oral_booking_ends_at: oralBookingEndsAt,
+    oral_final_level: oralFinalLevel,
+    oral_score: oralScoreVal,
     cover_url: coverUrl,
   }
 }
@@ -384,6 +428,7 @@ export async function fetchStudentCoursesList(): Promise<StudentListedCourse[]> 
         console.log('[EMC /student/courses] placement fields:', {
           requires_placement_test: s.requires_placement_test,
           placement_status: s.placement_status,
+          placement_progress_status: s.placement_progress && typeof s.placement_progress === 'object' ? (s.placement_progress as Record<string,unknown>).status : 'n/a',
           can_start_learning: s.can_start_learning,
           placement_score: s.placement_score,
           course_nested_keys: s.course && typeof s.course === 'object' ? Object.keys(s.course as object) : 'no nested course',
@@ -472,7 +517,11 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
 
   // Placement fields from registration payload
   const rawRequiresReg = o.requires_placement_test ?? o.requires_placement ?? nested?.requires_placement_test ?? nested?.requires_placement
-  const rawPlacementStatusReg = o.placement_status ?? nested?.placement_status
+  const ppObjReg =
+    o.placement_progress && typeof o.placement_progress === 'object' && !Array.isArray(o.placement_progress)
+      ? (o.placement_progress as Record<string, unknown>)
+      : null
+  const rawPlacementStatusReg = o.placement_status ?? ppObjReg?.status ?? nested?.placement_status
   const placementStatusReg = rawPlacementStatusReg != null && String(rawPlacementStatusReg).trim() !== '' ? String(rawPlacementStatusReg) : null
   const requiresPlacementTestReg =
     !!rawRequiresReg ||

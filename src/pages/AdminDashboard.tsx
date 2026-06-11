@@ -416,10 +416,38 @@ export default function AdminDashboard() {
             color="orange"
           />
           <QuickActionCard
+            icon={GraduationCap}
+            label="التسجيلات"
+            description="متابعة تسجيلات الطلاب"
+            href="/dashboard/registrations"
+            color="blue"
+          />
+          <QuickActionCard
+            icon={Wallet}
+            label="المدفوعات"
+            description="متابعة المدفوعات المعلقة"
+            href="/dashboard/finance"
+            color="orange"
+          />
+          <QuickActionCard
             icon={BarChart3}
             label="التقارير"
             description="تقارير الأداء والإحصاءات"
             href="/dashboard/admin/reports"
+            color="green"
+          />
+          <QuickActionCard
+            icon={CalendarClock}
+            label="الجلسات"
+            description="إدارة جلسات التدريب"
+            href="/dashboard/admin/lms/sessions"
+            color="blue"
+          />
+          <QuickActionCard
+            icon={Building2}
+            label="الإدارات"
+            description="هيكل الأقسام والإدارات"
+            href="/dashboard/super-admin/crud/departments"
             color="green"
           />
           <QuickActionCard

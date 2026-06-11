@@ -1,3 +1,6 @@
 export { InstructorHero } from './InstructorHero'
 export type { HeroPill } from './InstructorHero'
 export { InstructorEmptyState } from './InstructorEmptyState'
+export { InstructorStudentDrawer } from './InstructorStudentDrawer'
+export { CEFR_MAP, toDMY, toHM } from './InstructorStudentDrawer'
+export { InstructorStudentCard } from './InstructorStudentCard'

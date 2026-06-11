@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { RefreshCw } from 'lucide-react'
+import { ArrowRight, RefreshCw } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 export interface HeroPill { label: string; value: number | string }
 
@@ -11,17 +12,60 @@ interface Props {
   pills?: HeroPill[]
   onRefresh?: () => void
   refreshing?: boolean
+  /** If set, renders a back button above the title */
+  backTo?: string
+  backLabel?: string
   children?: ReactNode
 }
 
-export function InstructorHero({ title, subtitle, eyebrow, pills, onRefresh, refreshing, children }: Props) {
+export function InstructorHero({
+  title,
+  subtitle,
+  eyebrow,
+  pills,
+  onRefresh,
+  refreshing,
+  backTo,
+  backLabel = 'الدورات',
+  children,
+}: Props) {
+  const navigate = useNavigate()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-deepBlue via-[#1a2d44] to-customBlue px-6 py-6 shadow-[0_20px_50px_-20px_rgba(34,51,74,0.5)] sm:px-10"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] px-6 py-6 shadow-[0_20px_50px_-20px_rgba(34,51,74,0.5)] sm:px-10"
     >
-      <div aria-hidden className="pointer-events-none absolute -left-10 top-0 h-44 w-44 rounded-full bg-customOrange/15 blur-[80px]" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#EC943C]/15 blur-[80px]"
+      />
+
+      {/* Back button */}
+      {(backTo || backTo === '') && (
+        <div className="relative mb-3">
+          {backTo ? (
+            <Link
+              to={backTo}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black text-white/70 transition hover:bg-white/20 hover:text-white"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+              {backLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black text-white/70 transition hover:bg-white/20 hover:text-white"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+              {backLabel}
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div className="flex-1">
           {eyebrow && (
@@ -44,6 +88,7 @@ export function InstructorHero({ title, subtitle, eyebrow, pills, onRefresh, ref
           </button>
         )}
       </div>
+
       {pills && pills.length > 0 && (
         <div className="relative mt-4 flex flex-wrap gap-3">
           {pills.map((p) => (
@@ -54,6 +99,7 @@ export function InstructorHero({ title, subtitle, eyebrow, pills, onRefresh, ref
           ))}
         </div>
       )}
+
       {children && <div className="relative mt-3">{children}</div>}
     </motion.div>
   )

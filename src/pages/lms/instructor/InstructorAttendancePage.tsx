@@ -12,20 +12,24 @@ import { AttendanceTable } from '@/components/lms'
 import { InstructorEmptyState, InstructorHero } from '@/components/instructor'
 
 export default function InstructorAttendancePage() {
-  const [sessions, setSessions] = useState<LmsSession[]>([])
-  const [sessionId, setSessionId] = useState<number | ''>('')
-  const [rows, setRows] = useState<AttendanceRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [sessions,    setSessions]    = useState<LmsSession[]>([])
+  const [sessionId,   setSessionId]   = useState<number | ''>('')
+  const [rows,        setRows]        = useState<AttendanceRow[]>([])
+  const [loading,     setLoading]     = useState(true)
   const [loadingRows, setLoadingRows] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [apiMissing, setApiMissing] = useState(false)
-  const [notice, setNotice] = useState<{ ok?: boolean; text: string } | null>(null)
+  const [saving,      setSaving]      = useState(false)
+  const [apiMissing,  setApiMissing]  = useState(false)
+  const [notice,      setNotice]      = useState<{ ok?: boolean; text: string } | null>(null)
 
   useEffect(() => {
     let alive = true
     fetchInstructorSessions()
       .then((list) => { if (alive) setSessions(list) })
-      .catch((err) => { if (!alive || axios.isCancel(err)) return; setApiMissing(true) })
+      .catch((err) => {
+        if (!alive || axios.isCancel(err)) return
+        setApiMissing(true)
+        if (import.meta.env.DEV) console.error('[attendance] sessions load failed:', err)
+      })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
   }, [])
@@ -51,7 +55,10 @@ export default function InstructorAttendancePage() {
             if (!alive) return
             setRows(users.map((u) => ({ student_id: u.id, student_name: u.name, email: u.email ?? null, status: null })))
           })
-          .catch(() => setRows([]))
+          .catch((err) => {
+            if (import.meta.env.DEV) console.error('[attendance] students load failed:', err)
+            setRows([])
+          })
       })
       .finally(() => { if (alive) setLoadingRows(false) })
     return () => { alive = false }
@@ -75,7 +82,8 @@ export default function InstructorAttendancePage() {
         rows.map((r) => ({ student_id: r.student_id, status: r.status! })),
       )
       setNotice({ ok: true, text: 'تم حفظ الحضور بنجاح.' })
-    } catch {
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[attendance] save failed:', err)
       setNotice({ ok: false, text: 'تعذر الحفظ — تحقق من صلاحياتك أو نقطة النهاية على الخادم.' })
     } finally {
       setSaving(false)
@@ -88,8 +96,10 @@ export default function InstructorAttendancePage() {
       <InstructorHero
         title="تسجيل الحضور"
         subtitle="اختر الجلسة، حدّث الحالة، ثم احفظ دفعة واحدة"
-        pills={loading ? [] : [{ label: 'جلسة متاحة', value: sessions.length }]}
+        backTo="/dashboard/instructor/courses"
+        backLabel="الدورات"
         refreshing={loading}
+        pills={loading ? [] : [{ label: 'جلسة متاحة', value: sessions.length }]}
       />
 
       {apiMissing && import.meta.env.DEV && (
@@ -107,13 +117,13 @@ export default function InstructorAttendancePage() {
             <select
               value={sessionId}
               onChange={(e) => setSessionId(e.target.value === '' ? '' : Number(e.target.value))}
-              className="min-w-[260px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
+              className="min-w-[260px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
               dir="rtl"
             >
               <option value="">— اختر جلسة —</option>
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.title ?? s.course_name} · {s.date ?? s.starts_at ?? s.id}
+                  {s.title ?? s.course_name} · {(s as Record<string, unknown>).date as string ?? s.starts_at ?? s.id}
                 </option>
               ))}
             </select>
@@ -123,7 +133,7 @@ export default function InstructorAttendancePage() {
             type="button"
             disabled={sessionId === '' || saving || loadingRows || rows.length === 0}
             onClick={save}
-            className="rounded-xl bg-customOrange px-6 py-3 text-[13px] font-black text-white shadow-md transition hover:brightness-105 disabled:opacity-50"
+            className="rounded-xl bg-[#EC943C] px-6 py-3 text-[13px] font-black text-white shadow-md transition hover:brightness-105 disabled:opacity-50"
           >
             {saving ? 'جارٍ الحفظ...' : 'حفظ الحضور'}
           </button>
@@ -159,7 +169,7 @@ export default function InstructorAttendancePage() {
         <InstructorEmptyState
           icon={UserCheck}
           title="لا يوجد طلاب لهذه الجلسة"
-          description="قد تحتاج نقطة نهاية قائمة الطلاب على الخادم"
+          description="لا توجد بيانات متاحة لهذه الجلسة حالياً"
         />
       ) : (
         <AttendanceTable rows={rows} onChange={updateRow} disabled={saving} />

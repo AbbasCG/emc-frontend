@@ -37,7 +37,7 @@ export type ProfileWritePayload = {
   phone?: string | null
   city?: string | null
   country?: string | null
-  how_did_you_hear_about_us?: string | null
+  instructor_bio?: string | null
 }
 
 async function unwrapUserEnvelope(resData: unknown): Promise<User> {

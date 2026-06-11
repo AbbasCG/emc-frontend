@@ -26,7 +26,10 @@ export default function FinanceDashboardPage() {
   const [data, setData] = useState<FinanceDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [range, setRange] = useState({ from: '2026-01-01', to: '2026-06-30' })
+  const [range, setRange] = useState(() => {
+    const y = new Date().getFullYear()
+    return { from: `${y}-01-01`, to: `${y}-12-31` }
+  })
   const [applied, setApplied] = useState(range)
 
   useEffect(() => {

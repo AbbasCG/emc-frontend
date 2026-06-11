@@ -23,7 +23,11 @@ export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
 
 /** Legacy/API drift → canonical dashboard role slug */
 const ROLE_ALIASES: Record<string, string> = {
-  teacher: 'instructor',
+  teacher:      'instructor',
+  superadmin:   'super_admin',
+  'super-admin':'super_admin',
+  finance:      'finance_manager',
+  hr:           'hr_manager',
 }
 
 const ROLE_HOME: Record<string, string> = {
@@ -143,11 +147,28 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return ['instructor']
   }
 
+  /* Workshop requests — must be checked BEFORE generic namespace rules to override /dashboard/admin prefix */
+  if (
+    path === '/dashboard/admin/workshop-requests' ||
+    path.startsWith('/dashboard/admin/workshop-requests/')
+  ) {
+    return ['admin', 'super_admin', 'executive_admin', 'department_manager',
+            'quality_manager', 'finance_manager', 'marketing_manager', 'hr_manager', 'support_agent']
+  }
+
   for (const rule of DASHBOARD_NAMESPACE_RULES) {
     if (path === rule.prefix || path.startsWith(`${rule.prefix}/`)) return [...rule.roles]
   }
 
   if (matchesAdminWidePath(path)) return ['admin', 'super_admin']
+
+  /* /dashboard/members — internal member directory for admin + HR */
+  if (path === '/dashboard/members' || path.startsWith('/dashboard/members/'))
+    return ['admin', 'super_admin', 'hr_manager']
+
+  /* Course content management is admin/instructor, NOT student — check before student prefix */
+  if (/^\/dashboard\/courses\/[^/]+\/content(\/|$)/.test(path))
+    return ['admin', 'super_admin', 'instructor']
 
   /* Student LMS paths (/dashboard/courses/:id/modules, lessons, quizzes, …) */
   if (matchesAnyPrefix(path, STUDENT_EXTRA_PREFIXES)) return ['student']

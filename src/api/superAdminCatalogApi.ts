@@ -40,6 +40,27 @@ export async function fetchCoursesStrict(): Promise<{ ok: true; rows: Course[] }
   }
 }
 
+/** GET /admin/courses — returns all statuses (draft, published, archived) for super admin management. Falls back to /courses. */
+export async function fetchAdminCoursesStrict(): Promise<{ ok: true; rows: Course[] } | { ok: false }> {
+  const attempts = [
+    () => apiClient.get('/admin/courses', silent),
+    () => apiClient.get('/admin/courses', { ...silent, params: { per_page: 500 } }),
+    () => apiClient.get('/courses', { ...silent, params: { per_page: 500 } }),
+    () => apiClient.get('/courses', silent),
+  ]
+  for (const attempt of attempts) {
+    try {
+      const res = await attempt()
+      const body = res.data as unknown
+      const list = Array.isArray(body) ? (body as Course[]) : unwrapData<Course[]>(body)
+      if (Array.isArray(list)) return { ok: true, rows: list }
+    } catch {
+      /* try next */
+    }
+  }
+  return { ok: false }
+}
+
 /** GET /tracks */
 export async function fetchTracksStrict(): Promise<{ ok: true; rows: CatalogTrackRow[] } | { ok: false }> {
   try {

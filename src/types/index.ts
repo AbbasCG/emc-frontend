@@ -12,6 +12,7 @@ export type User = {
   gender?: string | null
   department?: string | null
   how_did_you_hear_about_us?: string | null
+  instructor_bio?: string | null
   avatar_url?: string | null
   /** When API exposes verification / timestamps (may be omitted on lite payloads). */
   email_verified_at?: string | null
@@ -123,6 +124,14 @@ export type Enrollment = {
   placement_status?: string | null
   placement_score?: number | null
   placement_total?: number | null
+  placement_percentage?: number | null
+  placement_estimated_level?: string | null
+  /** Oral assessment booking fields */
+  oral_booking_status?: string | null
+  oral_booking_starts_at?: string | null
+  oral_booking_ends_at?: string | null
+  oral_final_level?: string | null
+  oral_score?: number | null
   can_start_learning?: boolean | null
 }
 

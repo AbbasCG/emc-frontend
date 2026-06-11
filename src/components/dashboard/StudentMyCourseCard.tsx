@@ -4,7 +4,9 @@ import {
   BookOpen,
   Calendar,
   CalendarClock,
+  CheckCircle,
   ClipboardCheck,
+  Clock,
   LayoutList,
   MessageSquare,
   PlayCircle,
@@ -16,7 +18,7 @@ import logo from '@/assets/logo.png'
 import type { Course, Enrollment } from '@/types'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
-import { getLevelFromScore } from '@/api/placementApi'
+import { getLevelFromScore, progressFromStatus } from '@/api/placementApi'
 
 const CEFR_CODE: Record<string, string> = {
   beginner:           'Starter',
@@ -72,9 +74,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
   const detailHref = slug ? `/courses/${slug}` : '/dashboard/student/registrations'
   const courseId = enrollment.course.id
 
-  // ── Placement logic ──────────────────────────────────────────────────────────
-  // Read from typed Enrollment/Course fields (now preserved through normalization pipeline)
-  // Fall back to Record cast in case of pass-through extras from older code paths
+  // ── Placement logic — source of truth is placement_progress from API ─────────
   const cx = course as Record<string, unknown>
   const requiresPlacement = !!(
     course.requires_placement_test ||
@@ -82,46 +82,33 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
     cx.requires_placement_test ||
     cx.requires_placement
   )
-  const placementStatus   = enrollment.placement_status ?? (enrollment as Record<string, unknown>).placement_status as string | undefined
-  const writtenScore      = enrollment.placement_score  ?? (enrollment as Record<string, unknown>).placement_score  as number | undefined
-  const writtenTotal      = enrollment.placement_total  ?? (enrollment as Record<string, unknown>).placement_total  as number | undefined
+  const placementStatus      = enrollment.placement_status       ?? null
+  const writtenScore         = enrollment.placement_score        ?? null
+  const writtenTotal         = enrollment.placement_total        ?? null
+  const writtenPct           = enrollment.placement_percentage   ?? null
+  const writtenEstLevel      = enrollment.placement_estimated_level ?? null
+  const oralBookingStatus    = enrollment.oral_booking_status    ?? null
+  const oralBookingStartsAt  = enrollment.oral_booking_starts_at ?? null
+  const oralBookingEndsAt    = enrollment.oral_booking_ends_at   ?? null
+  const oralFinalLevel       = enrollment.oral_final_level       ?? null
+  const oralScoreVal         = enrollment.oral_score             ?? null
 
-  const placementDone = placementStatus === 'completed'
-  const inProgress    = placementStatus === 'in_progress'
+  const progress = progressFromStatus(placementStatus, !!(enrollment.can_start_learning))
 
-  // Written test done — match canonical status AND common backend aliases
-  const writtenSubmitted =
-    placementStatus === 'written_submitted' ||
-    placementStatus === 'waiting_oral'      ||
-    placementStatus === 'oral_pending'      ||
-    placementStatus === 'pending_oral'      ||
-    placementStatus === 'pending_interview' ||
-    placementStatus === 'test_completed'    ||
-    placementStatus === 'written_completed'
+  const placementLocked = requiresPlacement && !progress.level_approved
 
-  const oralBooked = placementStatus === 'oral_booked' || placementStatus === 'oral_completed'
-
-  // 'placement_required' / 'not_started' = no attempt yet
-  const needsStart = placementStatus === 'placement_required' || placementStatus === 'not_started'
-
-  // Fallback: if we have a score but status is some unknown string (not in_progress, not booked, not done)
-  // treat it as written-submitted rather than defaulting to 'start'
-  const hasWrittenScore = writtenScore != null
-  const testDoneByScore = hasWrittenScore && !inProgress && !oralBooked && !placementDone && !needsStart && !writtenSubmitted
-
-  // True if placement is required but not yet fully done
-  const placementLocked = requiresPlacement && !placementDone
-
-  // Which primary action to show
-  type PlacementState = 'none' | 'start' | 'resume' | 'oral' | 'waiting' | 'done'
+  type PlacementState = 'none' | 'start' | 'resume' | 'oral' | 'waiting' | 'awaiting_result' | 'done'
   const placementState: PlacementState =
-    !requiresPlacement                     ? 'none'
-    : placementDone                        ? 'done'
-    : oralBooked                           ? 'waiting'
-    : (writtenSubmitted || testDoneByScore) ? 'oral'
-    : inProgress                           ? 'resume'
-    : needsStart                           ? 'start'
-    :                                        'start'
+    !requiresPlacement           ? 'none'
+    : progress.level_approved    ? 'done'
+    : progress.oral_done         ? 'awaiting_result'
+    : progress.oral_booked       ? 'waiting'
+    : progress.written_done      ? 'oral'
+    : progress.status === 'in_progress' ? 'resume'
+    : 'start'
+
+  // can_start means the student may enter the course
+  const canLearn = placementState === 'none' || placementState === 'done'
 
   return (
     <motion.article
@@ -159,12 +146,14 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
           </span>
           {placementLocked && (
             <span className={`rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-[2px] ${
-              placementState === 'waiting' ? 'bg-emerald-600/95'
-              : placementState === 'oral'  ? 'bg-customBlue/95'
+              placementState === 'awaiting_result' ? 'bg-purple-600/95'
+              : placementState === 'waiting'       ? 'bg-emerald-600/95'
+              : placementState === 'oral'          ? 'bg-customBlue/95'
               : 'bg-amber-500/95'
             }`}>
-              {placementState === 'waiting' ? 'تم حجز المقابلة'
-               : placementState === 'oral'  ? 'بانتظار المقابلة الشفوية'
+              {placementState === 'awaiting_result' ? 'بانتظار اعتماد المستوى'
+               : placementState === 'waiting'       ? 'تم حجز المقابلة'
+               : placementState === 'oral'          ? 'بانتظار المقابلة الشفوية'
                : 'اختبار تحديد المستوى'}
             </span>
           )}
@@ -225,9 +214,10 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
         </div>
 
         {/* Written test score summary (after submission) */}
-        {(writtenSubmitted || oralBooked || placementDone) && writtenScore != null && (() => {
+        {progress.written_done && writtenScore != null && (() => {
           const lvl = getLevelFromScore(writtenScore, writtenTotal ?? 70)
-          const cefrCode = CEFR_CODE[lvl.level] ?? lvl.level
+          const cefrCode = CEFR_CODE[writtenEstLevel ?? lvl.level] ?? CEFR_CODE[lvl.level] ?? lvl.level
+          const displayPct = writtenPct ?? (writtenTotal ? Math.round((writtenScore / writtenTotal) * 100) : null)
           return (
             <div className="mt-3 rounded-2xl border border-emerald-200/70 bg-emerald-50/70 px-3 py-2.5">
               <div className="flex items-center justify-between gap-2">
@@ -237,6 +227,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
                 </div>
                 <span className="font-mono text-[12px] font-black tabular-nums text-deepBlue">
                   {writtenScore}/{writtenTotal ?? 70}
+                  {displayPct != null && <span className="text-deepBlue/40"> ({displayPct}%)</span>}
                 </span>
               </div>
               <p className="mt-1 text-[11px] font-bold text-emerald-700/70">
@@ -246,6 +237,45 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </div>
           )
         })()}
+
+        {/* Oral booking info — shown when interview is booked */}
+        {placementState === 'waiting' && oralBookingStartsAt && (
+          <div className="mt-3 rounded-2xl border border-emerald-200/70 bg-emerald-50/70 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-black text-emerald-700">
+              <Calendar className="h-3.5 w-3.5" aria-hidden />
+              موعد المقابلة الشفوية
+            </div>
+            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-deepBlue/70">
+              <Clock className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden />
+              <span dir="ltr" className="font-mono tabular-nums">
+                {(() => {
+                  try {
+                    const d = new Date(oralBookingStartsAt)
+                    const date = d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
+                    const time = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+                    return `${date} — ${time}`
+                  } catch { return oralBookingStartsAt }
+                })()}
+              </span>
+            </p>
+          </div>
+        )}
+
+        {/* Final level — shown after oral is completed and level is approved */}
+        {oralFinalLevel && (
+          <div className="mt-3 rounded-2xl border border-violet-200/70 bg-violet-50/70 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-black text-violet-700">
+                <CheckCircle className="h-3.5 w-3.5" aria-hidden />
+                المستوى النهائي
+              </div>
+              <span className="font-mono text-[12px] font-black tabular-nums text-deepBlue">
+                {oralFinalLevel}
+                {oralScoreVal != null && <span className="text-deepBlue/40"> · {oralScoreVal}</span>}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* ── Primary Action Button ────────────────────────────────────── */}
         <div className="mt-4 grid gap-2">
@@ -289,13 +319,38 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </Link>
           )}
 
-          {(placementState === 'none' || placementState === 'done') && (
+          {placementState === 'awaiting_result' && (
+            <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-purple-600 to-purple-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-purple-400/20 opacity-80 cursor-default select-none">
+              <Award className="h-4 w-4" aria-hidden />
+              بانتظار اعتماد المستوى
+            </div>
+          )}
+
+          {canLearn && isCompleted && (
+            <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/20 opacity-80 cursor-default select-none">
+              <CheckCircle className="h-4 w-4 opacity-95" aria-hidden />
+              مكتملة
+            </div>
+          )}
+
+          {canLearn && !isCompleted && pct > 0 && (
             <Link
               to={learnHref}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-deepBlue to-[#2e4a63] px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-deepBlue/20 transition hover:brightness-[1.05]"
             >
               <BookOpen className="h-4 w-4 opacity-95" aria-hidden />
               متابعة التعلم
+              <ArrowLeft className="h-4 w-4 opacity-90" aria-hidden />
+            </Link>
+          )}
+
+          {canLearn && !isCompleted && pct === 0 && (
+            <Link
+              to={learnHref}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/25 transition hover:brightness-105"
+            >
+              <BookOpen className="h-4 w-4 opacity-95" aria-hidden />
+              ابدأ التعلم
               <ArrowLeft className="h-4 w-4 opacity-90" aria-hidden />
             </Link>
           )}

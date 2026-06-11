@@ -20,6 +20,7 @@ export async function registerAccount(input: {
   phone: string
   city: string
   gender: string
+  how_did_you_hear_about_us?: string
 }): Promise<AuthPayload> {
   const res = await apiClient.post<unknown>('/auth/register', input, { skipErrorToast: true })
   return normalizeAuthLoginPayload(unwrapData(res.data))
@@ -57,11 +58,5 @@ export async function resetPassword(params: {
 
 /** Best-effort server session invalidation; callers must always clear client state regardless of outcome. */
 export async function logoutRemote(): Promise<void> {
-  const opts = { skipErrorToast: true as const }
-  try {
-    await apiClient.post('/logout', undefined, opts)
-    return
-  } catch {
-    await apiClient.post('/auth/logout', undefined, opts).catch(() => {})
-  }
+  await apiClient.post('/auth/logout', undefined, { skipErrorToast: true as const }).catch(() => {})
 }

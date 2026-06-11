@@ -556,9 +556,9 @@ export default function CourseDetails() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
             >
-              <CardHeading>المدرب</CardHeading>
+              <CardHeading>نبذة عن المدرّب</CardHeading>
 
-              <div className="mt-7 flex items-center gap-4">
+              <div className="mt-6 flex items-center gap-4">
                 <img
                   src={
                     instructor.assigned ?
@@ -566,30 +566,32 @@ export default function CourseDetails() {
                     : EMC_INSTRUCTOR_AVATAR_PLACEHOLDER
                   }
                   alt=""
-                  className="h-20 w-20 rounded-full object-cover ring-4 ring-sky-50"
+                  className="h-16 w-16 rounded-full object-cover ring-4 ring-sky-50 shrink-0"
                 />
 
-                <div>
-                  <h3 className="text-xl font-black text-deepBlue">{instructorHeading}</h3>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-black text-deepBlue leading-snug">{instructorHeading}</h3>
                   {instructor.assigned && instructor.title ?
-                    <p className="mt-1 text-sm font-bold text-customBlue">{instructor.title}</p>
+                    <p className="mt-0.5 text-sm font-bold text-customBlue">{instructor.title}</p>
+                  : null}
+                  {instructor.assigned && instructor.email ?
+                    <a
+                      href={`mailto:${instructor.email}`}
+                      className="mt-1 block truncate text-xs font-semibold text-slate-500 hover:text-customBlue"
+                      dir="ltr"
+                    >
+                      {instructor.email}
+                    </a>
                   : null}
                 </div>
               </div>
 
-              {instructor.assigned && instructor.email ?
-                <p className="mt-4 text-sm font-semibold text-slate-600">
-                  البريد:{' '}
-                  <a href={`mailto:${instructor.email}`} className="text-customBlue hover:underline">
-                    {instructor.email}
-                  </a>
-                </p>
-              : null}
-
               {instructor.assigned && instructor.bio ?
-                <p className="mt-5 whitespace-pre-line leading-8 text-slate-600">{instructor.bio}</p>
-              : instructor.assigned ?
-                null
+                <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-4">
+                  <p className="whitespace-pre-line text-sm font-semibold leading-8 text-slate-700">
+                    {instructor.bio}
+                  </p>
+                </div>
               : null}
 
               <motion.div whileHover={{ scale: 1.03 }} className="mt-6">

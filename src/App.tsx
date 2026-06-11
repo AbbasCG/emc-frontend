@@ -170,6 +170,10 @@ const HrOnboardingPage  = lazy(() => import('./pages/hr/HrOnboardingPage'))
 const HrTasksPage       = lazy(() => import('./pages/hr/HrTasksPage'))
 const HrDocumentsPage   = lazy(() => import('./pages/hr/HrDocumentsPage'))
 
+// ── Lazy: workshop request workflow ──────────────────────────────────────────
+const WorkshopRequestsPage        = lazy(() => import('./pages/WorkshopRequestsPage'))
+const WorkshopRequestDetailPage   = lazy(() => import('./pages/WorkshopRequestDetailPage'))
+
 // ── Lazy: dashboard pages — super admin ──────────────────────────────────────
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
 const VolunteerRequestsPage       = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
@@ -471,6 +475,8 @@ function App() {
                   <Route path="/dashboard/admin/ai/automations" element={<AdminAiAutomationsPage />} />
                   <Route path="/dashboard/admin/ai/insights" element={<AdminAiInsightsPage />} />
                   <Route path="/dashboard/admin/ai/usage" element={<AdminAiUsagePage />} />
+                  <Route path="/dashboard/admin/workshop-requests" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/workshop-requests/:id" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestDetailPage /></Suspense>} />
                 </Route>
 
               </Route>

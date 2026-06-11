@@ -35,15 +35,6 @@ function formatTime(secs: number): string {
   return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`
 }
 
-function formatDateAr(iso: string | null): string {
-  if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleDateString('ar-SA', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    })
-  } catch { return iso }
-}
-
 type Phase = 'checking' | 'intro' | 'starting' | 'test' | 'result'
 
 const LEVEL_GRADIENT: Record<string, string> = {

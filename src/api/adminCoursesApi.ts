@@ -132,6 +132,7 @@ export type CourseUpsertPayload = {
   start_time?: string | null
   /** Related titles — plain strings; persisted as course_features rows on backend */
   features?: string[]
+  requires_placement_test?: boolean
 }
 
 function unwrapCourse(res: unknown): Course {
@@ -316,7 +317,6 @@ export async function assignInstructorToCourse(courseId: number, instructorId: n
     () => apiClient.post(`/admin/courses/${courseId}/assign-instructor`, body, silent),
     () => apiClient.patch(`/admin/courses/${courseId}`, body, silent),
     () => apiClient.put(`/admin/courses/${courseId}`, body, silent),
-    () => apiClient.post(`/admin/courses/${courseId}/instructor`, body, silent),
   ]
   let last: unknown
   for (const run of attempts) {
@@ -353,6 +353,14 @@ export async function patchCoursePublishState(courseId: number, isPublished: boo
   return firstSuccessfulCourseRequest([
     () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, { is_published: isPublished, status: isPublished ? 'published' : 'draft' }),
     () => apiClient.patch<unknown>(`/courses/${courseId}`, { is_published: isPublished, status: isPublished ? 'published' : 'draft' }),
+  ])
+}
+
+export async function patchCourseStatus(courseId: number, status: 'draft' | 'published' | 'archived'): Promise<Course> {
+  return firstSuccessfulCourseRequest([
+    () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, { status }, silent),
+    () => apiClient.put<unknown>(`/admin/courses/${courseId}`, { status }, silent),
+    () => apiClient.patch<unknown>(`/courses/${courseId}`, { status }, silent),
   ])
 }
 
