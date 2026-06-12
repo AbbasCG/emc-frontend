@@ -1,7 +1,7 @@
 const sessionLabels: Record<string, string> = {
-  scheduled: 'مجدولة',
-  live: 'مباشر',
-  completed: 'مكتملة',
+  scheduled: 'قادمة',
+  live: 'مباشرة الآن',
+  completed: 'انتهت',
   cancelled: 'ملغاة',
 }
 
@@ -22,6 +22,7 @@ const submissionLabels: Record<string, string> = {
   pending_review: 'بانتظار المراجعة',
   reviewed: 'تمت المراجعة',
   needs_revision: 'يحتاج تسليماً جديداً',
+  not_submitted: 'لم يُسلّم',
 }
 
 export default function LmsStatusBadge({ status, kind = 'neutral' }: Props) {

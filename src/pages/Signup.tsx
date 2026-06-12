@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, Phone, UserPlus, UserRound } from 'lucide-react'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
+import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
 import CountrySelector, { type Country } from '../components/ui/CountrySelector'
 
 export default function Signup() {
   const { registerAccount } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTo = safeEnrollmentRedirect(searchParams.get('redirect'))
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -70,7 +73,7 @@ export default function Signup() {
       }
 
       await registerAccount(payload)
-      navigate('/dashboard', { replace: true })
+      navigate(redirectTo ?? '/dashboard', { replace: true })
     } catch (err: unknown) {
       if (import.meta.env.DEV) {
         console.log('[DEV] REGISTER ERROR', err)
@@ -306,7 +309,14 @@ export default function Signup() {
 
             <p className="mt-8 text-center text-sm font-bold text-slate-500">
               لديك حساب بالفعل؟{' '}
-              <Link to="/login" className="text-customBlue transition hover:text-customOrange">
+              <Link
+                to={
+                  redirectTo ?
+                    `/login?next=${encodeURIComponent(redirectTo)}`
+                  : '/login'
+                }
+                className="text-customBlue transition hover:text-customOrange"
+              >
                 تسجيل الدخول
               </Link>
             </p>

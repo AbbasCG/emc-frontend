@@ -214,7 +214,7 @@ export default function AppFileUpload({
 
           {/* Compression stats */}
           {cs.phase === 'done' && cs.result && cs.result.savedPercent > 0 && (
-            <div className="mt-2.5 flex flex-wrap items-center justify-end gap-2 border-t border-amber-100 pt-2.5 text-xs">
+            <div className="mt-2.5 flex flex-wrap items-center justify-start gap-2 border-t border-amber-100 pt-2.5 text-xs">
               <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 font-black text-emerald-700">
                 <Check size={11} aria-hidden="true" />
                 وفّرنا {cs.result.savedPercent}%

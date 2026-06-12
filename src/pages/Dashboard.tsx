@@ -5,8 +5,6 @@ import {
   Calendar,
   CheckCircle,
   ClipboardList,
-  GraduationCap,
-  MessageSquareQuote,
   ScrollText,
   TrendingUp,
 } from 'lucide-react'
@@ -36,7 +34,6 @@ import {
   EnrolledCourseCard,
   NotificationItem,
   StatCard,
-  UpcomingSessionCard,
 } from '../components/dashboard'
 import { AssignmentCard, ProgressRing, SessionCard } from '@/components/lms'
 import { courseImages } from '@/utils/course'
@@ -51,6 +48,9 @@ import type { StudentLmsDashboard, LmsSession } from '@/types/lms'
 import { mergeStudentEnrollments } from '@/utils/studentEnrollmentMerge'
 import { normalizeStudentDashboardPayload } from '@/utils/studentDashboardEnvelope'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
+import { formatDateTime } from '@/utils/dateTime'
+import { getUserAvatarUrl, getUserInitials } from '@/utils/userIdentity'
+import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 
 function toFiniteStat(n: unknown, fallback = 0): number {
   if (typeof n === 'number' && Number.isFinite(n)) return n
@@ -226,6 +226,17 @@ export default function Dashboard() {
   const certPlaceholders = Array.isArray(lmsDash?.certificates_placeholder) ? [...lmsDash.certificates_placeholder] : []
 
   const pendingDueCount = pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
+  const activeCoursesCount = currentLmsCourses.filter((c) => {
+    const st = String(c.status ?? '').toLowerCase()
+    return !st.includes('complete')
+  }).length
+  const placementCompletedCount = currentLmsCourses.filter((c) => {
+    const st = String(c.placement_status ?? '').toLowerCase()
+    return st === 'completed' || st.includes('complete')
+  }).length
+  const classAssignment = currentLmsCourses.find((c) => c.class_assignment)?.class_assignment ?? null
+  const avatarUrl = getUserAvatarUrl(user ?? null)
+  const avatarInitials = getUserInitials(user ?? null)
   const unreadCount = dashboardNotifications.filter((n) => {
     if (typeof n.is_read === 'boolean') return !n.is_read
     return n.read_at == null || String(n.read_at).trim() === ''
@@ -251,9 +262,9 @@ export default function Dashboard() {
   const heroStats = lmsLoading
     ? undefined
     : [
-        { label: 'الدورات',    value: enrollmentsMerged.length                             },
-        { label: 'تقدّمي',     value: lmsDash ? `${Math.round(lmsDash.progress_percent)}%` : '—' },
-        { label: 'جلسات قادمة', value: Array.isArray(sessions) ? sessions.length : 0       },
+        { label: 'دوراتي',      value: enrollmentsMerged.length || currentLmsCourses.length },
+        { label: 'واجبات معلّقة', value: pendingDueCount },
+        { label: 'جلسات قادمة', value: upcomingLmsRaw.length || (Array.isArray(sessions) ? sessions.length : 0) },
       ]
 
   return (
@@ -265,6 +276,8 @@ export default function Dashboard() {
         role="بوابة الطالب"
         subtitle={learningLine}
         quickStats={heroStats}
+        avatarUrl={avatarUrl}
+        avatarInitials={avatarInitials}
         actions={
           <>
             <HeroChip href="/dashboard/student/materials"  label="المقررات والمواد" />
@@ -290,23 +303,37 @@ export default function Dashboard() {
       ) : lmsError ? (
         <DashboardErrorWidget title="تعذّر تحميل بيانات التعلّم" description={lmsError} compact />
       ) : lmsDash ? (
+        <>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <DashboardKpiCard label="التقدّم المعرفي"         value={`${Math.round(lmsDash.progress_percent)}%`} icon={TrendingUp}    variant="brand"  />
-          <DashboardKpiCard label="الحضور المسجل"           value={`${Math.round(lmsDash.attendance_percent)}%`} icon={Calendar}   variant="brand"  />
+          <DashboardKpiCard label="دورات نشطة"              value={String(activeCoursesCount || activeEnrollCount)} icon={BookOpen}      variant="brand"  />
           <DashboardKpiCard label="واجبات تنتظر التسليم"   value={String(pendingDueCount)}                       icon={ClipboardList} variant="accent" />
-          <DashboardKpiCard label="شهادات قيد الإصدار"     value={String(certPlaceholders.length)}               icon={ScrollText} variant="muted"  />
+          <DashboardKpiCard label="اختبار تحديد مكتمل"     value={String(placementCompletedCount)}               icon={CheckCircle}   variant="muted"  />
         </div>
+        {classAssignment && (
+          <div className="rounded-2xl border border-customBlue/20 bg-customBlue/[0.05] px-5 py-4 ring-1 ring-customBlue/10">
+            <p className="text-[11px] font-black uppercase tracking-wider text-customBlue/70">صفّك / مجموعتك</p>
+            <p className="mt-1 text-sm font-black text-deepBlue">{classAssignment.name}</p>
+            <p className="mt-1 text-[12px] font-semibold text-slate-600">
+              {classAssignment.level_code ? `المستوى: ${classAssignment.level_code}` : null}
+              {classAssignment.schedule_day ? ` · ${classAssignment.schedule_day}` : null}
+              {classAssignment.schedule_time ? ` · ${classAssignment.schedule_time}` : null}
+              {classAssignment.instructor_name ? ` · ${classAssignment.instructor_name}` : null}
+            </p>
+          </div>
+        )}
+        </>
       ) : null}
 
       {/* 3 — Overview stats */}
       <DashboardSection title="نظرتي التعليمية السريعة" subtitle="كل الأرقام من بياناتك الحقيقية فقط.">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          <StatCard title="الدورات المسجّلة"    value={String(enrollmentsMerged.length)}                              icon={BookOpen}           color="blue"   />
-          <StatCard title="جلسات قادمة"         value={String(Array.isArray(sessions) ? sessions.length : 0)}         icon={Calendar}           color="orange" />
-          <StatCard title="دورات مكتملة"        value={String(completedEnrollCount)}                                   icon={CheckCircle}        color="green"  />
-          <StatCard title="إشعار غير مقروء"     value={String(unreadCount)}                                            icon={Bell}               color="purple" />
-          <StatCard title="شهادات مكتسبة"       value={String(toFiniteStat(stats.completed_certificates, 0))}          icon={GraduationCap}      color="orange" />
-          <StatCard title="مراجعات مستحقة"      value={String(completedEnrollCount)}                                   icon={MessageSquareQuote} color="blue"   />
+          <StatCard title="الدورات المسجّلة"    value={String(enrollmentsMerged.length || currentLmsCourses.length)} icon={BookOpen}           color="blue"   />
+          <StatCard title="دورات نشطة"          value={String(activeCoursesCount || activeEnrollCount)}              icon={BookOpen}           color="blue"   />
+          <StatCard title="جلسات قادمة"         value={String(upcomingLmsRaw.length || (Array.isArray(sessions) ? sessions.length : 0))} icon={Calendar} color="orange" />
+          <StatCard title="واجبات معلّقة"       value={String(pendingDueCount)}                                      icon={ClipboardList}      color="orange" />
+          <StatCard title="تحديد مستوى مكتمل"   value={String(placementCompletedCount)}                              icon={CheckCircle}        color="green"  />
+          <StatCard title="إشعار غير مقروء"     value={String(unreadCount)}                                          icon={Bell}               color="purple" />
         </div>
       </DashboardSection>
 
@@ -340,34 +367,41 @@ export default function Dashboard() {
             ))}
           </div>
         ) : !lmsLoading && currentLmsCourses.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {currentLmsCourses.slice(0, 6).map((c, idx) => {
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {currentLmsCourses.slice(0, 8).map((c) => {
               const pct = typeof c.progress_percent === 'number' ? Math.round(c.progress_percent) : 0
               const hrefContinue = studentLearnHref(c.id)
+              const cover = resolvePublicAssetUrl(c.cover_url ?? null)
+              const when =
+                c.start_date ?
+                  formatDateTime(c.start_time ? `${String(c.start_date).slice(0, 10)}T${c.start_time}` : c.start_date)
+                : null
               return (
                 <motion.div
                   key={c.id}
                   layout
                   whileHover={{ y: -3 }}
-                  className="flex flex-col gap-4 rounded-2xl border border-deepBlue/[0.06] bg-white p-5 shadow-sm ring-1 ring-deepBlue/[0.03]"
+                  className="flex flex-col gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm ring-1 ring-deepBlue/[0.03]"
                 >
-                  <div className="min-h-[6.75rem] overflow-hidden rounded-xl">
-                    <img alt="" src={courseImages[idx % courseImages.length]} className="h-full w-full rounded-xl object-cover" />
+                  <div className="aspect-[16/10] overflow-hidden rounded-xl bg-slate-100">
+                    {cover ?
+                      <img alt="" src={cover} className="h-full w-full object-cover" />
+                    : <img alt="" src={courseImages[c.id % courseImages.length]} className="h-full w-full object-cover" />}
                   </div>
                   <div>
-                    <h3 className="text-[1rem] font-black leading-snug text-deepBlue">{c.title}</h3>
+                    <h3 className="line-clamp-2 text-[14px] font-black leading-snug text-deepBlue">{c.title}</h3>
                     {c.instructor_name && (
                       <p className="mt-1 text-[11px] font-bold text-slate-500">مع المدرب: {c.instructor_name}</p>
                     )}
-                    {c.start_date != null && String(c.start_date).trim() !== '' ? (
-                      <p className="mt-2 text-[11px] font-bold text-slate-600" dir="ltr">
-                        {String(c.start_date).slice(0, 10)}
-                        {c.start_time ? ` — ${c.start_time}` : ''}
-                      </p>
-                    ) : (
+                    {when ?
+                      <p className="mt-2 text-[11px] font-bold text-slate-600">{when}</p>
+                    : (
                       <p className="mt-2 rounded-lg border border-sky-200/80 bg-sky-50/90 px-2 py-1.5 text-[10px] font-bold text-sky-950">
-                        انضممت إلى الدورة القادمة — سيتم إشعارك عند تحديد الموعد
+                        انضممت إلى الدورة — سيتم إشعارك عند تحديد الموعد
                       </p>
+                    )}
+                    {c.class_assignment?.name && (
+                      <p className="mt-2 text-[10px] font-black text-customBlue">الصف: {c.class_assignment.name}</p>
                     )}
                   </div>
                   {pct > 0 || c.progress_percent !== undefined ? (
@@ -462,27 +496,11 @@ export default function Dashboard() {
         >
           {lmsLoading ? (
             <DashboardListSkeleton count={3} />
-          ) : Array.isArray(sessions) && sessions.length > 0 ? (
+          ) : upcomingLmsRaw.length > 0 ? (
             <ol className="relative space-y-5 border-e-2 border-customBlue/20 pe-8">
-              {upcomingLmsRaw.length > 0
-                ? upcomingLmsRaw.slice(0, 8).map((s) => (
-                    <li key={s.id}><SessionCard session={s} /></li>
-                  ))
-                : sessions.slice(0, 8).map((s) => (
-                    <li key={s.id} className="relative">
-                      <span className="absolute -end-[27px] top-3 grid h-2.5 w-2.5 place-items-center rounded-full bg-customBlue ring-[5px] ring-white" />
-                      <UpcomingSessionCard
-                        courseName={s.course_name}
-                        date={s.date ? s.date : '—'}
-                        time={s.time ?? undefined}
-                        type={s.type}
-                        instructor={s.instructor_name ?? undefined}
-                        location={s.location ?? undefined}
-                        meetingLink={s.meeting_link ?? undefined}
-                        platform={s.platform ?? undefined}
-                      />
-                    </li>
-                  ))}
+              {upcomingLmsRaw.slice(0, 8).map((s) => (
+                <li key={s.id}><SessionCard session={s} joinMeetingLabel="انضم للجلسة" /></li>
+              ))}
             </ol>
           ) : (
             <EmptyState icon={Calendar} title="لم تُحمّل جلسات قريبة بعد" />

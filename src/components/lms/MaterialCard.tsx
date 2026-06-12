@@ -52,7 +52,7 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
           {material.description && (
             <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">{material.description}</p>
           )}
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-[11px] font-bold text-slate-400">
+          <div className="mt-3 flex flex-wrap items-center justify-start gap-2 text-[11px] font-bold text-slate-400">
             {material.size_label && <span>{material.size_label}</span>}
             {material.updated_at && <span>آخر تحديث: {material.updated_at}</span>}
           </div>

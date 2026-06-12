@@ -51,7 +51,7 @@ export default function ImpactActivitiesSection() {
         />
 
         <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-deepBlue/[0.085] bg-white/[0.9] p-5 shadow-md ring-1 ring-white backdrop-blur-md lg:flex-row-reverse lg:flex-wrap lg:items-center lg:justify-between lg:gap-5 lg:p-6">
-          <div className="flex flex-wrap items-center justify-end gap-2 lg:justify-start">
+          <div className="flex flex-wrap items-center justify-start gap-2 lg:justify-start">
             <span className="inline-flex items-center gap-2 text-xs font-black text-deepBlue/65">
               <Filter size={16} className="text-customOrange" aria-hidden />
               التصنيف

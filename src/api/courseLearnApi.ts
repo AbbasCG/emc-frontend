@@ -61,18 +61,23 @@ export function mapCourseLearnAssignmentToStudentAssignment(
   a: CourseLearnAssignment,
   ctx: { courseId: number; courseTitle: string },
 ): StudentAssignment {
+  const submitId = a.lms_assignment_id ?? a.assignment_id ?? a.id
+  const mySub = a.my_submission
+  const submittedAt = a.submitted_at ?? mySub?.submitted_at ?? null
+  const statusRaw = a.status ?? mySub?.status ?? null
+
   return {
     id: a.id,
     course_id: ctx.courseId,
-    assignment_id: a.assignment_id ?? a.id,
+    assignment_id: submitId,
     title: a.title,
     course_name: ctx.courseTitle,
     due_at: a.due_at ?? null,
-    status: normalizeLearnAssignmentStatus(a.status),
-    score: a.score ?? null,
+    status: normalizeLearnAssignmentStatus(statusRaw),
+    score: a.score ?? mySub?.score ?? null,
     max_score: a.max_points ?? null,
-    feedback: a.feedback ?? null,
-    submitted_at: null,
+    feedback: a.feedback ?? mySub?.feedback ?? null,
+    submitted_at: submittedAt,
   }
 }
 
@@ -203,14 +208,26 @@ function normalizeModules(rawList: unknown[]): StudentLearnModule[] {
     const id = toNum(o.id)
     const course_id = o.course_id != null ? toNum(o.course_id, 0) : undefined
     if (id <= 0) continue
-    const title = str(o.title) || `وحدة ${id}`
+    const title = str(o.title)
+    if (!title) continue
+    const completedLessons = o.completed_lessons_count != null
+      ? toNum(o.completed_lessons_count)
+      : o.completed_lessons != null
+        ? toNum(o.completed_lessons)
+        : undefined
     out.push({
       id,
       course_id: course_id && course_id > 0 ? course_id : undefined,
       title,
       sort_order: toNum(o.sort_order, out.length),
       lessons_count: toNum(o.lessons_count, 0),
-      completed_lessons: o.completed_lessons != null ? toNum(o.completed_lessons) : undefined,
+      completed_lessons: completedLessons,
+      completed_lessons_count: completedLessons,
+      assignments_count: o.assignments_count != null ? toNum(o.assignments_count) : undefined,
+      submitted_assignments_count:
+        o.submitted_assignments_count != null ? toNum(o.submitted_assignments_count) : undefined,
+      progress_percentage: o.progress_percentage != null ? toNum(o.progress_percentage) : undefined,
+      is_completed: o.is_completed != null ? Boolean(o.is_completed) : undefined,
     })
   }
   return [...out].sort((a, b) => a.sort_order - b.sort_order)
@@ -221,7 +238,7 @@ function normalizeLearnSessions(rawList: unknown[]): CourseLearnSession[] {
   for (const r of rawList) {
     if (!r || typeof r !== 'object' || Array.isArray(r)) continue
     const o = r as Record<string, unknown>
-    const id = toNum(o.id)
+    const id = toNum(o.id ?? o.session_id ?? o.lms_session_id ?? o.course_session_id)
     if (id <= 0) continue
     const statusRaw = String(o.status ?? 'scheduled').toLowerCase()
     const st: 'scheduled' | 'live' | 'completed' | 'cancelled' = ['scheduled', 'live', 'completed', 'cancelled'].includes(
@@ -270,13 +287,13 @@ function normalizeLearnMaterials(rawList: unknown[]): CourseLearnMaterial[] {
   for (const r of rawList) {
     if (!r || typeof r !== 'object' || Array.isArray(r)) continue
     const o = r as Record<string, unknown>
-    const id = toNum(o.id)
+    const id = toNum(o.id ?? o.material_id ?? o.course_material_id)
     if (id <= 0) continue
     const kindRaw = String(o.kind ?? o.type ?? 'other').toLowerCase()
     const kind =
       ['pdf', 'video', 'link', 'slides', 'document', 'other'].includes(kindRaw) ? kindRaw : 'other'
 
-    const fileUrl = str(o.file_url) || undefined
+    const fileUrl = str(o.file_url ?? o.download_url) || undefined
     const extUrl = str(o.external_url) || undefined
     const urlLegacy = str(o.url) || undefined
 
@@ -300,9 +317,17 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
   for (const r of rawList) {
     if (!r || typeof r !== 'object' || Array.isArray(r)) continue
     const o = r as Record<string, unknown>
-    const id = toNum(o.id)
-    const assignment_id = toNum(o.assignment_id ?? o.id, id)
+    const id = toNum(o.id ?? o.assignment_id ?? o.course_assignment_id)
+    const assignment_id = toNum(
+      o.lms_assignment_id ?? o.assignment_id ?? o.id ?? o.course_assignment_id,
+      id,
+    )
     if (id <= 0) continue
+
+    const mySub =
+      o.my_submission && typeof o.my_submission === 'object' && !Array.isArray(o.my_submission) ?
+        (o.my_submission as Record<string, unknown>)
+      : null
 
     let sub =
       typeof o.submission_type === 'string'
@@ -334,11 +359,24 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
       required: o.required !== undefined ? Boolean(o.required) : o.is_required !== undefined ? Boolean(o.is_required) : true,
 
       visible: o.visible !== undefined ? Boolean(o.visible) : true,
-      status: str(o.status) || undefined,
+      status: str(o.status) || (mySub?.status != null ? str(mySub.status) : undefined),
 
       score,
 
-      feedback: str(o.feedback) || undefined,
+      feedback: str(o.feedback) || (mySub?.feedback != null ? str(mySub.feedback) : undefined),
+      submitted_at:
+        o.submitted_at != null ? str(o.submitted_at) : mySub?.submitted_at != null ? str(mySub.submitted_at) : undefined,
+      lms_assignment_id: o.lms_assignment_id != null ? toNum(o.lms_assignment_id) : assignment_id,
+      resubmission_allowed: o.resubmission_allowed != null ? Boolean(o.resubmission_allowed) : undefined,
+      my_submission: mySub ?
+        {
+          submitted_at: mySub.submitted_at != null ? str(mySub.submitted_at) : null,
+          status: mySub.status != null ? str(mySub.status) : null,
+          text_answer: mySub.text_answer != null ? str(mySub.text_answer) : null,
+          score: mySub.score != null ? Number(mySub.score) : null,
+          feedback: mySub.feedback != null ? str(mySub.feedback) : null,
+        }
+      : null,
     })
   }
   return out

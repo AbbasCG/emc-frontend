@@ -34,7 +34,7 @@ function PathwayNodes({ count }: { count: number }) {
     return <span className="text-[11px] font-bold text-muted-400">لا برامج مربوطة بعد</span>
   }
   return (
-    <div dir="rtl" className="flex flex-wrap items-center justify-end gap-2">
+    <div dir="rtl" className="flex flex-wrap items-center justify-start gap-2">
       {Array.from({ length: shown }, (_, idx) => idx + 1).map((step, i) => (
         <Fragment key={step}>
           {i > 0 ?

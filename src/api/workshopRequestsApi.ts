@@ -52,6 +52,8 @@ export interface WorkshopRequestDetail {
   updated_at: string
   workflow_steps?: WorkflowStep[]
   can_act?: boolean
+  is_history_viewer?: boolean
+  selected_date_option?: number | null
 }
 
 export interface WorkflowHistoryResponse {
@@ -60,6 +62,7 @@ export interface WorkflowHistoryResponse {
   current_department: string
   workflow_status: string
   can_act: boolean
+  is_history_viewer?: boolean
   all_steps: (WorkflowStep & { is_current: boolean })[]
 }
 
@@ -193,17 +196,26 @@ export async function fetchAdminWorkshopRequests(
 }
 
 export async function fetchAdminWorkshopRequestDetail(id: number): Promise<WorkshopRequestDetail> {
-  const res = await apiClient.get<{ data: WorkshopRequestDetail; can_act?: boolean }>(`/admin/workshop-requests/${id}`)
+  const res = await apiClient.get<{ data: WorkshopRequestDetail; can_act?: boolean; is_history_viewer?: boolean }>(`/admin/workshop-requests/${id}`, silent)
   const payload = res.data as unknown as Record<string, unknown>
   const detail = (payload.data ?? payload) as WorkshopRequestDetail
   if (typeof payload.can_act === 'boolean') {
     detail.can_act = payload.can_act
   }
+  if (typeof payload.is_history_viewer === 'boolean') {
+    detail.is_history_viewer = payload.is_history_viewer
+  }
   return detail
 }
 
-export async function approveWorkshopRequest(id: number, notes?: string): Promise<{ message: string }> {
-  const res = await apiClient.post<{ message: string }>(`/admin/workshop-requests/${id}/approve`, { notes })
+export async function approveWorkshopRequest(
+  id: number,
+  notes?: string,
+  selectedDateOption?: number | null,
+): Promise<{ message: string }> {
+  const body: Record<string, unknown> = { notes }
+  if (selectedDateOption != null) body.selected_date_option = selectedDateOption
+  const res = await apiClient.post<{ message: string }>(`/admin/workshop-requests/${id}/approve`, body)
   return res.data
 }
 
@@ -213,6 +225,6 @@ export async function rejectWorkshopRequest(id: number, notes?: string): Promise
 }
 
 export async function fetchWorkshopWorkflowHistory(id: number): Promise<WorkflowHistoryResponse> {
-  const res = await apiClient.get<WorkflowHistoryResponse>(`/admin/workshop-requests/${id}/workflow-history`)
+  const res = await apiClient.get<WorkflowHistoryResponse>(`/admin/workshop-requests/${id}/workflow-history`, silent)
   return res.data
 }

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Building2 } from 'lucide-react'
 import DepartmentCard from '@/components/operations/DepartmentCard'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
 import type { WorkspaceDepartment } from '@/types/operations'
-import { Building2 } from 'lucide-react'
 
 export default function OpsDepartmentsPage() {
   const location = useLocation()
@@ -17,12 +17,16 @@ export default function OpsDepartmentsPage() {
   const [items, setItems] = useState<WorkspaceDepartment[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [noDeptLinked, setNoDeptLinked] = useState(false)
 
   async function load() {
     setLoadError(null)
+    setNoDeptLinked(false)
     setLoading(true)
     try {
-      setItems(await fetchWorkspaceDepartments())
+      const result = await fetchWorkspaceDepartments()
+      setItems(result.items)
+      setNoDeptLinked(result.noDepartmentLinked)
     } catch {
       setLoadError('تعذّر تحميل الإدارات. تحقق من الاتصال وأعد المحاولة.')
     } finally {
@@ -33,10 +37,26 @@ export default function OpsDepartmentsPage() {
   useEffect(() => { void load() }, [])
 
   if (loading) return <OpsPageSkeleton />
+
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
       <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">
+        إعادة المحاولة
+      </button>
+    </div>
+  )
+
+  if (noDeptLinked) return (
+    <div dir="rtl" className="flex min-h-[40vh] flex-col items-center justify-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-10 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100">
+        <Building2 className="h-8 w-8 text-amber-500" />
+      </div>
+      <p className="text-[16px] font-black text-amber-900">لم يتم ربط حسابك بإدارة</p>
+      <p className="max-w-sm text-[13px] font-semibold text-amber-700">
+        حسابك يحمل دور "مدير الإدارة" ولكن لم يتم تعيينك مسؤولاً عن أي إدارة بعد.
+        تواصل مع المسؤول ليقوم بتحديث إعدادات حسابك.
+      </p>
     </div>
   )
 
@@ -47,8 +67,7 @@ export default function OpsDepartmentsPage() {
         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-customBlue">خريطة الإدارات</p>
         <h1 className="mt-2 text-2xl font-black text-deepBlue">منظومة EMC التشغيلية</h1>
         <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-slate-600">
-          عرض تكاملي للإدارات العشر، الصحة التشغيلية، والحمولة الحالية — تصميم يذكرك بلوحة قيادة حديثة دون
-          فقدان الهوية العربية للمؤسسة.
+          عرض تكاملي للإدارات، الصحة التشغيلية، والحمولة الحالية.
         </p>
       </header>
 

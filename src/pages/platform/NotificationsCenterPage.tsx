@@ -12,6 +12,7 @@ import {
 import EmptyState from '@/components/dashboard/EmptyState'
 import type { PlatformNotification, NotificationType } from '@/types/platform'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
+import { formatNotificationDate } from '@/utils/dateTime'
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
@@ -194,7 +195,7 @@ export default function NotificationsCenterPage() {
                     : null}
                   </div>
                   {n.body && <p className="mt-2 text-sm leading-7 text-slate-500">{n.body}</p>}
-                  <p className="mt-3 text-[11px] font-bold text-slate-400">{n.created_at}</p>
+                  <p className="mt-3 text-[11px] font-bold text-slate-400">{formatNotificationDate(n.created_at)}</p>
                   {n.href ?
                     <p className="mt-2 text-[11px] font-black text-customBlue">انقر لفتح الصفحة المرتبطة</p>
                   : null}

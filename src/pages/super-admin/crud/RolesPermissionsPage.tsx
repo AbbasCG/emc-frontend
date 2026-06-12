@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
   BookOpen,
@@ -19,6 +18,7 @@ import {
   X,
 } from 'lucide-react'
 import { fetchAdminUsers } from '@/api/adminUsersApi'
+import { RoleDetailDrawer } from '@/components/super-admin/RoleDetailDrawer'
 import { SUPER_ADMIN_ROLE_CATALOG_ROWS } from '@/pages/super-admin/users/assignableRoles'
 import { CAPABILITIES, roleHasCapabilitySlug } from '@/pages/super-admin/users/roleScopeHints'
 import { normalizeRole } from '@/utils/dashboardAccess'
@@ -189,168 +189,6 @@ function RoleCard({
         })}
       </div>
     </button>
-  )
-}
-
-/* ── Detail drawer ───────────────────────────────────────────────────────── */
-
-function DetailDrawer({
-  slug,
-  labelAr,
-  usageCounts,
-  onClose,
-}: {
-  slug: string | null
-  labelAr: string
-  usageCounts: Record<string, number>
-  onClose: () => void
-}) {
-  if (!slug) return null
-  const type = classifyRole(slug)
-  const risk = riskLevel(slug)
-  const typeMeta = TYPE_META[type]
-  const riskMeta = RISK_META[risk]
-  const RiskIcon = riskMeta.icon
-  const usage = usageCounts[slug] ?? 0
-  const grantedCaps = CAPABILITIES.filter((c) => roleHasCapabilitySlug(slug, c.id))
-  const deniedCaps = CAPABILITIES.filter((c) => !roleHasCapabilitySlug(slug, c.id))
-  const isSystem = type === 'system'
-
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <aside
-        dir="rtl"
-        className="fixed inset-y-0 start-0 z-[210] flex w-full max-w-md flex-col bg-white shadow-2xl"
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-lg font-black shadow ${isSystem ? 'bg-[#22334A] text-white' : 'bg-[#2691C2]/10 text-[#2691C2]'}`}>
-              <Shield className="h-6 w-6" aria-hidden />
-            </span>
-            <div>
-              <h2 className="font-black text-[#22334A]">{labelAr}</h2>
-              <code className="text-[11px] text-slate-400">{slug}</code>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200 text-slate-400 hover:text-[#22334A]"
-          >
-            <X className="h-4 w-4" aria-hidden />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {/* Badges */}
-          <div className="flex flex-wrap gap-2">
-            <Badge cls={typeMeta.cls}>{typeMeta.labelAr}</Badge>
-            <Badge cls={riskMeta.cls}>
-              <RiskIcon className="h-3 w-3" aria-hidden />
-              {riskMeta.labelAr}
-            </Badge>
-            {isSystem && (
-              <Badge cls="bg-rose-50 text-rose-700 ring-rose-200">
-                <Lock className="h-3 w-3" aria-hidden />
-                دور محمي
-              </Badge>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-slate-50 px-4 py-3 text-center">
-              <p className="text-2xl font-black text-[#22334A]">{usage}</p>
-              <p className="mt-0.5 text-[11px] font-black text-slate-400">مستخدم مرتبط</p>
-            </div>
-            <div className="rounded-xl bg-slate-50 px-4 py-3 text-center">
-              <p className="text-2xl font-black text-[#22334A]">{grantedCaps.length}</p>
-              <p className="mt-0.5 text-[11px] font-black text-slate-400">محاور مفتوحة</p>
-            </div>
-          </div>
-
-          {/* Warning for system roles */}
-          {isSystem && (
-            <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden />
-              <p className="text-[12px] font-semibold text-rose-800">
-                هذا دور نظام محمي. يُدار من خلال Laravel ولا يمكن حذفه أو تعديله من الواجهة.
-              </p>
-            </div>
-          )}
-
-          {/* Granted capabilities */}
-          <div>
-            <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-400">الصلاحيات الممنوحة</p>
-            {grantedCaps.length > 0 ? (
-              <ul className="space-y-2">
-                {grantedCaps.map((c) => {
-                  const CapIcon = CAP_ICONS[c.id] ?? Shield
-                  return (
-                    <li key={c.id} className="flex items-center justify-between gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <CapIcon className="h-4 w-4 text-emerald-600" aria-hidden />
-                        <span className="text-[13px] font-black text-[#22334A]">{c.labelAr}</span>
-                      </div>
-                      <Check className="h-4 w-4 text-emerald-600" aria-hidden />
-                    </li>
-                  )
-                })}
-              </ul>
-            ) : (
-              <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-center text-[12px] font-semibold text-slate-400">
-                لا صلاحيات مسجّلة لهذا الدور
-              </p>
-            )}
-          </div>
-
-          {/* Denied capabilities */}
-          {deniedCaps.length > 0 && (
-            <div>
-              <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-400">محاور غير مفعّلة</p>
-              <ul className="space-y-2">
-                {deniedCaps.map((c) => {
-                  const CapIcon = CAP_ICONS[c.id] ?? Shield
-                  return (
-                    <li key={c.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <CapIcon className="h-4 w-4 text-slate-300" aria-hidden />
-                        <span className="text-[13px] font-semibold text-slate-400">{c.labelAr}</span>
-                      </div>
-                      <X className="h-4 w-4 text-slate-300" aria-hidden />
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-slate-100 px-6 py-4 flex gap-2">
-          <Link
-            to="/dashboard/super-admin/crud/users"
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
-          >
-            <Users className="h-4 w-4" aria-hidden />
-            إدارة المستخدمين
-          </Link>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-slate-600 transition hover:border-[#22334A]/20"
-          >
-            إغلاق
-          </button>
-        </div>
-      </aside>
-    </>
   )
 }
 
@@ -687,10 +525,11 @@ export default function RolesPermissionsPage() {
 
       {/* ── Detail drawer ─────────────────────────────────────────────── */}
       {detailSlug && detailRole && (
-        <DetailDrawer
+        <RoleDetailDrawer
+          open={detailSlug != null}
           slug={detailSlug}
           labelAr={detailRole.labelAr}
-          usageCounts={usageCounts}
+          usageCount={usageCounts[detailSlug] ?? 0}
           onClose={() => setDetailSlug(null)}
         />
       )}

@@ -11,9 +11,11 @@ type Props = {
   quickStats?: QuickStat[]
   /** Quick action chips rendered below the subtitle */
   actions?: ReactNode
+  avatarUrl?: string | null
+  avatarInitials?: string
 }
 
-export default function DashboardHero({ greeting, name, role, subtitle, quickStats, actions }: Props) {
+export default function DashboardHero({ greeting, name, role, subtitle, quickStats, actions, avatarUrl, avatarInitials }: Props) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
@@ -27,7 +29,17 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
 
       <div className="relative px-7 py-8">
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">
-          <div className="text-right">
+          <div className="flex items-start gap-4 text-right">
+            {(avatarUrl || avatarInitials) && (
+              <div className="relative shrink-0">
+                <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-white/15 ring-2 ring-white/25 shadow-lg">
+                  {avatarUrl ?
+                    <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                  : <span className="text-lg font-black text-white">{avatarInitials}</span>}
+                </div>
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
             {role && (
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45 mb-1">{role}</p>
             )}
@@ -37,6 +49,7 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
               <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-white/72">{subtitle}</p>
             )}
             {actions && <div className="mt-5 flex flex-wrap gap-2">{actions}</div>}
+            </div>
           </div>
 
           {quickStats && quickStats.length > 0 && (

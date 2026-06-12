@@ -1,6 +1,22 @@
-import type { Course, Enrollment } from '@/types'
-import type { StudentListedCourse, StudentRegistrationRow } from '@/api/studentApi'
+import type { ClassAssignment, Course, Enrollment } from '@/types'
+import type { StudentClassAssignment, StudentListedCourse, StudentRegistrationRow } from '@/api/studentApi'
 import { normalizeRegistrationStatus } from './statusLabels'
+
+function toClassAssignment(ca: StudentClassAssignment | null | undefined): ClassAssignment | null {
+  if (!ca) return null
+  return {
+    class_group_id:  ca.class_group_id,
+    name:            ca.name,
+    level_code:      ca.level_code ?? null,
+    schedule_day:    ca.schedule_day ?? null,
+    schedule_time:   ca.schedule_time ?? null,
+    location_type:   ca.location_type ?? null,
+    meeting_link:    ca.meeting_link ?? null,
+    start_date:      ca.start_date ?? null,
+    instructor_name: ca.instructor_name ?? null,
+    assigned_at:     ca.assigned_at ?? null,
+  }
+}
 
 export function mapBackendRegStatus(raw?: string | null): Enrollment['status'] {
   return normalizeRegistrationStatus(raw)
@@ -86,6 +102,7 @@ function enrollmentFromListedCourse(c: StudentListedCourse): Enrollment {
     oral_final_level: c.oral_final_level ?? null,
     oral_score: c.oral_score ?? null,
     can_start_learning: c.can_start_learning ?? null,
+    class_assignment: toClassAssignment(c.class_assignment),
   }
 }
 
@@ -135,6 +152,8 @@ export function mergeStudentEnrollments(
     const mergedOralEndsAt = c.oral_booking_ends_at ?? prev.oral_booking_ends_at ?? null
     const mergedOralFinalLevel = c.oral_final_level ?? prev.oral_final_level ?? null
     const mergedOralScore = c.oral_score ?? prev.oral_score ?? null
+    // Class assignment from listed source wins (freshest)
+    const mergedClassAssignment = toClassAssignment(c.class_assignment) ?? prev.class_assignment ?? null
 
     byCourseId.set(c.id, {
       ...prev,
@@ -167,6 +186,7 @@ export function mergeStudentEnrollments(
       oral_final_level: mergedOralFinalLevel,
       oral_score: mergedOralScore,
       can_start_learning: mergedCanStart,
+      class_assignment: mergedClassAssignment,
     })
   })
 

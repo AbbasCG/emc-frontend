@@ -46,6 +46,7 @@ function formatScheduleLine(course: Course): string | null {
 
 function statusArabic(enrollment: Enrollment): string {
   if (enrollment.status === 'completed') return 'مكتملة'
+  if (enrollment.can_start_learning || enrollment.placement_status === 'completed') return 'نشطة'
   if (enrollment.status === 'pending') return 'معلّقة'
   return 'نشطة'
 }
@@ -95,15 +96,15 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
 
   const progress = progressFromStatus(placementStatus, !!(enrollment.can_start_learning))
 
-  const placementLocked = requiresPlacement && !progress.level_approved
+  const placementLocked = requiresPlacement && !progress.can_start
 
   type PlacementState = 'none' | 'start' | 'resume' | 'oral' | 'waiting' | 'awaiting_result' | 'done'
   const placementState: PlacementState =
-    !requiresPlacement           ? 'none'
-    : progress.level_approved    ? 'done'
-    : progress.oral_done         ? 'awaiting_result'
-    : progress.oral_booked       ? 'waiting'
-    : progress.written_done      ? 'oral'
+    !requiresPlacement        ? 'none'
+    : progress.can_start      ? 'done'
+    : progress.oral_done      ? 'awaiting_result'
+    : progress.oral_booked    ? 'waiting'
+    : progress.written_done   ? 'oral'
     : progress.status === 'in_progress' ? 'resume'
     : 'start'
 

@@ -25,7 +25,7 @@ export function EntityActionMenu(props: {
     deleteDisabled,
   } = props
   return (
-    <div className={cn('flex flex-wrap items-center justify-end gap-2', className)} dir="rtl">
+    <div className={cn('flex flex-wrap items-center justify-start gap-2', className)} dir="rtl">
       {extraStart}
       {onEdit ?
         <button

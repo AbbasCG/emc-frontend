@@ -18,7 +18,7 @@ export default function TeamHero() {
       />
 
       <div className="relative mx-auto max-w-[1540px] px-4 sm:px-6 lg:px-10">
-        <nav className="mb-8 flex flex-wrap items-center justify-end gap-2 text-xs font-semibold text-foreground/50">
+        <nav className="mb-8 flex flex-wrap items-center justify-start gap-2 text-xs font-semibold text-foreground/50">
           <Link to="/" className="transition hover:text-customBlue">
             الرئيسية
           </Link>

@@ -374,7 +374,8 @@ export const partnershipTypes: PartnershipType[] = [
 /** Contact / footer — aligned branding */
 export const siteContact = {
   phone: '+31 6 00 000 000',
-  email: 'info@emc-edu.com',
+  email: 'info@edumc.nl',
+  supportEmail: 'support@edumc.nl',
   location: { ar: 'أمستردام، هولندا — خدمة أونلاين ومجتمعات عربية وهولندية' },
   hours: { ar: 'الأحد — الخميس، 9:00 — 18:00 (بتوقيت أوروبا الوسطى)' },
 }

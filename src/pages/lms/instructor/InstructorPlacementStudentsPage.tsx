@@ -110,21 +110,28 @@ function emptyForm(row?: PlacementStudentRow): OralForm {
 
 export default function InstructorPlacementStudentsPage() {
   const { courseId } = useParams<{ courseId: string }>()
-  const [students,    setStudents]   = useState<PlacementStudentRow[]>([])
-  const [loading,     setLoading]    = useState(true)
-  const [drawerRow,   setDrawerRow]  = useState<PlacementStudentRow | null>(null)
-  const [modalRow,    setModalRow]   = useState<PlacementStudentRow | null>(null)
-  const [form,        setForm]       = useState<OralForm>(emptyForm())
-  const [saving,      setSaving]     = useState(false)
-  const [showRef,     setShowRef]    = useState(false)
+  const [students,           setStudents]          = useState<PlacementStudentRow[]>([])
+  const [loading,            setLoading]           = useState(true)
+  const [noPlacementCourse,  setNoPlacementCourse] = useState(false)
+  const [drawerRow,          setDrawerRow]         = useState<PlacementStudentRow | null>(null)
+  const [modalRow,           setModalRow]          = useState<PlacementStudentRow | null>(null)
+  const [form,               setForm]              = useState<OralForm>(emptyForm())
+  const [saving,             setSaving]            = useState(false)
+  const [showRef,            setShowRef]           = useState(false)
 
   async function load() {
     if (!courseId) return
     setLoading(true)
+    setNoPlacementCourse(false)
     try { setStudents(await fetchInstructorPlacementStudents(courseId)) }
-    catch (err) {
-      toast.error('تعذّر تحميل قائمة الطلاب')
-      if (import.meta.env.DEV) console.error('[placement-students] load failed:', err)
+    catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 422) {
+        setNoPlacementCourse(true)
+      } else {
+        toast.error('تعذّر تحميل قائمة الطلاب')
+        if (import.meta.env.DEV) console.error('[placement-students] load failed:', err)
+      }
     }
     finally { setLoading(false) }
   }
@@ -143,8 +150,10 @@ export default function InstructorPlacementStudentsPage() {
 
   const totalOralScore = useMemo(() => {
     const parts = ORAL_SCORES.map((s) => form[s.key])
-    if (parts.some((v) => v === '')) return null
-    const nums = parts.map(Number)
+    // Compute from filled fields only — empty fields treated as 0
+    const hasAny = parts.some((v) => v !== '')
+    if (!hasAny) return null
+    const nums = parts.map((v) => (v === '' ? 0 : Number(v)))
     if (nums.some((n) => isNaN(n))) return null
     return nums.reduce((a, b) => a + b, 0)
   }, [form])
@@ -158,12 +167,20 @@ export default function InstructorPlacementStudentsPage() {
     }
     setSaving(true)
     try {
-      await completeOralAssessment(modalRow.booking_id, {
+      const result = await completeOralAssessment(modalRow.booking_id, {
         final_level: CEFR_MAP[form.final_level]?.cefr ?? form.final_level,
         ...(totalOralScore != null ? { oral_score: totalOralScore } : {}),
         ...(form.notes.trim() ? { instructor_notes: form.notes.trim() } : {}),
       })
       toast.success('تم حفظ نتيجة التقييم بنجاح')
+      const savedScore = result.oral_score ?? totalOralScore
+      const savedLevel = result.final_level ?? (CEFR_MAP[form.final_level]?.cefr ?? form.final_level)
+      const savedNotes = result.instructor_notes ?? (form.notes.trim() || null)
+      setStudents((prev) => prev.map((s) =>
+        s.booking_id === modalRow.booking_id
+          ? { ...s, oral_score: savedScore, final_level: savedLevel, notes: savedNotes, status: 'completed' as const }
+          : s,
+      ))
       setModalRow(null)
       void load()
     } catch (err: unknown) {
@@ -254,6 +271,14 @@ export default function InstructorPlacementStudentsPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {[1,2,3,4].map((i) => <div key={i} className="h-44 animate-pulse rounded-3xl bg-slate-100" />)}
         </div>
+      ) : noPlacementCourse ? (
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-16 text-center">
+          <BookOpen className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-4 font-black text-deepBlue">هذه الدورة لا تتطلب اختبار تحديد مستوى</p>
+          <p className="mt-1 text-[12px] font-semibold text-deepBlue/45">
+            صفحات الاختبار والمقابلات الشفوية متاحة فقط للدورات التي تتطلب تحديد المستوى
+          </p>
+        </div>
       ) : students.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-16 text-center">
           <User className="mx-auto h-10 w-10 text-slate-300" />
@@ -287,7 +312,7 @@ export default function InstructorPlacementStudentsPage() {
         student={drawerStudent}
         onClose={() => setDrawerRow(null)}
         onStartAssessment={
-          drawerRow && progressFromStatus(drawerRow.status).oral_booked && !progressFromStatus(drawerRow.status).level_approved
+          drawerRow && progressFromStatus(drawerRow.status).oral_booked
             ? () => openModal(drawerRow)
             : undefined
         }
@@ -351,10 +376,23 @@ export default function InstructorPlacementStudentsPage() {
                   )
                 })()}
 
+                {/* Existing oral score (when re-editing) */}
+                {modalRow.oral_score != null && (
+                  <div className="mb-4 flex items-center justify-between rounded-2xl border border-violet-100 bg-violet-50/70 px-4 py-2.5">
+                    <span className="text-[11px] font-semibold text-violet-700/70">الدرجة الشفوية المحفوظة</span>
+                    <span className="font-mono text-[15px] font-black tabular-nums text-deepBlue">
+                      {modalRow.oral_score}<span className="text-[10px] font-semibold text-deepBlue/40">/100</span>
+                    </span>
+                  </div>
+                )}
+
                 {/* Oral score inputs */}
                 <div className="mb-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-[11px] font-black text-deepBlue/55">درجات المقابلة الشفوية</p>
+                    <p className="text-[11px] font-black text-deepBlue/55">
+                      درجات المقابلة الشفوية
+                      <span className="mr-1 font-normal text-deepBlue/35">(اختياري — الحقول الفارغة تُحسب صفراً)</span>
+                    </p>
                     {totalOralScore != null && (
                       <span className="font-mono text-[11px] font-black tabular-nums text-[#2691C2]">
                         المجموع: {totalOralScore}/100

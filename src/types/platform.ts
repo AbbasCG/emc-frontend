@@ -47,6 +47,10 @@ export type LmsModule = {
   sort_order: number
   lessons_count: number
   completed_lessons?: number
+  assignments_count?: number
+  submitted_assignments_count?: number
+  progress_percentage?: number
+  is_completed?: boolean
 }
 
 export type LmsLesson = {

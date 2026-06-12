@@ -39,11 +39,23 @@ function isFutureScheduledStart(course: Course): boolean {
 type CoursesTabId = 'active' | 'upcoming' | 'completed' | 'pending'
 
 function tabForEnrollment(e: Enrollment): CoursesTabId {
-  if (e.status === 'pending') return 'pending'
   if (e.status === 'completed') return 'completed'
+
+  // Placement approved or explicit can_start flag → student may enter course
+  const canLearn = e.can_start_learning || e.placement_status === 'completed'
+  if (canLearn) {
+    const waitingSchedule = !hasScheduledDate(e.course) || isFutureScheduledStart(e.course)
+    return e.completed_sessions === 0 && waitingSchedule ? 'upcoming' : 'active'
+  }
+
+  // Oral assessment done + final level set, but class not assigned yet
+  if (e.oral_final_level) return 'completed'
+
+  // Still awaiting admin approval or placement in progress
+  if (e.status === 'pending') return 'pending'
+
   const waitingSchedule = !hasScheduledDate(e.course) || isFutureScheduledStart(e.course)
-  if (e.completed_sessions === 0 && waitingSchedule) return 'upcoming'
-  return 'active'
+  return e.completed_sessions === 0 && waitingSchedule ? 'upcoming' : 'active'
 }
 
 const QUICK_ACTIONS = [

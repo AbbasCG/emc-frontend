@@ -1,39 +1,39 @@
-import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowLeft, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, Cookie, Mail, MapPin, Phone } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { siteContact } from '@/data/publicPages'
+import { useCookieConsentOptional } from '@/contexts/CookieConsentContext'
+import { cn } from '@/lib/utils'
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-
-const PILLARS = ['LMS', 'AI', 'مسارات', 'ورش', 'شهادات', 'شراكات', 'تحليلات', 'مجتمع'] as const
-
-const NAV_EXPLORE = [
+const NAV_MAIN = [
   { label: 'الرئيسية', href: '/' },
   { label: 'عن المركز', href: '/about' },
-  { label: 'المجالات والمحاور', href: '/tracks' },
-  { label: 'الإدارات', href: '/departments' },
+  { label: 'المجالات', href: '/tracks' },
   { label: 'فريق EMC', href: '/ar/team' },
-  { label: 'الأثر والإحصاءات', href: '/impact' },
+  { label: 'الأثر', href: '/impact' },
+  { label: 'الشراكات', href: '/partnerships' },
+  { label: 'التطوع', href: '/volunteer' },
+  { label: 'تواصل', href: '/contact' },
 ] as const
 
 const NAV_PROGRAMS = [
-  { label: 'البرامج والدورات', href: '/courses' },
+  { label: 'الدورات', href: '/courses' },
   { label: 'مسارات التعلم', href: '/paths' },
-  { label: 'البرامج الاستراتيجية', href: '/programs' },
-  { label: 'المنصة التعليمية', href: '/platform' },
+  { label: 'البرامج', href: '/programs' },
+  { label: 'المنصة', href: '/platform' },
   { label: 'تقديم ورشة', href: '/submit-workshop' },
 ] as const
 
-const NAV_ENGAGE = [
-  { label: 'الشراكات المؤسسية', href: '/partnerships' },
-  { label: 'التطوع والانضمام', href: '/volunteer' },
-  { label: 'صفحة التواصل', href: '/contact' },
-  { label: 'استشارات للمؤسسات', href: '/contact' },
+const BOTTOM_LEGAL = [
+  { label: 'الخصوصية', href: '/privacy' },
+  { label: 'ملفات تعريف الارتباط', href: '/cookies' },
+  { label: 'الشروط', href: '/terms' },
+  { label: 'الاسترداد', href: '/refund-policy' },
+  { label: 'إخلاء المسؤولية', href: '/disclaimer' },
+  { label: 'الشكاوى', href: '/complaints' },
+  { label: 'إمكانية الوصول', href: '/accessibility' },
 ] as const
 
-// Placeholder social icons using SVG paths (no dependency on icon lib)
 const SOCIAL_LINKS = [
   {
     label: 'X (Twitter)',
@@ -57,26 +57,25 @@ const SOCIAL_LINKS = [
   },
 ] as const
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function FooterNavColumn({
+function NavColumn({
   title,
   links,
+  className,
 }: {
   title: string
   links: ReadonlyArray<{ label: string; href: string }>
+  className?: string
 }) {
   return (
-    <div className="text-right">
-      <h3 className="mb-6 text-[10px] font-black tracking-[0.18em] text-customOrange uppercase">{title}</h3>
-      <ul className="space-y-4">
+    <div className={cn('text-right', className)}>
+      <h3 className="mb-2.5 text-[10px] font-black tracking-[0.14em] text-[#EC943C]">{title}</h3>
+      <ul className="space-y-1.5">
         {links.map((l) => (
-          <li key={l.href + l.label}>
+          <li key={`${l.href}-${l.label}`}>
             <Link
               to={l.href}
-              className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/55 transition-colors hover:text-white"
+              className="text-[13px] font-semibold text-white/55 transition-colors hover:text-white"
             >
-              <span className="h-px w-0 origin-left bg-customOrange/60 transition-all duration-300 group-hover:w-3" aria-hidden />
               {l.label}
             </Link>
           </li>
@@ -86,207 +85,148 @@ function FooterNavColumn({
   )
 }
 
-// ── Main Footer ───────────────────────────────────────────────────────────────
-
 export default function Footer() {
-  const [email, setEmail] = useState('')
-  const [done, setDone] = useState(false)
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!email.trim()) return
-    setDone(true)
-    setEmail('')
-  }
+  const cookieConsent = useCookieConsentOptional()
 
   return (
-    <footer className="relative isolate overflow-hidden bg-[#0a1525]" dir="rtl">
-      {/* ── Ambient atmosphere ── */}
-      <div aria-hidden className="pointer-events-none absolute -top-40 right-0 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-20 left-10 h-64 w-64 rounded-full bg-customOrange/[0.07] blur-[80px]" />
+    <footer className="relative isolate overflow-hidden bg-[#22334A] text-white" dir="rtl">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, white 30%, transparent 100%)',
-        }}
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-[#2691C2]/45 to-transparent"
       />
-      {/* Top edge glow */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-customBlue/40 to-transparent" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 end-0 h-48 w-48 rounded-full bg-[#2691C2]/10 blur-[80px]"
+      />
 
-      {/* ── Zone 1: Platform pillars strip ── */}
-      <div className="relative border-b border-white/[0.06] py-5">
-        <div className="mx-auto flex max-w-[1540px] flex-wrap items-center justify-center gap-3 px-4 sm:px-6 lg:px-10">
-          {PILLARS.map((p) => (
-            <span
-              key={p}
-              className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 text-[11px] font-black text-white/40 backdrop-blur-sm"
-            >
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-customBlue/60" />
-              {p}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Zone 2: Main link grid ── */}
-      <div className="relative mx-auto max-w-[1540px] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-[1.8fr_1fr_1fr_1fr_1.6fr] lg:gap-10">
-
-          {/* Brand column */}
-          <div className="text-right">
-            <Link to="/" className="inline-block transition-opacity hover:opacity-85">
-              <img src={logo} alt="EMC" className="h-14 w-auto brightness-0 invert" width={160} height={56} loading="lazy" />
+      {/* Main grid — max 4 columns */}
+      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-9">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+          {/* Brand */}
+          <div className="text-right sm:col-span-2 lg:col-span-1">
+            <Link to="/" className="inline-block transition-opacity hover:opacity-90">
+              <img
+                src={logo}
+                alt="EMC — Educational Mastar Central"
+                className="h-[4.5rem] w-auto brightness-0 invert sm:h-20"
+                width={200}
+                height={80}
+                loading="lazy"
+              />
             </Link>
-            <p className="mt-5 text-sm font-medium leading-8 text-white/50">
-              EMC منصة تعليمية وتطويرية تربط البرامج التدريبية، الاستشارات، والشراكات — بجودة عربية احترافية وهوية رقمية واضحة.
+            <p className="mt-3 max-w-xs text-[12px] font-medium leading-6 text-white/50">
+              منصة تعليمية عربية—هولندية: برامج، ورش، شراكات، وتعلم رقمي بمعايير احترافية.
             </p>
-
-            {/* Live badge */}
-            <div className="mt-5 inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.05] px-4 py-2 text-xs font-black text-white/50 backdrop-blur-sm">
-              <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-              نظام تعليمي موحّد · تشغيل نشط
-            </div>
-
-            {/* Social icons */}
-            <div className="mt-8 flex flex-wrap justify-start gap-2.5">
-              {SOCIAL_LINKS.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  aria-label={s.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.05] text-white/40 transition-all hover:border-white/20 hover:bg-white/[0.1] hover:text-white"
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>
-                    <path d={s.path} />
-                  </svg>
-                </a>
-              ))}
-            </div>
+            <Link
+              to="/contact"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#2691C2] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-[#1e7dab]"
+            >
+              تواصل معنا
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+            </Link>
           </div>
 
-          {/* Nav columns */}
-          <FooterNavColumn title="استكشف" links={NAV_EXPLORE} />
-          <FooterNavColumn title="البرامج" links={NAV_PROGRAMS} />
-          <FooterNavColumn title="المشاركة" links={NAV_ENGAGE} />
+          <NavColumn title="روابط رئيسية" links={NAV_MAIN} />
+          <NavColumn title="البرامج" links={NAV_PROGRAMS} />
 
-          {/* Contact column */}
+          {/* Contact — compact */}
           <div className="text-right">
-            <h3 className="mb-6 text-[10px] font-black tracking-[0.18em] text-customOrange uppercase">تواصل معنا</h3>
-            <ul className="space-y-4">
+            <h3 className="mb-2.5 text-[10px] font-black tracking-[0.14em] text-[#EC943C]">تواصل</h3>
+            <ul className="space-y-2 text-[12px] font-semibold text-white/55">
               <li>
                 <a
-                  href={`tel:${siteContact.phone}`}
-                  className="group flex items-center gap-3 text-sm text-white/55 transition-colors hover:text-white"
+                  href={`tel:${siteContact.phone.replace(/\s/g, '')}`}
+                  className="inline-flex items-center gap-2 transition hover:text-white"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.05] text-customOrange transition-colors group-hover:border-customOrange/30 group-hover:bg-customOrange/10">
-                    <Phone size={14} aria-hidden />
-                  </span>
-                  <span className="font-latin" dir="ltr">{siteContact.phone}</span>
+                  <Phone className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" aria-hidden />
+                  <span dir="ltr" className="font-latin">{siteContact.phone}</span>
                 </a>
               </li>
               <li>
                 <a
                   href={`mailto:${siteContact.email}`}
-                  className="group flex items-center gap-3 text-sm text-white/55 transition-colors hover:text-white"
+                  className="inline-flex items-center gap-2 transition hover:text-white"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.05] text-customBlue transition-colors group-hover:border-customBlue/30 group-hover:bg-customBlue/10">
-                    <Mail size={14} aria-hidden />
-                  </span>
-                  <span className="font-latin">{siteContact.email}</span>
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" aria-hidden />
+                  <span className="font-latin text-[11px]">{siteContact.email}</span>
                 </a>
               </li>
               <li>
-                <div className="flex items-start gap-3 text-sm text-white/45">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.05] text-white/30">
-                    <MapPin size={14} aria-hidden />
-                  </span>
-                  <span className="leading-7">{siteContact.location.ar}</span>
-                </div>
+                <a
+                  href={`mailto:${siteContact.supportEmail}`}
+                  className="inline-flex items-center gap-2 transition hover:text-white"
+                >
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-white/35" aria-hidden />
+                  <span className="font-latin text-[11px]">{siteContact.supportEmail}</span>
+                </a>
+              </li>
+              <li className="flex items-start gap-2 pt-0.5 text-white/40">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className="text-[11px] leading-5">{siteContact.location.ar}</span>
               </li>
             </ul>
-
-            <Link
-              to="/contact"
-              className="group relative mt-8 inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-customBlue px-5 py-3 text-sm font-black text-white shadow-[0_12px_32px_-10px_rgba(38,145,194,0.55)] transition-all hover:bg-[#1e7dab]"
-            >
-              <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
-              تواصل مع الفريق
-              <ArrowLeft size={15} className="transition-transform group-hover:-translate-x-0.5" aria-hidden />
-            </Link>
           </div>
         </div>
       </div>
 
-      {/* ── Zone 3: Newsletter ── */}
-      <div className="relative border-t border-white/[0.06]">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto max-w-[1540px] px-4 py-10 sm:px-6 lg:px-10"
-        >
-          <div className="flex flex-col gap-8 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-8 py-8 backdrop-blur-sm lg:flex-row lg:items-center lg:justify-between">
-            <div className="text-right lg:max-w-sm">
-              <p className="text-[10px] font-black tracking-[0.18em] text-customOrange uppercase">النشرة البريدية</p>
-              <h3 className="mt-2 text-base font-black text-white">ملخصات برامج وورش — دون إزعاج</h3>
-              <p className="mt-1.5 text-sm font-medium text-white/40">
-                أحدث البرامج وتقارير الأثر مباشرة إلى بريدك.
-              </p>
-            </div>
-            <form
-              onSubmit={handleSubmit}
-              className="flex w-full max-w-md flex-col gap-2.5 sm:flex-row sm:items-center"
-            >
-              <label htmlFor="footer-email" className="sr-only">البريد الإلكتروني</label>
-              <input
-                id="footer-email"
-                type="email"
-                name="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setDone(false) }}
-                placeholder="أدخل بريدك الإلكتروني"
-                dir="ltr"
-                className="min-w-0 flex-1 rounded-xl border border-white/[0.1] bg-white/[0.06] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-customBlue/50 focus:ring-1 focus:ring-customBlue/30"
-              />
-              <button
-                type="submit"
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-black text-white shadow-[0_8px_24px_-8px_rgba(236,148,60,0.5)] transition hover:brightness-105"
-              >
-                {done ? 'تم!' : 'اشترك'}
-                {!done && <ArrowLeft size={14} aria-hidden />}
-              </button>
-            </form>
-            {done && (
-              <p className="text-xs font-bold text-customBlue" role="status">
-                شكراً! سيتم إضافة بريدك عند تفعيل خادم النشرة.
-              </p>
-            )}
-          </div>
-        </motion.div>
-      </div>
+      {/* Bottom bar */}
+      <div className="relative border-t border-white/[0.08] bg-[#1a2940]/80">
+        <div className="mx-auto max-w-7xl px-4 py-3.5 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <p className="text-center text-[11px] font-semibold text-white/35 lg:text-right">
+              © {new Date().getFullYear()}{' '}
+              <span className="font-latin text-white/45">EMC</span>
+              {' · '}
+              جميع الحقوق محفوظة
+            </p>
 
-      {/* ── Zone 4: Legal / bottom bar ── */}
-      <div className="relative border-t border-white/[0.06]">
-        <div className="mx-auto flex max-w-[1540px] flex-col items-center gap-4 px-4 py-6 text-center text-xs text-white/30 sm:flex-row sm:justify-between sm:px-6 sm:text-right lg:px-10">
-          <span>
-            جميع الحقوق محفوظة © {new Date().getFullYear()}{' '}
-            <span className="font-latin">EMC — Educational Mastar Central</span>
-          </span>
-          <div className="flex flex-wrap items-center justify-center gap-5 sm:justify-end">
-            <Link to="/contact" className="transition hover:text-white hover:underline decoration-customOrange/50 underline-offset-4">
-              دعم واستفسارات
-            </Link>
-            <Link to="/submit-workshop" className="transition hover:text-white hover:underline decoration-customOrange/50 underline-offset-4">
-              طلب ورشة
-            </Link>
-            <Link to="/partnerships" className="transition hover:text-white hover:underline decoration-customOrange/50 underline-offset-4">
-              الشراكات
-            </Link>
+            <nav
+              aria-label="القانونية والخصوصية"
+              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-[11px] font-semibold text-white/40"
+            >
+              {BOTTOM_LEGAL.map((link, i) => (
+                <span key={link.href} className="inline-flex items-center">
+                  {i > 0 ?
+                    <span className="mx-1.5 text-white/15" aria-hidden>
+                      ·
+                    </span>
+                  : null}
+                  <Link to={link.href} className="transition hover:text-[#2691C2]">
+                    {link.label}
+                  </Link>
+                </span>
+              ))}
+              {cookieConsent ?
+                <>
+                  <span className="mx-1.5 text-white/15" aria-hidden>
+                    ·
+                  </span>
+                  <button
+                    type="button"
+                    onClick={cookieConsent.openPreferences}
+                    className="inline-flex items-center gap-1 transition hover:text-[#EC943C]"
+                  >
+                    <Cookie className="h-3 w-3" aria-hidden />
+                    إعدادات الكوكيز
+                  </button>
+                </>
+              : null}
+            </nav>
+
+            <div className="flex items-center justify-center gap-1.5 lg:justify-end">
+              {SOCIAL_LINKS.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  aria-label={s.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/40 transition hover:border-[#2691C2]/40 hover:text-white"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3" aria-hidden>
+                    <path d={s.path} />
+                  </svg>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -319,4 +319,14 @@ export const STATIC_TEAM_DATA: Department[] = [
       },
     ],
   },
+  {
+    id: 11,
+    name_ar: 'إدارة الذكاء الاصطناعي والتحول الرقمي',
+    name_en: 'AI & Digital Transformation Department',
+    slug: 'ai-digital-transformation',
+    description_ar: 'قيادة مشاريع الذكاء الاصطناعي والتحول الرقمي ودمج التقنيات الحديثة في منظومة العمل.',
+    icon: 'cpu-chip',
+    sort_order: 11,
+    members: [],
+  },
 ]

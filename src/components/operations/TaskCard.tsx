@@ -22,13 +22,13 @@ export default function TaskCard({ task, onOpen }: Props) {
       whileHover={{ scale: 1.01 }}
       className="w-full rounded-xl border border-deepBlue/[0.06] bg-white p-4 text-right shadow-sm ring-1 ring-transparent transition hover:border-customBlue/25 hover:ring-customBlue/15"
     >
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-start gap-2">
         <OpsTaskStatusBadge status={task.status} />
         <OpsPriorityBadge p={task.priority} />
       </div>
       <h4 className="mt-2 text-sm font-black leading-snug text-deepBlue">{task.title}</h4>
       <p className="mt-1 text-[11px] font-bold text-slate-500">{task.department_name}</p>
-      <div className="mt-2 flex flex-wrap items-center justify-end gap-2 text-[10px] font-bold text-slate-400">
+      <div className="mt-2 flex flex-wrap items-center justify-start gap-2 text-[10px] font-bold text-slate-400">
         <span>{task.assignee_name ?? 'بدون مسؤول'}</span>
         {task.due_at && <span className="text-customOrange">استحقاق: {task.due_at}</span>}
       </div>

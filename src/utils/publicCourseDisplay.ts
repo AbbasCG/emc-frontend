@@ -1,6 +1,48 @@
 import type { Course } from '@/types'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 
+export type PublicItemType = 'course' | 'workshop' | 'program'
+
+export function resolveItemType(course: Course): PublicItemType {
+  const x = course as Record<string, unknown>
+  const raw = String(
+    x.program_type ?? course.program_kind ?? course.program_type ?? x.catalog_kind ?? '',
+  ).toLowerCase()
+  if (/workshop|ورشة|one_session/.test(raw)) return 'workshop'
+  if (/program|full_program|track|برنامج|مسار/.test(raw)) return 'program'
+  return 'course'
+}
+
+export const ITEM_LABELS: Record<
+  PublicItemType,
+  { badge: string; duration: string; date: string; time: string; mode: string; type: string }
+> = {
+  course: {
+    badge: 'دورة تدريبية',
+    duration: 'مدة الدورة',
+    date: 'تاريخ الدورة',
+    time: 'وقت الدورة',
+    mode: 'نمط الدورة',
+    type: 'نوع الدورة',
+  },
+  workshop: {
+    badge: 'ورشة تدريبية',
+    duration: 'مدة الورشة',
+    date: 'تاريخ الورشة',
+    time: 'وقت الورشة',
+    mode: 'نمط الورشة',
+    type: 'نوع الورشة',
+  },
+  program: {
+    badge: 'برنامج تدريبي',
+    duration: 'مدة البرنامج',
+    date: 'تاريخ البدء',
+    time: 'وقت اللقاء',
+    mode: 'نمط البرنامج',
+    type: 'نوع البرنامج',
+  },
+}
+
 /** SVG gradient — لا صور أسهم خارجية؛ هوية EMC فقط عند غياب صورة الغلاف */
 export const EMC_COURSE_COVER_PLACEHOLDER =
   'data:image/svg+xml,' +

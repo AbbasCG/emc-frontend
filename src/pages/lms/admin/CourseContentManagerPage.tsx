@@ -7,7 +7,6 @@
 
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   Layers,
@@ -42,7 +41,27 @@ import {
 } from '@/api/courseLearnApi'
 import { getApiErrorMessage, getLaravelFieldErrors, withArabicValidationMessages } from '@/api/apiErrors'
 import { notifyStudentScopeRefresh } from '@/api/studentApi'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'
+import {
+  CmsDatetimeField,
+  CmsField,
+  CmsFormModal,
+  CmsFormSection,
+  CmsSelect,
+  CmsTextarea,
+  MATERIAL_KIND_OPTIONS,
+  normalizeSessionLocationType,
+  SESSION_LOCATION_OPTIONS,
+  SESSION_STATUS_OPTIONS,
+  sessionShowsLocation,
+  sessionShowsMeetingUrl,
+  SUBMISSION_TYPE_OPTIONS,
+  validateSessionDraft,
+  VISIBILITY_OPTIONS,
+  YES_NO_OPTIONS,
+} from '@/components/lms/CourseCmsFormModal'
 import { useAuth } from '@/contexts/AuthContext'
+import { formatDateTime } from '@/utils/dateTime'
 import type { CourseLearnAssignment, CourseLearnMaterial, CourseLearnSession, StudentLearnCourseOverview } from '@/types/courseLearn'
 import type { LmsModule } from '@/types/platform'
 
@@ -85,33 +104,11 @@ function mergeServerErrors(e: unknown): Record<string, string> {
   return withArabicValidationMessages(getLaravelFieldErrors(e))
 }
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string
-  onClose: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-deepBlue/55 p-4 backdrop-blur-sm sm:items-center" dir="rtl">
-      <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={onClose} />
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-[1] max-h-[92vh] w-full max-w-lg overflow-auto rounded-[1.5rem] border border-deepBlue/[0.08] bg-white p-6 shadow-2xl"
-      >
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <h2 className="text-lg font-black text-deepBlue">{title}</h2>
-          <button type="button" className="text-xs font-black text-deepBlue/55 hover:text-deepBlue" onClick={onClose}>
-            إغلاق
-          </button>
-        </div>
-        {children}
-      </motion.div>
-    </div>
-  )
+function formatSessionListWhen(s: CourseLearnSession): string {
+  const raw = s.start_at ?? s.starts_at ?? (s.date && s.time ? `${s.date}T${s.time}` : s.date)
+  if (!raw) return '—'
+  const formatted = formatDateTime(String(raw))
+  return formatted === '—' ? String(raw) : formatted
 }
 
 export default function CourseContentManagerPage() {
@@ -139,6 +136,39 @@ export default function CourseContentManagerPage() {
     | { kind: 'assignment'; draft: Record<string, string>; editingId?: number }
     | null
   >(null)
+
+  type DeleteTarget =
+    | { kind: 'module'; id: number; label: string }
+    | { kind: 'session'; id: number; label: string }
+    | { kind: 'material'; id: number; label: string }
+    | { kind: 'assignment'; id: number; label: string }
+
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [deleteBusy, setDeleteBusy] = useState(false)
+
+  async function performDelete() {
+    if (!deleteTarget) return
+    setDeleteBusy(true)
+    try {
+      if (deleteTarget.kind === 'module') {
+        await adminDeleteCourseModule(courseId, deleteTarget.id, cmsScope)
+      } else if (deleteTarget.kind === 'session') {
+        await adminDeleteCourseSession(courseId, deleteTarget.id, cmsScope)
+      } else if (deleteTarget.kind === 'material') {
+        await adminDeleteCourseMaterial(courseId, deleteTarget.id, cmsScope)
+      } else {
+        await adminDeleteCourseAssignment(courseId, deleteTarget.id, cmsScope)
+      }
+      toast.success('تم الحذف')
+      notifyStudentScopeRefresh()
+      setDeleteTarget(null)
+      await reload()
+    } catch (e) {
+      toast.error(getApiErrorMessage(e as AxiosError))
+    } finally {
+      setDeleteBusy(false)
+    }
+  }
 
   const reload = useCallback(async () => {
     if (!valid) return
@@ -286,7 +316,7 @@ export default function CourseContentManagerPage() {
               onClick={() =>
                 setModal({
                   kind: 'module',
-                  draft: { title: '', sort_order: String(mods.length + 1), lessons_count: '0' },
+                  draft: { title: '', sort_order: String(mods.length + 1) },
                 })
               }
               className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-[11px] font-black text-white"
@@ -345,7 +375,6 @@ export default function CourseContentManagerPage() {
                             draft: {
                               title: m.title,
                               sort_order: String(m.sort_order),
-                              lessons_count: String(m.lessons_count),
                             },
                           })
                         }
@@ -355,17 +384,7 @@ export default function CourseContentManagerPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (!window.confirm('حذف هذه الوحدة؟')) return
-                          try {
-                            await adminDeleteCourseModule(courseId, m.id, cmsScope)
-                            toast.success('تم الحذف')
-                            notifyStudentScopeRefresh()
-                            await reload()
-                          } catch (e) {
-                            toast.error(getApiErrorMessage(e as AxiosError))
-                          }
-                        }}
+                        onClick={() => setDeleteTarget({ kind: 'module', id: m.id, label: m.title })}
                         className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
                       >
                         <Trash2 className="h-3.5 w-3.5" aria-hidden /> حذف
@@ -394,7 +413,6 @@ export default function CourseContentManagerPage() {
                     start_at: '',
                     end_at: '',
                     meeting_url: '',
-                    recording_url: '',
                     location_type: 'online',
                     location: '',
                     status: 'scheduled',
@@ -422,7 +440,7 @@ export default function CourseContentManagerPage() {
                     <p className="font-black text-deepBlue">{s.title ?? `جلسة #${s.id}`}</p>
                     <p className="mt-2 text-[12px] font-semibold leading-relaxed text-deepBlue/60">{s.description}</p>
                     <p className="mt-2 text-[11px] font-bold text-deepBlue/50">
-                      {(s.start_at ?? s.starts_at ?? s.date ?? '—')?.toString()}{s.time ? ` · ${s.time}` : ''}
+                      {formatSessionListWhen(s)}
                     </p>
                     {s.meeting_url ?
                       <a
@@ -448,7 +466,6 @@ export default function CourseContentManagerPage() {
                             start_at: isoOrDateToDatetimeLocal(s.start_at ?? s.starts_at ?? ''),
                             end_at: isoOrDateToDatetimeLocal(s.end_at ?? s.ends_at ?? ''),
                             meeting_url: String(s.meeting_url ?? ''),
-                            recording_url: String(s.recording_url ?? ''),
                             location_type: String(s.location_type ?? 'online'),
                             location: String(s.location ?? ''),
                             status: String(s.status ?? 'scheduled'),
@@ -461,17 +478,7 @@ export default function CourseContentManagerPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (!window.confirm('حذف الجلسة؟')) return
-                        try {
-                          await adminDeleteCourseSession(courseId, s.id, cmsScope)
-                          toast.success('تم الحذف')
-                          notifyStudentScopeRefresh()
-                          await reload()
-                        } catch (e) {
-                          toast.error(getApiErrorMessage(e as AxiosError))
-                        }
-                      }}
+                      onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
                       className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
                     >
                       حذف
@@ -546,17 +553,7 @@ export default function CourseContentManagerPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (!window.confirm('حذف المادة؟')) return
-                        try {
-                          await adminDeleteCourseMaterial(courseId, m.id, cmsScope)
-                          toast.success('تم الحذف')
-                          notifyStudentScopeRefresh()
-                          await reload()
-                        } catch (e) {
-                          toast.error(getApiErrorMessage(e as AxiosError))
-                        }
-                      }}
+                      onClick={() => setDeleteTarget({ kind: 'material', id: m.id, label: m.title })}
                       className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
                     >
                       حذف
@@ -609,7 +606,7 @@ export default function CourseContentManagerPage() {
                   <div>
                     <p className="font-black text-deepBlue">{a.title}</p>
                     <p className="mt-1 text-[11px] font-bold text-deepBlue/50">
-                      الموعد النهائي: {a.due_at ?? '—'} · نقاط: {a.max_points ?? '—'} · النوع: {a.submission_type}
+                      الموعد: {a.due_at ? formatDateTime(String(a.due_at)) : '—'} · نقاط: {a.max_points ?? '—'}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -618,7 +615,7 @@ export default function CourseContentManagerPage() {
                       onClick={() =>
                         setModal({
                           kind: 'assignment',
-                          editingId: a.id,
+                          editingId: a.assignment_id ?? a.id,
                           draft: {
                             title: a.title,
                             description: String(a.description ?? ''),
@@ -636,17 +633,11 @@ export default function CourseContentManagerPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (!window.confirm('حذف الواجب؟')) return
-                        try {
-                          await adminDeleteCourseAssignment(courseId, a.id, cmsScope)
-                          toast.success('تم الحذف')
-                          notifyStudentScopeRefresh()
-                          await reload()
-                        } catch (e) {
-                          toast.error(getApiErrorMessage(e as AxiosError))
-                        }
-                      }}
+                      onClick={() => setDeleteTarget({
+                        kind: 'assignment',
+                        id: a.assignment_id ?? a.id,
+                        label: a.title,
+                      })}
                       className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
                     >
                       حذف
@@ -714,6 +705,21 @@ export default function CourseContentManagerPage() {
           }}
         />
       : null}
+
+      <ConfirmDeleteModal
+        open={deleteTarget != null}
+        title={
+          deleteTarget?.kind === 'module' ? 'حذف الوحدة'
+          : deleteTarget?.kind === 'session' ? 'حذف الجلسة'
+          : deleteTarget?.kind === 'material' ? 'حذف المادة'
+          : 'حذف الواجب'
+        }
+        itemLabel={deleteTarget?.label}
+        description="لا يمكن التراجع عن هذا الإجراء. سيتم إزالة العنصر من محتوى الدورة."
+        busy={deleteBusy}
+        onClose={() => { if (!deleteBusy) setDeleteTarget(null) }}
+        onConfirm={performDelete}
+      />
     </div>
   )
 }
@@ -773,15 +779,13 @@ function ModuleModalBody({
     try {
       const body = {
         title: d.title.trim(),
-        sort_order: Number(d.sort_order ?? 1),
-        lessons_count: Number(d.lessons_count ?? 0),
+        sort_order: Number(d.sort_order ?? 1) || 1,
       }
 
       modal.editingId ?
         await adminUpdateCourseModule(courseId, modal.editingId, body, cmsScope)
       : await adminCreateCourseModule(courseId, body, cmsScope)
       toast.success('تم حفظ الوحدة')
-
       onSaved()
     } catch (e: unknown) {
       applyCmsValidationErrors(e, setFieldErrors)
@@ -791,47 +795,40 @@ function ModuleModalBody({
   }
 
   return (
-    <Modal title={modal.editingId ? 'تعديل وحدة' : 'وحدة جديدة'} onClose={onClose}>
-      <div className="space-y-4">
-        <Field
-          label="العنوان"
+    <CmsFormModal
+      formId="cms-module-form"
+      title={modal.editingId ? 'تعديل الوحدة' : 'وحدة تعليمية جديدة'}
+      subtitle="عنوان الوحدة وترتيبها ضمن محتوى الدورة."
+      eyebrow="وحدات الدورة"
+      onClose={onClose}
+      onSubmit={submit}
+      busy={busy}
+    >
+      <CmsFormSection title="البيانات الأساسية">
+        <CmsField
+          label="عنوان الوحدة"
+          required
           error={fieldErrors.title}
           value={d.title}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('title')
             setD({ ...d, title: v })
           }}
         />
-        <Field
-          label="الترتيب"
+        <CmsField
+          label="ترتيب العرض"
+          hint="رقم أصغر = يظهر أولاً في قائمة الطالب"
           error={fieldErrors.sort_order}
-          value={d.sort_order}
-          on={(v) => {
+          value={d.sort_order ?? '1'}
+          dir="ltr"
+          type="number"
+          onChange={(v) => {
             clearKey('sort_order')
             setD({ ...d, sort_order: v })
           }}
-          dir="ltr"
         />
-        <Field
-          label="عدد الدروس"
-          error={fieldErrors.lessons_count}
-          value={d.lessons_count}
-          on={(v) => {
-            clearKey('lessons_count')
-            setD({ ...d, lessons_count: v })
-          }}
-          dir="ltr"
-        />
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void submit()}
-          className="w-full rounded-2xl bg-deepBlue py-3 text-[12px] font-black text-white"
-        >
-          {busy ? 'جارٍ الحفظ…' : 'حفظ'}
-        </button>
-      </div>
-    </Modal>
+      </CmsFormSection>
+    </CmsFormModal>
   )
 }
 
@@ -861,21 +858,31 @@ function SessionModalBody({
     })
   }
 
+  const locType = normalizeSessionLocationType(d.location_type ?? 'online')
+
   async function submit() {
     setFieldErrors({})
+    const clientErrors = validateSessionDraft(d)
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors)
+      return
+    }
     setBusy(true)
     try {
+      const type = normalizeSessionLocationType(d.location_type)
       const body: Record<string, unknown> = {
         title: d.title.trim(),
-        description: d.description || undefined,
+        description: d.description.trim() || undefined,
         start_at: datetimeLocalToApi(d.start_at),
         end_at: datetimeLocalToApi(d.end_at),
-        meeting_url: d.meeting_url || undefined,
-        recording_url: d.recording_url || undefined,
-
-        location_type: d.location_type,
-        location: d.location || undefined,
+        location_type: type,
         status: d.status,
+      }
+      if (sessionShowsMeetingUrl(type)) {
+        body.meeting_url = d.meeting_url.trim()
+      }
+      if (sessionShowsLocation(type)) {
+        body.location = d.location.trim()
       }
 
       modal.editingId ?
@@ -883,7 +890,6 @@ function SessionModalBody({
       : await adminCreateCourseSession(courseId, body, cmsScope)
 
       toast.success('تم حفظ الجلسة')
-
       onSaved()
     } catch (e: unknown) {
       applyCmsValidationErrors(e, setFieldErrors)
@@ -893,116 +899,113 @@ function SessionModalBody({
   }
 
   return (
-    <Modal title={modal.editingId ? 'تعديل الجلسة' : 'جلسة جديدة'} onClose={onClose}>
-      <div className="max-h-[70vh] space-y-4 overflow-auto pr-1">
-        <Field
-          label="العنوان"
+    <CmsFormModal
+      formId="cms-session-form"
+      title={modal.editingId ? 'تعديل الجلسة' : 'جلسة جديدة'}
+      subtitle="حدّد نوع الجلسة — تظهر الحقول المناسبة فقط (أونلاين / حضوري / مختلط)."
+      eyebrow="جدولة الجلسات"
+      onClose={onClose}
+      onSubmit={submit}
+      busy={busy}
+    >
+      <CmsFormSection title="معلومات الجلسة">
+        <CmsField
+          label="عنوان الجلسة"
+          required
           error={fieldErrors.title}
           value={d.title}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('title')
             setD({ ...d, title: v })
           }}
         />
-        <div>
-          <span className="text-[11px] font-black text-deepBlue/55">الوصف</span>
-          <textarea
-            placeholder="الوصف"
-            className={`mt-1.5 w-full rounded-xl border px-3 py-2 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:ring-customBlue/25 ${
-              fieldErrors.description ? 'border-rose-400 ring-rose-100' : 'border-deepBlue/12'
-            }`}
-            rows={4}
-            value={d.description}
-            onChange={(ev) => {
-              clearKey('description')
-              setD({ ...d, description: ev.target.value })
-            }}
-          />
-          {fieldErrors.description ?
-            <p className="mt-1 text-[11px] font-bold text-rose-700">{fieldErrors.description}</p>
-          : null}
-        </div>
-        <DatetimeField
-          label="البداية"
-          hint="التنسيق: YYYY-MM-DDTHH:mm"
+        <CmsTextarea
+          label="الوصف"
+          value={d.description}
+          error={fieldErrors.description}
+          rows={3}
+          onChange={(v) => {
+            clearKey('description')
+            setD({ ...d, description: v })
+          }}
+        />
+      </CmsFormSection>
+
+      <CmsFormSection title="التوقيت">
+        <CmsDatetimeField
+          label="وقت البداية"
+          required
           value={d.start_at}
           error={fieldErrors.start_at}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('start_at')
             setD({ ...d, start_at: v })
           }}
         />
-        <DatetimeField
-          label="النهاية"
-          hint="اختياري"
+        <CmsDatetimeField
+          label="وقت النهاية"
           value={d.end_at}
           error={fieldErrors.end_at}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('end_at')
             setD({ ...d, end_at: v })
           }}
         />
-        <Field
-          label="رابط الاجتماع"
-          error={fieldErrors.meeting_url}
-          dir="ltr"
-          value={d.meeting_url}
-          on={(v) => {
-            clearKey('meeting_url')
-            setD({ ...d, meeting_url: v })
-          }}
-        />
+      </CmsFormSection>
 
-        <Field
-          label="التسجيل"
-          error={fieldErrors.recording_url}
-          dir="ltr"
-          value={d.recording_url}
-          on={(v) => {
-            clearKey('recording_url')
-            setD({ ...d, recording_url: v })
-          }}
-        />
-        <SelectField
-          label="نوع الشكل المكاني"
+      <CmsFormSection title="نوع الجلسة والمكان">
+        <CmsSelect
+          label="نوع الجلسة"
+          value={locType}
           error={fieldErrors.location_type}
-          value={d.location_type}
-          on={(v) => {
+          options={[...SESSION_LOCATION_OPTIONS]}
+          onChange={(v) => {
             clearKey('location_type')
+            clearKey('meeting_url')
+            clearKey('location')
             setD({ ...d, location_type: v })
           }}
-          options={[['online', 'online'], ['offline', 'offline'], ['hybrid', 'hybrid']]}
         />
-
-        <Field
-          label="الموقع الفعلي"
-          error={fieldErrors.location}
-          value={d.location}
-          on={(v) => {
-            clearKey('location')
-            setD({ ...d, location: v })
-          }}
-        />
-        <SelectField
-          label="الحالة"
-          error={fieldErrors.status}
+        {sessionShowsMeetingUrl(locType) ?
+          <CmsField
+            label="رابط الاجتماع"
+            required
+            dir="ltr"
+            type="url"
+            hint="Zoom · Teams · Google Meet"
+            error={fieldErrors.meeting_url}
+            value={d.meeting_url}
+            onChange={(v) => {
+              clearKey('meeting_url')
+              setD({ ...d, meeting_url: v })
+            }}
+          />
+        : null}
+        {sessionShowsLocation(locType) ?
+          <CmsField
+            label="الموقع الحضوري"
+            required={locType === 'offline'}
+            hint="القاعة، العنوان، أو المبنى"
+            error={fieldErrors.location}
+            value={d.location}
+            onChange={(v) => {
+              clearKey('location')
+              setD({ ...d, location: v })
+            }}
+          />
+        : null}
+        <CmsSelect
+          label="حالة الجلسة"
           value={d.status}
-          on={(v) => {
+          error={fieldErrors.status}
+          options={[...SESSION_STATUS_OPTIONS]}
+          onChange={(v) => {
             clearKey('status')
             setD({ ...d, status: v })
           }}
-          options={[['scheduled', 'scheduled'], ['live', 'live'], ['completed', 'completed'], ['cancelled', 'cancelled']]}
         />
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void submit()}
-          className="w-full rounded-2xl bg-deepBlue py-3 text-[12px] font-black text-white"
-        >
-          {busy ? 'جارٍ الحفظ…' : 'حفظ'}
-        </button>
-      </div>
-    </Modal>
+      </CmsFormSection>
+    </CmsFormModal>
   )
 }
 
@@ -1061,11 +1064,8 @@ function MaterialModalBody({
       } else {
         const body: Record<string, unknown> = {
           title: d.title.trim(),
-
-          description: d.description || undefined,
-
+          description: d.description.trim() || undefined,
           kind: d.kind,
-
           external_url: d.external_url.trim() || undefined,
           visibility: d.visibility,
         }
@@ -1076,7 +1076,6 @@ function MaterialModalBody({
       }
 
       toast.success('تم حفظ المادة')
-
       onSaved()
     } catch (e: unknown) {
       applyCmsValidationErrors(e, setFieldErrors)
@@ -1086,95 +1085,88 @@ function MaterialModalBody({
   }
 
   return (
-    <Modal title={modal.editingId ? 'تعديل مادة' : 'مادة جديدة'} onClose={onClose}>
-      <div className="space-y-4">
-        <Field
-          label="العنوان"
+    <CmsFormModal
+      formId="cms-material-form"
+      title={modal.editingId ? 'تعديل المادة' : 'مادة تعليمية جديدة'}
+      subtitle="ملف، رابط، أو مستند — يظهر للطلاب حسب إعدادات الظهور."
+      eyebrow="مواد الدورة"
+      onClose={onClose}
+      onSubmit={submit}
+      busy={busy}
+    >
+      <CmsFormSection title="التفاصيل">
+        <CmsField
+          label="عنوان المادة"
+          required
           error={fieldErrors.title}
           value={d.title}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('title')
             setD({ ...d, title: v })
           }}
         />
-        <div>
-          <span className="text-[11px] font-black text-deepBlue/55">الوصف</span>
-          <textarea
-            placeholder="الوصف"
-            className={`mt-1.5 w-full rounded-xl border px-3 py-2 text-[13px] font-semibold ${
-              fieldErrors.description ? 'border-rose-400 ring-1 ring-rose-100' : 'border-deepBlue/12'
-            }`}
-            rows={3}
-            value={d.description}
-            onChange={(ev) => {
-              clearKey('description')
-              setD({ ...d, description: ev.target.value })
-            }}
-          />
-          {fieldErrors.description ?
-            <p className="mt-1 text-[11px] font-bold text-rose-700">{fieldErrors.description}</p>
-          : null}
-        </div>
-        <SelectField
-          label="النوع"
-          error={fieldErrors.kind}
+        <CmsTextarea
+          label="الوصف"
+          value={d.description}
+          error={fieldErrors.description}
+          onChange={(v) => {
+            clearKey('description')
+            setD({ ...d, description: v })
+          }}
+        />
+        <CmsSelect
+          label="نوع المادة"
           value={d.kind}
-          on={(v) => {
+          error={fieldErrors.kind}
+          options={[...MATERIAL_KIND_OPTIONS]}
+          onChange={(v) => {
             clearKey('kind')
             setD({ ...d, kind: v })
           }}
-          options={[
-            ['pdf', 'pdf'],
-            ['video', 'video'],
-            ['link', 'link'],
-            ['slides', 'slides'],
-            ['document', 'document'],
-            ['other', 'other'],
-          ]}
         />
+      </CmsFormSection>
 
-        <Field
-          label="الرابط الخارجي"
-          error={fieldErrors.external_url}
-          hint="بديل عن رفع ملف"
+      <CmsFormSection title="الوصول والملف">
+        <CmsField
+          label="رابط خارجي"
           dir="ltr"
+          type="url"
+          hint="بديل عن رفع ملف — YouTube، Drive، …"
+          error={fieldErrors.external_url}
           value={d.external_url}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('external_url')
             setD({ ...d, external_url: v })
           }}
         />
-
-        <SelectField
-          label="الإظهار"
-          error={fieldErrors.visibility}
+        <CmsSelect
+          label="من يرى هذه المادة؟"
           value={d.visibility}
-          on={(v) => {
+          error={fieldErrors.visibility}
+          options={[...VISIBILITY_OPTIONS]}
+          onChange={(v) => {
             clearKey('visibility')
             setD({ ...d, visibility: v })
           }}
-          options={[['public', 'public'], ['enrolled', 'enrolled']]}
         />
-
-        <div className="text-right">
-          <p className="text-[11px] font-bold text-deepBlue/55">رفع ملف (مرفق — multipart/form-data)</p>
-
+        <label className="block text-right">
+          <span className="text-[12px] font-black text-[#22334A]/70">رفع ملف (اختياري)</span>
           <input
             type="file"
-            className={`mt-2 block w-full text-[12px] ${fieldErrors.file ? 'rounded border border-rose-300 p-1' : ''}`}
+            className={`mt-1.5 block w-full rounded-xl border border-dashed border-[#22334A]/15 bg-white px-3 py-2.5 text-[12px] file:me-3 file:rounded-lg file:border-0 file:bg-[#2691C2] file:px-3 file:py-1.5 file:text-[11px] file:font-black file:text-white ${
+              fieldErrors.file ? 'border-rose-400' : ''
+            }`}
             onChange={(e) => {
               clearKey('file')
               setFile(e.target.files?.[0] ?? null)
             }}
           />
-          {fieldErrors.file ? <p className="mt-1 text-[11px] font-bold text-rose-700">{fieldErrors.file}</p> : null}
-        </div>
-
-        <button type="button" disabled={busy} onClick={() => void submit()} className="w-full rounded-2xl bg-deepBlue py-3 text-[12px] font-black text-white">
-          {busy ? 'جارٍ الحفظ…' : 'حفظ'}
-        </button>
-      </div>
-    </Modal>
+          {fieldErrors.file ?
+            <p className="mt-1 text-[11px] font-bold text-rose-700">{fieldErrors.file}</p>
+          : null}
+        </label>
+      </CmsFormSection>
+    </CmsFormModal>
   )
 }
 
@@ -1206,18 +1198,25 @@ function AssignmentModalBody({
 
   async function submit() {
     setFieldErrors({})
+    if (!d.title.trim()) {
+      setFieldErrors({ title: 'العنوان مطلوب.' })
+      return
+    }
+    if (!d.deadline.trim()) {
+      setFieldErrors({ deadline: 'الموعد النهائي مطلوب.' })
+      return
+    }
     setBusy(true)
 
     try {
       const due = datetimeLocalToApi(d.deadline)
       const body: Record<string, unknown> = {
         title: d.title.trim(),
-        description: d.description || undefined,
+        description: d.description.trim() || undefined,
         deadline: due,
         due_at: due,
         max_points: Number(d.max_points ?? 10),
         submission_type: d.submission_type,
-
         required: d.required !== '0',
         visible: d.visible !== '0',
       }
@@ -1227,7 +1226,6 @@ function AssignmentModalBody({
       : await adminCreateCourseAssignment(courseId, body, cmsScope)
 
       toast.success('تم حفظ الواجب')
-
       onSaved()
     } catch (e: unknown) {
       applyCmsValidationErrors(e, setFieldErrors)
@@ -1237,205 +1235,95 @@ function AssignmentModalBody({
   }
 
   return (
-    <Modal title={modal.editingId ? 'تعديل الواجب' : 'واجب جديد'} onClose={onClose}>
-      <div className="space-y-4">
-        <Field
-          label="العنوان"
+    <CmsFormModal
+      formId="cms-assignment-form"
+      title={modal.editingId ? 'تعديل الواجب' : 'واجب جديد'}
+      subtitle="موعد التسليم، الدرجة، ونوع التسليم — كما يراه الطالب."
+      eyebrow="واجبات الدورة"
+      onClose={onClose}
+      onSubmit={submit}
+      busy={busy}
+    >
+      <CmsFormSection title="محتوى الواجب">
+        <CmsField
+          label="عنوان الواجب"
+          required
           error={fieldErrors.title}
           value={d.title}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('title')
             setD({ ...d, title: v })
           }}
         />
-        <div>
-          <span className="text-[11px] font-black text-deepBlue/55">الوصف للطالب</span>
-          <textarea
-            placeholder="الوصف للطالب"
-            className={`mt-1.5 w-full rounded-xl border px-3 py-2 text-[13px] font-semibold ${
-              fieldErrors.description ? 'border-rose-400 ring-1 ring-rose-100' : 'border-deepBlue/12'
-            }`}
-            rows={3}
-            value={d.description}
-            onChange={(ev) => {
-              clearKey('description')
-              setD({ ...d, description: ev.target.value })
-            }}
-          />
-          {fieldErrors.description ?
-            <p className="mt-1 text-[11px] font-bold text-rose-700">{fieldErrors.description}</p>
-          : null}
-        </div>
-        <DatetimeField
-          label="الموعد النهائي"
-          hint="التنسيق: YYYY-MM-DDTHH:mm"
+        <CmsTextarea
+          label="التعليمات للطالب"
+          value={d.description}
+          error={fieldErrors.description}
+          rows={4}
+          onChange={(v) => {
+            clearKey('description')
+            setD({ ...d, description: v })
+          }}
+        />
+      </CmsFormSection>
+
+      <CmsFormSection title="الموعد والدرجة">
+        <CmsDatetimeField
+          label="الموعد النهائي للتسليم"
+          required
           value={d.deadline}
           error={fieldErrors.deadline ?? fieldErrors.due_at}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('deadline')
             clearKey('due_at')
             setD({ ...d, deadline: v })
           }}
         />
-        <Field
+        <CmsField
           label="الدرجة القصوى"
-          error={fieldErrors.max_points}
           dir="ltr"
+          type="number"
+          error={fieldErrors.max_points}
           value={d.max_points}
-          on={(v) => {
+          onChange={(v) => {
             clearKey('max_points')
             setD({ ...d, max_points: v })
           }}
         />
-        <SelectField
+        <CmsSelect
           label="نوع التسليم"
-          error={fieldErrors.submission_type}
           value={d.submission_type}
-          on={(v) => {
+          error={fieldErrors.submission_type}
+          options={[...SUBMISSION_TYPE_OPTIONS]}
+          onChange={(v) => {
             clearKey('submission_type')
             setD({ ...d, submission_type: v })
           }}
-          options={[
-            ['text', 'text'],
-            ['file', 'file'],
-            ['both', 'both'],
-          ]}
         />
+      </CmsFormSection>
 
-        <SelectField
-          label="إجباري"
-          error={fieldErrors.required}
+      <CmsFormSection title="الظهور والإلزام">
+        <CmsSelect
+          label="واجب إلزامي؟"
           value={d.required}
-          on={(v) => {
+          error={fieldErrors.required}
+          options={[...YES_NO_OPTIONS]}
+          onChange={(v) => {
             clearKey('required')
             setD({ ...d, required: v })
           }}
-          options={[
-            ['1', 'نعم'],
-            ['0', 'لا'],
-          ]}
         />
-
-        <SelectField
-          label="ظاهر"
-          error={fieldErrors.visible}
+        <CmsSelect
+          label="ظاهر للطلاب؟"
           value={d.visible}
-          on={(v) => {
+          error={fieldErrors.visible}
+          options={[...YES_NO_OPTIONS]}
+          onChange={(v) => {
             clearKey('visible')
             setD({ ...d, visible: v })
           }}
-          options={[
-            ['1', 'نعم'],
-            ['0', 'لا'],
-          ]}
         />
-
-        <button type="button" disabled={busy} onClick={() => void submit()} className="w-full rounded-2xl bg-deepBlue py-3 text-[12px] font-black text-white">
-          {busy ? 'جارٍ الحفظ…' : 'حفظ'}
-        </button>
-      </div>
-    </Modal>
-  )
-}
-
-function Field({
-  label,
-  value,
-  on,
-  hint,
-  dir = 'rtl',
-  type = 'text',
-  error,
-}: {
-  label: string
-  value: string
-  on: (v: string) => void
-  hint?: string
-  dir?: 'rtl' | 'ltr'
-  type?: string
-  error?: string
-}) {
-  return (
-    <label className="block text-right">
-      <span className="text-[11px] font-black text-deepBlue/55">{label}</span>
-      {hint ? <span className="mr-2 text-[10px] font-bold text-deepBlue/40">{hint}</span> : null}
-      <input
-        type={type}
-        dir={dir}
-        className={`mt-1.5 w-full rounded-xl border px-3 py-2.5 text-[13px] font-semibold outline-none focus:ring-2 focus:ring-customBlue/25 ${
-          error ? 'border-rose-400 ring-1 ring-rose-200' : 'border-deepBlue/12'
-        }`}
-        value={value}
-        onChange={(e) => on(e.target.value)}
-      />
-      {error ? <p className="mt-1 text-[11px] font-bold text-rose-700">{error}</p> : null}
-    </label>
-  )
-}
-
-function DatetimeField({
-  label,
-  value,
-  on,
-  hint,
-  error,
-}: {
-  label: string
-  value: string
-  on: (v: string) => void
-  hint?: string
-  error?: string
-}) {
-  return (
-    <label className="block text-right">
-      <span className="text-[11px] font-black text-deepBlue/55">{label}</span>
-      {hint ? <span className="mr-2 text-[10px] font-bold text-deepBlue/40">{hint}</span> : null}
-      <input
-        type="datetime-local"
-        dir="ltr"
-        step={60}
-        className={`mt-1.5 w-full rounded-xl border px-3 py-2.5 text-[13px] font-semibold outline-none focus:ring-2 focus:ring-customBlue/25 ${
-          error ? 'border-rose-400 ring-1 ring-rose-200' : 'border-deepBlue/12'
-        }`}
-        value={value}
-        onChange={(e) => on(e.target.value)}
-      />
-      {error ? <p className="mt-1 text-[11px] font-bold text-rose-700">{error}</p> : null}
-    </label>
-  )
-}
-
-function SelectField({
-  label,
-  value,
-  on,
-  options,
-  error,
-}: {
-  label: string
-  value: string
-  on: (v: string) => void
-  options: [string, string][]
-  error?: string
-}) {
-  return (
-    <label className="block text-right">
-      <span className="text-[11px] font-black text-deepBlue/55">{label}</span>
-      <select
-        dir="ltr"
-        className={`mt-1.5 w-full rounded-xl border px-3 py-2.5 text-[13px] font-semibold ${
-          error ? 'border-rose-400 ring-1 ring-rose-200' : 'border-deepBlue/12'
-        }`}
-        value={value}
-        onChange={(e) => on(e.target.value)}
-      >
-        {options.map(([v, lab]) => (
-          <option key={v} value={v}>
-            {lab}
-          </option>
-        ))}
-      </select>
-      {error ? <p className="mt-1 text-[11px] font-bold text-rose-700">{error}</p> : null}
-    </label>
+      </CmsFormSection>
+    </CmsFormModal>
   )
 }

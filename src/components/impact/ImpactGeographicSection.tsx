@@ -35,7 +35,7 @@ export default function ImpactGeographicSection() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.22 }}
           >
-            <div className="mb-4 flex flex-wrap items-center justify-end gap-2 text-right lg:justify-start">
+            <div className="mb-4 flex flex-wrap items-center justify-start gap-2 text-right lg:justify-start">
               <MapPinned size={20} className="text-customBlue" aria-hidden />
               <h3 className="font-display text-lg font-black text-deepBlue md:text-xl">التجمعات داخل هولندا</h3>
             </div>

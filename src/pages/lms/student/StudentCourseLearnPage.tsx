@@ -11,7 +11,6 @@ import {
   ExternalLink,
   FolderOpen,
   Layers,
-  LayoutList,
   RefreshCw,
   Sparkles,
   StickyNote,
@@ -24,15 +23,17 @@ import {
   mapCourseLearnMaterialToLmsMaterial,
   mapLearnSessionToLms,
 } from '@/api/courseLearnApi'
-import { STUDENT_SCOPE_REFRESH_EVENT } from '@/api/studentApi'
+import { STUDENT_SCOPE_REFRESH_EVENT, notifyStudentScopeRefresh } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
-import { AssignmentCard, LmsEmptyState, MaterialCard, SessionCard } from '@/components/lms'
+import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, MaterialCard, SessionCard } from '@/components/lms'
+import type { StudentAssignment } from '@/types/lms'
 import type { StudentCourseLearnPayload } from '@/types/courseLearn'
 import type { LmsModule } from '@/types/platform'
 import type { LmsSession } from '@/types/lms'
 import logo from '@/assets/logo.png'
 import { resolveCoursePkFromLikelyMisKey, studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
 
 const NOTES_KEY = (courseId: number) => `emc-student-learn-notes:${courseId}`
 
@@ -59,11 +60,17 @@ function deriveProgressPct(learn: StudentCourseLearnPayload): number {
   }
   const mods = learn.modules
   if (!mods.length) return 0
+  const withBackendPct = mods.filter((m) => typeof m.progress_percentage === 'number')
+  if (withBackendPct.length > 0) {
+    const avg =
+      withBackendPct.reduce((sum, m) => sum + (m.progress_percentage ?? 0), 0) / withBackendPct.length
+    return Math.min(100, Math.round(avg))
+  }
   let lessons = 0
   let done = 0
   for (const m of mods) {
     lessons += Math.max(m.lessons_count ?? 0, 0)
-    done += Math.max(m.completed_lessons ?? 0, 0)
+    done += Math.max(m.completed_lessons_count ?? m.completed_lessons ?? 0, 0)
   }
   if (lessons <= 0) return 0
   return Math.min(100, Math.round((done / lessons) * 100))
@@ -117,7 +124,7 @@ function ScrollNav({
         : null}
         <Link
           to="/dashboard/student/courses"
-          className="mt-4 flex items-center justify-end gap-2 rounded-2xl border border-deepBlue/10 bg-deepBlue/[0.04] px-4 py-2.5 text-[12px] font-black text-deepBlue transition hover:border-customOrange/35"
+          className="mt-4 flex items-center justify-start gap-2 rounded-2xl border border-deepBlue/10 bg-deepBlue/[0.04] px-4 py-2.5 text-[12px] font-black text-deepBlue transition hover:border-customOrange/35"
         >
           العودة لدوراتي
           <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -151,6 +158,7 @@ export default function StudentCourseLearnPage() {
   const [learnError, setLearnError] = useState<string | null>(null)
   /** HTTP gate: 403 = not authorized, 404 = course not found — drives copy + escalation when UI shows registration. */
   const [gateError, setGateError] = useState<'forbidden' | 'missing' | null>(null)
+  const [activeAssignment, setActiveAssignment] = useState<StudentAssignment | null>(null)
 
   const { registrations, enrollmentsMerged, registeredCourseIds } = useStudentDashboardData()
 
@@ -256,7 +264,11 @@ export default function StudentCourseLearnPage() {
       title: m.title,
       sort_order: m.sort_order,
       lessons_count: m.lessons_count,
-      completed_lessons: m.completed_lessons,
+      completed_lessons: m.completed_lessons_count ?? m.completed_lessons,
+      assignments_count: m.assignments_count,
+      submitted_assignments_count: m.submitted_assignments_count,
+      progress_percentage: m.progress_percentage,
+      is_completed: m.is_completed,
     }))
   }, [ctx?.modules, courseId])
 
@@ -294,7 +306,6 @@ export default function StudentCourseLearnPage() {
       { id: 'learn-materials', label: 'المواد' },
       { id: 'learn-assignments', label: 'الواجبات' },
       { id: 'learn-progress', label: 'التقدّم' },
-      { id: 'learn-workshops', label: 'ورش' },
       { id: 'learn-notes', label: 'ملاحظاتي' },
     ],
     [],
@@ -417,7 +428,7 @@ export default function StudentCourseLearnPage() {
 
           <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex flex-1 flex-col gap-4">
-              <div className="flex flex-wrap items-center justify-end gap-2 text-[11px] font-black text-white/70">
+              <div className="flex flex-wrap items-center justify-start gap-2 text-[11px] font-black text-white/70">
                 <Link to="/dashboard/student/courses" className="hover:text-white">
                   دوراتي
                 </Link>
@@ -437,7 +448,7 @@ export default function StudentCourseLearnPage() {
                     المدرب:{' '}
                     {instructor || <span className="opacity-85">لم يتم تعيين مدرب بعد</span>}
                   </p>
-                  <div className="flex flex-wrap items-center justify-end gap-2">
+                  <div className="flex flex-wrap items-center justify-start gap-2">
                     <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-black text-white backdrop-blur">
                       التسجيل: {statusArabic(regLabel)}
                     </span>
@@ -476,25 +487,30 @@ export default function StudentCourseLearnPage() {
                 {nextSession ?
                   <div className="mt-2 space-y-1">
                     <p className="text-[13px] font-black leading-snug">{nextSession.title ?? nextSession.course_name}</p>
-                    <p className="text-[11px] font-bold text-white/75" dir="ltr">
-                      {nextSession.starts_at ?? nextSession.date ?? '—'}
-                      {nextSession.time ? ` · ${nextSession.time}` : ''}
+                    <p className="text-[11px] font-bold text-white/75">
+                      {formatSessionSchedule(nextSession)}
                     </p>
-                    {nextSession.meeting_link && nextSession.status !== 'completed' ?
-                      <a
-                        href={nextSession.meeting_link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-[12px] font-black text-deepBlue hover:bg-orange-50"
-                      >
-                        <Video className="h-4 w-4 text-customOrange" aria-hidden />
-                        انضم للجلسة
-                      </a>
-                    : (
-                      <p className="mt-2 rounded-xl border border-sky-200/35 bg-white/10 px-2 py-1.5 text-[10px] font-bold leading-relaxed">
-                        سيتم إشعارك عند تحديد الموعد أو عند توفر الرابط من الخادم
-                      </p>
-                    )}
+                    {(() => {
+                      const join = getSessionJoinState(nextSession, Date.now(), 'انضم للجلسة')
+                      if (join.kind === 'join') {
+                        return (
+                          <a
+                            href={join.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-[12px] font-black text-deepBlue hover:bg-orange-50"
+                          >
+                            <Video className="h-4 w-4 text-customOrange" aria-hidden />
+                            {join.label}
+                          </a>
+                        )
+                      }
+                      return (
+                        <p className="mt-2 rounded-xl border border-white/25 bg-white/10 px-2 py-1.5 text-[10px] font-bold leading-relaxed text-white/90">
+                          {join.label}
+                        </p>
+                      )
+                    })()}
                   </div>
                 : (
                   <p className="mt-2 text-[12px] font-bold text-white/75">
@@ -514,7 +530,7 @@ export default function StudentCourseLearnPage() {
             </div>
           </div>
 
-          <div className="relative mt-8 flex flex-wrap justify-end gap-3">
+          <div className="relative mt-8 flex flex-wrap justify-start gap-3">
             {learnError ?
               <span className="rounded-2xl border border-amber-200/55 bg-white/15 px-3 py-2 text-[11px] font-bold text-amber-100">
                 {learnError}
@@ -529,13 +545,6 @@ export default function StudentCourseLearnPage() {
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
               {refreshing ? 'جارٍ التحديث…' : 'تحديث من الخادم'}
             </button>
-            <Link
-              to={`/dashboard/courses/${courseId}/modules`}
-              className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-5 py-2.5 text-[12px] font-black text-white shadow-lg shadow-orange-900/35 hover:brightness-105"
-            >
-              <Layers className="h-4 w-4" aria-hidden />
-              الوحدات والدروس (المخطّط التفصيلي)
-            </Link>
           </div>
         </div>
       </section>
@@ -555,35 +564,53 @@ export default function StudentCourseLearnPage() {
               </div>
             </div>
             {modulesLms.length === 0 ?
-              <div className="rounded-3xl border border-deepBlue/[0.08] bg-white/70 p-8 text-[13px] font-semibold leading-relaxed text-deepBlue/70 shadow-inner backdrop-blur">
-                لا توجد وحدات مربوطة بهذه الدورة في استجابة الخادم — عندما تضيف الإدارة وحدات، ستُعرض هنا تلقائياً.
+              <div className="rounded-2xl border border-deepBlue/[0.08] bg-white/70 p-6 text-center text-[13px] font-semibold leading-relaxed text-deepBlue/70 shadow-inner backdrop-blur">
+                لم تتم إضافة وحدات تعليمية لهذه الدورة بعد
               </div>
             : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {modulesLms.map((m, idx) => {
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {modulesLms.map((m) => {
                   const done = Math.max(0, m.completed_lessons ?? 0)
-                  const pct = Math.round((done / Math.max(m.lessons_count, 1)) * 100)
+                  const pct =
+                    typeof m.progress_percentage === 'number' ?
+                      Math.round(m.progress_percentage)
+                    : Math.round((done / Math.max(m.lessons_count, 1)) * 100)
+                  const assignmentsDone = m.submitted_assignments_count ?? 0
+                  const assignmentsTotal = m.assignments_count ?? 0
                   return (
                     <motion.div
                       key={m.id}
                       id={`learn-module-${m.id}`}
                       layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.03 }}
-                      className="scroll-mt-28 rounded-3xl border border-white/50 bg-white/75 p-5 shadow-emc backdrop-blur-md ring-1 ring-deepBlue/[0.04]"
+                      className="scroll-mt-28 rounded-2xl border border-white/50 bg-white/75 p-3.5 shadow-sm ring-1 ring-deepBlue/[0.04]"
                     >
-                      <div className="flex items-start gap-4">
-                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-deepBlue to-customBlue text-sm font-black text-white">
-                          {idx + 1}
+                      <div className="flex items-start gap-2.5">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-deepBlue to-customBlue text-white">
+                          <BookOpen className="h-4 w-4" aria-hidden />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-black text-deepBlue">{m.title}</h3>
-                          <p className="mt-2 text-[11px] font-bold text-slate-500">
-                            الدروس: {m.lessons_count} — المكتمل: {done}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="line-clamp-2 text-[13px] font-black leading-snug text-deepBlue">{m.title}</h3>
+                            {m.is_completed ?
+                              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800">
+                                مكتملة
+                              </span>
+                            : null}
+                          </div>
+                          <p className="mt-1 text-[10px] font-bold text-slate-500">
+                            {m.lessons_count} درس · {done} مكتمل
+                            {assignmentsTotal > 0 ?
+                              ` · ${assignmentsDone}/${assignmentsTotal} واجبات`
+                            : ''}
                           </p>
-                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-                            <div className="h-full rounded-full bg-gradient-to-l from-customBlue to-customOrange" style={{ width: `${pct}%` }} />
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-l from-customBlue to-customOrange"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-black text-deepBlue">{pct}%</span>
                           </div>
                         </div>
                       </div>
@@ -661,14 +688,14 @@ export default function StudentCourseLearnPage() {
                     assignment={a}
                     onSubmit={
                       ['pending', 'revision', 'late'].includes(String(a.status)) ?
-                        () => void navigate('/dashboard/student/assignments')
+                        () => setActiveAssignment(a)
                       : undefined
                     }
                   />
                 ))}
                 <Link
                   to="/dashboard/student/assignments"
-                  className="inline-flex items-center justify-end gap-2 text-[12px] font-black text-customBlue hover:underline"
+                  className="inline-flex items-center justify-start gap-2 text-[12px] font-black text-customBlue hover:underline"
                 >
                   فتح كل الواجبات
                   <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden />
@@ -718,32 +745,6 @@ export default function StudentCourseLearnPage() {
                 </motion.div>
               ))}
             </div>
-            <div className="rounded-3xl border border-dashed border-customBlue/35 bg-customBlue/[0.04] p-5 text-[12px] font-semibold leading-relaxed text-deepBlue/75">
-              <strong className="font-black text-deepBlue">مسارات إضافية:</strong>{' '}
-              يمكن متابعة الاختبارات والأنشطة العامة من مساحة التعلّم الموحّدة.
-              <Link to="/dashboard/learning" className="mr-2 inline-block font-black text-customBlue underline">
-                فتح مسار التعلّم
-              </Link>
-            </div>
-          </section>
-
-          {/* Workshops */}
-          <section id="learn-workshops" className="scroll-mt-28 rounded-3xl border border-orange-100/95 bg-orange-50/45 p-6 shadow-sm ring-1 ring-orange-100/80 backdrop-blur">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="max-w-xl">
-                <h2 className="text-xl font-black text-deepBlue">طلب ورشة تكميلية</h2>
-                <p className="mt-2 text-[13px] font-semibold text-deepBlue/65">
-                  لا نعرض ورشاً وهمياً هنا؛ يمكنك طلب ورشة حقيقية عبر النموذج الرسمي.
-                </p>
-              </div>
-              <Link
-                to="/submit-workshop"
-                className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-5 py-2.5 text-[12px] font-black text-white shadow-md hover:brightness-105"
-              >
-                <LayoutList className="h-4 w-4" aria-hidden />
-                طلب ورشة
-              </Link>
-            </div>
           </section>
 
           {/* Notes */}
@@ -766,6 +767,15 @@ export default function StudentCourseLearnPage() {
           </section>
         </div>
       </div>
+
+      <AssignmentSubmitModal
+        assignment={activeAssignment}
+        onClose={() => setActiveAssignment(null)}
+        onSuccess={async () => {
+          await loadLearn()
+          notifyStudentScopeRefresh()
+        }}
+      />
     </div>
   )
 }

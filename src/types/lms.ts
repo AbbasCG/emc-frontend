@@ -83,6 +83,22 @@ export type StudentLmsDashboard = {
     start_date?: string | null
     start_time?: string | null
     meeting_link?: string | null
+    cover_url?: string | null
+    requires_placement_test?: boolean
+    placement_status?: string | null
+    can_start_learning?: boolean | null
+    class_assignment?: {
+      class_group_id: number
+      name: string
+      level_code?: string | null
+      schedule_day?: string | null
+      schedule_time?: string | null
+      location_type?: string | null
+      meeting_link?: string | null
+      start_date?: string | null
+      instructor_name?: string | null
+      assigned_at?: string | null
+    } | null
   }[]
   upcoming_sessions: LmsSession[]
   completed_sessions?: LmsSession[]
@@ -105,9 +121,13 @@ export type StudentLmsDashboard = {
 export type InstructorLmsDashboard = {
   assigned_courses: TeachingCourseLms[]
   upcoming_sessions: LmsSession[]
+  class_groups?: { id: number; name: string; course_id?: number | null; enrolled?: number | null }[]
   student_count: number
+  class_groups_count?: number | null
   attendance_pending_count: number
   submissions_pending_count: number
+  oral_pending_count?: number | null
+  placement_pending_count?: number | null
   admin_notes_placeholder?: string | null
 }
 
@@ -129,6 +149,7 @@ export type TeachingCourseLms = {
   placement_completed_count?: number | null
   waiting_oral_count?: number | null
   oral_completed_count?: number | null
+  requires_placement_test?: boolean | null
   status?: string
   start_date?: string | null
   end_date?: string | null
@@ -139,11 +160,13 @@ export type TeachingCourseLms = {
 
 export type InstructorSubmission = {
   id: number
+  assignment_id?: number | null
   assignment_title: string
+  course_name?: string | null
   student_name: string
   student_id: number
   submitted_at?: string | null
-  status: 'pending_review' | 'reviewed' | 'needs_revision'
+  status: 'pending_review' | 'reviewed' | 'needs_revision' | 'not_submitted'
   score?: number | null
   body_preview?: string | null
 }
@@ -152,6 +175,7 @@ export type SubmissionDetail = InstructorSubmission & {
   body_text?: string | null
   file_url?: string | null
   max_score?: number | null
+  feedback?: string | null
 }
 
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused'
@@ -160,7 +184,9 @@ export type AttendanceRow = {
   student_id: number
   student_name: string
   email?: string | null
+  avatar_url?: string | null
   status: AttendanceStatus | null
+  notes?: string | null
 }
 
 export type AdminLmsRow = {

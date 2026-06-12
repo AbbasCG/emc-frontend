@@ -24,6 +24,7 @@ import { submitContactMessage } from '@/api/contactApi'
 import { siteContact } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 import { loadingToast, successToast, errorToast } from '@/lib/toast'
+import { ContactFaqSection } from '@/components/contact/ContactFaqSection'
 
 const optionCards = [
   {
@@ -66,7 +67,7 @@ const optionCards = [
     icon: Wrench,
     title: 'دعم فني',
     body: 'مشاكل في الدخول، الروابط، أو تجربة المنصة.',
-    hint: `بريد مقترح: ${siteContact.email}`,
+    hint: `بريد الدعم: ${siteContact.supportEmail}`,
   },
 ]
 
@@ -126,6 +127,7 @@ export default function Contact() {
           { label: 'الرئيسية', href: '/' },
           { label: 'تواصل معنا' },
         ]}
+        secondaryAction={{ label: 'الأسئلة الشائعة', href: '#faq' }}
       />
 
       <section id="trainer" className="scroll-mt-28 border-b border-slate-200/80 bg-white px-4 py-10 sm:px-6 lg:px-8">
@@ -273,9 +275,21 @@ export default function Contact() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Mail size={18} className="mt-0.5 shrink-0 text-customBlue" />
-                  <a href={`mailto:${siteContact.email}`} className="font-semibold hover:text-customBlue">
-                    {siteContact.email}
-                  </a>
+                  <div>
+                    <a href={`mailto:${siteContact.email}`} className="block font-semibold hover:text-customBlue">
+                      {siteContact.email}
+                    </a>
+                    <span className="text-xs text-slate-400">عام · قانوني · شكاوى</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Mail size={18} className="mt-0.5 shrink-0 text-customOrange" />
+                  <div>
+                    <a href={`mailto:${siteContact.supportEmail}`} className="block font-semibold hover:text-customOrange">
+                      {siteContact.supportEmail}
+                    </a>
+                    <span className="text-xs text-slate-400">دعم فني · تذاكر</span>
+                  </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <MapPin size={18} className="mt-0.5 shrink-0 text-customBlue" />
@@ -364,6 +378,8 @@ export default function Contact() {
           </motion.div>
         </div>
       </section>
+
+      <ContactFaqSection />
 
       <section className="px-4 pb-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">

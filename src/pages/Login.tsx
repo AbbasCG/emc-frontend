@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import axios from 'axios'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { AlertCircle, LockKeyhole, LogIn, Mail } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, LockKeyhole, LogIn, Mail } from 'lucide-react'
 import { useEffect } from 'react'
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
@@ -27,6 +27,11 @@ export default function Login() {
   const stateFrom = (location.state as { from?: string } | null)?.from
   const from =
     safeInternalPath(searchParams.get('next')) ?? safeInternalPath(stateFrom) ?? '/dashboard'
+
+  const signupHref =
+    from !== '/dashboard' ?
+      `/signup?redirect=${encodeURIComponent(from)}`
+    : '/signup'
 
   useEffect(() => {
     const reason = searchParams.get('reason')
@@ -56,6 +61,7 @@ export default function Login() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -161,15 +167,24 @@ export default function Login() {
                     className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     autoComplete="current-password"
                     id="login-password"
                     aria-invalid={error ? true : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                    className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-12 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-deepBlue"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
+                  </button>
                 </span>
               </label>
 
@@ -204,7 +219,7 @@ export default function Login() {
 
             <p className="mt-7 text-center text-sm font-bold text-slate-500">
               ليس لديك حساب؟{' '}
-              <Link to="/signup" className="text-customBlue transition hover:text-customOrange">
+              <Link to={signupHref} className="text-customBlue transition hover:text-customOrange">
                 أنشئ حساباً
               </Link>
             </p>

@@ -30,7 +30,7 @@ export default function OpsVolunteerDetailPage() {
         fetchWorkspaceDepartments(),
       ])
       setV(vData)
-      setDepts(dData)
+      setDepts(dData.items)
     } catch {
       setLoadError('تعذّر تحميل بيانات المتطوع. تحقق من الاتصال وأعد المحاولة.')
     } finally {

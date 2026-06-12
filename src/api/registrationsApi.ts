@@ -14,6 +14,10 @@ export type RegistrationSubmitPayload = {
   gender: string
   notes: string
   payment_provider?: string
+  /** Sent for UX context; backend ignores via validated() */
+  country?: string
+  country_code?: string
+  phone_country_code?: string
 }
 
 /** Body for POST `/courses/{id}/register` — course id is in the URL */

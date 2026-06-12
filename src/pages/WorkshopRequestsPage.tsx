@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Clock,
   Loader2,
   RefreshCw,
   Search,
@@ -12,7 +13,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   approveWorkshopRequest,
   fetchAdminWorkshopRequests,
@@ -21,7 +22,24 @@ import {
   type WorkshopRequestsPage as WRPage,
 } from '../api/workshopRequestsApi'
 import { useAuth } from '../contexts/AuthContext'
+import type { User } from '../types'
 import { cn } from '@/lib/utils'
+
+const ROLE_TO_DEPT: Record<string, string> = {
+  quality_manager:    'quality_governance',
+  finance_manager:    'finance',
+  marketing_manager:  'media_marketing',
+  executive_admin:    'executive_admin',
+  programs_manager:   'programs_tracks',
+  operations_manager: 'operations',
+}
+
+function getEffectiveDept(user: User | null): string | null {
+  if (!user) return null
+  const role = user.role ?? ''
+  if (ROLE_TO_DEPT[role]) return ROLE_TO_DEPT[role]
+  return user.department ?? null
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -127,6 +145,7 @@ function QuickRejectModal({
 
 export default function WorkshopRequestsPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [filterStatus, setFilterStatus] = useState('')
   const [search, setSearch] = useState('')
@@ -360,10 +379,14 @@ export default function WorkshopRequestsPage() {
                         color: 'bg-slate-100 text-slate-600 ring-slate-200',
                       }
                       const isFinal = ['final_approved', 'rejected'].includes(req.workflow_status)
-                      const isCurrentDept = user?.department === req.current_department
+                      // Use backend-computed can_act when available; fall back to client-side check
+                      const effectiveDept = getEffectiveDept(user)
+                      const isCurrentDept = effectiveDept !== null && effectiveDept === req.current_department
                       const isExecStep7 = req.current_step === 7 &&
-                        ['executive_admin', 'super_admin'].includes(user?.role ?? '')
-                      const canQuickAct = !isFinal && (isAdmin || isCurrentDept || isExecStep7)
+                        (user?.role === 'executive_admin' || user?.role === 'super_admin')
+                      const canQuickAct = !isFinal && !req.is_history_viewer &&
+                        (isAdmin || req.can_act === true || isCurrentDept || isExecStep7)
+                      const isHistoryViewer = req.is_history_viewer === true && !isFinal
 
                       return (
                         <motion.tr
@@ -371,7 +394,8 @@ export default function WorkshopRequestsPage() {
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.18, delay: idx * 0.025 }}
-                          className="group border-b border-slate-100 transition-colors hover:bg-[#2691C2]/[0.025]"
+                          className="group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#2691C2]/[0.025]"
+                          onClick={() => navigate(`/dashboard/admin/workshop-requests/${req.id}`)}
                         >
                           <td className="py-4 pe-5 ps-4 text-[12px] font-black text-slate-400">
                             {req.id}
@@ -406,7 +430,7 @@ export default function WorkshopRequestsPage() {
                                   <button
                                     type="button"
                                     title="موافقة سريعة"
-                                    onClick={() => void handleQuickApprove(req)}
+                                    onClick={(e) => { e.stopPropagation(); void handleQuickApprove(req) }}
                                     className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/70 transition hover:bg-emerald-500 hover:text-white hover:ring-emerald-500"
                                   >
                                     <Check className="h-4 w-4" />
@@ -414,15 +438,25 @@ export default function WorkshopRequestsPage() {
                                   <button
                                     type="button"
                                     title="رفض"
-                                    onClick={() => { setActionMsg(null); setRejectTarget(req) }}
+                                    onClick={(e) => { e.stopPropagation(); setActionMsg(null); setRejectTarget(req) }}
                                     className="grid h-8 w-8 place-items-center rounded-xl bg-red-50 text-red-500 ring-1 ring-red-200/70 transition hover:bg-red-500 hover:text-white hover:ring-red-500"
                                   >
                                     <XCircle className="h-4 w-4" />
                                   </button>
                                 </>
                               )}
+                              {isHistoryViewer && !canQuickAct && (
+                                <span
+                                  title="تمت مراجعتك لهذا الطلب"
+                                  className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-500 ring-1 ring-slate-200/80"
+                                >
+                                  <Clock className="h-3 w-3" />
+                                  تمت مراجعتك
+                                </span>
+                              )}
                               <Link
                                 to={`/dashboard/admin/workshop-requests/${req.id}`}
+                                onClick={(e) => e.stopPropagation()}
                                 className="grid h-8 w-8 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/20 transition hover:bg-[#2691C2] hover:text-white"
                                 title="عرض التفاصيل"
                               >

@@ -13,6 +13,7 @@ import {
   RefreshCw,
   UserCheck,
   Users,
+  GraduationCap,
 } from 'lucide-react'
 import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
@@ -35,16 +36,20 @@ const STATUS_AR: Record<string, string> = {
   upcoming:  'قادم',
 }
 
-/* ── Quick actions ───────────────────────────────────────────────────────── */
+/* ── Quick actions (base — placement-specific ones added conditionally) ─── */
 
-const QUICK_ACTIONS = [
-  { label: 'كل طلابي',               href: '/dashboard/instructor/students',          icon: Users          },
-  { label: 'اختبارات تحديد المستوى', href: '/dashboard/instructor/placement-tests',   icon: ClipboardCheck },
-  { label: 'المقابلات الشفوية',       href: '/dashboard/instructor/oral-assessments',  icon: MessageSquare  },
-  { label: 'التوفر والمواعيد',        href: '/dashboard/instructor/availability',       icon: CalendarDays   },
-  { label: 'الجلسات',                 href: '/dashboard/instructor/sessions',           icon: CalendarCheck  },
-  { label: 'التسليمات',               href: '/dashboard/instructor/submissions',         icon: ClipboardList  },
-  { label: 'الحضور',                  href: '/dashboard/instructor/attendance',          icon: UserCheck      },
+const BASE_ACTIONS = [
+  { label: 'كل طلابي',        href: '/dashboard/instructor/students',     icon: Users,         placement: false },
+  { label: 'التوفر والمواعيد', href: '/dashboard/instructor/availability', icon: CalendarDays,  placement: false },
+  { label: 'الجلسات',          href: '/dashboard/instructor/sessions',     icon: CalendarCheck, placement: false },
+  { label: 'التسليمات',        href: '/dashboard/instructor/submissions',  icon: ClipboardList, placement: false },
+  { label: 'الحضور',           href: '/dashboard/instructor/attendance',   icon: UserCheck,     placement: false },
+]
+
+const PLACEMENT_ACTIONS = [
+  { label: 'اختبارات تحديد المستوى', href: '/dashboard/instructor/placement-tests',  icon: ClipboardCheck, placement: true },
+  { label: 'المقابلات الشفوية',       href: '/dashboard/instructor/oral-assessments', icon: MessageSquare,  placement: true },
+  { label: 'الصفوف والمجموعات',       href: '/dashboard/instructor/classes',          icon: GraduationCap,  placement: true },
 ]
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
@@ -71,6 +76,18 @@ export default function InstructorAssignedCoursesPage() {
   }
 
   useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasPlacementCourses = useMemo(
+    () => rows.some((c) => c.requires_placement_test),
+    [rows],
+  )
+
+  const quickActions = useMemo(
+    () => hasPlacementCourses
+      ? [...PLACEMENT_ACTIONS, ...BASE_ACTIONS]
+      : BASE_ACTIONS,
+    [hasPlacementCourses],
+  )
 
   const kpi = useMemo(() => ({
     courses:  rows.length,
@@ -136,7 +153,7 @@ export default function InstructorAssignedCoursesPage() {
       <section>
         <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-deepBlue/30">وصول سريع</p>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-          {QUICK_ACTIONS.map(({ label, href, icon: Icon }, i) => (
+          {quickActions.map(({ label, href, icon: Icon }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 8 }}
@@ -206,32 +223,24 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
   const finalLvl  = c.final_level_count ?? c.oral_completed_count ?? null
   const statusKey = (c.status ?? '').toLowerCase()
 
-  const metrics = [
+  const needsPlacement = !!c.requires_placement_test
+
+  const metrics = needsPlacement ? [
     { label: 'الطلاب',           value: enrolled, color: 'text-[#2691C2]'   },
     { label: 'اختبارات مكتملة',  value: written,  color: 'text-[#EC943C]'  },
     { label: 'بانتظار المقابلة', value: oralPend, color: 'text-amber-500'   },
     { label: 'مقابلات محجوزة',   value: oralBook, color: 'text-violet-600'  },
     { label: 'نتائج معتمدة',     value: finalLvl, color: 'text-emerald-600' },
+  ] : [
+    { label: 'الطلاب',  value: enrolled, color: 'text-[#2691C2]'   },
   ]
 
-  const actions = [
+  const baseActions = [
     {
       label: 'طلاب الدورة',
       icon:  BookOpen,
       href:  `/dashboard/instructor/courses/${c.id}/students`,
       cls:   'border-[#2691C2]/20 bg-[#2691C2]/[0.05] text-[#2691C2] hover:bg-[#2691C2]/[0.12]',
-    },
-    {
-      label: 'تحديد المستوى',
-      icon:  ClipboardCheck,
-      href:  `/dashboard/instructor/courses/${c.id}/placement-students`,
-      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
-    },
-    {
-      label: 'المقابلات',
-      icon:  MessageSquare,
-      href:  '/dashboard/instructor/oral-assessments',
-      cls:   'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100',
     },
     {
       label: 'التوفر',
@@ -246,6 +255,31 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       cls:   'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100',
     },
   ]
+
+  const placementActions = needsPlacement ? [
+    {
+      label: 'تحديد المستوى',
+      icon:  ClipboardCheck,
+      href:  `/dashboard/instructor/courses/${c.id}/placement-students`,
+      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
+    },
+    {
+      label: 'المقابلات',
+      icon:  MessageSquare,
+      href:  '/dashboard/instructor/oral-assessments',
+      cls:   'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100',
+    },
+    {
+      label: 'الصفوف',
+      icon:  GraduationCap,
+      href:  `/dashboard/instructor/classes?course_id=${c.id}`,
+      cls:   'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+    },
+  ] : []
+
+  const actions = needsPlacement
+    ? [baseActions[0], ...placementActions, ...baseActions.slice(1)]
+    : baseActions
 
   return (
     <motion.article

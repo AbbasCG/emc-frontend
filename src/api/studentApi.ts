@@ -1,6 +1,7 @@
 import apiClient from './axios'
 import { extractCoursesList } from '@/api/coursesApi.public'
 import { unwrapData } from './unwrap'
+import { parseSessionsPayload } from '@/utils/lmsSession'
 import type {
   LmsMaterial,
   LmsSession,
@@ -92,6 +93,19 @@ function normalizeTrackProgressRow(
   }
 }
 
+export type StudentClassAssignment = {
+  class_group_id: number
+  name: string
+  level_code?: string | null
+  schedule_day?: string | null
+  schedule_time?: string | null
+  location_type?: string | null
+  meeting_link?: string | null
+  start_date?: string | null
+  instructor_name?: string | null
+  assigned_at?: string | null
+}
+
 /** Row from `/student/courses` or nested `current_courses` on `/student/dashboard`. */
 export type StudentListedCourse = {
   id: number
@@ -118,6 +132,8 @@ export type StudentListedCourse = {
   oral_final_level?: string | null
   oral_score?: number | null
   cover_url?: string | null
+  /** Class group assignment — null until instructor assigns the student */
+  class_assignment?: StudentClassAssignment | null
 }
 
 function slugifyFallback(id: number): string {
@@ -216,6 +232,24 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
     if (v != null && String(v).trim() !== '') { coverUrl = String(v).trim(); break }
   }
 
+  // Class assignment — parse from top-level class_assignment object
+  const caRaw = o.class_assignment
+  const caObj = caRaw && typeof caRaw === 'object' && !Array.isArray(caRaw) ? (caRaw as Record<string, unknown>) : null
+  const classAssignment: StudentClassAssignment | null = caObj
+    ? {
+        class_group_id: Number(caObj.class_group_id ?? caObj.id),
+        name:           String(caObj.name ?? ''),
+        level_code:     caObj.level_code   != null ? String(caObj.level_code)   : null,
+        schedule_day:   caObj.schedule_day != null ? String(caObj.schedule_day) : null,
+        schedule_time:  caObj.schedule_time != null ? String(caObj.schedule_time) : null,
+        location_type:  caObj.location_type != null ? String(caObj.location_type) : null,
+        meeting_link:   caObj.meeting_link  != null ? String(caObj.meeting_link)  : null,
+        start_date:     caObj.start_date    != null ? String(caObj.start_date)    : null,
+        instructor_name: caObj.instructor_name != null ? String(caObj.instructor_name) : null,
+        assigned_at:    caObj.assigned_at   != null ? String(caObj.assigned_at)   : null,
+      }
+    : null
+
   return {
     id,
     title,
@@ -244,6 +278,7 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
     oral_final_level: oralFinalLevel,
     oral_score: oralScoreVal,
     cover_url: coverUrl,
+    class_assignment: classAssignment,
   }
 }
 
@@ -335,6 +370,12 @@ export function normalizeStudentLmsDashboard(payload: unknown): StudentLmsDashbo
   const notifications = firstArray(row, ['notifications'])
 
   const upcomingRaw = firstArray(row, ['upcoming_sessions', 'sessions', 'upcoming'])
+  const upcoming_sessions = parseSessionsPayload({ upcoming_sessions: upcomingRaw, sessions: upcomingRaw })
+
+  const pendingRaw = firstArray(row, ['pending_assignments', 'assignments'])
+  const pending_assignments = pendingRaw
+    .map(normalizeStudentAssignmentRow)
+    .filter((x): x is StudentAssignment => x != null)
 
   const currentCoursesRaw = firstArray(row, ['current_courses', 'courses', 'active_courses'])
   const current_courses: StudentLmsDashboard['current_courses'] =
@@ -351,18 +392,25 @@ export function normalizeStudentLmsDashboard(payload: unknown): StudentLmsDashbo
         start_date: c.start_date ?? null,
         start_time: c.start_time ?? null,
         meeting_link: c.meeting_link ?? null,
+        cover_url: c.cover_url ?? null,
+        requires_placement_test: c.requires_placement_test,
+        placement_status: c.placement_status ?? null,
+        can_start_learning: c.can_start_learning ?? null,
+        class_assignment: c.class_assignment ?? null,
       }))
+
+  const completedRaw = row.completed_sessions ?? row.completed
+  const completed_sessions = Array.isArray(completedRaw) ?
+    parseSessionsPayload({ completed_sessions: completedRaw })
+  : undefined
 
   return {
     progress_percent: toFiniteNumber(row.progress_percent),
     attendance_percent: toFiniteNumber(row.attendance_percent),
-    pending_assignments: firstArray(row, ['pending_assignments', 'assignments']) as StudentAssignment[],
+    pending_assignments,
     current_courses,
-    upcoming_sessions: upcomingRaw as LmsSession[],
-    completed_sessions: (() => {
-      const completed = row.completed_sessions ?? row.completed
-      return Array.isArray(completed) ? (completed as LmsSession[]) : undefined
-    })(),
+    upcoming_sessions,
+    completed_sessions,
     certificates_placeholder:
       certificateObjects.length > 0 ? certificateObjects : undefined,
     notifications: notifications.length > 0 ? (notifications as StudentLmsDashboard['notifications']) : [],
@@ -613,8 +661,8 @@ function normalizeLmsSessionRow(raw: unknown): LmsSession | null {
     title: o.title != null ? String(o.title) : null,
     course_name,
     course_slug,
-    starts_at: o.starts_at != null ? String(o.starts_at) : null,
-    ends_at: o.ends_at != null ? String(o.ends_at) : null,
+    starts_at: o.starts_at != null ? String(o.starts_at) : o.start_at != null ? String(o.start_at) : null,
+    ends_at: o.ends_at != null ? String(o.ends_at) : o.end_at != null ? String(o.end_at) : null,
     date: o.date != null ? String(o.date) : null,
     time: o.time != null ? String(o.time) : null,
     status: normalizeSessionStatus(o.status),
@@ -643,11 +691,29 @@ export async function fetchStudentSessions(): Promise<{
     const normalizeList = (arr: unknown[]): LmsSession[] =>
       arr.map(normalizeLmsSessionRow).filter((x): x is LmsSession => x != null)
 
+    // Merge course_sessions (CourseSession model) from additional data
+    const topLevel = res.data != null && typeof res.data === 'object' ? (res.data as Record<string, unknown>) : {}
+    const courseSessExtra = Array.isArray(topLevel.course_sessions)
+      ? normalizeList(topLevel.course_sessions as unknown[])
+      : []
+
+    function mergeAndDedupe(sessions: LmsSession[]): { upcoming: LmsSession[]; completed: LmsSession[] } {
+      const merged = [...sessions, ...courseSessExtra]
+      const seen = new Set<number>()
+      const deduped = merged.filter((s) => {
+        const key = s.id
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      return {
+        upcoming: deduped.filter((s) => s.status !== 'completed' && s.status !== 'cancelled'),
+        completed: deduped.filter((s) => s.status === 'completed'),
+      }
+    }
+
     if (Array.isArray(raw)) {
-      const mapped = normalizeList(raw)
-      const upcoming = mapped.filter((s) => s.status !== 'completed')
-      const completed = mapped.filter((s) => s.status === 'completed')
-      return { upcoming, completed }
+      return mergeAndDedupe(normalizeList(raw))
     }
 
     if (raw != null && typeof raw === 'object' && !Array.isArray(raw)) {
@@ -661,9 +727,11 @@ export async function fetchStudentSessions(): Promise<{
         upcomingSessions = sessionsFlat.filter((s) => s.status !== 'completed')
         completedSessions = sessionsFlat.filter((s) => s.status === 'completed')
       }
+      // Merge course sessions in
+      const { upcoming: csUpcoming, completed: csCompleted } = mergeAndDedupe([])
       return {
-        upcoming: upcomingSessions,
-        completed: completedSessions,
+        upcoming: [...upcomingSessions, ...csUpcoming],
+        completed: [...completedSessions, ...csCompleted],
       }
     }
 
@@ -724,31 +792,59 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
     o.assignment && typeof o.assignment === 'object' && !Array.isArray(o.assignment) ?
       (o.assignment as Record<string, unknown>)
     : null
-  const assignment_id = Number(o.assignment_id ?? nestedAssignment?.id ?? o.id)
-  const id = Number(o.id ?? o.student_assignment_id ?? assignment_id)
+  const mySubmission =
+    o.my_submission && typeof o.my_submission === 'object' && !Array.isArray(o.my_submission) ?
+      (o.my_submission as Record<string, unknown>)
+    : null
+  const assignment_id = Number(
+    o.lms_assignment_id ?? o.assignment_id ?? nestedAssignment?.id ?? o.id,
+  )
+  const id = Number(o.id ?? o.student_assignment_id ?? o.course_assignment_id ?? assignment_id)
   if (!Number.isFinite(id) || !Number.isFinite(assignment_id)) return null
   const cidRaw = o.course_id ?? nested?.id
   const course_id = cidRaw != null && cidRaw !== '' && Number.isFinite(Number(cidRaw)) ? Number(cidRaw) : null
-  const statusRaw = String(o.status ?? 'pending').toLowerCase()
+  const statusRaw = String(
+    o.status ?? mySubmission?.status ?? (mySubmission?.submitted_at ? 'submitted' : 'pending'),
+  ).toLowerCase()
   let status: StudentAssignment['status'] = 'pending'
-  if (statusRaw.includes('grade')) status = 'graded'
+  if (statusRaw.includes('grade') || statusRaw.includes('review')) status = 'graded'
   else if (statusRaw.includes('submit')) status = 'submitted'
-  else if (statusRaw.includes('revision')) status = 'revision'
+  else if (statusRaw.includes('revision') || statusRaw.includes('needs')) status = 'revision'
   else if (statusRaw.includes('late')) status = 'late'
 
   return {
     id,
     course_id,
     assignment_id,
-    title: String(o.title ?? o.assignment_title ?? 'واجب'),
+    title: String(o.title ?? o.assignment_title ?? nestedAssignment?.title ?? 'واجب'),
     course_name:
-      o.course_name != null ? String(o.course_name) : nested?.title != null ? String(nested.title) : null,
-    due_at: o.due_at != null ? String(o.due_at) : o.deadline != null ? String(o.deadline) : null,
+      o.course_name != null ?
+        String(o.course_name)
+      : nested?.title != null ?
+        String(nested.title)
+      : null,
+    due_at:
+      o.due_at != null ? String(o.due_at)
+      : o.deadline != null ? String(o.deadline)
+      : o.due_date != null ? String(o.due_date)
+      : null,
     status,
-    score: o.score != null ? Number(o.score) : null,
-    max_score: o.max_score != null ? Number(o.max_score) : null,
-    feedback: o.feedback != null ? String(o.feedback) : null,
-    submitted_at: o.submitted_at != null ? String(o.submitted_at) : null,
+    score:
+      o.score != null ? Number(o.score)
+      : mySubmission?.score != null ? Number(mySubmission.score)
+      : null,
+    max_score:
+      o.max_score != null ? Number(o.max_score)
+      : o.max_points != null ? Number(o.max_points)
+      : null,
+    feedback:
+      o.feedback != null ? String(o.feedback)
+      : mySubmission?.feedback != null ? String(mySubmission.feedback)
+      : null,
+    submitted_at:
+      o.submitted_at != null ? String(o.submitted_at)
+      : mySubmission?.submitted_at != null ? String(mySubmission.submitted_at)
+      : null,
   }
 }
 
@@ -803,7 +899,7 @@ export async function fetchStudentAssignments(): Promise<StudentAssignment[]> {
 
 export async function submitStudentAssignment(
   assignmentId: number,
-  payload: FormData | { answer_text?: string; file?: File | null },
+  payload: FormData | { text_answer?: string; answer_text?: string; file?: File | null; notes?: string },
 ): Promise<void> {
   if (payload instanceof FormData) {
     await apiClient.post(`/student/assignments/${assignmentId}/submit`, payload, {
@@ -812,7 +908,12 @@ export async function submitStudentAssignment(
     return
   }
   const fd = new FormData()
-  if (payload.answer_text) fd.append('answer_text', payload.answer_text)
+  const text = payload.text_answer ?? payload.answer_text
+  if (text) {
+    fd.append('text_answer', text)
+    fd.append('answer_text', text)
+  }
+  if (payload.notes) fd.append('notes', payload.notes)
   if (payload.file) fd.append('file', payload.file)
   await apiClient.post(`/student/assignments/${assignmentId}/submit`, fd, {
     headers: { 'Content-Type': 'multipart/form-data' },

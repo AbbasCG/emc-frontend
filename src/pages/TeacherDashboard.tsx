@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   FileText,
+  GraduationCap,
   MessageSquare,
   UserCheck,
   Users,
@@ -11,7 +12,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import apiClient from '../api/axios'
-import { fetchInstructorLmsDashboard } from '@/api/instructorApi'
+import { fetchInstructorDashboardStats } from '@/api/instructorApi'
 import {
   DashboardSection,
   DashboardHero,
@@ -24,7 +25,8 @@ import {
 } from '../components/dashboard'
 import { useAuth } from '../contexts/AuthContext'
 import type { TeacherDashboardData, TeachingCourse } from '../types'
-import type { InstructorLmsDashboard, TeachingCourseLms } from '@/types/lms'
+import { formatSessionSchedule } from '@/utils/lmsSession'
+import type { LmsSession, TeachingCourseLms } from '@/types/lms'
 
 function hourGreeting(): string {
   const h = new Date().getHours()
@@ -125,7 +127,7 @@ export default function TeacherDashboard() {
   const greeting = hourGreeting()
 
   const [legacyDash, setLegacyDash] = useState<TeacherDashboardData | null>(null)
-  const [insLms, setInsLms] = useState<InstructorLmsDashboard | null>(null)
+  const [dashStats, setDashStats] = useState<Awaited<ReturnType<typeof fetchInstructorDashboardStats>> | null>(null)
   const [loadState, setLoadState] = useState<LoadState>('loading')
 
   useEffect(() => {
@@ -136,36 +138,38 @@ export default function TeacherDashboard() {
         .get('/dashboard/teacher', { skipErrorToast: true } as Record<string, unknown>)
         .then((res) => normalise(res.data))
         .catch(() => null),
-      fetchInstructorLmsDashboard().catch(() => null),
-    ]).then(([legacy, lms]) => {
+      fetchInstructorDashboardStats(),
+    ]).then(([legacy, stats]) => {
       if (!alive) return
       setLegacyDash((legacy as PromiseFulfilledResult<TeacherDashboardData | null>).value ?? null)
-      setInsLms((lms as PromiseFulfilledResult<InstructorLmsDashboard | null>).value ?? null)
+      setDashStats((stats as PromiseFulfilledResult<Awaited<ReturnType<typeof fetchInstructorDashboardStats>>>).value ?? null)
       setLoadState('ok')
     })
     return () => { alive = false }
   }, [])
 
+  const insLms = dashStats?.dashboard ?? null
+
   const effective = useMemo(() => {
     const legacy = legacyDash
-    const lms = insLms
+    const stats = dashStats
     if (legacy?.stats || (legacy?.courses && legacy.courses.length > 0)) {
       return { stats: legacy.stats, courses: legacy.courses ?? [], sessions: legacy.upcoming_sessions ?? [] }
     }
-    const courses = (lms?.assigned_courses ?? []).map(mapLmsCourseToTeaching)
-    const sessions = (lms?.upcoming_sessions ?? []).map((s) => ({
+    const courses = (stats?.courses ?? insLms?.assigned_courses ?? []).map(mapLmsCourseToTeaching)
+    const sessions = (stats?.sessions ?? insLms?.upcoming_sessions ?? []).map((s: LmsSession) => ({
       id: s.id,
       course_name: s.course_name,
-      date: s.date ?? s.starts_at ?? '—',
-      time: s.time,
+      date: formatSessionSchedule(s),
+      time: undefined as string | undefined,
       type: (s.type === 'offline' ? 'offline' : 'online') as 'online' | 'offline',
-      location: s.location,
-      meeting_link: s.meeting_link,
+      location: s.location ?? undefined,
+      meeting_link: s.meeting_link ?? undefined,
       platform: (s.platform as string | undefined) ?? undefined,
     }))
     return {
       stats: {
-        total_students:   lms?.student_count ?? 0,
+        total_students:   stats?.studentsCount ?? insLms?.student_count ?? 0,
         upcoming_sessions: sessions.length,
         active_courses:   courses.filter((c) => c.status !== 'completed').length,
         completion_rate:  0,
@@ -173,7 +177,7 @@ export default function TeacherDashboard() {
       courses,
       sessions,
     }
-  }, [legacyDash, insLms])
+  }, [legacyDash, dashStats, insLms])
 
   const displayName = user?.name?.trim() || 'مدرّب EMC'
   const isLoading = loadState === 'loading'
@@ -218,11 +222,28 @@ export default function TeacherDashboard() {
             hint="على مستوى الدورات المسندة"
           />
           <DashboardKpiCard
+            label="الصفوف / المجموعات"
+            value={dashStats?.classes.length ?? insLms?.class_groups_count ?? insLms?.class_groups?.length ?? 0}
+            icon={GraduationCap}
+            variant="brand"
+          />
+          <DashboardKpiCard
             label="الجلسات القادمة"
             value={effective.stats.upcoming_sessions}
             icon={Calendar}
             variant="accent"
           />
+          <DashboardKpiCard
+            label="تسليمات بانتظار المراجعة"
+            value={dashStats?.submissionsPending ?? insLms?.submissions_pending_count ?? 0}
+            icon={ClipboardList}
+            variant="accent"
+          />
+        </div>
+      )}
+
+      {!isLoading && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <DashboardKpiCard
             label="الدورات النشطة"
             value={effective.stats.active_courses}
@@ -231,21 +252,29 @@ export default function TeacherDashboard() {
           />
           <DashboardKpiCard
             label="حضور بانتظار التأكيد"
-            value={insLms?.attendance_pending_count ?? '—'}
+            value={dashStats?.attendancePending ?? insLms?.attendance_pending_count ?? 0}
             icon={UserCheck}
             variant="accent"
             hint="جلسات بانتظار الإغلاق"
           />
+          {(dashStats?.oralPending ?? insLms?.oral_pending_count ?? 0) > 0 && (
+            <DashboardKpiCard
+              label="مقابلات شفوية معلّقة"
+              value={dashStats?.oralPending ?? insLms?.oral_pending_count ?? 0}
+              icon={MessageSquare}
+              variant="muted"
+            />
+          )}
         </div>
       )}
 
       {/* ── Pending submissions alert ── */}
-      {!isLoading && insLms && (insLms.submissions_pending_count ?? 0) > 0 && (
+      {!isLoading && (dashStats?.submissionsPending ?? insLms?.submissions_pending_count ?? 0) > 0 && (
         <div className="flex items-center gap-3 rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-5 py-3.5 ring-1 ring-customOrange/15">
           <ClipboardList size={18} className="shrink-0 text-customOrange" aria-hidden />
           <p className="flex-1 text-sm font-black text-deepBlue">
             لديك{' '}
-            <span className="text-customOrange">{insLms.submissions_pending_count}</span>{' '}
+            <span className="text-customOrange">{dashStats?.submissionsPending ?? insLms?.submissions_pending_count}</span>{' '}
             تسليمات بانتظار المراجعة
           </p>
           <Link

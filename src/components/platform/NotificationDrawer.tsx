@@ -21,6 +21,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { NotificationType, PlatformNotification } from '@/types/platform'
 import { isNotificationUnread } from '@/api/notificationsApi'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
+import { formatNotificationDate } from '@/utils/dateTime'
 
 const icons: Record<NotificationType, typeof Bell> = {
   registration:       UserPlus,
@@ -192,7 +193,7 @@ export default function NotificationDrawer({
                                     {n.body ?
                                       <span className="mt-1 block text-xs font-medium leading-6 text-slate-500">{n.body}</span>
                                     : null}
-                                    <span className="mt-2 block text-[11px] font-bold text-slate-400">{n.created_at}</span>
+                                    <span className="mt-2 block text-[11px] font-bold text-slate-400">{formatNotificationDate(n.created_at)}</span>
                                   </span>
                                 </button>
                               </motion.div>

@@ -16,7 +16,7 @@ export default function ScholarshipDecisionPanel({
   onDecision: (id: number, status: ScholarshipStatus) => Promise<void>
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-deepBlue/[0.06] pt-4">
+    <div className="flex flex-wrap items-center justify-start gap-2 border-t border-deepBlue/[0.06] pt-4">
       <span className="rounded-full bg-deepBlue/[0.06] px-3 py-1 text-[10px] font-black text-deepBlue">{AR[row.status]}</span>
       {row.status === 'pending' && (
         <>

@@ -1,21 +1,18 @@
-import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import axios from 'axios'
 import {
-  Ban,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Copy,
-  Mail,
+  Eye,
+  EyeOff,
   MailCheck,
   RefreshCw,
   Shield,
   ShieldCheck,
   Sparkles,
-  TrendingUp,
-  UserCircle2,
-  Users,
   UserSquare2,
+  Users,
   X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
@@ -28,14 +25,17 @@ import {
   createAdminUser,
   deleteAdminUser,
   fetchAdminUser,
-  fetchAdminUsers,
+  fetchAdminUsersPage,
   getAdminUserMutationMessage,
   restoreAdminUser,
   updateAdminUser,
   type AdminManagedUser,
+  type AdminUsersSummary,
   type CreateAdminUserInput,
   type UpdateAdminUserInput,
 } from '@/api/adminUsersApi'
+import { UserAvatarCell } from '@/components/super-admin/users/UserAvatarCell'
+import { UserEditDrawer } from '@/components/super-admin/users/UserEditDrawer'
 import { cn } from '@/lib/utils'
 import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
 import { adminRoleLabelAr, getAssignableRoleOptions } from '@/pages/super-admin/users/assignableRoles'
@@ -45,8 +45,6 @@ import {
   canOfferSuperAdminRoleOption,
 } from '@/pages/super-admin/users/superAdminUserPolicy'
 import { UsersEnterpriseDetailDrawer } from '@/pages/super-admin/users/UsersEnterpriseDetailDrawer'
-import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
-import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
 import { SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
@@ -72,21 +70,48 @@ import {
   EnterpriseTableSkeleton,
 } from '@/pages/super-admin/crud/shared/enterprise'
 import { generateSecurePassword } from '@/utils/passwordGenerator'
-import { AR_UNSPECIFIED } from '@/utils/dispAr'
+import { formatDate, formatLastLogin } from '@/utils/dateTime'
 
-const MANAGER_ROLE_SET = new Set([
-  'admin',
-  'super_admin',
-  'executive_admin',
-  'finance_manager',
-  'quality_manager',
-  'hr_manager',
-  'marketing_manager',
-  'support_agent',
-  'department_manager',
-])
+const ROLE_PILL: Record<string, string> = {
+  super_admin:       'bg-[#22334A] text-white border-[#22334A]/70',
+  admin:             'bg-[#1a2940]/90 text-white border-[#1a2940]/60',
+  executive_admin:   'bg-[#22334A]/80 text-white border-[#22334A]/50',
+  instructor:        'bg-[#2691C2]/10 text-[#1a6b96] border-[#2691C2]/30',
+  student:           'bg-emerald-50 text-emerald-800 border-emerald-200',
+  finance_manager:   'bg-amber-50 text-amber-800 border-amber-200',
+  hr_manager:        'bg-violet-50 text-violet-800 border-violet-200',
+  marketing_manager: 'bg-pink-50 text-pink-800 border-pink-200',
+  quality_manager:   'bg-teal-50 text-teal-800 border-teal-200',
+  support_agent:     'bg-sky-50 text-sky-800 border-sky-200',
+  department_manager:'bg-indigo-50 text-indigo-800 border-indigo-200',
+}
 
-const MS_DAY = 86_400_000
+const STATUS_PILL = {
+  active:  'bg-emerald-50 text-emerald-800 border-emerald-200',
+  inactive:'bg-amber-50 text-amber-800 border-amber-200',
+  deleted: 'bg-red-50 text-red-700 border-red-200',
+  unknown: 'bg-slate-50 text-slate-600 border-slate-200',
+} as const
+
+const STATUS_LABEL = {
+  active: 'نشط', inactive: 'موقوف', deleted: 'محذوف', unknown: 'غير محدد',
+} as const
+
+const VERIFIED_PILL = {
+  yes:     'bg-emerald-50 text-emerald-800 border-emerald-200',
+  no:      'bg-rose-50 text-rose-700 border-rose-200',
+  unknown: 'bg-slate-50 text-slate-500 border-slate-200',
+} as const
+
+const VERIFIED_LABEL = { yes: 'موثَّق', no: 'غير موثَّق', unknown: 'غير مُرسَل' } as const
+
+function Pill({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <span className={cn('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-black', className)}>
+      {children}
+    </span>
+  )
+}
 
 const USER_CREATE_STEP_META: readonly WizardStepMeta[] = [
   { id: 1, title: 'معلومات المستخدم', hint: 'الهوية وبيانات الاتصال' },
@@ -111,24 +136,6 @@ function statusBadge(u: AdminManagedUser): 'active' | 'inactive' | 'deleted' | '
   return 'unknown'
 }
 
-function parseMs(s?: string | null): number | null {
-  const t = Date.parse(s ?? '')
-  return Number.isFinite(t) ? t : null
-}
-
-function startOfCalendarMonth(now: Date) {
-  return new Date(now.getFullYear(), now.getMonth(), 1)
-}
-
-function startOfPrevCalendarMonth(now: Date) {
-  return new Date(now.getFullYear(), now.getMonth() - 1, 1)
-}
-
-function joinedInRange(u: AdminManagedUser, from: number, to: number): boolean {
-  const t = parseMs(u.created_at)
-  return t !== null && t >= from && t < to
-}
-
 function verifiedDot(u: AdminManagedUser): 'yes' | 'no' | 'unknown' {
   const raw = u.email_verified_at
   if (raw == null || String(raw).trim() === '') return 'no'
@@ -139,7 +146,12 @@ export default function UsersManagementPage() {
   const navigate = useNavigate()
   const { user: currentUser, isImpersonating, startImpersonationPreview } = useAuth()
 
-  const [rows, setRows] = useState<AdminManagedUser[]>([])
+  const [pageUsers, setPageUsers] = useState<AdminManagedUser[]>([])
+  const [total, setTotal] = useState(0)
+  const [lastPage, setLastPage] = useState(1)
+  const [serverPaginated, setServerPaginated] = useState(true)
+  const [summary, setSummary] = useState<AdminUsersSummary | null>(null)
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
   const [loadErr, setLoadErr] = useState<string | null>(null)
@@ -165,15 +177,38 @@ export default function UsersManagementPage() {
     [roleOptionsForm],
   )
 
+  const [editLoading, setEditLoading] = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
     setForbidden(false)
     setLoadErr(null)
     try {
-      const list = await fetchAdminUsers()
-      setRows(list)
+      const result = await fetchAdminUsersPage({
+        page,
+        per_page: perPage,
+        search: debouncedQuery,
+        role: roleFilter,
+        status: statusFilter,
+        department: departmentFilter,
+        verified: verifiedFilter,
+      })
+      setPageUsers(result.users)
+      setTotal(result.total)
+      setLastPage(result.lastPage)
+      setServerPaginated(result.serverPaginated)
+      setSummary(result.summary)
+      if (!result.serverPaginated) {
+        const depts = new Set<string>()
+        result.users.forEach((u) => {
+          const d = u.department?.trim()
+          if (d) depts.add(d)
+        })
+        setDepartmentOptions((prev) => [...new Set([...prev, ...depts])].sort((a, b) => a.localeCompare(b, 'ar')))
+      }
     } catch (e) {
-      setRows([])
+      setPageUsers([])
+      setTotal(0)
       if (axios.isAxiosError(e) && e.response?.status === 403) {
         setForbidden(true)
         toast.warning(ADMIN_USER_FORBIDDEN_AR)
@@ -181,7 +216,7 @@ export default function UsersManagementPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter])
 
   useEffect(() => {
     void load()
@@ -215,123 +250,48 @@ export default function UsersManagementPage() {
     [navigate, startImpersonationPreview],
   )
 
-  const departments = useMemo(() => {
-    const s = new Set<string>()
-    for (const u of rows) {
-      const d = u.department?.trim()
-      if (d) s.add(d)
-    }
-    return [...s].sort((a, b) => a.localeCompare(b, 'ar'))
-  }, [rows])
+  const departments = departmentOptions
 
   const departmentOpts = useMemo(
     () => [{ value: 'all', labelAr: 'كل الإدارات / الأقسام' }, ...departments.map((d) => ({ value: d, labelAr: d }))],
     [departments],
   )
 
-  const now = useMemo(() => new Date(), [rows])
-
   const enterpriseKpis = useMemo(() => {
-    const total = rows.length
-    const active = rows.filter(isEffectivelyActive).length
-    const suspended = rows.filter((u) => u.is_active === false).length
-    const admins = rows.filter((u) => MANAGER_ROLE_SET.has(String(normalizeRole(u.role))))
-    const instructors = rows.filter((u) => normalizeRole(u.role) === 'instructor').length
-    const students = rows.filter((u) => normalizeRole(u.role) === 'student').length
-    const verified = rows.filter((u) => verifiedDot(u) === 'yes').length
-    const unverified = rows.filter((u) => verifiedDot(u) !== 'yes').length
-
-    const monthStart = startOfCalendarMonth(now).getTime()
-    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
-    const newThisMonth = rows.filter((u) => joinedInRange(u, monthStart, nextMonthStart)).length
-
-    const prevStart = startOfPrevCalendarMonth(now).getTime()
-    const prevMonthCount = rows.filter((u) => joinedInRange(u, prevStart, monthStart)).length
-    let growthHint = 'لا يمكن تقييم الزخم قبل توفر اشتراكات شهرية حقيقية.'
-
-    let growthShort = 'لم يتوفر اشتراك في الشهر السابق'
-    if (prevMonthCount === 0) {
-      if (newThisMonth > 0) {
-        growthShort = `${newThisMonth} هذا الشهر (لا مقارنة بالشهر السابق)`
-        growthHint = 'الشهر السابق لم يضف مستخدمًا حسب حقول الانضمام.'
+    if (summary) {
+      return {
+        total: summary.total,
+        active: summary.active,
+        suspended: summary.suspended,
+        verified: summary.verified,
+        unverified: summary.unverified,
+        admins: 0,
+        instructors: 0,
+        students: 0,
+        newThisMonth: 0,
+        growthHint: serverPaginated ? 'إحصائيات من الخادم' : 'إحصائيات محلية للنتائج المفلترة',
+        growthShort: serverPaginated ? 'ترقيم من الخادم' : 'ترقيم محلي',
+        recent24: 0,
       }
-    } else {
-      growthHint =
-        newThisMonth !== prevMonthCount ?
-          `${newThisMonth} مقابل ${prevMonthCount} في الشهر الماضي — طوابع created_at الخام`
-        : 'الزخم في المستويين المتتاليين مطابق وفق المصدر المرجعي.'
-      const deltaPct = Math.round(((newThisMonth - prevMonthCount) / prevMonthCount) * 100)
-      growthShort =
-        deltaPct === 0 ? 'مساوٍ للشهر السابق' : `${deltaPct > 0 ? '+' : ''}${deltaPct}% أمام الشهر السابق`
     }
-
-    const recent24 = rows.filter((u) => {
-      const mx = parseMs(u.updated_at) ?? parseMs(u.last_login_at)
-      return mx !== null && Date.now() - mx < MS_DAY
-    }).length
-
     return {
       total,
-      active,
-      suspended,
-      admins: admins.length,
-      instructors,
-      students,
-      verified,
-      unverified,
-      newThisMonth,
-      growthHint,
-      growthShort,
-      recent24,
+      active: pageUsers.filter(isEffectivelyActive).length,
+      suspended: pageUsers.filter((u) => u.is_active === false).length,
+      verified: pageUsers.filter((u) => verifiedDot(u) === 'yes').length,
+      unverified: pageUsers.filter((u) => verifiedDot(u) !== 'yes').length,
+      admins: 0,
+      instructors: 0,
+      students: 0,
+      newThisMonth: 0,
+      growthHint: '',
+      growthShort: '',
+      recent24: 0,
     }
-  }, [rows, now])
+  }, [summary, total, pageUsers, serverPaginated])
 
-  const filtered = useMemo(() => {
-    const nowMs = Date.now()
-    const monthStartMs = startOfCalendarMonth(now).getTime()
-    const quarterMs = monthStartMs - MS_DAY * 90
-    const yearStartMs = new Date(now.getFullYear(), 0, 1).getTime()
-    const q = debouncedQuery.trim().toLowerCase()
-    return rows.filter((u) => {
-      if (roleFilter !== 'all' && normalizeRole(u.role) !== roleFilter) return false
-      if (statusFilter === 'active' && (u.is_active === false || isDeleted(u))) return false
-      if (statusFilter === 'inactive' && (u.is_active !== false || isDeleted(u))) return false
-      if (statusFilter === 'deleted' && !isDeleted(u)) return false
-
-      const deptNorm = u.department?.trim() ?? ''
-      if (departmentFilter !== 'all' && deptNorm !== departmentFilter) return false
-
-      if (joinedFilter !== 'all') {
-        const t = parseMs(u.created_at)
-        if (joinedFilter === 'month' && !(t !== null && t >= monthStartMs && t <= nowMs)) return false
-        if (joinedFilter === 'quarter' && !(t !== null && t >= quarterMs && t <= nowMs)) return false
-        if (joinedFilter === 'year' && !(t !== null && t >= yearStartMs && t <= nowMs)) return false
-      }
-
-      if (verifiedFilter === 'verified' && verifiedDot(u) !== 'yes') return false
-      if (verifiedFilter === 'unverified' && verifiedDot(u) === 'yes') return false
-
-      if (!q) return true
-      const haystack = `${u.name} ${u.email} ${u.phone ?? ''} ${u.id} ${u.department ?? ''} ${normalizeRole(u.role ?? null)}`.toLowerCase()
-      return haystack.includes(q)
-    })
-  }, [
-    rows,
-    debouncedQuery,
-    roleFilter,
-    statusFilter,
-    departmentFilter,
-    joinedFilter,
-    verifiedFilter,
-    now,
-  ])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
-  const safePage = Math.min(Math.max(1, page), totalPages)
-  const paginated = useMemo(() => {
-    const start = (safePage - 1) * perPage
-    return filtered.slice(start, start + perPage)
-  }, [filtered, safePage, perPage])
+  const safePage = Math.min(Math.max(1, page), Math.max(1, lastPage))
+  const paginated = pageUsers
 
   const actorId = currentUser?.id ?? 0
 
@@ -351,7 +311,7 @@ export default function UsersManagementPage() {
   const focusedUser =
     focusedId === null ?
       undefined
-    : rows.find((r) => r.id === focusedId) ?? filtered.find((r) => r.id === focusedId)
+    : pageUsers.find((r) => r.id === focusedId)
 
   const [formName, setFormName] = useState('')
   const [formEmail, setFormEmail] = useState('')
@@ -372,7 +332,11 @@ export default function UsersManagementPage() {
   const [createWizardStep, setCreateWizardStep] = useState(1)
   const [createSuccessOpen, setCreateSuccessOpen] = useState(false)
 
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [editMeta, setEditMeta] = useState<{
+    emailVerifiedAt?: string | null
+    lastLoginAt?: string | null
+    createdAt?: string | null
+  }>({})
 
   const roleOptionsEdit = useMemo(() => {
     const rn = normalizeRole(formRole ?? null)
@@ -403,8 +367,10 @@ export default function UsersManagementPage() {
     setModal('edit')
     setDrawerOpen(false)
     setSaving(false)
+    setEditLoading(true)
     setPw('')
     setPwConf('')
+    setEditMeta({})
     try {
       const u = await fetchAdminUser(id)
       setFormName(u.name)
@@ -418,9 +384,16 @@ export default function UsersManagementPage() {
       setFormStatus(u.is_active === false ? 'inactive' : u.is_active === true ? 'active' : 'preserve')
       setEditAvatarFile(null)
       setRemoveAvatar(false)
+      setEditMeta({
+        emailVerifiedAt: u.email_verified_at,
+        lastLoginAt: u.last_login_at,
+        createdAt: u.created_at,
+      })
     } catch (e) {
       toast.warning(getAdminUserMutationMessage(e))
       closeModal()
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -557,18 +530,7 @@ export default function UsersManagementPage() {
   const chromeSubtitle =
     forbidden ?
       ADMIN_USER_FORBIDDEN_AR
-    : 'منصّة تشغيل مؤسسية — القائمة المُحمّلة من GET /admin/users؛ الأرقام التحليلية تُشتق من هذه البيانات فقط بدون تهيئة وهمية.'
-
-  function activityPulse(u: AdminManagedUser): { label: string; tone: string } {
-    const login = parseMs(u.last_login_at)
-    const upd = parseMs(u.updated_at)
-    const best = login !== null || upd !== null ? Math.max(login ?? -1, upd ?? -1) : null
-    if (best !== null && best !== -1 && Date.now() - best < MS_DAY)
-      return { label: 'تفاعل خلال يوم', tone: 'text-emerald-700' }
-    if (best !== null && best !== -1 && Date.now() - best < MS_DAY * 7)
-      return { label: 'في الأسبوع', tone: 'text-amber-800' }
-    return { label: 'بلا طابع محدّث قريب', tone: 'text-muted-600' }
-  }
+    : `${enterpriseKpis.total} مستخدم · ${enterpriseKpis.active} نشط · ${enterpriseKpis.verified} موثّق`
 
   return (
     <SaPageRoot className="space-y-8">
@@ -584,7 +546,7 @@ export default function UsersManagementPage() {
                 type="button"
                 onClick={() => void load()}
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/95 px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-md backdrop-blur-sm transition hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/90 px-4 py-2.5 text-[12px] font-semibold text-[#22334A] shadow-sm transition hover:bg-white"
               >
                 <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} aria-hidden />
                 تحديث
@@ -594,7 +556,7 @@ export default function UsersManagementPage() {
                 onClick={openCreate}
                 className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_16px_40px_-12px_rgba(236,148,60,0.55)] transition hover:brightness-[1.04]"
               >
-                <UserCircle2 className="h-4 w-4" aria-hidden />
+                <UserSquare2 className="h-4 w-4" aria-hidden />
                 مستخدم جديد
               </button>
             </>
@@ -603,17 +565,20 @@ export default function UsersManagementPage() {
       />
 
       {!forbidden ?
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <EnterpriseMetricTile accent="blue" icon={Users} label="إجمالي المستخدمين" value={enterpriseKpis.total} hint="جميع الهويات المُرسَلَة ضمن مجموعة الإدارة" />
-          <EnterpriseMetricTile accent="mint" icon={ShieldCheck} label="نشطون" value={enterpriseKpis.active} deltaLabel={`موقوف: ${enterpriseKpis.suspended}`} />
-          <EnterpriseMetricTile accent="navy" icon={Ban} label="موقوفون / غير نشطين" value={enterpriseKpis.suspended} hint="حسابات مقيّدة (is_active = false)" />
-          <EnterpriseMetricTile accent="mint" icon={MailCheck} label="بريد موثَّق" value={enterpriseKpis.verified} hint="مستخدمون أتمّوا توثيق بريدهم الإلكتروني" />
-          <EnterpriseMetricTile accent="orange" icon={Mail} label="بريد غير موثَّق" value={enterpriseKpis.unverified} hint="لم يُتمّ المستخدم توثيق بريده بعد" />
-          <EnterpriseMetricTile accent="navy" icon={Shield} label="إداريون وموظفون" value={enterpriseKpis.admins} hint="أدوار حوكمية وفق مجموعة المنصّة" />
-          <EnterpriseMetricTile accent="blue" icon={UserSquare2} label="مدربون" value={enterpriseKpis.instructors} hint="حسب اسم الدور instructor" />
-          <EnterpriseMetricTile accent="orange" icon={UserCircle2} label="طلاب" value={enterpriseKpis.students} hint="حسب اسم الدور student" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <EnterpriseMetricTile accent="blue"   icon={Users}      label="إجمالي المستخدمين" value={enterpriseKpis.total}       hint={serverPaginated ? 'من الخادم' : 'ترقيم محلي'} />
+          <EnterpriseMetricTile accent="mint"   icon={ShieldCheck} label="حسابات نشطة"       value={enterpriseKpis.active}      deltaLabel={enterpriseKpis.suspended > 0 ? `${enterpriseKpis.suspended} موقوف` : undefined} />
+          <EnterpriseMetricTile accent="navy"   icon={MailCheck}   label="بريد موثَّق"       value={enterpriseKpis.verified}    hint={`${enterpriseKpis.unverified} غير موثَّق`} />
+          <EnterpriseMetricTile accent="orange" icon={Shield}      label="الصفحة الحالية"    value={paginated.length}           hint={`${(safePage - 1) * perPage + 1}–${Math.min(safePage * perPage, total)} من ${total}`} />
         </div>
       : null}
+
+      {!forbidden && !serverPaginated && total > perPage && (
+        <div className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-[12px] font-semibold text-amber-950">
+          الخادم لا يُرجع ترقيمًا (`meta.total` / `current_page`). يُحمَّل الجدول محليًا — لتحسين الأداء أضف دعم{' '}
+          <code className="rounded bg-white/80 px-1 font-mono text-[11px]">GET /admin/users?page&amp;per_page&amp;search&amp;role&amp;status</code>.
+        </div>
+      )}
 
       {loadErr ?
         <ErrorPanel title="تعذّر تحميل المستخدمين" hint={loadErr} />
@@ -659,6 +624,7 @@ export default function UsersManagementPage() {
               label="تاريخ الانضمام"
               value={joinedFilter}
               onChange={(v) => setJoinedFilter(v as 'all' | 'month' | 'quarter' | 'year')}
+              disabled={serverPaginated}
               options={[
                 { value: 'all', labelAr: 'الكل' },
                 { value: 'month', labelAr: 'هذا الشهر' },
@@ -679,40 +645,35 @@ export default function UsersManagementPage() {
           </CrudToolbar>
 
           {loading ?
-            <motion.div layout className="overflow-hidden rounded-[22px] border border-white/70 bg-white/70 shadow-lg ring-1 ring-ink-100/60 backdrop-blur-md">
-              <EnterpriseTableSkeleton cols={13} rows={9} />
+            <motion.div layout className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <EnterpriseTableSkeleton cols={10} rows={perPage > 8 ? 8 : perPage} />
             </motion.div>
           :
-            <motion.div
-              layout
-              className="overflow-hidden rounded-[22px] border border-white/70 bg-white/75 shadow-[0_16px_48px_-18px_rgba(34,51,74,0.15)] ring-1 ring-ink-100/70 backdrop-blur-md"
-            >
-              <CrudCardTable className="min-w-[1100px]">
+            <motion.div layout className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="max-h-[min(70vh,720px)] overflow-auto">
+              <CrudCardTable className="min-w-[1020px] rounded-none border-0 shadow-none">
                 <CrudTable>
                   <thead>
                     <tr>
-                      <Th className="w-10">{'\u2060'}</Th>
-                      <Th>المستخدم</Th>
-                      <Th>#EMC</Th>
-                      <Th>البريد</Th>
-                      <Th>جوال</Th>
-                      <Th>الدور</Th>
-                      <Th>إدارة</Th>
-                      <Th>حساب</Th>
-                      <Th>تأكيد البريد</Th>
-                      <Th>آخر ظهور</Th>
-                      <Th>تاريخ الإنشاء</Th>
-                      <Th>نشاط ظاهر</Th>
-                      <Th className="text-end">إجراءات</Th>
+                      <Th className="min-w-[15rem]">المستخدم</Th>
+                      <Th className="w-14">#</Th>
+                      <Th className="w-28">الجوال</Th>
+                      <Th className="w-32">الدور</Th>
+                      <Th className="w-28">الإدارة</Th>
+                      <Th className="w-24">الحساب</Th>
+                      <Th className="w-28">توثيق البريد</Th>
+                      <Th className="w-36">آخر دخول</Th>
+                      <Th className="w-32">تاريخ الإنشاء</Th>
+                      <Th className="w-20 text-end">إجراءات</Th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginated.length === 0 ?
                       <tr>
-                        <Td colSpan={13} className="p-0">
+                        <Td colSpan={10} className="p-0">
                           <EmptyPanel
                             title="لا توجد نتائج مطابقة"
-                            subtitle="امسح البحث أو غيّر مرشّح الانضمام والإدارات — القائمة تبقى مرتبطة بما استرجعته نقطة الخادم."
+                            subtitle="جرّب تعديل البحث أو المرشّحات — النتائج تُحمَّل من الخادم عند توفر الترقيم."
                           />
                         </Td>
                       </tr>
@@ -723,215 +684,162 @@ export default function UsersManagementPage() {
                           !!currentUser?.role &&
                           canDeleteAdminUserRow(actorId, currentUser.role, u.id, u.role)
                         const vz = verifiedDot(u)
-                        const pulse = activityPulse(u)
-                        const expanded = expandedId === u.id
+                        const roleKey = normalizeRole(u.role ?? '') ?? ''
 
                         return (
-                          <Fragment key={u.id}>
-                            <Tr className={cn(expanded ? 'bg-brand-400/[0.04]' : undefined)}>
-                              <Td>
-                                <button
-                                  type="button"
-                                  aria-expanded={expanded}
-                                  onClick={() => setExpandedId(expanded ? null : u.id)}
-                                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-100 bg-white shadow-sm hover:border-customBlue/35"
-                                >
-                                  <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                                    <ChevronDown className="h-4 w-4 text-deepBlue" aria-hidden />
-                                  </motion.span>
-                                </button>
-                              </Td>
-                              <Td>
-                                <div dir="rtl" className="flex min-w-0 items-center gap-3">
-                                  <button
-                                    type="button"
-                                    onClick={() => openEnterpriseView(u)}
-                                    className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-[18px] bg-gradient-to-br from-[#2691C2]/20 to-white text-[12px] font-black text-deepBlue shadow-inner ring-1 ring-[#2691C2]/30 transition hover:-translate-y-0.5"
-                                  >
-                                    {initialsFromName(u.name)}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => openEnterpriseView(u)}
-                                    className="min-w-0 flex-1 text-right rtl:text-right"
-                                  >
-                                    <p className="truncate font-black text-deepBlue hover:text-customBlue">{u.name}</p>
-                                    <code className="mt-1 block truncate text-[10px] text-muted-500">
-                                      @{normalizeRole(u.role ?? '') || '—'}
-                                    </code>
-                                  </button>
-                                </div>
-                              </Td>
-                              <Td>
-                                <code className="text-[11px] font-black text-accent-950">#{u.id}</code>
-                              </Td>
-                              <Td className="max-w-[12rem] break-all text-[11px] font-semibold">{u.email}</Td>
-                              <Td className="text-[11px] font-semibold">{u.phone?.trim() ? u.phone : AR_UNSPECIFIED}</Td>
-                              <Td>
-                                <CrudBadge variant="brand">{adminRoleLabelAr(u.role)}</CrudBadge>
-                              </Td>
-                              <Td className="max-w-[8rem] text-[11px] font-semibold">{u.department ?? '—'}</Td>
-                              <Td>
-                                {st === 'deleted' ?
-                                  <CrudBadge variant="danger">محذوف</CrudBadge>
-                                : st === 'inactive' ?
-                                  <CrudBadge variant="danger">موقوف</CrudBadge>
-                                : st === 'active' ?
-                                  <CrudBadge variant="success">نشط</CrudBadge>
-                                : <CrudBadge variant="default">غير مُصرّح</CrudBadge>}
-                              </Td>
-                              <Td>
-                                {vz === 'yes' ?
-                                  <CrudBadge variant="success">موثّق</CrudBadge>
-                                : vz === 'no' ?
-                                  <CrudBadge variant="danger">غير موثَّق</CrudBadge>
-                                : <CrudBadge variant="default">غير مُرسل</CrudBadge>}
-                              </Td>
-                              <Td className="max-w-[6.5rem] text-[11px] font-semibold">{u.last_login_at ? `${u.last_login_at.slice(0, 16)}…` : '—'}</Td>
-                              <Td className="max-w-[6.5rem] text-[11px] font-bold text-muted-600">
-                                {(u.created_at ?? '—').toString().slice(0, 10)}
-                              </Td>
-                              <Td className={`text-[10px] font-black ${pulse.tone}`}>{pulse.label}</Td>
-                              <Td className="text-end">
-                                <RowActionsMenu
-                                  ariaLabel={`إجراءات ${u.name}`}
-                                  actions={[
-                                    { key: 'view', label: 'لوحة تنفيذية', onClick: () => openEnterpriseView(u) },
-                                    { key: 'edit', label: 'تحرير', disabled: !editOk || isDeleted(u), onClick: () => void openEdit(u.id) },
-                                    ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
-                                    !isImpersonating &&
-                                    Number(currentUser?.id ?? 0) !== Number(u.id) &&
-                                    !isDeleted(u) ?
-                                      [
-                                        {
-                                          key: 'impersonate',
-                                          label: 'الدخول كمستخدم',
-                                          onClick: () => void impersonatePreview(u),
-                                        },
-                                      ]
-                                    : []),
-                                    ...(isDeleted(u) && normalizeRole(currentUser?.role ?? '') === 'super_admin' ?
-                                      [
-                                        {
-                                          key: 'restore',
-                                          label: 'استعادة الحساب',
-                                          disabled: saving,
-                                          onClick: () => void executeRestore(u),
-                                        },
-                                      ]
-                                    : []),
-                                    {
-                                      key: 'del',
-                                      label: 'حذف',
-                                      destructive: true,
-                                      disabled: !delOk || isDeleted(u),
-                                      onClick: () => {
-                                        setFocusedId(u.id)
-                                        setDeleteAck(false)
-                                        setModal('delete')
-                                      },
-                                    },
-                                  ]}
+                          <Tr key={u.id} muted={isDeleted(u)}>
+                            <Td>
+                              <button
+                                type="button"
+                                onClick={() => openEnterpriseView(u)}
+                                className="w-full min-w-0 text-right transition hover:opacity-90"
+                              >
+                                <UserAvatarCell
+                                  name={u.name}
+                                  email={u.email}
+                                  avatarUrl={u.avatar_url}
                                 />
-                              </Td>
-                            </Tr>
-                            {expanded ?
-                              <tr key={`${String(u.id)}-detail`}>
-                                <Td colSpan={13} className="p-0">
-                                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-hidden">
-                                    <div className="bg-gradient-to-bl from-brand-400/[0.07] via-white to-white px-6 py-5">
-                                      <div className="grid gap-4 text-right text-[12px] font-semibold leading-relaxed text-muted-700 sm:grid-cols-3 rtl:text-right">
-                                        <MiniPanel title="تفاصيل التواصل" icon={Mail} lines={[u.phone ?? 'لم يتوفر الجوال']} />
-                                        <MiniPanel title="الحالة التشغيلية" icon={Shield} lines={[pulse.label]} />
-                                        <MiniPanel
-                                          title="زمن تحديث السجل"
-                                          icon={TrendingUp}
-                                          lines={[u.updated_at?.slice(0, 16) ?? '—']}
-                                        />
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                </Td>
-                              </tr>
-                            : null}
-                          </Fragment>
+                              </button>
+                            </Td>
+                            <Td>
+                              <span className="font-mono text-[11px] font-black text-slate-500">#{u.id}</span>
+                            </Td>
+                            <Td className="text-[12px] text-slate-600">{u.phone?.trim() ? u.phone : <span className="text-slate-300">—</span>}</Td>
+                            <Td>
+                              <Pill className={ROLE_PILL[roleKey] ?? 'bg-slate-50 text-slate-700 border-slate-200'}>{adminRoleLabelAr(u.role)}</Pill>
+                            </Td>
+                            <Td className="max-w-[8rem] truncate text-[12px] text-slate-500">{u.department?.trim() || '—'}</Td>
+                            <Td>
+                              <Pill className={STATUS_PILL[st]}>{STATUS_LABEL[st]}</Pill>
+                            </Td>
+                            <Td>
+                              <Pill className={VERIFIED_PILL[vz]}>{VERIFIED_LABEL[vz]}</Pill>
+                            </Td>
+                            <Td>
+                              <p className="text-[12px] font-semibold text-[#22334A]">{formatLastLogin(u.last_login_at)}</p>
+                            </Td>
+                            <Td>
+                              <p className="text-[12px] text-slate-500">{formatDate(u.created_at)}</p>
+                            </Td>
+                            <Td className="text-end">
+                              <RowActionsMenu
+                                ariaLabel={`إجراءات ${u.name}`}
+                                actions={[
+                                  { key: 'view', label: 'عرض الملف', onClick: () => openEnterpriseView(u) },
+                                  { key: 'edit', label: 'تحرير', disabled: !editOk || isDeleted(u), onClick: () => void openEdit(u.id) },
+                                  ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
+                                  !isImpersonating &&
+                                  Number(currentUser?.id ?? 0) !== Number(u.id) &&
+                                  !isDeleted(u) ?
+                                    [
+                                      {
+                                        key: 'impersonate',
+                                        label: 'الدخول كمستخدم',
+                                        onClick: () => void impersonatePreview(u),
+                                      },
+                                    ]
+                                  : []),
+                                  ...(isDeleted(u) && normalizeRole(currentUser?.role ?? '') === 'super_admin' ?
+                                    [
+                                      {
+                                        key: 'restore',
+                                        label: 'استعادة الحساب',
+                                        disabled: saving,
+                                        onClick: () => void executeRestore(u),
+                                      },
+                                    ]
+                                  : []),
+                                  {
+                                    key: 'del',
+                                    label: 'حذف',
+                                    destructive: true,
+                                    disabled: !delOk || isDeleted(u),
+                                    onClick: () => {
+                                      setFocusedId(u.id)
+                                      setDeleteAck(false)
+                                      setModal('delete')
+                                    },
+                                  },
+                                ]}
+                              />
+                            </Td>
+                          </Tr>
                         )
                       })
                     }
                   </tbody>
                 </CrudTable>
               </CrudCardTable>
+              </div>
 
-              {/* Pagination footer */}
-              {filtered.length > 0 &&
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-100/60 bg-white/60 px-5 py-3 backdrop-blur-sm">
-                  {/* Left: per-page selector + count text */}
-                  <div className="flex items-center gap-3 text-[12px] font-semibold text-muted-600">
+              {total > 0 && (
+                <div dir="rtl" className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 bg-slate-50/40 px-5 py-3">
+                  <div className="flex items-center gap-2.5 text-[12px] text-slate-500">
                     <span>عرض</span>
                     <select
                       value={perPage}
                       onChange={(e) => setPerPage(Number(e.target.value))}
-                      className="rounded-xl border border-ink-100 bg-white px-2 py-1 text-[12px] font-black text-deepBlue shadow-sm focus:outline-none focus:ring-2 focus:ring-customBlue/30"
+                      className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[12px] font-bold text-[#22334A] outline-none focus:border-[#2691C2]/50 focus:ring-2 focus:ring-[#2691C2]/12"
                     >
                       {[15, 25, 50, 100].map((n) => (
                         <option key={n} value={n}>{n}</option>
                       ))}
                     </select>
-                    <span>
-                      {`${(safePage - 1) * perPage + 1} إلى ${Math.min(safePage * perPage, filtered.length)} من ${filtered.length} مستخدم`}
+                    <span className="font-semibold">
+                      {`${(safePage - 1) * perPage + 1}–${Math.min(safePage * perPage, total)} من ${total} مستخدم`}
                     </span>
                   </div>
 
-                  {/* Right: page navigation */}
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
                       disabled={safePage <= 1}
                       onClick={() => setPage(safePage - 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-ink-100 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-[#2691C2]/40 hover:text-[#2691C2] disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label="الصفحة السابقة"
                     >
                       <ChevronRight className="h-4 w-4" aria-hidden />
                     </button>
 
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                    {Array.from({ length: lastPage }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === lastPage || Math.abs(p - safePage) <= 1)
                       .reduce<(number | '…')[]>((acc, p, i, arr) => {
                         if (i > 0 && (arr[i - 1] as number) !== p - 1) acc.push('…')
                         acc.push(p)
                         return acc
                       }, [])
                       .map((p, i) =>
-                        p === '…' ?
-                          <span key={`ellipsis-${i}`} className="px-1 text-[12px] text-muted-400">…</span>
-                        :
+                        p === '…' ? (
+                          <span key={`ellipsis-${i}`} className="w-6 text-center text-[12px] text-slate-300">…</span>
+                        ) : (
                           <button
                             key={p}
                             type="button"
                             onClick={() => setPage(p as number)}
-                            className={`flex h-8 w-8 items-center justify-center rounded-xl border text-[12px] font-black shadow-sm transition ${
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg border text-[12px] font-bold transition ${
                               safePage === p
-                                ? 'border-customBlue bg-customBlue text-white'
-                                : 'border-ink-100 bg-white text-deepBlue hover:border-customBlue/40 hover:bg-brand-50'
+                                ? 'border-[#2691C2] bg-[#2691C2] text-white'
+                                : 'border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/40 hover:text-[#2691C2]'
                             }`}
                           >
                             {p}
                           </button>
+                        )
                       )
                     }
 
                     <button
                       type="button"
-                      disabled={safePage >= totalPages}
+                      disabled={safePage >= lastPage}
                       onClick={() => setPage(safePage + 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-ink-100 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-[#2691C2]/40 hover:text-[#2691C2] disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label="الصفحة التالية"
                     >
                       <ChevronLeft className="h-4 w-4" aria-hidden />
                     </button>
                   </div>
                 </div>
-              }
+              )}
             </motion.div>
           }
         </div>
@@ -1013,7 +921,7 @@ export default function UsersManagementPage() {
                       <Labeled label="كلمة المرور" children={<Input type="password" value={pw} onChange={setPw} />} />
                       <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
                       {pw.trim() ?
-                        <p className="rounded-[14px] border border-[#2691C2]/25 bg-brand-400/10 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-deepBlue rtl:text-right break-all">
+                        <p className="rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/6 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-[#1a6b96] rtl:text-right break-all">
                           {pw}
                         </p>
                       : null}
@@ -1084,165 +992,61 @@ export default function UsersManagementPage() {
         />
       </>
 
-      {/* Edit */}
-      <CrudModal
+      <UserEditDrawer
         open={modal === 'edit' && focusedId != null}
+        userId={focusedId}
+        loading={editLoading}
+        saving={saving}
+        formName={formName}
+        formEmail={formEmail}
+        formRole={formRole}
+        formPhone={formPhone}
+        formDepartment={formDepartment}
+        formCity={formCity}
+        formCountry={formCountry}
+        formHow={formHow}
+        formStatus={formStatus}
+        pw={pw}
+        pwConf={pwConf}
+        editAvatarFile={editAvatarFile}
+        removeAvatar={removeAvatar}
+        emailVerifiedAt={editMeta.emailVerifiedAt}
+        lastLoginAt={editMeta.lastLoginAt}
+        createdAt={editMeta.createdAt}
+        roleOptions={roleOptionsEdit}
         onClose={closeModal}
-        title="تحرير المستخدم · Enterprise"
-        subtitle="PUT /admin/users/{id}"
-        widthClassName="max-w-2xl"
-        footerSlot={
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-100/80 pt-3">
-            <p className="text-[11px] font-semibold text-muted-600 rtl:text-right">حفظك يعتمد اعتماد السياسة على Laravel.</p>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={closeModal} className="rounded-[18px] border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue">
-                إلغاء
-              </button>
-              <button
-                type="button"
-                disabled={saving || focusedId == null}
-                onClick={() => void submitEdit()}
-                className="inline-flex items-center gap-2 rounded-[18px] bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-2 text-[12px] font-black text-white disabled:opacity-50"
-              >
-                <TrendingUp className="h-4 w-4" aria-hidden />
-                حفظ التغييرات
-              </button>
-            </div>
-          </div>
-        }
-      >
-        <GroupedFormSections
-          sections={[
-            {
-              title: 'البيانات التعريفية',
-              icon: UserSquare2,
-              body: (
-                <>
-                  <Labeled label="الاسم" children={<Input value={formName} onChange={setFormName} />} />
-                  <Labeled label="البريد" children={<Input type="email" value={formEmail} onChange={setFormEmail} />} />
-                </>
-              ),
-            },
-            {
-              title: 'الاتصال والتنظيم',
-              icon: Users,
-              body: (
-                <>
-                  <Labeled label="الجوال" children={<Input value={formPhone} onChange={setFormPhone} />} />
-                  <Labeled label="القسم / الإدارة" children={<Input value={formDepartment} onChange={setFormDepartment} />} />
-                  <Labeled label="المدينة" children={<Input value={formCity} onChange={setFormCity} />} />
-                  <Labeled label="الدولة" children={<Input value={formCountry} onChange={setFormCountry} />} />
-                  <Labeled label="كيف عرفتم المنصّة؟" children={<Input value={formHow} onChange={setFormHow} />} />
-                  <Labeled
-                    label="حالة الحساب"
-                    children={
-                      <select
-                        value={formStatus}
-                        onChange={(e) =>
-                          setFormStatus(e.target.value as typeof formStatus)
-                        }
-                        className="w-full rounded-[18px] border border-ink-100 px-3 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:border-customBlue/35 focus:ring-customBlue/15"
-                      >
-                        <option value="preserve">بدون تغيير الصلاحية الافتراضية</option>
-                        <option value="active">نشط</option>
-                        <option value="inactive">موقوف</option>
-                      </select>
-                    }
-                  />
-                </>
-              ),
-            },
-            {
-              title: 'الصلاحيات',
-              icon: ShieldCheck,
-              body: (
-                <Labeled
-                  label="الدور"
-                  children={
-                    <select
-                      value={formRole}
-                      onChange={(e) => setFormRole(e.target.value)}
-                      className="w-full rounded-[18px] border border-ink-100 px-3 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent focus:border-customBlue/35 focus:ring-customBlue/15"
-                    >
-                      {roleOptionsEdit.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.labelAr}
-                        </option>
-                      ))}
-                    </select>
-                  }
-                />
-              ),
-            },
-            {
-              title: 'صورة الملف (اختياري)',
-              icon: UserCircle2,
-              body: (
-                <>
-                  <label className="block text-right rtl:text-right">
-                    <span className="mb-1.5 block text-[11px] font-black uppercase tracking-wide text-muted-600">
-                      رفع صورة
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="w-full rounded-[18px] border border-ink-100 px-3 py-2 text-[12px] font-semibold file:me-3 file:rounded-lg file:border-0 file:bg-customBlue file:px-3 file:py-2 file:text-[11px] file:font-black file:text-white"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0]
-                        setEditAvatarFile(f ?? null)
-                        if (f) setRemoveAvatar(false)
-                      }}
-                    />
-                  </label>
-                  <label className="mt-3 flex cursor-pointer items-center gap-2 text-right rtl:text-right">
-                    <input
-                      type="checkbox"
-                      checked={removeAvatar}
-                      disabled={Boolean(editAvatarFile)}
-                      onChange={(e) => setRemoveAvatar(e.target.checked)}
-                      className="h-4 w-4 rounded border-ink-200"
-                    />
-                    <span className="text-[12px] font-bold text-muted-700">إزالة الصورة الحالية إن وُجدت</span>
-                  </label>
-                </>
-              ),
-            },
-            {
-              title: 'التدوير الاختياري لكلمة المرور',
-              icon: Shield,
-              body: (
-                <>
-                  <PasswordInlineTools pw={pw} setPw={setPw} setPwConf={setPwConf} />
-                  <Labeled label="كلمة مرور جديدة (اختياري)" children={<Input type="password" value={pw} onChange={setPw} />} />
-                  <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
-                  {pw.trim() ?
-                    <p className="rounded-[14px] border border-[#2691C2]/25 bg-brand-400/10 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-deepBlue rtl:text-right break-all">
-                      {pw}
-                    </p>
-                  : null}
-                </>
-              ),
-            },
-          ]}
-        />
-      </CrudModal>
+        onSubmit={submitEdit}
+        onFormName={setFormName}
+        onFormEmail={setFormEmail}
+        onFormRole={setFormRole}
+        onFormPhone={setFormPhone}
+        onFormDepartment={setFormDepartment}
+        onFormCity={setFormCity}
+        onFormCountry={setFormCountry}
+        onFormHow={setFormHow}
+        onFormStatus={setFormStatus}
+        onPw={setPw}
+        onPwConf={setPwConf}
+        onEditAvatarFile={setEditAvatarFile}
+        onRemoveAvatar={setRemoveAvatar}
+      />
 
       <CrudModal
         open={modal === 'delete' && focusedId != null}
         onClose={closeModal}
         title="تأكيد الحذف"
-        subtitle={ADMIN_USER_FORBIDDEN_AR}
+        subtitle={focusedUser ? `حذف ${focusedUser.name} — DELETE /admin/users/${focusedId}` : 'DELETE /admin/users/{id}'}
         footerSlot={
           <div className="flex flex-wrap justify-end gap-2">
-            <button type="button" onClick={closeModal} className="rounded-[18px] border border-ink-100 px-4 py-2 text-[12px] font-black text-deepBlue">
+            <button type="button" onClick={closeModal} className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-semibold text-slate-600 transition hover:bg-slate-50">
               إلغاء
             </button>
             <button
               type="button"
-              className="rounded-[18px] bg-red-600 px-5 py-2 text-[12px] font-black text-white disabled:cursor-not-allowed disabled:opacity-45"
+              className="rounded-xl bg-red-600 px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-45"
               disabled={saving || !focusedId || !deleteAck}
               onClick={() => {
-                const u = filtered.find((x) => x.id === focusedId) ?? rows.find((x) => x.id === focusedId)
+                const u = pageUsers.find((x) => x.id === focusedId) ?? focusedUser
                 if (!u || !focusedId || !deleteAck) return
                 void executeDelete(u)
               }}
@@ -1252,7 +1056,7 @@ export default function UsersManagementPage() {
           </div>
         }
       >
-        <label className="flex cursor-pointer items-start gap-3 rounded-[18px] border border-red-100 bg-red-50/60 px-4 py-3 text-right rtl:text-right">
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-red-100 bg-red-50/50 px-4 py-3 text-right">
           <input
             type="checkbox"
             className="mt-1 h-4 w-4 shrink-0 rounded border-red-300 text-red-600"
@@ -1303,7 +1107,7 @@ function PasswordInlineTools({
       <button
         type="button"
         onClick={() => gen()}
-        className="inline-flex flex-1 items-center justify-center gap-2 rounded-[18px] border border-brand-400/35 bg-brand-400/10 px-3 py-2 text-[11px] font-black text-deepBlue shadow-sm hover:bg-brand-400/18"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#2691C2]/25 bg-[#2691C2]/8 px-3 py-2 text-[11px] font-black text-[#1a6b96] transition hover:bg-[#2691C2]/14"
       >
         <Sparkles className="h-3.5 w-3.5" aria-hidden />
         توليد كلمة مرور
@@ -1312,7 +1116,7 @@ function PasswordInlineTools({
         type="button"
         onClick={() => void copy()}
         disabled={!pw.trim()}
-        className="inline-flex flex-1 items-center justify-center gap-2 rounded-[18px] border border-ink-100 bg-white px-3 py-2 text-[11px] font-black text-deepBlue disabled:opacity-40"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-40"
       >
         <Copy className="h-3.5 w-3.5" aria-hidden />
         نسخ
@@ -1321,48 +1125,10 @@ function PasswordInlineTools({
   )
 }
 
-function MiniPanel({ title, lines, icon: Icon }: { title: string; lines: string[]; icon: typeof Mail }) {
-  return (
-    <div className="rounded-[18px] border border-ink-100/70 bg-white/90 p-3 shadow-inner">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-black text-deepBlue">{title}</p>
-        <Icon className="h-4 w-4 text-customBlue" aria-hidden />
-      </div>
-      <ul className="mt-2 space-y-1 text-[11px] font-semibold leading-relaxed text-muted-700">
-        {lines.map((l, i) => (
-          <li key={`${title}-${String(i)}`}>{l}</li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function GroupedFormSections({
-  sections,
-}: {
-  sections: { title: string; icon: typeof Users; body: ReactNode }[]
-}) {
-  return (
-    <div className="space-y-5">
-      {sections.map((s) => (
-        <div key={s.title} className="rounded-[22px] border border-ink-100/70 bg-white/95 p-4 shadow-sm ring-1 ring-ink-100/55">
-          <div className="mb-4 flex items-center gap-3 border-b border-ink-100/60 pb-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2]/12 to-accent-400/10 text-deepBlue shadow-inner ring-1 ring-brand-200/50">
-              <s.icon className="h-5 w-5" aria-hidden />
-            </span>
-            <p className="text-[13px] font-black text-deepBlue">{s.title}</p>
-          </div>
-          <div className="space-y-4">{s.body}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function Labeled({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block text-right rtl:text-right">
-      <span className="mb-1.5 block text-[11px] font-black uppercase tracking-wide text-muted-600">{label}</span>
+      <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
       {children}
     </label>
   )
@@ -1377,12 +1143,29 @@ function Input({
   value: string
   onChange: (v: string) => void
 }) {
+  const [showPw, setShowPw] = useState(false)
+  const isPassword = type === 'password'
+  const inputType = isPassword ? (showPw ? 'text' : 'password') : type
+
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-[18px] border border-ink-100 px-4 py-2.5 text-[13px] font-semibold outline-none ring-2 ring-transparent transition focus:border-customBlue/35 focus:ring-customBlue/15"
-    />
+    <div className="relative">
+      <input
+        type={inputType}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full rounded-xl border border-slate-200 px-4 py-2.5 text-[13px] font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/40 focus:ring-2 focus:ring-[#2691C2]/12 ${isPassword ? 'pe-10' : ''}`}
+      />
+      {isPassword && (
+        <button
+          type="button"
+          aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+          onClick={() => setShowPw((s) => !s)}
+          className="absolute end-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-[#22334A]"
+          tabIndex={-1}
+        >
+          {showPw ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+        </button>
+      )}
+    </div>
   )
 }

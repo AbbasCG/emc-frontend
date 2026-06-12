@@ -50,6 +50,7 @@ export type CourseLearnAssignmentSubmissionType = 'text' | 'file' | 'both' | str
 export type CourseLearnAssignment = {
   id: number
   assignment_id?: number
+  lms_assignment_id?: number
   title: string
   description?: string | null
   due_at?: string | null
@@ -61,6 +62,15 @@ export type CourseLearnAssignment = {
   status?: string | null
   score?: number | null
   feedback?: string | null
+  submitted_at?: string | null
+  resubmission_allowed?: boolean
+  my_submission?: {
+    submitted_at?: string | null
+    status?: string | null
+    text_answer?: string | null
+    score?: number | null
+    feedback?: string | null
+  } | null
 }
 
 export type StudentLearnModule = {
@@ -70,6 +80,11 @@ export type StudentLearnModule = {
   sort_order: number
   lessons_count: number
   completed_lessons?: number
+  completed_lessons_count?: number
+  assignments_count?: number
+  submitted_assignments_count?: number
+  progress_percentage?: number
+  is_completed?: boolean
 }
 
 export type StudentCourseLearnPayload = {

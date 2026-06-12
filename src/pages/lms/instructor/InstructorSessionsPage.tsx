@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { useEffect, useState } from 'react'
-import { Calendar, CheckCircle2, Clock } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Calendar, CheckCircle2, Clock, Radio, XCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { fetchInstructorSessions } from '@/api/instructorApi'
 import type { LmsSession } from '@/types/lms'
@@ -10,7 +10,7 @@ import { InstructorEmptyState, InstructorHero } from '@/components/instructor'
 export default function InstructorSessionsPage() {
   const [sessions,    setSessions]   = useState<LmsSession[]>([])
   const [loading,     setLoading]    = useState(true)
-  const [apiMissing,  setApiMissing] = useState(false)
+  const [apiMissing,  setApiMissing]  = useState(false)
 
   async function load() {
     setLoading(true)
@@ -29,8 +29,12 @@ export default function InstructorSessionsPage() {
 
   useEffect(() => { void load() }, [])
 
-  const upcoming = sessions.filter((s) => s.status !== 'completed')
-  const past     = sessions.filter((s) => s.status === 'completed')
+  const { upcoming, live, past, cancelled } = useMemo(() => ({
+    upcoming: sessions.filter((s) => s.status === 'scheduled'),
+    live:     sessions.filter((s) => s.status === 'live'),
+    past:     sessions.filter((s) => s.status === 'completed'),
+    cancelled: sessions.filter((s) => s.status === 'cancelled'),
+  }), [sessions])
 
   return (
     <div className="space-y-6 pb-16" dir="rtl">
@@ -43,7 +47,7 @@ export default function InstructorSessionsPage() {
         onRefresh={load}
         refreshing={loading}
         pills={loading ? [] : [
-          { label: 'قادمة',  value: upcoming.length },
+          { label: 'قادمة',  value: upcoming.length + live.length },
           { label: 'منتهية', value: past.length     },
         ]}
       />
@@ -60,23 +64,27 @@ export default function InstructorSessionsPage() {
             <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100" />
           ))}
         </div>
+      ) : sessions.length === 0 ? (
+        <InstructorEmptyState
+          icon={Calendar}
+          title="لا توجد جلسات مجدولة"
+          description="ستُعرض الجلسات المرتبطة بدوراتك هنا"
+        />
       ) : (
         <div className="space-y-8">
 
-          <section>
-            <div className="mb-3 flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-[#2691C2]" />
-              <h2 className="text-[12px] font-black uppercase tracking-widest text-deepBlue/45">جلسات قادمة</h2>
-            </div>
-            {upcoming.length === 0 ? (
-              <InstructorEmptyState
-                icon={Calendar}
-                title="لا توجد جلسات مجدولة"
-                description="ستُعرض الجلسات المرتبطة بدوراتك هنا"
-              />
-            ) : (
+          {(live.length > 0 || upcoming.length > 0) && (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                {live.length > 0 ?
+                  <Radio className="h-3.5 w-3.5 text-emerald-500" />
+                : <Clock className="h-3.5 w-3.5 text-[#2691C2]" />}
+                <h2 className="text-[12px] font-black uppercase tracking-widest text-deepBlue/45">
+                  {live.length > 0 ? 'جلسات مباشرة وقادمة' : 'جلسات قادمة'}
+                </h2>
+              </div>
               <div className="grid gap-3">
-                {upcoming.map((s, i) => (
+                {[...live, ...upcoming].map((s, i) => (
                   <motion.div
                     key={s.id}
                     initial={{ opacity: 0, y: 6 }}
@@ -87,8 +95,8 @@ export default function InstructorSessionsPage() {
                   </motion.div>
                 ))}
               </div>
-            )}
-          </section>
+            </section>
+          )}
 
           {past.length > 0 && (
             <section>
@@ -98,6 +106,27 @@ export default function InstructorSessionsPage() {
               </div>
               <div className="grid gap-3">
                 {past.map((s, i) => (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                  >
+                    <SessionCard session={s} />
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {cancelled.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <XCircle className="h-3.5 w-3.5 text-red-400" />
+                <h2 className="text-[12px] font-black uppercase tracking-widest text-deepBlue/45">جلسات ملغاة</h2>
+              </div>
+              <div className="grid gap-3">
+                {cancelled.map((s, i) => (
                   <motion.div
                     key={s.id}
                     initial={{ opacity: 0, y: 6 }}

@@ -113,6 +113,19 @@ export type DashboardStats = {
   training_hours: number
 }
 
+export type ClassAssignment = {
+  class_group_id: number
+  name: string
+  level_code?: string | null
+  schedule_day?: string | null
+  schedule_time?: string | null
+  location_type?: string | null
+  meeting_link?: string | null
+  start_date?: string | null
+  instructor_name?: string | null
+  assigned_at?: string | null
+}
+
 export type Enrollment = {
   id: number
   course: Course
@@ -133,6 +146,8 @@ export type Enrollment = {
   oral_final_level?: string | null
   oral_score?: number | null
   can_start_learning?: boolean | null
+  /** Class group assignment — set after instructor assigns the student */
+  class_assignment?: ClassAssignment | null
 }
 
 export type UpcomingSession = {

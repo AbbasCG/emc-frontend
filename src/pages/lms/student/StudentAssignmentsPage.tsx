@@ -1,13 +1,15 @@
-import { useState, type FormEvent } from 'react'
-import { ClipboardList, RefreshCw, Send } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { submitStudentAssignment } from '@/api/studentApi'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ClipboardList, RefreshCw } from 'lucide-react'
 import type { StudentAssignment } from '@/types/lms'
 import { DashboardSection } from '@/components/dashboard'
-import { AssignmentCard, LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
+import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 
+const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
+
 export default function StudentAssignmentsPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const {
     loading,
     refreshing,
@@ -18,36 +20,21 @@ export default function StudentAssignmentsPage() {
   } = useStudentDashboardData()
 
   const [active, setActive] = useState<StudentAssignment | null>(null)
-  const [text, setText] = useState('')
-  const [file, setFile] = useState<File | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
-  async function reload() {
-    await refresh()
-  }
+  const submitQueryId = searchParams.get('submit')
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!active) return
-    setSubmitting(true)
-    setMessage(null)
-    try {
-      await submitStudentAssignment(active.assignment_id, {
-        answer_text: text || undefined,
-        file,
-      })
-      setMessage({ type: 'ok', text: 'تم تسليم الواجب بنجاح.' })
-      setText('')
-      setFile(null)
-      setActive(null)
-      await reload()
-    } catch {
-      setMessage({ type: 'err', text: 'فشل التسليم. تحقق من الحقول أو حاول لاحقاً.' })
-    } finally {
-      setSubmitting(false)
+  useEffect(() => {
+    if (!submitQueryId || assignmentsScoped.length === 0) return
+    const targetId = Number(submitQueryId)
+    if (!Number.isFinite(targetId)) return
+    const match = assignmentsScoped.find(
+      (a) => a.assignment_id === targetId || a.id === targetId,
+    )
+    if (match && !NON_SUBMITTABLE.includes(match.status)) {
+      setActive(match)
+      setSearchParams({}, { replace: true })
     }
-  }
+  }, [submitQueryId, assignmentsScoped, setSearchParams])
 
   if (loading && assignmentsScoped.length === 0) return <LmsPageSkeleton />
 
@@ -57,8 +44,7 @@ export default function StudentAssignmentsPage() {
         <div>
           <h1 className="text-xl font-black text-deepBlue">الواجبات</h1>
           <p className="mt-2 max-w-2xl text-[13px] font-semibold text-muted-700">
-            مصدر الخادم: <span className="font-mono text-[11px]">GET /student/assignments</span> — فلترة حسب دوراتك المسجّلة (
-            {registrations.length}).
+            تسليم الواجبات المرتبطة بدوراتك المسجّلة ({registrations.length} دورة).
           </p>
           {loadError ?
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
@@ -77,19 +63,7 @@ export default function StudentAssignmentsPage() {
         </button>
       </header>
 
-      {message && (
-        <div
-          className={
-            message.type === 'ok' ?
-              'rounded-xl bg-emerald-50 px-4 py-3 text-right text-sm font-bold text-emerald-800 ring-1 ring-emerald-100'
-            : 'rounded-xl bg-red-50 px-4 py-3 text-right text-sm font-bold text-red-700 ring-1 ring-red-100'
-          }
-        >
-          {message.text}
-        </div>
-      )}
-
-      <DashboardSection title="واجبات الدورات المسجّلة" subtitle="تسليم وتقييم ضمن نفس مصدر البيانات الموحّد.">
+      <DashboardSection title="واجبات الدورات المسجّلة">
         {assignmentsScoped.length === 0 ?
           <LmsEmptyState
             icon={ClipboardList}
@@ -99,82 +73,24 @@ export default function StudentAssignmentsPage() {
         : <div className="grid gap-4">
             {assignmentsScoped.map((a) => (
               <AssignmentCard
-                key={a.id}
+                key={`${a.id}-${a.assignment_id}`}
                 assignment={a}
-                onSubmit={() => {
-                  setActive(a)
-                  setText('')
-                  setFile(null)
-                  setMessage(null)
-                }}
+                onSubmit={
+                  NON_SUBMITTABLE.includes(a.status) ?
+                    undefined
+                  : () => setActive(a)
+                }
               />
             ))}
           </div>
         }
       </DashboardSection>
 
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
-            role="dialog"
-            aria-modal="true"
-            onClick={() => !submitting && setActive(null)}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 24, opacity: 0 }}
-              onClick={(ev) => ev.stopPropagation()}
-              className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-deepBlue/10"
-            >
-              <h2 className="text-right text-lg font-black text-deepBlue">تسليم الواجب</h2>
-              <p className="mt-1 text-right text-sm font-bold text-slate-500">{active.title}</p>
-
-              <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-right">
-                <label className="grid gap-2">
-                  <span className="text-xs font-black text-deepBlue">إجابة نصية</span>
-                  <textarea
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    rows={5}
-                    className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-deepBlue outline-none focus:border-customBlue"
-                  />
-                </label>
-                <label className="grid gap-2">
-                  <span className="text-xs font-black text-deepBlue">مرفق (اختياري)</span>
-                  <input
-                    type="file"
-                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                    className="text-sm font-semibold text-deepBlue"
-                  />
-                </label>
-                <div className="flex flex-wrap justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => setActive(null)}
-                    className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-black text-slate-600"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-2.5 text-xs font-black text-white shadow-md disabled:opacity-60"
-                  >
-                    <Send size={14} />
-                    {submitting ? 'جارٍ الإرسال...' : 'إرسال التسليم'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <AssignmentSubmitModal
+        assignment={active}
+        onClose={() => setActive(null)}
+        onSuccess={refresh}
+      />
     </div>
   )
 }

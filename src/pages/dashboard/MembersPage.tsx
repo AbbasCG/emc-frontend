@@ -112,7 +112,8 @@ const AVATAR_GRADIENTS = [
   'from-[#22334A] to-[#2691C2]',
 ]
 
-const GRANT_ROLES = new Set(['super_admin', 'admin', 'hr_manager', 'department_manager'])
+/** Roles that can grant recognition to ANY member/department. */
+const FULL_GRANT_ROLES = new Set(['super_admin', 'admin', 'hr_manager', 'executive_admin'])
 
 function initials(name: string): string {
   return name
@@ -262,10 +263,22 @@ type RecipientType = 'member' | 'department' | 'team'
 function GrantRecognitionModal({
   members,
   onClose,
+  restrictDepartment = null,
 }: {
   members: InternalMember[]
   onClose: () => void
+  /** When set, the grant is locked to this single department (Dept. Manager scope). */
+  restrictDepartment?: string | null
 }) {
+  /* Dept. Managers may only target individual members within their own department. */
+  const eligibleMembers = useMemo(
+    () =>
+      restrictDepartment
+        ? members.filter((m) => (m.department?.trim() ?? '') === restrictDepartment)
+        : members,
+    [members, restrictDepartment],
+  )
+
   const [recipientType, setRecipientType] = useState<RecipientType>('member')
   const [recipientId, setRecipientId] = useState('')
   const [recognitionType, setRecognitionType] = useState<RecognitionTypeName | ''>('')
@@ -275,8 +288,11 @@ function GrantRecognitionModal({
   const [submitting, setSubmitting] = useState(false)
 
   const departments = useMemo(
-    () => [...new Set(members.map((m) => m.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')),
-    [members],
+    () =>
+      restrictDepartment
+        ? [restrictDepartment]
+        : [...new Set(members.map((m) => m.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')),
+    [members, restrictDepartment],
   )
 
   const selectedType = RECOGNITION_TYPE_OPTIONS.find((t) => t.id === recognitionType)
@@ -286,6 +302,15 @@ function GrantRecognitionModal({
     if (!recipientId || !recognitionType) {
       toast.error('يرجى اختيار المستلم ونوع التكريم.')
       return
+    }
+    /* Defence-in-depth: never let a scoped grant target a member outside the allowed department.
+       The backend MUST enforce this too — frontend hiding is not a security boundary. */
+    if (restrictDepartment && recipientType === 'member') {
+      const target = eligibleMembers.find((m) => String(m.id) === recipientId)
+      if (!target) {
+        toast.error('يمكنك منح التكريم لأعضاء إدارتك فقط.')
+        return
+      }
     }
     setSubmitting(true)
     try {
@@ -336,18 +361,25 @@ function GrantRecognitionModal({
         </div>
 
         <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-5 p-6">
+          {restrictDepartment && (
+            <div className="rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/[0.05] px-3.5 py-2.5 text-[11px] font-bold text-[#2691C2]">
+              يمكنك منح التكريم لأعضاء إدارتك فقط — {restrictDepartment}
+            </div>
+          )}
           {/* Recipient type */}
           <div>
             <label className="mb-2 block text-[11px] font-black uppercase tracking-wider text-slate-500">
               نوع المستلم
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className={`grid gap-2 ${restrictDepartment ? 'grid-cols-1' : 'grid-cols-3'}`}>
               {(
-                [
-                  { val: 'member',     label: 'عضو',   Icon: Users },
-                  { val: 'department', label: 'إدارة', Icon: Building2 },
-                  { val: 'team',       label: 'فريق',  Icon: Users },
-                ] as { val: RecipientType; label: string; Icon: React.ComponentType<{ className?: string }> }[]
+                (restrictDepartment
+                  ? [{ val: 'member', label: 'عضو', Icon: Users }]
+                  : [
+                      { val: 'member',     label: 'عضو',   Icon: Users },
+                      { val: 'department', label: 'إدارة', Icon: Building2 },
+                      { val: 'team',       label: 'فريق',  Icon: Users },
+                    ]) as { val: RecipientType; label: string; Icon: React.ComponentType<{ className?: string }> }[]
               ).map(({ val, label, Icon }) => (
                 <button
                   key={val}
@@ -380,7 +412,7 @@ function GrantRecognitionModal({
               >
                 <option value="">— اختر —</option>
                 {recipientType === 'member' &&
-                  members.map((m) => (
+                  eligibleMembers.map((m) => (
                     <option key={m.id} value={String(m.id)}>
                       {m.name}{m.department ? ` · ${m.department}` : ''}
                     </option>
@@ -528,9 +560,12 @@ function GrantRecognitionModal({
 function RecognitionStrip({
   canGrant,
   onGrant,
+  scopeDepartment,
 }: {
   canGrant: boolean
   onGrant: () => void
+  /** When set, grants are limited to this department (Dept. Manager scope). */
+  scopeDepartment?: string | null
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#22334A]/12 bg-white px-5 py-3.5 shadow-sm">
@@ -569,14 +604,21 @@ function RecognitionStrip({
         )}
 
         {canGrant && (
-          <button
-            type="button"
-            onClick={onGrant}
-            className="flex items-center gap-1.5 rounded-xl bg-[#EC943C] px-3.5 py-1.5 text-[12px] font-black text-white transition hover:bg-[#d4833a] active:scale-95"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            منح تكريم
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              type="button"
+              onClick={onGrant}
+              className="flex items-center gap-1.5 rounded-xl bg-[#EC943C] px-3.5 py-1.5 text-[12px] font-black text-white transition hover:bg-[#d4833a] active:scale-95"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              منح تكريم
+            </button>
+            {scopeDepartment && (
+              <span className="text-[10px] font-semibold text-slate-400">
+                يمكنك منح التكريم لأعضاء إدارتك فقط
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -784,7 +826,7 @@ function RecognitionBadgeChip({ badge }: { badge: RecognitionBadge }) {
    MEMBER CARD
 ══════════════════════════════════════════════════════════════════ */
 
-function MemberCard({ member, idx, onUpdated }: { member: InternalMember; idx: number; onUpdated?: (updated: InternalMember) => void }) {
+function MemberCard({ member, idx, onUpdated, canManage }: { member: InternalMember; idx: number; onUpdated?: (updated: InternalMember) => void; canManage?: boolean }) {
   const [creating, setCreating] = useState(false)
   const [hasAccount, setHasAccount] = useState(() => Boolean(member.has_user_account) || member.user_id != null)
   const [modal, setModal] = useState<{ email: string; password: string } | null>(null)
@@ -934,8 +976,8 @@ function MemberCard({ member, idx, onUpdated }: { member: InternalMember; idx: n
             )}
           </div>
 
-          {/* Create account */}
-          {!hasAccount && member.email && (
+          {/* Create account — management action, restricted to authorized roles */}
+          {!hasAccount && member.email && canManage && (
             <button
               type="button"
               onClick={handleCreateAccount}
@@ -990,21 +1032,48 @@ const VIEW_TABS: { mode: ViewMode; label: string }[] = [
 
 export default function MembersPage() {
   const { user } = useAuth()
-  const canGrant = GRANT_ROLES.has(normalizeRole(user?.role) ?? '')
+  const role = normalizeRole(user?.role) ?? ''
+  const userDepartment = user?.department?.trim() || null
 
   const [members, setMembers] = useState<InternalMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('all')
   const [search, setSearch] = useState('')
   const [showGrantModal, setShowGrantModal] = useState(false)
   const [refreshTs, setRefreshTs] = useState(new Date())
 
+  /* Members in the current user's own department (used for Dept. Manager grant scope). */
+  const ownDeptMembers = useMemo(
+    () =>
+      userDepartment
+        ? members.filter((m) => (m.department?.trim() ?? '') === userDepartment)
+        : [],
+    [members, userDepartment],
+  )
+
+  /* Recognition grant permissions:
+     - Full-scope roles can grant to anyone.
+     - Dept. Manager can grant ONLY to members in their own department (and only if any exist). */
+  const isFullGrantRole = FULL_GRANT_ROLES.has(role)
+  const isDeptManager = role === 'department_manager'
+  const canGrant = isFullGrantRole || (isDeptManager && ownDeptMembers.length > 0)
+  const grantScopeDepartment = isFullGrantRole ? null : isDeptManager ? userDepartment : null
+  const canManage = isFullGrantRole || isDeptManager
+
   async function load() {
     setLoading(true)
-    const data = await fetchMembers()
-    setMembers(data)
-    setRefreshTs(new Date())
-    setLoading(false)
+    setLoadError(false)
+    try {
+      const data = await fetchMembers()
+      setMembers(data)
+    } catch {
+      setMembers([])
+      setLoadError(true)
+    } finally {
+      setRefreshTs(new Date())
+      setLoading(false)
+    }
   }
 
   useEffect(() => { void load() }, [])
@@ -1063,6 +1132,7 @@ export default function MembersPage() {
         {showGrantModal && (
           <GrantRecognitionModal
             members={members}
+            restrictDepartment={grantScopeDepartment}
             onClose={() => setShowGrantModal(false)}
           />
         )}
@@ -1119,6 +1189,7 @@ export default function MembersPage() {
       <RecognitionStrip
         canGrant={canGrant}
         onGrant={() => setShowGrantModal(true)}
+        scopeDepartment={grantScopeDepartment}
       />
 
       {/* ── Recognition cards ────────────────────────────────────── */}
@@ -1195,6 +1266,24 @@ export default function MembersPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => <Sk key={i} className="h-60" />)}
         </div>
+      ) : loadError ? (
+        <div className="rounded-3xl border border-dashed border-rose-200 bg-rose-50/40 py-20 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100">
+            <Users className="h-8 w-8 text-rose-400" />
+          </div>
+          <p className="mt-4 text-[15px] font-black text-[#22334A]">تعذّر تحميل قائمة الأعضاء</p>
+          <p className="mt-1 text-[12px] font-semibold text-slate-400">
+            قد لا تملك صلاحية الوصول، أو حدث خطأ في الخادم.
+          </p>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="mx-auto mt-4 flex items-center gap-1.5 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white transition hover:bg-[#1a7aaa]"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            إعادة المحاولة
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
@@ -1215,7 +1304,7 @@ export default function MembersPage() {
             <div key={dept}>
               <GroupHeader label={dept} count={deptMembers.length} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {deptMembers.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />)}
+                {deptMembers.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} canManage={canManage} />)}
               </div>
             </div>
           ))}
@@ -1226,14 +1315,14 @@ export default function MembersPage() {
             <div key={type}>
               <GroupHeader label={TYPE_AR[type]} count={typeMembers.length} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {typeMembers.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />)}
+                {typeMembers.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} canManage={canManage} />)}
               </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} />)}
+          {filtered.map((m, idx) => <MemberCard key={m.id} member={m} idx={idx} onUpdated={handleMemberUpdated} canManage={canManage} />)}
         </div>
       )}
 

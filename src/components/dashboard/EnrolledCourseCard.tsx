@@ -1,8 +1,8 @@
-import { BookOpen, CalendarClock } from 'lucide-react'
+import { BookOpen, CalendarClock, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { courseImages } from '../../utils/course'
-import type { Course, Enrollment } from '../../types'
+import type { ClassAssignment, Course, Enrollment } from '../../types'
 
 function hasScheduledDate(course: Course): boolean {
   const d = course.start_date
@@ -19,6 +19,37 @@ function formatScheduleLine(course: Course): string | null {
   return d
 }
 
+function locationLabel(type: string | null | undefined): string {
+  if (type === 'in_person') return 'حضوري'
+  if (type === 'hybrid') return 'هجين'
+  return 'أونلاين'
+}
+
+function ClassAssignmentCard({ ca }: { ca: ClassAssignment }) {
+  const schedParts = [ca.schedule_day, ca.schedule_time].filter(Boolean)
+  return (
+    <div className="mt-2 rounded-xl border border-emerald-200/80 bg-emerald-50/70 px-3 py-2 text-right">
+      <div className="flex items-center gap-1.5">
+        <Users size={12} className="shrink-0 text-emerald-600" aria-hidden />
+        <span className="text-[11px] font-black text-emerald-800">{ca.name}</span>
+        {ca.level_code && (
+          <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-700">
+            {ca.level_code}
+          </span>
+        )}
+      </div>
+      {ca.instructor_name && (
+        <p className="mt-0.5 text-[10px] font-bold text-slate-500">المدرب: {ca.instructor_name}</p>
+      )}
+      <div className="mt-0.5 flex flex-wrap gap-x-2 text-[10px] font-bold text-slate-500">
+        {schedParts.length > 0 && <span>{schedParts.join(' - ')}</span>}
+        <span>{locationLabel(ca.location_type)}</span>
+        {ca.start_date && <span dir="ltr">{ca.start_date}</span>}
+      </div>
+    </div>
+  )
+}
+
 export default function EnrolledCourseCard({
   enrollment,
   actionLabel,
@@ -28,13 +59,26 @@ export default function EnrolledCourseCard({
   actionLabel?: string
   actionTo?: string
 }) {
-  const { course, completed_sessions, total_sessions, status } = enrollment
+  const { course, completed_sessions, total_sessions, status, placement_status, class_assignment } = enrollment
   const pct = total_sessions > 0 ? Math.round((completed_sessions / total_sessions) * 100) : 0
-  const isCompleted = status === 'completed'
+
+  const placementDone = placement_status === 'completed'
+  const hasPlacement  = course.requires_placement_test || (placement_status != null && placement_status !== 'none')
+
+  // Badge: placement-done > completed enrollment > active > pending
+  const isCompleted = status === 'completed' || placementDone
+  const badgeLabel =
+    isCompleted     ? 'مكتملة'
+    : hasPlacement  ? 'جارية'
+    : status === 'pending' ? 'معلقة'
+    : 'جارية'
+
+  const badgeColor =
+    isCompleted               ? 'bg-emerald-500'
+    : status === 'pending'    ? 'bg-slate-400'
+    : 'bg-customBlue/90'
 
   const barColor = isCompleted ? 'bg-emerald-500' : pct > 0 ? 'bg-customBlue' : 'bg-slate-300'
-  const badgeColor = isCompleted ? 'bg-emerald-500' : 'bg-customBlue/90'
-  const badgeLabel = isCompleted ? 'مكتملة' : status === 'pending' ? 'معلقة' : 'جارية'
   const scheduleLine = formatScheduleLine(course)
 
   return (
@@ -65,14 +109,21 @@ export default function EnrolledCourseCard({
           : 'لم يتم تعيين مدرب بعد'}
         </p>
 
-        {scheduleLine ?
+        {/* Class assignment (highest priority) */}
+        {class_assignment ? (
+          <ClassAssignmentCard ca={class_assignment} />
+        ) : placementDone ? (
+          <p className="mt-2 rounded-xl border border-amber-200/80 bg-amber-50/[0.85] px-3 py-2 text-[11px] font-bold leading-relaxed text-amber-900">
+            بانتظار توزيعك على فصل دراسي
+          </p>
+        ) : scheduleLine ? (
           <p className="mt-2 flex items-start gap-1.5 text-[11px] font-bold leading-relaxed text-slate-600">
             <CalendarClock size={14} className="mt-0.5 shrink-0 text-customBlue" aria-hidden />
             <span dir="ltr" className="text-right">
               {scheduleLine}
             </span>
           </p>
-        : (
+        ) : (
           <p className="mt-2 rounded-xl border border-sky-200/80 bg-sky-50/[0.85] px-3 py-2 text-[11px] font-bold leading-relaxed text-sky-950">
             سيتم إشعارك عند تحديد الموعد
           </p>

@@ -8,6 +8,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import DashboardAccessGuard from './components/DashboardAccessGuard'
 import AppToaster from './components/feedback/AppToaster'
 import RouteFallback from './components/RouteFallback'
+import { CookieConsentProvider } from './contexts/CookieConsentContext'
+import CookieBanner from './components/legal/CookieBanner'
+import CookiePreferencesModal from './components/legal/CookiePreferencesModal'
+import { ALL_LEGAL_DOCUMENTS } from './data/legal'
 import { getDashboardPathByRole } from './utils/dashboardAccess'
 
 // ── Eager: tiny, critical-path public pages ──────────────────────────────────
@@ -39,6 +43,7 @@ const VolunteerApply     = lazy(() => import('./pages/VolunteerApply'))
 const ThankYou           = lazy(() => import('./pages/ThankYou'))
 const Tracks             = lazy(() => import('./pages/Tracks'))
 const Volunteer          = lazy(() => import('./pages/Volunteer'))
+const LegalPage          = lazy(() => import('./pages/legal/LegalPage'))
 
 // ── Lazy: dashboard layout (code-split entry point) ──────────────────────────
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'))
@@ -71,6 +76,7 @@ const InstructorAvailabilityPage      = lazy(() => import('./pages/lms/instructo
 const InstructorAllStudentsPage       = lazy(() => import('./pages/lms/instructor/InstructorAllStudentsPage'))
 const InstructorCourseStudentsPage    = lazy(() => import('./pages/lms/instructor/InstructorCourseStudentsPage'))
 const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructor/InstructorPlacementTestsPage'))
+const InstructorClassesPage           = lazy(() => import('./pages/lms/instructor/InstructorClassesPage'))
 
 // ── Lazy: dashboard pages — admin LMS ────────────────────────────────────────
 const AdminDashboard             = lazy(() => import('./pages/AdminDashboard'))
@@ -216,6 +222,7 @@ function RedirectAdminWebhookDetail() {
 function App() {
   return (
     <ErrorBoundary>
+      <CookieConsentProvider>
       <BrowserRouter>
         <ScrollToTop />
         <AppToaster />
@@ -228,6 +235,17 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              {ALL_LEGAL_DOCUMENTS.map((doc) => (
+                <Route
+                  key={doc.route}
+                  path={doc.route}
+                  element={
+                    <Suspense fallback={<RouteFallback />}>
+                      <LegalPage />
+                    </Suspense>
+                  }
+                />
+              ))}
               <Route path="*" element={<NotFound />} />
 
               <Route path="/courses" element={<Suspense fallback={<RouteFallback />}><Courses /></Suspense>} />
@@ -355,6 +373,7 @@ function App() {
                   <Route path="/dashboard/instructor/students" element={<InstructorAllStudentsPage />} />
                   <Route path="/dashboard/instructor/courses/:courseId/students" element={<InstructorCourseStudentsPage />} />
                   <Route path="/dashboard/instructor/placement-tests" element={<InstructorPlacementTestsPage />} />
+                  <Route path="/dashboard/instructor/classes" element={<InstructorClassesPage />} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
@@ -484,7 +503,10 @@ function App() {
 
           </Routes>
         </AuthProvider>
+        <CookieBanner />
+        <CookiePreferencesModal />
       </BrowserRouter>
+      </CookieConsentProvider>
     </ErrorBoundary>
   )
 }

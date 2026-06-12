@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { SubmissionDetail } from '@/types/lms'
 import type { ReviewPayload } from '@/api/instructorApi'
+import { formatDateTime } from '@/utils/dateTime'
 
 type Props = {
   submission: SubmissionDetail
@@ -11,10 +12,18 @@ type Props = {
 
 export default function SubmissionReviewPanel({ submission, onSubmit, onClose }: Props) {
   const [score, setScore] = useState(submission.score ?? 0)
-  const [feedback, setFeedback] = useState('')
-  const [status, setStatus] = useState<ReviewPayload['status']>('reviewed')
+  const [feedback, setFeedback] = useState(submission.feedback ?? '')
+  const [status, setStatus] = useState<ReviewPayload['status']>(
+    submission.status === 'needs_revision' ? 'needs_revision' : 'reviewed',
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    setScore(submission.score ?? 0)
+    setFeedback(submission.feedback ?? '')
+    setStatus(submission.status === 'needs_revision' ? 'needs_revision' : 'reviewed')
+  }, [submission.id, submission.score, submission.feedback, submission.status])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -37,7 +46,15 @@ export default function SubmissionReviewPanel({ submission, onSubmit, onClose }:
     >
       <div className="text-right">
         <h3 className="text-lg font-black text-deepBlue">{submission.assignment_title}</h3>
-        <p className="mt-1 text-sm font-bold text-slate-500">{submission.student_name}</p>
+        <p className="mt-1 text-sm font-bold text-slate-500">
+          {submission.student_name}
+          {submission.course_name ? ` · ${submission.course_name}` : ''}
+        </p>
+        {submission.submitted_at && (
+          <p className="mt-1 text-[11px] font-semibold text-slate-400">
+            تاريخ التسليم: {formatDateTime(submission.submitted_at)}
+          </p>
+        )}
         <p className="mt-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm font-medium leading-relaxed text-deepBlue/80 ring-1 ring-slate-100">
           {submission.body_text ?? submission.body_preview ?? 'لا يوجد نص.'}
         </p>

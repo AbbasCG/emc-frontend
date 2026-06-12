@@ -28,6 +28,9 @@ const ROLE_ALIASES: Record<string, string> = {
   'super-admin':'super_admin',
   finance:      'finance_manager',
   hr:           'hr_manager',
+  dept_manager: 'department_manager',
+  'dept._manager': 'department_manager',
+  departmentmanager: 'department_manager',
 }
 
 const ROLE_HOME: Record<string, string> = {
@@ -162,9 +165,9 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 
   if (matchesAdminWidePath(path)) return ['admin', 'super_admin']
 
-  /* /dashboard/members — internal member directory for admin + HR */
+  /* /dashboard/members — all authenticated users can view the team directory */
   if (path === '/dashboard/members' || path.startsWith('/dashboard/members/'))
-    return ['admin', 'super_admin', 'hr_manager']
+    return 'authenticated'
 
   /* Course content management is admin/instructor, NOT student — check before student prefix */
   if (/^\/dashboard\/courses\/[^/]+\/content(\/|$)/.test(path))

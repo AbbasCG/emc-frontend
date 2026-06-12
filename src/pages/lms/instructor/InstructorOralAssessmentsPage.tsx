@@ -11,7 +11,6 @@ import {
   getLevelFromScore,
   PLACEMENT_LEVELS,
   type InstructorOralAssessment,
-  type PlacementStatus,
 } from '@/api/placementApi'
 import type { InstructorStudentRow } from '@/api/instructorApi'
 import toast from '@/lib/toast'
@@ -107,18 +106,18 @@ export default function InstructorOralAssessmentsPage() {
     if (!modal) return
     setSaving(true)
     try {
-      await completeOralAssessment(modal.row.id, {
+      const result = await completeOralAssessment(modal.row.id, {
         final_level: LEVEL_TO_CEFR[modal.final_level] ?? modal.final_level,
-        ...(modal.oral_score ? { oral_score: Number(modal.oral_score) } : {}),
+        ...(modal.oral_score !== '' ? { oral_score: Number(modal.oral_score) } : {}),
         ...(modal.notes.trim() ? { instructor_notes: modal.notes.trim() } : {}),
       })
       toast.success('تم حفظ نتيجة التقييم')
-      const savedScore = modal.oral_score ? Number(modal.oral_score) : null
-      const savedLevel = modal.final_level
-      const savedNotes = modal.notes.trim() || null
+      const savedScore = result.oral_score ?? (modal.oral_score !== '' ? Number(modal.oral_score) : null)
+      const savedLevel = result.final_level ?? modal.final_level
+      const savedNotes = result.instructor_notes ?? (modal.notes.trim() || null)
       setRows((prev) => prev.map((r) =>
         r.id === modal.row.id
-          ? { ...r, oral_score: savedScore, final_level: savedLevel, instructor_notes: savedNotes, status: 'oral_completed' as PlacementStatus }
+          ? { ...r, oral_score: savedScore, final_level: savedLevel, instructor_notes: savedNotes, status: 'completed' }
           : r,
       ))
       setModal(null)
@@ -132,7 +131,7 @@ export default function InstructorOralAssessmentsPage() {
     }
   }
 
-  const canAssess = (s: PlacementStatus) =>
+  const canAssess = (s: string) =>
     s === 'oral_booked' || s === 'oral_completed' || s === 'completed'
 
   const stats = [
@@ -183,8 +182,8 @@ export default function InstructorOralAssessmentsPage() {
               index={i}
               onClick={() => setDrawerRow(row)}
               onAssess={canAssess(row.status) ? () => openModal(row) : undefined}
-              assessLabel={row.status === 'completed' ? 'تعديل' : 'إتمام التقييم'}
-              assessed={row.status === 'completed'}
+              assessLabel={row.status === 'completed' || row.oral_score != null ? 'تعديل' : 'إتمام التقييم'}
+              assessed={row.status === 'completed' || row.oral_score != null}
             />
           ))}
         </div>

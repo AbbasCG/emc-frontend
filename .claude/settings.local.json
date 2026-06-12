@@ -21,7 +21,11 @@
       "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py -c \"import pkgutil, graphify; [print\\(m.name\\) for m in pkgutil.iter_modules\\(graphify.__path__\\)]\" 2>&1)",
       "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py -c \"from graphify.analyze import query_graph; print\\('found'\\)\" 2>&1)",
       "PowerShell($py = \\(Get-Content graphify-out\\\\.graphify_python -Raw\\).Trim\\(\\); & $py graphify-out/_query_auth.py 2>&1)",
-      "Bash(grep -oP '`[^`]+`|'\"'\"'[^'\"'\"']+'\"'\"'')"
+      "Bash(grep -oP '`[^`]+`|'\"'\"'[^'\"'\"']+'\"'\"'')",
+      "Bash(Get-ChildItem -Path \"D:\\\\xampp\\\\htdocs\\\\emc-frontend\" -Recurse -Force)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(python graphify_query.py \"super admin users CRUD page dashboard\")",
+      "Bash(node *)"
     ]
   }
 }

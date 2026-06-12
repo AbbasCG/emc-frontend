@@ -977,8 +977,8 @@ function normalizeStudentRow(r: Record<string, unknown>): PlacementStudentRow {
   }
 
   return {
-    attempt_id:      Number(att.id ?? r.attempt_id ?? ppWt.id ?? 0),
-    booking_id:      Number(ppOa.id ?? r.booking_id ?? r.oral_assessment_booking_id ?? 0),
+    attempt_id:      Number(r.attempt_id ?? att.id ?? ppWt.id ?? 0),
+    booking_id:      Number(r.booking_id ?? r.oral_assessment_booking_id ?? ppOa.id ?? 0),
     student_id:      Number(r.student_id ?? 0),
     student_name:    String(r.student_name ?? r.name ?? ''),
     email:           String(r.student_email ?? r.email ?? ''),
@@ -986,11 +986,13 @@ function normalizeStudentRow(r: Record<string, unknown>): PlacementStudentRow {
     total_questions: total,
     written_level:   levelStr,
     oral_booking_at: oralBookingAt,
-    final_level:     r.final_level  != null ? String(r.final_level)  :
+    final_level:     r.final_level    != null ? String(r.final_level)    :
                      ppOa.final_level != null ? String(ppOa.final_level) : null,
-    oral_score:      r.oral_score   != null ? Number(r.oral_score)   : null,
+    oral_score:      r.oral_score    != null ? Number(r.oral_score)    :
+                     ppOa.oral_score  != null ? Number(ppOa.oral_score)  : null,
     status:          coalesceStatus(mappedStatus),
-    notes:           r.notes != null ? String(r.notes) : null,
+    notes:           r.instructor_notes != null ? String(r.instructor_notes) :
+                     r.notes           != null ? String(r.notes)            : null,
     submitted_at:    submittedAt,
     percentage:      pct,
     avatar_url:      r.avatar_url != null ? String(r.avatar_url) :
@@ -1014,15 +1016,33 @@ export async function fetchInstructorPlacementStudents(
   return raw.map((r) => normalizeStudentRow(r as Record<string, unknown>))
 }
 
+export type OralAssessmentCompleteResult = {
+  id: number
+  status: string
+  oral_score: number | null
+  final_level: string | null
+  instructor_notes: string | null
+}
+
 export async function completeOralAssessment(
   bookingId: number,
   data: { final_level: string; oral_score?: number; instructor_notes?: string },
-): Promise<void> {
-  await apiClient.patch<unknown>(
+): Promise<OralAssessmentCompleteResult> {
+  const res = await apiClient.patch<unknown>(
     `/instructor/oral-assessments/${bookingId}/complete`,
     data,
-    silent,
   )
+  const payload = extractPayload(res.data)
+  const booking = (payload.data != null && typeof payload.data === 'object' && !Array.isArray(payload.data)
+    ? payload.data
+    : payload) as Record<string, unknown>
+  return {
+    id:               Number(booking.id ?? bookingId),
+    status:           String(booking.status ?? 'completed'),
+    oral_score:       booking.oral_score  != null ? Number(booking.oral_score)  : null,
+    final_level:      booking.final_level != null ? String(booking.final_level) : null,
+    instructor_notes: booking.instructor_notes != null ? String(booking.instructor_notes) : null,
+  }
 }
 
 /* ── Instructor Oral Assessments ─────────────────────────────────────────── */
@@ -1292,10 +1312,207 @@ export async function fetchPlacementTestAnswers(attemptId: number): Promise<Plac
         c: String(opts.c ?? o.option_c ?? ''),
         d: String(opts.d ?? o.option_d ?? ''),
       },
-      student_answer:     o.student_answer != null ? String(o.student_answer) : null,
+      student_answer:     o.student_answer != null ? String(o.student_answer) :
+                          o.selected_option != null ? String(o.selected_option) : null,
       correct_answer:     String(o.correct_answer ?? o.correct_option ?? ''),
       is_correct:         !!o.is_correct,
-      score_contribution: o.score_contribution != null ? Number(o.score_contribution) : null,
+      score_contribution: o.score_contribution != null ? Number(o.score_contribution) :
+                          o.points             != null ? Number(o.points)             : null,
     }
   })
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CLASS / GROUP MANAGEMENT
+══════════════════════════════════════════════════════════════════ */
+
+export type ClassGroup = {
+  id: number
+  course_id: number
+  course_title: string | null
+  instructor_id: number | null
+  level_code: string | null
+  name: string
+  capacity: number
+  enrolled: number
+  remaining: number
+  start_date: string | null
+  schedule_day: string | null
+  schedule_time: string | null
+  location_type: string
+  meeting_link: string | null
+  status: 'draft' | 'ready' | 'active' | 'completed' | 'archived'
+  created_at: string
+}
+
+export type ClassAssignmentStudent = {
+  student_id: number
+  student_name: string
+  student_email: string
+  written_score: number | null
+  total_questions: number | null
+  percentage: number | null
+  written_level: string | null
+  oral_score: number | null
+  final_level: string | null
+  instructor_notes: string | null
+  placement_status: string
+  attempt_id: number | null
+  booking_id: number | null
+  is_assigned: boolean
+  avatar_url?: string | null
+}
+
+function normalizeClassGroup(r: unknown): ClassGroup {
+  if (!r || typeof r !== 'object') {
+    return { id: 0, course_id: 0, course_title: null, instructor_id: null, level_code: null, name: '', capacity: 20, enrolled: 0, remaining: 20, start_date: null, schedule_day: null, schedule_time: null, location_type: 'online', meeting_link: null, status: 'draft', created_at: '' }
+  }
+  const o = r as Record<string, unknown>
+  return {
+    id:            Number(o.id ?? 0),
+    course_id:     Number(o.course_id ?? 0),
+    course_title:  o.course_title != null ? String(o.course_title) : null,
+    instructor_id: o.instructor_id != null ? Number(o.instructor_id) : null,
+    level_code:    o.level_code != null ? String(o.level_code) : null,
+    name:          String(o.name ?? ''),
+    capacity:      Number(o.capacity ?? 20),
+    enrolled:      Number(o.enrolled ?? 0),
+    remaining:     Number(o.remaining ?? 0),
+    start_date:    o.start_date != null ? String(o.start_date) : null,
+    schedule_day:  o.schedule_day != null ? String(o.schedule_day) : null,
+    schedule_time: o.schedule_time != null ? String(o.schedule_time) : null,
+    location_type: String(o.location_type ?? 'online'),
+    meeting_link:  o.meeting_link != null ? String(o.meeting_link) : null,
+    status:        (o.status as ClassGroup['status']) ?? 'draft',
+    created_at:    String(o.created_at ?? ''),
+  }
+}
+
+export async function fetchInstructorClasses(courseId?: number): Promise<ClassGroup[]> {
+  const params = courseId ? { course_id: courseId } : {}
+  const res = await apiClient.get<unknown>('/instructor/classes', { params, ...silent })
+  const payload = extractPayload(res.data)
+  let raw: unknown[] = []
+  for (const key of ['data', 'items', 'groups', 'classes']) {
+    if (Array.isArray(payload[key])) { raw = payload[key] as unknown[]; break }
+  }
+  if (!raw.length && Array.isArray(res.data)) raw = res.data as unknown[]
+  return raw.map(normalizeClassGroup)
+}
+
+export async function fetchCourseClasses(courseId: number): Promise<ClassGroup[]> {
+  const res = await apiClient.get<unknown>(`/instructor/courses/${courseId}/classes`, silent)
+  const payload = extractPayload(res.data)
+  let raw: unknown[] = []
+  for (const key of ['data', 'items', 'groups', 'classes']) {
+    if (Array.isArray(payload[key])) { raw = payload[key] as unknown[]; break }
+  }
+  return raw.map(normalizeClassGroup)
+}
+
+export async function createClassGroup(data: {
+  course_id: number
+  name: string
+  level_code?: string | null
+  capacity?: number
+  start_date?: string | null
+  schedule_day?: string | null
+  schedule_time?: string | null
+  location_type?: string
+  meeting_link?: string | null
+}): Promise<ClassGroup> {
+  const res = await apiClient.post<unknown>('/instructor/classes', data, silent)
+  const payload = extractPayload(res.data)
+  const raw = (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data))
+    ? payload.data : payload
+  return normalizeClassGroup(raw)
+}
+
+export async function updateClassGroup(id: number, data: Partial<ClassGroup>): Promise<ClassGroup> {
+  const res = await apiClient.patch<unknown>(`/instructor/classes/${id}`, data, silent)
+  const payload = extractPayload(res.data)
+  const raw = (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data))
+    ? payload.data : payload
+  return normalizeClassGroup(raw)
+}
+
+export async function deleteClassGroup(id: number): Promise<void> {
+  await apiClient.delete(`/instructor/classes/${id}`, silent)
+}
+
+export async function fetchClassAssignmentStudents(courseId: number): Promise<ClassAssignmentStudent[]> {
+  const res = await apiClient.get<unknown>(`/instructor/courses/${courseId}/class-assignment/students`, silent)
+  const payload = extractPayload(res.data)
+  let raw: unknown[] = []
+  for (const key of ['data', 'items', 'students']) {
+    if (Array.isArray(payload[key])) { raw = payload[key] as unknown[]; break }
+  }
+  return raw.map((r) => {
+    const o = r as Record<string, unknown>
+    return {
+      student_id:       Number(o.student_id ?? 0),
+      student_name:     String(o.student_name ?? ''),
+      student_email:    String(o.student_email ?? ''),
+      written_score:    o.written_score   != null ? Number(o.written_score)   : null,
+      total_questions:  o.total_questions != null ? Number(o.total_questions) : null,
+      percentage:       o.percentage      != null ? Number(o.percentage)      : null,
+      written_level:    o.written_level   != null ? String(o.written_level)   : null,
+      oral_score:       o.oral_score      != null ? Number(o.oral_score)      : null,
+      final_level:      o.final_level     != null ? String(o.final_level)     : null,
+      instructor_notes: o.instructor_notes != null ? String(o.instructor_notes) : null,
+      placement_status: String(o.placement_status ?? 'not_started'),
+      attempt_id:       o.attempt_id  != null ? Number(o.attempt_id)  : null,
+      booking_id:       o.booking_id  != null ? Number(o.booking_id)  : null,
+      is_assigned:      !!o.is_assigned,
+      avatar_url:       o.avatar_url  != null ? String(o.avatar_url)  : null,
+    }
+  })
+}
+
+export async function assignStudentToClass(groupId: number, data: {
+  user_id: number
+  placement_attempt_id?: number | null
+  oral_assessment_booking_id?: number | null
+  notes?: string | null
+}): Promise<void> {
+  await apiClient.post<unknown>(`/instructor/classes/${groupId}/students`, data, silent)
+}
+
+export async function removeStudentFromClass(groupId: number, userId: number): Promise<void> {
+  await apiClient.delete(`/instructor/classes/${groupId}/students/${userId}`, silent)
+}
+
+/** Students enrolled in a class group (for attendance drawer / roster). */
+export async function fetchClassGroupStudents(groupId: number): Promise<ClassAssignmentStudent[]> {
+  const res = await apiClient.get<unknown>(`/instructor/classes/${groupId}/students`, silent)
+  const payload = extractPayload(res.data)
+  let raw: unknown[] = []
+  for (const key of ['data', 'items', 'students']) {
+    if (Array.isArray(payload[key])) { raw = payload[key] as unknown[]; break }
+  }
+  if (!raw.length && Array.isArray(res.data)) raw = res.data as unknown[]
+  return raw.map((r) => {
+    const o = r as Record<string, unknown>
+    const user =
+      o.user && typeof o.user === 'object' && !Array.isArray(o.user)
+        ? (o.user as Record<string, unknown>)
+        : null
+    return {
+      student_id:       Number(o.student_id ?? o.user_id ?? user?.id ?? 0),
+      student_name:     String(o.student_name ?? user?.name ?? o.name ?? ''),
+      student_email:    String(o.student_email ?? user?.email ?? o.email ?? ''),
+      written_score:    o.written_score   != null ? Number(o.written_score)   : null,
+      total_questions:  o.total_questions != null ? Number(o.total_questions) : null,
+      percentage:       o.percentage      != null ? Number(o.percentage)      : null,
+      written_level:    o.written_level   != null ? String(o.written_level)   : null,
+      oral_score:       o.oral_score      != null ? Number(o.oral_score)      : null,
+      final_level:      o.final_level     != null ? String(o.final_level)     : null,
+      instructor_notes: o.instructor_notes != null ? String(o.instructor_notes) : null,
+      placement_status: String(o.placement_status ?? 'not_started'),
+      attempt_id:       o.attempt_id  != null ? Number(o.attempt_id)  : null,
+      booking_id:       o.booking_id  != null ? Number(o.booking_id)  : null,
+      is_assigned:      o.is_assigned != null ? !!o.is_assigned : true,
+      avatar_url:       o.avatar_url != null ? String(o.avatar_url) : user?.avatar_url != null ? String(user.avatar_url) : null,
+    }
+  }).filter((s) => s.student_id > 0 && s.student_name.trim() !== '')
 }

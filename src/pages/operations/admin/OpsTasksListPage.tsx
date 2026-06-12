@@ -19,7 +19,7 @@ export default function OpsTasksListPage() {
   const [depts, setDepts] = useState<WorkspaceDepartment[]>([])
 
   useEffect(() => {
-    fetchWorkspaceDepartments().then(setDepts).catch(() => { /* keep empty */ })
+    fetchWorkspaceDepartments().then((r) => setDepts(r.items)).catch(() => { /* keep empty */ })
   }, [])
 
   const filtered = useMemo(() => {

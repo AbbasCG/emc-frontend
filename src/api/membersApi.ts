@@ -209,28 +209,43 @@ export async function createUserAccount(memberId: number): Promise<CreateUserAcc
   }
 }
 
+/**
+ * Load internal members directory.
+ *
+ * Tries the admin endpoint first, then a non-admin `/members` fallback (some roles such as
+ * Dept. Manager may only be authorized on the broader directory route). Throws when ALL
+ * endpoints fail so the page can show a real error + retry instead of a misleading
+ * "no data" empty state. Returns `[]` only when the API genuinely responds with no rows.
+ */
 export async function fetchMembers(): Promise<InternalMember[]> {
-  try {
-    const res = await apiClient.get<unknown>('/admin/members', { skipErrorToast: true } as Record<string, unknown>)
+  const endpoints = ['/admin/members', '/members']
+  let lastErr: unknown
 
-    if (import.meta.env.DEV) {
-      console.group('[membersApi] fetchMembers response')
-      console.log('raw res.data:', res.data)
+  for (const ep of endpoints) {
+    try {
+      const res = await apiClient.get<unknown>(ep, { skipErrorToast: true } as Record<string, unknown>)
+
+      if (import.meta.env.DEV) {
+        console.group(`[membersApi] fetchMembers ${ep}`)
+        console.log('raw res.data:', res.data)
+      }
+
+      const list = unwrapMembersList(res.data)
+
+      if (import.meta.env.DEV) {
+        console.log('unwrapped list length:', list.length, '→ first item:', list[0])
+        console.groupEnd()
+      }
+
+      return list.map(normalizeMember).filter((m): m is InternalMember => m !== null)
+    } catch (err) {
+      lastErr = err
+      if (import.meta.env.DEV) {
+        console.warn(`[membersApi] ${ep} failed:`, err)
+      }
+      // try next endpoint
     }
-
-    const list = unwrapMembersList(res.data)
-
-    if (import.meta.env.DEV) {
-      console.log('unwrapped list length:', list.length, '→ first item:', list[0])
-      console.groupEnd()
-    }
-
-    const members = list.map(normalizeMember).filter((m): m is InternalMember => m !== null)
-    return members
-  } catch (err) {
-    if (import.meta.env.DEV) {
-      console.warn('[membersApi] fetchMembers failed:', err)
-    }
-    return []
   }
+
+  throw lastErr instanceof Error ? lastErr : new Error('تعذّر تحميل قائمة الأعضاء.')
 }
