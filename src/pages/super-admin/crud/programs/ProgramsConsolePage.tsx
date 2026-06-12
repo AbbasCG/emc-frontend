@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Archive,
   BookMarked,
@@ -172,6 +172,8 @@ function SkeletonGrid({ count = 8 }: { count?: number }) {
 
 export default function ProgramsConsolePage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepLinkId = Number(searchParams.get('id') || '')
   const [loading,        setLoading]        = useState(true)
   const [failed,         setFailed]         = useState(false)
   const [rows,           setRows]           = useState<Course[]>([])
@@ -260,6 +262,14 @@ export default function ProgramsConsolePage() {
       return true
     })
   }, [viewModels, debouncedQ, mode])
+
+  useEffect(() => {
+    if (!Number.isFinite(deepLinkId) || deepLinkId <= 0 || loading || viewModels.length === 0) return
+    const match = viewModels.find((c) => c.id === deepLinkId)
+    if (!match) return
+    setPreview(match)
+    setSearchParams({}, { replace: true })
+  }, [deepLinkId, loading, viewModels, setSearchParams])
 
   function openCreate() { setFormCourse(null); setFormOpen(true) }
 
@@ -617,7 +627,10 @@ export default function ProgramsConsolePage() {
             if (!target) return
             const merged = applyAssignedInstructorToCourse(target, ins)
             setRows((prev) => prev.map((row) => (row.id === target.id ? merged : row)))
-            setPreview((p) => (p?.id === target.id ? merged : p))
+            setPreview((p) => {
+              if (!p || p.id !== target.id) return p
+              return vmFromCourse(merged, regMap, instructorLookup)
+            })
             setFormCourse((fc) => (fc?.id === target.id ? merged : fc))
           }}
         />

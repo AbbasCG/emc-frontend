@@ -52,6 +52,18 @@ export function normalizeNotificationInternalPath(rawPath: string): string {
 
   /** Explicit backend routes → dashboard */
   const table: Array<[RegExp, string | ((m: RegExpExecArray) => string)]> = [
+    [/^\/dashboard\/student\/certificates$/u, '/dashboard/certificates'],
+    [/^\/student\/certificates$/u, '/dashboard/certificates'],
+    [/^\/dashboard\/student\/attendance$/u, '/dashboard/student/attendance'],
+    [/^\/student\/attendance$/u, '/dashboard/student/attendance'],
+    [
+      /^\/dashboard\/student\/assignments\/(\d+)$/u,
+      (m) => `/dashboard/student/assignments?submission=${m[1]}`,
+    ],
+    [
+      /^\/dashboard\/instructor\/submissions\/(\d+)$/u,
+      (m) => `/dashboard/instructor/submissions?submission=${m[1]}`,
+    ],
     [/^\/student\/registrations(?:\/\d+)?$/u, '/dashboard/student/registrations'],
     [/^\/student\/courses(?:\/[\w.-]*)?$/u, '/dashboard/student/courses'],
     [/^\/student\/available-courses$/u, '/dashboard/student/available-courses'],

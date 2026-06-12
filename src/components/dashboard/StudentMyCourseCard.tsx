@@ -88,9 +88,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
   const writtenTotal         = enrollment.placement_total        ?? null
   const writtenPct           = enrollment.placement_percentage   ?? null
   const writtenEstLevel      = enrollment.placement_estimated_level ?? null
-  const oralBookingStatus    = enrollment.oral_booking_status    ?? null
   const oralBookingStartsAt  = enrollment.oral_booking_starts_at ?? null
-  const oralBookingEndsAt    = enrollment.oral_booking_ends_at   ?? null
   const oralFinalLevel       = enrollment.oral_final_level       ?? null
   const oralScoreVal         = enrollment.oral_score             ?? null
 

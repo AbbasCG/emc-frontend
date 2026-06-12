@@ -1,4 +1,5 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import axios from 'axios'
 import {
@@ -656,9 +657,11 @@ export default function StudentsManagementPage() {
 
       {/* Student selector */}
       {showDashboard && (
-        <SaGlassCard glow="blue" className="p-4" dir="rtl">
-          <p className="mb-2 text-[10px] font-black text-[#22334A]/45">اختيار الطالب</p>
-          <StudentSearchDropdown students={users} selected={selected} onChange={setSelected} />
+        <SaGlassCard glow="blue" className="p-4">
+          <div dir="rtl">
+            <p className="mb-2 text-[10px] font-black text-[#22334A]/45">اختيار الطالب</p>
+            <StudentSearchDropdown students={users} selected={selected} onChange={setSelected} />
+          </div>
         </SaGlassCard>
       )}
 

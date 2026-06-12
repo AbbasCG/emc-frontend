@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { FileSearch } from 'lucide-react'
 import {
   fetchInstructorAssignmentsQueue,
@@ -42,6 +43,8 @@ const columns: DataTableColumn<InstructorSubmission>[] = [
 ]
 
 export default function InstructorSubmissionsPage() {
+  const { submissionId: submissionIdParam } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [list,          setList]          = useState<InstructorSubmission[]>([])
   const [loading,       setLoading]       = useState(true)
   const [loadError,     setLoadError]     = useState<string | null>(null)
@@ -64,6 +67,25 @@ export default function InstructorSubmissionsPage() {
   }
 
   useEffect(() => { void load() }, [])
+
+  useEffect(() => {
+    const targetRaw = submissionIdParam ?? searchParams.get('submission')
+    if (!targetRaw || list.length === 0) return
+    const targetId = Number(targetRaw)
+    if (!Number.isFinite(targetId)) return
+    const row = list.find((r) => r.id === targetId)
+    if (!row || row.status === 'not_submitted') return
+    void openRow(row)
+    if (submissionIdParam) {
+      setSearchParams({}, { replace: true })
+    } else {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('submission')
+        return next
+      }, { replace: true })
+    }
+  }, [submissionIdParam, searchParams, list]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function openRow(row: InstructorSubmission) {
     if (row.status === 'not_submitted') return

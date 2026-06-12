@@ -41,6 +41,11 @@ const icons: Record<NotificationType, typeof Bell> = {
   placement_result:          ClipboardCheck,
   placement_test_completed:  ClipboardCheck,
   oral_assessment_booked:    CalendarClock,
+  assignment_graded:         ClipboardCheck,
+  assignment_submitted:      ClipboardList,
+  assignment_created:        ClipboardList,
+  session_scheduled:         Video,
+  attendance_marked:         UserCheck,
 }
 
 type Props = {

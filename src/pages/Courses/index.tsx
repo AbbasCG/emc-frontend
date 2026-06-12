@@ -10,6 +10,7 @@ import WorkshopSpotlight from './WorkshopSpotlight'
 import CoursesCTA from './CoursesCTA'
 import { fetchCourses, fetchTracks, fetchUpcomingWorkshops } from '@/services/coursesApi'
 import type { CourseItem, CourseLevel, TrackItem, WorkshopItem } from '@/services/coursesApi'
+import PublicSeo from '@/components/public/PublicSeo'
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseItem[]>([])
@@ -223,6 +224,11 @@ export default function CoursesPage() {
 
   return (
     <main className="overflow-x-hidden">
+      <PublicSeo
+        title="الدورات والبرامج"
+        description="استكشف كتالوج دورات EMC — برامج تدريبية بالعربية، أونلاين وحضوري، مع شهادات ومسارات مهنية."
+        path="/courses"
+      />
       <CoursesHero
         onSearch={setSearchQuery}
         activeCategory={activeCategory}

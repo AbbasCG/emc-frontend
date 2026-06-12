@@ -172,7 +172,7 @@ export default function TeacherDashboard() {
         total_students:   stats?.studentsCount ?? insLms?.student_count ?? 0,
         upcoming_sessions: sessions.length,
         active_courses:   courses.filter((c) => c.status !== 'completed').length,
-        completion_rate:  0,
+        completion_rate:  legacy?.stats?.completion_rate ?? 0,
       },
       courses,
       sessions,

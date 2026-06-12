@@ -72,6 +72,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/student/registrations': 'التسجيلات',
   '/dashboard/student/available-courses': 'الدورات المتاحة',
   '/dashboard/student/materials':     'المواد التعليمية',
+  '/dashboard/student/attendance':   'سجل الحضور',
   '/dashboard/student/assignments':   'الواجبات',
   '/dashboard/student/progress':      'التقدّم',
   '/dashboard/student/evaluation':    'تقييم الدورة',

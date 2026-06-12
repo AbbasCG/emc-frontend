@@ -32,7 +32,10 @@ const InstructorDetail   = lazy(() => import('./pages/InstructorDetail'))
 const Instructors        = lazy(() => import('./pages/Instructors'))
 const Impact             = lazy(() => import('./pages/Impact'))
 const Partnerships       = lazy(() => import('./pages/Partnerships'))
-const Paths              = lazy(() => import('./pages/Paths'))
+const LearningPaths      = lazy(() => import('./pages/LearningPaths'))
+const LearningPathDetail = lazy(() => import('./pages/LearningPathDetail'))
+const Workshops          = lazy(() => import('./pages/Workshops'))
+const WorkshopDetails    = lazy(() => import('./pages/WorkshopDetails'))
 const Platform           = lazy(() => import('./pages/Platform'))
 const Programs           = lazy(() => import('./pages/Programs'))
 const Register           = lazy(() => import('./pages/Register'))
@@ -57,12 +60,15 @@ const StudentAvailableCoursesPage  = lazy(() => import('./pages/lms/student/Stud
 const StudentSessionsPage        = lazy(() => import('./pages/lms/student/StudentSessionsPage'))
 const StudentMaterialsPage       = lazy(() => import('./pages/lms/student/StudentMaterialsPage'))
 const StudentAssignmentsPage     = lazy(() => import('./pages/lms/student/StudentAssignmentsPage'))
+const StudentAttendancePage      = lazy(() => import('./pages/lms/student/StudentAttendancePage'))
 const StudentProgressPage        = lazy(() => import('./pages/lms/student/StudentProgressPage'))
 const StudentEvaluationPage      = lazy(() => import('./pages/lms/student/StudentEvaluationPage'))
 const PlacementTestPage          = lazy(() => import('./pages/lms/student/PlacementTestPage'))
 const PlacementResultPage        = lazy(() => import('./pages/lms/student/PlacementResultPage'))
 const OralBookingPage            = lazy(() => import('./pages/lms/student/OralBookingPage'))
 const StudentExamsPage           = lazy(() => import('./pages/lms/student/StudentExamsPage'))
+const StudentLearningPathsPage   = lazy(() => import('./pages/lms/student/StudentLearningPathsPage'))
+const StudentLearningPathDetailPage = lazy(() => import('./pages/lms/student/StudentLearningPathDetailPage'))
 
 // ── Lazy: dashboard pages — instructor / teacher ──────────────────────────────
 const TeacherDashboard           = lazy(() => import('./pages/TeacherDashboard'))
@@ -191,10 +197,12 @@ const TeamManagementPage          = lazy(() => import('./pages/super-admin/crud/
 const StudentsManagementPage      = lazy(() => import('./pages/super-admin/crud/StudentsManagementPage'))
 const InstructorsManagementPage   = lazy(() => import('./pages/super-admin/crud/InstructorsManagementPage'))
 const ProgramsManagementPage      = lazy(() => import('./pages/super-admin/crud/ProgramsManagementPage'))
-const TracksManagementPage        = lazy(() => import('./pages/super-admin/crud/TracksManagementPage'))
 const WorkshopsManagementPage     = lazy(() => import('./pages/super-admin/crud/WorkshopsManagementPage'))
 const RegistrationsManagementPage = lazy(() => import('./pages/super-admin/crud/RegistrationsManagementPage'))
-const PartnersManagementPage      = lazy(() => import('./pages/super-admin/crud/PartnersManagementPage'))
+const PartnersManagementPage         = lazy(() => import('./pages/super-admin/crud/PartnersManagementPage'))
+const LearningPathsManagementPage      = lazy(() => import('./pages/super-admin/crud/LearningPathsManagementPage'))
+const InstructorLearningPathsPage      = lazy(() => import('./pages/lms/instructor/InstructorLearningPathsPage'))
+const InstructorLearningPathDetailPage = lazy(() => import('./pages/lms/instructor/InstructorLearningPathDetailPage'))
 
 // ── Lazy: internal members page ──────────────────────────────────────────────
 const MembersPage = lazy(() => import('./pages/dashboard/MembersPage'))
@@ -217,6 +225,11 @@ function RoleRedirect() {
 function RedirectAdminWebhookDetail() {
   const { id } = useParams()
   return <Navigate to={`/dashboard/admin/webhooks/${id ?? ''}`} replace />
+}
+
+function RedirectPathsToLearningPaths() {
+  const { slug } = useParams()
+  return <Navigate to={slug ? `/learning-paths/${slug}` : '/learning-paths'} replace />
 }
 
 function App() {
@@ -250,6 +263,8 @@ function App() {
 
               <Route path="/courses" element={<Suspense fallback={<RouteFallback />}><Courses /></Suspense>} />
               <Route path="/courses/:slug" element={<Suspense fallback={<RouteFallback />}><CourseDetails /></Suspense>} />
+              <Route path="/workshops" element={<Suspense fallback={<RouteFallback />}><Workshops /></Suspense>} />
+              <Route path="/workshops/:slug" element={<Suspense fallback={<RouteFallback />}><WorkshopDetails /></Suspense>} />
               <Route path="/courses/:slug/register" element={<Suspense fallback={<RouteFallback />}><Register /></Suspense>} />
               <Route path="/instructors" element={<Suspense fallback={<RouteFallback />}><Instructors /></Suspense>} />
               <Route path="/instructors/:slug" element={<Suspense fallback={<RouteFallback />}><InstructorDetail /></Suspense>} />
@@ -263,7 +278,10 @@ function App() {
               <Route path="/departments"  element={<Suspense fallback={<RouteFallback />}><Departments /></Suspense>} />
               <Route path="/themes"       element={<Navigate to="/tracks" replace />} />
               <Route path="/tracks"       element={<Suspense fallback={<RouteFallback />}><Tracks /></Suspense>} />
-              <Route path="/paths"        element={<Suspense fallback={<RouteFallback />}><Paths /></Suspense>} />
+              <Route path="/paths"           element={<Navigate to="/learning-paths" replace />} />
+              <Route path="/paths/:slug"     element={<RedirectPathsToLearningPaths />} />
+              <Route path="/learning-paths" element={<Suspense fallback={<RouteFallback />}><LearningPaths /></Suspense>} />
+              <Route path="/learning-paths/:slug" element={<Suspense fallback={<RouteFallback />}><LearningPathDetail /></Suspense>} />
               <Route path="/programs"     element={<Suspense fallback={<RouteFallback />}><Programs /></Suspense>} />
               <Route path="/platform"     element={<Suspense fallback={<RouteFallback />}><Platform /></Suspense>} />
               <Route path="/team"         element={<Suspense fallback={<RouteFallback />}><Team /></Suspense>} />
@@ -335,10 +353,11 @@ function App() {
                   <Route path="/dashboard/super-admin/crud/students" element={<StudentsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/instructors" element={<InstructorsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/programs" element={<ProgramsManagementPage />} />
-                  <Route path="/dashboard/super-admin/crud/tracks" element={<TracksManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/tracks" element={<Navigate to="/dashboard/super-admin/crud/learning-paths" replace />} />
                   <Route path="/dashboard/super-admin/crud/workshops" element={<WorkshopsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/registrations" element={<RegistrationsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/partners" element={<PartnersManagementPage />} />
+                  <Route path="/dashboard/super-admin/crud/learning-paths" element={<Suspense fallback={<RouteFallback />}><LearningPathsManagementPage /></Suspense>} />
                   <Route
                     path="/dashboard/super-admin/crud/programs/:courseId/content"
                     element={<CourseContentManagerPage />}
@@ -348,6 +367,8 @@ function App() {
                   <Route path="/dashboard/admin/programs" element={<ProgramsManagementPage />} />
 
                   <Route path="/dashboard/student" element={<Dashboard />} />
+                  <Route path="/dashboard/student/learning-paths" element={<Suspense fallback={<RouteFallback />}><StudentLearningPathsPage /></Suspense>} />
+                  <Route path="/dashboard/student/learning-paths/:id" element={<Suspense fallback={<RouteFallback />}><StudentLearningPathDetailPage /></Suspense>} />
                   <Route path="/dashboard/student/courses" element={<StudentMyCoursesPage />} />
                   <Route path="/dashboard/student/learn/:courseId" element={<StudentCourseLearnPage />} />
                   <Route path="/dashboard/student/registrations" element={<StudentRegistrationsListPage />} />
@@ -365,6 +386,8 @@ function App() {
                   <Route path="/dashboard/student/profile" element={<Navigate to="/dashboard/profile" replace />} />
                   <Route path="/dashboard/student/course-rating" element={<Navigate to="/dashboard/student/evaluation" replace />} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
+                  <Route path="/dashboard/instructor/learning-paths" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathsPage /></Suspense>} />
+                  <Route path="/dashboard/instructor/learning-paths/:id" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathDetailPage /></Suspense>} />
                   <Route path="/dashboard/instructor/courses" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/instructor/courses/:courseId/content" element={<CourseContentManagerPage />} />
                   <Route path="/dashboard/instructor/courses/:courseId/placement-students" element={<InstructorPlacementStudentsPage />} />
@@ -420,8 +443,9 @@ function App() {
                   <Route path="/ai" element={<AiWorkspacePage />} />
 
                   <Route path="/dashboard/student/sessions" element={<StudentSessionsPage />} />
+                  <Route path="/dashboard/student/attendance" element={<StudentAttendancePage />} />
                   <Route path="/dashboard/student/materials" element={<StudentMaterialsPage />} />
-                  <Route path="/dashboard/student/assignments" element={<StudentAssignmentsPage />} />
+                  <Route path="/dashboard/student/assignments/:submissionId?" element={<StudentAssignmentsPage />} />
                   <Route path="/dashboard/student/progress" element={<StudentProgressPage />} />
                   <Route path="/dashboard/student/evaluation" element={<StudentEvaluationPage />} />
                   <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
@@ -434,7 +458,7 @@ function App() {
 
                   <Route path="/dashboard/instructor/sessions" element={<InstructorSessionsPage />} />
                   <Route path="/dashboard/instructor/attendance" element={<InstructorAttendancePage />} />
-                  <Route path="/dashboard/instructor/submissions" element={<InstructorSubmissionsPage />} />
+                  <Route path="/dashboard/instructor/submissions/:submissionId?" element={<InstructorSubmissionsPage />} />
 
                   <Route path="/dashboard/admin/lms/sessions" element={<AdminLmsSessionsPage />} />
                   <Route path="/dashboard/admin/lms/attendance" element={<AdminLmsAttendancePage />} />

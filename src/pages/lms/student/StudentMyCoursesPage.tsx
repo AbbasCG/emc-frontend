@@ -62,6 +62,7 @@ const QUICK_ACTIONS = [
   { label: 'الدورات المتاحة', href: '/dashboard/student/available-courses', icon: Sparkles,      color: 'text-customOrange', bg: 'bg-orange-50 hover:bg-orange-100/80' },
   { label: 'اختباراتي',       href: '/dashboard/student/exams',             icon: ClipboardCheck, color: 'text-amber-600',   bg: 'bg-amber-50  hover:bg-amber-100/80'  },
   { label: 'جلساتي',          href: '/dashboard/student/sessions',          icon: Calendar,       color: 'text-customBlue',  bg: 'bg-blue-50   hover:bg-blue-100/80'   },
+  { label: 'الحضور',          href: '/dashboard/student/attendance',      icon: ClipboardCheck, color: 'text-teal-600',    bg: 'bg-teal-50   hover:bg-teal-100/80'   },
   { label: 'المواد',          href: '/dashboard/student/materials',         icon: FolderOpen,     color: 'text-teal-600',    bg: 'bg-teal-50   hover:bg-teal-100/80'   },
   { label: 'الواجبات',        href: '/dashboard/student/assignments',       icon: ClipboardList,  color: 'text-violet-600',  bg: 'bg-violet-50 hover:bg-violet-100/80' },
   { label: 'التقدم',          href: '/dashboard/student/progress',          icon: TrendingUp,     color: 'text-emerald-600', bg: 'bg-emerald-50 hover:bg-emerald-100/80' },
@@ -97,9 +98,10 @@ export default function StudentMyCoursesPage() {
 
   const currentCourses  = useMemo(() => enrollmentsMerged.filter((e) => e.status !== 'completed').length, [enrollmentsMerged])
   const completedCourses = buckets.completed.length
-  const certCount = Array.isArray(lmsDashboard.certificates_placeholder)
-    ? lmsDashboard.certificates_placeholder.length
-    : 0
+  const certCount =
+    lmsDashboard.certificates?.length ??
+    lmsDashboard.certificates_count ??
+    0
   const fatalError = loadError && enrollmentsMerged.length === 0 && !loading
 
   return (

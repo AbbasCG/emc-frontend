@@ -6,6 +6,9 @@ import type {
   LmsMaterial,
   LmsSession,
   StudentAssignment,
+  StudentAttendanceRecord,
+  StudentCertificateSummary,
+  StudentDashboardCounts,
   StudentLmsDashboard,
   StudentProgressPayload,
 } from '../types/lms'
@@ -341,6 +344,169 @@ export function normalizeStudentProgressPayload(payload: unknown): StudentProgre
   }
 }
 
+function normalizeCertificateSummary(raw: unknown): StudentCertificateSummary | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const id = Number(o.id)
+  if (!Number.isFinite(id)) return null
+  const course =
+    o.course && typeof o.course === 'object' && !Array.isArray(o.course) ?
+      (o.course as Record<string, unknown>)
+    : null
+  const track =
+    o.track && typeof o.track === 'object' && !Array.isArray(o.track) ?
+      (o.track as Record<string, unknown>)
+    : null
+  const title = String(o.title ?? o.professional_title ?? 'شهادة')
+  return {
+    id,
+    title,
+    course_name:
+      o.course_name != null ? String(o.course_name)
+      : course?.title != null ? String(course.title)
+      : null,
+    track_name:
+      o.track_name != null ? String(o.track_name)
+      : track?.name != null ? String(track.name)
+      : track?.title != null ? String(track.title)
+      : null,
+    issued_at: o.issued_at != null ? String(o.issued_at) : null,
+    verification_code: o.verification_code != null ? String(o.verification_code) : null,
+  }
+}
+
+function sumTrainingHoursFromCourses(rows: unknown[]): number {
+  let total = 0
+  for (const raw of rows) {
+    if (!raw || typeof raw !== 'object') continue
+    const o = raw as Record<string, unknown>
+    const nested =
+      o.course && typeof o.course === 'object' && !Array.isArray(o.course) ?
+        (o.course as Record<string, unknown>)
+      : null
+    const hours = Number(o.training_hours ?? o.hours_count ?? nested?.training_hours ?? nested?.hours_count)
+    if (Number.isFinite(hours) && hours > 0) total += hours
+  }
+  return total
+}
+
+function averageProgressField(rows: unknown[], keys: readonly string[]): number {
+  let sum = 0
+  let count = 0
+  for (const raw of rows) {
+    if (!raw || typeof raw !== 'object') continue
+    const o = raw as Record<string, unknown>
+    for (const k of keys) {
+      const n = Number(o[k])
+      if (Number.isFinite(n)) {
+        sum += n
+        count += 1
+        break
+      }
+    }
+  }
+  return count > 0 ? Math.round(sum / count) : 0
+}
+
+const EMPTY_DASHBOARD_COUNTS: StudentDashboardCounts = {
+  enrolled_courses_count: 0,
+  active_courses_count: 0,
+  completed_courses_count: 0,
+  pending_assignments_count: 0,
+  upcoming_sessions_count: 0,
+  unread_notifications_count: 0,
+  certificates_count: 0,
+  learning_paths_count: 0,
+}
+
+function isDashboardCourseCompleted(status: string | undefined | null): boolean {
+  const st = String(status ?? '').toLowerCase()
+  return st.includes('complete') || st.includes('finished') || st === 'completed'
+}
+
+function mapListedCoursesToDashboard(rawList: unknown[]): StudentLmsDashboard['current_courses'] {
+  return rawList
+    .map(normalizeListedCourse)
+    .filter((c): c is StudentListedCourse => c != null)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      slug: c.slug ?? null,
+      instructor_name: c.instructor_name ?? null,
+      progress_percent: c.progress_percent,
+      status: c.status,
+      start_date: c.start_date ?? null,
+      start_time: c.start_time ?? null,
+      meeting_link: c.meeting_link ?? null,
+      cover_url: c.cover_url ?? null,
+      requires_placement_test: c.requires_placement_test,
+      placement_status: c.placement_status ?? null,
+      can_start_learning: c.can_start_learning ?? null,
+      class_assignment: c.class_assignment ?? null,
+    }))
+}
+
+function countUnreadNotifications(
+  notifications: unknown[],
+  statsObj: Record<string, unknown> | null,
+): number {
+  if (statsObj?.unread_notifications_count != null) {
+    return toFiniteNumber(statsObj.unread_notifications_count)
+  }
+  if (statsObj?.unread_notifications != null) {
+    return toFiniteNumber(statsObj.unread_notifications)
+  }
+  let n = 0
+  for (const raw of notifications) {
+    if (!raw || typeof raw !== 'object') continue
+    const o = raw as Record<string, unknown>
+    if (typeof o.is_read === 'boolean') {
+      if (!o.is_read) n += 1
+    } else if (o.read_at == null || String(o.read_at).trim() === '') {
+      n += 1
+    }
+  }
+  return n
+}
+
+function buildDashboardCounts(
+  statsObj: Record<string, unknown> | null,
+  current_courses: StudentLmsDashboard['current_courses'],
+  active_courses: StudentLmsDashboard['current_courses'],
+  pending_assignments: StudentAssignment[],
+  upcoming_sessions: LmsSession[],
+  notifications: unknown[],
+  certificates: StudentCertificateSummary[],
+): StudentDashboardCounts {
+  const pendingOnly = pending_assignments.filter(
+    (a) => a.status === 'pending' || a.status === 'late',
+  )
+  const completedCourses = current_courses.filter((c) => isDashboardCourseCompleted(c.status))
+
+  return {
+    enrolled_courses_count: toFiniteNumber(
+      statsObj?.enrolled_courses_count ?? statsObj?.courses_enrolled ?? current_courses.length,
+    ),
+    active_courses_count: toFiniteNumber(
+      statsObj?.active_courses_count ?? active_courses.length,
+    ),
+    completed_courses_count: toFiniteNumber(
+      statsObj?.completed_courses_count ?? completedCourses.length,
+    ),
+    pending_assignments_count: toFiniteNumber(
+      statsObj?.pending_assignments_count ?? statsObj?.assignments_pending ?? pendingOnly.length,
+    ),
+    upcoming_sessions_count: toFiniteNumber(
+      statsObj?.upcoming_sessions_count ?? upcoming_sessions.length,
+    ),
+    unread_notifications_count: countUnreadNotifications(notifications, statsObj),
+    certificates_count: toFiniteNumber(
+      statsObj?.certificates_count ?? statsObj?.certificates_earned ?? certificates.length,
+    ),
+    learning_paths_count: toFiniteNumber(statsObj?.learning_paths_count ?? 0),
+  }
+}
+
 /**
  * Laravel may omit array fields or use different keys; never return undefined arrays — prevents `.filter`/`.length` crashes.
  */
@@ -352,65 +518,119 @@ export function normalizeStudentLmsDashboard(payload: unknown): StudentLmsDashbo
       attendance_percent: 0,
       pending_assignments: [],
       current_courses: [],
+      active_courses: [],
+      recent_courses: [],
+      counts: { ...EMPTY_DASHBOARD_COUNTS },
       upcoming_sessions: [],
       notifications: [],
     }
   }
 
   const row = unwrapped as Record<string, unknown>
-  const certs = firstArray(row, ['certificates_placeholder', 'certificates'])
+  const statsObj =
+    row.stats && typeof row.stats === 'object' && !Array.isArray(row.stats) ?
+      (row.stats as Record<string, unknown>)
+    : null
+
+  const certsRaw = firstArray(row, ['certificates', 'certificates_placeholder'])
+  const certificates = certsRaw
+    .map(normalizeCertificateSummary)
+    .filter((x): x is StudentCertificateSummary => x != null)
 
   const certificateObjects =
-    certs.length > 0 ?
-      (certs as { label: string; note?: string }[]).filter(
+    certsRaw.length > 0 && certificates.length === 0 ?
+      (certsRaw as { label: string; note?: string }[]).filter(
         (x) => x && typeof x === 'object' && typeof x.label === 'string',
       )
     : []
 
+  const progressRows = firstArray(row, ['progress'])
+  const coursesForHours = firstArray(row, ['courses', 'current_courses'])
+  const training_hours =
+    statsObj?.training_hours != null ?
+      toFiniteNumber(statsObj.training_hours)
+    : sumTrainingHoursFromCourses(coursesForHours)
+
+  const progress_percent =
+    row.progress_percent != null ?
+      toFiniteNumber(row.progress_percent)
+    : averageProgressField(progressRows, ['progress_percentage', 'progress_percent'])
+
+  const attendance_percent =
+    row.attendance_percent != null ?
+      toFiniteNumber(row.attendance_percent)
+    : averageProgressField(progressRows, ['attendance_percentage', 'attendance_percent'])
+
   const notifications = firstArray(row, ['notifications'])
 
-  const upcomingRaw = firstArray(row, ['upcoming_sessions', 'sessions', 'upcoming'])
-  const upcoming_sessions = parseSessionsPayload({ upcoming_sessions: upcomingRaw, sessions: upcomingRaw })
+  // Prefer the new segmented arrays; fall back to legacy flat list
+  const upcomingRaw   = firstArray(row, ['upcoming_sessions', 'sessions', 'upcoming'])
+  const liveRaw       = firstArray(row, ['live_sessions'])
+  const endedRaw      = firstArray(row, ['ended_sessions'])
+  const allSessRaw    = firstArray(row, ['all_sessions'])
+
+  // upcoming_sessions = live + scheduled (for backward-compat consumers)
+  const upcoming_sessions = parseSessionsPayload({
+    upcoming_sessions: [...liveRaw, ...upcomingRaw],
+    sessions:          [...liveRaw, ...upcomingRaw],
+  })
+  const live_sessions    = parseSessionsPayload({ upcoming_sessions: liveRaw,   sessions: liveRaw   })
+  const ended_sessions   = parseSessionsPayload({ completed_sessions: endedRaw, sessions: endedRaw  })
+  const all_sessions     = allSessRaw.length > 0
+    ? parseSessionsPayload({ sessions: allSessRaw })
+    : undefined
 
   const pendingRaw = firstArray(row, ['pending_assignments', 'assignments'])
   const pending_assignments = pendingRaw
     .map(normalizeStudentAssignmentRow)
     .filter((x): x is StudentAssignment => x != null)
 
-  const currentCoursesRaw = firstArray(row, ['current_courses', 'courses', 'active_courses'])
-  const current_courses: StudentLmsDashboard['current_courses'] =
-    currentCoursesRaw
-      .map(normalizeListedCourse)
-      .filter((c): c is StudentListedCourse => c != null)
-      .map((c) => ({
-        id: c.id,
-        title: c.title,
-        slug: c.slug ?? null,
-        instructor_name: c.instructor_name ?? null,
-        progress_percent: c.progress_percent,
-        status: c.status,
-        start_date: c.start_date ?? null,
-        start_time: c.start_time ?? null,
-        meeting_link: c.meeting_link ?? null,
-        cover_url: c.cover_url ?? null,
-        requires_placement_test: c.requires_placement_test,
-        placement_status: c.placement_status ?? null,
-        can_start_learning: c.can_start_learning ?? null,
-        class_assignment: c.class_assignment ?? null,
-      }))
+  const currentCoursesRaw = firstArray(row, ['current_courses', 'courses'])
+  const current_courses = mapListedCoursesToDashboard(currentCoursesRaw)
+
+  const activeCoursesRaw = firstArray(row, ['active_courses'])
+  let active_courses = mapListedCoursesToDashboard(activeCoursesRaw)
+  if (active_courses.length === 0) {
+    active_courses = current_courses.filter((c) => !isDashboardCourseCompleted(c.status))
+  }
+
+  const recentCoursesRaw = firstArray(row, ['recent_courses'])
+  let recent_courses = mapListedCoursesToDashboard(recentCoursesRaw)
+  if (recent_courses.length === 0) {
+    recent_courses = current_courses.slice(0, 6)
+  }
+
+  const counts = buildDashboardCounts(
+    statsObj,
+    current_courses,
+    active_courses,
+    pending_assignments,
+    upcoming_sessions,
+    notifications,
+    certificates,
+  )
 
   const completedRaw = row.completed_sessions ?? row.completed
   const completed_sessions = Array.isArray(completedRaw) ?
     parseSessionsPayload({ completed_sessions: completedRaw })
-  : undefined
+  : ended_sessions.length > 0 ? ended_sessions : undefined
 
   return {
-    progress_percent: toFiniteNumber(row.progress_percent),
-    attendance_percent: toFiniteNumber(row.attendance_percent),
+    progress_percent,
+    attendance_percent,
     pending_assignments,
     current_courses,
+    active_courses,
+    recent_courses,
+    counts,
     upcoming_sessions,
+    live_sessions,
+    ended_sessions: ended_sessions.length > 0 ? ended_sessions : undefined,
+    all_sessions,
     completed_sessions,
+    certificates: certificates.length > 0 ? certificates : undefined,
+    certificates_count: counts.certificates_count,
+    training_hours: training_hours > 0 ? training_hours : undefined,
     certificates_placeholder:
       certificateObjects.length > 0 ? certificateObjects : undefined,
     notifications: notifications.length > 0 ? (notifications as StudentLmsDashboard['notifications']) : [],
@@ -421,12 +641,13 @@ export function normalizeStudentLmsDashboard(payload: unknown): StudentLmsDashbo
 export async function fetchStudentLmsDashboardWithEnvelope(): Promise<{
   dashboard: StudentLmsDashboard
   envelope: unknown
+  ok: boolean
 }> {
   try {
     const res = await apiClient.get<unknown>('/student/dashboard', { skipErrorToast: true })
-    return { dashboard: normalizeStudentLmsDashboard(res.data), envelope: res.data }
+    return { dashboard: normalizeStudentLmsDashboard(res.data), envelope: res.data, ok: true }
   } catch {
-    return { dashboard: normalizeStudentLmsDashboard(null), envelope: null }
+    return { dashboard: normalizeStudentLmsDashboard(null), envelope: null, ok: false }
   }
 }
 
@@ -845,6 +1066,12 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
       o.submitted_at != null ? String(o.submitted_at)
       : mySubmission?.submitted_at != null ? String(mySubmission.submitted_at)
       : null,
+    submission_id:
+      mySubmission?.id != null && Number.isFinite(Number(mySubmission.id)) ?
+        Number(mySubmission.id)
+      : o.submission_id != null && Number.isFinite(Number(o.submission_id)) ?
+        Number(o.submission_id)
+      : null,
   }
 }
 
@@ -926,6 +1153,42 @@ export async function fetchStudentProgress(): Promise<StudentProgressPayload> {
     return normalizeStudentProgressPayload(res.data)
   } catch {
     return normalizeStudentProgressPayload(null)
+  }
+}
+
+function normalizeStudentAttendanceRow(raw: unknown): StudentAttendanceRecord | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const id = Number(o.id ?? o.attendance_id)
+  if (!Number.isFinite(id)) return null
+  const session_id = o.session_id != null && Number.isFinite(Number(o.session_id)) ? Number(o.session_id) : null
+  const course_session_id =
+    o.course_session_id != null && Number.isFinite(Number(o.course_session_id)) ?
+      Number(o.course_session_id)
+    : null
+  return {
+    id,
+    session_id,
+    course_session_id,
+    session_title: String(o.session_title ?? o.title ?? '—'),
+    course_id: o.course_id != null && Number.isFinite(Number(o.course_id)) ? Number(o.course_id) : null,
+    course_title: o.course_title != null ? String(o.course_title) : null,
+    date: o.date != null ? String(o.date) : null,
+    starts_at: o.starts_at != null ? String(o.starts_at) : null,
+    status: String(o.status ?? '—'),
+    notes: o.notes != null ? String(o.notes) : null,
+    marked_at: o.marked_at != null ? String(o.marked_at) : null,
+  }
+}
+
+/** GET /student/attendance — student's attendance history with session/course metadata. */
+export async function fetchStudentAttendance(): Promise<StudentAttendanceRecord[]> {
+  try {
+    const res = await apiClient.get<unknown>('/student/attendance', { skipErrorToast: true })
+    const rawList = coerceFlexibleList(res.data, ['data', 'attendance', 'records', 'items'])
+    return rawList.map(normalizeStudentAttendanceRow).filter((x): x is StudentAttendanceRecord => x != null)
+  } catch {
+    return []
   }
 }
 

@@ -22,7 +22,6 @@ import {
   Search,
   Shield,
   Trash2,
-  Upload,
   UserCheck,
   UserPlus,
   UserX,

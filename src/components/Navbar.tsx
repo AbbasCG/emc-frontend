@@ -46,8 +46,9 @@ const aboutItems: MegaDropdownItem[] = [
 
 const programsItems: MegaDropdownItem[] = [
   { href: '/courses', label: 'البرامج والدورات', description: 'استعرض البرامج وسجّل مباشرة', icon: BookOpen },
+  { href: '/workshops', label: 'الورش', description: 'ورش تدريبية قصيرة ومجتمعية', icon: Sparkles },
+  { href: '/learning-paths', label: 'مسارات التعلم', description: 'مسارات تعليمية مترابطة مع شهادات', icon: Waypoints },
   { href: '/programs', label: 'البرامج', description: 'عرض البرامج والمسارات المؤسسية', icon: Layers },
-  { href: '/paths', label: 'المسارات', description: 'مسارات تعلم مترابطة', icon: Waypoints },
   { href: '/tracks', label: 'المجالات والمحاور', description: 'المجالات الاثنا عشر والمحاور التفصيلية', icon: LayoutGrid },
   { href: '/instructors', label: 'المدربون', description: 'تعرّف على خبراء التدريب', icon: UserCircle },
   { href: '/submit-workshop', label: 'تقديم ورشة', description: 'طلب ورشة أو برنامج عبر النموذج الرسمي', icon: CalendarPlus },
@@ -71,7 +72,7 @@ type MegaId = 'about' | 'programs' | 'center' | 'join'
 
 const megaPrefixes: Record<MegaId, readonly string[]> = {
   about: ['/about', '/impact', '/ar/impact', '/team', '/ar/team'],
-  programs: ['/courses', '/paths', '/tracks', '/programs', '/instructors', '/submit-workshop'],
+  programs: ['/courses', '/workshops', '/learning-paths', '/paths', '/tracks', '/programs', '/instructors', '/submit-workshop'],
   center: ['/departments', '/platform'],
   join: ['/signup', '/contact', '/volunteer', '/partnerships/apply'],
 }

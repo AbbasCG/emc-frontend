@@ -107,6 +107,11 @@ export type NotificationType =
   | 'placement_result'
   | 'placement_test_completed'
   | 'oral_assessment_booked'
+  | 'assignment_graded'
+  | 'assignment_submitted'
+  | 'assignment_created'
+  | 'session_scheduled'
+  | 'attendance_marked'
 
 export type PlatformNotification = {
   id: number

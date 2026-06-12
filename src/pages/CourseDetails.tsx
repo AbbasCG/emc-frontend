@@ -49,6 +49,7 @@ import {
   unwrapPublicCoursePayload,
 } from '@/utils/publicCourseNormalize'
 import { useAuth } from '@/contexts/AuthContext'
+import PublicSeo from '@/components/public/PublicSeo'
 import { fetchStudentRegistrations } from '@/api/studentApi'
 
 export default function CourseDetails() {
@@ -333,6 +334,13 @@ export default function CourseDetails() {
 
   return (
     <main className="bg-slate-50 px-4 pb-20 pt-28 sm:px-6 lg:px-8" dir="rtl">
+      <PublicSeo
+        title={course.title}
+        description={course.short_description || course.description?.slice(0, 160) || `دورة ${course.title}`}
+        path={`/courses/${course.slug}`}
+        image={coverUrl}
+        type="article"
+      />
       <motion.div
         className="mx-auto max-w-7xl"
         initial={{ opacity: 0 }}

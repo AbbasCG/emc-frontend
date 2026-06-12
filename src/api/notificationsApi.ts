@@ -24,7 +24,7 @@ function trimStr(v: unknown): string | null {
 }
 
 function coalesceType(raw: unknown): NotificationType {
-  const s = String(raw ?? 'registration').toLowerCase()
+  const s = String(raw ?? 'registration').toLowerCase().replace(/-/g, '_')
   const allowed: NotificationType[] = [
     'registration',
     'course_registration',
@@ -43,6 +43,11 @@ function coalesceType(raw: unknown): NotificationType {
     'placement_result',
     'placement_test_completed',
     'oral_assessment_booked',
+    'assignment_graded',
+    'assignment_submitted',
+    'assignment_created',
+    'session_scheduled',
+    'attendance_marked',
   ]
   return (allowed.includes(s as NotificationType) ? s : 'registration') as NotificationType
 }
@@ -119,18 +124,46 @@ function resolveHref(raw: Record<string, unknown>): string | null {
       return null
     }
   }
+
+  const type = String(typeRaw ?? '').toLowerCase().replace(/-/g, '_')
+  const entity = String(raw.entity_type ?? raw.resource_type ?? '').toLowerCase()
+  const eid = Number(raw.entity_id ?? raw.resource_id ?? raw.course_id)
+
+  if (type === 'assignment_graded' && Number.isFinite(eid)) {
+    return normalizeNotificationInternalPath(`/dashboard/student/assignments/${eid}`)
+  }
+  if (type === 'assignment_submitted' && Number.isFinite(eid)) {
+    return normalizeNotificationInternalPath(`/dashboard/instructor/submissions/${eid}`)
+  }
+  if (type === 'certificate_issued') {
+    return normalizeNotificationInternalPath('/dashboard/certificates')
+  }
+  if (type === 'session_scheduled' || type === 'session_reminder') {
+    return normalizeNotificationInternalPath('/dashboard/student/sessions')
+  }
+  if (type === 'attendance_marked') {
+    return normalizeNotificationInternalPath('/dashboard/student/attendance')
+  }
+  if (type === 'assignment_created') {
+    return normalizeNotificationInternalPath('/dashboard/student/assignments')
+  }
+
   const slug = slugEarly
   if (slug) {
     return normalizeNotificationInternalPath(`/courses/${encodeURIComponent(slug)}`)
   }
 
-  const entity = String(raw.entity_type ?? raw.resource_type ?? '').toLowerCase()
-  const eid = Number(raw.entity_id ?? raw.resource_id ?? raw.course_id)
-  if (entity.includes('course') && Number.isFinite(eid)) {
-    return normalizeNotificationInternalPath('/dashboard/student/courses')
+  if (entity.includes('assignment_submission') && Number.isFinite(eid)) {
+    if (type.includes('submit')) {
+      return normalizeNotificationInternalPath(`/dashboard/instructor/submissions/${eid}`)
+    }
+    return normalizeNotificationInternalPath(`/dashboard/student/assignments/${eid}`)
   }
   if (entity.includes('certificate') && Number.isFinite(eid)) {
     return normalizeNotificationInternalPath('/dashboard/certificates')
+  }
+  if (entity.includes('course') && Number.isFinite(eid)) {
+    return normalizeNotificationInternalPath('/dashboard/student/courses')
   }
   return null
 }

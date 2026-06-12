@@ -10,6 +10,7 @@ import HomeTestimonialsCarousel from '../components/home/HomeTestimonialsCarouse
 import HomePartnersSection from '../components/home/HomePartnersSection'
 import HomeFaqSection from '../components/home/HomeFaqSection'
 import HomeGrandCTA from '../components/home/HomeGrandCTA'
+import PublicSeo from '@/components/public/PublicSeo'
 
 const FeaturedCoursesSection = lazy(() => import('../components/home/FeaturedCoursesSection'))
 const HomeEcosystemBento = lazy(() => import('../components/home/HomeEcosystemBento'))
@@ -32,6 +33,11 @@ function SectionFallback() {
 export default function Home() {
   return (
     <main className="bg-white">
+      <PublicSeo
+        title="EMC — منصة التعليم والتطوير"
+        description="منصة EMC التعليمية العربية—الهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
+        path="/"
+      />
       {/* 1. Cinematic dark hero + orbital visual + stat pills */}
       <HomeCinematicHero />
 

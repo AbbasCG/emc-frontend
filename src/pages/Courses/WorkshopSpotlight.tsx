@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, Clock, MapPin, Wifi, Users, ArrowLeft } from 'lucide-react'
 import type { WorkshopItem } from '@/services/coursesApi'
@@ -60,10 +61,13 @@ export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotli
             <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
           </div>
 
-          <button className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-customBlue hover:text-deepBlue transition-colors">
+          <Link
+            to="/workshops"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-customBlue hover:text-deepBlue transition-colors"
+          >
             كل الورش
             <ArrowLeft className="w-4 h-4" />
-          </button>
+          </Link>
         </motion.div>
 
         {/* Scrollable cards */}
@@ -83,10 +87,10 @@ export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotli
 
         {/* Mobile "see all" */}
         <div className="flex sm:hidden justify-center mt-6">
-          <button className="flex items-center gap-1.5 text-sm font-bold text-customBlue">
+          <Link to="/workshops" className="flex items-center gap-1.5 text-sm font-bold text-customBlue">
             كل الورش
             <ArrowLeft className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
       </div>
     </section>
@@ -109,8 +113,9 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.09, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(34,51,74,0.10)' }}
-      className="min-w-[300px] max-w-[300px] bg-white rounded-xl border border-slate-200 p-5 flex flex-col cursor-pointer transition-shadow duration-300"
+      className="min-w-[300px] max-w-[300px] bg-white rounded-xl border border-slate-200 p-5 flex flex-col transition-shadow duration-300"
     >
+      <Link to={`/workshops/${workshop.slug}`} className="flex flex-col flex-1">
       {/* Mode badge */}
       <div className="flex items-center justify-between mb-3">
         <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ${
@@ -163,9 +168,10 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       </div>
 
       {/* CTA */}
-      <button className="mt-auto w-full bg-customOrange text-white font-bold py-2.5 rounded-xl text-sm hover:bg-customOrange/90 transition-colors duration-200">
-        سجّل مجاناً
-      </button>
+      <span className="mt-auto w-full bg-customOrange text-white font-bold py-2.5 rounded-xl text-sm text-center block">
+        عرض التفاصيل
+      </span>
+      </Link>
     </motion.div>
   )
 }

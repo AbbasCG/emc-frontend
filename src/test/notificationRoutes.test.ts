@@ -58,6 +58,17 @@ describe('normalizeNotificationInternalPath', () => {
     expect(norm('/dashboard/notifications/')).toBe('/dashboard/notifications')
   })
 
+  it('rewrites assignment and submission detail paths to query deep links', () => {
+    expect(norm('/dashboard/student/assignments/42')).toBe('/dashboard/student/assignments?submission=42')
+    expect(norm('/dashboard/instructor/submissions/7')).toBe('/dashboard/instructor/submissions?submission=7')
+  })
+
+  it('rewrites certificate and attendance paths', () => {
+    expect(norm('/dashboard/student/certificates')).toBe('/dashboard/certificates')
+    expect(norm('/dashboard/student/attendance')).toBe('/dashboard/student/attendance')
+    expect(norm('/student/attendance')).toBe('/dashboard/student/attendance')
+  })
+
   it('preserves query strings', () => {
     expect(norm('/dashboard/student/sessions?date=2025-01-01')).toBe(
       '/dashboard/student/sessions?date=2025-01-01',

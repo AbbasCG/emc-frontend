@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { ClipboardList, RefreshCw } from 'lucide-react'
 import type { StudentAssignment } from '@/types/lms'
 import { DashboardSection } from '@/components/dashboard'
@@ -9,7 +9,9 @@ import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
 
 export default function StudentAssignmentsPage() {
+  const { submissionId: submissionIdParam } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+  const highlightRef = useRef<HTMLDivElement | null>(null)
   const {
     loading,
     refreshing,
@@ -20,8 +22,10 @@ export default function StudentAssignmentsPage() {
   } = useStudentDashboardData()
 
   const [active, setActive] = useState<StudentAssignment | null>(null)
+  const [highlightId, setHighlightId] = useState<number | null>(null)
 
   const submitQueryId = searchParams.get('submit')
+  const submissionTarget = submissionIdParam ?? searchParams.get('submission')
 
   useEffect(() => {
     if (!submitQueryId || assignmentsScoped.length === 0) return
@@ -35,6 +39,29 @@ export default function StudentAssignmentsPage() {
       setSearchParams({}, { replace: true })
     }
   }, [submitQueryId, assignmentsScoped, setSearchParams])
+
+  useEffect(() => {
+    if (!submissionTarget || assignmentsScoped.length === 0) return
+    const sid = Number(submissionTarget)
+    if (!Number.isFinite(sid)) return
+    const match = assignmentsScoped.find((a) => a.submission_id === sid || a.id === sid)
+    if (!match) return
+    setHighlightId(match.id)
+    if (submissionIdParam) {
+      setSearchParams({}, { replace: true })
+    } else {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('submission')
+        return next
+      }, { replace: true })
+    }
+  }, [submissionTarget, submissionIdParam, assignmentsScoped, setSearchParams])
+
+  useEffect(() => {
+    if (highlightId == null) return
+    highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [highlightId])
 
   if (loading && assignmentsScoped.length === 0) return <LmsPageSkeleton />
 
@@ -72,15 +99,20 @@ export default function StudentAssignmentsPage() {
           />
         : <div className="grid gap-4">
             {assignmentsScoped.map((a) => (
-              <AssignmentCard
+              <div
                 key={`${a.id}-${a.assignment_id}`}
-                assignment={a}
-                onSubmit={
-                  NON_SUBMITTABLE.includes(a.status) ?
-                    undefined
-                  : () => setActive(a)
-                }
-              />
+                ref={highlightId === a.id ? highlightRef : undefined}
+                className={highlightId === a.id ? 'rounded-2xl ring-2 ring-customOrange/50' : undefined}
+              >
+                <AssignmentCard
+                  assignment={a}
+                  onSubmit={
+                    NON_SUBMITTABLE.includes(a.status) ?
+                      undefined
+                    : () => setActive(a)
+                  }
+                />
+              </div>
             ))}
           </div>
         }

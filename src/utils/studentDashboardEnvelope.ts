@@ -1,5 +1,5 @@
 /**
- * Parses GET /dashboard and GET /student/dashboard envelopes so «دوراتي» matches the student home dashboard.
+ * Parses GET /student/dashboard envelopes so «دوراتي» matches the student home dashboard.
  */
 
 import type { Enrollment, Course, DashboardStats, StudentDashboard } from '@/types'
@@ -263,6 +263,14 @@ export function normalizeStudentDashboardPayload(raw: unknown): StudentDashboard
   const o = inner as Partial<StudentDashboard>
   const statsIn = o.stats && typeof o.stats === 'object' ? o.stats : {}
   const s = statsIn as Partial<DashboardStats>
+  const backendStats = (() => {
+    for (const r of envelopes) {
+      if (r.stats && typeof r.stats === 'object' && !Array.isArray(r.stats)) {
+        return r.stats as Record<string, unknown>
+      }
+    }
+    return {} as Record<string, unknown>
+  })()
 
   const registrationsArr = firstArrayAcross(envelopes, ['registrations'])
 
@@ -300,10 +308,22 @@ export function normalizeStudentDashboardPayload(raw: unknown): StudentDashboard
 
   return {
     stats: {
-      enrolled_courses: toFiniteStat(s.enrolled_courses, EMPTY_STATS.enrolled_courses),
-      upcoming_sessions: toFiniteStat(s.upcoming_sessions, EMPTY_STATS.upcoming_sessions),
-      completed_certificates: toFiniteStat(s.completed_certificates, EMPTY_STATS.completed_certificates),
-      training_hours: toFiniteStat(s.training_hours, EMPTY_STATS.training_hours),
+      enrolled_courses: toFiniteStat(
+        s.enrolled_courses ?? backendStats.courses_enrolled ?? backendStats.enrolled_courses,
+        EMPTY_STATS.enrolled_courses,
+      ),
+      upcoming_sessions: toFiniteStat(
+        s.upcoming_sessions ?? backendStats.upcoming_sessions,
+        EMPTY_STATS.upcoming_sessions,
+      ),
+      completed_certificates: toFiniteStat(
+        s.completed_certificates ?? backendStats.certificates_earned ?? backendStats.completed_certificates,
+        EMPTY_STATS.completed_certificates,
+      ),
+      training_hours: toFiniteStat(
+        s.training_hours ?? backendStats.training_hours,
+        EMPTY_STATS.training_hours,
+      ),
     },
     enrollments: enrollOut,
     upcoming_sessions: Array.isArray(o.upcoming_sessions) ? o.upcoming_sessions : [],

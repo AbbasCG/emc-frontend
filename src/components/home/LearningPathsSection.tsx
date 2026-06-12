@@ -86,7 +86,7 @@ export default function LearningPathsSection() {
 
                   <div className="mt-auto pt-6">
                     <Link
-                      to="/paths"
+                      to="/learning-paths"
                       className="inline-flex items-center gap-1.5 text-sm font-extrabold text-customBlue transition hover:underline"
                     >
                       استعرض المسار

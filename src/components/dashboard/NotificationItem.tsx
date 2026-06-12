@@ -3,6 +3,7 @@ import {
   Bell,
   BookOpen,
   CheckCircle,
+  ClipboardList,
   CreditCard,
   MessageSquare,
   UserCheck,
@@ -12,6 +13,7 @@ import {
 import { Link } from 'react-router-dom'
 import { markNotificationRead, notifyNotificationsRefresh } from '@/api/notificationsApi'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
+import { formatRelativeDate } from '@/utils/dateTime'
 
 /** أنواع مدعومة من الواجهة — أي نوع آخر يُعرَض كـ general */
 export type DashboardNotificationVisualKind =
@@ -24,6 +26,11 @@ export type DashboardNotificationVisualKind =
   | 'certificate_issued'
   | 'review_requested'
   | 'payment_confirmed'
+  | 'assignment_graded'
+  | 'assignment_submitted'
+  | 'assignment_created'
+  | 'session_scheduled'
+  | 'attendance_marked'
 
 type VisualConfig = {
   Icon: typeof Bell
@@ -94,6 +101,36 @@ const typeConfig: Record<DashboardNotificationVisualKind, VisualConfig> = {
     bg: 'bg-teal-50',
     label: 'دفع مؤكد',
   },
+  assignment_graded: {
+    Icon: CheckCircle,
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    label: 'تقييم واجب',
+  },
+  assignment_submitted: {
+    Icon: ClipboardList,
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    label: 'تسليم واجب',
+  },
+  assignment_created: {
+    Icon: ClipboardList,
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+    label: 'واجب جديد',
+  },
+  session_scheduled: {
+    Icon: BookOpen,
+    color: 'text-customBlue',
+    bg: 'bg-sky-50',
+    label: 'جلسة مجدولة',
+  },
+  attendance_marked: {
+    Icon: UserCheck,
+    color: 'text-teal-700',
+    bg: 'bg-teal-50',
+    label: 'تسجيل حضور',
+  },
 }
 
 const SUPPORTED_KINDS = new Set<string>(Object.keys(typeConfig))
@@ -108,6 +145,11 @@ const TYPE_ALIASES: Record<string, DashboardNotificationVisualKind> = {
   payment: 'payment_confirmed',
   session_reminder: 'general',
   assignment_due: 'review_requested',
+  assignment_graded: 'assignment_graded',
+  assignment_submitted: 'assignment_submitted',
+  assignment_created: 'assignment_created',
+  session_scheduled: 'session_scheduled',
+  attendance_marked: 'attendance_marked',
   task_assigned: 'instructor_assigned',
   meeting_invite: 'general',
   support_reply: 'review_requested',
@@ -169,14 +211,8 @@ function safeInternalHref(n: NotificationLike): string | null {
 
 function timeAgo(iso: string | null): string {
   if (!iso) return 'تاريخ غير متاح'
-  const ms = new Date(iso).getTime()
-  if (!Number.isFinite(ms)) return 'تاريخ غير متاح'
-  const mins = Math.floor((Date.now() - ms) / 60_000)
-  if (mins < 1) return 'الآن'
-  if (mins < 60) return `منذ ${mins} دقيقة`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `منذ ${hours} ساعة`
-  return `منذ ${Math.floor(hours / 24)} يوم`
+  const rel = formatRelativeDate(iso)
+  return rel === '—' ? 'تاريخ غير متاح' : rel
 }
 
 /** صف إشعار من اللوحة أو الـ LMS — يطابق حقولاً جزئية من الـ API */

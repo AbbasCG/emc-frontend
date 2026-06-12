@@ -51,6 +51,32 @@ export type StudentAssignment = {
   max_score?: number | null
   feedback?: string | null
   submitted_at?: string | null
+  submission_id?: number | null
+}
+
+export type StudentAttendanceStatus = 'present' | 'absent' | 'late' | 'excused' | string
+
+export type StudentAttendanceRecord = {
+  id: number
+  session_id?: number | null
+  course_session_id?: number | null
+  session_title: string
+  course_id?: number | null
+  course_title?: string | null
+  date?: string | null
+  starts_at?: string | null
+  status: StudentAttendanceStatus
+  notes?: string | null
+  marked_at?: string | null
+}
+
+export type StudentCertificateSummary = {
+  id: number
+  title: string
+  course_name?: string | null
+  track_name?: string | null
+  issued_at?: string | null
+  verification_code?: string | null
 }
 
 export type StudentProgressPayload = {
@@ -69,11 +95,19 @@ export type StudentProgressPayload = {
   overall_assignment_completion: number
 }
 
-export type StudentLmsDashboard = {
-  progress_percent: number
-  attendance_percent: number
-  pending_assignments: StudentAssignment[]
-  current_courses: {
+/** KPI counts from GET /student/dashboard — canonical backend field names. */
+export type StudentDashboardCounts = {
+  enrolled_courses_count: number
+  active_courses_count: number
+  completed_courses_count: number
+  pending_assignments_count: number
+  upcoming_sessions_count: number
+  unread_notifications_count: number
+  certificates_count: number
+  learning_paths_count: number
+}
+
+export type StudentDashboardCourse = {
     id: number
     title: string
     slug?: string | null
@@ -99,9 +133,27 @@ export type StudentLmsDashboard = {
       instructor_name?: string | null
       assigned_at?: string | null
     } | null
-  }[]
+}
+
+export type StudentLmsDashboard = {
+  progress_percent: number
+  attendance_percent: number
+  pending_assignments: StudentAssignment[]
+  current_courses: StudentDashboardCourse[]
+  /** Subset flagged active by backend, or derived from current_courses. */
+  active_courses?: StudentDashboardCourse[]
+  /** Recent enrollments slice from backend. */
+  recent_courses?: StudentDashboardCourse[]
+  /** Normalized KPI block — always present after normalizeStudentLmsDashboard. */
+  counts: StudentDashboardCounts
   upcoming_sessions: LmsSession[]
+  live_sessions?: LmsSession[]
+  ended_sessions?: LmsSession[]
+  all_sessions?: LmsSession[]
   completed_sessions?: LmsSession[]
+  certificates?: StudentCertificateSummary[]
+  certificates_count?: number
+  training_hours?: number
   certificates_placeholder?: { label: string; note?: string }[]
   /** Notifications embedded in dashboard response — duck-typed for compatibility. */
   notifications?: {

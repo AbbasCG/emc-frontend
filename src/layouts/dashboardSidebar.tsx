@@ -232,7 +232,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الطلاب', href: '/dashboard/super-admin/crud/students', icon: GraduationCap },
         { label: 'المدربون', href: '/dashboard/super-admin/crud/instructors', icon: UserCog },
         { label: 'البرامج', href: '/dashboard/super-admin/crud/programs', icon: BookMarked },
-        { label: 'المسارات', href: '/dashboard/super-admin/crud/tracks', icon: Layers },
+        { label: 'المسارات التعليمية', href: '/dashboard/super-admin/crud/learning-paths', icon: BookOpen },
         { label: 'الورش', href: '/dashboard/super-admin/crud/workshops', icon: Sparkles },
         { label: 'التسجيلات', href: '/dashboard/super-admin/crud/registrations', icon: ClipboardList },
         { label: 'الشراكات', href: '/dashboard/super-admin/crud/partners', icon: HeartHandshake },
@@ -433,6 +433,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         items: [
           { label: 'لوحة التحكم',   href: home,                                  icon: LayoutDashboard },
           { label: 'دوراتي',        href: '/dashboard/instructor/courses',         icon: BookMarked      },
+          { label: 'مساراتي التعليمية', href: '/dashboard/instructor/learning-paths', icon: GraduationCap },
           { label: 'الجلسات',       href: '/dashboard/instructor/sessions',        icon: Calendar        },
           { label: 'الحضور',        href: '/dashboard/instructor/attendance',       icon: UserCheck       },
           { label: 'التسليمات',     href: '/dashboard/instructor/submissions',      icon: ClipboardList   },
@@ -451,6 +452,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         items: [
           { label: 'لوحة التعلم',    href: '/dashboard/student',                  icon: LayoutDashboard },
           { label: 'دوراتي',          href: '/dashboard/student/courses',           icon: BookOpen        },
+          { label: 'مساراتي التعليمية', href: '/dashboard/student/learning-paths', icon: GraduationCap  },
           { label: 'الشهادات',       href: '/dashboard/student/certificates',      icon: Award           },
           { label: 'الإشعارات',      href: '/dashboard/student/notifications',     icon: Bell            },
           { label: 'التقويم',        href: '/dashboard/student/calendar',          icon: CalendarDays    },

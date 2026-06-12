@@ -1,85 +1,37 @@
-import axios from 'axios'
 import {
   Bell,
   BookOpen,
   Calendar,
   CheckCircle,
+  ChevronLeft,
   ClipboardList,
+  GraduationCap,
+  Radio,
+  RefreshCw,
   ScrollText,
   TrendingUp,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { useEffect, useCallback, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import apiClient from '../api/axios'
-import {
-  STUDENT_SCOPE_REFRESH_EVENT,
-  fetchStudentCoursesList,
-  fetchStudentLmsDashboard,
-  fetchStudentRegistrations,
-  type StudentListedCourse,
-  type StudentRegistrationRow,
-} from '@/api/studentApi'
-import { notifyNotificationsRefresh } from '@/api/notificationsApi'
-import { fetchCoursesStrict } from '@/api/superAdminCatalogApi'
 import {
   DashboardSection,
   DashboardHero,
-  DashboardKpiCard,
-  DashboardKpiSkeleton,
   DashboardCardGridSkeleton,
   DashboardListSkeleton,
   DashboardErrorWidget,
   EmptyState,
-  EnrolledCourseCard,
   NotificationItem,
-  StatCard,
 } from '../components/dashboard'
-import { AssignmentCard, ProgressRing, SessionCard } from '@/components/lms'
-import { courseImages } from '@/utils/course'
+import { SessionCard } from '@/components/lms'
 import { useAuth } from '../contexts/AuthContext'
-import type {
-  Course,
-  DashboardStats,
-  StudentDashboard,
-  UpcomingSession,
-} from '../types'
-import type { StudentLmsDashboard, LmsSession } from '@/types/lms'
-import { mergeStudentEnrollments } from '@/utils/studentEnrollmentMerge'
-import { normalizeStudentDashboardPayload } from '@/utils/studentDashboardEnvelope'
+import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { formatDateTime } from '@/utils/dateTime'
 import { getUserAvatarUrl, getUserInitials } from '@/utils/userIdentity'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import type { LmsSession } from '@/types/lms'
 
-function toFiniteStat(n: unknown, fallback = 0): number {
-  if (typeof n === 'number' && Number.isFinite(n)) return n
-  const x = Number(n)
-  return Number.isFinite(x) ? x : fallback
-}
-
-function mapLmsSessionToUpcoming(s: LmsSession): UpcomingSession {
-  return {
-    id: s.id,
-    course_name: s.course_name,
-    date: s.date ?? s.starts_at ?? '',
-    time: s.time,
-    type: s.type === 'offline' ? 'offline' : 'online',
-    instructor_name: s.instructor_name,
-    location: s.location,
-    meeting_link: s.meeting_link,
-    platform: (s.platform as UpcomingSession['platform']) ?? undefined,
-  }
-}
-
-function deriveStatsFromLms(lms: StudentLmsDashboard): DashboardStats {
-  return {
-    enrolled_courses: Array.isArray(lms.current_courses) ? lms.current_courses.length : 0,
-    upcoming_sessions: Array.isArray(lms.upcoming_sessions) ? lms.upcoming_sessions.length : 0,
-    completed_certificates: Array.isArray(lms.certificates_placeholder) ? lms.certificates_placeholder.length : 0,
-    training_hours: 0,
-  }
-}
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function hourGreeting(): string {
   const h = new Date().getHours()
@@ -99,419 +51,414 @@ function HeroChip({ href, label }: { href: string; label: string }) {
   )
 }
 
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
+
+type KpiProps = {
+  label: string
+  value: string | number
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  color: 'blue' | 'orange' | 'green' | 'purple' | 'slate'
+}
+
+const KPI_COLOR: Record<KpiProps['color'], string> = {
+  blue:   'bg-customBlue/[0.08] text-customBlue ring-customBlue/15',
+  orange: 'bg-customOrange/[0.08] text-customOrange ring-customOrange/15',
+  green:  'bg-emerald-500/[0.08] text-emerald-600 ring-emerald-200/60',
+  purple: 'bg-violet-500/[0.08] text-violet-600 ring-violet-200/60',
+  slate:  'bg-slate-100 text-slate-500 ring-slate-200/60',
+}
+const KPI_ICON_BG: Record<KpiProps['color'], string> = {
+  blue:   'bg-customBlue/10 text-customBlue',
+  orange: 'bg-customOrange/10 text-customOrange',
+  green:  'bg-emerald-100 text-emerald-600',
+  purple: 'bg-violet-100 text-violet-600',
+  slate:  'bg-slate-100 text-slate-400',
+}
+
+function KpiCard({ label, value, icon: Icon, color }: KpiProps) {
+  return (
+    <motion.div
+      layout
+      whileHover={{ y: -2 }}
+      className={`flex items-center gap-4 rounded-2xl p-4 ring-1 ${KPI_COLOR[color]}`}
+    >
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${KPI_ICON_BG[color]}`}>
+        <Icon size={20} />
+      </div>
+      <div className="min-w-0 text-right">
+        <p className="text-[11px] font-bold opacity-70">{label}</p>
+        <p className="mt-0.5 text-xl font-black tabular-nums leading-none">{value}</p>
+      </div>
+    </motion.div>
+  )
+}
+
+// ─── Course Card ──────────────────────────────────────────────────────────────
+
+const DISPLAY_STATUS_LABEL: Record<string, string> = {
+  active:          'نشطة',
+  completed:       'مكتملة',
+  upcoming:        'قادمة',
+  waiting_class:   'بانتظار توزيعك على فصل دراسي',
+  needs_placement: 'يحتاج اختبار تحديد مستوى',
+  pending:         'معلّقة',
+}
+const DISPLAY_STATUS_COLOR: Record<string, string> = {
+  active:          'bg-customBlue/90 text-white',
+  completed:       'bg-emerald-600/90 text-white',
+  upcoming:        'bg-amber-500/90 text-white',
+  waiting_class:   'bg-violet-600/90 text-white',
+  needs_placement: 'bg-amber-600/90 text-white',
+  pending:         'bg-slate-400/90 text-white',
+}
+
+type DashCourse = {
+  id: number
+  title: string
+  slug?: string | null
+  instructor_name?: string | null
+  progress_percent?: number
+  display_status?: string
+  is_completed?: boolean
+  start_date?: string | null
+  start_time?: string | null
+  course_image?: string | null
+  cover_url?: string | null
+  class_assignment?: { name?: string; level_code?: string; schedule_day?: string; schedule_time?: string } | null
+}
+
+function CourseCard({ course }: { course: DashCourse }) {
+  const pct = typeof course.progress_percent === 'number' ? Math.round(course.progress_percent) : 0
+  const coverUrl = resolvePublicAssetUrl(course.cover_url ?? course.course_image ?? null)
+  const learnHref = studentLearnHref(course.id)
+  const detailHref = course.slug ? `/courses/${course.slug}` : '/dashboard/student/registrations'
+  const displayStatus = course.display_status ?? (course.is_completed ? 'completed' : 'active')
+  const statusLabel = DISPLAY_STATUS_LABEL[displayStatus] ?? displayStatus
+  const statusColor = DISPLAY_STATUS_COLOR[displayStatus] ?? DISPLAY_STATUS_COLOR.active
+  const cg = course.class_assignment
+
+  const scheduleText = (() => {
+    if (cg?.schedule_day || cg?.schedule_time) {
+      return [cg.schedule_day, cg.schedule_time].filter(Boolean).join(' · ')
+    }
+    if (course.start_date) {
+      const iso = course.start_time ? `${course.start_date}T${course.start_time}` : course.start_date
+      return formatDateTime(iso)
+    }
+    return null
+  })()
+
+  return (
+    <motion.article
+      layout
+      whileHover={{ y: -3 }}
+      className="flex flex-col overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm ring-1 ring-deepBlue/[0.03] transition-shadow hover:shadow-md"
+    >
+      {/* Image */}
+      <div className="relative h-36 overflow-hidden bg-gradient-to-br from-deepBlue to-customBlue">
+        {coverUrl ? (
+          <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <GraduationCap size={40} className="text-white/30" />
+          </div>
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deepBlue/70 to-transparent" />
+        <span className={`absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-black ${statusColor}`}>
+          {statusLabel}
+        </span>
+        <h3 className="absolute bottom-2 left-3 right-3 line-clamp-2 text-right text-[14px] font-black leading-snug text-white drop-shadow-sm">
+          {course.title}
+        </h3>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-3 p-4 text-right">
+        {course.instructor_name && (
+          <p className="text-[11px] font-bold text-slate-500">
+            المدرب: <span className="font-semibold text-deepBlue">{course.instructor_name}</span>
+          </p>
+        )}
+
+        {cg?.name && (
+          <p className="rounded-lg border border-customBlue/15 bg-customBlue/[0.04] px-2.5 py-1.5 text-[10px] font-black text-customBlue">
+            الصف: {cg.name} {cg.level_code ? `· ${cg.level_code}` : ''}
+          </p>
+        )}
+
+        {scheduleText ? (
+          <p className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+            <Calendar size={12} className="shrink-0 text-customBlue" />
+            <span dir="ltr">{scheduleText}</span>
+          </p>
+        ) : (
+          <p className="text-[10px] font-bold text-slate-400">سيتم إشعارك عند تحديد الموعد</p>
+        )}
+
+        {/* Progress bar */}
+        <div>
+          <div className="mb-1 flex items-center justify-between text-[10px] font-black">
+            <span className="text-customBlue">{pct}%</span>
+            <span className="text-slate-400">التقدم</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <motion.div
+              className={`h-full rounded-full ${pct >= 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-customBlue' : 'bg-slate-200'}`}
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-auto grid gap-2">
+          {displayStatus === 'needs_placement' ? (
+            <Link
+              to={`/dashboard/student/courses/${course.id}/placement-test`}
+              className="rounded-xl bg-amber-600 px-4 py-2.5 text-center text-[11px] font-black text-white transition hover:brightness-105"
+            >
+              بدء اختبار تحديد المستوى
+            </Link>
+          ) : displayStatus === 'completed' ? (
+            <Link
+              to={detailHref}
+              className="rounded-xl border-2 border-emerald-200 bg-emerald-50 px-4 py-2.5 text-center text-[11px] font-black text-emerald-700 transition hover:bg-emerald-100"
+            >
+              عرض التفاصيل
+            </Link>
+          ) : (
+            <Link
+              to={learnHref}
+              className="rounded-xl bg-deepBlue px-4 py-2.5 text-center text-[11px] font-black text-white transition hover:bg-customBlue"
+            >
+              {pct > 0 ? 'متابعة التعلم' : 'ابدأ التعلم'}
+            </Link>
+          )}
+          <Link
+            to={detailHref}
+            className="rounded-xl border-2 border-customOrange/35 bg-orange-50/50 px-4 py-2.5 text-center text-[11px] font-black text-deepBlue transition hover:border-customOrange hover:bg-orange-50"
+          >
+            تفاصيل الدورة
+          </Link>
+        </div>
+      </div>
+    </motion.article>
+  )
+}
+
+// ─── Session Group ─────────────────────────────────────────────────────────────
+
+function SessionGroup({
+  icon: Icon,
+  title,
+  iconClass,
+  sessions,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  title: string
+  iconClass: string
+  sessions: LmsSession[]
+}) {
+  if (sessions.length === 0) return null
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Icon size={15} className={iconClass} />
+        <h4 className="text-[12px] font-black text-deepBlue">{title}</h4>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">{sessions.length}</span>
+      </div>
+      <div className="space-y-3">
+        {sessions.slice(0, 4).map((s) => (
+          <SessionCard key={s.id} session={s} joinMeetingLabel="انضم للجلسة" compact />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Dashboard ────────────────────────────────────────────────────────────
+
 export default function Dashboard() {
   const { user } = useAuth()
+  const {
+    loading,
+    loadError,
+    refresh,
+    refreshing,
+    lmsDashboard,
+    enrollmentsMerged,
+    sessionsLive,
+    sessionsUpcoming,
+    sessionsEnded,
+    notificationsUnread,
+  } = useStudentDashboardData()
 
-  const [data, setData] = useState<StudentDashboard>(() => normalizeStudentDashboardPayload(null))
-  const [dashLoading, setDashLoading] = useState(true)
-  const [dashError, setDashError] = useState<string | null>(null)
-  const [lmsDash, setLmsDash] = useState<StudentLmsDashboard | null>(null)
-  const [lmsLoading, setLmsLoading] = useState(true)
-  const [lmsError, setLmsError] = useState<string | null>(null)
-  const [catalog, setCatalog] = useState<Course[]>([])
-  const [catalogLoading, setCatalogLoading] = useState(true)
-  const [studentCoursesApi, setStudentCoursesApi] = useState<StudentListedCourse[]>([])
-  const [studentRegsApi, setStudentRegsApi] = useState<StudentRegistrationRow[]>([])
+  const counts                = lmsDashboard.counts
+  const pendingAssignments    = lmsDashboard.pending_assignments
+  const dashboardNotifications = Array.isArray(lmsDashboard.notifications) ? lmsDashboard.notifications : []
 
-  const syncStudentEnrollmentSources = useCallback(async () => {
-    const [courses, registrations] = await Promise.all([
-      fetchStudentCoursesList(),
-      fetchStudentRegistrations(),
-    ])
-    setStudentCoursesApi(courses)
-    setStudentRegsApi(registrations)
-  }, [])
+  // Build the best course list available
+  const currentCourses: DashCourse[] = (
+    (lmsDashboard.active_courses?.length ?? 0) > 0
+      ? lmsDashboard.active_courses!
+      : lmsDashboard.current_courses
+  ) as DashCourse[]
 
-  // Critical data: dashboard + LMS in parallel
-  useEffect(() => {
-    let isMounted = true
-    setDashLoading(true)
-    setLmsLoading(true)
-    setDashError(null)
-    setLmsError(null)
-
-    void Promise.allSettled([
-      apiClient.get('/dashboard', { skipErrorToast: true }),
-      fetchStudentLmsDashboard(),
-    ]).then(([dashResult, lmsResult]) => {
-      if (!isMounted) return
-
-      if (dashResult.status === 'fulfilled') {
-        setData(normalizeStudentDashboardPayload(dashResult.value.data))
-      } else {
-        setData(normalizeStudentDashboardPayload(null))
-        setDashError('تعذّر تحميل لوحة التحكم.')
-      }
-      setDashLoading(false)
-
-      if (lmsResult.status === 'fulfilled') {
-        const row = lmsResult.value
-        setLmsDash(row)
-        if (dashResult.status === 'rejected') {
-          setData((prev) => ({ ...prev, stats: deriveStatsFromLms(row) }))
-        }
-      } else {
-        setLmsDash(null)
-        setLmsError('تعذّر تحميل بيانات التعلّم.')
-      }
-      setLmsLoading(false)
-    })
-
-    return () => { isMounted = false }
-  }, [])
-
-  // Secondary: enrollment sources (non-blocking)
-  useEffect(() => {
-    void syncStudentEnrollmentSources()
-  }, [syncStudentEnrollmentSources])
-
-  // Tertiary: course catalog (non-blocking)
-  useEffect(() => {
-    let alive = true
-    setCatalogLoading(true)
-    void (async () => {
-      const pack = await fetchCoursesStrict()
-      if (!alive) return
-      setCatalog(pack.ok ? [...pack.rows] : [])
-      setCatalogLoading(false)
-    })()
-    return () => { alive = false }
-  }, [])
-
-  // Refresh event handler
-  useEffect(() => {
-    function onStudentRefresh() {
-      void syncStudentEnrollmentSources()
-      notifyNotificationsRefresh()
-      fetchStudentLmsDashboard()
-        .then((row) => {
-          setLmsDash(row)
-          setLmsError(null)
-          setData((prev) => ({
-            ...prev,
-            stats: { ...deriveStatsFromLms(row), training_hours: prev.stats.training_hours },
-          }))
+  const displayCourses: DashCourse[] =
+    enrollmentsMerged.length > 0
+      ? enrollmentsMerged.map((e) => {
+          const eRaw = e as Record<string, unknown>
+          const cRaw = e.course as Record<string, unknown>
+          return {
+            id:              e.course.id,
+            title:           e.course.title,
+            slug:            e.course.slug ?? null,
+            instructor_name: (e.course.instructor_name as string | undefined) ?? null,
+            progress_percent: e.status === 'completed' ? 100 : ((eRaw.progress_percent as number | undefined) ?? 0),
+            display_status:  e.status === 'completed' ? 'completed' : ((eRaw.display_status as string | undefined) ?? 'active'),
+            course_image:    (cRaw.course_image as string | undefined) ?? null,
+            cover_url:       (cRaw.cover_url as string | undefined) ?? null,
+            class_assignment: (eRaw.class_assignment as DashCourse['class_assignment']) ?? null,
+          }
         })
-        .catch(() => {
-          setLmsDash(null)
-          setLmsError('تعذّر تحميل بيانات التعلّم.')
-        })
-      void (async () => {
-        try {
-          const response = await apiClient.get('/dashboard', { skipErrorToast: true })
-          setData(normalizeStudentDashboardPayload(response.data))
-          setDashError(null)
-        } catch (err: unknown) {
-          if (axios.isCancel(err)) return
-          setDashError('تعذّر تحميل لوحة التحكم.')
-        }
-      })()
-    }
-    window.addEventListener(STUDENT_SCOPE_REFRESH_EVENT, onStudentRefresh)
-    return () => window.removeEventListener(STUDENT_SCOPE_REFRESH_EVENT, onStudentRefresh)
-  }, [syncStudentEnrollmentSources])
+      : currentCourses
 
-  // ── Derived data ──────────────────────────────────────────────────────────
-  const { stats, enrollments, upcoming_sessions: legacySessions } = data
-  const enrollmentsSafe = Array.isArray(enrollments) ? enrollments : []
-  const enrollmentsMerged = mergeStudentEnrollments(enrollmentsSafe, studentRegsApi, studentCoursesApi)
+  const certificates     = Array.isArray(lmsDashboard.certificates) ? [...lmsDashboard.certificates] : []
+  const pendingDueCount  = counts.pending_assignments_count
+  const activeCount      = counts.active_courses_count
+  const unreadCount      = notificationsUnread || counts.unread_notifications_count
+  const hasSessions      = sessionsLive.length + sessionsUpcoming.length + sessionsEnded.length > 0
 
-  const upcomingLmsRaw = Array.isArray(lmsDash?.upcoming_sessions) ? [...(lmsDash?.upcoming_sessions ?? [])] : []
-  const sessions =
-    upcomingLmsRaw.length > 0 ? upcomingLmsRaw.map(mapLmsSessionToUpcoming) : [...legacySessions]
-
-  const dashboardNotifications = Array.isArray(lmsDash?.notifications) ? lmsDash.notifications : []
-  const currentLmsCourses = Array.isArray(lmsDash?.current_courses) ? [...lmsDash!.current_courses] : []
-  const pendingAssignments = Array.isArray(lmsDash?.pending_assignments) ? [...lmsDash!.pending_assignments] : []
-  const certPlaceholders = Array.isArray(lmsDash?.certificates_placeholder) ? [...lmsDash.certificates_placeholder] : []
-
-  const pendingDueCount = pendingAssignments.filter((a) => a.status === 'pending' || a.status === 'late').length
-  const activeCoursesCount = currentLmsCourses.filter((c) => {
-    const st = String(c.status ?? '').toLowerCase()
-    return !st.includes('complete')
-  }).length
-  const placementCompletedCount = currentLmsCourses.filter((c) => {
-    const st = String(c.placement_status ?? '').toLowerCase()
-    return st === 'completed' || st.includes('complete')
-  }).length
-  const classAssignment = currentLmsCourses.find((c) => c.class_assignment)?.class_assignment ?? null
-  const avatarUrl = getUserAvatarUrl(user ?? null)
+  const avatarUrl      = getUserAvatarUrl(user ?? null)
   const avatarInitials = getUserInitials(user ?? null)
-  const unreadCount = dashboardNotifications.filter((n) => {
-    if (typeof n.is_read === 'boolean') return !n.is_read
-    return n.read_at == null || String(n.read_at).trim() === ''
-  }).length
+  const displayName    = user?.name?.trim() || 'متعلّم EMC'
 
-  const enrolledSlugs = new Set(
-    enrollmentsMerged.filter((e) => e.course?.slug).map((e) => String(e.course.slug)),
-  )
-  const browseCourses = [...catalog].filter((c) => c.slug && !enrolledSlugs.has(c.slug))
-  const completedEnrollCount = enrollmentsMerged.filter((e) => e.status === 'completed').length
-  const activeEnrollCount = enrollmentsMerged.filter((e) => e.status !== 'completed').length
-
-  let learningLine = 'تابع بطاقاتك أدناه لإكمال جلساتك القادمة.'
-  if (lmsLoading) learningLine = 'جارٍ تحميل بيانات التعلّم…'
-  else if (lmsDash != null && Number.isFinite(lmsDash.progress_percent))
-    learningLine = `تقدّمك في المحتوى: ${Math.round(lmsDash.progress_percent)}%.`
-  else if (activeEnrollCount === 0 && completedEnrollCount === 0)
-    learningLine = 'لم تسجل بعد — تصفّح الدورات المتاحة ضمن هذه الصفحة وابدأ.'
-
-  const displayName = user?.name?.trim() || 'متعلّم EMC'
-  const greeting = hourGreeting()
-
-  const heroStats = lmsLoading
+  const heroStats = loading
     ? undefined
     : [
-        { label: 'دوراتي',      value: enrollmentsMerged.length || currentLmsCourses.length },
+        { label: 'دوراتي', value: counts.enrolled_courses_count || enrollmentsMerged.length },
         { label: 'واجبات معلّقة', value: pendingDueCount },
-        { label: 'جلسات قادمة', value: upcomingLmsRaw.length || (Array.isArray(sessions) ? sessions.length : 0) },
+        { label: 'جلسات قادمة', value: counts.upcoming_sessions_count || (sessionsLive.length + sessionsUpcoming.length) },
       ]
 
   return (
-    <div className="space-y-10 text-right rtl" dir="rtl">
-      {/* 1 — Hero — always visible */}
+    <div className="space-y-8 text-right rtl" dir="rtl">
+      {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <DashboardHero
-        greeting={greeting}
+        greeting={hourGreeting()}
         name={displayName}
         role="بوابة الطالب"
-        subtitle={learningLine}
+        subtitle={
+          loading
+            ? 'جارٍ تحميل بيانات التعلّم…'
+            : loadError
+              ? loadError
+              : counts.enrolled_courses_count === 0
+                ? 'لم تسجل بعد — تصفّح الدورات المتاحة وابدأ.'
+                : `تقدّمك: ${Math.round(lmsDashboard.progress_percent)}%`
+        }
         quickStats={heroStats}
         avatarUrl={avatarUrl}
         avatarInitials={avatarInitials}
         actions={
           <>
-            <HeroChip href="/dashboard/student/materials"  label="المقررات والمواد" />
-            <HeroChip href="/dashboard/student/sessions"   label="جدول الجلسات"    />
-            <HeroChip href="/dashboard/student/evaluation" label="تقييم التجربة"   />
-            <HeroChip href="/dashboard/profile"            label="إعداد الحساب"    />
+            <HeroChip href="/dashboard/student/materials"  label="المواد التعليمية" />
+            <HeroChip href="/dashboard/student/sessions"   label="جدول الجلسات" />
+            <HeroChip href="/dashboard/student/attendance" label="سجل الحضور" />
+            <HeroChip href="/dashboard/student/evaluation" label="تقييم التجربة" />
           </>
         }
       />
 
-      {/* Error banners (per-section, not full-page block) */}
-      {dashError && !dashLoading && (
+      {/* Error banner */}
+      {loadError && !loading && (
         <DashboardErrorWidget
-          title="تعذّر تحميل لوحة التحكم"
-          description={dashError}
+          title="تعذّر تحميل لوحة الطالب"
+          description={loadError}
           compact
         />
       )}
 
-      {/* 2 — LMS mini KPIs — skeleton while loading */}
-      {lmsLoading ? (
-        <DashboardKpiSkeleton count={4} />
-      ) : lmsError ? (
-        <DashboardErrorWidget title="تعذّر تحميل بيانات التعلّم" description={lmsError} compact />
-      ) : lmsDash ? (
-        <>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DashboardKpiCard label="التقدّم المعرفي"         value={`${Math.round(lmsDash.progress_percent)}%`} icon={TrendingUp}    variant="brand"  />
-          <DashboardKpiCard label="دورات نشطة"              value={String(activeCoursesCount || activeEnrollCount)} icon={BookOpen}      variant="brand"  />
-          <DashboardKpiCard label="واجبات تنتظر التسليم"   value={String(pendingDueCount)}                       icon={ClipboardList} variant="accent" />
-          <DashboardKpiCard label="اختبار تحديد مكتمل"     value={String(placementCompletedCount)}               icon={CheckCircle}   variant="muted"  />
+      {/* ── KPIs ────────────────────────────────────────────────────────────── */}
+      {!loading && !loadError && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <KpiCard
+            label="دورات نشطة"
+            value={activeCount}
+            icon={BookOpen}
+            color="blue"
+          />
+          <KpiCard
+            label="واجبات تنتظر التسليم"
+            value={pendingDueCount}
+            icon={ClipboardList}
+            color="orange"
+          />
+          <KpiCard
+            label="التقدّم الإجمالي"
+            value={`${Math.round(lmsDashboard.progress_percent)}%`}
+            icon={TrendingUp}
+            color="green"
+          />
+          <KpiCard
+            label="إشعارات غير مقروءة"
+            value={unreadCount}
+            icon={Bell}
+            color={unreadCount > 0 ? 'purple' : 'slate'}
+          />
         </div>
-        {classAssignment && (
-          <div className="rounded-2xl border border-customBlue/20 bg-customBlue/[0.05] px-5 py-4 ring-1 ring-customBlue/10">
-            <p className="text-[11px] font-black uppercase tracking-wider text-customBlue/70">صفّك / مجموعتك</p>
-            <p className="mt-1 text-sm font-black text-deepBlue">{classAssignment.name}</p>
-            <p className="mt-1 text-[12px] font-semibold text-slate-600">
-              {classAssignment.level_code ? `المستوى: ${classAssignment.level_code}` : null}
-              {classAssignment.schedule_day ? ` · ${classAssignment.schedule_day}` : null}
-              {classAssignment.schedule_time ? ` · ${classAssignment.schedule_time}` : null}
-              {classAssignment.instructor_name ? ` · ${classAssignment.instructor_name}` : null}
-            </p>
-          </div>
-        )}
-        </>
-      ) : null}
-
-      {/* 3 — Overview stats */}
-      <DashboardSection title="نظرتي التعليمية السريعة" subtitle="كل الأرقام من بياناتك الحقيقية فقط.">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          <StatCard title="الدورات المسجّلة"    value={String(enrollmentsMerged.length || currentLmsCourses.length)} icon={BookOpen}           color="blue"   />
-          <StatCard title="دورات نشطة"          value={String(activeCoursesCount || activeEnrollCount)}              icon={BookOpen}           color="blue"   />
-          <StatCard title="جلسات قادمة"         value={String(upcomingLmsRaw.length || (Array.isArray(sessions) ? sessions.length : 0))} icon={Calendar} color="orange" />
-          <StatCard title="واجبات معلّقة"       value={String(pendingDueCount)}                                      icon={ClipboardList}      color="orange" />
-          <StatCard title="تحديد مستوى مكتمل"   value={String(placementCompletedCount)}                              icon={CheckCircle}        color="green"  />
-          <StatCard title="إشعار غير مقروء"     value={String(unreadCount)}                                          icon={Bell}               color="purple" />
+      )}
+      {loading && (
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+          ))}
         </div>
-      </DashboardSection>
-
-      {/* 4 — Pending assignments (priority) */}
-      {pendingAssignments.length > 0 && (
-        <DashboardSection title="أولوية الواجبات" action={{ label: 'الكل', href: '/dashboard/student/assignments' }}>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {pendingAssignments.slice(0, 2).map((a) => (
-              <AssignmentCard key={a.id} assignment={a} />
-            ))}
-          </div>
-        </DashboardSection>
       )}
 
-      {/* 5 — Enrolled courses */}
-      <DashboardSection
-        title="دوراتي والتسجيلات الحالية"
-        subtitle="مزامنة من لوحة الموحّد وجداول الطالب والتسجيلات."
-      >
-        {dashLoading ? (
-          <DashboardCardGridSkeleton count={4} cols={4} />
-        ) : enrollmentsMerged.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {enrollmentsMerged.slice(0, 8).map((e) => (
-              <EnrolledCourseCard
-                key={e.id}
-                enrollment={e}
-                actionLabel="متابعة التعلم"
-                actionTo={studentLearnHref(e.course.id)}
-              />
-            ))}
-          </div>
-        ) : !lmsLoading && currentLmsCourses.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {currentLmsCourses.slice(0, 8).map((c) => {
-              const pct = typeof c.progress_percent === 'number' ? Math.round(c.progress_percent) : 0
-              const hrefContinue = studentLearnHref(c.id)
-              const cover = resolvePublicAssetUrl(c.cover_url ?? null)
-              const when =
-                c.start_date ?
-                  formatDateTime(c.start_time ? `${String(c.start_date).slice(0, 10)}T${c.start_time}` : c.start_date)
-                : null
-              return (
-                <motion.div
-                  key={c.id}
-                  layout
-                  whileHover={{ y: -3 }}
-                  className="flex flex-col gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm ring-1 ring-deepBlue/[0.03]"
-                >
-                  <div className="aspect-[16/10] overflow-hidden rounded-xl bg-slate-100">
-                    {cover ?
-                      <img alt="" src={cover} className="h-full w-full object-cover" />
-                    : <img alt="" src={courseImages[c.id % courseImages.length]} className="h-full w-full object-cover" />}
-                  </div>
-                  <div>
-                    <h3 className="line-clamp-2 text-[14px] font-black leading-snug text-deepBlue">{c.title}</h3>
-                    {c.instructor_name && (
-                      <p className="mt-1 text-[11px] font-bold text-slate-500">مع المدرب: {c.instructor_name}</p>
-                    )}
-                    {when ?
-                      <p className="mt-2 text-[11px] font-bold text-slate-600">{when}</p>
-                    : (
-                      <p className="mt-2 rounded-lg border border-sky-200/80 bg-sky-50/90 px-2 py-1.5 text-[10px] font-bold text-sky-950">
-                        انضممت إلى الدورة — سيتم إشعارك عند تحديد الموعد
-                      </p>
-                    )}
-                    {c.class_assignment?.name && (
-                      <p className="mt-2 text-[10px] font-black text-customBlue">الصف: {c.class_assignment.name}</p>
-                    )}
-                  </div>
-                  {pct > 0 || c.progress_percent !== undefined ? (
-                    <div className="flex items-center justify-between gap-3">
-                      <ProgressRing percent={pct} size={68} stroke={6} />
-                      <Link
-                        to={hrefContinue}
-                        className="rounded-2xl bg-deepBlue px-4 py-2 text-[11px] font-black text-white shadow-inner transition hover:bg-customBlue"
-                      >
-                        متابعة التعلم
-                      </Link>
-                    </div>
-                  ) : (
-                    <Link
-                      to={hrefContinue}
-                      className="rounded-2xl border border-customBlue/35 bg-customBlue/10 px-4 py-2 text-center text-[11px] font-black text-deepBlue hover:bg-customBlue/18"
-                    >
-                      متابعة التعلم
-                    </Link>
-                  )}
-                </motion.div>
-              )
-            })}
-          </div>
-        ) : (
-          <EmptyState
-            icon={BookOpen}
-            title="لا توجد دورات مسجلة حاليًا"
-            description="سيُعرض هنا كل تسجيل مؤكَّد مع الخادم."
-            action={{ label: 'استعرض الدورات المتاحة', href: '/courses' }}
-          />
-        )}
-      </DashboardSection>
-
-      {/* 6 — Browse courses */}
-      <DashboardSection
-        title="دورات يمكنني التسجيل لها الآن"
-        action={!catalogLoading && browseCourses.length > 0 ? { label: 'الكتالوج العام', href: '/courses' } : undefined}
-      >
-        {catalogLoading ? (
-          <DashboardCardGridSkeleton count={3} cols={3} />
-        ) : browseCourses.length === 0 ? (
-          <EmptyState
-            icon={BookOpen}
-            title={catalog.length === 0 ? 'لم تُحمَّل قائمة الدورات.' : 'أنت مسجل في هذه الدورات بالفعل أو القائمة خالية.'}
-            action={{ label: 'فتح دورات المنصّة', href: '/courses' }}
-          />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {browseCourses.slice(0, 6).map((c, i) => (
-              <motion.div
-                key={c.id ?? i}
-                layout
-                className="rounded-2xl border border-deepBlue/[0.06] bg-white/[0.95] p-4 shadow-sm ring-1 ring-deepBlue/[0.03] transition hover:border-customOrange/35 hover:shadow-md"
-              >
-                <div className="aspect-[21/10] overflow-hidden rounded-xl bg-slate-100">
-                  <img
-                    src={c.course_image || courseImages[Number(c.id) % courseImages.length]}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <h4 className="mt-4 line-clamp-2 text-sm font-black leading-relaxed text-deepBlue">{c.title}</h4>
-                <div className="mt-5 flex justify-between gap-2">
-                  <span className="text-[11px] font-black text-slate-400">
-                    {toFiniteStat(c.price as number | string | undefined, 0) ? 'برسوم' : 'مجانية'}
-                  </span>
-                  <Link
-                    to={`/courses/${c.slug}`}
-                    className="rounded-2xl bg-customOrange px-3 py-1.5 text-[11px] font-black text-white shadow-sm hover:brightness-105"
-                  >
-                    {c.start_date != null && String(c.start_date).trim() !== '' && String(c.start_date) !== '—'
-                      ? 'التسجيل الآن'
-                      : 'انضم إلى الدورة القادمة'}
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </DashboardSection>
-
-      {/* 7 — Sessions + Notifications */}
-      <div className="grid gap-10 xl:grid-cols-[1fr_minmax(0,340px)]">
+      {/* ── Sessions ────────────────────────────────────────────────────────── */}
+      <div className="grid gap-8 xl:grid-cols-[1fr_minmax(0,340px)]">
         <DashboardSection
-          title="الجلسات القادمة"
-          action={
-            Array.isArray(sessions) && sessions.length > 0
-              ? { label: 'جدول الجلسات', href: '/dashboard/student/sessions' }
-              : undefined
-          }
+          title="الجلسات"
+          action={{ label: 'جدول كامل', href: '/dashboard/student/sessions' }}
         >
-          {lmsLoading ? (
+          {loading ? (
             <DashboardListSkeleton count={3} />
-          ) : upcomingLmsRaw.length > 0 ? (
-            <ol className="relative space-y-5 border-e-2 border-customBlue/20 pe-8">
-              {upcomingLmsRaw.slice(0, 8).map((s) => (
-                <li key={s.id}><SessionCard session={s} joinMeetingLabel="انضم للجلسة" /></li>
-              ))}
-            </ol>
+          ) : !hasSessions ? (
+            <EmptyState icon={Calendar} title="لا توجد جلسات مجدولة حاليًا" />
           ) : (
-            <EmptyState icon={Calendar} title="لم تُحمّل جلسات قريبة بعد" />
+            <div className="space-y-6">
+              <AnimatePresence>
+                <SessionGroup
+                  icon={Radio}
+                  title="مباشرة الآن"
+                  iconClass="text-emerald-600"
+                  sessions={sessionsLive}
+                />
+                <SessionGroup
+                  icon={Calendar}
+                  title="قادمة"
+                  iconClass="text-customBlue"
+                  sessions={sessionsUpcoming}
+                />
+                <SessionGroup
+                  icon={CheckCircle}
+                  title="انتهت (آخر يومين)"
+                  iconClass="text-slate-400"
+                  sessions={sessionsEnded}
+                />
+              </AnimatePresence>
+            </div>
           )}
         </DashboardSection>
 
+        {/* ── Notifications ───────────────────────────────────────────────── */}
         <DashboardSection
           title="أحدث الإشعارات"
           action={{ label: 'مركز الإشعارات', href: '/dashboard/notifications' }}
         >
-          {lmsLoading ? (
+          {loading ? (
             <DashboardListSkeleton count={4} />
           ) : dashboardNotifications.length > 0 ? (
             <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-deepBlue/[0.05] bg-white shadow-sm ring-1 ring-white">
@@ -525,52 +472,142 @@ export default function Dashboard() {
         </DashboardSection>
       </div>
 
-      {/* 8 — Evaluation CTA */}
+      {/* ── Pending Assignments ─────────────────────────────────────────────── */}
+      {pendingAssignments.length > 0 && (
+        <DashboardSection
+          title="واجبات تنتظر تسليمك"
+          action={{ label: 'الكل', href: '/dashboard/student/assignments' }}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {pendingAssignments.slice(0, 4).map((a) => (
+              <Link
+                key={a.id}
+                to={`/dashboard/student/assignments?submit=${a.assignment_id ?? a.id}`}
+                className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 ring-1 ring-amber-100 transition hover:border-amber-300"
+              >
+                <div className="min-w-0 text-right">
+                  <p className="line-clamp-1 text-[13px] font-black text-deepBlue">{a.title}</p>
+                  {a.course_name && (
+                    <p className="mt-0.5 text-[11px] font-bold text-slate-500">{a.course_name}</p>
+                  )}
+                  {a.due_at && (
+                    <p className="mt-1 text-[10px] font-bold text-amber-700" dir="ltr">
+                      {formatDateTime(a.due_at)}
+                    </p>
+                  )}
+                </div>
+                <span className="shrink-0 rounded-full bg-amber-500/90 px-2.5 py-1 text-[10px] font-black text-white">
+                  مطلوب
+                </span>
+              </Link>
+            ))}
+          </div>
+        </DashboardSection>
+      )}
+
+      {/* ── My Courses ─────────────────────────────────────────────────────── */}
+      <DashboardSection
+        title="دوراتي"
+        subtitle="الدورات المسجّل فيها — مزامنة من بيانات التسجيل الحقيقية."
+        action={
+          displayCourses.length > 8
+            ? { label: 'عرض الكل', href: '/dashboard/student/courses' }
+            : undefined
+        }
+      >
+        {loading ? (
+          <DashboardCardGridSkeleton count={4} cols={4} />
+        ) : displayCourses.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {displayCourses.slice(0, 8).map((c) => (
+              <CourseCard key={c.id} course={c} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={BookOpen}
+            title="لا توجد دورات مسجلة حاليًا"
+            description="استعرض الدورات المتاحة وابدأ رحلتك التعليمية."
+            action={{ label: 'استعرض الدورات', href: '/courses' }}
+          />
+        )}
+      </DashboardSection>
+
+      {/* ── Certificates ────────────────────────────────────────────────────── */}
+      {(loading || certificates.length > 0 || counts.certificates_count > 0) && (
+        <DashboardSection
+          title="الشهادات المكتسبة"
+          action={{ label: 'شهاداتي', href: '/dashboard/certificates' }}
+        >
+          {loading ? (
+            <DashboardCardGridSkeleton count={2} cols={2} />
+          ) : certificates.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {certificates.slice(0, 4).map((c) => (
+                <Link
+                  key={c.id}
+                  to="/dashboard/certificates"
+                  className="rounded-xl border border-emerald-200/95 bg-emerald-50/90 px-4 py-3 text-right ring-1 ring-emerald-100 transition hover:border-emerald-300"
+                >
+                  <p className="font-black text-deepBlue">{c.title}</p>
+                  {(c.course_name || c.track_name) && (
+                    <p className="mt-1 text-[11px] font-semibold text-slate-600">
+                      {c.course_name ?? c.track_name}
+                    </p>
+                  )}
+                  {c.issued_at && (
+                    <p className="mt-1 text-[10px] font-bold text-emerald-700" dir="ltr">
+                      {formatDateTime(c.issued_at)}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={ScrollText} title="لا شهادات مكتسبة بعد" />
+          )}
+        </DashboardSection>
+      )}
+
+      {/* ── Evaluation CTA ──────────────────────────────────────────────────── */}
       <motion.section
         layout
         className="rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-6 py-5 shadow-inner ring-1 ring-customOrange/20"
       >
         <div className="flex flex-wrap items-center justify-between gap-4 rtl:flex-row-reverse">
           <div className="min-w-[12rem] text-right">
-            <h3 className="text-sm font-black text-deepBlue">قيِّم تجربتك قبل أن تذهب التفاصيل بعيدًا</h3>
+            <h3 className="text-sm font-black text-deepBlue">قيِّم تجربتك التعليمية</h3>
             <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-600">
-              {completedEnrollCount > 0 ? (
-                <>تم تسجيل <span className="font-black text-deepBlue">{completedEnrollCount}</span> دورة كمكتملة.</>
+              {counts.completed_courses_count > 0 ? (
+                <>
+                  أكملت <span className="font-black text-deepBlue">{counts.completed_courses_count}</span> دورة —
+                  شاركنا رأيك.
+                </>
               ) : (
-                'سيُفعِّل هذا التنبيه تلقائيًا بعد إكمال أول دورة.'
+                'سيُفعَّل هذا بعد إتمام أول دورة.'
               )}
             </p>
           </div>
-          <Link
-            to="/dashboard/student/evaluation"
-            className="shrink-0 rounded-2xl bg-customOrange px-5 py-2.5 text-xs font-black text-white shadow-md hover:brightness-105"
-          >
-            الانتقال للتقييم
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => void refresh()}
+              disabled={refreshing}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-slate-500 transition hover:border-customBlue hover:text-customBlue disabled:opacity-50"
+              title="تحديث البيانات"
+            >
+              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+              تحديث
+            </button>
+            <Link
+              to="/dashboard/student/evaluation"
+              className="flex items-center gap-1.5 rounded-xl bg-customOrange px-4 py-2.5 text-[11px] font-black text-white shadow-md transition hover:brightness-105"
+            >
+              الانتقال للتقييم
+              <ChevronLeft size={13} />
+            </Link>
+          </div>
         </div>
       </motion.section>
-
-      {/* 9 — Certificates */}
-      <DashboardSection title="الشهادات المكتسبة" action={{ label: 'شهاداتي', href: '/dashboard/certificates' }}>
-        {lmsLoading ? (
-          <DashboardCardGridSkeleton count={2} cols={2} />
-        ) : toFiniteStat(stats.completed_certificates, 0) > 0 || certPlaceholders.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-emerald-200/95 bg-emerald-50/90 px-4 py-3 text-[12px] font-black text-deepBlue ring-1 ring-emerald-100">
-              عدد أكملها الخادم في الموجز:{' '}
-              <span>{toFiniteStat(stats.completed_certificates, 0)}</span>
-            </div>
-            {certPlaceholders.slice(0, 4).map((c, i) => (
-              <div key={`${String(c.label)}-${i}`} className="rounded-xl border border-dashed border-customOrange/40 bg-customOrange/[0.04] px-4 py-3 text-right">
-                <p className="font-black text-deepBlue">{c.label}</p>
-                {c.note && <p className="mt-1 text-[11px] font-semibold text-slate-600">{c.note}</p>}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyState icon={ScrollText} title="لا شهادة مفعّلة في الملمس الحالي بعد" />
-        )}
-      </DashboardSection>
     </div>
   )
 }

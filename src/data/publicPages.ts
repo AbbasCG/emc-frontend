@@ -378,4 +378,11 @@ export const siteContact = {
   supportEmail: 'support@edumc.nl',
   location: { ar: 'أمستردام، هولندا — خدمة أونلاين ومجتمعات عربية وهولندية' },
   hours: { ar: 'الأحد — الخميس، 9:00 — 18:00 (بتوقيت أوروبا الوسطى)' },
+  social: {
+    website: 'https://edumc.nl',
+    linkedin: 'https://www.linkedin.com/company/edumc',
+    instagram: 'https://www.instagram.com/edumc.nl',
+    youtube: 'https://www.youtube.com/@edumc',
+    x: 'https://x.com/edumc_nl',
+  },
 }

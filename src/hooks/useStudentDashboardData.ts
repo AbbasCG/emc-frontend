@@ -1,6 +1,4 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { AxiosResponse } from 'axios'
-import apiClient from '@/api/axios'
 import { fetchCoursesFromApi } from '@/api/coursesApi.public'
 import { fetchNotifications, isNotificationUnread } from '@/api/notificationsApi'
 import {
@@ -43,6 +41,7 @@ const EMPTY_LMS = normalizeStudentLmsDashboard(null)
 const EMPTY_LMS_ENVELOPED = {
   dashboard: EMPTY_LMS,
   envelope: null as unknown,
+  ok: false,
 }
 
 function mergeProgressWithRegistrations(
@@ -141,6 +140,8 @@ export type StudentDashboardContextValue = {
   browseCourses: Course[]
   browseSource: 'api_available' | 'public_filtered'
   sessionsUpcoming: LmsSession[]
+  sessionsLive: LmsSession[]
+  sessionsEnded: LmsSession[]
   sessionsCompleted: LmsSession[]
   materialsScoped: LmsMaterial[]
   assignmentsScoped: StudentAssignment[]
@@ -164,6 +165,8 @@ const FALLBACK_CONTEXT: StudentDashboardContextValue = {
   browseCourses: [],
   browseSource: 'public_filtered',
   sessionsUpcoming: [],
+  sessionsLive: [],
+  sessionsEnded: [],
   sessionsCompleted: [],
   materialsScoped: [],
   assignmentsScoped: [],
@@ -189,13 +192,12 @@ const FALLBACK_CONTEXT: StudentDashboardContextValue = {
 
 const StudentDashboardContext = createContext<StudentDashboardContextValue | null>(null)
 
-function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextValue {
+function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDashboardContextValue {
   const [loading, setLoading] = useState(enabled)
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const [lmsDashboard, setLmsDashboard] = useState<StudentLmsDashboard>(EMPTY_LMS)
-  const [mainDashboardEnvelope, setMainDashboardEnvelope] = useState<unknown | null>(null)
   const [studentDashboardEnvelope, setStudentDashboardEnvelope] = useState<unknown | null>(null)
   const [registrations, setRegistrations] = useState<StudentRegistrationRow[]>([])
   const [listedCourses, setListedCourses] = useState<StudentListedCourse[]>([])
@@ -237,7 +239,6 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
         fetchStudentProgress(),
         fetchNotifications(),
         fetchStudentReviews(),
-        apiClient.get<unknown>('/dashboard', { skipErrorToast: true }),
       ])
 
       const unwrap = <T,>(i: number, fallback: T): T => {
@@ -249,17 +250,12 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
       const lmsPacked = unwrap(0, EMPTY_LMS_ENVELOPED)
       setLmsDashboard(lmsPacked.dashboard)
       setStudentDashboardEnvelope(lmsPacked.envelope ?? null)
-
-      const mainIx = results.length - 1
-      let mainEnvelope: unknown = null
-      const mainRes = results[mainIx]
-      if (mainRes?.status === 'fulfilled') {
-        mainEnvelope = (mainRes.value as AxiosResponse<unknown>).data ?? null
+      if (!lmsPacked.ok) {
+        setLoadError('تعذّر تحميل لوحة الطالب.')
       }
-      setMainDashboardEnvelope(mainEnvelope)
 
       const apiRegs = unwrap(1, []) as StudentRegistrationRow[]
-      const regExtrasFromApi = [...extractExtraRegistrationRows(mainEnvelope), ...extractExtraRegistrationRows(lmsPacked.envelope)]
+      const regExtrasFromApi = extractExtraRegistrationRows(lmsPacked.envelope)
       setRegistrations(mergeRegistrationRows(apiRegs, regExtrasFromApi))
       setListedCourses(unwrap(2, []))
       setApiAvailable(unwrap(3, []))
@@ -292,7 +288,7 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
       if (mode === 'initial') setLoading(false)
       setRefreshing(false)
     }
-  }, [enabled])
+  }, [enabled, userId])
 
   useEffect(() => {
     if (!enabled) {
@@ -300,7 +296,7 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
       return
     }
     void load('initial')
-  }, [enabled, load])
+  }, [enabled, userId, load])
 
   useEffect(() => {
     if (!enabled) return
@@ -313,12 +309,8 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
 
   const enrollmentBaseline = useMemo(
     () =>
-      buildEnrollmentBaselineFromEnvelopePayloads(
-        mainDashboardEnvelope,
-        studentDashboardEnvelope,
-        lmsDashboard,
-      ),
-    [mainDashboardEnvelope, studentDashboardEnvelope, lmsDashboard],
+      buildEnrollmentBaselineFromEnvelopePayloads(null, studentDashboardEnvelope, lmsDashboard),
+    [studentDashboardEnvelope, lmsDashboard],
   )
 
   const enrollmentsMerged = useMemo(
@@ -333,14 +325,39 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
     [apiAvailable, publicCatalog, registrations],
   )
 
-  const sessionsUpcoming = useMemo(() => {
-    const merged = [...sessionsUpcomingRaw, ...(lmsDashboard.upcoming_sessions ?? [])]
+  const sessionsLive = useMemo(() => {
+    const merged = [...(lmsDashboard.live_sessions ?? [])]
     const dedup = new Map<number, LmsSession>()
     for (const s of merged) {
       if (s && typeof s.id === 'number') dedup.set(s.id, s)
     }
     return filterSessionsForRegistrations([...dedup.values()], registrations)
+  }, [lmsDashboard.live_sessions, registrations])
+
+  const sessionsUpcoming = useMemo(() => {
+    // Prefer backend's segmented upcoming (excludes live); fall back to raw fetched sessions
+    const dashboardUpcoming = (lmsDashboard.upcoming_sessions ?? []).filter(
+      (s) => s.status !== 'live' && s.status !== 'completed',
+    )
+    const merged = [...sessionsUpcomingRaw, ...dashboardUpcoming]
+    const dedup = new Map<number, LmsSession>()
+    for (const s of merged) {
+      if (s && typeof s.id === 'number') dedup.set(s.id, s)
+    }
+    return filterSessionsForRegistrations(
+      [...dedup.values()].filter((s) => s.status !== 'live' && s.status !== 'completed'),
+      registrations,
+    )
   }, [sessionsUpcomingRaw, lmsDashboard.upcoming_sessions, registrations])
+
+  const sessionsEnded = useMemo(() => {
+    const merged = [...(lmsDashboard.ended_sessions ?? []), ...sessionsCompletedRaw]
+    const dedup = new Map<number, LmsSession>()
+    for (const s of merged) {
+      if (s && typeof s.id === 'number') dedup.set(s.id, s)
+    }
+    return filterSessionsForRegistrations([...dedup.values()], registrations)
+  }, [lmsDashboard.ended_sessions, sessionsCompletedRaw, registrations])
 
   const sessionsCompleted = useMemo(() => {
     const merged = [...sessionsCompletedRaw, ...(lmsDashboard.completed_sessions ?? [])]
@@ -369,14 +386,14 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
   const reviewedCourseIds = useMemo(() => new Set(reviews.map((r) => r.course_id)), [reviews])
 
   const sidebarCounts = useMemo((): StudentSidebarCounts => {
-    const due = assignmentsScoped.filter((a) => a.status === 'pending' || a.status === 'late').length
+    const c = lmsDashboard.counts
     return {
-      myCourses: enrollmentsMerged.length,
+      myCourses: c.enrolled_courses_count || enrollmentsMerged.length,
       registrations: registrations.length,
-      sessionsUpcoming: sessionsUpcoming.length,
-      assignmentsDue: due,
+      sessionsUpcoming: c.upcoming_sessions_count || sessionsUpcoming.length + sessionsLive.length,
+      assignmentsDue: c.pending_assignments_count,
     }
-  }, [enrollmentsMerged.length, registrations.length, sessionsUpcoming.length, assignmentsScoped])
+  }, [lmsDashboard.counts, enrollmentsMerged.length, registrations.length, sessionsUpcoming.length, sessionsLive.length])
 
   const refresh = useCallback(async () => {
     await load('refresh')
@@ -394,6 +411,8 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
     browseCourses,
     browseSource,
     sessionsUpcoming,
+    sessionsLive,
+    sessionsEnded,
     sessionsCompleted,
     materialsScoped,
     assignmentsScoped,
@@ -407,7 +426,8 @@ function useStudentDashboardLoader(enabled: boolean): StudentDashboardContextVal
 }
 
 function StudentDashboardBridge({ children }: { children: ReactNode }) {
-  const bundle = useStudentDashboardLoader(true)
+  const { user } = useAuth()
+  const bundle = useStudentDashboardLoader(true, user?.id ?? 0)
   return createElement(StudentDashboardContext.Provider, { value: bundle }, children)
 }
 
