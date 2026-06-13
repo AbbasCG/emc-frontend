@@ -9,7 +9,7 @@ export type CoursesHeroStats = {
   totalCourses: number
   totalRegistrations: number
   instructors: number
-  tracksCount: number
+  learningPathsCount: number
 }
 
 type CoursesHeroProps = {
@@ -93,7 +93,7 @@ export default function CoursesHero({
     { value: stats.totalCourses, label: 'برنامج في الكتالوج', suffix: '' },
     { value: stats.totalRegistrations, label: 'تسجيل مُسجَّل', suffix: '+' },
     { value: stats.instructors, label: 'مدرّب ومدرّبة', suffix: '+' },
-    { value: stats.tracksCount, label: 'مسار تعليمي', suffix: '' },
+    { value: stats.learningPathsCount, label: 'مسار تعليمي', suffix: '' },
   ]
 
   return (
@@ -177,10 +177,10 @@ export default function CoursesHero({
             تصفح جميع الدورات
           </motion.button>
           <Link
-            to="/tracks"
+            to="/programs"
             className="rounded-xl border-2 border-accent-500 px-7 py-3.5 text-sm font-bold text-accent-400 transition hover:bg-accent-500 hover:text-white"
           >
-            عرض المسارات
+            جميع البرامج
           </Link>
         </motion.div>
 

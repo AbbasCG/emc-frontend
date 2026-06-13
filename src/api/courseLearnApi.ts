@@ -17,8 +17,10 @@ import { unwrapData } from '@/api/unwrap'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import type {
   CourseLearnAssignment,
+  CourseLearnClassGroup,
   CourseLearnMaterial,
   CourseLearnSession,
+  ModuleLesson,
   StudentCourseLearnPayload,
   StudentLearnCourseOverview,
   StudentLearnModule,
@@ -26,15 +28,10 @@ import type {
 import type { AssignmentStatus, LmsMaterial, LmsSession, StudentAssignment } from '@/types/lms'
 import type { LmsModule } from '@/types/platform'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import { normalizeAssignmentStatus, resolveLmsAssignmentSubmitId } from '@/utils/lmsAssignment'
 
 function normalizeLearnAssignmentStatus(raw: string | null | undefined): AssignmentStatus {
-  const s = String(raw ?? '').toLowerCase()
-  if (/grad|nota|점|passed|approve|credit/.test(s)) return 'graded'
-  if (/submit|turned|deliver|تم\s*التسليم|مسلم/.test(s)) return 'submitted'
-  if (/revision|rev\b|needs/.test(s)) return 'revision'
-  if (/late|متأخر|overdue/.test(s)) return 'late'
-  if (/pending|open|نشط/.test(s) || !s) return 'pending'
-  return 'pending'
+  return normalizeAssignmentStatus(raw)
 }
 
 /** Maps learn-material row to LMS material card model (URLs resolved against API origin). */
@@ -54,20 +51,28 @@ export function mapCourseLearnMaterialToLmsMaterial(
     url: resolved,
     description: m.description ?? null,
     course_name: ctx.courseTitle,
+    updated_at: m.updated_at ?? null,
   }
 }
 
 export function mapCourseLearnAssignmentToStudentAssignment(
   a: CourseLearnAssignment,
   ctx: { courseId: number; courseTitle: string },
-): StudentAssignment {
-  const submitId = a.lms_assignment_id ?? a.assignment_id ?? a.id
+): StudentAssignment | null {
+  const submitId = resolveLmsAssignmentSubmitId({
+    lms_assignment_id: a.lms_assignment_id,
+    assignment_id: a.assignment_id,
+    id: a.id,
+    course_assignment_id: a.course_assignment_id ?? a.id,
+  })
+  if (submitId == null) return null
+
   const mySub = a.my_submission
   const submittedAt = a.submitted_at ?? mySub?.submitted_at ?? null
-  const statusRaw = a.status ?? mySub?.status ?? null
+  const statusRaw = a.status ?? mySub?.status ?? (submittedAt ? 'submitted' : null)
 
   return {
-    id: a.id,
+    id: a.course_assignment_id ?? a.id,
     course_id: ctx.courseId,
     assignment_id: submitId,
     title: a.title,
@@ -200,6 +205,28 @@ function pickCourse(root: Record<string, unknown>, fallbackCourseId = 0): Studen
   return buildCourseOverview(o, fallbackCourseId, 'محتوى الدورة')
 }
 
+function normalizeModuleLessons(rawList: unknown[]): ModuleLesson[] {
+  const out: ModuleLesson[] = []
+  for (const r of rawList) {
+    if (!r || typeof r !== 'object' || Array.isArray(r)) continue
+    const o = r as Record<string, unknown>
+    const id = toNum(o.id)
+    if (id <= 0) continue
+    const title = str(o.title)
+    if (!title) continue
+    out.push({
+      id,
+      title,
+      description: str(o.description) || undefined,
+      video_url: str(o.video_url) || undefined,
+      duration_minutes: o.duration_minutes != null ? toNum(o.duration_minutes) : undefined,
+      sort_order: toNum(o.sort_order, out.length),
+      status: str(o.status) || 'active',
+    })
+  }
+  return out.sort((a, b) => a.sort_order - b.sort_order)
+}
+
 function normalizeModules(rawList: unknown[]): StudentLearnModule[] {
   const out: StudentLearnModule[] = []
   for (const r of rawList) {
@@ -219,6 +246,7 @@ function normalizeModules(rawList: unknown[]): StudentLearnModule[] {
       id,
       course_id: course_id && course_id > 0 ? course_id : undefined,
       title,
+      description: str(o.description) || undefined,
       sort_order: toNum(o.sort_order, out.length),
       lessons_count: toNum(o.lessons_count, 0),
       completed_lessons: completedLessons,
@@ -228,6 +256,10 @@ function normalizeModules(rawList: unknown[]): StudentLearnModule[] {
         o.submitted_assignments_count != null ? toNum(o.submitted_assignments_count) : undefined,
       progress_percentage: o.progress_percentage != null ? toNum(o.progress_percentage) : undefined,
       is_completed: o.is_completed != null ? Boolean(o.is_completed) : undefined,
+      lessons: Array.isArray(o.lessons) ? normalizeModuleLessons(o.lessons) : undefined,
+      materials: Array.isArray(o.materials) ? normalizeLearnMaterials(o.materials) : undefined,
+      sessions: Array.isArray(o.sessions) ? normalizeLearnSessions(o.sessions) : undefined,
+      assignments: Array.isArray(o.assignments) ? normalizeLearnAssignments(o.assignments) : undefined,
     })
   }
   return [...out].sort((a, b) => a.sort_order - b.sort_order)
@@ -259,7 +291,9 @@ function normalizeLearnSessions(rawList: unknown[]): CourseLearnSession[] {
       ends_at: str(o.ends_at ?? o.endsAt) || undefined,
       date: str(o.date) || undefined,
       time: str(o.time) || undefined,
+      module_id: o.module_id != null ? toNum(o.module_id) : null,
       meeting_url: str(o.meeting_url ?? o.meeting_link) || undefined,
+      meeting_link: str(o.meeting_link ?? o.meeting_url) || undefined,
       recording_url: str(o.recording_url ?? o.recording_link) || undefined,
       location_type: locType ?? null,
       location: str(o.location) || undefined,
@@ -300,6 +334,7 @@ function normalizeLearnMaterials(rawList: unknown[]): CourseLearnMaterial[] {
     out.push({
       id,
       course_id: o.course_id != null ? toNum(o.course_id) : undefined,
+      module_id: o.module_id != null ? toNum(o.module_id) : null,
       title: str(o.title, 'مادة'),
       description: str(o.description) || undefined,
       kind,
@@ -307,6 +342,7 @@ function normalizeLearnMaterials(rawList: unknown[]): CourseLearnMaterial[] {
       external_url: extUrl,
       url: urlLegacy ?? fileUrl ?? extUrl,
       visibility: o.visibility != null ? str(o.visibility) : undefined,
+      updated_at: str(o.updated_at ?? o.created_at) || undefined,
     })
   }
   return out
@@ -317,12 +353,16 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
   for (const r of rawList) {
     if (!r || typeof r !== 'object' || Array.isArray(r)) continue
     const o = r as Record<string, unknown>
-    const id = toNum(o.id ?? o.assignment_id ?? o.course_assignment_id)
-    const assignment_id = toNum(
-      o.lms_assignment_id ?? o.assignment_id ?? o.id ?? o.course_assignment_id,
-      id,
-    )
-    if (id <= 0) continue
+    const rowId = toNum(o.id ?? o.course_assignment_id)
+    const courseAssignmentId =
+      o.course_assignment_id != null ? toNum(o.course_assignment_id) : rowId > 0 ? rowId : 0
+    const lmsId = resolveLmsAssignmentSubmitId({
+      lms_assignment_id: o.lms_assignment_id != null ? toNum(o.lms_assignment_id) : null,
+      assignment_id: o.assignment_id != null ? toNum(o.assignment_id) : null,
+      id: rowId > 0 ? rowId : null,
+      course_assignment_id: courseAssignmentId > 0 ? courseAssignmentId : null,
+    })
+    if (rowId <= 0 && lmsId == null) continue
 
     const mySub =
       o.my_submission && typeof o.my_submission === 'object' && !Array.isArray(o.my_submission) ?
@@ -345,10 +385,13 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
     }
 
     out.push({
-      id,
-      assignment_id,
+      id: rowId > 0 ? rowId : (lmsId ?? 0),
+      course_assignment_id: courseAssignmentId > 0 ? courseAssignmentId : undefined,
+      assignment_id: lmsId ?? undefined,
+      module_id: o.module_id != null ? toNum(o.module_id) : null,
       title: str(o.title, 'واجب'),
       description: str(o.description) || undefined,
+      instructions: str(o.instructions) || undefined,
 
       due_at: dueCand || undefined,
 
@@ -358,7 +401,7 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
 
       required: o.required !== undefined ? Boolean(o.required) : o.is_required !== undefined ? Boolean(o.is_required) : true,
 
-      visible: o.visible !== undefined ? Boolean(o.visible) : true,
+      visible: o.visible !== undefined ? Boolean(o.visible) : o.is_visible !== undefined ? Boolean(o.is_visible) : true,
       status: str(o.status) || (mySub?.status != null ? str(mySub.status) : undefined),
 
       score,
@@ -366,7 +409,7 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
       feedback: str(o.feedback) || (mySub?.feedback != null ? str(mySub.feedback) : undefined),
       submitted_at:
         o.submitted_at != null ? str(o.submitted_at) : mySub?.submitted_at != null ? str(mySub.submitted_at) : undefined,
-      lms_assignment_id: o.lms_assignment_id != null ? toNum(o.lms_assignment_id) : assignment_id,
+      lms_assignment_id: lmsId ?? undefined,
       resubmission_allowed: o.resubmission_allowed != null ? Boolean(o.resubmission_allowed) : undefined,
       my_submission: mySub ?
         {
@@ -410,6 +453,24 @@ export function normalizeStudentCourseLearn(payload: unknown, courseIdFallback: 
   const registration_status =
     str(root.registration_status) || str(root.enrollment_status) || str(root.student_status) || undefined
 
+  let classGroup: CourseLearnClassGroup | null = null
+  const cgRaw = root.class_group
+  if (cgRaw && typeof cgRaw === 'object' && !Array.isArray(cgRaw)) {
+    const cg = cgRaw as Record<string, unknown>
+    const cgId = toNum(cg.id)
+    if (cgId > 0) {
+      classGroup = {
+        id: cgId,
+        name: str(cg.name) || 'الفصل الدراسي',
+        level_code: cg.level_code != null ? str(cg.level_code) : null,
+        schedule_day: cg.schedule_day != null ? str(cg.schedule_day) : null,
+        schedule_time: cg.schedule_time != null ? str(cg.schedule_time) : null,
+        location_type: cg.location_type != null ? str(cg.location_type) : null,
+        meeting_link: cg.meeting_link != null ? str(cg.meeting_link) : null,
+      }
+    }
+  }
+
   const mods = normalizeModules(firstArray(root, ['modules', 'course_modules']))
   const sess = normalizeLearnSessions(firstArray(root, ['sessions', 'learn_sessions', 'course_sessions']))
   const mats = normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents']))
@@ -419,11 +480,10 @@ export function normalizeStudentCourseLearn(payload: unknown, courseIdFallback: 
     course,
     progress_percent: progressPct,
     registration_status,
+    class_group: classGroup,
     modules: mods,
-
     sessions: sess,
     materials: mats,
-
     assignments: assigns,
   }
 }
@@ -518,6 +578,24 @@ export async function fetchStudentCourseLearn(courseId: number): Promise<Student
     skipErrorToast: true,
   })
   return normalizeStudentCourseLearn(res.data, courseId)
+}
+
+export async function fetchCourseNotes(courseId: number): Promise<{ content: string; updated_at: string | null }> {
+  const res = await apiClient.get<unknown>(`/student/courses/${courseId}/notes`, { skipErrorToast: true })
+  const d = unwrapData<{ content?: unknown; updated_at?: unknown }>(res.data)
+  return {
+    content: d?.content != null ? String(d.content) : '',
+    updated_at: d?.updated_at != null && String(d.updated_at).trim() !== '' ? String(d.updated_at) : null,
+  }
+}
+
+export async function saveCourseNotes(courseId: number, content: string): Promise<{ content: string; updated_at: string | null }> {
+  const res = await apiClient.put<unknown>(`/student/courses/${courseId}/notes`, { content }, { skipErrorToast: true })
+  const d = unwrapData<{ content?: unknown; updated_at?: unknown }>(res.data)
+  return {
+    content: d?.content != null ? String(d.content) : content,
+    updated_at: d?.updated_at != null && String(d.updated_at).trim() !== '' ? String(d.updated_at) : null,
+  }
 }
 
 // ── Admin / course scoped LMS CMS ──────────────────────────────────────────

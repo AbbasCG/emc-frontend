@@ -10,6 +10,9 @@ type CoursesGridProps = {
   totalFromApi: number
   loading: boolean
   viewMode: 'grid' | 'list'
+  /** When true, renders grid only (no section shell/header) for embedding in parent pages */
+  embedded?: boolean
+  sectionId?: string
 }
 
 const INITIAL_VISIBLE = 9
@@ -60,7 +63,14 @@ function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
   )
 }
 
-export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }: CoursesGridProps) {
+export default function CoursesGrid({
+  courses,
+  totalFromApi,
+  loading,
+  viewMode,
+  embedded = false,
+  sectionId = 'catalog-courses',
+}: CoursesGridProps) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
 
   const visibleCourses = courses.slice(0, visibleCount)
@@ -71,8 +81,68 @@ export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }
       ? 'grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3'
       : 'flex flex-col gap-6'
 
+  const gridBody = (
+    <>
+      {loading && (
+        <div className={gridClass}>
+          {Array.from({ length: INITIAL_VISIBLE }).map((_, i) => (
+            <CourseSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {!loading && courses.length === 0 && (
+        <div className={gridClass}>
+          <EmptyState apiEmpty={totalFromApi === 0} />
+        </div>
+      )}
+
+      {!loading && courses.length > 0 && (
+        <>
+          <div className={gridClass}>
+            <AnimatePresence>
+              {visibleCourses.map((course, i) => (
+                <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {hasMore && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-12 flex flex-col items-center gap-3"
+            >
+              <button
+                type="button"
+                onClick={() => setVisibleCount((c) => c + INITIAL_VISIBLE)}
+                className="rounded-2xl bg-deepBlue px-10 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800"
+              >
+                تحميل المزيد
+              </button>
+              <p className="text-xs text-muted-500">
+                عرض {visibleCourses.length.toLocaleString('ar-EG')} من{' '}
+                {courses.length.toLocaleString('ar-EG')} دورة
+              </p>
+            </motion.div>
+          )}
+
+          {!hasMore && courses.length > INITIAL_VISIBLE && (
+            <p className="mt-10 text-center text-xs text-muted-500">
+              تم عرض جميع النتائج ({courses.length.toLocaleString('ar-EG')})
+            </p>
+          )}
+        </>
+      )}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="mx-auto max-w-7xl px-4 sm:px-6">{gridBody}</div>
+  }
+
   return (
-    <section id="catalog-courses" className="scroll-mt-28 bg-white py-16">
+    <section id={sectionId} className="scroll-mt-28 bg-white py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-10">
           <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-500">
@@ -82,57 +152,7 @@ export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }
           <div className="mt-2 h-1 w-12 rounded-full bg-brand-500" />
         </div>
 
-        {loading && (
-          <div className={gridClass}>
-            {Array.from({ length: INITIAL_VISIBLE }).map((_, i) => (
-              <CourseSkeleton key={i} />
-            ))}
-          </div>
-        )}
-
-        {!loading && courses.length === 0 && (
-          <div className={gridClass}>
-            <EmptyState apiEmpty={totalFromApi === 0} />
-          </div>
-        )}
-
-        {!loading && courses.length > 0 && (
-          <>
-            <div className={gridClass}>
-              <AnimatePresence>
-                {visibleCourses.map((course, i) => (
-                  <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
-                ))}
-              </AnimatePresence>
-            </div>
-
-            {hasMore && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-12 flex flex-col items-center gap-3"
-              >
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((c) => c + INITIAL_VISIBLE)}
-                  className="rounded-2xl bg-deepBlue px-10 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800"
-                >
-                  تحميل المزيد
-                </button>
-                <p className="text-xs text-muted-500">
-                  عرض {visibleCourses.length.toLocaleString('ar-EG')} من{' '}
-                  {courses.length.toLocaleString('ar-EG')} دورة
-                </p>
-              </motion.div>
-            )}
-
-            {!hasMore && courses.length > INITIAL_VISIBLE && (
-              <p className="mt-10 text-center text-xs text-muted-500">
-                تم عرض جميع النتائج ({courses.length.toLocaleString('ar-EG')})
-              </p>
-            )}
-          </>
-        )}
+        {gridBody}
       </div>
     </section>
   )

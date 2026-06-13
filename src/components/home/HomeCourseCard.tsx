@@ -58,7 +58,7 @@ export default function HomeCourseCard({ course, index }: Props) {
       <div className="flex flex-1 flex-col p-6">
         {/* Training hours */}
         {course.training_hours ? (
-          <div className="mb-3 flex items-center justify-end gap-1.5 text-xs font-semibold text-foreground/50">
+          <div className="mb-3 flex items-center justify-start gap-1.5 text-xs font-semibold text-foreground/50">
             <Clock3 size={12} className="text-customBlue" aria-hidden />
             {course.training_hours} ساعة تدريبية
           </div>

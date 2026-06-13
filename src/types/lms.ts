@@ -213,21 +213,32 @@ export type TeachingCourseLms = {
 export type InstructorSubmission = {
   id: number
   assignment_id?: number | null
-  assignment_title: string
+  assignment_title?: string | null
+  course_id?: number | null
   course_name?: string | null
   student_name: string
   student_id: number
+  student_email?: string | null
+  student_avatar?: string | null
   submitted_at?: string | null
   status: 'pending_review' | 'reviewed' | 'needs_revision' | 'not_submitted'
   score?: number | null
+  max_score?: number | null
   body_preview?: string | null
 }
 
 export type SubmissionDetail = InstructorSubmission & {
   body_text?: string | null
   file_url?: string | null
-  max_score?: number | null
   feedback?: string | null
+  learning_path?: { id: number; title: string; slug?: string | null } | null
+  assignment?: {
+    id: number
+    title?: string | null
+    max_score?: number | null
+    due_date?: string | null
+  } | null
+  course?: { id: number; title?: string | null; slug?: string | null } | null
 }
 
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused'

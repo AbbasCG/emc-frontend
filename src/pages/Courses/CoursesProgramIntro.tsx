@@ -21,7 +21,7 @@ const palette = [
 
 export default function CoursesProgramIntro({ derivedCategories, loading }: Props) {
   return (
-    <section className="bg-gradient-to-b from-[#f0f5fb] to-white py-16">
+    <section className="bg-gradient-to-b from-[#f0f5fb] to-white py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
           title="فئات البرامج"
@@ -34,7 +34,7 @@ export default function CoursesProgramIntro({ derivedCategories, loading }: Prop
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5 }}
-          className="mb-10 grid gap-4 lg:grid-cols-3"
+          className="mb-8 grid gap-4 lg:grid-cols-3"
         >
           <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
             <Layers className="text-brand-500" size={28} />

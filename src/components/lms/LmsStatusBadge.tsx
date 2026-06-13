@@ -37,15 +37,23 @@ export default function LmsStatusBadge({ status, kind = 'neutral' }: Props) {
   const label = (map as Record<string, string>)[status] ?? status
 
   const cls =
-    status === 'live'
-      ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
-      : status === 'completed' || status === 'graded'
-        ? 'bg-slate-50 text-slate-600 ring-slate-100'
-        : status === 'cancelled'
-          ? 'bg-red-50 text-red-700 ring-red-100'
-          : status === 'late' || status === 'revision'
-            ? 'bg-amber-50 text-amber-800 ring-amber-100'
+    kind === 'submission'
+      ? status === 'reviewed'
+        ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
+        : status === 'needs_revision'
+          ? 'bg-amber-50 text-amber-800 ring-amber-100'
+          : status === 'not_submitted'
+            ? 'bg-slate-50 text-slate-500 ring-slate-100'
             : 'bg-sky-50 text-customBlue ring-sky-100'
+      : status === 'live'
+        ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
+        : status === 'completed' || status === 'graded'
+          ? 'bg-slate-50 text-slate-600 ring-slate-100'
+          : status === 'cancelled'
+            ? 'bg-red-50 text-red-700 ring-red-100'
+            : status === 'late' || status === 'revision'
+              ? 'bg-amber-50 text-amber-800 ring-amber-100'
+              : 'bg-sky-50 text-customBlue ring-sky-100'
 
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${cls}`}>

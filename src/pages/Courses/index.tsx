@@ -1,24 +1,22 @@
 import { useState, useEffect, useMemo } from 'react'
 import CoursesHero from './CoursesHero'
 import FilterBar from './FilterBar'
-import TracksSection from './TracksSection'
 import CoursesGrid from './CoursesGrid'
-import CoursesProgramIntro from './CoursesProgramIntro'
-import CoursesRegistrationSection from './CoursesRegistrationSection'
-import CoursesPricingSection from './CoursesPricingSection'
+import LearningPathsTeaserSection from './LearningPathsTeaserSection'
 import WorkshopSpotlight from './WorkshopSpotlight'
 import CoursesCTA from './CoursesCTA'
-import { fetchCourses, fetchTracks, fetchUpcomingWorkshops } from '@/services/coursesApi'
-import type { CourseItem, CourseLevel, TrackItem, WorkshopItem } from '@/services/coursesApi'
+import { fetchCourses, fetchUpcomingWorkshops } from '@/services/coursesApi'
+import type { CourseItem, CourseLevel, WorkshopItem } from '@/services/coursesApi'
+import { fetchPublicLearningPaths, type LearningPath } from '@/api/learningPathsApi'
 import PublicSeo from '@/components/public/PublicSeo'
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseItem[]>([])
-  const [tracks, setTracks] = useState<TrackItem[]>([])
+  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([])
   const [workshops, setWorkshops] = useState<WorkshopItem[]>([])
 
   const [coursesLoading, setCoursesLoading] = useState(true)
-  const [tracksLoading, setTracksLoading] = useState(true)
+  const [pathsLoading, setPathsLoading] = useState(true)
   const [workshopsLoading, setWorkshopsLoading] = useState(true)
 
   const [loadError, setLoadError] = useState(false)
@@ -49,13 +47,15 @@ export default function CoursesPage() {
         if (alive) setCoursesLoading(false)
       })
 
-    fetchTracks()
+    fetchPublicLearningPaths({ per_page: 3 })
       .then((res) => {
-        if (alive) setTracks(res.data)
+        if (alive) setLearningPaths(res.data)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (alive) setLearningPaths([])
+      })
       .finally(() => {
-        if (alive) setTracksLoading(false)
+        if (alive) setPathsLoading(false)
       })
 
     fetchUpcomingWorkshops()
@@ -130,21 +130,9 @@ export default function CoursesPage() {
       totalCourses: courses.length,
       totalRegistrations: totalRegs,
       instructors,
-      tracksCount: tracks.length,
+      learningPathsCount: learningPaths.length,
     }
-  }, [courses, tracks.length])
-
-  const bentoCategories = useMemo(() => {
-    const m = new Map<string, { label: string; count: number }>()
-    for (const c of courses) {
-      const cur = m.get(c.category_key)
-      if (cur) cur.count += 1
-      else m.set(c.category_key, { label: c.category_label, count: 1 })
-    }
-    return Array.from(m.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 9)
-  }, [courses])
+  }, [courses, learningPaths.length])
 
   const filteredCourses = useMemo(() => {
     let result = [...courses]
@@ -225,8 +213,8 @@ export default function CoursesPage() {
   return (
     <main className="overflow-x-hidden">
       <PublicSeo
-        title="الدورات والبرامج"
-        description="استكشف كتالوج دورات EMC — برامج تدريبية بالعربية، أونلاين وحضوري، مع شهادات ومسارات مهنية."
+        title="كتالوج الدورات"
+        description="تصفّح دورات EMC المتاحة — فلترة، بحث، وورش عمل من الكتالوج الحقيقي."
         path="/courses"
       />
       <CoursesHero
@@ -237,7 +225,7 @@ export default function CoursesPage() {
         stats={liveStats}
       />
 
-      <CoursesProgramIntro derivedCategories={bentoCategories} loading={coursesLoading} />
+      <LearningPathsTeaserSection paths={learningPaths} loading={pathsLoading} />
 
       <FilterBar
         activePrice={activePrice}
@@ -261,18 +249,12 @@ export default function CoursesPage() {
         loadError={loadError}
       />
 
-      <TracksSection tracks={tracks} loading={tracksLoading} />
-
       <CoursesGrid
         courses={filteredCourses}
         totalFromApi={courses.length}
         loading={coursesLoading}
         viewMode={viewMode}
       />
-
-      <CoursesRegistrationSection />
-
-      <CoursesPricingSection />
 
       <WorkshopSpotlight workshops={workshops} loading={workshopsLoading} />
 

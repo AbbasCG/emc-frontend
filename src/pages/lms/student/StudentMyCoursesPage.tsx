@@ -8,8 +8,10 @@ import {
   ClipboardList,
   FileText,
   FolderOpen,
+  GraduationCap,
   Layers,
   RefreshCw,
+  Route,
   Sparkles,
   TrendingUp,
 } from 'lucide-react'
@@ -17,8 +19,9 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import StudentMyCourseCard from '@/components/dashboard/StudentMyCourseCard'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { fetchStudentLearningPaths } from '@/api/learningPathsApi'
 import type { Course, Enrollment } from '@/types'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 function hasScheduledDate(course: Course): boolean {
   const d = course.start_date
@@ -89,6 +92,19 @@ export default function StudentMyCoursesPage() {
   } = useStudentDashboardData()
 
   const [tab, setTab] = useState<CoursesTabId>('active')
+  const [pathCourseIds, setPathCourseIds] = useState<Set<number>>(new Set())
+
+  useEffect(() => {
+    void fetchStudentLearningPaths().then((rows) => {
+      const ids = new Set<number>()
+      for (const en of rows) {
+        for (const c of en.learning_path.courses ?? []) {
+          ids.add(c.id)
+        }
+      }
+      setPathCourseIds(ids)
+    })
+  }, [])
 
   const buckets = useMemo(() => {
     const grouped: Record<CoursesTabId, Enrollment[]> = { active: [], upcoming: [], completed: [], pending: [] }
@@ -294,16 +310,66 @@ export default function StudentMyCoursesPage() {
               <p className="font-black text-deepBlue">لا توجد دورات في هذا التبويب</p>
               <p className="mt-1 text-[13px] font-semibold text-deepBlue/50">جرّب تبويبًا آخر</p>
             </motion.div>
-          ) : (
-            <motion.div layout className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {buckets[tab].map((e) => (
-                <StudentMyCourseCard
-                  key={`e-${String(e.id)}-${String(e.course?.id ?? 0)}`}
-                  enrollment={e}
-                />
-              ))}
-            </motion.div>
-          )}
+          ) : (() => {
+            const directEnrollments = buckets[tab].filter((e) => !pathCourseIds.has(e.course?.id ?? -1))
+            const pathEnrollments = buckets[tab].filter((e) => pathCourseIds.has(e.course?.id ?? -1))
+            const hasPath = pathEnrollments.length > 0
+            const hasDirect = directEnrollments.length > 0
+
+            return (
+              <div className="space-y-8">
+                {/* Direct courses */}
+                {hasDirect && (
+                  <div>
+                    {hasPath && (
+                      <div className="mb-4 flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-customBlue" aria-hidden />
+                        <h3 className="text-[13px] font-black text-deepBlue">دوراتي المباشرة</h3>
+                        <span className="rounded-full bg-customBlue/10 px-2 py-0.5 text-[10px] font-black text-customBlue">
+                          {directEnrollments.length}
+                        </span>
+                      </div>
+                    )}
+                    <motion.div layout className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {directEnrollments.map((e) => (
+                        <StudentMyCourseCard
+                          key={`direct-${String(e.id)}-${String(e.course?.id ?? 0)}`}
+                          enrollment={e}
+                        />
+                      ))}
+                    </motion.div>
+                  </div>
+                )}
+
+                {/* Path courses */}
+                {hasPath && (
+                  <div>
+                    <div className="mb-4 flex items-center gap-2">
+                      <Route className="h-4 w-4 text-[#EC943C]" aria-hidden />
+                      <h3 className="text-[13px] font-black text-deepBlue">دورات ضمن المسارات التعليمية</h3>
+                      <span className="rounded-full bg-[#EC943C]/10 px-2 py-0.5 text-[10px] font-black text-[#EC943C]">
+                        {pathEnrollments.length}
+                      </span>
+                      <Link
+                        to="/dashboard/student/learning-paths"
+                        className="mr-auto text-[11px] font-bold text-customBlue hover:underline"
+                      >
+                        عرض مساراتي
+                      </Link>
+                    </div>
+                    <motion.div layout className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {pathEnrollments.map((e) => (
+                        <StudentMyCourseCard
+                          key={`path-${String(e.id)}-${String(e.course?.id ?? 0)}`}
+                          enrollment={e}
+                        />
+                      ))}
+                    </motion.div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
         </>
       )}
     </div>

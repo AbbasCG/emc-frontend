@@ -1,5 +1,12 @@
 import { motion } from 'framer-motion'
-import { Award, CheckCircle2, ClipboardCheck, Mic } from 'lucide-react'
+import {
+  Award,
+  BookOpen,
+  CheckCircle2,
+  ClipboardCheck,
+  Mic,
+  User,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { InstructorStudentRow } from '@/api/instructorApi'
 import { CEFR_MAP, toDMY } from './InstructorStudentDrawer'
@@ -43,6 +50,9 @@ interface Props {
   onAssess?: () => void
   assessLabel?: string
   assessed?: boolean
+  /** When true (or undefined), show placement test data (written score, oral, final level).
+   *  When false, show normal enrollment data without placement UI. */
+  showPlacement?: boolean
 }
 
 /* ── Component ──────────────────────────────────────────────────────────── */
@@ -54,6 +64,7 @@ export function InstructorStudentCard({
   onAssess,
   assessLabel = 'إتمام التقييم',
   assessed = false,
+  showPlacement = true,
 }: Props) {
   const pct = s.written_score != null && (s.total_questions ?? 70) > 0
     ? Math.round((s.written_score / (s.total_questions ?? 70)) * 100)
@@ -62,6 +73,12 @@ export function InstructorStudentCard({
   const finalCefr = s.final_level   ? (CEFR_MAP[s.final_level]    ?? null) : null
   const placementKey = (s.placement_status ?? '').toLowerCase()
   const enrollKey    = (s.enrollment_status ?? '').toLowerCase()
+
+  const courseLink = s.course_id
+    ? showPlacement
+      ? `/dashboard/instructor/courses/${s.course_id}/placement-students`
+      : `/dashboard/instructor/courses/${s.course_id}/students`
+    : null
 
   return (
     <motion.div
@@ -85,16 +102,16 @@ export function InstructorStudentCard({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-black text-deepBlue">{s.name}</p>
-          <p className="truncate text-[10px] font-semibold text-deepBlue/40" dir="ltr">{s.email}</p>
+          <p className="truncate text-[13px] font-black text-[#22334A]">{s.name}</p>
+          <p className="truncate text-[10px] font-semibold text-[#22334A]/40" dir="ltr">{s.email}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
-          {enrollKey && !['active','approved'].includes(enrollKey) && s.enrollment_status && (
+          {enrollKey && !['active', 'approved'].includes(enrollKey) && s.enrollment_status && (
             <span className={`rounded-xl px-2 py-0.5 text-[9px] font-black ${ENROLL_CLR[enrollKey] ?? 'bg-slate-100 text-slate-500'}`}>
               {ENROLL_AR[enrollKey] ?? s.enrollment_status}
             </span>
           )}
-          {placementKey && placementKey !== 'not_started' && (
+          {showPlacement && placementKey && placementKey !== 'not_started' && (
             <span className={`rounded-xl px-2 py-0.5 text-[9px] font-black ${PLACEMENT_CLR[placementKey] ?? 'bg-slate-100 text-slate-500'}`}>
               {PLACEMENT_AR[placementKey] ?? placementKey}
             </span>
@@ -102,79 +119,112 @@ export function InstructorStudentCard({
         </div>
       </div>
 
-      {/* Course link */}
+      {/* Course link — routes to correct page based on placement requirement */}
       {s.course_title && (
-        s.course_id ? (
+        courseLink ? (
           <Link
-            to={`/dashboard/instructor/courses/${s.course_id}/placement-students`}
+            to={courseLink}
             onClick={(e) => e.stopPropagation()}
-            className="truncate text-[11px] font-black text-[#2691C2] transition hover:underline"
+            className="flex items-center gap-1 truncate text-[11px] font-black text-[#2691C2] transition hover:underline"
           >
+            <BookOpen className="h-3 w-3 shrink-0" />
             {s.course_title}
           </Link>
         ) : (
-          <p className="truncate text-[11px] font-semibold text-deepBlue/40">{s.course_title}</p>
+          <p className="flex items-center gap-1 truncate text-[11px] font-semibold text-[#22334A]/40">
+            <BookOpen className="h-3 w-3 shrink-0" />
+            {s.course_title}
+          </p>
         )
       )}
 
-      {/* Written score */}
-      {s.written_score != null && (
-        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-2">
-          <ClipboardCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-          <span className="font-mono text-[13px] font-black tabular-nums text-deepBlue">
-            {s.written_score}<span className="text-[10px] text-deepBlue/40">/{s.total_questions ?? 70}</span>
-          </span>
-          {pct != null && (
-            <span className="rounded-lg bg-emerald-100 px-1.5 py-0.5 font-mono text-[9px] font-black text-emerald-700">{pct}%</span>
+      {/* ── Placement mode: written score + oral + level ─────────────── */}
+      {showPlacement && (
+        <>
+          {s.written_score != null && (
+            <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-2">
+              <ClipboardCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+              <span className="font-mono text-[13px] font-black tabular-nums text-[#22334A]">
+                {s.written_score}<span className="text-[10px] text-[#22334A]/40">/{s.total_questions ?? 70}</span>
+              </span>
+              {pct != null && (
+                <span className="rounded-lg bg-emerald-100 px-1.5 py-0.5 font-mono text-[9px] font-black text-emerald-700">{pct}%</span>
+              )}
+              {cefrInfo && (
+                <span className="mr-auto font-mono text-[10px] font-black text-[#22334A]">
+                  {cefrInfo.cefr} <span className="font-normal text-[#22334A]/40">· {cefrInfo.arabic}</span>
+                </span>
+              )}
+            </div>
           )}
-          {cefrInfo && (
-            <span className="mr-auto font-mono text-[10px] font-black text-[#22334A]">
-              {cefrInfo.cefr} <span className="font-normal text-deepBlue/40">· {cefrInfo.arabic}</span>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {s.oral_booking_at && (
+              <span className="flex items-center gap-1 rounded-xl bg-violet-50 px-2 py-1 text-[9px] font-black text-violet-600">
+                <Mic className="h-3 w-3" />
+                {toDMY(s.oral_booking_at)}
+              </span>
+            )}
+            {s.oral_score != null && (
+              <span className="flex items-center gap-1 rounded-xl bg-violet-100 px-2 py-1 text-[9px] font-black text-violet-700">
+                <Mic className="h-3 w-3" />
+                {s.oral_score}/100
+              </span>
+            )}
+            {s.final_level && (
+              <span className="flex items-center gap-1 rounded-xl bg-emerald-50 px-2 py-1 text-[9px] font-black text-emerald-700">
+                <Award className="h-3 w-3" />
+                {finalCefr ? `${finalCefr.cefr} · ${finalCefr.arabic}` : s.final_level}
+                <CheckCircle2 className="h-3 w-3" />
+              </span>
+            )}
+            {s.enrolled_at && !s.oral_booking_at && !s.final_level && (
+              <span className="font-mono text-[9px] font-semibold tabular-nums text-[#22334A]/30">
+                {toDMY(s.enrolled_at)}
+              </span>
+            )}
+            {onAssess && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onAssess() }}
+                className={`mr-auto rounded-xl border px-2.5 py-1 text-[10px] font-black transition ${
+                  assessed
+                    ? 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'
+                    : 'border-[#2691C2]/30 bg-[#2691C2]/[0.07] text-[#2691C2] hover:bg-[#2691C2]/[0.14]'
+                }`}
+              >
+                {assessed ? 'تعديل' : assessLabel}
+              </button>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ── Normal mode: enrollment info without placement data ───────── */}
+      {!showPlacement && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {s.enrollment_status && (
+            <span className={`rounded-xl px-2 py-1 text-[9px] font-black ${ENROLL_CLR[enrollKey] ?? 'bg-slate-100 text-slate-500'}`}>
+              {ENROLL_AR[enrollKey] ?? s.enrollment_status}
             </span>
+          )}
+          {s.enrolled_at && (
+            <span className="flex items-center gap-1 text-[9px] font-semibold text-[#22334A]/40">
+              <User className="h-3 w-3" />
+              {toDMY(s.enrolled_at)}
+            </span>
+          )}
+          {onAssess && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onAssess() }}
+              className="mr-auto rounded-xl border border-[#2691C2]/30 bg-[#2691C2]/[0.07] px-2.5 py-1 text-[10px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.14]"
+            >
+              {assessLabel}
+            </button>
           )}
         </div>
       )}
-
-      {/* Footer: oral + final level + action */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        {s.oral_booking_at && (
-          <span className="flex items-center gap-1 rounded-xl bg-violet-50 px-2 py-1 text-[9px] font-black text-violet-600">
-            <Mic className="h-3 w-3" />
-            {toDMY(s.oral_booking_at)}
-          </span>
-        )}
-        {s.oral_score != null && (
-          <span className="flex items-center gap-1 rounded-xl bg-violet-100 px-2 py-1 text-[9px] font-black text-violet-700">
-            <Mic className="h-3 w-3" />
-            {s.oral_score}/100
-          </span>
-        )}
-        {s.final_level && (
-          <span className="flex items-center gap-1 rounded-xl bg-emerald-50 px-2 py-1 text-[9px] font-black text-emerald-700">
-            <Award className="h-3 w-3" />
-            {finalCefr ? `${finalCefr.cefr} · ${finalCefr.arabic}` : s.final_level}
-            <CheckCircle2 className="h-3 w-3" />
-          </span>
-        )}
-        {s.enrolled_at && !s.oral_booking_at && !s.final_level && (
-          <span className="font-mono text-[9px] font-semibold tabular-nums text-deepBlue/30">
-            {toDMY(s.enrolled_at)}
-          </span>
-        )}
-        {onAssess && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onAssess() }}
-            className={`mr-auto rounded-xl border px-2.5 py-1 text-[10px] font-black transition ${
-              assessed
-                ? 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'
-                : 'border-[#2691C2]/30 bg-[#2691C2]/[0.07] text-[#2691C2] hover:bg-[#2691C2]/[0.14]'
-            }`}
-          >
-            {assessed ? 'تعديل' : assessLabel}
-          </button>
-        )}
-      </div>
     </motion.div>
   )
 }

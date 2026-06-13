@@ -344,58 +344,151 @@ function normalizeSubmissionStatus(raw: unknown): SubmissionStatus {
   return 'pending_review'
 }
 
+function pickNested(
+  raw: unknown,
+): Record<string, unknown> | null {
+  return raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? (raw as Record<string, unknown>)
+    : null
+}
+
 function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | null {
   if (!raw || typeof raw !== 'object') return null
   const o = raw as Record<string, unknown>
-  const assignment =
-    o.assignment && typeof o.assignment === 'object' && !Array.isArray(o.assignment)
-      ? (o.assignment as Record<string, unknown>)
-      : null
-  const student =
-    o.student && typeof o.student === 'object' && !Array.isArray(o.student)
-      ? (o.student as Record<string, unknown>)
-      : null
+  const assignment = pickNested(o.assignment)
+  const student = pickNested(o.student) ?? pickNested(o.user)
   const course =
-    o.course && typeof o.course === 'object' && !Array.isArray(o.course)
-      ? (o.course as Record<string, unknown>)
-      : assignment?.course && typeof assignment.course === 'object' && !Array.isArray(assignment.course)
-        ? (assignment.course as Record<string, unknown>)
-        : null
+    pickNested(o.course)
+    ?? pickNested(assignment?.course)
 
   const submissionId = Number(o.id ?? o.submission_id ?? 0)
-  const student_id = Number(o.student_id ?? student?.id ?? 0)
+  const student_id = Number(
+    o.student_id ?? o.user_id ?? student?.id ?? 0,
+  )
   const status = normalizeSubmissionStatus(o.status ?? o.review_status)
   if (submissionId <= 0 && student_id <= 0) return null
   const id = submissionId > 0 ? submissionId : status === 'not_submitted' ? student_id : 0
   if (id <= 0) return null
 
-  const assignment_title = String(
-    o.assignment_title ?? assignment?.title ?? o.title ?? 'واجب',
-  )
+  const assignment_title_raw =
+    o.assignment_title ?? assignment?.title ?? o.title ?? null
+  const assignment_title =
+    assignment_title_raw != null && String(assignment_title_raw).trim() !== ''
+      ? String(assignment_title_raw).trim()
+      : null
+
+  const course_name_raw =
+    o.course_name ?? o.course_title ?? course?.title ?? null
   const course_name =
-    o.course_name != null ? String(o.course_name)
-    : o.course_title != null ? String(o.course_title)
-    : course?.title != null ? String(course.title)
+    course_name_raw != null && String(course_name_raw).trim() !== ''
+      ? String(course_name_raw).trim()
+      : null
+
+  const student_name_raw =
+    o.student_name ?? student?.name ?? null
+  const student_name =
+    student_name_raw != null && String(student_name_raw).trim() !== ''
+      ? String(student_name_raw).trim()
+      : 'غير متوفر'
+
+  const avatarRaw =
+    o.student_avatar ?? student?.avatar ?? student?.avatar_url ?? null
+  const student_avatar =
+    avatarRaw != null && String(avatarRaw).trim() !== ''
+      ? String(avatarRaw).trim()
+      : null
+
+  const max_score =
+    o.max_score != null ? Number(o.max_score)
+    : assignment?.max_score != null ? Number(assignment.max_score)
     : null
 
   return {
     id,
-    assignment_id: assignment?.id != null ? Number(assignment.id) : o.assignment_id != null ? Number(o.assignment_id) : null,
+    assignment_id:
+      assignment?.id != null ? Number(assignment.id)
+      : o.assignment_id != null ? Number(o.assignment_id)
+      : null,
     assignment_title,
+    course_id:
+      course?.id != null ? Number(course.id)
+      : o.course_id != null ? Number(o.course_id)
+      : null,
     course_name,
-    student_name: String(o.student_name ?? student?.name ?? ''),
+    student_name,
     student_id,
+    student_email:
+      o.student_email != null ? String(o.student_email)
+      : student?.email != null ? String(student.email)
+      : null,
+    student_avatar,
     submitted_at:
       o.submitted_at != null ? String(o.submitted_at)
       : o.submitted_on != null ? String(o.submitted_on)
       : null,
     status,
-    score: o.score != null ? Number(o.score) : o.grade != null ? Number(o.grade) : null,
+    score:
+      o.score != null ? Number(o.score)
+      : o.grade != null ? Number(o.grade)
+      : null,
+    max_score: max_score != null && !Number.isNaN(max_score) ? max_score : null,
     body_preview:
       o.body_preview != null ? String(o.body_preview)
       : o.body_text != null ? String(o.body_text)
       : o.answer_text != null ? String(o.answer_text)
       : o.text_answer != null ? String(o.text_answer)
+      : null,
+  }
+}
+
+function normalizeSubmissionDetail(raw: unknown): SubmissionDetail | null {
+  const base = normalizeInstructorSubmissionRow(raw)
+  if (!base) return null
+  const o = raw as Record<string, unknown>
+  const assignment = pickNested(o.assignment)
+  const course = pickNested(o.course) ?? pickNested(assignment?.course)
+  const lp = pickNested(o.learning_path)
+
+  return {
+    ...base,
+    body_text:
+      o.body_text != null ? String(o.body_text)
+      : o.text_answer != null ? String(o.text_answer)
+      : o.answer_text != null ? String(o.answer_text)
+      : base.body_preview ?? null,
+    file_url:
+      o.file_url != null ? String(o.file_url)
+      : o.attachment_url != null ? String(o.attachment_url)
+      : pickNested(o.file)?.url != null ? String(pickNested(o.file)!.url)
+      : null,
+    max_score:
+      base.max_score
+      ?? (o.max_score != null ? Number(o.max_score) : assignment?.max_score != null ? Number(assignment.max_score) : null),
+    feedback:
+      o.feedback != null ? String(o.feedback)
+      : o.instructor_feedback != null ? String(o.instructor_feedback)
+      : null,
+    learning_path: lp?.id != null
+      ? {
+          id: Number(lp.id),
+          title: String(lp.title ?? ''),
+          slug: lp.slug != null ? String(lp.slug) : null,
+        }
+      : null,
+    assignment: assignment?.id != null
+      ? {
+          id: Number(assignment.id),
+          title: assignment.title != null ? String(assignment.title) : null,
+          max_score: assignment.max_score != null ? Number(assignment.max_score) : null,
+          due_date: assignment.due_date != null ? String(assignment.due_date) : null,
+        }
+      : null,
+    course: course?.id != null
+      ? {
+          id: Number(course.id),
+          title: course.title != null ? String(course.title) : null,
+          slug: course.slug != null ? String(course.slug) : null,
+        }
       : null,
   }
 }
@@ -430,12 +523,30 @@ function parseSubmissionsPayload(payload: unknown): InstructorSubmission[] {
     })
 }
 
-export async function fetchInstructorAssignmentsQueue(): Promise<InstructorSubmission[]> {
+export type SubmissionsQueueFilters = {
+  course_id?: number
+  status?: InstructorSubmission['status']
+  per_page?: number
+}
+
+export async function fetchInstructorAssignmentsQueue(
+  filters?: SubmissionsQueueFilters,
+): Promise<InstructorSubmission[]> {
   const silent = { skipErrorToast: true } as Record<string, unknown>
+  const params: Record<string, string | number> = {
+    per_page: filters?.per_page ?? 100,
+  }
+  if (filters?.course_id) params.course_id = filters.course_id
+  if (filters?.status && filters.status !== 'not_submitted') {
+    params.status = filters.status
+  }
 
   /* Primary: submissions queue (student homework deliveries) */
   try {
-    const res = await apiClient.get<unknown>('/instructor/submissions', silent)
+    const res = await apiClient.get<unknown>('/instructor/submissions', {
+      ...silent,
+      params,
+    })
     const rows = parseSubmissionsPayload(res.data)
     if (rows.length > 0) return rows
   } catch {
@@ -450,24 +561,8 @@ export async function fetchInstructorAssignmentsQueue(): Promise<InstructorSubmi
 export async function fetchSubmissionDetail(submissionId: number): Promise<SubmissionDetail> {
   const res = await apiClient.get<unknown>(`/instructor/submissions/${submissionId}`, { skipErrorToast: true } as Record<string, unknown>)
   const inner = unwrapData<unknown>(res.data)
-  const normalized = normalizeInstructorSubmissionRow(inner ?? res.data)
-  if (normalized) {
-    const o = (inner ?? res.data) as Record<string, unknown>
-    return {
-      ...normalized,
-      body_text:
-        o.body_text != null ? String(o.body_text)
-        : o.answer_text != null ? String(o.answer_text)
-        : normalized.body_preview ?? null,
-      file_url:
-        o.file_url != null ? String(o.file_url)
-        : o.attachment_url != null ? String(o.attachment_url)
-        : o.file != null && typeof o.file === 'object' ? String((o.file as Record<string, unknown>).url ?? '') || null
-        : null,
-      max_score: o.max_score != null ? Number(o.max_score) : o.assignment && typeof o.assignment === 'object' ? Number((o.assignment as Record<string, unknown>).max_score ?? 100) : null,
-      feedback: o.feedback != null ? String(o.feedback) : o.instructor_feedback != null ? String(o.instructor_feedback) : null,
-    }
-  }
+  const normalized = normalizeSubmissionDetail(inner ?? res.data)
+  if (normalized) return normalized
   return unwrapLms<SubmissionDetail>(res.data)
 }
 
@@ -480,6 +575,16 @@ export type ReviewPayload = {
 export async function reviewInstructorSubmission(
   submissionId: number,
   body: ReviewPayload,
-): Promise<void> {
-  await apiClient.put(`/instructor/submissions/${submissionId}/review`, body)
+): Promise<SubmissionDetail> {
+  const res = await apiClient.put<unknown>(
+    `/instructor/submissions/${submissionId}/review`,
+    {
+      ...body,
+      grade: body.score,
+    },
+  )
+  const inner = unwrapData<unknown>(res.data)
+  const normalized = normalizeSubmissionDetail(inner ?? res.data)
+  if (normalized) return normalized
+  return fetchSubmissionDetail(submissionId)
 }

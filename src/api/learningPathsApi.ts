@@ -1,7 +1,57 @@
+import axios from 'axios'
 import apiClient from '@/api/axios'
 import { unwrapData } from '@/api/unwrap'
 
 const silent = { skipErrorToast: true as const }
+
+const FORBIDDEN_PATHS_MSG = 'لا تملك صلاحية عرض مسارات التعلّم.'
+const FORBIDDEN_PATH_MSG = 'لا تملك صلاحية عرض هذا المسار.'
+const FORBIDDEN_STUDENT_PATH_MSG = 'لا يمكنك الوصول إلى هذا المسار التعليمي.'
+
+function axiosStatus(err: unknown): number | undefined {
+  return axios.isAxiosError(err) ? err.response?.status : undefined
+}
+
+function axiosMessage(err: unknown, fallback: string): string {
+  if (!axios.isAxiosError(err)) return fallback
+  const msg = err.response?.data
+  if (msg && typeof msg === 'object' && 'message' in msg && msg.message) {
+    return String(msg.message)
+  }
+  return fallback
+}
+
+/** Drop duplicate path rows while preserving API order. */
+export function dedupeLearningPaths(paths: LearningPath[]): LearningPath[] {
+  const seen = new Set<number>()
+  const out: LearningPath[] = []
+  for (const p of paths) {
+    if (seen.has(p.id)) continue
+    seen.add(p.id)
+    out.push(p)
+  }
+  return out
+}
+
+export type InstructorLearningPathsResult = {
+  paths: LearningPath[]
+  forbidden: boolean
+  message?: string
+}
+
+export type InstructorLearningPathResult = {
+  path: LearningPath | null
+  forbidden: boolean
+  notFound: boolean
+  message?: string
+}
+
+export type StudentLearningPathResult = {
+  enrollment: StudentEnrollment | null
+  forbidden: boolean
+  notFound: boolean
+  message?: string
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,6 +64,10 @@ export interface LearningPathCourse {
   duration: string | null
   level: string | null
   sort_order: number
+  // Present only on instructor detail endpoint (enriched with per-course stats)
+  sessions_count?: number
+  materials_count?: number
+  assignments_count?: number
 }
 
 export interface LearningPathInstructor {
@@ -48,8 +102,25 @@ export interface LearningPath {
   instructor: LearningPathInstructor | null
   instructor_id: number | null
   courses?: LearningPathCourse[]
+  /** True when the current user is the path's primary instructor (not just a course instructor). Only present on instructor detail endpoint. */
+  is_path_instructor?: boolean
   created_at: string
   updated_at: string
+}
+
+export interface InstructorPathSession {
+  id: number
+  title: string | null
+  description: string | null
+  course_id: number
+  course_title: string | null
+  session_date: string | null
+  start_time: string | null
+  end_time: string | null
+  meeting_url: string | null
+  recording_url: string | null
+  status: string
+  location: string | null
 }
 
 export interface StudentEnrollment {
@@ -190,25 +261,55 @@ export async function fetchStudentLearningPaths(): Promise<StudentEnrollment[]> 
   try {
     const res = await apiClient.get('/student/learning-paths', silent)
     const body = res.data as { success: boolean; data: StudentEnrollment[] }
-    return body.data ?? []
+    const rows = body.data ?? []
+    const seen = new Set<number>()
+    return rows.filter((row) => {
+      const pid = row.learning_path?.id
+      if (pid == null || seen.has(pid)) return false
+      seen.add(pid)
+      return true
+    })
   } catch {
     return []
   }
 }
 
-export async function fetchStudentLearningPath(id: number): Promise<StudentEnrollment | null> {
+export async function fetchStudentLearningPath(id: number): Promise<StudentLearningPathResult> {
   try {
     const res = await apiClient.get(`/student/learning-paths/${id}`, silent)
-    const body = res.data as { success: boolean; enrollment_id: number; enrollment_status: string; enrolled_at: string; completed_at: string | null; data: LearningPath }
-    return {
-      enrollment_id: body.enrollment_id,
-      enrollment_status: body.enrollment_status as 'active' | 'completed' | 'dropped',
-      enrolled_at: body.enrolled_at,
-      completed_at: body.completed_at,
-      learning_path: body.data,
+    const body = res.data as {
+      success: boolean
+      enrollment_id: number
+      enrollment_status: string
+      enrolled_at: string
+      completed_at: string | null
+      data: LearningPath
     }
-  } catch {
-    return null
+    return {
+      enrollment: {
+        enrollment_id: body.enrollment_id,
+        enrollment_status: body.enrollment_status as 'active' | 'completed' | 'dropped',
+        enrolled_at: body.enrolled_at,
+        completed_at: body.completed_at,
+        learning_path: body.data,
+      },
+      forbidden: false,
+      notFound: false,
+    }
+  } catch (err) {
+    const status = axiosStatus(err)
+    if (status === 403) {
+      return {
+        enrollment: null,
+        forbidden: true,
+        notFound: false,
+        message: axiosMessage(err, FORBIDDEN_STUDENT_PATH_MSG),
+      }
+    }
+    if (status === 404) {
+      return { enrollment: null, forbidden: false, notFound: true, message: 'لم يُعثر على المسار.' }
+    }
+    return { enrollment: null, forbidden: false, notFound: true }
   }
 }
 
@@ -247,22 +348,37 @@ export async function fetchInstructorOptions(search?: string): Promise<Instructo
 
 // ─── Instructor API ───────────────────────────────────────────────────────────
 
-export async function fetchInstructorLearningPaths(): Promise<LearningPath[]> {
+export async function fetchInstructorLearningPaths(): Promise<InstructorLearningPathsResult> {
   try {
     const res = await apiClient.get('/instructor/learning-paths', silent)
     const body = res.data as { success: boolean; data: LearningPath[] }
-    return body.data ?? []
-  } catch {
-    return []
+    return { paths: dedupeLearningPaths(body.data ?? []), forbidden: false }
+  } catch (err) {
+    if (axiosStatus(err) === 403) {
+      return { paths: [], forbidden: true, message: axiosMessage(err, FORBIDDEN_PATHS_MSG) }
+    }
+    return { paths: [], forbidden: false }
   }
 }
 
-export async function fetchInstructorLearningPath(id: number): Promise<LearningPath | null> {
+export async function fetchInstructorLearningPath(id: number): Promise<InstructorLearningPathResult> {
   try {
     const res = await apiClient.get(`/instructor/learning-paths/${id}`, silent)
-    return unwrapData<LearningPath>(res.data)
-  } catch {
-    return null
+    return { path: unwrapData<LearningPath>(res.data), forbidden: false, notFound: false }
+  } catch (err) {
+    const status = axiosStatus(err)
+    if (status === 403) {
+      return {
+        path: null,
+        forbidden: true,
+        notFound: false,
+        message: axiosMessage(err, FORBIDDEN_PATH_MSG),
+      }
+    }
+    if (status === 404) {
+      return { path: null, forbidden: false, notFound: true, message: 'لم يُعثر على المسار.' }
+    }
+    return { path: null, forbidden: false, notFound: true }
   }
 }
 
@@ -279,6 +395,16 @@ export async function addInstructorLearningPathItem(id: number, courseId: number
 export async function removeInstructorLearningPathItem(id: number, itemId: number): Promise<LearningPath> {
   const res = await apiClient.delete(`/instructor/learning-paths/${id}/items/${itemId}`)
   return unwrapData<LearningPath>(res.data)
+}
+
+export async function fetchInstructorPathSessions(id: number): Promise<InstructorPathSession[]> {
+  try {
+    const res = await apiClient.get(`/instructor/learning-paths/${id}/sessions`, silent)
+    const body = res.data as { success: boolean; data: InstructorPathSession[] }
+    return body.data ?? []
+  } catch {
+    return []
+  }
 }
 
 export async function fetchInstructorPathStudents(id: number): Promise<Array<{

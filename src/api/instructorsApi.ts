@@ -8,10 +8,17 @@ export type InstructorPublic = {
   title?: string | null
   bio?: string | null
   expertise?: string | null
+  specialization?: string | null
   image_url?: string | null
   courses_count?: number
   workshops_count?: number
-  courses?: { id: number; slug: string; title: string }[]
+  learning_paths_count?: number
+  courses?: { id: number; slug: string; title: string; image_url?: string | null }[]
+  learning_paths?: { id: number; slug: string; title: string }[]
+  /** Whether the instructor has public contact info exposed */
+  show_contact?: boolean | null
+  email?: string | null
+  phone?: string | null
 }
 
 export async function fetchInstructors(): Promise<InstructorPublic[]> {

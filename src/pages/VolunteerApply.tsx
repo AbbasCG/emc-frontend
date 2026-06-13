@@ -323,6 +323,7 @@ export default function VolunteerApply() {
     if (!form.availability) e.availability = 'التوفر مطلوب'
     if (!form.motivation.trim()) e.motivation = 'سبب التطوع مطلوب'
     else if (form.motivation.trim().length < 20) e.motivation = 'يرجى كتابة سبب التطوع بما لا يقل عن 20 حرفًا'
+    if (!form.cv_file) e.cv_file = 'السيرة الذاتية مطلوبة'
     return e
   }
 
@@ -682,47 +683,51 @@ export default function VolunteerApply() {
                       />
                     </Field>
 
-                    <div className="text-right">
-                      <p className="mb-1.5 text-sm font-black text-deepBlue">
-                        السيرة الذاتية
-                        <span className="mr-2 text-[11px] font-semibold text-slate-400">(اختياري — PDF / DOC / DOCX)</span>
-                      </p>
-                      <input
-                        ref={fileRef}
-                        type="file"
-                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        className="sr-only"
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                          set('cv_file', e.target.files?.[0] ?? null)
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className="inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-600 transition hover:border-customBlue/50 hover:bg-sky-50 hover:text-customBlue"
-                      >
-                        {form.cv_file ? (
-                          <>
-                            <Paperclip size={16} />
-                            <span className="max-w-[240px] truncate">{form.cv_file.name}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload size={16} />
-                            رفع السيرة الذاتية
-                          </>
-                        )}
-                      </button>
-                      {form.cv_file && (
+                    <Field label="السيرة الذاتية" required error={fieldErrors.cv_file}>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <input
+                          ref={fileRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          className="sr-only"
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            set('cv_file', e.target.files?.[0] ?? null)
+                          }}
+                        />
                         <button
                           type="button"
-                          onClick={() => set('cv_file', null)}
-                          className="mr-3 text-[11px] font-bold text-red-500 hover:text-red-700"
+                          onClick={() => fileRef.current?.click()}
+                          className={`inline-flex items-center gap-2 rounded-xl border border-dashed px-5 py-3 text-sm font-bold transition ${
+                            form.cv_file
+                              ? 'border-customBlue/50 bg-sky-50 text-customBlue'
+                              : fieldErrors.cv_file
+                                ? 'border-red-400 bg-red-50 text-red-600 hover:border-red-500'
+                                : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-customBlue/50 hover:bg-sky-50 hover:text-customBlue'
+                          }`}
                         >
-                          حذف
+                          {form.cv_file ? (
+                            <>
+                              <Paperclip size={16} />
+                              <span className="max-w-[240px] truncate">{form.cv_file.name}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={16} />
+                              رفع السيرة الذاتية (PDF / DOC / DOCX)
+                            </>
+                          )}
                         </button>
-                      )}
-                    </div>
+                        {form.cv_file && (
+                          <button
+                            type="button"
+                            onClick={() => set('cv_file', null)}
+                            className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                          >
+                            حذف
+                          </button>
+                        )}
+                      </div>
+                    </Field>
 
                     <Field label="ملاحظات إضافية">
                       <Textarea

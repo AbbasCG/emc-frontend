@@ -1,19 +1,14 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import axios from 'axios'
 import {
-  ChevronLeft,
-  ChevronRight,
   Copy,
   Eye,
   EyeOff,
-  MailCheck,
   RefreshCw,
   Shield,
   ShieldCheck,
   Sparkles,
   UserSquare2,
-  Users,
-  X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -34,8 +29,13 @@ import {
   type CreateAdminUserInput,
   type UpdateAdminUserInput,
 } from '@/api/adminUsersApi'
-import { UserAvatarCell } from '@/components/super-admin/users/UserAvatarCell'
 import { UserEditDrawer } from '@/components/super-admin/users/UserEditDrawer'
+import { UsersDataTable } from '@/components/super-admin/users/UsersDataTable'
+import { UsersFilterPanel } from '@/components/super-admin/users/UsersFilterPanel'
+import { UsersKpiStrip } from '@/components/super-admin/users/UsersKpiStrip'
+import { UsersPaginationBar } from '@/components/super-admin/users/UsersPaginationBar'
+import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
+import { isDeletedUser, userVerifiedKey } from '@/components/super-admin/users/UserBadges'
 import { cn } from '@/lib/utils'
 import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
 import { adminRoleLabelAr, getAssignableRoleOptions } from '@/pages/super-admin/users/assignableRoles'
@@ -46,12 +46,8 @@ import {
 } from '@/pages/super-admin/users/superAdminUserPolicy'
 import { UsersEnterpriseDetailDrawer } from '@/pages/super-admin/users/UsersEnterpriseDetailDrawer'
 import { SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
-import { MiniSelect } from '@/pages/super-admin/crud/shared/FilterBar'
-import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
-import { ErrorPanel, EmptyPanel } from '@/pages/super-admin/crud/shared/States'
-import { CrudCardTable, CrudTable, Th, Tr, Td } from '@/pages/super-admin/crud/shared/TableChrome'
-import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
-import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
+import { ErrorPanel } from '@/pages/super-admin/crud/shared/States'
+import type { MenuAction } from '@/pages/super-admin/crud/shared/RowActions'
 import {
   FormActions,
   FormChecklist,
@@ -66,52 +62,9 @@ import {
 import { EMC_WIZARD_INPUT_BASE } from '@/components/emc-form-wizard/emcWizardTokens'
 import {
   EnterpriseCrudHero,
-  EnterpriseMetricTile,
   EnterpriseTableSkeleton,
 } from '@/pages/super-admin/crud/shared/enterprise'
 import { generateSecurePassword } from '@/utils/passwordGenerator'
-import { formatDate, formatLastLogin } from '@/utils/dateTime'
-
-const ROLE_PILL: Record<string, string> = {
-  super_admin:       'bg-[#22334A] text-white border-[#22334A]/70',
-  admin:             'bg-[#1a2940]/90 text-white border-[#1a2940]/60',
-  executive_admin:   'bg-[#22334A]/80 text-white border-[#22334A]/50',
-  instructor:        'bg-[#2691C2]/10 text-[#1a6b96] border-[#2691C2]/30',
-  student:           'bg-emerald-50 text-emerald-800 border-emerald-200',
-  finance_manager:   'bg-amber-50 text-amber-800 border-amber-200',
-  hr_manager:        'bg-violet-50 text-violet-800 border-violet-200',
-  marketing_manager: 'bg-pink-50 text-pink-800 border-pink-200',
-  quality_manager:   'bg-teal-50 text-teal-800 border-teal-200',
-  support_agent:     'bg-sky-50 text-sky-800 border-sky-200',
-  department_manager:'bg-indigo-50 text-indigo-800 border-indigo-200',
-}
-
-const STATUS_PILL = {
-  active:  'bg-emerald-50 text-emerald-800 border-emerald-200',
-  inactive:'bg-amber-50 text-amber-800 border-amber-200',
-  deleted: 'bg-red-50 text-red-700 border-red-200',
-  unknown: 'bg-slate-50 text-slate-600 border-slate-200',
-} as const
-
-const STATUS_LABEL = {
-  active: 'نشط', inactive: 'موقوف', deleted: 'محذوف', unknown: 'غير محدد',
-} as const
-
-const VERIFIED_PILL = {
-  yes:     'bg-emerald-50 text-emerald-800 border-emerald-200',
-  no:      'bg-rose-50 text-rose-700 border-rose-200',
-  unknown: 'bg-slate-50 text-slate-500 border-slate-200',
-} as const
-
-const VERIFIED_LABEL = { yes: 'موثَّق', no: 'غير موثَّق', unknown: 'غير مُرسَل' } as const
-
-function Pill({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <span className={cn('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-black', className)}>
-      {children}
-    </span>
-  )
-}
 
 const USER_CREATE_STEP_META: readonly WizardStepMeta[] = [
   { id: 1, title: 'معلومات المستخدم', hint: 'الهوية وبيانات الاتصال' },
@@ -120,26 +73,9 @@ const USER_CREATE_STEP_META: readonly WizardStepMeta[] = [
   { id: 4, title: 'المراجعة والحفظ', hint: 'تأكيد ثم الإنشاء' },
 ]
 
-function isDeleted(u: AdminManagedUser): boolean {
-  return !!u.deleted_at
-}
-
 function isEffectivelyActive(u: AdminManagedUser): boolean {
-  if (isDeleted(u)) return false
+  if (isDeletedUser(u)) return false
   return u.is_active !== false
-}
-
-function statusBadge(u: AdminManagedUser): 'active' | 'inactive' | 'deleted' | 'unknown' {
-  if (isDeleted(u)) return 'deleted'
-  if (u.is_active === false) return 'inactive'
-  if (u.is_active === true) return 'active'
-  return 'unknown'
-}
-
-function verifiedDot(u: AdminManagedUser): 'yes' | 'no' | 'unknown' {
-  const raw = u.email_verified_at
-  if (raw == null || String(raw).trim() === '') return 'no'
-  return Number.isFinite(Date.parse(raw)) ? 'yes' : 'unknown'
 }
 
 export default function UsersManagementPage() {
@@ -278,8 +214,8 @@ export default function UsersManagementPage() {
       total,
       active: pageUsers.filter(isEffectivelyActive).length,
       suspended: pageUsers.filter((u) => u.is_active === false).length,
-      verified: pageUsers.filter((u) => verifiedDot(u) === 'yes').length,
-      unverified: pageUsers.filter((u) => verifiedDot(u) !== 'yes').length,
+      verified: pageUsers.filter((u) => userVerifiedKey(u) === 'yes').length,
+      unverified: pageUsers.filter((u) => userVerifiedKey(u) !== 'yes').length,
       admins: 0,
       instructors: 0,
       students: 0,
@@ -304,6 +240,7 @@ export default function UsersManagementPage() {
     setSaving(false)
     setEditAvatarFile(null)
     setRemoveAvatar(false)
+    setFormAvatarUrl(null)
     setCreateWizardStep(1)
     setCreateSuccessOpen(false)
   }
@@ -325,6 +262,7 @@ export default function UsersManagementPage() {
   const [formStatus, setFormStatus] = useState<'active' | 'inactive' | 'preserve'>('preserve')
   const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null)
   const [removeAvatar, setRemoveAvatar] = useState(false)
+  const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(null)
   const [pw, setPw] = useState('')
   const [pwConf, setPwConf] = useState('')
   const [saving, setSaving] = useState(false)
@@ -384,6 +322,7 @@ export default function UsersManagementPage() {
       setFormStatus(u.is_active === false ? 'inactive' : u.is_active === true ? 'active' : 'preserve')
       setEditAvatarFile(null)
       setRemoveAvatar(false)
+      setFormAvatarUrl(u.avatar_url ?? null)
       setEditMeta({
         emailVerifiedAt: u.email_verified_at,
         lastLoginAt: u.last_login_at,
@@ -532,6 +471,88 @@ export default function UsersManagementPage() {
       ADMIN_USER_FORBIDDEN_AR
     : `${enterpriseKpis.total} مستخدم · ${enterpriseKpis.active} نشط · ${enterpriseKpis.verified} موثّق`
 
+  const hasActiveFilters =
+    roleFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    verifiedFilter !== 'all' ||
+    departmentFilter !== 'all' ||
+    joinedFilter !== 'all' ||
+    query.trim().length > 0
+
+  const clearFilters = useCallback(() => {
+    setQuery('')
+    setRoleFilter('all')
+    setStatusFilter('all')
+    setVerifiedFilter('all')
+    setDepartmentFilter('all')
+    setJoinedFilter('all')
+  }, [])
+
+  const getRowActions = useCallback(
+    (u: AdminManagedUser): MenuAction[] => {
+      const editOk = canEditAdminUserRow(currentUser?.role, u.role)
+      const delOk =
+        !!currentUser?.role && canDeleteAdminUserRow(actorId, currentUser.role, u.id, u.role)
+
+      return [
+        { key: 'view', label: 'عرض الملف', onClick: () => openEnterpriseView(u) },
+        {
+          key: 'edit',
+          label: 'تحرير',
+          disabled: !editOk || isDeletedUser(u),
+          onClick: () => void openEdit(u.id),
+        },
+        ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
+        !isImpersonating &&
+        Number(currentUser?.id ?? 0) !== Number(u.id) &&
+        !isDeletedUser(u) ?
+          [
+            {
+              key: 'impersonate',
+              label: 'الدخول كمستخدم',
+              onClick: () => void impersonatePreview(u),
+            },
+          ]
+        : []),
+        ...(isDeletedUser(u) && normalizeRole(currentUser?.role ?? '') === 'super_admin' ?
+          [
+            {
+              key: 'restore',
+              label: 'استعادة الحساب',
+              disabled: saving,
+              onClick: () => void executeRestore(u),
+            },
+          ]
+        : []),
+        {
+          key: 'del',
+          label: 'حذف',
+          destructive: true,
+          disabled: !delOk || isDeletedUser(u),
+          onClick: () => {
+            setFocusedId(u.id)
+            setDeleteAck(false)
+            setModal('delete')
+          },
+        },
+      ]
+    },
+    [actorId, currentUser, impersonatePreview, isImpersonating, saving],
+  )
+
+  const handleRowClick = useCallback(
+    (u: AdminManagedUser) => {
+      if (isDeletedUser(u)) {
+        openEnterpriseView(u)
+        return
+      }
+      const editOk = canEditAdminUserRow(currentUser?.role, u.role)
+      if (editOk) void openEdit(u.id)
+      else openEnterpriseView(u)
+    },
+    [currentUser?.role],
+  )
+
   return (
     <SaPageRoot className="space-y-8">
       <EnterpriseCrudHero
@@ -565,12 +586,15 @@ export default function UsersManagementPage() {
       />
 
       {!forbidden ?
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <EnterpriseMetricTile accent="blue"   icon={Users}      label="إجمالي المستخدمين" value={enterpriseKpis.total}       hint={serverPaginated ? 'من الخادم' : 'ترقيم محلي'} />
-          <EnterpriseMetricTile accent="mint"   icon={ShieldCheck} label="حسابات نشطة"       value={enterpriseKpis.active}      deltaLabel={enterpriseKpis.suspended > 0 ? `${enterpriseKpis.suspended} موقوف` : undefined} />
-          <EnterpriseMetricTile accent="navy"   icon={MailCheck}   label="بريد موثَّق"       value={enterpriseKpis.verified}    hint={`${enterpriseKpis.unverified} غير موثَّق`} />
-          <EnterpriseMetricTile accent="orange" icon={Shield}      label="الصفحة الحالية"    value={paginated.length}           hint={`${(safePage - 1) * perPage + 1}–${Math.min(safePage * perPage, total)} من ${total}`} />
-        </div>
+        <UsersKpiStrip
+          total={enterpriseKpis.total}
+          active={enterpriseKpis.active}
+          inactive={enterpriseKpis.suspended}
+          verified={enterpriseKpis.verified}
+          unverified={enterpriseKpis.unverified}
+          serverPaginated={serverPaginated}
+          loading={loading}
+        />
       : null}
 
       {!forbidden && !serverPaginated && total > perPage && (
@@ -586,262 +610,57 @@ export default function UsersManagementPage() {
 
       {!forbidden && !loadErr ?
         <div className="space-y-4">
-          <CrudToolbar
-            sticky
-            searchValue={query}
-            onSearchChange={setQuery}
-            searchPlaceholder="بحث بالاسم، البريد، الجوال، المعرّف، الدور، الإدارة…"
-          >
-            <MiniSelect label="الدور" value={roleFilter} onChange={setRoleFilter} options={roleFilterOptions} />
-            <MiniSelect
-              label="الحالة"
-              value={statusFilter}
-              onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'inactive' | 'deleted')}
-              options={[
-                { value: 'all', labelAr: 'كل الحالات' },
-                { value: 'active', labelAr: 'نشط' },
-                { value: 'inactive', labelAr: 'موقوف' },
-                { value: 'deleted', labelAr: 'محذوف' },
-              ]}
-            />
-            <MiniSelect
-              label="توثيق البريد"
-              value={verifiedFilter}
-              onChange={(v) => setVerifiedFilter(v as 'all' | 'verified' | 'unverified')}
-              options={[
-                { value: 'all', labelAr: 'الكل' },
-                { value: 'verified', labelAr: 'موثَّق' },
-                { value: 'unverified', labelAr: 'غير موثَّق' },
-              ]}
-            />
-            <MiniSelect
-              label="الإدارة"
-              value={departmentFilter}
-              onChange={setDepartmentFilter}
-              options={departmentOpts}
-            />
-            <MiniSelect
-              label="تاريخ الانضمام"
-              value={joinedFilter}
-              onChange={(v) => setJoinedFilter(v as 'all' | 'month' | 'quarter' | 'year')}
-              disabled={serverPaginated}
-              options={[
-                { value: 'all', labelAr: 'الكل' },
-                { value: 'month', labelAr: 'هذا الشهر' },
-                { value: 'quarter', labelAr: '+90 يوماً' },
-                { value: 'year', labelAr: 'هذا العام' },
-              ]}
-            />
-            {(roleFilter !== 'all' || statusFilter !== 'all' || verifiedFilter !== 'all' || departmentFilter !== 'all' || joinedFilter !== 'all' || query.trim()) ?
-              <button
-                type="button"
-                onClick={() => { setQuery(''); setRoleFilter('all'); setStatusFilter('all'); setVerifiedFilter('all'); setDepartmentFilter('all'); setJoinedFilter('all') }}
-                className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 hover:bg-rose-100 transition-colors"
-              >
-                <X className="h-3.5 w-3.5" aria-hidden />
-                مسح التصفية
-              </button>
-            : null}
-          </CrudToolbar>
+          <UsersFilterPanel
+            query={query}
+            onQueryChange={setQuery}
+            roleFilter={roleFilter}
+            onRoleFilterChange={setRoleFilter}
+            roleOptions={roleFilterOptions}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            verifiedFilter={verifiedFilter}
+            onVerifiedFilterChange={setVerifiedFilter}
+            departmentFilter={departmentFilter}
+            onDepartmentFilterChange={setDepartmentFilter}
+            departmentOptions={departmentOpts}
+            joinedFilter={joinedFilter}
+            onJoinedFilterChange={setJoinedFilter}
+            serverPaginated={serverPaginated}
+            onClearFilters={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+          />
 
           {loading ?
-            <motion.div layout className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <motion.div
+              layout
+              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(34,51,74,0.08)]"
+            >
               <EnterpriseTableSkeleton cols={10} rows={perPage > 8 ? 8 : perPage} />
             </motion.div>
-          :
-            <motion.div layout className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          : (
+            <motion.div
+              layout
+              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(34,51,74,0.08)] ring-1 ring-[#22334A]/[0.04]"
+            >
               <div className="max-h-[min(70vh,720px)] overflow-auto">
-              <CrudCardTable className="min-w-[1020px] rounded-none border-0 shadow-none">
-                <CrudTable>
-                  <thead>
-                    <tr>
-                      <Th className="min-w-[15rem]">المستخدم</Th>
-                      <Th className="w-14">#</Th>
-                      <Th className="w-28">الجوال</Th>
-                      <Th className="w-32">الدور</Th>
-                      <Th className="w-28">الإدارة</Th>
-                      <Th className="w-24">الحساب</Th>
-                      <Th className="w-28">توثيق البريد</Th>
-                      <Th className="w-36">آخر دخول</Th>
-                      <Th className="w-32">تاريخ الإنشاء</Th>
-                      <Th className="w-20 text-end">إجراءات</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginated.length === 0 ?
-                      <tr>
-                        <Td colSpan={10} className="p-0">
-                          <EmptyPanel
-                            title="لا توجد نتائج مطابقة"
-                            subtitle="جرّب تعديل البحث أو المرشّحات — النتائج تُحمَّل من الخادم عند توفر الترقيم."
-                          />
-                        </Td>
-                      </tr>
-                    : paginated.map((u) => {
-                        const st = statusBadge(u)
-                        const editOk = canEditAdminUserRow(currentUser?.role, u.role)
-                        const delOk =
-                          !!currentUser?.role &&
-                          canDeleteAdminUserRow(actorId, currentUser.role, u.id, u.role)
-                        const vz = verifiedDot(u)
-                        const roleKey = normalizeRole(u.role ?? '') ?? ''
-
-                        return (
-                          <Tr key={u.id} muted={isDeleted(u)}>
-                            <Td>
-                              <button
-                                type="button"
-                                onClick={() => openEnterpriseView(u)}
-                                className="w-full min-w-0 text-right transition hover:opacity-90"
-                              >
-                                <UserAvatarCell
-                                  name={u.name}
-                                  email={u.email}
-                                  avatarUrl={u.avatar_url}
-                                />
-                              </button>
-                            </Td>
-                            <Td>
-                              <span className="font-mono text-[11px] font-black text-slate-500">#{u.id}</span>
-                            </Td>
-                            <Td className="text-[12px] text-slate-600">{u.phone?.trim() ? u.phone : <span className="text-slate-300">—</span>}</Td>
-                            <Td>
-                              <Pill className={ROLE_PILL[roleKey] ?? 'bg-slate-50 text-slate-700 border-slate-200'}>{adminRoleLabelAr(u.role)}</Pill>
-                            </Td>
-                            <Td className="max-w-[8rem] truncate text-[12px] text-slate-500">{u.department?.trim() || '—'}</Td>
-                            <Td>
-                              <Pill className={STATUS_PILL[st]}>{STATUS_LABEL[st]}</Pill>
-                            </Td>
-                            <Td>
-                              <Pill className={VERIFIED_PILL[vz]}>{VERIFIED_LABEL[vz]}</Pill>
-                            </Td>
-                            <Td>
-                              <p className="text-[12px] font-semibold text-[#22334A]">{formatLastLogin(u.last_login_at)}</p>
-                            </Td>
-                            <Td>
-                              <p className="text-[12px] text-slate-500">{formatDate(u.created_at)}</p>
-                            </Td>
-                            <Td className="text-end">
-                              <RowActionsMenu
-                                ariaLabel={`إجراءات ${u.name}`}
-                                actions={[
-                                  { key: 'view', label: 'عرض الملف', onClick: () => openEnterpriseView(u) },
-                                  { key: 'edit', label: 'تحرير', disabled: !editOk || isDeleted(u), onClick: () => void openEdit(u.id) },
-                                  ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
-                                  !isImpersonating &&
-                                  Number(currentUser?.id ?? 0) !== Number(u.id) &&
-                                  !isDeleted(u) ?
-                                    [
-                                      {
-                                        key: 'impersonate',
-                                        label: 'الدخول كمستخدم',
-                                        onClick: () => void impersonatePreview(u),
-                                      },
-                                    ]
-                                  : []),
-                                  ...(isDeleted(u) && normalizeRole(currentUser?.role ?? '') === 'super_admin' ?
-                                    [
-                                      {
-                                        key: 'restore',
-                                        label: 'استعادة الحساب',
-                                        disabled: saving,
-                                        onClick: () => void executeRestore(u),
-                                      },
-                                    ]
-                                  : []),
-                                  {
-                                    key: 'del',
-                                    label: 'حذف',
-                                    destructive: true,
-                                    disabled: !delOk || isDeleted(u),
-                                    onClick: () => {
-                                      setFocusedId(u.id)
-                                      setDeleteAck(false)
-                                      setModal('delete')
-                                    },
-                                  },
-                                ]}
-                              />
-                            </Td>
-                          </Tr>
-                        )
-                      })
-                    }
-                  </tbody>
-                </CrudTable>
-              </CrudCardTable>
+                <UsersDataTable
+                  users={paginated}
+                  getRowActions={getRowActions}
+                  onRowClick={handleRowClick}
+                />
               </div>
-
-              {total > 0 && (
-                <div dir="rtl" className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 bg-slate-50/40 px-5 py-3">
-                  <div className="flex items-center gap-2.5 text-[12px] text-slate-500">
-                    <span>عرض</span>
-                    <select
-                      value={perPage}
-                      onChange={(e) => setPerPage(Number(e.target.value))}
-                      className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[12px] font-bold text-[#22334A] outline-none focus:border-[#2691C2]/50 focus:ring-2 focus:ring-[#2691C2]/12"
-                    >
-                      {[15, 25, 50, 100].map((n) => (
-                        <option key={n} value={n}>{n}</option>
-                      ))}
-                    </select>
-                    <span className="font-semibold">
-                      {`${(safePage - 1) * perPage + 1}–${Math.min(safePage * perPage, total)} من ${total} مستخدم`}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={safePage <= 1}
-                      onClick={() => setPage(safePage - 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-[#2691C2]/40 hover:text-[#2691C2] disabled:cursor-not-allowed disabled:opacity-30"
-                      aria-label="الصفحة السابقة"
-                    >
-                      <ChevronRight className="h-4 w-4" aria-hidden />
-                    </button>
-
-                    {Array.from({ length: lastPage }, (_, i) => i + 1)
-                      .filter((p) => p === 1 || p === lastPage || Math.abs(p - safePage) <= 1)
-                      .reduce<(number | '…')[]>((acc, p, i, arr) => {
-                        if (i > 0 && (arr[i - 1] as number) !== p - 1) acc.push('…')
-                        acc.push(p)
-                        return acc
-                      }, [])
-                      .map((p, i) =>
-                        p === '…' ? (
-                          <span key={`ellipsis-${i}`} className="w-6 text-center text-[12px] text-slate-300">…</span>
-                        ) : (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => setPage(p as number)}
-                            className={`flex h-8 w-8 items-center justify-center rounded-lg border text-[12px] font-bold transition ${
-                              safePage === p
-                                ? 'border-[#2691C2] bg-[#2691C2] text-white'
-                                : 'border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/40 hover:text-[#2691C2]'
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        )
-                      )
-                    }
-
-                    <button
-                      type="button"
-                      disabled={safePage >= lastPage}
-                      onClick={() => setPage(safePage + 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-[#2691C2]/40 hover:text-[#2691C2] disabled:cursor-not-allowed disabled:opacity-30"
-                      aria-label="الصفحة التالية"
-                    >
-                      <ChevronLeft className="h-4 w-4" aria-hidden />
-                    </button>
-                  </div>
-                </div>
-              )}
+              {total > 0 ?
+                <UsersPaginationBar
+                  page={safePage}
+                  lastPage={lastPage}
+                  perPage={perPage}
+                  total={total}
+                  onPageChange={setPage}
+                  onPerPageChange={setPerPage}
+                />
+              : null}
             </motion.div>
-          }
+          )}
         </div>
       : null}
 
@@ -1010,6 +829,7 @@ export default function UsersManagementPage() {
         pwConf={pwConf}
         editAvatarFile={editAvatarFile}
         removeAvatar={removeAvatar}
+        avatarUrl={formAvatarUrl}
         emailVerifiedAt={editMeta.emailVerifiedAt}
         lastLoginAt={editMeta.lastLoginAt}
         createdAt={editMeta.createdAt}

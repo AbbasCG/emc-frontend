@@ -182,7 +182,7 @@ export default function LearningPathDetail() {
                 {path.students_count > 0 && (
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-slate-300" />
-                    <span>{path.students_count.toLocaleString('ar-EG')} طالب</span>
+                    <span>{new Intl.NumberFormat('en-US').format(path.students_count)} طالب</span>
                   </div>
                 )}
                 {path.certificate_name && (
@@ -315,7 +315,7 @@ export default function LearningPathDetail() {
                       </div>
                       {/* Course info */}
                       <div className="flex-1 text-right">
-                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                        <div className="mb-1 flex flex-wrap items-center justify-start gap-2">
                           <div className="flex items-center gap-2 text-xs text-slate-400">
                             {course.duration && (
                               <span className="flex items-center gap-1">

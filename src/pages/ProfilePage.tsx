@@ -624,7 +624,7 @@ function ProfileInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`h-11 w-full rounded-xl border border-[#22334A]/[0.08] bg-slate-50/80 px-4 text-sm font-semibold text-[#22334A] outline-none ring-2 ring-transparent transition placeholder:font-normal placeholder:text-slate-400 focus:border-[#2691C2]/40 focus:bg-white focus:ring-[#2691C2]/10 ${dir === 'ltr' ? 'text-left' : ''}`}
+        className={`h-11 w-full rounded-xl border border-[#22334A]/[0.08] bg-slate-50/80 px-4 text-sm font-semibold text-[#22334A] outline-none ring-2 ring-transparent transition placeholder:font-normal placeholder:text-slate-400 focus:border-[#2691C2]/40 focus:bg-white focus:ring-[#2691C2]/10 ${dir === 'ltr' ? 'text-right' : ''}`}
       />
     </label>
   )

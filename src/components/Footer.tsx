@@ -1,5 +1,6 @@
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Cookie, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Cookie, Mail, MapPin, Phone } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { siteContact } from '@/data/publicPages'
 import { useCookieConsentOptional } from '@/contexts/CookieConsentContext'
@@ -58,31 +59,44 @@ const SOCIAL_LINKS = [
   },
 ] as const
 
-function NavColumn({
+function FooterAccordion({
   title,
-  links,
-  className,
+  children,
+  defaultOpen = false,
 }: {
   title: string
-  links: ReadonlyArray<{ label: string; href: string }>
-  className?: string
+  children: ReactNode
+  defaultOpen?: boolean
 }) {
+  const [open, setOpen] = useState(defaultOpen)
+
   return (
-    <div className={cn('text-right', className)}>
-      <h3 className="mb-2.5 text-[10px] font-black tracking-[0.14em] text-[#EC943C]">{title}</h3>
-      <ul className="space-y-1.5">
-        {links.map((l) => (
-          <li key={`${l.href}-${l.label}`}>
-            <Link
-              to={l.href}
-              className="text-[13px] font-semibold text-white/55 transition-colors hover:text-white"
-            >
-              {l.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="border-b border-white/[0.08] md:border-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between py-3 text-right md:hidden"
+      >
+        <span className="text-[11px] font-black tracking-[0.12em] text-[#EC943C]">{title}</span>
+        <ChevronDown className={cn('h-4 w-4 text-white/50 transition', open && 'rotate-180')} aria-hidden />
+      </button>
+      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-[#EC943C] md:block">{title}</h3>
+      <div className={cn(open ? 'block pb-3' : 'hidden', 'md:block md:pb-0')}>{children}</div>
     </div>
+  )
+}
+
+function NavLinks({ links }: { links: ReadonlyArray<{ label: string; href: string }> }) {
+  return (
+    <ul className="space-y-1.5">
+      {links.map((l) => (
+        <li key={`${l.href}-${l.label}`}>
+          <Link to={l.href} className="text-[13px] font-semibold text-white/55 transition-colors hover:text-white">
+            {l.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -100,39 +114,40 @@ export default function Footer() {
         className="pointer-events-none absolute -top-24 end-0 h-48 w-48 rounded-full bg-[#2691C2]/10 blur-[80px]"
       />
 
-      {/* Main grid — max 4 columns */}
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-9">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {/* Brand */}
-          <div className="text-right sm:col-span-2 lg:col-span-1">
+      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-6">
+          <div className="text-right md:col-span-2 lg:col-span-1">
             <Link to="/" className="inline-block transition-opacity hover:opacity-90">
               <img
                 src={logo}
                 alt="EMC — Educational Mastar Central"
-                className="h-[4.5rem] w-auto brightness-0 invert sm:h-20"
+                className="h-16 w-auto brightness-0 invert sm:h-[4.5rem]"
                 width={200}
                 height={80}
                 loading="lazy"
               />
             </Link>
-            <p className="mt-3 max-w-xs text-[12px] font-medium leading-6 text-white/50">
+            <p className="mt-2 max-w-xs text-[12px] font-medium leading-6 text-white/50">
               منصة تعليمية عربية—هولندية: برامج، ورش، شراكات، وتعلم رقمي بمعايير احترافية.
             </p>
             <Link
               to="/contact"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#2691C2] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-[#1e7dab]"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#2691C2] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-[#1e7dab]"
             >
               تواصل معنا
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
 
-          <NavColumn title="روابط رئيسية" links={NAV_MAIN} />
-          <NavColumn title="البرامج" links={NAV_PROGRAMS} />
+          <FooterAccordion title="روابط رئيسية">
+            <NavLinks links={NAV_MAIN} />
+          </FooterAccordion>
 
-          {/* Contact — compact */}
-          <div className="text-right">
-            <h3 className="mb-2.5 text-[10px] font-black tracking-[0.14em] text-[#EC943C]">تواصل</h3>
+          <FooterAccordion title="البرامج">
+            <NavLinks links={NAV_PROGRAMS} />
+          </FooterAccordion>
+
+          <FooterAccordion title="تواصل" defaultOpen>
             <ul className="space-y-2 text-[12px] font-semibold text-white/55">
               <li>
                 <a
@@ -140,7 +155,9 @@ export default function Footer() {
                   className="inline-flex items-center gap-2 transition hover:text-white"
                 >
                   <Phone className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" aria-hidden />
-                  <span dir="ltr" className="font-latin">{siteContact.phone}</span>
+                  <span dir="ltr" className="font-latin">
+                    {siteContact.phone}
+                  </span>
                 </a>
               </li>
               <li>
@@ -152,45 +169,30 @@ export default function Footer() {
                   <span className="font-latin text-[11px]">{siteContact.email}</span>
                 </a>
               </li>
-              <li>
-                <a
-                  href={`mailto:${siteContact.supportEmail}`}
-                  className="inline-flex items-center gap-2 transition hover:text-white"
-                  title="الدعم والمساعدة"
-                >
-                  <Mail className="h-3.5 w-3.5 shrink-0 text-white/35" aria-hidden />
-                  <span className="font-latin text-[11px]">{siteContact.supportEmail}</span>
-                  <span className="text-[10px] text-white/35">(دعم)</span>
-                </a>
-              </li>
-              <li className="flex items-start gap-2 pt-0.5 text-white/40">
+              <li className="flex items-start gap-2 text-white/40">
                 <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span className="text-[11px] leading-5">{siteContact.location.ar}</span>
               </li>
             </ul>
-          </div>
+          </FooterAccordion>
         </div>
       </div>
 
-      {/* Bottom bar */}
       <div className="relative border-t border-white/[0.08] bg-[#1a2940]/80">
-        <div className="mx-auto max-w-7xl px-4 py-3.5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <p className="text-center text-[11px] font-semibold text-white/35 lg:text-right">
-              © {new Date().getFullYear()}{' '}
-              <span className="font-latin text-white/45">EMC</span>
-              {' · '}
-              جميع الحقوق محفوظة
+              © {new Date().getFullYear()} <span className="font-latin text-white/45">EMC</span> · جميع الحقوق محفوظة
             </p>
 
             <nav
               aria-label="القانونية والخصوصية"
-              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-[11px] font-semibold text-white/40"
+              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-[10px] font-semibold text-white/40 sm:text-[11px]"
             >
               {BOTTOM_LEGAL.map((link, i) => (
                 <span key={link.href} className="inline-flex items-center">
                   {i > 0 ?
-                    <span className="mx-1.5 text-white/15" aria-hidden>
+                    <span className="mx-1 text-white/15" aria-hidden>
                       ·
                     </span>
                   : null}
@@ -201,7 +203,7 @@ export default function Footer() {
               ))}
               {cookieConsent ?
                 <>
-                  <span className="mx-1.5 text-white/15" aria-hidden>
+                  <span className="mx-1 text-white/15" aria-hidden>
                     ·
                   </span>
                   <button
@@ -210,7 +212,7 @@ export default function Footer() {
                     className="inline-flex items-center gap-1 transition hover:text-[#EC943C]"
                   >
                     <Cookie className="h-3 w-3" aria-hidden />
-                    إعدادات الكوكيز
+                    الكوكيز
                   </button>
                 </>
               : null}

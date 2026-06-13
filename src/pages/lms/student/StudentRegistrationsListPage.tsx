@@ -64,14 +64,12 @@ export default function StudentRegistrationsListPage() {
                 {registrations.map((r) => {
                   const st = mapBackendRegStatus(r.status)
                   const label = st === 'completed' ? 'مكتمل' : st === 'pending' ? 'معلّق' : 'نشط'
-                  const rawStatus = r.status ?? '—'
                   const pay = r.payment_status ?? '—'
                   return (
                     <tr key={r.id} className="hover:bg-slate-50/80">
                       <td className="px-4 py-3 font-bold text-deepBlue">{r.course_title ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className="text-xs font-bold text-slate-700">{label}</span>
-                        <span className="mt-1 block font-mono text-[10px] text-muted-500">{rawStatus}</span>
                       </td>
                       <td className="px-4 py-3 text-xs font-bold text-slate-600">{pay}</td>
                       <td className="px-4 py-3 font-mono text-xs text-slate-500" dir="ltr">

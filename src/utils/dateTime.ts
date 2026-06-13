@@ -19,6 +19,7 @@ function timeStr(d: Date, tz: string): string {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
+    numberingSystem: 'latn',
   }).format(d)
 }
 
@@ -38,6 +39,7 @@ export function formatDateTime(
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      numberingSystem: 'latn',
     }).format(date)
   } catch {
     return dateStr.slice(0, 16)
@@ -58,6 +60,7 @@ export function formatDate(
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      numberingSystem: 'latn',
     }).format(date)
   } catch {
     return dateStr.slice(0, 10)
@@ -85,7 +88,7 @@ export function formatRelativeDate(
 
   if (diffDays === 0) return `اليوم، ${timeStr(date, timezone)}`
   if (diffDays === 1) return `أمس، ${timeStr(date, timezone)}`
-  if (diffDays < 7) return `منذ ${diffDays} أيام`
+  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
   return formatDate(dateStr, 'ar', timezone)
 }
 
@@ -106,8 +109,8 @@ export function formatLastLogin(
 
   if (diffDays === 0) return `اليوم، ${timeStr(date, timezone)}`
   if (diffDays === 1) return `أمس، ${timeStr(date, timezone)}`
-  if (diffDays < 7) return `منذ ${diffDays} أيام`
-  if (diffDays < 30) return `منذ ${diffDays} يوماً`
+  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays < 30) return `منذ ${String(diffDays)} يوماً`
   return formatDate(dateStr, 'ar', timezone)
 }
 
@@ -129,12 +132,13 @@ export function formatNotificationDate(
 
   if (diffDays === 0) return timeStr(date, timezone)
   if (diffDays === 1) return 'أمس'
-  if (diffDays < 7) return `منذ ${diffDays} أيام`
+  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
   try {
     return new Intl.DateTimeFormat('ar', {
       timeZone: timezone,
       month: 'short',
       day: 'numeric',
+      numberingSystem: 'latn',
     }).format(date)
   } catch {
     return formatDate(dateStr, 'ar', timezone)

@@ -1,44 +1,93 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  BookOpen,
-  Users,
-  Clock,
-  ChevronRight,
-  Loader2,
-  CheckCircle,
   AlertTriangle,
+  Award,
+  BookOpen,
+  Calendar,
+  CheckCircle,
+  ClipboardList,
+  ExternalLink,
+  FolderOpen,
+  GraduationCap,
+  Loader2,
+  MapPin,
+  Users,
+  Video,
 } from 'lucide-react'
 import {
   fetchInstructorLearningPath,
-  updateInstructorCurriculum,
+  fetchInstructorPathSessions,
   fetchInstructorPathStudents,
+  updateInstructorCurriculum,
+  type InstructorPathSession,
   type LearningPath,
-} from '../../../api/learningPathsApi'
-import CourseSelector from '../../../components/learning-paths/CourseSelector'
+} from '@/api/learningPathsApi'
+import { InstructorHero } from '@/components/instructor'
+import CourseSelector from '@/components/learning-paths/CourseSelector'
 
-type Student = {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n)
+
+const fmtDate = (iso: string | null | undefined): string => {
+  if (!iso) return '—'
+  return new Intl.DateTimeFormat('ar', {
+    numberingSystem: 'latn',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(iso))
+}
+
+function formatSessionTime(s: InstructorPathSession): string {
+  const date = s.session_date ? fmtDate(s.session_date) : null
+  const start = s.start_time ? s.start_time.slice(0, 5) : null
+  const end   = s.end_time   ? s.end_time.slice(0, 5)   : null
+  const parts: string[] = []
+  if (date)  parts.push(date)
+  if (start) parts.push(end ? `${start} – ${end}` : start)
+  return parts.join(' · ') || '—'
+}
+
+const SESSION_STATUS: Record<string, { label: string; cls: string }> = {
+  scheduled: { label: 'مجدولة',  cls: 'bg-blue-50   text-blue-700   border-blue-200'   },
+  live:      { label: 'مباشر',   cls: 'bg-rose-50   text-rose-700   border-rose-100'   },
+  completed: { label: 'منتهية',  cls: 'bg-slate-50  text-slate-600  border-slate-200'  },
+  cancelled: { label: 'ملغاة',   cls: 'bg-amber-50  text-amber-700  border-amber-200'  },
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type PathStudent = {
   enrollment_id: number
   user_id: number
   name: string | null
   email: string | null
   status: string
   enrolled_at: string
+  completed_at: string | null
 }
 
-type Tab = 'curriculum' | 'students'
+type Tab = 'courses' | 'students' | 'sessions' | 'curriculum'
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function InstructorLearningPathDetailPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const [path, setPath]         = useState<LearningPath | null>(null)
-  const [students, setStudents] = useState<Student[]>([])
-  const [tab, setTab]           = useState<Tab>('curriculum')
-  const [loading, setLoading]   = useState(true)
-  const [saving, setSaving]     = useState(false)
-  const [courseIds, setCourseIds] = useState<number[]>([])
-  const [toast, setToast]       = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const { id }     = useParams<{ id: string }>()
+  const navigate   = useNavigate()
+
+  const [path,       setPath]       = useState<LearningPath | null>(null)
+  const [students,   setStudents]   = useState<PathStudent[]>([])
+  const [sessions,   setSessions]   = useState<InstructorPathSession[]>([])
+  const [tab,        setTab]        = useState<Tab>('courses')
+  const [loading,    setLoading]    = useState(true)
+  const [forbidden,  setForbidden]  = useState(false)
+  const [accessMessage, setAccessMessage] = useState<string | null>(null)
+  const [saving,     setSaving]     = useState(false)
+  const [courseIds,  setCourseIds]  = useState<number[]>([])
+  const [toast,      setToast]      = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type })
@@ -48,30 +97,48 @@ export default function InstructorLearningPathDetailPage() {
   const load = useCallback(async () => {
     if (!id) return
     setLoading(true)
-    const data = await fetchInstructorLearningPath(Number(id))
-    if (!data) {
+    setForbidden(false)
+    setAccessMessage(null)
+    const result = await fetchInstructorLearningPath(Number(id))
+    if (result.forbidden) {
+      setPath(null)
+      setForbidden(true)
+      setAccessMessage(result.message ?? null)
+      setLoading(false)
+      return
+    }
+    if (!result.path) {
       navigate('/dashboard/instructor/learning-paths', { replace: true })
       return
     }
-    setPath(data)
-    setCourseIds((data.courses ?? []).map((c) => c.id))
+    setPath(result.path)
+    setCourseIds((result.path.courses ?? []).map((c) => c.id))
     setLoading(false)
   }, [id, navigate])
 
   const loadStudents = useCallback(async () => {
     if (!id) return
-    const data = await fetchInstructorPathStudents(Number(id))
-    setStudents(data)
+    setStudents(await fetchInstructorPathStudents(Number(id)))
+  }, [id])
+
+  const loadSessions = useCallback(async () => {
+    if (!id) return
+    setSessions(await fetchInstructorPathSessions(Number(id)))
   }, [id])
 
   useEffect(() => { void load() }, [load])
-  useEffect(() => { if (tab === 'students') void loadStudents() }, [tab, loadStudents])
+
+  useEffect(() => {
+    if (tab === 'students') void loadStudents()
+    if (tab === 'sessions') void loadSessions()
+  }, [tab, loadStudents, loadSessions])
 
   const saveCurriculum = async (ids: number[]) => {
     if (!id) return
     setSaving(true)
     try {
       const updated = await updateInstructorCurriculum(Number(id), ids)
+      setPath(updated)
       setCourseIds((updated.courses ?? []).map((c) => c.id))
       showToast('تم حفظ المنهج بنجاح')
     } catch {
@@ -81,17 +148,53 @@ export default function InstructorLearningPathDetailPage() {
     }
   }
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#2691C2]" />
+      <div className="animate-pulse space-y-5 pb-16" dir="rtl">
+        <div className="h-40 rounded-3xl bg-slate-200" />
+        <div className="h-10 rounded-2xl bg-slate-100" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[1, 2, 3, 4].map((n) => <div key={n} className="h-28 rounded-2xl bg-slate-100" />)}
+        </div>
       </div>
     )
+  }
+
+  if (forbidden) {
+    return (
+      <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-10 text-center shadow-sm" dir="rtl">
+        <AlertTriangle className="mx-auto h-10 w-10 text-rose-500" />
+        <h1 className="mt-4 text-xl font-black text-[#22334A]">
+          {accessMessage ?? 'لا تملك صلاحية عرض هذا المسار.'}
+        </h1>
+        <Link
+          to="/dashboard/instructor/learning-paths"
+          className="mt-6 inline-block rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white"
+        >
+          العودة إلى مساراتي
+        </Link>
+      </div>
+    )
+  }
 
   if (!path) return null
 
+  const durationLabel = path.duration
+    ? `${path.duration} ${path.duration_unit === 'weeks' ? 'أسبوع' : path.duration_unit === 'months' ? 'شهر' : 'يوم'}`
+    : null
+
+  const TABS: { id: Tab; label: string; badge?: number }[] = [
+    { id: 'courses',    label: 'الدورات',        badge: path.courses?.length ?? courseIds.length },
+    { id: 'students',   label: 'الطلاب',         badge: path.students_count },
+    { id: 'sessions',   label: 'الجلسات',        badge: tab === 'sessions' ? sessions.length : undefined },
+    ...(path.is_path_instructor !== false
+      ? [{ id: 'curriculum' as Tab, label: 'ترتيب المنهج' }]
+      : []),
+  ]
+
   return (
-    <div className="min-h-screen bg-slate-50" dir="rtl">
+    <div className="space-y-5 pb-20 text-right" dir="rtl">
+
       {/* Toast */}
       <AnimatePresence>
         {toast && (
@@ -109,116 +212,388 @@ export default function InstructorLearningPathDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div className="border-b border-slate-200 bg-white px-6 py-5 shadow-sm">
-        <nav className="mb-3 flex items-center gap-2 text-xs text-slate-400">
-          <Link to="/dashboard/instructor" className="hover:text-[#2691C2]">لوحة التحكم</Link>
-          <ChevronRight className="h-3 w-3" />
-          <Link to="/dashboard/instructor/learning-paths" className="hover:text-[#2691C2]">مساراتي</Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-slate-600 line-clamp-1">{path.title}</span>
-        </nav>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-[#22334A]">{path.title}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-              {path.duration && (
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-[#2691C2]" />
-                  {path.duration} {path.duration_unit === 'weeks' ? 'أسبوع' : path.duration_unit === 'months' ? 'شهر' : 'يوم'}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <BookOpen className="h-3.5 w-3.5 text-[#EC943C]" />
-                {courseIds.length} دورة
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
-                {path.students_count} طالب مسجّل
-              </span>
-            </div>
-          </div>
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <InstructorHero
+        title={path.title}
+        subtitle={path.short_description ?? undefined}
+        eyebrow="إدارة المسار"
+        backTo="/dashboard/instructor/learning-paths"
+        backLabel="مساراتي التعليمية"
+        onRefresh={load}
+        refreshing={loading}
+        pills={[
+          { label: 'دورات',  value: fmt(path.courses_count)  },
+          { label: 'طلاب',   value: fmt(path.students_count) },
+          ...(durationLabel ? [{ label: 'المدة', value: durationLabel }] : []),
+        ]}
+      >
+        <div className="flex flex-wrap gap-2">
+          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black ${
+            path.status === 'published' ? 'border-emerald-300 bg-emerald-500/20 text-emerald-200'
+            : path.status === 'archived' ? 'border-amber-300 bg-amber-500/15 text-amber-200'
+            : 'border-white/20 bg-white/10 text-white/70'
+          }`}>
+            {path.status === 'published' ? 'منشور' : path.status === 'archived' ? 'مؤرشف' : 'مسودة'}
+          </span>
+          {path.certificate_name && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/15 px-2.5 py-0.5 text-[10px] font-black text-amber-200">
+              <Award className="h-3 w-3" />
+              {path.certificate_name}
+            </span>
+          )}
+        </div>
+      </InstructorHero>
+
+      {/* ── Tab Bar ──────────────────────────────────────────────────────── */}
+      <div className="sticky top-16 z-20 -mx-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 px-1 py-1 shadow-sm backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-max gap-1">
+          {TABS.map(({ id: tid, label, badge }) => {
+            const isActive = tab === tid
+            return (
+              <button
+                key={tid}
+                type="button"
+                onClick={() => setTab(tid)}
+                className={`relative inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] font-black transition-all ${
+                  isActive
+                    ? 'bg-[#22334A] text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-[#22334A]'
+                }`}
+              >
+                {label}
+                {badge != null && badge > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none tabular-nums ${
+                    isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {fmt(badge)}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-slate-200 bg-white px-6">
-        {(['curriculum', 'students'] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition ${
-              tab === t ? 'border-[#2691C2] text-[#2691C2]' : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            {t === 'curriculum' ? 'المنهج الدراسي' : `الطلاب (${students.length})`}
-          </button>
-        ))}
-      </div>
+      {/* ── Tab Content ──────────────────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18 }}
+        >
 
-      <div className="mx-auto max-w-4xl p-6">
-        {/* ── Curriculum Tab ── */}
-        {tab === 'curriculum' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-black text-[#22334A]">دورات المسار</h2>
-              <button
-                onClick={() => saveCurriculum(courseIds)}
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-2 text-sm font-black text-white transition hover:bg-[#1d7aab] disabled:opacity-60"
-              >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                حفظ المنهج
-              </button>
-            </div>
+          {/* ── الدورات ─────────────────────────────────────────────────── */}
+          {tab === 'courses' && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-black text-[#22334A]">
+                الدورات المضمّنة
+                <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
+                  ({fmt(path.courses?.length ?? courseIds.length)} دورة)
+                </span>
+              </h2>
 
-            <CourseSelector value={courseIds} onChange={setCourseIds} />
-          </div>
-        )}
+              {(path.courses?.length ?? 0) === 0 ? (
+                <div className="rounded-3xl border border-slate-200 bg-white py-12 text-center">
+                  <GraduationCap className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+                  <p className="font-black text-[#22334A]">لا توجد دورات مضافة لهذا المسار بعد</p>
+                  <button
+                    type="button"
+                    onClick={() => setTab('curriculum')}
+                    className="mt-3 text-[12px] font-black text-[#2691C2] hover:underline"
+                  >
+                    انتقل إلى ترتيب المنهج لإضافة دورات
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {(path.courses ?? []).map((course, i) => (
+                    <motion.div
+                      key={course.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="flex gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-[#22334A]/[0.03]"
+                    >
+                      {/* Thumbnail */}
+                      {course.image_url ? (
+                        <img
+                          src={course.image_url}
+                          alt={course.title}
+                          className="h-16 w-20 shrink-0 rounded-2xl object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#22334A]/10 to-[#2691C2]/10">
+                          <BookOpen className="h-5 w-5 text-[#2691C2]/50" />
+                        </div>
+                      )}
 
-        {/* ── Students Tab ── */}
-        {tab === 'students' && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {students.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Users className="mb-3 h-10 w-10 text-slate-200" />
-                <p className="text-sm text-slate-400">لا طلاب مسجّلين بعد</p>
-              </div>
-            ) : (
-              <table className="w-full text-right text-sm">
-                <thead className="border-b border-slate-100 bg-slate-50">
-                  <tr>
-                    <th className="px-5 py-3 font-bold text-slate-500">الطالب</th>
-                    <th className="hidden px-4 py-3 font-bold text-slate-500 sm:table-cell">البريد</th>
-                    <th className="px-4 py-3 font-bold text-slate-500">الحالة</th>
-                    <th className="hidden px-4 py-3 font-bold text-slate-500 sm:table-cell">تاريخ التسجيل</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {students.map((s) => (
-                    <tr key={s.enrollment_id} className="hover:bg-slate-50/70">
-                      <td className="px-5 py-3 font-semibold text-[#22334A]">{s.name ?? '—'}</td>
-                      <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">{s.email ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${
-                          s.status === 'completed'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-[#2691C2]/10 text-[#2691C2] border-[#2691C2]/20'
-                        }`}>
-                          {s.status === 'completed' ? 'مكتمل' : 'جاري'}
-                        </span>
-                      </td>
-                      <td className="hidden px-4 py-3 text-xs text-slate-400 sm:table-cell">
-                        {new Date(s.enrolled_at).toLocaleDateString('ar-EG')}
-                      </td>
-                    </tr>
+                      {/* Info */}
+                      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                        <p className="line-clamp-2 font-black leading-snug text-[#22334A]">{course.title}</p>
+
+                        {/* Per-course stats */}
+                        <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
+                          {course.sessions_count !== undefined && (
+                            <span className="inline-flex items-center gap-1">
+                              <Calendar className="h-3 w-3 text-[#2691C2]" />
+                              {fmt(course.sessions_count)} جلسة
+                            </span>
+                          )}
+                          {course.materials_count !== undefined && (
+                            <span className="inline-flex items-center gap-1">
+                              <FolderOpen className="h-3 w-3 text-[#EC943C]" />
+                              {fmt(course.materials_count)} مادة
+                            </span>
+                          )}
+                          {course.assignments_count !== undefined && (
+                            <span className="inline-flex items-center gap-1">
+                              <ClipboardList className="h-3 w-3 text-emerald-600" />
+                              {fmt(course.assignments_count)} واجب
+                            </span>
+                          )}
+                        </div>
+
+                        {/* CTA */}
+                        <Link
+                          to={`/dashboard/instructor/courses/${course.id}/content`}
+                          className="mt-auto inline-flex items-center gap-1.5 self-start rounded-xl bg-[#22334A] px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-[#2691C2]"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          إدارة محتوى الدورة
+                        </Link>
+                      </div>
+                    </motion.div>
                   ))}
-                </tbody>
-              </table>
-            )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── الطلاب ──────────────────────────────────────────────────── */}
+          {tab === 'students' && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-black text-[#22334A]">
+                الطلاب المسجّلون
+                <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
+                  ({fmt(students.length)})
+                </span>
+              </h2>
+
+              {students.length === 0 ? (
+                <div className="rounded-3xl border border-slate-200 bg-white py-14 text-center">
+                  <Users className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+                  <p className="font-black text-[#22334A]">لا طلاب مسجّلين بعد</p>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <table className="w-full text-right text-sm">
+                    <thead className="border-b border-slate-100 bg-slate-50 text-[11px] font-black uppercase text-slate-400">
+                      <tr>
+                        <th className="px-5 py-3">الطالب</th>
+                        <th className="hidden px-4 py-3 sm:table-cell">البريد الإلكتروني</th>
+                        <th className="px-4 py-3">الحالة</th>
+                        <th className="hidden px-4 py-3 sm:table-cell">تاريخ التسجيل</th>
+                        <th className="hidden px-4 py-3 sm:table-cell">الإنجاز</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {students.map((s) => (
+                        <tr key={s.enrollment_id} className="hover:bg-slate-50/70">
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#22334A]/10 text-[12px] font-black text-[#22334A]">
+                                {(s.name ?? '?').charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-semibold text-[#22334A]">{s.name ?? '—'}</span>
+                            </div>
+                          </td>
+                          <td className="hidden px-4 py-3 text-[12px] text-slate-500 sm:table-cell">
+                            {s.email ?? '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black ${
+                              s.status === 'completed'
+                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                : s.status === 'dropped'
+                                  ? 'border-rose-200 bg-rose-50 text-rose-700'
+                                  : 'border-[#2691C2]/20 bg-[#2691C2]/10 text-[#2691C2]'
+                            }`}>
+                              {s.status === 'completed' ? 'مكتمل' : s.status === 'dropped' ? 'انسحب' : 'جاري'}
+                            </span>
+                          </td>
+                          <td className="hidden px-4 py-3 text-[12px] text-slate-400 sm:table-cell">
+                            {fmtDate(s.enrolled_at)}
+                          </td>
+                          <td className="hidden px-4 py-3 text-[12px] text-slate-400 sm:table-cell">
+                            {s.completed_at ? fmtDate(s.completed_at) : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── الجلسات ─────────────────────────────────────────────────── */}
+          {tab === 'sessions' && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-lg font-black text-[#22334A]">
+                  جلسات دورات المسار
+                  <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
+                    ({fmt(sessions.length)})
+                  </span>
+                </h2>
+                <Link
+                  to="/dashboard/instructor/sessions"
+                  className="text-[12px] font-black text-[#2691C2] hover:underline"
+                >
+                  عرض كل جلساتي
+                </Link>
+              </div>
+
+              {sessions.length === 0 ? (
+                <div className="rounded-3xl border border-slate-200 bg-white py-14 text-center">
+                  <Calendar className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+                  <p className="font-black text-[#22334A]">لا جلسات مرتبطة بدورات هذا المسار</p>
+                  <p className="mt-1 text-[12px] text-slate-400">
+                    أضف جلسات عبر صفحة محتوى كل دورة
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sessions.map((s, i) => {
+                    const st = SESSION_STATUS[s.status] ?? { label: s.status, cls: 'bg-slate-100 text-slate-600 border-slate-200' }
+                    return (
+                      <motion.div
+                        key={s.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="flex flex-wrap items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#22334A]/8 text-[#22334A]">
+                          <Calendar className="h-5 w-5" />
+                        </div>
+
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-black text-[#22334A]">
+                              {s.title ?? `جلسة #${fmt(s.id)}`}
+                            </p>
+                            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${st.cls}`}>
+                              {st.label}
+                            </span>
+                          </div>
+
+                          {s.course_title && (
+                            <p className="text-[12px] font-semibold text-[#2691C2]">
+                              <BookOpen className="mb-0.5 ml-1 inline h-3 w-3" />
+                              {s.course_title}
+                            </p>
+                          )}
+
+                          <p className="text-[12px] text-slate-500">{formatSessionTime(s)}</p>
+
+                          {s.location && (
+                            <p className="flex items-center gap-1 text-[11px] text-slate-400">
+                              <MapPin className="h-3 w-3" /> {s.location}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          {s.meeting_url && (
+                            <a
+                              href={s.meeting_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-[#2691C2]"
+                            >
+                              <Video className="h-3.5 w-3.5" />
+                              رابط الجلسة
+                            </a>
+                          )}
+                          {s.course_id && (
+                            <Link
+                              to={`/dashboard/instructor/courses/${s.course_id}/content`}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-[#22334A] transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              إدارة الدورة
+                            </Link>
+                          )}
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── ترتيب المنهج (curriculum editor) ───────────────────────── */}
+          {tab === 'curriculum' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-black text-[#22334A]">ترتيب المنهج الدراسي</h2>
+                  <p className="mt-0.5 text-[12px] font-semibold text-[#22334A]/50">
+                    أضف الدورات أو أعد ترتيبها داخل هذا المسار
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void saveCurriculum(courseIds)}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1d7aab] disabled:opacity-60"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                  {saving ? 'جارٍ الحفظ…' : 'حفظ المنهج'}
+                </button>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-5">
+                <CourseSelector value={courseIds} onChange={setCourseIds} />
+              </div>
+
+              <div className="rounded-2xl border border-[#22334A]/10 bg-[#22334A]/5 p-4 text-[12px] font-semibold text-[#22334A]/70">
+                <strong>ملاحظة:</strong> تغيير الدورات هنا قد يؤثر على وصول الطلاب المسجّلين. تأكد من
+                التنسيق مع الإدارة قبل إجراء تغييرات جوهرية.
+              </div>
+            </div>
+          )}
+
+        </motion.div>
+      </AnimatePresence>
+
+      {/* ── Assignments quick-link (always visible at bottom) ────────────── */}
+      <div className="rounded-2xl border border-[#EC943C]/15 bg-orange-50/50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <ClipboardList className="h-5 w-5 text-[#EC943C]" />
+            <div>
+              <p className="font-black text-[#22334A]">الواجبات والتسليمات</p>
+              <p className="text-[12px] font-semibold text-[#22334A]/55">
+                راجع تسليمات الطلاب في دورات هذا المسار
+              </p>
+            </div>
           </div>
-        )}
+          <Link
+            to="/dashboard/instructor/submissions"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-4 py-2 text-[12px] font-black text-white shadow-sm transition hover:opacity-90"
+          >
+            <ClipboardList className="h-4 w-4" />
+            التسليمات
+          </Link>
+        </div>
       </div>
+
     </div>
   )
 }

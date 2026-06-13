@@ -76,7 +76,6 @@ type Props = {
   registrationOpen: boolean
   seatsFull: boolean
   alreadyEnrolled: boolean
-  heroTiles: { label: string; value: string }[]
   compact?: boolean
 }
 
@@ -88,7 +87,6 @@ export default function CourseEnrollmentCard({
   registrationOpen,
   seatsFull,
   alreadyEnrolled,
-  heroTiles,
   compact = false,
 }: Props) {
   const { user, isAuthenticated, refreshUser } = useAuth()
@@ -277,22 +275,14 @@ export default function CourseEnrollmentCard({
           )}
         </div>
 
-        {!compact && (
-          <div className="space-y-3 border-b border-slate-100 px-5 py-4 text-right sm:px-6">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-black text-slate-400">الرسوم</span>
-              <span className={`text-base font-black ${isFree ? 'text-customBlue' : 'text-customOrange'}`}>
-                {isFree ? 'مجانية' : priceLabel}
-              </span>
-            </div>
-            {heroTiles.slice(0, 3).map((t, i) => (
-              <div key={i} className="flex items-center justify-between gap-3 text-sm">
-                <span className="font-semibold text-slate-500">{t.label}</span>
-                <span className="font-black text-deepBlue">{t.value}</span>
-              </div>
-            ))}
+        <div className="space-y-3 border-b border-slate-100 px-5 py-4 text-right sm:px-6">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-black text-slate-400">الرسوم</span>
+            <span className={`text-base font-black ${isFree ? 'text-customBlue' : 'text-customOrange'}`}>
+              {isFree ? 'مجانية' : priceLabel}
+            </span>
           </div>
-        )}
+        </div>
 
         <div className="p-5 sm:p-6">
           {!registrationOpen || seatsFull ?
@@ -321,7 +311,7 @@ export default function CourseEnrollmentCard({
                 to={signupHref}
                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-md"
               >
-                سجّل حسابك للالتحاق
+                سجّل الدخول لإكمال التسجيل
               </Link>
             </div>
           : profileLoading ?

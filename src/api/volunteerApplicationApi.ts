@@ -20,6 +20,8 @@ export type VolunteerRequest = {
   notes?: string | null
   admin_notes?: string | null
   cv_file_url?: string | null
+  cv_view_url?: string | null
+  cv_download_url?: string | null
   status: VolunteerRequestStatus
   created_at?: string | null
 
@@ -154,7 +156,9 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     previous_experience: parseStr(raw.previous_experience),
     notes: parseStr(raw.notes),
     admin_notes: parseStr(raw.admin_notes),
-    cv_file_url: parseStr(raw.cv_file_url),
+    cv_file_url: parseStr(raw.cv_file_url ?? raw.cv_url),
+    cv_view_url: parseStr(raw.cv_view_url),
+    cv_download_url: parseStr(raw.cv_download_url ?? raw.cv_file_url ?? raw.cv_url),
     status,
     created_at: parseStr(raw.created_at),
     is_converted: isConverted,

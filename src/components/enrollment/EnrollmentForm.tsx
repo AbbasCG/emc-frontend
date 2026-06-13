@@ -259,7 +259,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
       {!isAuthenticated && (
         <div className="mb-5 flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sm font-bold text-customBlue ring-1 ring-sky-100">
           <Lock size={18} className="mt-0.5 shrink-0" />
-          <span>سجّل الدخول أولاً لتعبئة بياناتك تلقائياً وإكمال التسجيل.</span>
+          <span>سجّل الدخول لإكمال التسجيل — تُعبَّأ بياناتك تلقائياً بعد الدخول.</span>
         </div>
       )}
 

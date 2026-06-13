@@ -13,6 +13,7 @@ import type {
   StudentProgressPayload,
 } from '../types/lms'
 import type { Course } from '@/types'
+import { normalizeAssignmentStatus, resolveLmsAssignmentSubmitId } from '@/utils/lmsAssignment'
 
 function toFiniteNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -1017,21 +1018,35 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
     o.my_submission && typeof o.my_submission === 'object' && !Array.isArray(o.my_submission) ?
       (o.my_submission as Record<string, unknown>)
     : null
-  const assignment_id = Number(
-    o.lms_assignment_id ?? o.assignment_id ?? nestedAssignment?.id ?? o.id,
-  )
-  const id = Number(o.id ?? o.student_assignment_id ?? o.course_assignment_id ?? assignment_id)
-  if (!Number.isFinite(id) || !Number.isFinite(assignment_id)) return null
+
+  const rowId = Number(o.id ?? o.student_assignment_id ?? o.course_assignment_id)
+  const courseAssignmentId =
+    o.course_assignment_id != null && Number.isFinite(Number(o.course_assignment_id)) ?
+      Number(o.course_assignment_id)
+    : Number.isFinite(rowId) ? rowId : null
+
+  const assignment_id = resolveLmsAssignmentSubmitId({
+    lms_assignment_id: o.lms_assignment_id != null ? Number(o.lms_assignment_id) : null,
+    assignment_id:
+      o.assignment_id != null ? Number(o.assignment_id)
+      : nestedAssignment?.id != null ? Number(nestedAssignment.id)
+      : null,
+    id: Number.isFinite(rowId) ? rowId : null,
+    course_assignment_id: courseAssignmentId,
+  })
+
+  if (assignment_id == null) return null
+
+  const id =
+    courseAssignmentId != null && Number.isFinite(courseAssignmentId) ?
+      courseAssignmentId
+    : Number.isFinite(rowId) ? rowId : assignment_id
+
   const cidRaw = o.course_id ?? nested?.id
   const course_id = cidRaw != null && cidRaw !== '' && Number.isFinite(Number(cidRaw)) ? Number(cidRaw) : null
   const statusRaw = String(
-    o.status ?? mySubmission?.status ?? (mySubmission?.submitted_at ? 'submitted' : 'pending'),
-  ).toLowerCase()
-  let status: StudentAssignment['status'] = 'pending'
-  if (statusRaw.includes('grade') || statusRaw.includes('review')) status = 'graded'
-  else if (statusRaw.includes('submit')) status = 'submitted'
-  else if (statusRaw.includes('revision') || statusRaw.includes('needs')) status = 'revision'
-  else if (statusRaw.includes('late')) status = 'late'
+    o.status ?? mySubmission?.status ?? (mySubmission?.submitted_at || o.submitted_at ? 'submitted' : 'pending'),
+  )
 
   return {
     id,
@@ -1049,7 +1064,7 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
       : o.deadline != null ? String(o.deadline)
       : o.due_date != null ? String(o.due_date)
       : null,
-    status,
+    status: normalizeAssignmentStatus(statusRaw),
     score:
       o.score != null ? Number(o.score)
       : mySubmission?.score != null ? Number(mySubmission.score)
@@ -1124,15 +1139,37 @@ export async function fetchStudentAssignments(): Promise<StudentAssignment[]> {
   }
 }
 
+export type AssignmentSubmitResult = {
+  status: StudentAssignment['status']
+  submitted_at: string | null
+  submission_id: number | null
+}
+
 export async function submitStudentAssignment(
   assignmentId: number,
   payload: FormData | { text_answer?: string; answer_text?: string; file?: File | null; notes?: string },
-): Promise<void> {
-  if (payload instanceof FormData) {
-    await apiClient.post(`/student/assignments/${assignmentId}/submit`, payload, {
+): Promise<AssignmentSubmitResult> {
+  const post = async (body: FormData) => {
+    const res = await apiClient.post<unknown>(`/student/assignments/${assignmentId}/submit`, body, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    return
+    const data = unwrapData<Record<string, unknown>>(res.data)
+    const submittedAt =
+      data?.submitted_at != null ? String(data.submitted_at)
+      : data?.submittedAt != null ? String(data.submittedAt)
+      : new Date().toISOString()
+    const submissionId =
+      data?.id != null && Number.isFinite(Number(data.id)) ? Number(data.id) : null
+    const statusRaw = data?.status != null ? String(data.status) : 'submitted'
+    return {
+      status: normalizeAssignmentStatus(statusRaw),
+      submitted_at: submittedAt,
+      submission_id: submissionId,
+    } satisfies AssignmentSubmitResult
+  }
+
+  if (payload instanceof FormData) {
+    return post(payload)
   }
   const fd = new FormData()
   const text = payload.text_answer ?? payload.answer_text
@@ -1142,9 +1179,7 @@ export async function submitStudentAssignment(
   }
   if (payload.notes) fd.append('notes', payload.notes)
   if (payload.file) fd.append('file', payload.file)
-  await apiClient.post(`/student/assignments/${assignmentId}/submit`, fd, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  return post(fd)
 }
 
 export async function fetchStudentProgress(): Promise<StudentProgressPayload> {

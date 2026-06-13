@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 
-export type UserRole = 'student' | 'teacher' | 'admin' | 'partner' | 'super_admin'
+export type UserRole = 'student' | 'teacher' | 'instructor' | 'admin' | 'partner' | 'super_admin'
 
 export type User = {
   id: number

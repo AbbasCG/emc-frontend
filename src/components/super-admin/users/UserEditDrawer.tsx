@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import {
+  Camera,
   Eye,
   EyeOff,
+  ImageOff,
   Loader2,
-  Mail,
+  Lock,
+  MapPin,
   Shield,
   ShieldCheck,
   Sparkles,
   UserCircle2,
-  Users,
+  X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
-import type { UpdateAdminUserInput } from '@/api/adminUsersApi'
 import { adminRoleLabelAr } from '@/pages/super-admin/users/assignableRoles'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
+import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { formatDate, formatRelativeDate } from '@/utils/dateTime'
 import { generateSecurePassword } from '@/utils/passwordGenerator'
+import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import { cn } from '@/lib/utils'
 
 type RoleOption = { value: string; labelAr: string }
@@ -38,6 +42,7 @@ type Props = {
   pwConf: string
   editAvatarFile: File | null
   removeAvatar: boolean
+  avatarUrl?: string | null
   emailVerifiedAt?: string | null
   lastLoginAt?: string | null
   createdAt?: string | null
@@ -80,6 +85,7 @@ export function UserEditDrawer({
   pwConf,
   editAvatarFile,
   removeAvatar,
+  avatarUrl,
   emailVerifiedAt,
   lastLoginAt,
   createdAt,
@@ -103,6 +109,7 @@ export function UserEditDrawer({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showPw, setShowPw] = useState(false)
   const [showPwConf, setShowPwConf] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) {
@@ -111,6 +118,16 @@ export function UserEditDrawer({
       setShowPwConf(false)
     }
   }, [open, userId])
+
+  useEffect(() => {
+    if (!editAvatarFile) {
+      setPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(editAvatarFile)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [editAvatarFile])
 
   function validate(): boolean {
     const next: Record<string, string> = {}
@@ -146,13 +163,15 @@ export function UserEditDrawer({
     return bits.join(' · ')
   }, [createdAt, lastLoginAt, emailVerifiedAt])
 
+  const displayAvatar = removeAvatar ? null : previewUrl ?? resolvePublicAssetUrl(avatarUrl ?? null)
+
   return (
     <CrudDrawer
       open={open}
       title="تحرير المستخدم"
       subtitle={userId ? `معرّف #${userId}` : undefined}
       onClose={onClose}
-      widthClassName="max-w-xl sm:max-w-2xl"
+      widthClassName="max-w-xl sm:max-w-2xl lg:max-w-3xl"
       footerSlot={
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] font-semibold text-slate-400">PUT /admin/users/{'{id}'}</p>
@@ -169,7 +188,7 @@ export function UserEditDrawer({
               type="submit"
               form="user-edit-form"
               disabled={saving || loading}
-              className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+              className="inline-flex min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(34,51,74,0.45)] transition hover:opacity-90 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               {saving ? 'جارٍ الحفظ…' : 'حفظ التغييرات'}
@@ -186,21 +205,44 @@ export function UserEditDrawer({
       ) : (
         <form id="user-edit-form" onSubmit={handleSubmit} className="space-y-5">
           {metaLine ? (
-            <p className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-2.5 text-[11px] font-semibold text-slate-500">
+            <p className="rounded-2xl border border-[#2691C2]/15 bg-gradient-to-l from-[#2691C2]/8 to-transparent px-4 py-3 text-[11px] font-semibold text-[#1a6b96]">
               {metaLine}
             </p>
           ) : null}
 
-          <Section title="البيانات التعريفية" icon={UserCircle2}>
-            <Field label="الاسم الكامل" error={errors.name}>
-              <input value={formName} onChange={(e) => onFormName(e.target.value)} className={INPUT} />
-            </Field>
-            <Field label="البريد الإلكتروني" error={errors.email}>
-              <input type="email" value={formEmail} onChange={(e) => onFormEmail(e.target.value)} className={INPUT} dir="ltr" />
-            </Field>
+          <Section title="البيانات الأساسية" icon={UserCircle2}>
+            <AvatarUploadBlock
+              name={formName}
+              displayUrl={displayAvatar}
+              removeAvatar={removeAvatar}
+              hasFile={Boolean(editAvatarFile)}
+              onFile={(f) => {
+                onEditAvatarFile(f)
+                if (f) onRemoveAvatar(false)
+              }}
+              onRemove={() => {
+                onEditAvatarFile(null)
+                onRemoveAvatar(true)
+              }}
+              onClearRemove={() => onRemoveAvatar(false)}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="الاسم الكامل" error={errors.name}>
+                <input value={formName} onChange={(e) => onFormName(e.target.value)} className={INPUT} />
+              </Field>
+              <Field label="البريد الإلكتروني" error={errors.email}>
+                <input
+                  type="email"
+                  value={formEmail}
+                  onChange={(e) => onFormEmail(e.target.value)}
+                  className={INPUT}
+                  dir="ltr"
+                />
+              </Field>
+            </div>
           </Section>
 
-          <Section title="الاتصال والتنظيم" icon={Users}>
+          <Section title="الاتصال والتنظيم" icon={MapPin}>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="الجوال">
                 <input value={formPhone} onChange={(e) => onFormPhone(e.target.value)} className={INPUT} dir="ltr" />
@@ -220,20 +262,22 @@ export function UserEditDrawer({
             </Field>
           </Section>
 
-          <Section title="الدور والصلاحيات" icon={ShieldCheck}>
+          <Section title="الأدوار والصلاحيات" icon={ShieldCheck}>
             <Field label="الدور">
               <select value={formRole} onChange={(e) => onFormRole(e.target.value)} className={INPUT}>
                 {roleOptions.map((o) => (
-                  <option key={o.value} value={o.value}>{o.labelAr}</option>
+                  <option key={o.value} value={o.value}>
+                    {o.labelAr}
+                  </option>
                 ))}
               </select>
             </Field>
-            <p className="text-[11px] font-semibold text-slate-400">
+            <p className="rounded-xl bg-[#22334A]/5 px-3 py-2 text-[11px] font-bold text-[#22334A]">
               الدور الحالي: {adminRoleLabelAr(formRole)}
             </p>
           </Section>
 
-          <Section title="حالة الحساب والأمان" icon={Shield}>
+          <Section title="حالة الحساب والأمان" icon={Lock}>
             <Field label="حالة الحساب">
               <select
                 value={formStatus}
@@ -246,36 +290,13 @@ export function UserEditDrawer({
               </select>
             </Field>
 
-            <Field label="صورة الملف (اختياري)">
-              <input
-                type="file"
-                accept="image/*"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-[12px] file:me-3 file:rounded-lg file:border-0 file:bg-[#2691C2] file:px-3 file:py-2 file:text-[11px] file:font-black file:text-white"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] ?? null
-                  onEditAvatarFile(f)
-                  if (f) onRemoveAvatar(false)
-                }}
-              />
-              <label className="mt-2 flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={removeAvatar}
-                  disabled={Boolean(editAvatarFile)}
-                  onChange={(e) => onRemoveAvatar(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300"
-                />
-                <span className="text-[12px] font-medium text-slate-600">إزالة الصورة الحالية</span>
-              </label>
-            </Field>
-
-            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-4">
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="text-[12px] font-black text-[#22334A]">كلمة مرور جديدة (اختياري)</p>
                 <button
                   type="button"
                   onClick={genPassword}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#2691C2]/10 px-2.5 py-1 text-[10px] font-black text-[#1a6b96]"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-[10px] font-black text-[#1a6b96] transition hover:bg-[#2691C2]/16"
                 >
                   <Sparkles className="h-3 w-3" aria-hidden />
                   توليد
@@ -286,7 +307,12 @@ export function UserEditDrawer({
                   <PasswordInput value={pw} onChange={onPw} show={showPw} onToggle={() => setShowPw((s) => !s)} />
                 </Field>
                 <Field label="تأكيد كلمة المرور" error={errors.password_confirmation}>
-                  <PasswordInput value={pwConf} onChange={onPwConf} show={showPwConf} onToggle={() => setShowPwConf((s) => !s)} />
+                  <PasswordInput
+                    value={pwConf}
+                    onChange={onPwConf}
+                    show={showPwConf}
+                    onToggle={() => setShowPwConf((s) => !s)}
+                  />
                 </Field>
               </div>
             </div>
@@ -297,16 +323,86 @@ export function UserEditDrawer({
   )
 }
 
-function Section({ title, icon: Icon, children }: { title: string; icon: typeof Mail; children: ReactNode }) {
+function AvatarUploadBlock({
+  name,
+  displayUrl,
+  removeAvatar,
+  hasFile,
+  onFile,
+  onRemove,
+  onClearRemove,
+}: {
+  name: string
+  displayUrl: string | null
+  removeAvatar: boolean
+  hasFile: boolean
+  onFile: (f: File | null) => void
+  onRemove: () => void
+  onClearRemove: () => void
+}) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-black/[0.03]">
-      <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-l from-[#22334A]/[0.04] to-transparent px-4 py-3">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#2691C2]/10 text-[#2691C2]">
+    <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-100 bg-gradient-to-b from-slate-50/80 to-white p-5 sm:flex-row sm:items-start">
+      <div className="relative">
+        <div className="h-20 w-20 overflow-hidden rounded-2xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-xl font-black text-white shadow-md ring-4 ring-white">
+          {displayUrl ?
+            <img src={displayUrl} alt="" className="h-full w-full object-cover" />
+          : <span className="flex h-full w-full items-center justify-center">{initialsFromName(name)}</span>}
+        </div>
+        {!displayUrl ?
+          <span className="absolute -bottom-1 -start-1 grid h-7 w-7 place-items-center rounded-full bg-slate-600 text-white shadow">
+            <ImageOff className="h-3.5 w-3.5" aria-hidden />
+          </span>
+        : null}
+      </div>
+      <div className="flex-1 space-y-2 text-center sm:text-right">
+        <p className="text-[12px] font-black text-[#22334A]">صورة الملف الشخصي</p>
+        <p className="text-[11px] font-medium text-slate-500">PNG أو JPG — يُرفع مع الحفظ</p>
+        <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#2691C2] px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:opacity-90">
+            <Camera className="h-3.5 w-3.5" aria-hidden />
+            {hasFile ? 'تغيير الصورة' : 'رفع صورة'}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          {(displayUrl || removeAvatar) && !hasFile ?
+            <button
+              type="button"
+              onClick={onRemove}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-black text-rose-700"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+              إزالة
+            </button>
+          : null}
+          {removeAvatar ?
+            <button
+              type="button"
+              onClick={onClearRemove}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-[11px] font-black text-slate-600"
+            >
+              تراجع
+            </button>
+          : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Section({ title, icon: Icon, children }: { title: string; icon: typeof Shield; children: ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_8px_32px_-16px_rgba(34,51,74,0.12)] ring-1 ring-black/[0.03]">
+      <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-l from-[#22334A]/[0.05] to-transparent px-5 py-3.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
         <h3 className="text-[13px] font-black text-[#22334A]">{title}</h3>
       </div>
-      <div className="space-y-4 p-4">{children}</div>
+      <div className="space-y-4 p-5">{children}</div>
     </section>
   )
 }
@@ -353,5 +449,3 @@ function PasswordInput({
     </div>
   )
 }
-
-export type { UpdateAdminUserInput }

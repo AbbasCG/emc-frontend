@@ -4,6 +4,7 @@ import { ClipboardList, RefreshCw } from 'lucide-react'
 import type { StudentAssignment } from '@/types/lms'
 import { DashboardSection } from '@/components/dashboard'
 import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
+import { notifyStudentScopeRefresh } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 
 const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
@@ -121,7 +122,10 @@ export default function StudentAssignmentsPage() {
       <AssignmentSubmitModal
         assignment={active}
         onClose={() => setActive(null)}
-        onSuccess={refresh}
+        onSuccess={async () => {
+          notifyStudentScopeRefresh()
+          await refresh()
+        }}
       />
     </div>
   )

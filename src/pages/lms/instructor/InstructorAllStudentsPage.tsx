@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  Search,
-  Users,
-  XCircle,
-} from 'lucide-react'
+import { Search, Users, XCircle } from 'lucide-react'
 import { fetchInstructorAllStudents, fetchInstructorCourses, type InstructorStudentRow } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import toast from '@/lib/toast'
@@ -27,7 +23,7 @@ const PLACEMENT_AR: Record<string, string> = {
 }
 
 const selectCls =
-  'h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[11px] font-semibold text-deepBlue/70 outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100'
+  'h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[11px] font-semibold text-[#22334A]/70 outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100'
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
@@ -59,6 +55,19 @@ export default function InstructorAllStudentsPage() {
   }
 
   useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Map course_id → course data, for determining placement requirement */
+  const courseMap = useMemo(() => {
+    const m = new Map<number, TeachingCourseLms>()
+    courses.forEach((c) => m.set(c.id, c))
+    return m
+  }, [courses])
+
+  /** Whether any of the loaded courses have placement tests enabled */
+  const hasPlacementCourses = useMemo(
+    () => courses.some((c) => c.requires_placement_test),
+    [courses],
+  )
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -94,8 +103,13 @@ export default function InstructorAllStudentsPage() {
         pills={loading ? [] : [
           { label: 'إجمالي الطلاب',  value: stats.total    },
           { label: 'نشط',             value: stats.active   },
-          { label: 'مستوى معتمد',     value: stats.placed   },
-          { label: 'ينتظر المقابلة',  value: stats.oralPend },
+          ...(hasPlacementCourses
+            ? [
+                { label: 'مستوى معتمد', value: stats.placed   },
+                { label: 'ينتظر المقابلة', value: stats.oralPend },
+              ]
+            : []
+          ),
         ]}
       />
 
@@ -108,7 +122,7 @@ export default function InstructorAllStudentsPage() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="بحث باسم أو بريد..."
             dir="rtl"
-            className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+            className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
           />
         </div>
         <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)} dir="rtl" className={selectCls}>
@@ -119,17 +133,22 @@ export default function InstructorAllStudentsPage() {
           <option value="">حالة التسجيل</option>
           {Object.entries(ENROLL_AR).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
-        <select value={filterPlacement} onChange={(e) => setFilterPlacement(e.target.value)} dir="rtl" className={selectCls}>
-          <option value="">حالة تحديد المستوى</option>
-          {(['not_started','in_progress','written_submitted','oral_booked','oral_completed','completed'] as const).map((k) => (
-            <option key={k} value={k}>{PLACEMENT_AR[k]}</option>
-          ))}
-        </select>
+
+        {/* Only show placement filter when there are placement courses */}
+        {hasPlacementCourses && (
+          <select value={filterPlacement} onChange={(e) => setFilterPlacement(e.target.value)} dir="rtl" className={selectCls}>
+            <option value="">حالة تحديد المستوى</option>
+            {(['not_started', 'in_progress', 'written_submitted', 'oral_booked', 'oral_completed', 'completed'] as const).map((k) => (
+              <option key={k} value={k}>{PLACEMENT_AR[k]}</option>
+            ))}
+          </select>
+        )}
+
         {hasFilters && (
           <button
             type="button"
             onClick={() => { setSearch(''); setFilterCourse(''); setFilterEnroll(''); setFilterPlacement('') }}
-            className="flex items-center gap-1 rounded-2xl border border-slate-200 px-3 py-2 text-[11px] font-black text-deepBlue/55 transition hover:bg-slate-50"
+            className="flex items-center gap-1 rounded-2xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#22334A]/55 transition hover:bg-slate-50"
           >
             <XCircle className="h-3.5 w-3.5" /> مسح
           </button>
@@ -139,30 +158,37 @@ export default function InstructorAllStudentsPage() {
       {/* ── Content ──────────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2">
-          {[1,2,3,4,5,6].map((i) => <div key={i} className="h-40 animate-pulse rounded-3xl bg-slate-100" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 animate-pulse rounded-3xl bg-slate-100" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-16 text-center">
           <Users className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-4 text-[16px] font-black text-deepBlue">لا يوجد طلاب</p>
-          <p className="mt-1.5 text-[12px] font-semibold text-deepBlue/45">
+          <p className="mt-4 text-[16px] font-black text-[#22334A]">لا يوجد طلاب</p>
+          <p className="mt-1.5 text-[12px] font-semibold text-[#22334A]/45">
             {students.length === 0 ? 'لا يوجد طلاب مسجلون في دوراتك' : 'لا توجد نتائج تطابق الفلتر'}
           </p>
         </div>
       ) : (
         <>
-          <p className="text-[11px] font-black text-deepBlue/30">
+          <p className="text-[11px] font-black text-[#22334A]/30">
             {filtered.length} طالب من أصل {students.length}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            {filtered.map((s, i) => (
-              <InstructorStudentCard
-                key={`${s.id}-${s.course_id ?? 0}`}
-                student={s}
-                index={i}
-                onClick={() => setSelected(s)}
-              />
-            ))}
+            {filtered.map((s, i) => {
+              /** Determine if this student's course requires placement test */
+              const course = s.course_id != null ? courseMap.get(s.course_id) : null
+              const requiresPlacement = course?.requires_placement_test === true
+
+              return (
+                <InstructorStudentCard
+                  key={`${s.id}-${s.course_id ?? 0}`}
+                  student={s}
+                  index={i}
+                  onClick={() => setSelected(s)}
+                  showPlacement={requiresPlacement}
+                />
+              )
+            })}
           </div>
         </>
       )}
