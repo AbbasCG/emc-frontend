@@ -66,7 +66,7 @@ export function resolveCourseEnrollCta(input: {
   return {
     label: 'الالتحاق بالدورة',
     disabled: false,
-    scrollToEnroll: true,
+    href: `/courses/${courseSlug}/register`,
     variant: 'primary',
   }
 }

@@ -6,6 +6,7 @@ import {
   Check,
   CheckCircle2,
   ChevronLeft,
+  Copy,
   Headphones,
   Home,
   Loader2,
@@ -24,6 +25,8 @@ import AppFileUpload from '../components/ui/AppFileUpload'
 import AppInput from '../components/ui/AppInput'
 import AppRadioGroup from '../components/ui/AppRadioGroup'
 import AppTextarea from '../components/ui/AppTextarea'
+import EmcDatePicker from '../components/ui/EmcDatePicker'
+import EmcTimePicker from '../components/ui/EmcTimePicker'
 
 type ValidationErrors = Record<string, string[]>
 
@@ -339,6 +342,16 @@ export default function SubmitWorkshop() {
       required('proposed_start_time_3', 'يرجى اختيار وقت البداية للخيار الثالث.')
       required('proposed_end_time_3', 'يرجى اختيار وقت الانتهاء للخيار الثالث.')
       if (selectedLocations.length === 0) errors.location_types = ['يرجى اختيار طريقة تنفيذ واحدة على الأقل.']
+      // End time must be after start time
+      ;([1, 2, 3] as const).forEach((n) => {
+        const startKey = `proposed_start_time_${n}` as keyof WorkshopFormValues
+        const endKey = `proposed_end_time_${n}` as keyof WorkshopFormValues
+        const s = form[startKey]
+        const e = form[endKey]
+        if (s && e && e <= s) {
+          errors[endKey] = ['وقت الانتهاء يجب أن يكون بعد وقت البداية.']
+        }
+      })
     }
 
     if (targetStep === 4 && form.price_type === 'paid') {
@@ -365,6 +378,18 @@ export default function SubmitWorkshop() {
     setValidationErrors({})
     setApiError('')
     setStep((current) => Math.max(current - 1, 1))
+  }
+
+  function copySlot1ToAll() {
+    setForm((prev) => ({
+      ...prev,
+      proposed_date_2: prev.proposed_date_1,
+      proposed_start_time_2: prev.proposed_start_time_1,
+      proposed_end_time_2: prev.proposed_end_time_1,
+      proposed_date_3: prev.proposed_date_1,
+      proposed_start_time_3: prev.proposed_start_time_1,
+      proposed_end_time_3: prev.proposed_end_time_1,
+    }))
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -762,55 +787,62 @@ export default function SubmitWorkshop() {
                         maxLength={500}
                       />
 
-                      <div className="space-y-4">
-                        <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#2691C2]">
-                          المواعيد المقترحة — يرجى إدخال ثلاثة خيارات
-                        </p>
-                        {([1, 2, 3] as const).map((n) => (
-                          <div
-                            key={n}
-                            className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4"
-                          >
-                            <p className="mb-3 text-[12px] font-black text-[#22334A]">
-                              الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
-                            </p>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                              <AppInput
-                                variant="emc"
-                                label="التاريخ"
-                                name={`proposed_date_${n}`}
-                                type="date"
-                                value={form[`proposed_date_${n}` as keyof WorkshopFormValues]}
-                                onChange={(value) => updateField(`proposed_date_${n}` as keyof WorkshopFormValues, value)}
-                                error={getError(`proposed_date_${n}`)}
-                                required
-                                icon="calendar"
-                              />
-                              <AppInput
-                                variant="emc"
-                                label="وقت البداية"
-                                name={`proposed_start_time_${n}`}
-                                type="time"
-                                value={form[`proposed_start_time_${n}` as keyof WorkshopFormValues]}
-                                onChange={(value) => updateField(`proposed_start_time_${n}` as keyof WorkshopFormValues, value)}
-                                error={getError(`proposed_start_time_${n}`)}
-                                required
-                                icon="time"
-                              />
-                              <AppInput
-                                variant="emc"
-                                label="وقت الانتهاء"
-                                name={`proposed_end_time_${n}`}
-                                type="time"
-                                value={form[`proposed_end_time_${n}` as keyof WorkshopFormValues]}
-                                onChange={(value) => updateField(`proposed_end_time_${n}` as keyof WorkshopFormValues, value)}
-                                error={getError(`proposed_end_time_${n}`)}
-                                required
-                                icon="time"
-                              />
+                      <div className="space-y-3">
+                        {/* Header + copy button */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#2691C2]/20 bg-[#2691C2]/[0.04] px-4 py-3">
+                          <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#2691C2]">
+                            المواعيد المقترحة — ثلاثة خيارات مطلوبة
+                          </p>
+                          {(form.proposed_date_1 || form.proposed_start_time_1) && (
+                            <button
+                              type="button"
+                              onClick={copySlot1ToAll}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-[#2691C2]/30 bg-white px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2] hover:text-white"
+                            >
+                              <Copy className="h-3 w-3" aria-hidden />
+                              نسخ إلى المواعيد الثلاثة
+                            </button>
+                          )}
+                        </div>
+
+                        {([1, 2, 3] as const).map((n) => {
+                          const startTime = form[`proposed_start_time_${n}` as keyof WorkshopFormValues]
+                          const endTime = form[`proposed_end_time_${n}` as keyof WorkshopFormValues]
+                          const endTimeErr = getError(`proposed_end_time_${n}`)
+                          const timingInvalid = startTime && endTime && endTime <= startTime && !endTimeErr
+
+                          return (
+                            <div key={n} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
+                              <p className="mb-3 text-[12px] font-black text-[#22334A]">
+                                الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
+                              </p>
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <EmcDatePicker
+                                  label="التاريخ"
+                                  value={form[`proposed_date_${n}` as keyof WorkshopFormValues]}
+                                  onChange={(v) => updateField(`proposed_date_${n}` as keyof WorkshopFormValues, v)}
+                                  error={getError(`proposed_date_${n}`)}
+                                  required
+                                />
+                                <EmcTimePicker
+                                  label="وقت البداية"
+                                  value={startTime}
+                                  onChange={(v) => updateField(`proposed_start_time_${n}` as keyof WorkshopFormValues, v)}
+                                  error={getError(`proposed_start_time_${n}`)}
+                                  required
+                                />
+                                <EmcTimePicker
+                                  label="وقت الانتهاء"
+                                  value={endTime}
+                                  onChange={(v) => updateField(`proposed_end_time_${n}` as keyof WorkshopFormValues, v)}
+                                  error={endTimeErr || (timingInvalid ? 'وقت الانتهاء يجب أن يكون بعد وقت البداية.' : undefined)}
+                                  durationFrom={startTime || undefined}
+                                  required
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
 
                       <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">

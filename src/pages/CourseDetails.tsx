@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   BadgeCheck,
   BookOpen,
@@ -14,7 +14,6 @@ import {
 import api from '../api/axios'
 import toast from '@/lib/toast'
 import StateMessage from '../components/StateMessage'
-import CourseEnrollmentCard from '@/components/enrollment/CourseEnrollmentCard'
 import type { Course } from '../types'
 import { unwrapPublicCoursePayload, safeTrimUnknown, sanitizeCourseForDisplay } from '@/utils/publicCourseNormalize'
 import { useAuth } from '@/contexts/AuthContext'
@@ -34,11 +33,9 @@ import {
   extractCourseGallery,
   extractCourseVideoUrl,
   hasMeaningfulDuration,
-  parseCourseFaqs,
   parseCourseReviews,
   resolveCourseSeatMetrics,
 } from '@/utils/courseDetailPageData'
-import { FaqSection, ReviewsSection } from '@/components/public/course-detail/CourseDetailSections'
 import type { MetricWidget } from '@/components/public/course-detail/CourseDetailMetricsDashboard'
 import PremiumHero from '@/components/public/course-detail/premium/PremiumHero'
 import PremiumSnapshot from '@/components/public/course-detail/premium/PremiumSnapshot'
@@ -48,7 +45,6 @@ import PremiumJourney from '@/components/public/course-detail/premium/PremiumJou
 import PremiumLearnGrid from '@/components/public/course-detail/premium/PremiumLearnGrid'
 import PremiumCurriculum from '@/components/public/course-detail/premium/PremiumCurriculum'
 import PremiumStickyPanel from '@/components/public/course-detail/premium/PremiumStickyPanel'
-import PremiumSidebarInstructor from '@/components/public/course-detail/premium/PremiumSidebarInstructor'
 
 const CourseDetailRelatedCarousel = lazy(
   () => import('@/components/public/course-detail/CourseDetailRelatedCarousel'),
@@ -132,8 +128,9 @@ function readWishlist(): string[] {
 
 export default function CourseDetails() {
   const { slug } = useParams()
+  const [searchParams] = useSearchParams()
+  const justEnrolled = searchParams.get('enrolled') === '1'
   const { isAuthenticated, user } = useAuth()
-  const enrollRef = useRef<HTMLDivElement>(null)
 
   const [course, setCourse] = useState<Course | null>(null)
   const [relatedCourses, setRelatedCourses] = useState<Course[]>([])
@@ -241,10 +238,6 @@ export default function CourseDetails() {
   }, [derived])
 
   const reviews = useMemo(() => (course ? parseCourseReviews(course) : []), [course])
-  const faqs = useMemo(
-    () => (course && derived ? parseCourseFaqs(course, derived) : []),
-    [course, derived],
-  )
 
   const averageRating = useMemo(() => {
     if (!course) return null
@@ -259,10 +252,6 @@ export default function CourseDetails() {
     () => (course && derived ? buildMetrics(course, derived) : []),
     [course, derived],
   )
-
-  function scrollToEnroll() {
-    enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
 
   async function handleShare() {
     const url = window.location.href
@@ -330,7 +319,6 @@ export default function CourseDetails() {
 
   // ── Derived display values ──────────────────────────────────────────────────
   const {
-    itemType,
     isFree,
     registration,
     coverUrl,
@@ -358,19 +346,47 @@ export default function CourseDetails() {
   const category = categoryLabel(course, derived)
   const level = levelLabel(course.level ?? (course as Record<string, unknown>).level)
 
-  const enrollmentCard = (
-    <CourseEnrollmentCard
-      course={course}
-      itemType={itemType}
-      isFree={isFree}
-      priceLabel={priceLabel}
-      originalPriceLabel={originalPriceLabel}
-      discountPercent={discountPercent}
-      registrationOpen={registration.open}
-      seatsFull={seatsFull}
-      alreadyEnrolled={alreadyEnrolled}
-      compact
-    />
+  const enrollSidebar = (
+    <div className="overflow-hidden text-right">
+      <div className="border-b border-[#22334A]/6 bg-gradient-to-l from-[#2691C2]/8 via-white to-[#EC943C]/5 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-base font-black text-[#22334A]">الالتحاق بالبرنامج</h3>
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
+            registration.open && !seatsFull
+              ? 'bg-emerald-50 text-emerald-800 ring-emerald-100'
+              : 'bg-orange-50 text-orange-800 ring-orange-100'
+          }`}>
+            {registration.open && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
+          </span>
+        </div>
+      </div>
+      <div className="border-b border-[#22334A]/6 px-5 py-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-black text-slate-400">الرسوم</span>
+          <div className="text-left">
+            {originalPriceLabel && !isFree && (
+              <span className="block text-[10px] font-bold text-slate-400 line-through tabular-nums">
+                {originalPriceLabel}
+              </span>
+            )}
+            <span className={`text-xl font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-[#EC943C]'}`}>
+              {isFree ? 'مجانية' : priceLabel}
+            </span>
+          </div>
+        </div>
+        {discountPercent != null && discountPercent > 0 && !isFree && (
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[11px] font-black text-slate-400">الخصم</span>
+            <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-[#EC943C]">
+              {String(discountPercent)}%
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-4 sm:p-5">
+        <PublicDetailCtaButton cta={enrollCta} className="w-full justify-center" />
+      </div>
+    </div>
   )
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -409,7 +425,6 @@ export default function CourseDetails() {
         cta={
           <PublicDetailCtaButton
             cta={enrollCta}
-            onScrollToEnroll={scrollToEnroll}
             size="lg"
           />
         }
@@ -417,6 +432,14 @@ export default function CourseDetails() {
 
       {/* ── LIGHT CONTENT AREA ── */}
       <div className="bg-gradient-to-b from-[#f0f4f8] to-[#f8fafc]">
+
+        {/* ── Success banner ── */}
+        {justEnrolled && (
+          <div className="flex items-center justify-center gap-2 border-b border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800">
+            <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+            تم تسجيلك في الدورة بنجاح
+          </div>
+        )}
 
         {/* ── SECTION 2: Course snapshot ── */}
         <PremiumSnapshot items={metrics} />
@@ -451,17 +474,16 @@ export default function CourseDetails() {
                 </div>
               )}
 
-              <div ref={enrollRef} id="enroll" className="scroll-mt-20 lg:hidden">
-                <div className="overflow-hidden rounded-[1.25rem] border border-white/80 bg-white shadow-sm ring-1 ring-[#22334A]/5">
-                  {enrollmentCard}
-                  <PremiumSidebarInstructor instructor={instructor} />
-                </div>
+              <div className="lg:hidden">
+                <PremiumStickyPanel instructor={instructor}>
+                  {enrollSidebar}
+                </PremiumStickyPanel>
               </div>
             </div>
 
             <aside className={`hidden lg:sticky ${STICKY_TOP} lg:block lg:self-start`}>
               <PremiumStickyPanel instructor={instructor}>
-                {enrollmentCard}
+                {enrollSidebar}
               </PremiumStickyPanel>
             </aside>
           </div>
@@ -469,12 +491,6 @@ export default function CourseDetails() {
 
         {/* Related courses */}
         <div className="mx-auto max-w-[88rem] space-y-3 px-4 pb-4 sm:px-6 lg:px-10">
-          {(reviews.length > 0 || faqs.length > 0) && (
-            <div className="space-y-3">
-              <ReviewsSection reviews={reviews} averageRating={averageRating} />
-              <FaqSection items={faqs} />
-            </div>
-          )}
           <Suspense
             fallback={
               <div className="h-40 animate-pulse rounded-2xl bg-white/60 ring-1 ring-slate-100" />
@@ -492,12 +508,7 @@ export default function CourseDetails() {
         actionLabel={enrollCta.label}
         disabled={enrollCta.disabled}
         onAction={() => {
-          if (enrollCta.href) return
-          if (enrollCta.denyNonStudent) {
-            toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
-            return
-          }
-          if (enrollCta.scrollToEnroll) scrollToEnroll()
+          if (enrollCta.denyNonStudent) toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
         }}
         extra={
           enrollCta.href ? (
@@ -511,14 +522,6 @@ export default function CourseDetails() {
             <button
               type="button"
               onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
-              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#EC943C] px-4 text-sm font-black text-white"
-            >
-              {enrollCta.label}
-            </button>
-          ) : enrollCta.scrollToEnroll ? (
-            <button
-              type="button"
-              onClick={scrollToEnroll}
               className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#EC943C] px-4 text-sm font-black text-white"
             >
               {enrollCta.label}

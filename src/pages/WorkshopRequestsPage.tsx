@@ -420,8 +420,12 @@ export default function WorkshopRequestsPage() {
                               {wfMeta.label}
                             </span>
                           </td>
-                          <td className="py-4 pe-3 text-[12px] font-semibold text-slate-400">
-                            {req.created_at ? new Date(req.created_at).toLocaleDateString('ar-SA') : '—'}
+                          <td className="py-4 pe-3 text-[12px] font-semibold tabular-nums text-slate-400">
+                            {req.created_at
+                              ? new Intl.DateTimeFormat('ar', {
+                                  year: 'numeric', month: 'short', day: 'numeric', numberingSystem: 'latn',
+                                }).format(new Date(req.created_at))
+                              : '—'}
                           </td>
                           <td className="py-4 pe-3">
                             <div className="flex items-center justify-center gap-1.5">

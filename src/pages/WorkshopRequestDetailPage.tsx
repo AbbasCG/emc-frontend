@@ -2,12 +2,23 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
   Award,
+  Banknote,
+  Briefcase,
+  Building2,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
+  ChevronUp,
   Clock,
+  Copy,
   Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  Tag,
   User,
+  Users,
   XCircle,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -42,28 +53,26 @@ function getEffectiveDept(user: UserType | null): string | null {
   return user.department ?? null
 }
 
-
-function formatArabicDate(raw: string | null | undefined): string {
+function formatDate(raw: string | null | undefined): string {
   if (!raw) return '—'
   const datePart = raw.slice(0, 10)
   try {
     const d = new Date(datePart + 'T12:00:00')
-    return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
+    return new Intl.DateTimeFormat('ar', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      numberingSystem: 'latn',
+    }).format(d)
   } catch {
     return datePart
   }
 }
 
-function formatArabicTime(raw: string | null | undefined): string {
+function formatTimeRange(raw: string | null | undefined): string {
   if (!raw) return ''
-  const m = raw.match(/(\d{1,2}:\d{2})/)
-  if (m) {
-    const [h, min] = m[1].split(':').map(Number)
-    const period = h < 12 ? 'ص' : 'م'
-    const h12 = h % 12 || 12
-    return `${h12}:${String(min).padStart(2, '0')} ${period}`
-  }
-  return raw
+  // Format: "HH:MM - HH:MM" already in 24h English digits
+  return raw.trim()
 }
 
 const STEP_STATUS_LABEL: Record<string, string> = {
@@ -94,6 +103,87 @@ type ProposedDates = {
   date2: string | null; time2: string | null
   date3: string | null; time3: string | null
 }
+
+const sectionCard = 'rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
+
+// ── Info row ──────────────────────────────────────────────────────────────────
+
+function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+  if (!value || value === '—') return null
+  return (
+    <div className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
+      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+        <Icon className="h-3.5 w-3.5" aria-hidden />
+      </div>
+      <div className="min-w-0 flex-1 text-right">
+        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Announcement card ─────────────────────────────────────────────────────────
+
+function AnnouncementCard({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const THRESHOLD = 400
+  const isLong = text.length > THRESHOLD
+  const displayText = !expanded && isLong ? text.slice(0, THRESHOLD) + '…' : text
+
+  function copy() {
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2200)
+    })
+  }
+
+  return (
+    <div className={sectionCard}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-[15px] font-black text-[#22334A]">نص الإعلان المقترح</h2>
+        <button
+          type="button"
+          onClick={copy}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-black transition',
+            copied
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+              : 'border-slate-200 bg-white text-[#22334A] hover:border-[#2691C2]/30 hover:text-[#2691C2]',
+          )}
+        >
+          {copied
+            ? <><Check className="h-3.5 w-3.5" aria-hidden /> تم النسخ</>
+            : <><Copy className="h-3.5 w-3.5" aria-hidden /> نسخ النص</>
+          }
+        </button>
+      </div>
+
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8fafc] to-white p-5 ring-1 ring-slate-200/70 shadow-inner">
+        <div className="pointer-events-none absolute end-0 top-0 h-20 w-20 bg-[radial-gradient(ellipse_at_100%_0%,rgba(38,145,194,0.08),transparent_70%)]" aria-hidden />
+        <p className="relative whitespace-pre-wrap text-[14px] font-[500] leading-[1.9] text-[#22334A]/88 tracking-[0.01em]">
+          {displayText}
+        </p>
+      </div>
+
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          className="mt-3 inline-flex items-center gap-1 text-[12px] font-black text-[#2691C2] transition hover:opacity-80"
+        >
+          {expanded
+            ? <><ChevronUp className="h-3.5 w-3.5" aria-hidden /> عرض مختصر</>
+            : <><ChevronDown className="h-3.5 w-3.5" aria-hidden /> عرض كامل</>
+          }
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── Action modal ──────────────────────────────────────────────────────────────
 
 function ActionModal({
   open,
@@ -153,18 +243,15 @@ function ActionModal({
           >
             <div className={cn('px-6 py-4', isApprove ? 'bg-emerald-50' : 'bg-red-50')}>
               <div className="flex items-center gap-3">
-                {isApprove ? (
-                  <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600" />
-                ) : (
-                  <XCircle className="h-6 w-6 shrink-0 text-red-600" />
-                )}
+                {isApprove
+                  ? <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600" />
+                  : <XCircle className="h-6 w-6 shrink-0 text-red-600" />
+                }
                 <h2 className="text-[16px] font-black text-[#22334A]">
                   {isApprove ? 'الموافقة على الطلب' : 'رفض الطلب'}
                 </h2>
               </div>
-              <p className="mt-1 pr-9 text-[12px] font-semibold text-slate-600">
-                {programName}
-              </p>
+              <p className="mt-1 pr-9 text-[12px] font-semibold text-slate-600">{programName}</p>
             </div>
 
             <div className="px-6 py-5 text-right" dir="rtl">
@@ -194,9 +281,9 @@ function ActionModal({
                             {['الأول', 'الثاني', 'الثالث'][n - 1]}
                           </p>
                           <p className="mt-1 text-[12px] font-black text-[#22334A]">
-                            {d ? formatArabicDate(d) : '—'}
+                            {d ? formatDate(d) : '—'}
                           </p>
-                          {t && <p className="text-[11px] font-semibold text-slate-500">{formatArabicTime(t)}</p>}
+                          {t && <p className="text-[11px] font-semibold text-slate-500 tabular-nums">{formatTimeRange(t)}</p>}
                           {selectedDateOption === n && (
                             <p className="mt-1 text-[10px] font-black text-emerald-600">✓ محدد</p>
                           )}
@@ -216,10 +303,7 @@ function ActionModal({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={isApprove ? 'ملاحظات اختيارية للمرحلة التالية...' : 'اكتب سبب الرفض...'}
               />
-              {error && (
-                <p className="mt-2 text-[12px] font-bold text-red-600">{error}</p>
-              )}
-
+              {error && <p className="mt-2 text-[12px] font-bold text-red-600">{error}</p>}
               <div className="mt-5 flex gap-3">
                 <button
                   type="button"
@@ -252,6 +336,8 @@ function ActionModal({
   )
 }
 
+// ── Main page ──────────────────────────────────────────────────────────────────
+
 export default function WorkshopRequestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
@@ -261,7 +347,6 @@ export default function WorkshopRequestDetailPage() {
   const [history, setHistory] = useState<WorkflowHistoryResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  /** true when the API rejected with 403 — drives a dedicated "not authorized" state */
   const [forbidden, setForbidden] = useState(false)
   const [modal, setModal] = useState<'approve' | 'reject' | null>(null)
   const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
@@ -273,7 +358,6 @@ export default function WorkshopRequestDetailPage() {
     setError('')
     setForbidden(false)
     try {
-      /* Fetch detail first; history is best-effort so a history-only failure never blocks the page. */
       const det = await fetchAdminWorkshopRequestDetail(numId)
       setDetail(det)
       try {
@@ -320,7 +404,6 @@ export default function WorkshopRequestDetailPage() {
   const isHistoryViewer = !canAct && !isFinal &&
     (detail?.is_history_viewer === true || history?.is_history_viewer === true)
 
-  // Determine if this user can select the date option during approval
   const effectiveDept = getEffectiveDept(user)
   const canSelectDate = canAct && (
     (effectiveDept === 'operations' && detail?.current_step === 3) ||
@@ -348,37 +431,24 @@ export default function WorkshopRequestDetailPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center" dir="rtl">
         <AlertCircle className={cn('h-10 w-10', forbidden ? 'text-amber-500' : 'text-red-500')} />
-        <p className="text-[15px] font-bold text-slate-600">
-          {error || 'الطلب غير موجود'}
-        </p>
+        <p className="text-[15px] font-bold text-slate-600">{error || 'الطلب غير موجود'}</p>
         {forbidden && isDeptManager && !hasDeptLinked && (
           <div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-right">
             <p className="text-[13px] font-black text-amber-800">لم يتم ربط حسابك بإدارة</p>
             <p className="mt-1 text-[12px] font-semibold text-amber-700">
-              حسابك يحمل دور "مدير الإدارة" ولكن لم يتم تعيينك كمسؤول عن أي إدارة بعد. تواصل مع المسؤول ليقوم بتحديد إدارتك.
+              حسابك يحمل دور "مدير الإدارة" ولكن لم يتم تعيينك كمسؤول عن أي إدارة بعد.
             </p>
           </div>
         )}
-        {forbidden && (!isDeptManager || hasDeptLinked) && (
-          <p className="max-w-md text-[12px] font-semibold text-slate-400">
-            إذا وصلتك مهمة مراجعة لهذا الطلب ولم تتمكن من فتحه، فقد لا تكون مرحلتك هي المرحلة الحالية، أو لم يتم ربط حسابك بالإدارة الصحيحة.
-          </p>
-        )}
         <div className="mt-2 flex items-center gap-3">
           {!forbidden && (
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-2.5 text-[13px] font-black text-slate-600 transition hover:border-slate-300"
-            >
+            <button type="button" onClick={() => void load()}
+              className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-2.5 text-[13px] font-black text-slate-600 transition hover:border-slate-300">
               إعادة المحاولة
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="rounded-2xl bg-[#2691C2] px-6 py-2.5 text-[13px] font-black text-white"
-          >
+          <button type="button" onClick={() => navigate(-1)}
+            className="rounded-2xl bg-[#2691C2] px-6 py-2.5 text-[13px] font-black text-white">
             رجوع
           </button>
         </div>
@@ -391,7 +461,8 @@ export default function WorkshopRequestDetailPage() {
 
   return (
     <main dir="rtl" className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#2691C2]/[0.05] pb-24 pt-[5.25rem]">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+
         {/* Action feedback */}
         <AnimatePresence>
           {actionFeedback && (
@@ -411,7 +482,7 @@ export default function WorkshopRequestDetailPage() {
           )}
         </AnimatePresence>
 
-        {/* Header card */}
+        {/* ── Header ─────────────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -428,13 +499,14 @@ export default function WorkshopRequestDetailPage() {
               <span className="text-white">#{detail.id}</span>
             </nav>
             <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-black sm:text-3xl">{detail.program_name}</h1>
-                <p className="mt-2 text-[14px] font-semibold text-white/75">
-                  {detail.requester_name} · {detail.requester_email}
+                <p className="mt-2 text-[14px] font-semibold text-white/70">
+                  {detail.requester_name}
+                  {detail.requester_email ? ` · ${detail.requester_email}` : ''}
                 </p>
               </div>
-              <span className={cn('rounded-2xl px-3.5 py-1.5 text-[12px] font-black ring-1', wfBadgeColor)}>
+              <span className={cn('mt-1 shrink-0 rounded-2xl px-3.5 py-1.5 text-[12px] font-black ring-1', wfBadgeColor)}>
                 {wfLabel}
               </span>
             </div>
@@ -470,14 +542,16 @@ export default function WorkshopRequestDetailPage() {
           </div>
         </motion.div>
 
+        {/* ── Body grid ───────────────────────────────────────────────────── */}
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Left: workflow timeline */}
+
+                    {/* Left column — workflow timeline */}
           <div className="lg:col-span-5">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
+              className={cn(sectionCard, 'lg:sticky lg:top-28')}
             >
               <h2 className="mb-5 text-[15px] font-black text-[#22334A]">مسار الاعتماد</h2>
               <div className="relative">
@@ -498,10 +572,10 @@ export default function WorkshopRequestDetailPage() {
                             !isDone && !isRejected && !isCurrent && 'bg-slate-100 text-slate-500',
                           )}
                         >
-                          {isDone ? <Check className="h-5 w-5" /> :
-                           isRejected ? <XCircle className="h-5 w-5" /> :
-                           isCurrent ? <Clock className="h-4 w-4" /> :
-                           step.step_number}
+                          {isDone ? <Check className="h-5 w-5" />
+                            : isRejected ? <XCircle className="h-5 w-5" />
+                              : isCurrent ? <Clock className="h-4 w-4" />
+                                : step.step_number}
                         </div>
                         <div className="flex-1 text-right">
                           <p className={cn(
@@ -520,8 +594,12 @@ export default function WorkshopRequestDetailPage() {
                             </div>
                           )}
                           {step.acted_at && (
-                            <p className="text-[10px] font-semibold text-slate-400">
-                              {new Date(step.acted_at).toLocaleString('ar-SA')}
+                            <p className="text-[10px] font-semibold text-slate-400 tabular-nums">
+                              {new Intl.DateTimeFormat('ar', {
+                                year: 'numeric', month: 'short', day: 'numeric',
+                                hour: '2-digit', minute: '2-digit', hour12: false,
+                                numberingSystem: 'latn',
+                              }).format(new Date(step.acted_at))}
                             </p>
                           )}
                           {step.notes && (
@@ -538,57 +616,157 @@ export default function WorkshopRequestDetailPage() {
             </motion.div>
           </div>
 
-          {/* Right: request details */}
+          {/* Right column — detail sections */}
           <div className="space-y-5 lg:col-span-7">
-            {/* Program info */}
+
+            {/* 1. بيانات مقدم الطلب */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
-              className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
+              transition={{ delay: 0.06 }}
+              className={sectionCard}
             >
-              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">تفاصيل البرنامج</h2>
-              <dl className="space-y-3 text-right">
-                {[
-                  { label: 'المتحدث',       value: `${detail.speaker_name} — ${detail.speaker_job_title}` },
-                  { label: 'الفئات',        value: detail.categories?.join('، ') ?? '—' },
-                  { label: 'الجمهور',       value: detail.target_audience },
-                  { label: 'المحاور',       value: detail.topics },
-                  { label: 'التنفيذ',       value: detail.location_types?.join(' / ') ?? '—' },
-                  { label: 'السعر',         value: detail.price_type === 'free' ? 'مجاني' : `مدفوع — ${detail.price_amount} ريال` },
-                ].map((row) => (
-                  <div key={row.label} className="grid grid-cols-3 gap-2 border-b border-slate-100 pb-2 last:border-0">
-                    <dt className="col-span-1 text-[11px] font-black text-slate-500">{row.label}</dt>
-                    <dd className="col-span-2 text-[13px] font-semibold text-slate-700">{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">بيانات مقدم الطلب</h2>
+              <div className="space-y-3">
+                <InfoRow icon={User} label="الاسم الكامل" value={detail.requester_name ?? '—'} />
+                <InfoRow icon={Mail} label="البريد الإلكتروني" value={detail.requester_email ?? '—'} />
+                {detail.requester_phone && (
+                  <InfoRow icon={Phone} label="رقم الجوال" value={detail.requester_phone} />
+                )}
+                {detail.requester_department && (
+                  <InfoRow icon={Building2} label="القسم أو الجهة" value={detail.requester_department} />
+                )}
+              </div>
             </motion.div>
 
-            {/* Proposed dates */}
+            {/* 2. بيانات البرنامج */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.11 }}
-              className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
+              transition={{ delay: 0.09 }}
+              className={sectionCard}
+            >
+              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">بيانات البرنامج</h2>
+
+              {/* Speaker photo + info */}
+              <div className={cn('mb-4 flex items-start gap-4', detail.speaker_photo_url ? '' : '')}>
+                {detail.speaker_photo_url && (
+                  <img
+                    src={detail.speaker_photo_url}
+                    alt={detail.speaker_name}
+                    className="h-16 w-16 shrink-0 rounded-2xl object-cover ring-2 ring-white shadow-md"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-black text-[#22334A]">{detail.speaker_name}</p>
+                  {detail.speaker_job_title && (
+                    <div className="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-[#2691C2]/10 px-2.5 py-0.5">
+                      <Briefcase className="h-3 w-3 shrink-0 text-[#2691C2]" aria-hidden />
+                      <span className="text-[12px] font-black text-[#2691C2]">{detail.speaker_job_title}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {detail.categories && detail.categories.length > 0 && (
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="flex items-start gap-2.5">
+                    <Tag className="mt-0.5 h-4 w-4 shrink-0 text-[#2691C2]" aria-hidden />
+                    <div className="min-w-0 flex-1 text-right">
+                      <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">الفئات</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {detail.categories.map(cat => (
+                          <span key={cat} className="rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-[#22334A]">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+
+            {/* 3. تفاصيل التنفيذ */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className={sectionCard}
+            >
+              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">تفاصيل التنفيذ</h2>
+              <div className="space-y-3">
+                {detail.topics && (
+                  <div className="border-b border-slate-100 pb-3 last:border-0">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">المواضيع والمحاور</p>
+                    <p className="mt-1.5 whitespace-pre-wrap text-[13px] font-semibold leading-relaxed text-[#22334A]">
+                      {detail.topics}
+                    </p>
+                  </div>
+                )}
+                {detail.target_audience && (
+                  <div className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
+                    <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                      <Users className="h-3.5 w-3.5" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1 text-right">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">الجمهور المستهدف</p>
+                      <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">{detail.target_audience}</p>
+                    </div>
+                  </div>
+                )}
+                {detail.location_types && detail.location_types.length > 0 && (
+                  <div className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
+                    <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                      <MapPin className="h-3.5 w-3.5" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1 text-right">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">طريقة أو مكان التنفيذ</p>
+                      <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">{detail.location_types.join(' / ')}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-3 last:border-0">
+                  <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                    <Banknote className="h-3.5 w-3.5" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1 text-right">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">رسوم الحضور</p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">
+                      {detail.price_type === 'free'
+                        ? 'مجاني'
+                        : `مدفوع — ${detail.price_amount ?? ''} ريال`
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 4. المواعيد المقترحة */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className={sectionCard}
             >
               <h2 className="mb-4 text-[15px] font-black text-[#22334A]">المواعيد المقترحة</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {([1, 2, 3] as const).map((n) => {
                   const d = detail[`proposed_date_${n}` as keyof WorkshopRequestDetail] as string | null
                   const t = detail[`proposed_time_${n}` as keyof WorkshopRequestDetail] as string | null
-                  const hasDate = !!d
+                  const hasDate = Boolean(d)
                   const isSelected = detail.selected_date_option === n
                   return (
                     <div
                       key={n}
                       className={cn(
-                        'rounded-2xl border p-3 text-center',
+                        'rounded-2xl border p-4 text-center',
                         isSelected
                           ? 'border-emerald-400/70 bg-emerald-50/80 ring-1 ring-emerald-300/60'
                           : hasDate
-                          ? 'border-[#2691C2]/20 bg-[#2691C2]/[0.04]'
-                          : 'border-slate-200/80 bg-slate-50/60 opacity-50',
+                            ? 'border-[#2691C2]/20 bg-[#2691C2]/[0.04]'
+                            : 'border-slate-200/80 bg-slate-50/60 opacity-45',
                       )}
                     >
                       <p className={cn(
@@ -597,14 +775,16 @@ export default function WorkshopRequestDetailPage() {
                       )}>
                         الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
                       </p>
-                      <p className="mt-1.5 text-[13px] font-black text-[#22334A]">
-                        {formatArabicDate(d)}
+                      <p className="mt-2 text-[13px] font-black text-[#22334A]">
+                        {formatDate(d)}
                       </p>
-                      <p className="text-[12px] font-semibold text-slate-500">
-                        {formatArabicTime(t)}
-                      </p>
+                      {t && (
+                        <p className="mt-1 text-[12px] font-semibold tabular-nums text-slate-500">
+                          {formatTimeRange(t)}
+                        </p>
+                      )}
                       {isSelected && (
-                        <div className="mt-1.5 flex items-center justify-center gap-1 text-[10px] font-black text-emerald-600">
+                        <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-black text-emerald-600">
                           <Award className="h-3 w-3" />
                           الموعد المعتمد
                         </div>
@@ -615,25 +795,22 @@ export default function WorkshopRequestDetailPage() {
               </div>
             </motion.div>
 
-            {/* Announcement text */}
+            {/* 5. نص الإعلان المقترح */}
             {detail.generated_announcement_text && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.14 }}
-                className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
+                transition={{ delay: 0.18 }}
               >
-                <h2 className="mb-3 text-[15px] font-black text-[#22334A]">نص الإعلان المقترح</h2>
-                <pre className="whitespace-pre-wrap rounded-2xl bg-slate-50 p-4 text-[12px] font-semibold leading-relaxed text-slate-700 ring-1 ring-slate-200/80">
-                  {detail.generated_announcement_text}
-                </pre>
+                <AnnouncementCard text={detail.generated_announcement_text} />
               </motion.div>
             )}
           </div>
+
+
         </div>
       </div>
 
-      {/* Action modals */}
       {modal && (
         <ActionModal
           open={!!modal}

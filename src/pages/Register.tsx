@@ -203,7 +203,11 @@ export default function Register() {
           {/* Form — only when a course is selected */}
           {course ? (
             <div className="mt-8">
-              <EnrollmentForm course={course} itemType={itemType} />
+              <EnrollmentForm
+                course={course}
+                itemType={itemType}
+                onSuccess={() => navigate(`/courses/${slug}?enrolled=1`, { replace: true })}
+              />
             </div>
           ) : !slug ? (
             <p className="mt-8 text-sm font-bold text-slate-500">اختر الدورة أعلاه لعرض نموذج التسجيل.</p>
