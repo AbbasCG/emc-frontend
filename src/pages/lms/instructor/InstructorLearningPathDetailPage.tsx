@@ -6,12 +6,10 @@ import {
   Award,
   BookOpen,
   Calendar,
-  CheckCircle,
   ClipboardList,
   ExternalLink,
   FolderOpen,
   GraduationCap,
-  Loader2,
   MapPin,
   Users,
   Video,
@@ -20,12 +18,11 @@ import {
   fetchInstructorLearningPath,
   fetchInstructorPathSessions,
   fetchInstructorPathStudents,
-  updateInstructorCurriculum,
   type InstructorPathSession,
   type LearningPath,
 } from '@/api/learningPathsApi'
 import { InstructorHero } from '@/components/instructor'
-import CourseSelector from '@/components/learning-paths/CourseSelector'
+import { DASHBOARD_STICKY_BELOW_HEADER } from '@/layouts/dashboardLayoutConstants'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,7 +67,7 @@ type PathStudent = {
   completed_at: string | null
 }
 
-type Tab = 'courses' | 'students' | 'sessions' | 'curriculum'
+type Tab = 'courses' | 'students' | 'sessions'
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -85,21 +82,14 @@ export default function InstructorLearningPathDetailPage() {
   const [loading,    setLoading]    = useState(true)
   const [forbidden,  setForbidden]  = useState(false)
   const [accessMessage, setAccessMessage] = useState<string | null>(null)
-  const [saving,     setSaving]     = useState(false)
-  const [courseIds,  setCourseIds]  = useState<number[]>([])
-  const [toast,      setToast]      = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
-
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 3000)
-  }
 
   const load = useCallback(async () => {
     if (!id) return
     setLoading(true)
     setForbidden(false)
     setAccessMessage(null)
-    const result = await fetchInstructorLearningPath(Number(id))
+    const pathId = Number(id)
+    const result = await fetchInstructorLearningPath(pathId)
     if (result.forbidden) {
       setPath(null)
       setForbidden(true)
@@ -112,7 +102,7 @@ export default function InstructorLearningPathDetailPage() {
       return
     }
     setPath(result.path)
-    setCourseIds((result.path.courses ?? []).map((c) => c.id))
+    setSessions(await fetchInstructorPathSessions(pathId))
     setLoading(false)
   }, [id, navigate])
 
@@ -121,37 +111,16 @@ export default function InstructorLearningPathDetailPage() {
     setStudents(await fetchInstructorPathStudents(Number(id)))
   }, [id])
 
-  const loadSessions = useCallback(async () => {
-    if (!id) return
-    setSessions(await fetchInstructorPathSessions(Number(id)))
-  }, [id])
-
   useEffect(() => { void load() }, [load])
 
   useEffect(() => {
     if (tab === 'students') void loadStudents()
-    if (tab === 'sessions') void loadSessions()
-  }, [tab, loadStudents, loadSessions])
-
-  const saveCurriculum = async (ids: number[]) => {
-    if (!id) return
-    setSaving(true)
-    try {
-      const updated = await updateInstructorCurriculum(Number(id), ids)
-      setPath(updated)
-      setCourseIds((updated.courses ?? []).map((c) => c.id))
-      showToast('تم حفظ المنهج بنجاح')
-    } catch {
-      showToast('فشل حفظ المنهج', 'error')
-    } finally {
-      setSaving(false)
-    }
-  }
+  }, [tab, loadStudents])
 
   if (loading) {
     return (
       <div className="animate-pulse space-y-5 pb-16" dir="rtl">
-        <div className="h-40 rounded-3xl bg-slate-200" />
+        <div className="h-32 rounded-3xl bg-slate-200" />
         <div className="h-10 rounded-2xl bg-slate-100" />
         <div className="grid gap-4 sm:grid-cols-2">
           {[1, 2, 3, 4].map((n) => <div key={n} className="h-28 rounded-2xl bg-slate-100" />)}
@@ -184,33 +153,13 @@ export default function InstructorLearningPathDetailPage() {
     : null
 
   const TABS: { id: Tab; label: string; badge?: number }[] = [
-    { id: 'courses',    label: 'الدورات',        badge: path.courses?.length ?? courseIds.length },
-    { id: 'students',   label: 'الطلاب',         badge: path.students_count },
-    { id: 'sessions',   label: 'الجلسات',        badge: tab === 'sessions' ? sessions.length : undefined },
-    ...(path.is_path_instructor !== false
-      ? [{ id: 'curriculum' as Tab, label: 'ترتيب المنهج' }]
-      : []),
+    { id: 'courses',    label: 'الدورات',  badge: path.courses?.length ?? 0 },
+    { id: 'students',   label: 'الطلاب',   badge: path.students_count },
+    { id: 'sessions',   label: 'الجلسات',  badge: sessions.length },
   ]
 
   return (
     <div className="space-y-5 pb-20 text-right" dir="rtl">
-
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className={`fixed right-4 top-4 z-50 flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white shadow-xl ${
-              toast.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
-            }`}
-          >
-            {toast.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-            {toast.msg}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <InstructorHero
@@ -245,7 +194,7 @@ export default function InstructorLearningPathDetailPage() {
       </InstructorHero>
 
       {/* ── Tab Bar ──────────────────────────────────────────────────────── */}
-      <div className="sticky top-16 z-20 -mx-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 px-1 py-1 shadow-sm backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className={`sticky ${DASHBOARD_STICKY_BELOW_HEADER} z-10 -mx-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 px-1 py-1 shadow-sm backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
         <div className="flex min-w-max gap-1">
           {TABS.map(({ id: tid, label, badge }) => {
             const isActive = tab === tid
@@ -288,23 +237,17 @@ export default function InstructorLearningPathDetailPage() {
           {tab === 'courses' && (
             <div className="space-y-4">
               <h2 className="text-lg font-black text-[#22334A]">
-                الدورات المضمّنة
+                الدورات ضمن المسار
                 <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
-                  ({fmt(path.courses?.length ?? courseIds.length)} دورة)
+                  ({fmt(path.courses?.length ?? 0)} دورة · للعرض فقط)
                 </span>
               </h2>
 
               {(path.courses?.length ?? 0) === 0 ? (
                 <div className="rounded-3xl border border-slate-200 bg-white py-12 text-center">
                   <GraduationCap className="mx-auto mb-3 h-10 w-10 text-slate-200" />
-                  <p className="font-black text-[#22334A]">لا توجد دورات مضافة لهذا المسار بعد</p>
-                  <button
-                    type="button"
-                    onClick={() => setTab('curriculum')}
-                    className="mt-3 text-[12px] font-black text-[#2691C2] hover:underline"
-                  >
-                    انتقل إلى ترتيب المنهج لإضافة دورات
-                  </button>
+                  <p className="font-black text-[#22334A]">لا توجد دورات مرتبطة بهذا المسار</p>
+                  <p className="mt-1 text-[12px] text-slate-400">يتم إدارة منهج المسار من قبل الإدارة</p>
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -534,38 +477,6 @@ export default function InstructorLearningPathDetailPage() {
                   })}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* ── ترتيب المنهج (curriculum editor) ───────────────────────── */}
-          {tab === 'curriculum' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-black text-[#22334A]">ترتيب المنهج الدراسي</h2>
-                  <p className="mt-0.5 text-[12px] font-semibold text-[#22334A]/50">
-                    أضف الدورات أو أعد ترتيبها داخل هذا المسار
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void saveCurriculum(courseIds)}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1d7aab] disabled:opacity-60"
-                >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                  {saving ? 'جارٍ الحفظ…' : 'حفظ المنهج'}
-                </button>
-              </div>
-
-              <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                <CourseSelector value={courseIds} onChange={setCourseIds} />
-              </div>
-
-              <div className="rounded-2xl border border-[#22334A]/10 bg-[#22334A]/5 p-4 text-[12px] font-semibold text-[#22334A]/70">
-                <strong>ملاحظة:</strong> تغيير الدورات هنا قد يؤثر على وصول الطلاب المسجّلين. تأكد من
-                التنسيق مع الإدارة قبل إجراء تغييرات جوهرية.
-              </div>
             </div>
           )}
 

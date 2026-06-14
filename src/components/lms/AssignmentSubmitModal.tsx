@@ -1,8 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CheckCircle2, Loader2, Send } from 'lucide-react'
+import { AlertCircle, Calendar, ClipboardList, Loader2, Send, X } from 'lucide-react'
 import { submitStudentAssignment } from '@/api/studentApi'
+import { getApiErrorMessage } from '@/api/apiErrors'
+import AppFileUpload from '@/components/ui/AppFileUpload'
 import type { StudentAssignment } from '@/types/lms'
+import { formatDateTime } from '@/utils/dateTime'
 import toast from '@/lib/toast'
 
 const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
@@ -18,14 +21,14 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
   const [notes, setNotes] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [succeeded, setSucceeded] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!assignment) {
       setText('')
       setNotes('')
       setFile(null)
-      setSucceeded(false)
+      setSubmitError(null)
       setSubmitting(false)
     }
   }, [assignment])
@@ -34,19 +37,20 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
     e.preventDefault()
     if (!assignment) return
     if (NON_SUBMITTABLE.includes(assignment.status)) {
-      toast.error('تم تسليم هذا الواجب مسبقاً.')
+      setSubmitError('تم تسليم هذا الواجب مسبقاً.')
       return
     }
     if (!assignment.assignment_id || assignment.assignment_id <= 0) {
-      toast.error('تعذّر تحديد الواجب. حدّث الصفحة وحاول مرة أخرى.')
+      setSubmitError('تعذّر تحديد الواجب. حدّث الصفحة وحاول مرة أخرى.')
       return
     }
     if (!text.trim() && !file) {
-      toast.error('أضف إجابة نصية أو مرفقاً على الأقل.')
+      setSubmitError('أضف إجابة نصية أو مرفقاً على الأقل.')
       return
     }
+
     setSubmitting(true)
-    setSucceeded(false)
+    setSubmitError(null)
     try {
       await submitStudentAssignment(assignment.assignment_id, {
         text_answer: text.trim() || undefined,
@@ -54,18 +58,17 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
         notes: notes.trim() || undefined,
         file,
       })
-      setSucceeded(true)
       toast.success('تم تسليم الواجب بنجاح.')
       await onSuccess?.()
-      window.setTimeout(() => {
-        onClose()
-      }, 1200)
-    } catch {
-      toast.error('فشل التسليم. تحقق من الحقول أو حاول لاحقاً.')
+      onClose()
+    } catch (err) {
+      setSubmitError(getApiErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
   }
+
+  const dueLabel = assignment?.due_at ? formatDateTime(assignment.due_at) : null
 
   return (
     <AnimatePresence>
@@ -74,96 +77,137 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#22334A]/50 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="assignment-submit-title"
-          onClick={() => !submitting && onClose()}
+          dir="rtl"
         >
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 24, opacity: 0 }}
-            onClick={(ev) => ev.stopPropagation()}
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-deepBlue/10"
-          >
-            {succeeded ? (
-              <div className="py-8 text-center">
-                <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-500" aria-hidden />
-                <h2 className="mt-4 text-lg font-black text-deepBlue">تم تسليم الواجب بنجاح</h2>
-                <p className="mt-2 text-sm font-semibold text-slate-500">جارٍ تحديث حالة التسليم…</p>
-              </div>
-            ) : (
-              <>
-                <h2 id="assignment-submit-title" className="text-right text-lg font-black text-deepBlue">
-                  تسليم الواجب
-                </h2>
-                <p className="mt-1 text-right text-sm font-bold text-slate-500">{assignment.title}</p>
-                {assignment.course_name && (
-                  <p className="mt-0.5 text-right text-[11px] font-semibold text-slate-400">{assignment.course_name}</p>
-                )}
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="إغلاق"
+            onClick={() => !submitting && onClose()}
+            disabled={submitting}
+          />
 
-                <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-right">
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black text-deepBlue">إجابة نصية</span>
-                    <textarea
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                      rows={5}
-                      disabled={submitting}
-                      placeholder="اكتب إجابتك هنا…"
-                      className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-deepBlue outline-none focus:border-customBlue disabled:opacity-60"
-                    />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black text-deepBlue">ملاحظات (اختياري)</span>
-                    <input
-                      type="text"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      disabled={submitting}
-                      placeholder="ملاحظة للمدرب…"
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-deepBlue outline-none focus:border-customBlue disabled:opacity-60"
-                    />
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black text-deepBlue">مرفق (اختياري)</span>
-                    <input
-                      type="file"
-                      disabled={submitting}
-                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      className="text-sm font-semibold text-deepBlue disabled:opacity-60"
-                    />
-                  </label>
-                  <div className="flex flex-wrap justify-end gap-2 pt-2">
-                    <button
-                      type="button"
-                      disabled={submitting}
-                      onClick={onClose}
-                      className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-black text-slate-600"
-                    >
-                      إلغاء
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-2.5 text-xs font-black text-white shadow-md disabled:opacity-60"
-                    >
-                      {submitting ?
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          جارٍ الإرسال…
-                        </>
-                      : <>
-                          <Send size={14} />
-                          إرسال التسليم
-                        </>
-                      }
-                    </button>
+          <motion.div
+            initial={{ y: 24, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 16, opacity: 0, scale: 0.98 }}
+            onClick={(ev) => ev.stopPropagation()}
+            className="relative z-[1] flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_24px_64px_-16px_rgba(34,51,74,0.35)]"
+          >
+            <div className="border-b border-slate-100 bg-gradient-to-l from-[#22334A] to-[#1a2940] px-5 py-4 text-white">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 text-right">
+                  <p className="text-[10px] font-black tracking-[0.14em] text-[#2691C2]">تسليم الواجب</p>
+                  <h2 id="assignment-submit-title" className="mt-0.5 flex items-start justify-start gap-2 text-lg font-black leading-snug">
+                    <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-[#EC943C]" aria-hidden />
+                    {assignment.title}
+                  </h2>
+                  {assignment.course_name ?
+                    <p className="mt-1 text-[12px] font-medium text-white/65">{assignment.course_name}</p>
+                  : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={submitting}
+                  className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-40"
+                >
+                  <X className="h-5 w-5" aria-hidden />
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap justify-start gap-2">
+                {dueLabel ?
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/90">
+                    <Calendar className="h-3.5 w-3.5 text-[#EC943C]" aria-hidden />
+                    الموعد: {dueLabel}
+                  </span>
+                : null}
+                {assignment.max_score != null ?
+                  <span className="rounded-full bg-[#2691C2]/20 px-2.5 py-1 text-[11px] font-black text-[#2691C2]">
+                    الدرجة القصوى: {assignment.max_score}
+                  </span>
+                : null}
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 text-right">
+                {submitError ?
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[12px] font-bold text-rose-800"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <span>{submitError}</span>
                   </div>
-                </form>
-              </>
-            )}
+                : null}
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-black text-[#22334A]">إجابة نصية</span>
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    rows={5}
+                    disabled={submitting}
+                    placeholder="اكتب إجابتك هنا…"
+                    className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-black text-[#22334A]">ملاحظات (اختياري)</span>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                    disabled={submitting}
+                    placeholder="ملاحظة للمدرب…"
+                    className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
+                  />
+                </label>
+
+                <AppFileUpload
+                  label="مرفق (اختياري)"
+                  name="assignment_file"
+                  file={file}
+                  onChange={setFile}
+                  compress={false}
+                  hint="PDF · Word · صور"
+                />
+              </div>
+
+              <div className="sticky bottom-0 flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={onClose}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
+                >
+                  {submitting ?
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      جارٍ الإرسال…
+                    </>
+                  : <>
+                      <Send size={14} aria-hidden />
+                      إرسال التسليم
+                    </>
+                  }
+                </button>
+              </div>
+            </form>
           </motion.div>
         </motion.div>
       )}

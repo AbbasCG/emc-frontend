@@ -68,7 +68,7 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
         className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#2691C2]/40 hover:shadow-xl"
       >
         {/* Cover image / gradient */}
-        <div className="relative h-40 shrink-0 overflow-hidden bg-gradient-to-br from-[#22334A] to-[#2691C2]">
+        <div className="relative h-32 shrink-0 overflow-hidden bg-gradient-to-br from-[#22334A] to-[#2691C2]">
           {path.featured_image ? (
             <img
               src={path.featured_image}
@@ -181,6 +181,8 @@ export default function InstructorLearningPathsPage() {
   const [paths,    setPaths]   = useState<LearningPath[]>([])
   const [loading,  setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
+  const [loadError, setLoadError] = useState(false)
+  const [notFound, setNotFound] = useState(false)
   const [accessMessage, setAccessMessage] = useState<string | null>(null)
   const [search,   setSearch]  = useState('')
   const [filter,   setFilter]  = useState<StatusFilter>('all')
@@ -188,11 +190,15 @@ export default function InstructorLearningPathsPage() {
   const load = () => {
     setLoading(true)
     setForbidden(false)
+    setLoadError(false)
+    setNotFound(false)
     setAccessMessage(null)
     fetchInstructorLearningPaths()
-      .then(({ paths: list, forbidden: denied, message }) => {
+      .then(({ paths: list, forbidden: denied, message, loadError: err, notFound: nf }) => {
         setPaths(list)
         setForbidden(denied)
+        setLoadError(Boolean(err))
+        setNotFound(Boolean(nf))
         setAccessMessage(message ?? null)
       })
       .finally(() => setLoading(false))
@@ -268,6 +274,20 @@ export default function InstructorLearningPathsPage() {
         </div>
       )}
 
+      {/* Load error */}
+      {!loading && loadError && !forbidden && (
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-amber-200 bg-amber-50/80 py-16 text-center shadow-sm">
+          <p className="text-lg font-black text-[#22334A]">{accessMessage ?? 'تعذر تحميل المسارات.'}</p>
+          <button
+            type="button"
+            onClick={load}
+            className="mt-4 rounded-2xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      )}
+
       {/* Access denied */}
       {!loading && forbidden && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-rose-200 bg-rose-50/80 py-20 text-center shadow-sm">
@@ -279,7 +299,7 @@ export default function InstructorLearningPathsPage() {
       )}
 
       {/* Empty — no paths assigned */}
-      {!loading && !forbidden && paths.length === 0 && (
+      {!loading && !forbidden && !loadError && (paths.length === 0 || notFound) && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-24 text-center shadow-sm">
           <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#22334A]/5 to-[#2691C2]/10">
             <Route className="h-9 w-9 text-[#22334A]/20" />
@@ -306,7 +326,7 @@ export default function InstructorLearningPathsPage() {
       )}
 
       {/* Path cards */}
-      {!loading && filtered.length > 0 && (
+      {!loading && !loadError && !forbidden && filtered.length > 0 && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((path, i) => (
             <PathCard key={path.id} path={path} index={i} />

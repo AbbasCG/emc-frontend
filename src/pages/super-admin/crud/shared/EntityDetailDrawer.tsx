@@ -126,7 +126,7 @@ export function EntityDetailDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-[#0F172A]/45 backdrop-blur-md"
+            className="fixed inset-0 z-modal-overlay bg-[#0F172A]/45 backdrop-blur-md"
             onClick={onClose}
           />
           <motion.aside
@@ -139,7 +139,7 @@ export function EntityDetailDrawer({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
             className={cn(
-              'fixed inset-y-0 right-0 z-[141] flex w-full flex-col border-l border-white/15 bg-white/[0.97] shadow-[-16px_0_56px_rgba(15,23,42,0.14)] backdrop-blur-2xl',
+              'fixed inset-y-0 right-0 z-modal-content flex w-full flex-col border-l border-white/15 bg-white/[0.97] shadow-[-16px_0_56px_rgba(15,23,42,0.14)] backdrop-blur-2xl',
               widthClassName,
             )}
             onClick={(e) => e.stopPropagation()}

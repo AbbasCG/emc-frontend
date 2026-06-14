@@ -1151,7 +1151,7 @@ export async function submitStudentAssignment(
 ): Promise<AssignmentSubmitResult> {
   const post = async (body: FormData) => {
     const res = await apiClient.post<unknown>(`/student/assignments/${assignmentId}/submit`, body, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      skipErrorToast: true,
     })
     const data = unwrapData<Record<string, unknown>>(res.data)
     const submittedAt =

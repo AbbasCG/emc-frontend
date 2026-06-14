@@ -236,7 +236,6 @@ export function UserEditDrawer({
                   value={formEmail}
                   onChange={(e) => onFormEmail(e.target.value)}
                   className={INPUT}
-                  dir="ltr"
                 />
               </Field>
             </div>

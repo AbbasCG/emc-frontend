@@ -352,6 +352,12 @@ function pickNested(
     : null
 }
 
+/** Return the trimmed string value of `v`, or null if empty/absent. */
+function nonEmptyStr(v: unknown): string | null {
+  const s = v != null ? String(v).trim() : ''
+  return s || null
+}
+
 function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | null {
   if (!raw || typeof raw !== 'object') return null
   const o = raw as Record<string, unknown>
@@ -377,22 +383,28 @@ function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | 
       ? String(assignment_title_raw).trim()
       : null
 
-  const course_name_raw =
-    o.course_name ?? o.course_title ?? course?.title ?? null
+  const workshop = pickNested(o.workshop)
+  const userObj = pickNested(o.user)
+  // nonEmptyStr treats empty strings as absent, unlike ?? which only skips null/undefined
   const course_name =
-    course_name_raw != null && String(course_name_raw).trim() !== ''
-      ? String(course_name_raw).trim()
-      : null
+    nonEmptyStr(o.course_name) ??
+    nonEmptyStr(o.course_title) ??
+    nonEmptyStr(course?.title) ??
+    nonEmptyStr(workshop?.title) ??
+    nonEmptyStr(o.workshop_name) ??
+    nonEmptyStr(o.workshop_title) ??
+    null
 
-  const student_name_raw =
-    o.student_name ?? student?.name ?? null
   const student_name =
-    student_name_raw != null && String(student_name_raw).trim() !== ''
-      ? String(student_name_raw).trim()
-      : 'غير متوفر'
+    nonEmptyStr(o.student_name) ??
+    nonEmptyStr(student?.name) ??
+    nonEmptyStr(student?.full_name) ??
+    nonEmptyStr(userObj?.name) ??
+    nonEmptyStr(userObj?.full_name) ??
+    '—'
 
   const avatarRaw =
-    o.student_avatar ?? student?.avatar ?? student?.avatar_url ?? null
+    o.student_avatar ?? student?.avatar ?? student?.avatar_url ?? userObj?.avatar ?? userObj?.avatar_url ?? null
   const student_avatar =
     avatarRaw != null && String(avatarRaw).trim() !== ''
       ? String(avatarRaw).trim()
@@ -418,9 +430,10 @@ function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | 
     student_name,
     student_id,
     student_email:
-      o.student_email != null ? String(o.student_email)
-      : student?.email != null ? String(student.email)
-      : null,
+      nonEmptyStr(o.student_email) ??
+      nonEmptyStr(student?.email) ??
+      nonEmptyStr(userObj?.email) ??
+      null,
     student_avatar,
     submitted_at:
       o.submitted_at != null ? String(o.submitted_at)
@@ -437,6 +450,10 @@ function normalizeInstructorSubmissionRow(raw: unknown): InstructorSubmission | 
       : o.body_text != null ? String(o.body_text)
       : o.answer_text != null ? String(o.answer_text)
       : o.text_answer != null ? String(o.text_answer)
+      : null,
+    file_url:
+      o.file_url != null ? String(o.file_url)
+      : o.attachment_url != null ? String(o.attachment_url)
       : null,
   }
 }
@@ -500,17 +517,22 @@ function parseSubmissionsPayload(payload: unknown): InstructorSubmission[] {
   const inner = unwrapData<unknown>(payload)
 
   const buckets: unknown[] = []
-  if (Array.isArray(inner)) buckets.push(...inner)
-  else if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+  if (Array.isArray(inner)) {
+    buckets.push(...inner)
+  } else if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
     const obj = inner as Record<string, unknown>
     for (const k of ['submissions', 'assignments', 'data', 'items', 'pending', 'queue', 'not_submitted']) {
       const v = obj[k]
       if (Array.isArray(v)) buckets.push(...v)
     }
   }
-  for (const k of ['submissions', 'assignments', 'data', 'items']) {
-    const v = top[k]
-    if (Array.isArray(v)) buckets.push(...v)
+  // Only fall back to scanning the raw envelope when the inner unwrap produced nothing,
+  // to avoid pushing top.data twice when inner === payload.data.
+  if (buckets.length === 0) {
+    for (const k of ['submissions', 'assignments', 'data', 'items']) {
+      const v = top[k]
+      if (Array.isArray(v)) buckets.push(...v)
+    }
   }
 
   return buckets

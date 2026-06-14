@@ -4,10 +4,10 @@ export function safeEnrollmentRedirect(raw: string | null | undefined): string |
   return raw
 }
 
-/** Guest CTA → account signup, then return to course to enroll. */
+/** @deprecated Use buildPublicLoginHref from publicEnrollAuth */
 export function buildCourseEnrollSignupHref(courseSlug: string): string {
   const redirect = encodeURIComponent(`/courses/${courseSlug}`)
-  return `/register?redirect=${redirect}&intent=enroll`
+  return `/login?redirect=${redirect}`
 }
 
 export function enrollActionLabel(itemType: 'course' | 'workshop' | 'program'): string {

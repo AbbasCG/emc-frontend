@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, GraduationCap } from 'lucide-react'
 import type { PublicEnrollCta } from '@/utils/publicCourseDetailCta'
+import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import toast from '@/lib/toast'
 
 type Props = {
   cta: PublicEnrollCta
@@ -40,6 +42,22 @@ export default function PublicDetailCtaButton({
         {cta.label}
         <ArrowLeft size={size === 'lg' ? 18 : 16} aria-hidden />
       </Link>
+    )
+  }
+
+  if (cta.denyNonStudent) {
+    return (
+      <motion.button
+        type="button"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
+        className={cls}
+      >
+        <GraduationCap size={size === 'lg' ? 20 : 18} aria-hidden />
+        {cta.label}
+        <ArrowLeft size={size === 'lg' ? 18 : 16} aria-hidden />
+      </motion.button>
     )
   }
 

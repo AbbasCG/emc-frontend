@@ -240,7 +240,7 @@ export default function InstructorSessionsPage() {
   const [sessions,   setSessions]  = useState<LmsSession[]>([])
   const [lpPaths,    setLpPaths]   = useState<LearningPath[]>([])
   const [loading,    setLoading]   = useState(true)
-  const [apiMissing, setApiMissing] = useState(false)
+  const [, setApiMissing] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -313,12 +313,6 @@ export default function InstructorSessionsPage() {
           تحديث
         </button>
       </InstructorHero>
-
-      {apiMissing && import.meta.env.DEV && (
-        <div className="rounded-xl bg-amber-50 px-5 py-3 text-right text-xs font-bold text-amber-800 ring-1 ring-amber-100">
-          تحقق من <code className="rounded bg-white/80 px-1">GET /api/instructor/sessions</code>
-        </div>
-      )}
 
       {loading ? (
         <div className="space-y-3">

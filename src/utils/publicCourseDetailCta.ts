@@ -1,15 +1,17 @@
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
+import { buildPublicLoginHref, isStudentUser } from '@/utils/publicEnrollAuth'
 
 export type PublicEnrollCta = {
   label: string
   disabled: boolean
   href?: string
   scrollToEnroll?: boolean
+  denyNonStudent?: boolean
   variant: 'primary' | 'success' | 'muted'
 }
 
 export function buildCourseLoginHref(courseSlug: string): string {
-  return `/login?redirect=${encodeURIComponent(`/courses/${courseSlug}`)}`
+  return buildPublicLoginHref(`/courses/${courseSlug}`)
 }
 
 export function resolveCourseEnrollCta(input: {
@@ -17,10 +19,19 @@ export function resolveCourseEnrollCta(input: {
   seatsFull: boolean
   alreadyEnrolled: boolean
   isAuthenticated: boolean
+  userRole?: string | null
   courseSlug: string
   courseId: number
 }): PublicEnrollCta {
-  const { registrationOpen, seatsFull, alreadyEnrolled, isAuthenticated, courseSlug, courseId } = input
+  const {
+    registrationOpen,
+    seatsFull,
+    alreadyEnrolled,
+    isAuthenticated,
+    userRole,
+    courseSlug,
+    courseId,
+  } = input
 
   if (!registrationOpen) {
     return { label: 'التسجيل مغلق', disabled: true, variant: 'muted' }
@@ -41,6 +52,14 @@ export function resolveCourseEnrollCta(input: {
       label: 'تسجيل الدخول للالتحاق',
       disabled: false,
       href: buildCourseLoginHref(courseSlug),
+      variant: 'primary',
+    }
+  }
+  if (!isStudentUser(userRole)) {
+    return {
+      label: 'الالتحاق بالدورة',
+      disabled: false,
+      denyNonStudent: true,
       variant: 'primary',
     }
   }

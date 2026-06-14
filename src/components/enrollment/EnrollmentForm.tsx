@@ -25,6 +25,11 @@ import PaymentProviderSelector from '@/components/payments/PaymentProviderSelect
 import type { Course } from '@/types'
 import type { PublicItemType } from '@/utils/publicCourseDisplay'
 import { formatPrice } from '@/utils/course'
+import {
+  buildPublicLoginHref,
+  isStudentUser,
+  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
+} from '@/utils/publicEnrollAuth'
 
 type PaymentProvider = 'stripe' | 'paypal' | 'fake'
 
@@ -148,6 +153,15 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
     event.preventDefault()
     setApiError('')
     setFieldErrors({})
+
+    if (!isAuthenticated) {
+      navigate(buildPublicLoginHref(`/courses/${course.slug}`))
+      return
+    }
+    if (!isStudentUser(user?.role)) {
+      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
+      return
+    }
 
     const newErrors: FieldErrors = {}
     if (!fullName.trim()) newErrors.full_name = 'الاسم الكامل مطلوب'

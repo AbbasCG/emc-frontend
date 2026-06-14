@@ -27,7 +27,7 @@ export function formatPrice(price: Course['price']) {
   if (Number.isNaN(numericPrice)) return `${price}`
 
   return formatEuro(numericPrice, {
-    locale: 'ar',
+    locale: 'nl-NL',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })
@@ -39,6 +39,7 @@ export function formatSchedule(startDate?: string | null, endDate?: string | nul
   const formatter = new Intl.DateTimeFormat('ar', {
     day: 'numeric',
     month: 'short',
+    numberingSystem: 'latn',
   })
 
   const start = startDate ? formatter.format(new Date(startDate)) : ''
@@ -54,6 +55,7 @@ export function formatSingleDate(date?: string | null) {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    numberingSystem: 'latn',
   }).format(new Date(date))
 }
 
@@ -65,5 +67,5 @@ export function formatDuration(startDate?: string | null, endDate?: string | nul
   const diffInDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / 86400000))
   const weeks = Math.max(1, Math.ceil(diffInDays / 7))
 
-  return `${weeks} ${weeks === 1 ? 'أسبوع' : 'أسابيع'}`
+  return `${String(weeks)} ${weeks === 1 ? 'أسبوع' : 'أسابيع'}`
 }

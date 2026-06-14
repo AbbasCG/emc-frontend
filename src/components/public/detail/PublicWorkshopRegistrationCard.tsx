@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom'
 import { BadgeCheck, ExternalLink, GraduationCap } from 'lucide-react'
+import toast from '@/lib/toast'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'
+import {
+  buildCourseDetailEnrollHref,
+  buildPublicLoginHref,
+  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
+} from '@/utils/publicEnrollAuth'
 
 type Props = {
   workshop: PublicWorkshop
@@ -60,7 +66,7 @@ export default function PublicWorkshopRegistrationCard({
     if (!isAuthenticated) {
       return (
         <Link
-          to={`/login?redirect=${encodeURIComponent(redirectPath)}`}
+          to={buildPublicLoginHref(redirectPath)}
           className={`${cls} bg-customOrange`}
         >
           <GraduationCap size={18} />
@@ -68,19 +74,23 @@ export default function PublicWorkshopRegistrationCard({
         </Link>
       )
     }
-    if (isStudent && workshop.course_slug) {
+    if (!isStudent) {
       return (
-        <Link to={`/courses/${workshop.course_slug}/register`} className={`${cls} bg-customOrange`}>
+        <button
+          type="button"
+          onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
+          className={`${cls} bg-customOrange`}
+        >
           <GraduationCap size={18} />
           سجّل في الورشة
-        </Link>
+        </button>
       )
     }
     if (workshop.course_slug) {
       return (
-        <Link to={`/courses/${workshop.course_slug}`} className={`${cls} bg-customOrange`}>
+        <Link to={buildCourseDetailEnrollHref(workshop.course_slug)} className={`${cls} bg-customOrange`}>
           <GraduationCap size={18} />
-          عرض صفحة البرنامج
+          سجّل في الورشة
         </Link>
       )
     }

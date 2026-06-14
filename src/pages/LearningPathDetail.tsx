@@ -16,6 +16,12 @@ import {
   BarChart2,
   CircleDot,
 } from 'lucide-react'
+import toast from '@/lib/toast'
+import {
+  buildPublicLoginHref,
+  isStudentUser,
+  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
+} from '@/utils/publicEnrollAuth'
 import {
   fetchPublicLearningPath,
   fetchEnrollmentStatus,
@@ -70,11 +76,11 @@ export default function LearningPathDetail() {
   const handleEnroll = async () => {
     if (!slug) return
     if (!user) {
-      navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`)
+      navigate(buildPublicLoginHref(location.pathname))
       return
     }
-    if (user.role !== 'student') {
-      setEnrollMsg('التسجيل متاح للطلاب فقط.')
+    if (!isStudentUser(user.role)) {
+      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
       return
     }
     setEnrolling(true)

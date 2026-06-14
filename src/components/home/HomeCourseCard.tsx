@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Clock3, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../../types'
 import { courseImages, formatPrice } from '../../utils/course'
+import { formatPublicCount } from '@/utils/publicDetailFormat'
 import { staggerItem } from '@/utils/animations'
 
 type Props = { course: Course; index: number }
@@ -60,7 +61,7 @@ export default function HomeCourseCard({ course, index }: Props) {
         {course.training_hours ? (
           <div className="mb-3 flex items-center justify-start gap-1.5 text-xs font-semibold text-foreground/50">
             <Clock3 size={12} className="text-customBlue" aria-hidden />
-            {course.training_hours} ساعة تدريبية
+            {formatPublicCount(Number(course.training_hours), 'ساعة تدريبية')}
           </div>
         ) : null}
 

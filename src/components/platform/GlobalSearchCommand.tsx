@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Loader2, Search, Sparkles, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { globalSearch } from '@/api/searchApi'
 
@@ -46,13 +47,15 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
     [],
   )
 
-  return (
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
           <motion.button
             type="button"
-            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-modal-overlay bg-black/50 backdrop-blur-sm"
             aria-label="إغلاق البحث"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -68,7 +71,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 12 }}
             transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-            className="fixed left-1/2 top-[12vh] z-[70] w-[min(720px,calc(100%-24px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-300/40"
+            className="fixed left-1/2 top-[12vh] z-modal-content w-[min(720px,calc(100%-24px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-300/40"
           >
             <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
               <Search size={18} className="shrink-0 text-customBlue" />
@@ -140,6 +143,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

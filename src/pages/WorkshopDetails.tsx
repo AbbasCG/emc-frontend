@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   Calendar,
   Clock,
@@ -35,9 +35,16 @@ import PublicInstructorCard from '@/components/public/detail/PublicInstructorCar
 import PublicWorkshopRegistrationCard from '@/components/public/detail/PublicWorkshopRegistrationCard'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { normalizeRole } from '@/utils/dashboardAccess'
+import {
+  buildCourseDetailEnrollHref,
+  buildPublicLoginHref,
+  gatePublicEnrollClick,
+  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
+} from '@/utils/publicEnrollAuth'
 
 export default function WorkshopDetailsPage() {
   const { slug } = useParams()
+  const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const enrollRef = useRef<HTMLDivElement>(null)
   const [workshop, setWorkshop] = useState<PublicWorkshop | null>(null)
@@ -216,7 +223,13 @@ export default function WorkshopDetailsPage() {
   }
 
   function scrollToEnroll() {
-    enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    gatePublicEnrollClick({
+      isAuthenticated,
+      role: user?.role,
+      redirectPath,
+      navigate,
+      onStudent: () => enrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    })
   }
 
   function renderHeroCta() {
@@ -246,7 +259,7 @@ export default function WorkshopDetailsPage() {
     if (!isAuthenticated) {
       return (
         <Link
-          to={`/login?redirect=${encodeURIComponent(redirectPath)}`}
+          to={buildPublicLoginHref(redirectPath)}
           className={`${cls} bg-customOrange`}
         >
           <GraduationCap size={18} />
@@ -254,9 +267,21 @@ export default function WorkshopDetailsPage() {
         </Link>
       )
     }
-    if (isStudent && w.course_slug) {
+    if (!isStudent) {
       return (
-        <Link to={`/courses/${w.course_slug}/register`} className={`${cls} bg-customOrange`}>
+        <button
+          type="button"
+          onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
+          className={`${cls} bg-customOrange`}
+        >
+          <GraduationCap size={18} />
+          سجّل في الورشة
+        </button>
+      )
+    }
+    if (w.course_slug) {
+      return (
+        <Link to={buildCourseDetailEnrollHref(w.course_slug)} className={`${cls} bg-customOrange`}>
           <GraduationCap size={18} />
           سجّل في الورشة
         </Link>
@@ -340,7 +365,7 @@ export default function WorkshopDetailsPage() {
         extra={
           !isAuthenticated ?
             <Link
-              to={`/login?redirect=${encodeURIComponent(redirectPath)}`}
+              to={buildPublicLoginHref(redirectPath)}
               className="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-customOrange px-4 text-sm font-black text-white"
             >
               تسجيل الدخول للالتحاق

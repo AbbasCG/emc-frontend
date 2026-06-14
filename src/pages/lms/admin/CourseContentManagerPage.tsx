@@ -9,24 +9,32 @@ import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetState
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
-  Layers,
+  BookOpen,
   Calendar,
+  ChevronDown,
   ClipboardList,
+  Clock,
+  Eye,
+  EyeOff,
   FolderOpen,
+  Layers,
   Loader2,
   Pencil,
   Plus,
   RefreshCw,
   Trash2,
+  Video,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import type { AxiosError } from 'axios'
 import {
   adminCreateCourseAssignment,
+  adminCreateCourseLesson,
   adminCreateCourseMaterial,
   adminCreateCourseModule,
   adminCreateCourseSession,
   adminDeleteCourseAssignment,
+  adminDeleteCourseLesson,
   adminDeleteCourseMaterial,
   adminDeleteCourseModule,
   adminDeleteCourseSession,
@@ -60,10 +68,10 @@ import {
   VISIBILITY_OPTIONS,
   YES_NO_OPTIONS,
 } from '@/components/lms/CourseCmsFormModal'
+import { CmsSessionTimingSection } from '@/components/lms/CmsSessionTimingSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDateTime } from '@/utils/dateTime'
-import type { CourseLearnAssignment, CourseLearnMaterial, CourseLearnSession, StudentLearnCourseOverview } from '@/types/courseLearn'
-import type { LmsModule } from '@/types/platform'
+import type { CourseLearnAssignment, CourseLearnMaterial, CourseLearnSession, StudentLearnCourseOverview, StudentLearnModule } from '@/types/courseLearn'
 
 type TabId = 'modules' | 'sessions' | 'materials' | 'assignments'
 
@@ -118,12 +126,17 @@ export default function CourseContentManagerPage() {
   const navigate = useNavigate()
   const valid = Number.isFinite(courseId) && courseId > 0
   const cmsScope = useMemo(() => inferCourseCmsScopeFromUserRole(user?.role), [user?.role])
+  const cmsBackTo =
+    cmsScope === 'instructor'
+      ? '/dashboard/instructor/courses'
+      : '/dashboard/super-admin/courses'
 
   const [tab, setTab] = useState<TabId>('modules')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const [mods, setMods] = useState<LmsModule[]>([])
+  const [mods, setMods] = useState<StudentLearnModule[]>([])
+  const [openModuleIds, setOpenModuleIds] = useState<Set<number>>(new Set())
   const [sess, setSess] = useState<CourseLearnSession[]>([])
   const [mats, setMats] = useState<CourseLearnMaterial[]>([])
   const [asgn, setAsgn] = useState<CourseLearnAssignment[]>([])
@@ -131,14 +144,16 @@ export default function CourseContentManagerPage() {
 
   const [modal, setModal] = useState<
     | { kind: 'module'; draft: Record<string, string>; editingId?: number }
-    | { kind: 'session'; draft: Record<string, string>; editingId?: number }
-    | { kind: 'material'; draft: Record<string, string>; editingId?: number; file?: File | null }
-    | { kind: 'assignment'; draft: Record<string, string>; editingId?: number }
+    | { kind: 'lesson'; draft: Record<string, string>; editingId?: number; moduleId: number }
+    | { kind: 'session'; draft: Record<string, string>; editingId?: number; moduleId?: number }
+    | { kind: 'material'; draft: Record<string, string>; editingId?: number; file?: File | null; moduleId?: number }
+    | { kind: 'assignment'; draft: Record<string, string>; editingId?: number; moduleId?: number }
     | null
   >(null)
 
   type DeleteTarget =
     | { kind: 'module'; id: number; label: string }
+    | { kind: 'lesson'; id: number; label: string }
     | { kind: 'session'; id: number; label: string }
     | { kind: 'material'; id: number; label: string }
     | { kind: 'assignment'; id: number; label: string }
@@ -152,6 +167,8 @@ export default function CourseContentManagerPage() {
     try {
       if (deleteTarget.kind === 'module') {
         await adminDeleteCourseModule(courseId, deleteTarget.id, cmsScope)
+      } else if (deleteTarget.kind === 'lesson') {
+        await adminDeleteCourseLesson(courseId, deleteTarget.id, cmsScope)
       } else if (deleteTarget.kind === 'session') {
         await adminDeleteCourseSession(courseId, deleteTarget.id, cmsScope)
       } else if (deleteTarget.kind === 'material') {
@@ -206,6 +223,15 @@ export default function CourseContentManagerPage() {
     }
   }
 
+  function toggleModuleExpand(id: number) {
+    setOpenModuleIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   function moveModule(id: number, dir: -1 | 1) {
     if (!LMS_SUPPORTS_MODULE_REORDER) return
     const order = [...sortedModuleIds]
@@ -226,41 +252,35 @@ export default function CourseContentManagerPage() {
 
   return (
     <div className="space-y-8 pb-24 text-right rtl" dir="rtl">
-      <header className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-gradient-to-bl from-deepBlue via-[#1f3049] to-customBlue px-8 py-10 text-white shadow-2xl">
-        <div aria-hidden className="pointer-events-none absolute -left-20 top-0 h-52 w-52 rounded-full bg-customOrange/30 blur-[90px]" />
+      <header className="relative overflow-hidden rounded-[1.75rem] border border-[#22334A]/10 bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] px-6 py-6 text-white shadow-xl sm:px-8 sm:py-7">
+        <div aria-hidden className="pointer-events-none absolute -left-16 top-0 h-40 w-40 rounded-full bg-[#EC943C]/20 blur-[70px]" />
         <div className="relative flex flex-wrap items-start justify-between gap-6">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/60">إدارة LMS</p>
-            <h1 className="mt-2 text-3xl font-black">{courseMeta?.title?.trim() || 'محتوى الدورة'}</h1>
-            {courseMeta?.slug?.trim() ?
-              <p className="mt-2 text-[12px] font-bold text-white/75">{courseMeta.slug}</p>
-            : null}
-            <p className="mt-3 max-w-xl text-[14px] font-semibold leading-relaxed text-white/82">
-              أضِف الوحدات والجلسات والمواد والواجبات المعروضة على{' '}
-              <code className="rounded bg-black/25 px-1.5 py-0.5 text-[11px] font-mono dir-ltr">/dashboard/student/learn/</code>{' '}
-              عبر{' '}
-              <code className="rounded bg-black/25 px-1.5 py-0.5 text-[11px] font-mono">GET …/student/courses/{'{id}'}/learn</code>.
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">
+              {cmsScope === 'instructor' ? 'إدارة محتوى الدورة' : 'إدارة LMS'}
             </p>
-            <p className="mt-3 text-[11px] font-black text-white/72">
-              واجهة البرمجة للمحتوى:{' '}
-              <span className="rounded-lg bg-black/30 px-2 py-1 font-mono text-[10px] dir-ltr">
-                {cmsScope === 'instructor' ? `/instructor/courses/${courseId}/…` : `/admin/courses/${courseId}/…`}
-              </span>
+            <h1 className="mt-2 text-2xl font-black sm:text-3xl">
+              {courseMeta?.title?.trim() || 'محتوى الدورة'}
+            </h1>
+            <p className="mt-3 max-w-xl text-[13px] font-medium leading-relaxed text-white/80">
+              {cmsScope === 'instructor'
+                ? 'أضِف الوحدات والجلسات والمواد والواجبات — يظهر المحتوى مباشرة لطلاب الدورة في مساحة التعلم.'
+                : 'إدارة محتوى الدورة: الوحدات، الجلسات، المواد، والواجبات.'}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => void reload()}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/35 bg-white/12 px-5 py-3 text-[12px] font-black backdrop-blur transition hover:bg-white/20 disabled:opacity-55"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-4 py-2.5 text-[12px] font-bold backdrop-blur transition hover:bg-white/20 disabled:opacity-55"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
             <Link
               to={`/dashboard/student/learn/${courseId}`}
-              className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-5 py-3 text-[12px] font-black shadow-lg hover:brightness-105"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-4 py-2.5 text-[12px] font-bold shadow-lg transition hover:brightness-105"
               target="_blank"
               rel="noreferrer"
             >
@@ -269,8 +289,8 @@ export default function CourseContentManagerPage() {
             </Link>
             <button
               type="button"
-              onClick={() => navigate(-1)}
-              className="rounded-2xl border border-white/25 px-5 py-3 text-[12px] font-black hover:bg-white/10"
+              onClick={() => navigate(cmsBackTo)}
+              className="rounded-2xl border border-white/25 px-4 py-2.5 text-[12px] font-bold transition hover:bg-white/10"
             >
               رجوع
             </button>
@@ -334,65 +354,262 @@ export default function CourseContentManagerPage() {
               {sortedModuleIds.map((mid) => {
                 const m = mods.find((x) => x.id === mid)!
                 const ix = sortedModuleIds.indexOf(mid)
+                const isOpen = openModuleIds.has(mid)
+                const modLessons = m.lessons ?? []
+                const modMaterials = m.materials ?? []
+                const modSessions = m.sessions ?? []
+                const modAssignments = m.assignments ?? []
+                const hasChildren = modLessons.length > 0 || modMaterials.length > 0 || modSessions.length > 0 || modAssignments.length > 0
                 return (
-                  <div
-                    key={mid}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white px-4 py-3 shadow-sm ring-1 ring-deepBlue/[0.03]"
-                  >
-                    <div className="min-w-0 text-right">
-                      <p className="font-black text-deepBlue">{m.title}</p>
-                      <p className="mt-1 text-[11px] font-bold text-deepBlue/50">
-                        الدروس: {m.lessons_count} · ترتيب #{m.sort_order}
-                      </p>
+                  <div key={mid} className="overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm">
+                    {/* Module header */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleModuleExpand(mid)}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-deepBlue/10 text-deepBlue/50 transition hover:bg-slate-50"
+                          aria-label={isOpen ? 'طي' : 'توسيع'}
+                        >
+                          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
+                        </button>
+                        <div className="min-w-0">
+                          <p className="font-black text-deepBlue">{m.title}</p>
+                          <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">
+                            {[
+                              modLessons.length > 0 ? `${modLessons.length} درس` : null,
+                              modMaterials.length > 0 ? `${modMaterials.length} مادة` : null,
+                              modSessions.length > 0 ? `${modSessions.length} جلسة` : null,
+                              modAssignments.length > 0 ? `${modAssignments.length} واجب` : null,
+                            ].filter(Boolean).join(' · ') || 'وحدة فارغة — انقر للتوسيع وإضافة محتوى'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          aria-label="أعلى"
+                          disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === 0}
+                          title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
+                          onClick={() => moveModule(mid, -1)}
+                          className="rounded-xl border border-deepBlue/10 px-2.5 py-1 text-[11px] font-black disabled:opacity-35"
+                        >↑</button>
+                        <button
+                          type="button"
+                          aria-label="أسفل"
+                          disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === sortedModuleIds.length - 1}
+                          title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
+                          onClick={() => moveModule(mid, 1)}
+                          className="rounded-xl border border-deepBlue/10 px-2.5 py-1 text-[11px] font-black disabled:opacity-35"
+                        >↓</button>
+                        <button
+                          type="button"
+                          onClick={() => setModal({ kind: 'module', editingId: m.id, draft: { title: m.title, sort_order: String(m.sort_order) } })}
+                          className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-2.5 py-1 text-[11px] font-black text-deepBlue"
+                        >
+                          <Pencil className="h-3 w-3" aria-hidden /> تعديل
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget({ kind: 'module', id: m.id, label: m.title })}
+                          className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-800"
+                        >
+                          <Trash2 className="h-3 w-3" aria-hidden /> حذف
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        aria-label="أعلى"
-                        disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === 0}
-                        title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
-                        onClick={() => moveModule(mid, -1)}
-                        className="rounded-xl border border-deepBlue/10 px-3 py-1.5 text-[11px] font-black disabled:opacity-35"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="أسفل"
-                        disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === sortedModuleIds.length - 1}
-                        title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
-                        onClick={() => moveModule(mid, 1)}
-                        className="rounded-xl border border-deepBlue/10 px-3 py-1.5 text-[11px] font-black disabled:opacity-35"
-                      >
-                        ↓
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setModal({
-                            kind: 'module',
-                            editingId: m.id,
-                            draft: {
-                              title: m.title,
-                              sort_order: String(m.sort_order),
-                            },
-                          })
-                        }
-                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue"
-                      >
-                        <Pencil className="h-3.5 w-3.5" aria-hidden /> تعديل
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget({ kind: 'module', id: m.id, label: m.title })}
-                        className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden /> حذف
-                      </button>
-                    </div>
+
+                    {/* Expanded module content */}
+                    {isOpen && (
+                      <div className="space-y-4 border-t border-deepBlue/[0.06] bg-slate-50/60 px-4 pb-4 pt-3">
+                        {/* Add content row */}
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setModal({ kind: 'lesson', moduleId: mid, draft: { title: '', description: '', video_url: '', duration_minutes: '' } })}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#22334A] hover:text-white"
+                          >
+                            <BookOpen className="h-3.5 w-3.5" aria-hidden /> إضافة درس
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setModal({ kind: 'material', moduleId: mid, file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white"
+                          >
+                            <FolderOpen className="h-3.5 w-3.5" aria-hidden /> إضافة مادة
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setModal({ kind: 'session', moduleId: mid, draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#2691C2] hover:text-white"
+                          >
+                            <Calendar className="h-3.5 w-3.5" aria-hidden /> إضافة جلسة
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setModal({ kind: 'assignment', moduleId: mid, draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-emerald-600 hover:text-white"
+                          >
+                            <ClipboardList className="h-3.5 w-3.5" aria-hidden /> إضافة واجب
+                          </button>
+                        </div>
+
+                        {!hasChildren && (
+                          <p className="py-3 text-center text-[12px] font-semibold text-deepBlue/40">
+                            لا يوجد محتوى داخل هذه الوحدة بعد
+                          </p>
+                        )}
+
+                        {/* Lessons */}
+                        {modLessons.length > 0 && (
+                          <div>
+                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                              <BookOpen className="h-3 w-3" /> الدروس ({modLessons.length})
+                            </h4>
+                            <div className="space-y-1.5">
+                              {modLessons.map((l) => (
+                                <div key={l.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
+                                  {l.video_url ? <Video className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" /> : <BookOpen className="h-3.5 w-3.5 shrink-0 text-deepBlue/30" />}
+                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{l.title}</span>
+                                  {l.duration_minutes != null && <span className="text-[10px] font-bold tabular-nums text-deepBlue/45">{l.duration_minutes} د</span>}
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget({ kind: 'lesson', id: l.id, label: l.title })}
+                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
+                                  >حذف</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Sessions */}
+                        {modSessions.length > 0 && (
+                          <div>
+                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                              <Calendar className="h-3 w-3" /> الجلسات ({modSessions.length})
+                            </h4>
+                            <div className="space-y-1.5">
+                              {modSessions.map((s) => (
+                                <div key={s.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
+                                  <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" />
+                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{s.title ?? `جلسة #${s.id}`}</span>
+                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{String(s.status ?? 'scheduled')}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
+                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
+                                  >حذف</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Materials */}
+                        {modMaterials.length > 0 && (
+                          <div>
+                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                              <FolderOpen className="h-3 w-3" /> المواد ({modMaterials.length})
+                            </h4>
+                            <div className="space-y-1.5">
+                              {modMaterials.map((mat) => (
+                                <div key={mat.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
+                                  <FolderOpen className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" />
+                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{mat.title}</span>
+                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{String(mat.kind ?? 'file')}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget({ kind: 'material', id: mat.id, label: mat.title })}
+                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
+                                  >حذف</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Assignments */}
+                        {modAssignments.length > 0 && (
+                          <div>
+                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                              <ClipboardList className="h-3 w-3" /> الواجبات ({modAssignments.length})
+                            </h4>
+                            <div className="space-y-1.5">
+                              {modAssignments.map((a) => (
+                                <div key={a.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
+                                  <ClipboardList className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{a.title}</span>
+                                  {a.due_at && <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-deepBlue/45"><Clock className="h-3 w-3" />{formatDateTime(String(a.due_at))}</span>}
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget({ kind: 'assignment', id: a.assignment_id ?? a.id, label: a.title })}
+                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
+                                  >حذف</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {/* Course-level content section (module_id = null) */}
+          {(sess.length > 0 || mats.length > 0 || asgn.length > 0) && (
+            <div className="mt-6 space-y-3 rounded-2xl border border-amber-200/50 bg-amber-50/40 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="flex items-center gap-2 text-[13px] font-black text-deepBlue">
+                  <Layers className="h-4 w-4 text-[#EC943C]" /> محتوى عام للدورة
+                  <span className="text-[11px] font-semibold text-deepBlue/50">(بدون وحدة)</span>
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  <button type="button" onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#EC943C] hover:text-white transition">
+                    <FolderOpen className="h-3 w-3" /> مادة
+                  </button>
+                  <button type="button" onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
+                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#2691C2] hover:text-white transition">
+                    <Calendar className="h-3 w-3" /> جلسة
+                  </button>
+                  <button type="button" onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
+                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-emerald-600 hover:text-white transition">
+                    <ClipboardList className="h-3 w-3" /> واجب
+                  </button>
+                </div>
+              </div>
+              <p className="text-[11px] font-semibold text-deepBlue/55">
+                {[
+                  sess.length > 0 ? `${sess.length} جلسة` : null,
+                  mats.length > 0 ? `${mats.length} مادة` : null,
+                  asgn.length > 0 ? `${asgn.length} واجب` : null,
+                ].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+          )}
+          {mods.length > 0 && sess.length === 0 && mats.length === 0 && asgn.length === 0 && (
+            <div className="mt-4 rounded-2xl border border-dashed border-deepBlue/10 bg-slate-50/60 p-4 text-center">
+              <p className="text-[11px] font-semibold text-deepBlue/40">
+                لا يوجد محتوى عام للدورة — كل المحتوى منظّم داخل الوحدات
+              </p>
+              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                <button type="button" onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#EC943C] hover:text-white transition">
+                  <FolderOpen className="h-3 w-3" /> إضافة مادة عامة
+                </button>
+                <button type="button" onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
+                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#2691C2] hover:text-white transition">
+                  <Calendar className="h-3 w-3" /> إضافة جلسة عامة
+                </button>
+                <button type="button" onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
+                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-emerald-600 hover:text-white transition">
+                  <ClipboardList className="h-3 w-3" /> إضافة واجب عام
+                </button>
+              </div>
             </div>
           )}
         </section>
@@ -431,61 +648,92 @@ export default function CourseContentManagerPage() {
             </p>
           : (
             <div className="grid gap-3">
-              {sess.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 ring-1 ring-deepBlue/[0.03]"
-                >
-                  <div className="min-w-0 flex-1 text-right">
-                    <p className="font-black text-deepBlue">{s.title ?? `جلسة #${s.id}`}</p>
-                    <p className="mt-2 text-[12px] font-semibold leading-relaxed text-deepBlue/60">{s.description}</p>
-                    <p className="mt-2 text-[11px] font-bold text-deepBlue/50">
-                      {formatSessionListWhen(s)}
-                    </p>
-                    {s.meeting_url ?
-                      <a
-                        href={s.meeting_url}
-                        className="mt-2 inline-flex text-[11px] font-black text-customBlue underline"
-                        target="_blank"
-                        rel="noreferrer"
+              {sess.map((s) => {
+                const st = String(s.status ?? 'scheduled')
+                const sessionStatusCls =
+                  st === 'live'      ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200' :
+                  st === 'completed' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' :
+                  st === 'cancelled' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' :
+                                       'bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/25'
+                const sessionStatusLabel =
+                  st === 'live' ? 'مباشرة' : st === 'completed' ? 'منتهية' : st === 'cancelled' ? 'ملغاة' : 'مجدولة'
+                const borderAccent =
+                  st === 'live' ? 'bg-rose-400' : st === 'completed' ? 'bg-emerald-400' : st === 'cancelled' ? 'bg-amber-400' : 'bg-[#2691C2]'
+
+                return (
+                  <div
+                    key={s.id}
+                    className="relative flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm transition hover:shadow-md"
+                  >
+                    <div className={`absolute inset-y-0 right-0 w-1 rounded-r-2xl ${borderAccent}`} />
+
+                    <div className="min-w-0 flex-1 space-y-2 pr-3 text-right">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-black text-deepBlue">{s.title ?? `جلسة #${s.id}`}</p>
+                        <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${sessionStatusCls}`}>
+                          {sessionStatusLabel}
+                        </span>
+                      </div>
+
+                      {s.description && (
+                        <p className="text-[12px] font-semibold leading-relaxed text-deepBlue/60">{s.description}</p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-deepBlue/50">
+                        {formatSessionListWhen(s) !== '—' && (
+                          <span className="inline-flex items-center gap-1 font-semibold">
+                            <Calendar className="h-3 w-3 text-[#2691C2]" />
+                            {formatSessionListWhen(s)}
+                          </span>
+                        )}
+                        {s.meeting_url && (
+                          <a
+                            href={s.meeting_url}
+                            className="inline-flex items-center gap-1 font-black text-[#2691C2] hover:underline"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Video className="h-3 w-3" />
+                            رابط الاجتماع
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setModal({
+                            kind: 'session',
+                            editingId: s.id,
+                            draft: {
+                              title: String(s.title ?? ''),
+                              description: String(s.description ?? ''),
+                              start_at: isoOrDateToDatetimeLocal(s.start_at ?? s.starts_at ?? ''),
+                              end_at: isoOrDateToDatetimeLocal(s.end_at ?? s.ends_at ?? ''),
+                              meeting_url: String(s.meeting_url ?? ''),
+                              location_type: String(s.location_type ?? 'online'),
+                              location: String(s.location ?? ''),
+                              status: String(s.status ?? 'scheduled'),
+                            },
+                          })
+                        }
+                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
                       >
-                        رابط الاجتماع
-                      </a>
-                    : null}
+                        <Pencil className="h-3 w-3" /> تعديل
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
+                        className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 transition hover:bg-rose-100"
+                      >
+                        حذف
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setModal({
-                          kind: 'session',
-                          editingId: s.id,
-                          draft: {
-                            title: String(s.title ?? ''),
-                            description: String(s.description ?? ''),
-                            start_at: isoOrDateToDatetimeLocal(s.start_at ?? s.starts_at ?? ''),
-                            end_at: isoOrDateToDatetimeLocal(s.end_at ?? s.ends_at ?? ''),
-                            meeting_url: String(s.meeting_url ?? ''),
-                            location_type: String(s.location_type ?? 'online'),
-                            location: String(s.location ?? ''),
-                            status: String(s.status ?? 'scheduled'),
-                          },
-                        })
-                      }
-                      className="rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black"
-                    >
-                      تعديل
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
-                      className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
-                    >
-                      حذف
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>
@@ -516,51 +764,77 @@ export default function CourseContentManagerPage() {
             </p>
           : (
             <div className="grid gap-3 sm:grid-cols-2">
-              {mats.map((m) => (
-                <div key={m.id} className="rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm">
-                  <p className="font-black text-deepBlue">{m.title}</p>
-                  <p className="mt-1 text-[11px] font-bold text-deepBlue/50">{m.kind} · {m.visibility ?? '—'}</p>
-                  {(m.external_url ?? m.url ?? m.file_url) ?
-                    <a
-                      href={String(m.external_url ?? m.url ?? m.file_url)}
-                      className="mt-3 inline-block text-[11px] font-black text-customBlue underline"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      فتح الرابط / التحميل
-                    </a>
-                  : null}
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setModal({
-                          kind: 'material',
-                          editingId: m.id,
-                          file: null,
-                          draft: {
-                            title: m.title,
-                            description: String(m.description ?? ''),
-                            kind: String(m.kind ?? 'pdf'),
-                            external_url: String(m.external_url ?? m.url ?? m.file_url ?? ''),
-                            visibility: String(m.visibility ?? 'enrolled'),
-                          },
-                        })
-                      }
-                      className="rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black"
-                    >
-                      تعديل
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget({ kind: 'material', id: m.id, label: m.title })}
-                      className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
-                    >
-                      حذف
-                    </button>
+              {mats.map((m) => {
+                const kind = String(m.kind ?? 'file')
+                const kindLabel: Record<string, string> = {
+                  pdf: 'PDF', video: 'فيديو', link: 'رابط', file: 'ملف',
+                  image: 'صورة', audio: 'صوت', slides: 'شرائح', document: 'مستند',
+                }
+                const matUrl = m.external_url ?? m.url ?? m.file_url
+                return (
+                  <div key={m.id} className="flex flex-col gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EC943C]/10">
+                        <FolderOpen className="h-5 w-5 text-[#EC943C]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-black leading-snug text-deepBlue">{m.title}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">
+                            {kindLabel[kind] ?? kind}
+                          </span>
+                          {m.visibility && m.visibility !== 'enrolled' && (
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 ring-1 ring-amber-200">
+                              {m.visibility}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {matUrl && (
+                      <a
+                        href={String(matUrl)}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/5 px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/10"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        فتح / تحميل
+                      </a>
+                    )}
+
+                    <div className="flex gap-2 border-t border-slate-100 pt-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setModal({
+                            kind: 'material',
+                            editingId: m.id,
+                            file: null,
+                            draft: {
+                              title: m.title,
+                              description: String(m.description ?? ''),
+                              kind: String(m.kind ?? 'pdf'),
+                              external_url: String(m.external_url ?? m.url ?? m.file_url ?? ''),
+                              visibility: String(m.visibility ?? 'enrolled'),
+                            },
+                          })
+                        }
+                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+                      >
+                        <Pencil className="h-3 w-3" /> تعديل
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget({ kind: 'material', id: m.id, label: m.title })}
+                        className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 transition hover:bg-rose-100"
+                      >
+                        حذف
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>
@@ -598,53 +872,93 @@ export default function CourseContentManagerPage() {
             </p>
           : (
             <div className="space-y-3">
-              {asgn.map((a) => (
-                <div
-                  key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4"
-                >
-                  <div>
-                    <p className="font-black text-deepBlue">{a.title}</p>
-                    <p className="mt-1 text-[11px] font-bold text-deepBlue/50">
-                      الموعد: {a.due_at ? formatDateTime(String(a.due_at)) : '—'} · نقاط: {a.max_points ?? '—'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setModal({
+              {asgn.map((a) => {
+                const isVisible = a.visible !== false
+                const subType = String(a.submission_type ?? 'both')
+                const subLabel = subType === 'file' ? 'ملف' : subType === 'text' ? 'نص' : 'ملف/نص'
+                return (
+                  <div
+                    key={a.id}
+                    className={`relative flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${
+                      isVisible ? 'border-emerald-200/60' : 'border-slate-200 opacity-75'
+                    }`}
+                  >
+                    {/* Accent bar */}
+                    <div className={`absolute inset-y-0 right-0 w-1 rounded-r-2xl ${isVisible ? 'bg-emerald-400' : 'bg-slate-200'}`} />
+
+                    <div className="min-w-0 flex-1 space-y-2 pr-3">
+                      <p className="font-black leading-snug text-deepBlue">{a.title}</p>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Visibility */}
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                          isVisible
+                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                            : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'
+                        }`}>
+                          {isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                          {isVisible ? 'مرئي للطلاب' : 'مخفي'}
+                        </span>
+
+                        {/* Submission type */}
+                        <span className="rounded-full bg-[#2691C2]/10 px-2.5 py-0.5 text-[10px] font-black text-[#2691C2]">
+                          {subLabel}
+                        </span>
+
+                        {/* Points */}
+                        {a.max_points != null && (
+                          <span className="rounded-full bg-[#EC943C]/10 px-2.5 py-0.5 text-[10px] font-black text-[#EC943C]">
+                            {a.max_points} نقطة
+                          </span>
+                        )}
+
+                        {/* Due date */}
+                        {a.due_at && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400">
+                            <Clock className="h-3 w-3" />
+                            {formatDateTime(String(a.due_at))}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setModal({
+                            kind: 'assignment',
+                            editingId: a.assignment_id ?? a.id,
+                            draft: {
+                              title: a.title,
+                              description: String(a.description ?? ''),
+                              deadline: isoOrDateToDatetimeLocal(a.due_at ?? ''),
+                              max_points: String(a.max_points ?? 10),
+                              submission_type: String(a.submission_type ?? 'both'),
+                              required: a.required === false ? '0' : '1',
+                              visible: a.visible === false ? '0' : '1',
+                            },
+                          })
+                        }
+                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+                      >
+                        <Pencil className="h-3 w-3" /> تعديل
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget({
                           kind: 'assignment',
-                          editingId: a.assignment_id ?? a.id,
-                          draft: {
-                            title: a.title,
-                            description: String(a.description ?? ''),
-                            deadline: isoOrDateToDatetimeLocal(a.due_at ?? ''),
-                            max_points: String(a.max_points ?? 10),
-                            submission_type: String(a.submission_type ?? 'both'),
-                            required: a.required === false ? '0' : '1',
-                            visible: a.visible === false ? '0' : '1',
-                          },
-                        })
-                      }
-                      className="rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black"
-                    >
-                      تعديل
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget({
-                        kind: 'assignment',
-                        id: a.assignment_id ?? a.id,
-                        label: a.title,
-                      })}
-                      className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-800"
-                    >
-                      حذف
-                    </button>
+                          id: a.assignment_id ?? a.id,
+                          label: a.title,
+                        })}
+                        className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 transition hover:bg-rose-100"
+                      >
+                        حذف
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>
@@ -656,6 +970,20 @@ export default function CourseContentManagerPage() {
           cmsScope={cmsScope}
           onClose={() => setModal(null)}
           courseId={courseId}
+          onSaved={() => {
+            setModal(null)
+            notifyStudentScopeRefresh()
+            void reload()
+          }}
+        />
+      : null}
+
+      {modal?.kind === 'lesson' ?
+        <LessonModalBody
+          modal={modal}
+          cmsScope={cmsScope}
+          courseId={courseId}
+          onClose={() => setModal(null)}
           onSaved={() => {
             setModal(null)
             notifyStudentScopeRefresh()
@@ -710,6 +1038,7 @@ export default function CourseContentManagerPage() {
         open={deleteTarget != null}
         title={
           deleteTarget?.kind === 'module' ? 'حذف الوحدة'
+          : deleteTarget?.kind === 'lesson' ? 'حذف الدرس'
           : deleteTarget?.kind === 'session' ? 'حذف الجلسة'
           : deleteTarget?.kind === 'material' ? 'حذف المادة'
           : 'حذف الواجب'
@@ -839,7 +1168,7 @@ function SessionModalBody({
   onClose,
   onSaved,
 }: {
-  modal: { draft: Record<string, string>; editingId?: number }
+  modal: { draft: Record<string, string>; editingId?: number; moduleId?: number }
   courseId: number
   cmsScope: CourseCmsScope
   onClose: () => void
@@ -878,6 +1207,7 @@ function SessionModalBody({
         location_type: type,
         status: d.status,
       }
+      if (modal.moduleId) body.module_id = modal.moduleId
       if (sessionShowsMeetingUrl(type)) {
         body.meeting_url = d.meeting_url.trim()
       }
@@ -932,21 +1262,16 @@ function SessionModalBody({
       </CmsFormSection>
 
       <CmsFormSection title="التوقيت">
-        <CmsDatetimeField
-          label="وقت البداية"
-          required
-          value={d.start_at}
-          error={fieldErrors.start_at}
-          onChange={(v) => {
+        <CmsSessionTimingSection
+          startAt={d.start_at}
+          endAt={d.end_at}
+          startError={fieldErrors.start_at}
+          endError={fieldErrors.end_at}
+          onStartChange={(v) => {
             clearKey('start_at')
             setD({ ...d, start_at: v })
           }}
-        />
-        <CmsDatetimeField
-          label="وقت النهاية"
-          value={d.end_at}
-          error={fieldErrors.end_at}
-          onChange={(v) => {
+          onEndChange={(v) => {
             clearKey('end_at')
             setD({ ...d, end_at: v })
           }}
@@ -994,6 +1319,9 @@ function SessionModalBody({
             }}
           />
         : null}
+      </CmsFormSection>
+
+      <CmsFormSection title="إعدادات الظهور">
         <CmsSelect
           label="حالة الجلسة"
           value={d.status}
@@ -1016,7 +1344,7 @@ function MaterialModalBody({
   onClose,
   onSaved,
 }: {
-  modal: { draft: Record<string, string>; editingId?: number; file?: File | null }
+  modal: { draft: Record<string, string>; editingId?: number; file?: File | null; moduleId?: number }
   courseId: number
   cmsScope: CourseCmsScope
   onClose: () => void
@@ -1044,6 +1372,7 @@ function MaterialModalBody({
     fd.append('kind', d.kind)
     fd.append('visibility', d.visibility)
     if (d.external_url.trim()) fd.append('external_url', d.external_url.trim())
+    if (modal.moduleId) fd.append('module_id', String(modal.moduleId))
     return fd
   }
 
@@ -1069,6 +1398,7 @@ function MaterialModalBody({
           external_url: d.external_url.trim() || undefined,
           visibility: d.visibility,
         }
+        if (modal.moduleId) body.module_id = modal.moduleId
 
         modal.editingId ?
           await adminUpdateCourseMaterial(courseId, modal.editingId, body as Record<string, unknown>, cmsScope)
@@ -1177,7 +1507,7 @@ function AssignmentModalBody({
   onClose,
   onSaved,
 }: {
-  modal: { draft: Record<string, string>; editingId?: number }
+  modal: { draft: Record<string, string>; editingId?: number; moduleId?: number }
   courseId: number
   cmsScope: CourseCmsScope
   onClose: () => void
@@ -1214,12 +1544,12 @@ function AssignmentModalBody({
         title: d.title.trim(),
         description: d.description.trim() || undefined,
         deadline: due,
-        due_at: due,
         max_points: Number(d.max_points ?? 10),
         submission_type: d.submission_type,
-        required: d.required !== '0',
-        visible: d.visible !== '0',
+        is_required: d.required !== '0',
+        is_visible: d.visible !== '0',
       }
+      if (modal.moduleId) body.module_id = modal.moduleId
 
       modal.editingId ?
         await adminUpdateCourseAssignment(courseId, modal.editingId, body, cmsScope)
@@ -1321,6 +1651,118 @@ function AssignmentModalBody({
           onChange={(v) => {
             clearKey('visible')
             setD({ ...d, visible: v })
+          }}
+        />
+      </CmsFormSection>
+    </CmsFormModal>
+  )
+}
+
+function LessonModalBody({
+  modal,
+  courseId,
+  cmsScope,
+  onClose,
+  onSaved,
+}: {
+  modal: { draft: Record<string, string>; editingId?: number; moduleId: number }
+  courseId: number
+  cmsScope: CourseCmsScope
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [d, setD] = useState(() => modal.draft)
+  const [busy, setBusy] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  function clearKey(key: string) {
+    setFieldErrors((p) => {
+      const n = { ...p }
+      delete n[key]
+      return n
+    })
+  }
+
+  async function submit() {
+    setFieldErrors({})
+    if (!d.title.trim()) {
+      setFieldErrors({ title: 'العنوان مطلوب.' })
+      return
+    }
+    setBusy(true)
+    try {
+      const body: Record<string, unknown> = {
+        title: d.title.trim(),
+        description: d.description.trim() || undefined,
+        video_url: d.video_url.trim() || undefined,
+        duration_minutes: d.duration_minutes ? Number(d.duration_minutes) : undefined,
+        module_id: modal.moduleId,
+      }
+      await adminCreateCourseLesson(courseId, body, cmsScope)
+      toast.success('تم حفظ الدرس')
+      onSaved()
+    } catch (e: unknown) {
+      applyCmsValidationErrors(e, setFieldErrors)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <CmsFormModal
+      formId="cms-lesson-form"
+      title="درس جديد"
+      subtitle="أضف درساً داخل هذه الوحدة — يمكن إرفاق فيديو أو وصف نصي."
+      eyebrow="دروس الوحدة"
+      onClose={onClose}
+      onSubmit={submit}
+      busy={busy}
+    >
+      <CmsFormSection title="محتوى الدرس">
+        <CmsField
+          label="عنوان الدرس"
+          required
+          error={fieldErrors.title}
+          value={d.title ?? ''}
+          onChange={(v) => {
+            clearKey('title')
+            setD({ ...d, title: v })
+          }}
+        />
+        <CmsTextarea
+          label="الوصف"
+          value={d.description ?? ''}
+          error={fieldErrors.description}
+          rows={3}
+          onChange={(v) => {
+            clearKey('description')
+            setD({ ...d, description: v })
+          }}
+        />
+      </CmsFormSection>
+      <CmsFormSection title="الوسائط">
+        <CmsField
+          label="رابط الفيديو"
+          dir="ltr"
+          type="url"
+          hint="YouTube، Vimeo، أو رابط مباشر للملف"
+          error={fieldErrors.video_url}
+          value={d.video_url ?? ''}
+          onChange={(v) => {
+            clearKey('video_url')
+            setD({ ...d, video_url: v })
+          }}
+        />
+        <CmsField
+          label="المدة (بالدقائق)"
+          dir="ltr"
+          type="number"
+          hint="تقريبية — تُعرض للطالب كمعلومة"
+          error={fieldErrors.duration_minutes}
+          value={d.duration_minutes ?? ''}
+          onChange={(v) => {
+            clearKey('duration_minutes')
+            setD({ ...d, duration_minutes: v })
           }}
         />
       </CmsFormSection>

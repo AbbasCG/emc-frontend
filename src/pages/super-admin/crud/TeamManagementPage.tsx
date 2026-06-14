@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
   Building2,
-  Camera,
   Check,
   ChevronDown,
   Copy,
@@ -15,8 +14,6 @@ import {
   Link2,
   Link2Off,
   Loader2,
-  MoreVertical,
-  Pencil,
   Plus,
   RefreshCw,
   Search,
@@ -47,6 +44,7 @@ import {
   type UserSearchResult,
 } from '@/services/teamApi'
 import { errorToast, successToast } from '@/lib/toast'
+import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
@@ -180,7 +178,6 @@ function MemberCard({
   onPhotoUpload: (file: File) => void
   onManageAccount: () => void
 }) {
-  const [menuOpen, setMenuOpen] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const src = member.image
 
@@ -226,62 +223,20 @@ function MemberCard({
 
         {/* Actions */}
         <div className="relative shrink-0">
-          <button
-            type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-deepBlue"
-            aria-label="خيارات"
-          >
-            <MoreVertical size={15} />
-          </button>
-          <AnimatePresence>
-            {menuOpen && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.92 }}
-                transition={{ duration: 0.15 }}
-                className="absolute left-0 top-8 z-20 min-w-[155px] overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl"
-                dir="rtl"
-              >
-                <button
-                  type="button"
-                  onClick={() => { setMenuOpen(false); onDetail() }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-right text-[12px] font-semibold text-deepBlue hover:bg-slate-50"
-                >
-                  <Search size={12} /> عرض التفاصيل
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMenuOpen(false); onEdit() }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-right text-[12px] font-semibold text-deepBlue hover:bg-slate-50"
-                >
-                  <Pencil size={12} /> تعديل
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMenuOpen(false); onManageAccount() }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-right text-[12px] font-semibold text-customBlue hover:bg-sky-50"
-                >
-                  <UserCheck size={12} /> إدارة الحساب
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMenuOpen(false); photoInputRef.current?.click() }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-right text-[12px] font-semibold text-slate-600 hover:bg-slate-50"
-                >
-                  <Camera size={12} /> {member.image ? 'تغيير الصورة' : 'إضافة صورة'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMenuOpen(false); onDelete() }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-right text-[12px] font-semibold text-rose-600 hover:bg-rose-50"
-                >
-                  <Trash2 size={12} /> حذف
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <RowActionsMenu
+            ariaLabel={`خيارات ${member.name_ar}`}
+            actions={[
+              { key: 'detail', label: 'عرض التفاصيل', onClick: onDetail },
+              { key: 'edit', label: 'تعديل', onClick: onEdit },
+              { key: 'account', label: 'إدارة الحساب', onClick: onManageAccount },
+              {
+                key: 'photo',
+                label: member.image ? 'تغيير الصورة' : 'إضافة صورة',
+                onClick: () => photoInputRef.current?.click(),
+              },
+              { key: 'delete', label: 'حذف', onClick: onDelete, destructive: true },
+            ]}
+          />
         </div>
       </div>
 

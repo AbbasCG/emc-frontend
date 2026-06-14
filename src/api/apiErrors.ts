@@ -32,6 +32,26 @@ export function translateLaravelFieldMessage(msg: string): string {
   if (lower.includes('field is required') || lower === 'the given data was invalid.') return 'الحقل مطلوب.'
   if (lower.includes('validation') && lower.includes('selected')) return 'القيمة المحدّدة غير صالحة.'
   if (lower.includes('status') && lower.includes('invalid')) return 'حالة النشر غير صحيحة.'
+  if (lower.includes('learning_outcomes') && lower.includes('500')) {
+    return 'كل مخرج تعليمي يجب ألا يتجاوز 500 حرف'
+  }
+  if (lower.includes('requirements') && lower.includes('500')) {
+    return 'كل متطلب يجب ألا يتجاوز 500 حرف'
+  }
+  if (lower.includes('curriculum_topics') && lower.includes('500')) {
+    return 'كل محور يجب ألا يتجاوز 500 حرف'
+  }
+  if (lower.includes('features') && lower.includes('255')) {
+    return 'كل نقطة يجب ألا تتجاوز 255 حرفاً'
+  }
+  if (lower.includes('must not be greater than') || lower.includes('may not be greater than')) {
+    const maxMatch = t.match(/(\d+)\s*characters?/i)
+    const max = maxMatch ? maxMatch[1] : null
+    if (max === '500') return 'كل عنصر يجب ألا يتجاوز 500 حرف'
+    if (max === '255') return 'كل نقطة يجب ألا تتجاوز 255 حرفاً'
+    if (max === '100') return 'كل كلمة مفتاحية يجب ألا تتجاوز 100 حرف'
+    return 'النص أطول من الحد المسموح'
+  }
   return t
 }
 

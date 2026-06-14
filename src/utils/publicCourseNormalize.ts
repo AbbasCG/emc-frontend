@@ -1,4 +1,12 @@
 import type { Course } from '@/types'
+import {
+  decodeUnicodeList,
+  decodeUnicodeString,
+  decodeUnicodeUnknown,
+  sanitizeCourseForDisplay,
+} from '@/utils/decodeUnicodeText'
+
+export { sanitizeCourseForDisplay }
 
 /**
  * Normalizers for public course payloads where Laravel/API may return strings, arrays, or JSON strings.
@@ -32,33 +40,37 @@ function tryParseJsonArray(s: string): unknown[] | null {
 }
 
 export function normalizeKeywords(keywords: unknown): string[] {
-  if (Array.isArray(keywords)) {
-    return keywords.map((k) => String(k).trim()).filter(Boolean)
+  const decoded = decodeUnicodeUnknown(keywords)
+  if (Array.isArray(decoded)) {
+    return decodeUnicodeList(decoded.map((k) => String(k).trim()).filter(Boolean))
   }
-  if (typeof keywords === 'string') {
-    const t = keywords.trim()
+  if (typeof decoded === 'string') {
+    const t = decoded.trim()
     if (!t) return []
     const parsed = tryParseJsonArray(t)
     if (parsed) {
-      return parsed.map((k) => String(k).trim()).filter(Boolean)
+      return decodeUnicodeList(parsed.map((k) => String(k).trim()).filter(Boolean))
     }
-    return t
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
+    return decodeUnicodeList(
+      t
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    )
   }
   return []
 }
 
 /** Learning bullets, curriculum lines, keywords-style lists — array, comma/semicolon string, or JSON array string */
 export function normalizeBulletedCourseField(raw: unknown): string[] {
-  if (raw == null) return []
-  if (Array.isArray(raw)) {
+  const decoded = decodeUnicodeUnknown(raw)
+  if (decoded == null) return []
+  if (Array.isArray(decoded)) {
     const out: string[] = []
-    for (const item of raw) {
+    for (const item of decoded) {
       if (item == null) continue
       if (typeof item === 'string') {
-        const t = item.trim()
+        const t = decodeUnicodeString(item).trim()
         if (!t) continue
         const nested = tryParseJsonArray(t)
         if (nested) {
@@ -69,24 +81,26 @@ export function normalizeBulletedCourseField(raw: unknown): string[] {
         continue
       }
       if (typeof item === 'object' && item && 'title' in item) {
-        const t = String((item as { title?: unknown }).title ?? '').trim()
+        const t = decodeUnicodeString((item as { title?: unknown }).title ?? '').trim()
         if (t) out.push(t)
       } else {
-        const t = String(item).trim()
+        const t = decodeUnicodeString(item).trim()
         if (t) out.push(t)
       }
     }
     return out.filter(Boolean)
   }
-  if (typeof raw === 'string') {
-    const t = raw.trim()
+  if (typeof decoded === 'string') {
+    const t = decoded.trim()
     if (!t) return []
     const parsed = tryParseJsonArray(t)
     if (parsed) return normalizeBulletedCourseField(parsed)
-    return t
-      .split(/[,،;|\n\r]+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
+    return decodeUnicodeList(
+      t
+        .split(/[,،;|\n\r]+/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
   }
   return []
 }
@@ -100,28 +114,29 @@ export function hasParsableCourseDate(raw: unknown): boolean {
 
 /** Paragraph-style fields (المتطلبات، المخرجات): preserve single string prose; unwrap JSON arrays only */
 export function coerceCourseBlockText(raw: unknown): string | null {
-  if (raw == null) return null
-  if (Array.isArray(raw)) {
-    const lines = raw.map((x) => String(x).trim()).filter(Boolean)
+  const decoded = decodeUnicodeUnknown(raw)
+  if (decoded == null) return null
+  if (Array.isArray(decoded)) {
+    const lines = decoded.map((x) => decodeUnicodeString(x).trim()).filter(Boolean)
     return lines.length ? lines.join('\n') : null
   }
-  if (typeof raw === 'string') {
-    const t = raw.trim()
+  if (typeof decoded === 'string') {
+    const t = decoded.trim()
     if (!t) return null
     const parsed = tryParseJsonArray(t)
     if (parsed) {
-      const lines = parsed.map((x) => String(x).trim()).filter(Boolean)
+      const lines = parsed.map((x) => decodeUnicodeString(x).trim()).filter(Boolean)
       return lines.length ? lines.join('\n') : null
     }
-    return t
+    return decodeUnicodeString(t)
   }
-  const s = String(raw).trim()
+  const s = decodeUnicodeString(decoded).trim()
   return s || null
 }
 
 export function safeTrimUnknown(val: unknown, fallback = ''): string {
   if (val == null) return fallback
-  if (typeof val === 'string') return val.trim()
-  if (Array.isArray(val)) return val.map((x) => String(x)).join(' ').trim()
-  return String(val).trim()
+  if (typeof val === 'string') return decodeUnicodeString(val).trim()
+  if (Array.isArray(val)) return decodeUnicodeList(val.map((x) => String(x))).join(' ').trim()
+  return decodeUnicodeString(val).trim()
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import axios from 'axios'
 import {
@@ -28,6 +29,7 @@ import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsers, type AdminManagedUser } from 
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
+import { DropdownPortal } from '@/components/ui/DropdownPortal'
 import {
   AnimatedTabular,
   EnterpriseCrudHero,
@@ -145,7 +147,8 @@ function StudentSearchDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
-  const ref = useRef<HTMLDivElement>(null)
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const location = useLocation()
 
   const hits = useMemo(() => {
     const t = q.trim().toLowerCase()
@@ -153,13 +156,11 @@ function StudentSearchDropdown({
   }, [students, q])
 
   useEffect(() => {
-    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [])
+    setOpen(false)
+  }, [location.pathname])
 
   return (
-    <div ref={ref} className="relative w-full max-w-xl" dir="rtl">
+    <div ref={anchorRef} className="relative w-full max-w-xl" dir="rtl">
       <button
         type="button"
         onClick={() => { setOpen((v) => !v); setQ('') }}
@@ -192,58 +193,62 @@ function StudentSearchDropdown({
         )}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.12 }}
-            className="absolute right-0 top-full z-50 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white shadow-xl"
-          >
-            <div className="p-2">
-              <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                <input
-                  autoFocus
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="ابحث بالاسم أو البريد..."
-                  dir="rtl"
-                  className="flex-1 bg-transparent text-[12px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400"
-                />
-              </div>
+      <DropdownPortal
+        open={open}
+        anchorRef={anchorRef}
+        onClose={() => setOpen(false)}
+        align="stretch"
+        offset={6}
+        className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.12 }}
+        >
+          <div className="p-2">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="ابحث بالاسم أو البريد..."
+                dir="rtl"
+                className="flex-1 bg-transparent text-[12px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400"
+              />
             </div>
-            <div className="max-h-60 overflow-y-auto pb-2">
-              {hits.length === 0 ? (
-                <p className="py-6 text-center text-[12px] font-semibold text-slate-400">لا نتائج</p>
-              ) : hits.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => { onChange(s); setOpen(false) }}
-                  className="flex w-full items-center gap-3 px-4 py-2.5 text-right transition hover:bg-slate-50"
-                >
-                  {s.avatar_url ? (
-                    <img src={s.avatar_url} alt="" className="h-8 w-8 rounded-xl object-cover" />
-                  ) : (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A]/80 to-[#2691C2]/80 text-[10px] font-black text-white">
-                      {initials(s.name)}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[12px] font-black text-[#22334A]">{s.name}</p>
-                    <p className="truncate text-[10px] font-semibold text-[#22334A]/45" dir="ltr">{s.email}</p>
+          </div>
+          <div className="max-h-60 overflow-y-auto pb-2">
+            {hits.length === 0 ? (
+              <p className="py-6 text-center text-[12px] font-semibold text-slate-400">لا نتائج</p>
+            ) : hits.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => { onChange(s); setOpen(false) }}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-right transition hover:bg-slate-50"
+              >
+                {s.avatar_url ? (
+                  <img src={s.avatar_url} alt="" className="h-8 w-8 rounded-xl object-cover" />
+                ) : (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A]/80 to-[#2691C2]/80 text-[10px] font-black text-white">
+                    {initials(s.name)}
                   </div>
-                  <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${s.is_active !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                    {s.is_active !== false ? 'نشط' : 'موقوف'}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] font-black text-[#22334A]">{s.name}</p>
+                  <p className="truncate text-[10px] font-semibold text-[#22334A]/45" dir="ltr">{s.email}</p>
+                </div>
+                <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${s.is_active !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                  {s.is_active !== false ? 'نشط' : 'موقوف'}
+                </span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      </DropdownPortal>
     </div>
   )
 }
@@ -657,7 +662,7 @@ export default function StudentsManagementPage() {
 
       {/* Student selector */}
       {showDashboard && (
-        <SaGlassCard glow="blue" className="p-4">
+        <SaGlassCard glow="blue" className="overflow-visible p-4">
           <div dir="rtl">
             <p className="mb-2 text-[10px] font-black text-[#22334A]/45">اختيار الطالب</p>
             <StudentSearchDropdown students={users} selected={selected} onChange={setSelected} />

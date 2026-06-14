@@ -52,7 +52,7 @@ export function CrudDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-[#0F172A]/40 backdrop-blur-[3px]"
+            className="fixed inset-0 z-modal-overlay bg-[#0F172A]/40 backdrop-blur-[3px]"
             onClick={onClose}
           />
           <motion.aside
@@ -65,7 +65,7 @@ export function CrudDrawer({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
             className={cn(
-              'fixed inset-y-0 right-0 z-[141] flex w-full flex-col border-l border-white/10 bg-white/95 shadow-[-12px_0_48px_rgba(15,23,42,0.12)] backdrop-blur-xl',
+              'fixed inset-y-0 right-0 z-modal-content flex w-full flex-col border-l border-white/10 bg-white/95 shadow-[-12px_0_48px_rgba(15,23,42,0.12)] backdrop-blur-xl',
               widthClassName,
             )}
             onClick={(e) => e.stopPropagation()}

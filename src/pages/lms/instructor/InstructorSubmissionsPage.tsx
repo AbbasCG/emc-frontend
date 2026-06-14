@@ -31,7 +31,7 @@ function formatSubmittedAt(raw: string | null | undefined): string {
 
 function displayField(value: string | null | undefined): string {
   const s = String(value ?? '').trim()
-  return s || 'غير متوفر'
+  return s || '—'
 }
 
 function formatGrade(row: InstructorSubmission): string {
@@ -318,7 +318,7 @@ export default function InstructorSubmissionsPage() {
             <table className="w-full min-w-[760px] text-right text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  {['الطالب', 'الدورة', 'الواجب', 'تاريخ التسليم', 'الحالة', 'الدرجة', ''].map((h) => (
+                  {['الطالب', 'الدورة', 'الواجب', 'التسليم', 'الحالة', 'الدرجة', 'مرفق', ''].map((h) => (
                     <th
                       key={h || 'actions'}
                       className="px-4 py-3 text-[11px] font-black uppercase tracking-wide text-slate-400"
@@ -374,6 +374,9 @@ export default function InstructorSubmissionsPage() {
                       </td>
                       <td className="px-4 py-3 text-[12px] font-black text-[#22334A]">
                         {formatGrade(row)}
+                      </td>
+                      <td className="px-4 py-3 text-[11px] font-semibold text-slate-500">
+                        {row.file_url ? 'ملف' : row.body_preview?.trim() ? 'نص' : '—'}
                       </td>
                       <td className="px-4 py-3">
                         {clickable ? (

@@ -1,6 +1,6 @@
 import type { AssignmentStatus } from '@/types/lms'
 
-/** LMS Assignment PK used by POST /student/assignments/{id}/submit — never course_assignment id. */
+/** LMS Assignment PK used by POST /student/assignments/{id}/submit. */
 export function resolveLmsAssignmentSubmitId(raw: {
   lms_assignment_id?: number | null
   assignment_id?: number | null
@@ -13,19 +13,14 @@ export function resolveLmsAssignmentSubmitId(raw: {
   }
 
   const rowId = raw.id != null ? Number(raw.id) : NaN
+  if (Number.isFinite(rowId) && rowId > 0) return rowId
+
   const courseAssignmentId =
     raw.course_assignment_id != null ? Number(raw.course_assignment_id) : null
-
-  if (
-    courseAssignmentId != null &&
-    Number.isFinite(courseAssignmentId) &&
-    Number.isFinite(rowId) &&
-    rowId === courseAssignmentId
-  ) {
-    return null
+  if (courseAssignmentId != null && Number.isFinite(courseAssignmentId) && courseAssignmentId > 0) {
+    return courseAssignmentId
   }
 
-  if (Number.isFinite(rowId) && rowId > 0) return rowId
   return null
 }
 

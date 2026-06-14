@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Building2, Clock3, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../types'
 import { courseImages, fadeUp, formatPrice } from '../utils/course'
+import { formatPublicCount } from '@/utils/publicDetailFormat'
 
 type CourseCardProps = {
   course: Course
@@ -59,12 +60,14 @@ export default function CourseCard({ course, index }: CourseCardProps) {
           {course.training_hours ? (
             <span className="inline-flex items-center gap-2">
               <Clock3 size={15} className="text-customBlue" />
-              {course.training_hours} ساعة تدريبية
+              {formatPublicCount(Number(course.training_hours), 'ساعة تدريبية')}
             </span>
           ) : null}
           <span className="inline-flex items-center gap-2">
             <Building2 size={15} className="text-customBlue" />
-            {course.capacity ? `${course.capacity} مقعد متاح` : 'مقاعد محدودة'}
+            {course.capacity ?
+              formatPublicCount(Number(course.capacity), 'مقعد متاح')
+            : 'مقاعد محدودة'}
           </span>
           {course.level ? (
             <span className="inline-flex items-center gap-2">

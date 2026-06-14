@@ -41,11 +41,23 @@ import { getCourseInstructor } from '@/utils/courseInstructor'
 import { defaultSlugFromTitle, inferProgramKind, type ProgramKind } from '@/pages/super-admin/crud/programs/programConsoleUtils'
 import {
   apiListToText,
-  kindToProgramType,
-  linesToStringArray,
+  COURSE_BULLET_MAX_CHARS,
+  getBulletListStats,
+  loadBulletFieldFromApi,
+  normalizeBulletListText,
   normalizeCourseStatus,
+  parseBulletField,
   splitKeywords,
+  validateBulletField,
+  type CourseBulletFieldKey,
 } from '@/utils/coursePayload'
+import {
+  ONE_SESSION_WORKSHOP_DURATION_AR,
+  ONE_SESSION_WORKSHOP_UI,
+  programTypeForPayload,
+  sessionFormatFromApi,
+  sessionFormatToApi,
+} from '@/utils/courseDuration'
 
 const KINDS: ProgramKind[] = ['course', 'workshop', 'program', 'track']
 
@@ -306,6 +318,18 @@ function fieldErrorFor(errors: Record<string, string>, base: string): string | u
   return undefined
 }
 
+function BulletListCounter({ text, field }: { text: string; field: CourseBulletFieldKey }) {
+  const stats = getBulletListStats(text, field)
+  const max = COURSE_BULLET_MAX_CHARS[field]
+  return (
+    <p className={`mt-1 text-[10px] font-semibold ${stats.invalid ? 'text-rose-600' : 'text-[#5a6b7d]'}`}>
+      {stats.count > 0 ? `${stats.count} نقطة · ` : 'لا توجد نقاط بعد · '}
+      أطول نقطة: {stats.maxItemLength}/{max} حرف
+      {stats.invalid && stats.message ? ` — ${stats.message}` : null}
+    </p>
+  )
+}
+
 type Props = {
   open: boolean
   initial: Course | null
@@ -468,24 +492,33 @@ export function CourseProgramFormModal({
     setEndDate(initial.end_date ? String(initial.end_date).slice(0, 10) : '')
     setEndTime(initial.end_time ? String(initial.end_time).slice(0, 5) : '')
     setMeetingLink(initial.meeting_link ?? '')
-    setDurationText(initial.duration ?? '')
     setTrainingHours(initial.training_hours != null ? String(initial.training_hours) : '')
     setLanguage(initial.language ?? '')
     setLevel(initial.level ?? '')
     setTargetAudience(initial.target_audience ?? (initial as { audience?: string | null }).audience ?? '')
     setCertificate(initial.certificate ?? '')
-    setSessionFormat(initial.session_format?.trim() || SESSION_FORMAT_OPTIONS[0].v)
-    setPrerequisites(normalizeListText((initial as { requirements?: unknown }).requirements ?? initial.prerequisites))
-    setLearningOutcomes(normalizeListText((initial as { learning_outcomes?: unknown; outcomes?: unknown }).learning_outcomes ?? (initial as { outcomes?: unknown }).outcomes))
+    const resolvedSessionFormat =
+      sessionFormatFromApi(initial.session_format, initial.program_type) || SESSION_FORMAT_OPTIONS[0].v
+    setSessionFormat(resolvedSessionFormat)
+    const loadOneSession =
+      resolvedSessionFormat === ONE_SESSION_WORKSHOP_UI ||
+      String(initial.program_type ?? '').toLowerCase() === 'one_session'
+    setDurationText(loadOneSession ? ONE_SESSION_WORKSHOP_DURATION_AR : (initial.duration ?? ''))
+    setPrerequisites(loadBulletFieldFromApi((initial as { requirements?: unknown }).requirements ?? initial.prerequisites))
+    setLearningOutcomes(
+      loadBulletFieldFromApi(
+        (initial as { learning_outcomes?: unknown; outcomes?: unknown }).learning_outcomes
+          ?? (initial as { outcomes?: unknown }).outcomes,
+      ),
+    )
     setOutline(
-      normalizeListText((initial as { curriculum_topics?: unknown }).curriculum_topics) || (initial.study_days ?? ''),
+      loadBulletFieldFromApi((initial as { curriculum_topics?: unknown }).curriculum_topics)
+        || loadBulletFieldFromApi(initial.study_days ?? ''),
     )
     setKeywords(normalizeListText((initial as { keywords?: unknown; tags?: unknown }).keywords ?? (initial as { tags?: unknown }).tags))
     setAdminNotes((initial as { notes?: string | null }).notes ?? initial.admin_notes ?? '')
     setRequiresPlacementTest(Boolean((initial as Record<string, unknown>).requires_placement_test))
-    setLearnText(
-      normalizeListText(initial.features),
-    )
+    setLearnText(loadBulletFieldFromApi(initial.features))
     setFieldErrors({})
     setImageFile(null)
     setImagePreviewUrl((u) => {
@@ -773,14 +806,21 @@ export function CourseProgramFormModal({
   )
 
   const isWorkshop = kind === 'workshop'
+  const isOneSession = isWorkshop || sessionFormat === ONE_SESSION_WORKSHOP_UI
 
   useEffect(() => {
     if (kind === 'workshop') {
-      setSessionFormat('ورشة / لقاء واحد')
-    } else if (sessionFormat === 'ورشة / لقاء واحد') {
+      setSessionFormat(ONE_SESSION_WORKSHOP_UI)
+    } else if (sessionFormat === ONE_SESSION_WORKSHOP_UI) {
       setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
     }
   }, [kind]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (isOneSession) {
+      setDurationText(ONE_SESSION_WORKSHOP_DURATION_AR)
+    }
+  }, [isOneSession])
 
   const showLocationField = locationType === 'offline' || locationType === 'hybrid'
 
@@ -812,7 +852,29 @@ export function CourseProgramFormModal({
       }
       return true
     }
-    if (step === 3) return true
+    if (step === 3) {
+      const checks: Array<{ field: CourseBulletFieldKey; text: string }> = [
+        { field: 'features', text: learnText },
+      ]
+      if (!isWorkshop) {
+        checks.push(
+          { field: 'learning_outcomes', text: learningOutcomes },
+          { field: 'requirements', text: prerequisites },
+          { field: 'curriculum_topics', text: outline },
+        )
+      }
+      const nextErrors: Record<string, string> = {}
+      for (const { field, text } of checks) {
+        const result = validateBulletField(text, field)
+        if (!result.valid && result.message) nextErrors[field] = result.message
+      }
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors((prev) => ({ ...prev, ...nextErrors }))
+        toast.warning(Object.values(nextErrors)[0])
+        return false
+      }
+      return true
+    }
     if (step === 4) {
       if (!priceFree) {
         const n = Number(price)
@@ -843,15 +905,17 @@ export function CourseProgramFormModal({
       return Number.isFinite(n) && n > 0 ? Math.trunc(n) : undefined
     }
 
-    const featuresLines = linesToStringArray(learnText)
-    const outcomesLines = linesToStringArray(learningOutcomes)
-    const requirementsLines = linesToStringArray(prerequisites)
-    const topicLines = linesToStringArray(outline)
+    const featuresLines = parseBulletField(learnText)
+    const outcomesLines = parseBulletField(learningOutcomes)
+    const requirementsLines = parseBulletField(prerequisites)
+    const topicLines = parseBulletField(outline)
     const keywordLines = splitKeywords(keywords)
 
     const hoursParsed = trainingHours.trim() ? Number(trainingHours) : undefined
     const hoursOk =
-      hoursParsed !== undefined && Number.isFinite(hoursParsed) && hoursParsed >= 0 ? hoursParsed : undefined
+      hoursParsed !== undefined && Number.isFinite(hoursParsed) && hoursParsed >= 0 ?
+        Math.round(hoursParsed)
+      : undefined
 
     const capParsed = capacity.trim() ? Number(capacity) : undefined
     const capacityOk =
@@ -862,6 +926,9 @@ export function CourseProgramFormModal({
     const onlineOnly = locationType === 'online'
     /** API contract: strictly `draft` | `published` | `archived` (Arabic labels only in STATUS_OPTIONS UI, values are EN) */
     const lifecycle = normalizeCourseStatus(status)
+    const apiSessionFormat = sessionFormatToApi(sessionFormat)
+    const resolvedDuration =
+      isOneSession ? ONE_SESSION_WORKSHOP_DURATION_AR : durationText.trim() || undefined
 
     return {
       title: title.trim(),
@@ -873,7 +940,8 @@ export function CourseProgramFormModal({
       : courseImage.trim()
         ? { course_image: courseImage.trim() }
         : {}),
-      program_type: kindToProgramType(kind),
+      program_type: programTypeForPayload(kind, sessionFormat),
+      ...(apiSessionFormat ? { session_format: apiSessionFormat } : {}),
       type: priceFree ? 'free' : 'paid',
       is_free: priceFree,
       price: priceFree ? 0 : Number(price) || 0,
@@ -893,7 +961,7 @@ export function CourseProgramFormModal({
       track_id: optionalFkId(trackId),
       department_id: optionalFkId(departmentId),
       instructor_id: optionalFkId(instructorId),
-      duration: durationText.trim() || undefined,
+      duration: resolvedDuration,
       training_hours: hoursOk,
       target_audience: targetAudience.trim() || undefined,
       language: language.trim() || undefined,
@@ -912,7 +980,7 @@ export function CourseProgramFormModal({
 
   async function submit() {
     setFieldErrors({})
-    if (!validateStep(1) || !validateStep(2) || !validateStep(4)) return
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) return
     setBusy(true)
     try {
       const payload = buildPayload()
@@ -930,7 +998,11 @@ export function CourseProgramFormModal({
       setSuccessOpen(true)
       onSaved()
     } catch (e) {
-      setFieldErrors(withArabicValidationMessages(getLaravelFieldErrors(e)))
+      const fieldErrors = withArabicValidationMessages(getLaravelFieldErrors(e))
+      setFieldErrors(fieldErrors)
+      if (import.meta.env.DEV) {
+        console.error('[course.program.save]', fieldErrors, e)
+      }
       toast.error(getApiErrorMessage(e))
     } finally {
       setBusy(false)
@@ -1500,15 +1572,24 @@ export function CourseProgramFormModal({
       return (
         <FormSectionCard title="التفاصيل التعليمية" eyebrow="الخطوة 3" icon={GraduationCap}>
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Duration & training hours — hidden entirely for workshops */}
-            {!isWorkshop && (
+            {isOneSession && (
+              <div className="sm:col-span-2 rounded-xl border border-[#2691C2]/25 bg-[#2691C2]/8 px-4 py-3">
+                <p className="text-sm font-black text-[#22334A]">مدة الورشة: {ONE_SESSION_WORKSHOP_DURATION_AR}</p>
+                <p className="mt-1 text-[11px] font-semibold text-[#4a6278]">
+                  سيتم عرض مدة الورشة كيوم واحد تلقائياً
+                </p>
+              </div>
+            )}
+
+            {/* Duration & training hours — hidden for one-session workshops */}
+            {!isOneSession && (
               <label className="block text-[11px] font-black text-[#22334A]">
                 المدة (نص للزائر)
                 <input value={durationText} onChange={(e) => setDurationText(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مثال: 4 أسابيع" />
               </label>
             )}
 
-            {!isWorkshop && (
+            {!isOneSession && (
               <label className="block text-[11px] font-black text-[#22334A]">
                 عدد الساعات التدريبية
                 <input value={trainingHours} onChange={(e) => setTrainingHours(e.target.value)} inputMode="decimal" className={EMC_WIZARD_INPUT_BASE} />
@@ -1588,14 +1669,18 @@ export function CourseProgramFormModal({
 
           {/* What you'll learn — always shown */}
           <label className="block text-[11px] font-black text-[#22334A]">
-            ماذا ستتعلم؟ (سطر لكل نقطة)
+            ماذا ستتعلم؟ (نقطة قصيرة لكل سطر)
             <textarea
               value={learnText}
-              onChange={(e) => { setLearnText(e.target.value); clearField('features') }}
+              onChange={(e) => {
+                setLearnText(normalizeBulletListText(e.target.value))
+                clearField('features')
+              }}
               rows={4}
               className={EMC_WIZARD_INPUT_BASE}
               placeholder={'سطر 1\nسطر 2'}
             />
+            <BulletListCounter text={learnText} field="features" />
             {fieldErrorFor(fieldErrors, 'features') ?
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'features')}</span>
             : null}
@@ -1605,37 +1690,55 @@ export function CourseProgramFormModal({
           {!isWorkshop && (
             <>
               <label className="block text-[11px] font-black text-[#22334A]">
-                المتطلبات المسبقة
+                المتطلبات المسبقة (نقطة قصيرة لكل سطر)
                 <textarea
                   value={prerequisites}
-                  onChange={(e) => { setPrerequisites(e.target.value); clearField('requirements') }}
+                  onChange={(e) => {
+                    setPrerequisites(normalizeBulletListText(e.target.value))
+                    clearField('requirements')
+                  }}
                   rows={3}
                   className={EMC_WIZARD_INPUT_BASE}
+                  placeholder={'سطر 1\nسطر 2'}
                 />
+                <BulletListCounter text={prerequisites} field="requirements" />
                 {fieldErrorFor(fieldErrors, 'requirements') ?
                   <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'requirements')}</span>
                 : null}
               </label>
               <label className="block text-[11px] font-black text-[#22334A]">
-                المخرجات التعليمية
+                المخرجات التعليمية (نقطة قصيرة لكل سطر)
                 <textarea
                   value={learningOutcomes}
-                  onChange={(e) => { setLearningOutcomes(e.target.value); clearField('learning_outcomes') }}
+                  onChange={(e) => {
+                    setLearningOutcomes(normalizeBulletListText(e.target.value))
+                    clearField('learning_outcomes')
+                  }}
                   rows={3}
                   className={EMC_WIZARD_INPUT_BASE}
+                  placeholder={'سطر 1\nسطر 2'}
                 />
+                <BulletListCounter text={learningOutcomes} field="learning_outcomes" />
+                <p className="mt-1 text-[10px] font-medium text-[#5a6b7d]">
+                  للفقرات الطويلة استخدم «الوصف الكامل» في الخطوة 1 — لا تضعها هنا.
+                </p>
                 {fieldErrorFor(fieldErrors, 'learning_outcomes') ?
                   <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'learning_outcomes')}</span>
                 : null}
               </label>
               <label className="block text-[11px] font-black text-[#22334A]">
-                محاور الدورة
+                محاور الدورة (نقطة قصيرة لكل سطر)
                 <textarea
                   value={outline}
-                  onChange={(e) => { setOutline(e.target.value); clearField('curriculum_topics') }}
+                  onChange={(e) => {
+                    setOutline(normalizeBulletListText(e.target.value))
+                    clearField('curriculum_topics')
+                  }}
                   rows={3}
                   className={EMC_WIZARD_INPUT_BASE}
+                  placeholder={'سطر 1\nسطر 2'}
                 />
+                <BulletListCounter text={outline} field="curriculum_topics" />
                 {fieldErrorFor(fieldErrors, 'curriculum_topics') ?
                   <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'curriculum_topics')}</span>
                 : null}

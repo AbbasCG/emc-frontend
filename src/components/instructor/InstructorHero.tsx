@@ -35,11 +35,11 @@ export function InstructorHero({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] px-6 py-6 shadow-[0_20px_50px_-20px_rgba(34,51,74,0.5)] sm:px-10"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] px-5 py-5 shadow-[0_16px_40px_-18px_rgba(34,51,74,0.45)] sm:px-8 sm:py-5"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#EC943C]/15 blur-[80px]"
+        className="pointer-events-none absolute -left-10 top-0 h-28 w-28 rounded-full bg-[#EC943C]/15 blur-[60px]"
       />
 
       {/* Back button */}
@@ -90,7 +90,7 @@ export function InstructorHero({
       </div>
 
       {pills && pills.length > 0 && (
-        <div className="relative mt-4 flex flex-wrap gap-3">
+        <div className="relative mt-3 flex flex-wrap gap-2.5">
           {pills.map((p) => (
             <div key={p.label} className="rounded-xl bg-white/10 px-4 py-2 backdrop-blur-sm">
               <p className="font-mono text-[18px] font-black tabular-nums text-white">{p.value}</p>

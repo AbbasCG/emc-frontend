@@ -1,5 +1,6 @@
 /* EMC global stylesheet — premium design system foundation.
    Arabic-first (Tajawal), Latin/numeric opt-in (Inter), RTL by default. */
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
@@ -43,6 +44,17 @@
   --emc-radius-pill:   999px;
   --emc-shadow-card:   0 14px 40px -22px rgba(15, 42, 67, 0.18), 0 1px 2px rgba(15, 42, 67, 0.04);
   --emc-shadow-lift:   0 28px 70px -28px rgba(15, 42, 67, 0.28), 0 4px 12px -3px rgba(15, 42, 67, 0.06);
+
+  /* ── Global z-index scale (dropdowns, modals, toasts) ── */
+  --z-content: 0;
+  --z-sidebar: 40;
+  --z-header: 50;
+  --z-popover: 100;
+  --z-modal-overlay: 200;
+  --z-modal-content: 210;
+  --z-datetime-popover: 300;
+  --z-toast: 400;
+  --dashboard-header-height: 4rem;
 }
 
 * {
@@ -120,6 +132,20 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(4px);
 }
+
+.emc-dialog {
+  z-index: var(--z-modal-content);
+}
+
+/* Stacking utility aliases — mirror tailwind z-* tokens */
+.z-content { z-index: var(--z-content); }
+.z-sidebar { z-index: var(--z-sidebar); }
+.z-header { z-index: var(--z-header); }
+.z-popover { z-index: var(--z-popover); }
+.z-modal-overlay { z-index: var(--z-modal-overlay); }
+.z-modal-content { z-index: var(--z-modal-content); }
+.z-datetime-popover { z-index: var(--z-datetime-popover); }
+.z-toast { z-index: var(--z-toast); }
 
 a {
   text-decoration: none;

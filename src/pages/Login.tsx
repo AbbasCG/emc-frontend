@@ -26,7 +26,10 @@ export default function Login() {
 
   const stateFrom = (location.state as { from?: string } | null)?.from
   const from =
-    safeInternalPath(searchParams.get('next')) ?? safeInternalPath(stateFrom) ?? '/dashboard'
+    safeInternalPath(searchParams.get('redirect')) ??
+    safeInternalPath(searchParams.get('next')) ??
+    safeInternalPath(stateFrom) ??
+    '/dashboard'
 
   const signupHref =
     from !== '/dashboard' ?

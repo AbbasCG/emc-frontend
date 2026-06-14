@@ -26,6 +26,7 @@ export function dedupeLearningPaths(paths: LearningPath[]): LearningPath[] {
   const seen = new Set<number>()
   const out: LearningPath[] = []
   for (const p of paths) {
+    if (!Number.isFinite(p.id) || p.id <= 0) continue
     if (seen.has(p.id)) continue
     seen.add(p.id)
     out.push(p)
@@ -33,9 +34,39 @@ export function dedupeLearningPaths(paths: LearningPath[]): LearningPath[] {
   return out
 }
 
+/** Parse instructor list payload — never merge with public/catalog data. */
+export function parseInstructorLearningPathList(payload: unknown): LearningPath[] {
+  const unwrapped = unwrapData<unknown>(payload)
+  if (Array.isArray(unwrapped)) return unwrapped as LearningPath[]
+  if (unwrapped && typeof unwrapped === 'object') {
+    const o = unwrapped as Record<string, unknown>
+    for (const key of ['data', 'paths', 'learning_paths', 'items']) {
+      const v = o[key]
+      if (Array.isArray(v)) return v as LearningPath[]
+    }
+  }
+  if (payload && typeof payload === 'object') {
+    const raw = payload as Record<string, unknown>
+    if (Array.isArray(raw.data)) return raw.data as LearningPath[]
+  }
+  return []
+}
+
+/** Keep only paths assigned to the signed-in instructor user (when metadata is present). */
+export function filterPathsForInstructorUser(paths: LearningPath[], userId?: number | null): LearningPath[] {
+  if (!userId) return paths
+  return paths.filter((p) => {
+    const instructorUserId = p.instructor?.user_id
+    if (instructorUserId == null) return true
+    return instructorUserId === userId
+  })
+}
+
 export type InstructorLearningPathsResult = {
   paths: LearningPath[]
   forbidden: boolean
+  notFound?: boolean
+  loadError?: boolean
   message?: string
 }
 
@@ -348,16 +379,30 @@ export async function fetchInstructorOptions(search?: string): Promise<Instructo
 
 // ─── Instructor API ───────────────────────────────────────────────────────────
 
-export async function fetchInstructorLearningPaths(): Promise<InstructorLearningPathsResult> {
+export async function fetchInstructorLearningPaths(_userId?: number | null): Promise<InstructorLearningPathsResult> {
   try {
     const res = await apiClient.get('/instructor/learning-paths', silent)
-    const body = res.data as { success: boolean; data: LearningPath[] }
-    return { paths: dedupeLearningPaths(body.data ?? []), forbidden: false }
+    const list = parseInstructorLearningPathList(res.data)
+    // Backend already filters to paths where this instructor is assigned
+    // (primary instructor OR teaches a course in the path). Client-side
+    // filtering by instructor.user_id incorrectly drops paths where the
+    // instructor teaches courses but isn't the path's primary instructor.
+    const paths = dedupeLearningPaths(list)
+    return { paths, forbidden: false }
   } catch (err) {
-    if (axiosStatus(err) === 403) {
+    const status = axiosStatus(err)
+    if (status === 403) {
       return { paths: [], forbidden: true, message: axiosMessage(err, FORBIDDEN_PATHS_MSG) }
     }
-    return { paths: [], forbidden: false }
+    if (status === 404) {
+      return { paths: [], forbidden: false, notFound: true, message: 'لا توجد مسارات مرتبطة بك.' }
+    }
+    return {
+      paths: [],
+      forbidden: false,
+      loadError: true,
+      message: axiosMessage(err, 'تعذر تحميل مسارات التعلّم.'),
+    }
   }
 }
 

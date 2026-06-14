@@ -114,6 +114,7 @@ export type CourseUpsertPayload = {
   track_id?: number | null
   department_id?: number | null
   program_type?: 'course' | 'workshop' | 'one_session' | 'full_program' | null
+  session_format?: 'online' | 'offline' | 'hybrid' | 'workshop_single_session' | null
   course_image?: string | null
   duration?: string | null
   training_hours?: number | null
@@ -138,6 +139,21 @@ export type CourseUpsertPayload = {
 function unwrapCourse(res: unknown): Course {
   const data = unwrapData<unknown>(res)
   return (data && typeof data === 'object' ? data : res) as Course
+}
+
+async function adminCourseRequest(
+  run: () => Promise<{ data: unknown }>,
+  context: string,
+): Promise<Course> {
+  try {
+    const res = await run()
+    return unwrapCourse(res.data)
+  } catch (e) {
+    if (axios.isAxiosError(e) && import.meta.env.DEV) {
+      console.error(`[${context}]`, e.response?.status, e.response?.data)
+    }
+    throw e
+  }
 }
 
 async function firstSuccessfulCourseRequest(
@@ -199,6 +215,10 @@ export function sanitizeCoursePayload(payload: CourseUpsertPayload): CourseUpser
     out[k as string] = v
   }
 
+  if (typeof out.training_hours === 'number' && Number.isFinite(out.training_hours)) {
+    out.training_hours = Math.round(out.training_hours)
+  }
+
   const allowedStatus = new Set(['draft', 'published', 'archived'])
   const st = out.status
   if (typeof st === 'string') {
@@ -232,12 +252,55 @@ export type UpsertCourseOptions = {
   imageFile?: File | null
 }
 
+/** Update an existing course via PUT /api/admin/courses/{id} only. */
+export async function updateCourse(
+  courseId: number,
+  payload: CourseUpsertPayload,
+  options?: UpsertCourseOptions,
+): Promise<Course> {
+  const enriched: CourseUpsertPayload = {
+    ...payload,
+    delivery_type: payload.delivery_type ?? payload.location_type ?? null,
+  }
+  const body = sanitizeCoursePayload(enriched)
+
+  if (import.meta.env.DEV) {
+    if (options?.imageFile) {
+      console.log('[admin.course.update]', courseId, {
+        ...(body as object),
+        course_image: `[multipart File: ${options.imageFile.name}]`,
+      })
+    } else {
+      console.log('[admin.course.update]', courseId, body)
+    }
+  }
+
+  const imageFile = options?.imageFile ?? null
+  if (imageFile) {
+    const fd = courseToFormData(body, imageFile)
+    fd.append('_method', 'PUT')
+    return adminCourseRequest(
+      () => apiClient.post<unknown>(`/admin/courses/${courseId}`, fd, { skipErrorToast: true }),
+      'admin.course.update',
+    )
+  }
+
+  return adminCourseRequest(
+    () => apiClient.put<unknown>(`/admin/courses/${courseId}`, body, { skipErrorToast: true }),
+    'admin.course.update',
+  )
+}
+
 /** Create or update a course/program/workshop row. JSON by default; multipart when `imageFile` is set. */
 export async function upsertCourse(
   payload: CourseUpsertPayload,
   courseId?: number,
   options?: UpsertCourseOptions,
 ): Promise<Course> {
+  if (courseId != null) {
+    return updateCourse(courseId, payload, options)
+  }
+
   const imageFile = options?.imageFile ?? null
   const enriched: CourseUpsertPayload = {
     ...payload,
@@ -245,44 +308,29 @@ export async function upsertCourse(
   }
   const body = sanitizeCoursePayload(enriched)
 
-  if (courseId == null && import.meta.env.DEV) {
+  if (import.meta.env.DEV) {
     if (imageFile) {
-      console.log("CREATE COURSE PAYLOAD", {
+      console.log('[admin.course.create]', {
         ...(body as object),
         course_image: `[multipart File: ${imageFile.name}]`,
       })
     } else {
-      console.log("CREATE COURSE PAYLOAD", body)
+      console.log('[admin.course.create]', body)
     }
   }
 
   if (imageFile) {
     const fd = courseToFormData(body, imageFile)
-    if (courseId != null) {
-      fd.append('_method', 'PUT')
-      return firstSuccessfulCourseRequest([
-        () => apiClient.post<unknown>(`/admin/courses/${courseId}`, fd),
-        () => apiClient.post<unknown>(`/courses/${courseId}`, fd),
-      ])
-    }
-    return firstSuccessfulCourseRequest([
-      () => apiClient.post<unknown>('/admin/courses', fd),
-      () => apiClient.post<unknown>('/courses', fd),
-    ])
+    return adminCourseRequest(
+      () => apiClient.post<unknown>('/admin/courses', fd, { skipErrorToast: true }),
+      'admin.course.create',
+    )
   }
 
-  if (courseId != null) {
-    return firstSuccessfulCourseRequest([
-      () => apiClient.put<unknown>(`/admin/courses/${courseId}`, body),
-      () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, body),
-      () => apiClient.put<unknown>(`/courses/${courseId}`, body),
-      () => apiClient.patch<unknown>(`/courses/${courseId}`, body),
-    ])
-  }
-  return firstSuccessfulCourseRequest([
-    () => apiClient.post<unknown>('/admin/courses', body),
-    () => apiClient.post<unknown>('/courses', body),
-  ])
+  return adminCourseRequest(
+    () => apiClient.post<unknown>('/admin/courses', body, { skipErrorToast: true }),
+    'admin.course.create',
+  )
 }
 
 export async function fetchAdminCourseDetail(courseId: number): Promise<Course> {
@@ -293,17 +341,14 @@ export async function fetchAdminCourseDetail(courseId: number): Promise<Course> 
 }
 
 export async function deleteCourse(courseId: number): Promise<void> {
-  const attempts = [() => apiClient.delete(`/admin/courses/${courseId}`), () => apiClient.delete(`/courses/${courseId}`)]
-  let last: unknown
-  for (const run of attempts) {
-    try {
-      await run()
-      return
-    } catch (e) {
-      last = e
+  try {
+    await apiClient.delete(`/admin/courses/${courseId}`, silent)
+  } catch (e) {
+    if (axios.isAxiosError(e) && import.meta.env.DEV) {
+      console.error('[admin.course.delete]', e.response?.status, e.response?.data)
     }
+    throw e instanceof Error ? e : new Error(getApiErrorMessage(e))
   }
-  throw last instanceof Error ? last : new Error(getApiErrorMessage(last))
 }
 
 /**
@@ -342,26 +387,29 @@ export async function patchCourseSchedule(
     meeting_link?: string | null
   },
 ): Promise<Course> {
-  return firstSuccessfulCourseRequest([
-    () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, body),
-    () => apiClient.put<unknown>(`/admin/courses/${courseId}`, body),
-    () => apiClient.patch<unknown>(`/courses/${courseId}`, body),
-  ])
+  return adminCourseRequest(
+    () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, body, silent),
+    'admin.course.patchSchedule',
+  )
 }
 
 export async function patchCoursePublishState(courseId: number, isPublished: boolean): Promise<Course> {
-  return firstSuccessfulCourseRequest([
-    () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, { is_published: isPublished, status: isPublished ? 'published' : 'draft' }),
-    () => apiClient.patch<unknown>(`/courses/${courseId}`, { is_published: isPublished, status: isPublished ? 'published' : 'draft' }),
-  ])
+  return adminCourseRequest(
+    () =>
+      apiClient.patch<unknown>(
+        `/admin/courses/${courseId}`,
+        { is_published: isPublished, status: isPublished ? 'published' : 'draft' },
+        silent,
+      ),
+    'admin.course.patchPublish',
+  )
 }
 
 export async function patchCourseStatus(courseId: number, status: 'draft' | 'published' | 'archived'): Promise<Course> {
-  return firstSuccessfulCourseRequest([
+  return adminCourseRequest(
     () => apiClient.patch<unknown>(`/admin/courses/${courseId}`, { status }, silent),
-    () => apiClient.put<unknown>(`/admin/courses/${courseId}`, { status }, silent),
-    () => apiClient.patch<unknown>(`/courses/${courseId}`, { status }, silent),
-  ])
+    'admin.course.patchStatus',
+  )
 }
 
 // ---------------------------------------------------------------------------

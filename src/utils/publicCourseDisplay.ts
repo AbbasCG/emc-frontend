@@ -167,6 +167,7 @@ export function certificateLineArabic(course: Course, extra: Record<string, unkn
     `${extra.has_certificate}` === '0'
 
   const title =
+    trimStr(extra.certificate_title) ??
     trimStr(extra.certificate_type) ??
     (course.certificate && String(course.certificate).trim() !== '' ?
       String(course.certificate).trim()

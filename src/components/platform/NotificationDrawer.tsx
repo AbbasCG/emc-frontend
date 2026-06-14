@@ -117,7 +117,7 @@ export default function NotificationDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
+            className="fixed inset-0 z-modal-overlay bg-black/40 backdrop-blur-[2px]"
             onClick={onClose}
           />
           <motion.aside
@@ -125,7 +125,7 @@ export default function NotificationDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 260 }}
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-slate-100 bg-white shadow-2xl"
+            className="fixed inset-y-0 right-0 z-modal-content flex w-full max-w-md flex-col border-l border-slate-100 bg-white shadow-2xl"
             dir="rtl"
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">

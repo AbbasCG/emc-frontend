@@ -225,6 +225,7 @@ export type InstructorSubmission = {
   score?: number | null
   max_score?: number | null
   body_preview?: string | null
+  file_url?: string | null
 }
 
 export type SubmissionDetail = InstructorSubmission & {

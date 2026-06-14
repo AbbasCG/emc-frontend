@@ -14,7 +14,8 @@ import CourseEnrollmentFieldsModal, {
 import { useAuth } from '@/contexts/AuthContext'
 import type { Course } from '@/types'
 import type { PublicItemType } from '@/utils/publicCourseDisplay'
-import { buildCourseEnrollSignupHref, enrollActionLabel } from '@/utils/enrollmentRedirect'
+import { enrollActionLabel } from '@/utils/enrollmentRedirect'
+import { buildPublicLoginHref, isStudentUser, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import { formatPrice } from '@/utils/course'
 import { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
 
@@ -73,6 +74,8 @@ type Props = {
   itemType: PublicItemType
   isFree: boolean
   priceLabel: string
+  originalPriceLabel?: string | null
+  discountPercent?: number | null
   registrationOpen: boolean
   seatsFull: boolean
   alreadyEnrolled: boolean
@@ -84,6 +87,8 @@ export default function CourseEnrollmentCard({
   itemType,
   isFree,
   priceLabel,
+  originalPriceLabel = null,
+  discountPercent = null,
   registrationOpen,
   seatsFull,
   alreadyEnrolled,
@@ -99,7 +104,8 @@ export default function CourseEnrollmentCard({
   const [success, setSuccess] = useState(false)
 
   const enrollLabel = enrollActionLabel(itemType)
-  const signupHref = buildCourseEnrollSignupHref(course.slug)
+  const loginHref = buildPublicLoginHref(`/courses/${course.slug}`)
+  const isStudent = isStudentUser(user?.role)
   const canEnroll = registrationOpen && !seatsFull && !alreadyEnrolled && !success
 
   const loadProfile = useCallback(async () => {
@@ -158,6 +164,11 @@ export default function CourseEnrollmentCard({
 
   async function submitEnrollment(extra?: Partial<EnrollmentFieldValues>) {
     if (!profile || !canEnroll) return
+    if (!isAuthenticated) return
+    if (!isStudent) {
+      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
+      return
+    }
     setApiError('')
     setFieldErrors({})
 
@@ -246,6 +257,10 @@ export default function CourseEnrollmentCard({
 
   function handlePrimaryClick() {
     if (!isAuthenticated) return
+    if (!isStudent) {
+      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
+      return
+    }
     if (missing.length === 0 && course.type !== 'paid') {
       void submitEnrollment()
       return
@@ -255,12 +270,12 @@ export default function CourseEnrollmentCard({
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100">
-        <div className="border-b border-slate-100 bg-gradient-to-l from-sky-50/90 to-white px-5 py-4 text-right sm:px-6">
+      <div className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 shadow-[0_20px_50px_-18px_rgba(34,51,74,0.18)] backdrop-blur-md ring-1 ring-[#22334A]/5">
+        <div className="border-b border-[#22334A]/6 bg-gradient-to-l from-[#2691C2]/8 via-white to-[#EC943C]/5 px-5 py-3.5 text-right sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-lg font-black text-deepBlue">الالتحاق</h3>
+            <h3 className="text-base font-black text-[#22334A]">الالتحاق</h3>
             <span
-              className={`rounded-full px-3 py-1 text-[11px] font-black ring-1 ${
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
                 registrationOpen && !seatsFull ?
                   'bg-emerald-50 text-emerald-800 ring-emerald-100'
                 : 'bg-orange-50 text-orange-800 ring-orange-100'
@@ -269,22 +284,36 @@ export default function CourseEnrollmentCard({
               {registrationOpen && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
             </span>
           </div>
-          <span className="mt-2 block h-1 w-12 rounded-full bg-customOrange" />
           {!compact && (
-            <p className="mt-3 line-clamp-2 text-sm font-semibold leading-7 text-slate-600">{course.title}</p>
+            <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-slate-600">{course.title}</p>
           )}
         </div>
 
-        <div className="space-y-3 border-b border-slate-100 px-5 py-4 text-right sm:px-6">
+        <div className="space-y-2.5 border-b border-[#22334A]/6 px-5 py-3.5 text-right sm:px-6">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-black text-slate-400">الرسوم</span>
-            <span className={`text-base font-black ${isFree ? 'text-customBlue' : 'text-customOrange'}`}>
-              {isFree ? 'مجانية' : priceLabel}
-            </span>
+            <span className="text-[11px] font-black text-slate-400">الرسوم</span>
+            <div className="text-left">
+              {originalPriceLabel && !isFree ?
+                <span className="block text-[10px] font-bold text-slate-400 line-through tabular-nums">
+                  {originalPriceLabel}
+                </span>
+              : null}
+              <span className={`text-lg font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-[#EC943C]'}`}>
+                {isFree ? 'مجانية' : priceLabel}
+              </span>
+            </div>
           </div>
+          {discountPercent != null && discountPercent > 0 && !isFree ?
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-black text-slate-400">الخصم</span>
+              <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-[#EC943C]">
+                {String(discountPercent)}%
+              </span>
+            </div>
+          : null}
         </div>
 
-        <div className="p-5 sm:p-6">
+        <div className="p-4 sm:p-5">
           {!registrationOpen || seatsFull ?
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm font-black text-deepBlue">
               {!registrationOpen ? 'التسجيل مغلق حالياً' : 'المقاعد مكتملة'}
@@ -308,11 +337,15 @@ export default function CourseEnrollmentCard({
                 أنشئ حساباً أو سجّل دخولك للالتحاق بهذا البرنامج.
               </p>
               <Link
-                to={signupHref}
+                to={loginHref}
                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-md"
               >
                 سجّل الدخول لإكمال التسجيل
               </Link>
+            </div>
+          : !isStudent ?
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-5 text-center text-sm font-bold text-amber-900">
+              {PUBLIC_ENROLL_STUDENT_ONLY_MSG}
             </div>
           : profileLoading ?
             <div className="flex items-center justify-center gap-2 py-6 text-sm font-semibold text-slate-500">
@@ -354,7 +387,7 @@ export default function CourseEnrollmentCard({
                 whileHover={!submitting ? { scale: 1.02 } : undefined}
                 disabled={submitting}
                 onClick={handlePrimaryClick}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-md disabled:opacity-60"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#EC943C] to-[#d97d28] text-sm font-black text-white shadow-[0_8px_20px_-8px_rgba(236,148,60,0.5)] disabled:opacity-60"
               >
                 {submitting ?
                   <>

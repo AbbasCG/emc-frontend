@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, UserPlus } from 'lucide-react'
 import api from '../api/axios'
@@ -13,9 +13,18 @@ import type { Course } from '../types'
 import { formatPrice } from '../utils/course'
 import Signup from './Signup'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
+import { useAuth } from '@/contexts/AuthContext'
+import {
+  buildPublicLoginHref,
+  isStudentUser,
+  PUBLIC_ENROLL_STUDENT_ONLY_MSG,
+} from '@/utils/publicEnrollAuth'
+import toast from '@/lib/toast'
 
 export default function Register() {
   const { slug } = useParams()
+  const navigate = useNavigate()
+  const { isAuthenticated, user } = useAuth()
   const [searchParams] = useSearchParams()
   const accountRedirect = safeEnrollmentRedirect(searchParams.get('redirect'))
 
@@ -24,6 +33,18 @@ export default function Register() {
   const [selectedCourseId, setSelectedCourseId] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [apiError, setApiError] = useState('')
+
+  useEffect(() => {
+    if (!slug) return
+    if (!isAuthenticated) {
+      navigate(buildPublicLoginHref(`/courses/${slug}`), { replace: true })
+      return
+    }
+    if (!isStudentUser(user?.role)) {
+      toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
+      navigate(`/courses/${slug}`, { replace: true })
+    }
+  }, [slug, isAuthenticated, user?.role, navigate])
 
   useEffect(() => {
     if (accountRedirect && !slug) return

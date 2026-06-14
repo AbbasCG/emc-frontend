@@ -9,6 +9,7 @@ export default function AppToaster() {
     <Toaster
       position="top-right"
       reverseOrder={false}
+      containerStyle={{ zIndex: 400 }}
       toastOptions={{
         duration: 5000,
         style: {

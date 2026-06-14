@@ -2,8 +2,6 @@ import axios from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
-  CheckCircle2,
-  ChevronDown,
   GraduationCap,
   RefreshCw,
   Route,
@@ -25,8 +23,7 @@ import type { AttendanceRow, LmsSession } from '@/types/lms'
 import { AttendanceTable } from '@/components/lms'
 import { InstructorHero } from '@/components/instructor'
 import { formatSessionPickerLabel } from '@/utils/lmsSession'
-
-/* ── Helpers ───────────────────────────────────────────────────────────── */
+import toast from '@/lib/toast'
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n)
 
@@ -44,16 +41,16 @@ const fmtDate = (iso: string | null | undefined): string => {
   }
 }
 
-/* ── Attendance status summary ────────────────────────────────────────── */
-
 const STAT_COLORS = {
   present: { bg: 'bg-emerald-500', text: 'text-emerald-700', light: 'bg-emerald-50', border: 'border-emerald-200', label: 'حاضر' },
-  absent:  { bg: 'bg-rose-500',    text: 'text-rose-700',    light: 'bg-rose-50',    border: 'border-rose-200',    label: 'غائب'  },
-  late:    { bg: 'bg-amber-500',   text: 'text-amber-700',   light: 'bg-amber-50',   border: 'border-amber-200',   label: 'متأخر' },
-  excused: { bg: 'bg-sky-500',     text: 'text-sky-700',     light: 'bg-sky-50',     border: 'border-sky-200',     label: 'معذور' },
+  absent: { bg: 'bg-rose-500', text: 'text-rose-700', light: 'bg-rose-50', border: 'border-rose-200', label: 'غائب' },
+  late: { bg: 'bg-amber-500', text: 'text-amber-700', light: 'bg-amber-50', border: 'border-amber-200', label: 'متأخر' },
+  excused: { bg: 'bg-sky-500', text: 'text-sky-700', light: 'bg-sky-50', border: 'border-sky-200', label: 'معذور' },
 }
 
-/* ── Select field ─────────────────────────────────────────────────────── */
+function cloneRows(rows: AttendanceRow[]): AttendanceRow[] {
+  return rows.map((r) => ({ ...r }))
+}
 
 function SelectField({
   label,
@@ -71,42 +68,35 @@ function SelectField({
   disabled?: boolean
 }) {
   return (
-    <label className="grid gap-1.5">
-      <span className="flex items-center gap-1.5 text-[11px] font-black text-[#22334A]">
+    <label className="grid min-w-0 gap-1">
+      <span className="flex items-center gap-1.5 text-[10px] font-black text-[#22334A]/70">
         <Icon className="h-3.5 w-3.5 text-[#2691C2]" />
         {label}
       </span>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          dir="rtl"
-          className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 pl-9 text-[13px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100 disabled:opacity-50"
-        >
-          {children}
-        </select>
-        <ChevronDown className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        dir="rtl"
+        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-50"
+      >
+        {children}
+      </select>
     </label>
   )
 }
 
-/* ── Page ─────────────────────────────────────────────────────────────── */
-
 export default function InstructorAttendancePage() {
-  const [classes,     setClasses]     = useState<ClassGroup[]>([])
-  const [sessions,    setSessions]    = useState<LmsSession[]>([])
-  const [lpPaths,     setLpPaths]     = useState<LearningPath[]>([])
-  const [classId,     setClassId]     = useState<number | ''>('')
-  const [sessionId,   setSessionId]   = useState<number | ''>('')
-  const [rows,        setRows]        = useState<AttendanceRow[]>([])
-  const [loading,     setLoading]     = useState(true)
+  const [classes, setClasses] = useState<ClassGroup[]>([])
+  const [sessions, setSessions] = useState<LmsSession[]>([])
+  const [lpPaths, setLpPaths] = useState<LearningPath[]>([])
+  const [classId, setClassId] = useState<number | ''>('')
+  const [sessionId, setSessionId] = useState<number | ''>('')
+  const [rows, setRows] = useState<AttendanceRow[]>([])
+  const [baseline, setBaseline] = useState<AttendanceRow[]>([])
+  const [loading, setLoading] = useState(true)
   const [loadingRows, setLoadingRows] = useState(false)
-  const [saving,      setSaving]      = useState(false)
-  const [apiMissing,  setApiMissing]  = useState(false)
-  const [savedOnce,   setSavedOnce]   = useState(false)
-  const [notice,      setNotice]      = useState<{ ok?: boolean; text: string } | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -123,13 +113,11 @@ export default function InstructorAttendancePage() {
       })
       .catch((err) => {
         if (!alive || axios.isCancel(err)) return
-        setApiMissing(true)
       })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
   }, [])
 
-  /** Map course_id → LP title for showing LP context */
   const lpMap = useMemo(() => {
     const m = new Map<number, string>()
     lpPaths.forEach((lp) => {
@@ -147,13 +135,11 @@ export default function InstructorAttendancePage() {
     return sessions.filter((s) => !s.course_id || s.course_id === cls.course_id)
   }, [sessions, classes, classId])
 
-  /** The currently selected session object */
   const selectedSession = useMemo(
     () => (sessionId !== '' ? sessions.find((s) => s.id === Number(sessionId)) ?? null : null),
     [sessions, sessionId],
   )
 
-  /** LP name for the selected session's course */
   const sessionLpName = useMemo(
     () => (selectedSession?.course_id != null ? lpMap.get(selectedSession.course_id) : null),
     [selectedSession, lpMap],
@@ -165,12 +151,12 @@ export default function InstructorAttendancePage() {
         const classStudents = await fetchClassGroupStudents(Number(gid))
         if (classStudents.length > 0) {
           return classStudents.map((s) => ({
-            student_id:   s.student_id,
+            student_id: s.student_id,
             student_name: s.student_name,
-            email:        s.student_email,
-            avatar_url:   s.avatar_url ?? null,
-            status:       null,
-            notes:        null,
+            email: s.student_email,
+            avatar_url: s.avatar_url ?? null,
+            status: null,
+            notes: null,
           }))
         }
       } catch {
@@ -179,74 +165,92 @@ export default function InstructorAttendancePage() {
     }
 
     const users = await fetchInstructorStudents({
-      session_id:     sid,
+      session_id: sid,
       class_group_id: gid === '' ? undefined : Number(gid),
-      course_id:      gid !== '' ? classes.find((c) => c.id === gid)?.course_id : undefined,
+      course_id: gid !== '' ? classes.find((c) => c.id === gid)?.course_id : undefined,
     })
     return usersToAttendanceRows(users)
   }, [classes])
 
   const loadAttendanceRows = useCallback(async (sid: number, gid: number | '') => {
     setLoadingRows(true)
-    setNotice(null)
-    setSavedOnce(false)
     try {
       const [saved, roster] = await Promise.all([
         fetchInstructorAttendanceSession(sid),
         loadRoster(sid, gid),
       ])
-      if (saved.length > 0) {
-        setRows(mergeAttendanceRows(saved, roster))
-        setSavedOnce(saved.some((r) => r.status))
-        return
-      }
-      setRows(roster)
+      const merged = saved.length > 0 ? mergeAttendanceRows(saved, roster) : roster
+      setRows(cloneRows(merged))
+      setBaseline(cloneRows(merged))
     } catch (err) {
       if (import.meta.env.DEV) console.error('[attendance] rows load failed:', err)
       setRows([])
+      setBaseline([])
     } finally {
       setLoadingRows(false)
     }
   }, [loadRoster])
 
   useEffect(() => {
-    if (sessionId === '') { setRows([]); setSavedOnce(false); return }
+    if (sessionId === '') {
+      setRows([])
+      setBaseline([])
+      return
+    }
     void loadAttendanceRows(Number(sessionId), classId)
   }, [sessionId, classId, loadAttendanceRows])
 
-  function updateRow(studentId: number, patch: { status?: AttendanceRow['status']; notes?: string | null }) {
+  function updateRow(
+    studentId: number,
+    patch: { status?: AttendanceRow['status']; notes?: string | null },
+  ) {
     setRows((prev) => prev.map((r) => (r.student_id === studentId ? { ...r, ...patch } : r)))
   }
+
+  function markAllPresent() {
+    setRows((prev) => prev.map((r) => ({ ...r, status: 'present' as const })))
+  }
+
+  function clearAll() {
+    setRows((prev) => prev.map((r) => ({ ...r, status: null, notes: null })))
+  }
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (rows.length !== baseline.length) return true
+    const base = new Map(baseline.map((r) => [r.student_id, r]))
+    return rows.some((r) => {
+      const saved = base.get(r.student_id)
+      if (!saved) return true
+      return (r.status ?? '') !== (saved.status ?? '') || (r.notes ?? '') !== (saved.notes ?? '')
+    })
+  }, [rows, baseline])
 
   async function save() {
     if (sessionId === '') return
     if (rows.some((r) => !r.status)) {
-      setNotice({ ok: false, text: 'يرجى تحديد حالة الحضور لكل طالب قبل الحفظ.' })
+      toast.error('يرجى تحديد حالة الحضور لكل طالب قبل الحفظ.')
       return
     }
     setSaving(true)
-    setNotice(null)
     try {
       await putInstructorAttendance(
         Number(sessionId),
         rows.map((r) => ({
           student_id: r.student_id,
-          status:     r.status!,
-          notes:      r.notes?.trim() || null,
+          status: r.status!,
+          notes: r.notes?.trim() || null,
         })),
       )
-      setNotice({ ok: true, text: 'تم حفظ الحضور بنجاح.' })
-      setSavedOnce(true)
+      toast.success('تم حفظ الحضور بنجاح.')
       await loadAttendanceRows(Number(sessionId), classId)
     } catch (err) {
       if (import.meta.env.DEV) console.error('[attendance] save failed:', err)
-      setNotice({ ok: false, text: 'تعذر الحفظ — تحقق من صلاحياتك أو نقطة النهاية على الخادم.' })
+      toast.error('تعذّر الحفظ — تحقق من صلاحياتك أو نقطة النهاية على الخادم.')
     } finally {
       setSaving(false)
     }
   }
 
-  /* ── Stats ─── */
   const attendanceSummary = useMemo(() => {
     const counts = { present: 0, absent: 0, late: 0, excused: 0 }
     rows.forEach((r) => { if (r.status && r.status in counts) counts[r.status as keyof typeof counts]++ })
@@ -254,13 +258,13 @@ export default function InstructorAttendancePage() {
   }, [rows])
 
   const markedCount = rows.filter((r) => r.status).length
+  const showRoster = sessionId !== '' && !loadingRows && rows.length > 0
 
   return (
-    <div className="space-y-5 pb-16" dir="rtl">
-
+    <div className="space-y-4 pb-24" dir="rtl">
       <InstructorHero
         title="تسجيل الحضور"
-        subtitle="اختر الجلسة، سجّل حضور الطلاب، ثم احفظ"
+        subtitle="اختر الجلسة، حدّد حالات الطلاب بسرعة، ثم احفظ"
         backTo="/dashboard/instructor/courses"
         backLabel="الدورات"
         refreshing={loading}
@@ -270,25 +274,9 @@ export default function InstructorAttendancePage() {
         ]}
       />
 
-      {apiMissing && import.meta.env.DEV && (
-        <div className="rounded-xl bg-amber-50 px-5 py-3 text-right text-xs font-bold text-amber-800 ring-1 ring-amber-100">
-          تحقق من نقاط نهاية الحضور على الخادم.
-        </div>
-      )}
-
-      {/* ── Selector card ──────────────────────────────────────────────── */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-        <div className="mb-5 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#22334A]/8">
-            <UserCheck className="h-4 w-4 text-[#22334A]" />
-          </div>
-          <div>
-            <p className="text-[13px] font-black text-[#22334A]">اختر الجلسة</p>
-            <p className="text-[11px] text-slate-400">يمكنك تصفية الجلسات حسب الصف أولاً</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Compact toolbar */}
+      <div className="sticky top-16 z-20 rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur-sm">
+        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
           <SelectField
             label="الصف / المجموعة"
             icon={GraduationCap}
@@ -319,26 +307,19 @@ export default function InstructorAttendancePage() {
             ))}
           </SelectField>
 
-          <div className="flex items-end">
-            <button
-              type="button"
-              disabled={sessionId === '' || saving || loadingRows || rows.length === 0}
-              onClick={() => void save()}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-6 py-3 text-[13px] font-black text-white shadow-[0_8px_20px_rgba(236,148,60,0.3)] transition hover:brightness-105 disabled:opacity-50"
-            >
-              {saving ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {saving ? 'جارٍ الحفظ...' : 'حفظ الحضور'}
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={sessionId === '' || saving || loadingRows || rows.length === 0}
+            onClick={() => void save()}
+            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-50"
+          >
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? 'جارٍ الحفظ…' : 'حفظ الحضور'}
+          </button>
         </div>
 
-        {/* Session context (course + LP) */}
         {selectedSession && (
-          <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
             {selectedSession.course_name && (
               <span className="flex items-center gap-1 text-[11px] font-semibold text-[#2691C2]">
                 <BookOpen className="h-3 w-3" />
@@ -352,39 +333,34 @@ export default function InstructorAttendancePage() {
               </span>
             )}
             {selectedSession.starts_at && (
-              <span className="text-[11px] text-slate-400">
-                {fmtDate(selectedSession.starts_at)}
-              </span>
+              <span className="text-[11px] text-slate-400">{fmtDate(selectedSession.starts_at)}</span>
             )}
           </div>
         )}
 
-        {/* Summary stats */}
         {sessionId !== '' && rows.length > 0 && !loadingRows && (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-[#22334A]/70">
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-[#22334A]/70">
               <Users className="h-3.5 w-3.5" />
               {fmt(rows.length)} طالب
             </span>
-            <span className="rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-[11px] font-semibold text-[#2691C2]">
+            <span className="rounded-lg bg-[#2691C2]/10 px-2.5 py-1 text-[11px] font-semibold text-[#2691C2]">
               {fmt(markedCount)} محدّد
             </span>
-            {savedOnce && (
-              <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-100">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                سجل محفوظ
+            {hasUnsavedChanges && (
+              <span className="rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-200">
+                تغييرات غير محفوظة
               </span>
             )}
-            {/* Status breakdown */}
-            {markedCount > 0 && Object.entries(attendanceSummary).map(([status, count]) => {
+            {Object.entries(attendanceSummary).map(([status, count]) => {
               if (count === 0) return null
               const cfg = STAT_COLORS[status as keyof typeof STAT_COLORS]
               return (
                 <span
                   key={status}
-                  className={`inline-flex items-center gap-1 rounded-xl border ${cfg.border} ${cfg.light} px-2.5 py-1 text-[10px] font-black ${cfg.text}`}
+                  className={`inline-flex items-center gap-1 rounded-lg border ${cfg.border} ${cfg.light} px-2 py-1 text-[10px] font-black ${cfg.text}`}
                 >
-                  <span className={`h-2 w-2 rounded-full ${cfg.bg}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${cfg.bg}`} />
                   {cfg.label}: {fmt(count)}
                 </span>
               )
@@ -393,44 +369,65 @@ export default function InstructorAttendancePage() {
         )}
       </div>
 
-      {/* ── Notice ──────────────────────────────────────────────────────── */}
-      {notice && (
-        <div className={notice.ok
-          ? 'flex items-center gap-3 rounded-2xl bg-emerald-50 px-5 py-3.5 text-[13px] font-bold text-emerald-800 ring-1 ring-emerald-100'
-          : 'rounded-2xl bg-red-50 px-5 py-3.5 text-right text-[13px] font-bold text-red-700 ring-1 ring-red-100'
-        }>
-          {notice.ok && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />}
-          {notice.text}
-        </div>
-      )}
-
-      {/* ── Roster ──────────────────────────────────────────────────────── */}
       {sessionId === '' ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-50">
-            <UserCheck className="h-8 w-8 text-slate-300" />
-          </div>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+          <UserCheck className="mb-3 h-10 w-10 text-slate-300" />
           <p className="text-base font-black text-[#22334A]">اختر جلسة للبدء</p>
           <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
             يمكنك تصفية الجلسات حسب الصف أولاً، ثم اختيار الجلسة
           </p>
         </div>
       ) : loadingRows ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-3xl bg-slate-100" />
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
           ))}
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-14 text-center">
           <Users className="mb-3 h-10 w-10 text-slate-200" />
           <p className="font-black text-[#22334A]">لا يوجد طلاب لهذه الجلسة</p>
-          <p className="mt-1 text-[12px] text-slate-400">
-            تأكد من اختيار الصف الصحيح أو من ربط الطلاب بالجلسة على الخادم
-          </p>
         </div>
       ) : (
-        <AttendanceTable rows={rows} onChange={updateRow} disabled={saving} />
+        <AttendanceTable
+          rows={rows}
+          baseline={baseline}
+          onChange={updateRow}
+          disabled={saving}
+          onMarkAllPresent={markAllPresent}
+          onClearAll={clearAll}
+        />
+      )}
+
+      {showRoster && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-sm lg:hidden">
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => void save()}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#EC943C] py-3 text-[13px] font-black text-white disabled:opacity-50"
+          >
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {hasUnsavedChanges ? 'حفظ التغييرات' : 'حفظ الحضور'}
+          </button>
+        </div>
+      )}
+
+      {showRoster && hasUnsavedChanges && (
+        <div className="fixed inset-x-0 bottom-0 z-30 hidden border-t border-slate-200 bg-white/95 px-6 py-3 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-sm lg:block">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            <p className="text-[13px] font-bold text-amber-700">لديك تغييرات غير محفوظة</p>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void save()}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white disabled:opacity-50"
+            >
+              {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              حفظ الحضور
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

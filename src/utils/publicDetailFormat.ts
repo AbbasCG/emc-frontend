@@ -1,4 +1,23 @@
 const TZ = 'Europe/Amsterdam'
+const ARABIC_INDIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
+
+/** Convert Eastern Arabic numerals to Western (1 2 3 …). */
+export function toLatinDigits(value: string | number): string {
+  return String(value).replace(/[٠-٩]/g, (ch) => String(ARABIC_INDIC_DIGITS.indexOf(ch)))
+}
+
+/** English/Western numerals for counts, stats, and UI metrics. */
+export function formatNumberEn(n: number, options?: Intl.NumberFormatOptions): string {
+  if (!Number.isFinite(n)) return ''
+  return new Intl.NumberFormat('en-US', options).format(n)
+}
+
+/** Normalize any API text for public display (Arabic copy, Latin digits). */
+export function formatPublicText(raw: unknown): string {
+  if (raw == null) return ''
+  const s = String(raw).trim()
+  return s ? toLatinDigits(s) : ''
+}
 
 export function formatPublicDate(raw: unknown): string {
   if (raw == null || String(raw).trim() === '') return ''
@@ -36,7 +55,7 @@ export function formatPublicTime(raw: unknown): string {
 
 export function formatPublicCount(n: number, unit: string): string {
   if (!Number.isFinite(n) || n <= 0) return ''
-  return `${String(Math.round(n))} ${unit}`
+  return `${formatNumberEn(Math.round(n))} ${unit}`
 }
 
 function parseTimeToMinutes(raw: unknown): number | null {

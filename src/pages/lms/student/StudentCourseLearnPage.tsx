@@ -272,11 +272,21 @@ export default function StudentCourseLearnPage() {
   }, [ctx?.materials, courseId, courseTitle])
 
   const assignments = useMemo(() => {
-    const raw = (ctx?.assignments ?? []).filter((a) => a.visible !== false)
+    const seen = new Set<number>()
+    const raw = [...(ctx?.assignments ?? [])]
+    for (const mod of ctx?.modules ?? []) {
+      for (const a of mod.assignments ?? []) {
+        if (!seen.has(a.id)) {
+          raw.push(a)
+          seen.add(a.id)
+        }
+      }
+    }
     return raw
+      .filter((a) => a.visible !== false)
       .map((a) => mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle }))
       .filter((a): a is StudentAssignment => a != null)
-  }, [ctx?.assignments, courseId, courseTitle])
+  }, [ctx?.assignments, ctx?.modules, courseId, courseTitle])
 
   const progressPct = useMemo(() => (ctx ? deriveProgressPct(ctx) : 0), [ctx])
   const totalLessons = useMemo(() => modulesLms.reduce((s, m) => s + (m.lessons_count ?? 0), 0), [modulesLms])
@@ -288,7 +298,7 @@ export default function StudentCourseLearnPage() {
   const nextSession = upcomingSorted[0]
 
   const TABS = useMemo(() => [
-    { id: 'modules' as LearnTab,     label: 'المنهاج',    icon: BookOpen,      badge: modulesLms.length > 0 ? modulesLms.length : null },
+    { id: 'modules' as LearnTab,     label: 'الوحدات',    icon: BookOpen,      badge: modulesLms.length > 0 ? modulesLms.length : null },
     { id: 'sessions' as LearnTab,    label: 'الجلسات',    icon: Calendar,      badge: sessionsMapped.length > 0 ? sessionsMapped.length : null },
     { id: 'materials' as LearnTab,   label: 'المواد',     icon: FolderOpen,    badge: materials.length > 0 ? materials.length : null },
     { id: 'assignments' as LearnTab, label: 'الواجبات',   icon: ClipboardList, badge: assignments.length > 0 ? assignments.length : null },
@@ -373,11 +383,17 @@ export default function StudentCourseLearnPage() {
 
             {/* Left: course info */}
             <div className="flex flex-1 flex-col gap-4">
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-[11px] font-black text-white/65">
-                <Link to="/dashboard/student/courses" className="hover:text-white">دوراتي</Link>
-                <span className="opacity-45">/</span>
-                <span className="text-white/90">مساحة التعلّم</span>
+              {/* Back button + Breadcrumb */}
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/dashboard/student/courses"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-black text-white/80 backdrop-blur transition hover:bg-white/20"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 rotate-180" />
+                  دوراتي
+                </Link>
+                <span className="text-[11px] text-white/40">/</span>
+                <span className="text-[11px] font-black text-white/65">مساحة التعلّم</span>
               </div>
 
               <div className="flex flex-wrap items-start gap-4">
@@ -594,7 +610,7 @@ export default function StudentCourseLearnPage() {
               <div>
                 <div className="mb-4 flex items-end justify-between">
                   <div>
-                    <h2 className="text-xl font-black text-[#22334A]">المنهاج والوحدات</h2>
+                    <h2 className="text-xl font-black text-[#22334A]">الوحدات والمنهاج</h2>
                     <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]/50">
                       {ctx.modules.length > 0
                         ? `${ctx.modules.length} وحدة · ${totalLessons} درس`
@@ -604,8 +620,80 @@ export default function StudentCourseLearnPage() {
                 </div>
 
                 {ctx.modules.length === 0 ? (
-                  <div className="rounded-2xl border border-[#22334A]/[0.08] bg-white/70 p-8 text-center text-[13px] font-semibold text-[#22334A]/60">
-                    لم تتم إضافة وحدات تعليمية لهذه الدورة بعد
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-[#22334A]/[0.08] bg-white/70 p-6 text-center text-[13px] font-semibold text-[#22334A]/60">
+                      لم تتم إضافة وحدات تعليمية لهذه الدورة بعد
+                    </div>
+                    {(() => {
+                      const nullMaterials = (ctx.materials ?? []).filter((m) => m.module_id == null)
+                      const nullSessions = (ctx.sessions ?? []).filter((s) => s.module_id == null)
+                      const nullAssignments = (ctx.assignments ?? []).filter((a) => a.module_id == null && a.visible !== false)
+                      const hasGeneral = nullMaterials.length > 0 || nullSessions.length > 0 || nullAssignments.length > 0
+                      if (!hasGeneral) return null
+                      return (
+                        <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
+                          <div className="flex items-center gap-3 p-4">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#EC943C]">
+                              <Layers className="h-4 w-4" />
+                            </span>
+                            <div>
+                              <h3 className="text-[14px] font-black text-[#22334A]">محتوى عام للدورة</h3>
+                              <p className="text-[11px] font-medium text-[#22334A]/55">جلسات ومواد وواجبات على مستوى الدورة</p>
+                            </div>
+                          </div>
+                          <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
+                            {nullSessions.length > 0 && (
+                              <div>
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                  <Calendar className="h-3 w-3" /> الجلسات
+                                </h4>
+                                <div className="space-y-2">
+                                  {nullSessions.map((s) => (
+                                    <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {nullMaterials.length > 0 && (
+                              <div>
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                  <FolderOpen className="h-3 w-3" /> المواد
+                                </h4>
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                  {nullMaterials.map((m) => (
+                                    <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {nullAssignments.length > 0 && (
+                              <div>
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                  <ClipboardList className="h-3 w-3" /> الواجبات
+                                </h4>
+                                <div className="space-y-2">
+                                  {nullAssignments.map((a) => {
+                                    const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
+                                    if (!sa) return null
+                                    return (
+                                      <AssignmentCard
+                                        key={a.id}
+                                        assignment={sa}
+                                        onSubmit={
+                                          ['pending', 'revision', 'late'].includes(String(sa.status))
+                                            ? () => setActiveAssignment(sa)
+                                            : undefined
+                                        }
+                                      />
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                 ) : (
                   <div className="space-y-3">

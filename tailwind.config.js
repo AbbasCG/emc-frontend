@@ -172,6 +172,17 @@ export default {
         "soft-float": "soft-float 5.5s ease-in-out infinite",
         "glow-pulse": "glow-pulse 2.2s ease-out infinite",
       },
+
+      /** Global stacking scale — keep in sync with :root tokens in index.css */
+      zIndex: {
+        content: "0",
+        sidebar: "40",
+        header: "50",
+        popover: "100",
+        "modal-overlay": "200",
+        "modal-content": "210",
+        toast: "300",
+      },
     },
   },
   plugins: [],

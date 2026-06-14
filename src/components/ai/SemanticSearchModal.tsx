@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { semanticSearch } from '@/api/aiSearchApi'
 import type { AiContextScope, AiSearchGroup } from '@/types/ai'
@@ -50,14 +51,16 @@ export default function SemanticSearchModal({
     [groups, filter],
   )
 
-  return (
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
           <motion.button
             type="button"
             aria-label="إغلاق البحث"
-            className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-[2px]"
+            className="fixed inset-0 z-modal-overlay bg-black/40 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -68,7 +71,7 @@ export default function SemanticSearchModal({
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.98 }}
-            className="fixed left-1/2 top-[9vh] z-[80] w-[min(840px,calc(100%-20px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"
+            className="fixed left-1/2 top-[9vh] z-modal-content w-[min(840px,calc(100%-20px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl"
           >
             <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
               <Search size={18} className="text-customBlue" />
@@ -137,6 +140,7 @@ export default function SemanticSearchModal({
           </motion.section>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

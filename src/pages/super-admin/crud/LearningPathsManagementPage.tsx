@@ -32,6 +32,7 @@ import {
   type InstructorOption,
 } from '../../../api/learningPathsApi'
 import CourseSelector from '../../../components/learning-paths/CourseSelector'
+import { DropdownPortal } from '@/components/ui/DropdownPortal'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -100,17 +101,6 @@ function InstructorSelect({
     if (found) setSelectedLabel(found.name)
   }, [value, options])
 
-  // Close on outside click
-  useEffect(() => {
-    function onClickOut(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onClickOut)
-    return () => document.removeEventListener('mousedown', onClickOut)
-  }, [])
-
   const select = (opt: InstructorOption) => {
     onChange(String(opt.id), opt.name)
     setSelectedLabel(opt.name)
@@ -155,66 +145,64 @@ function InstructorSelect({
       </button>
 
       {/* Dropdown */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
-          >
-            {/* Search input */}
-            <div className="border-b border-slate-100 p-2">
-              <div className="relative">
-                <Search className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                <input
-                  autoFocus
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="بحث..."
-                  className="w-full rounded-lg border border-slate-100 py-1.5 pr-8 pl-3 text-sm focus:border-[#2691C2] focus:outline-none"
-                />
-              </div>
+      <DropdownPortal
+        open={open}
+        anchorRef={wrapRef}
+        onClose={() => setOpen(false)}
+        align="stretch"
+        offset={4}
+        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+      >
+        {/* Search input */}
+        <div className="border-b border-slate-100 p-2">
+          <div className="relative">
+            <Search className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="بحث..."
+              className="w-full rounded-lg border border-slate-100 py-1.5 pr-8 pl-3 text-sm focus:border-[#2691C2] focus:outline-none"
+            />
+          </div>
+        </div>
+        {/* Options list */}
+        <div className="max-h-52 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
             </div>
-            {/* Options list */}
-            <div className="max-h-52 overflow-y-auto">
-              {loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+          ) : options.length === 0 ? (
+            <p className="py-4 text-center text-xs text-slate-400">لا توجد نتائج</p>
+          ) : (
+            options.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => select(opt)}
+                className={`flex w-full items-center gap-3 px-3 py-2.5 text-right text-sm transition hover:bg-[#2691C2]/5 ${
+                  String(opt.id) === value ? 'bg-[#2691C2]/10 font-bold text-[#2691C2]' : 'text-slate-700'
+                }`}
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                  {opt.name.charAt(0)}
                 </div>
-              ) : options.length === 0 ? (
-                <p className="py-4 text-center text-xs text-slate-400">لا توجد نتائج</p>
-              ) : (
-                options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => select(opt)}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-right text-sm transition hover:bg-[#2691C2]/5 ${
-                      String(opt.id) === value ? 'bg-[#2691C2]/10 font-bold text-[#2691C2]' : 'text-slate-700'
-                    }`}
-                  >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
-                      {opt.name.charAt(0)}
-                    </div>
-                    <div className="min-w-0 flex-1 text-right">
-                      <p className="truncate font-semibold">{opt.name}</p>
-                      {opt.email && (
-                        <p className="truncate text-[11px] text-slate-400" dir="ltr">{opt.email}</p>
-                      )}
-                    </div>
-                    {opt.title && (
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
-                        {opt.title}
-                      </span>
-                    )}
-                  </button>
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <div className="min-w-0 flex-1 text-right">
+                  <p className="truncate font-semibold">{opt.name}</p>
+                  {opt.email && (
+                    <p className="truncate text-[11px] text-slate-400" dir="ltr">{opt.email}</p>
+                  )}
+                </div>
+                {opt.title && (
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+                    {opt.title}
+                  </span>
+                )}
+              </button>
+            ))
+          )}
+        </div>
+      </DropdownPortal>
     </div>
   )
 }

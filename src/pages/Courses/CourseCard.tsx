@@ -9,10 +9,15 @@ import {
   ArrowUpRight,
   GraduationCap,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import { useAuth } from '@/contexts/AuthContext'
+import {
+  buildCourseDetailEnrollHref,
+  gatePublicEnrollClick,
+} from '@/utils/publicEnrollAuth'
 
 type CourseCardProps = {
   course: CourseItem
@@ -42,6 +47,8 @@ function formatStartAr(iso: string | null): string | null {
 }
 
 export default function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
+  const { isAuthenticated, user } = useAuth()
+  const navigate = useNavigate()
   const accent = accentFromKey(course.category_label)
   const imgSrc = course.thumbnail
     ? resolvePublicAssetUrl(course.thumbnail) ?? course.thumbnail
@@ -177,13 +184,22 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
               تفاصيل
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
-            <Link
-              to={`/courses/${course.slug}/register`}
+            <button
+              type="button"
+              onClick={() => {
+                gatePublicEnrollClick({
+                  isAuthenticated,
+                  role: user?.role,
+                  redirectPath: buildCourseDetailEnrollHref(course.slug),
+                  navigate,
+                  onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
+                })
+              }}
               className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-500 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-600"
             >
               <BookOpen className="h-3.5 w-3.5" />
               سجل الآن
-            </Link>
+            </button>
           </div>
         </div>
       </div>

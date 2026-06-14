@@ -41,7 +41,7 @@ export default function ImpersonationBanner() {
     <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="pointer-events-auto sticky top-16 z-[45] mx-auto mb-4 w-full max-w-[1600px] px-0"
+      className="pointer-events-auto sticky top-16 z-30 mx-auto mb-4 w-full max-w-[1600px] px-0"
       dir="rtl"
       role="status"
       aria-live="polite"

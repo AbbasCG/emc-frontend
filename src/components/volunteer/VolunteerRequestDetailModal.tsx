@@ -5,16 +5,18 @@ import {
   Briefcase,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   Download,
   ExternalLink,
   Eye,
   FileText,
   HeartHandshake,
   Loader2,
+  Phone,
   Sparkles,
+  User,
   UserCheck,
   UserPlus,
-  Users,
   Video,
   X,
   XCircle,
@@ -29,6 +31,11 @@ import {
 } from '@/api/volunteerApplicationApi'
 import { formatDate } from '@/utils/dateTime'
 
+/* ── Design tokens ─────────────────────────────────────────────────── */
+
+const SCROLL =
+  '[scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400'
+
 /* ── Status config ─────────────────────────────────────────────────── */
 
 export const STATUS_CFG: Record<
@@ -37,27 +44,27 @@ export const STATUS_CFG: Record<
 > = {
   pending: {
     label: 'قيد المراجعة',
-    badge: 'bg-amber-100 text-amber-800 border-amber-200',
+    badge: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200/80',
     dot: 'bg-amber-500',
   },
   reviewed: {
     label: 'تحت المراجعة',
-    badge: 'bg-sky-100 text-sky-800 border-sky-200',
-    dot: 'bg-sky-500',
+    badge: 'bg-sky-50 text-sky-800 ring-1 ring-sky-200/80',
+    dot: 'bg-[#2691C2]',
   },
   accepted: {
     label: 'مقبول',
-    badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    badge: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80',
     dot: 'bg-emerald-500',
   },
   rejected: {
     label: 'مرفوض',
-    badge: 'bg-red-100 text-red-700 border-red-200',
+    badge: 'bg-red-50 text-red-700 ring-1 ring-red-200/80',
     dot: 'bg-red-500',
   },
   contacted: {
     label: 'تم التواصل',
-    badge: 'bg-violet-100 text-violet-800 border-violet-200',
+    badge: 'bg-violet-50 text-violet-800 ring-1 ring-violet-200/80',
     dot: 'bg-violet-500',
   },
 }
@@ -74,7 +81,7 @@ function StatusBadge({ status }: { status: VolunteerRequestStatus }) {
   const cfg = STATUS_CFG[status]
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-black ${cfg.badge}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${cfg.badge}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} aria-hidden />
       {cfg.label}
@@ -109,13 +116,13 @@ function displayValue(value?: string | null): string {
 function buildWhatsAppUrl(phone?: string | null): string | null {
   if (!phone?.trim()) return null
   const digits = phone.replace(/\D/g, '')
-  if (!digits) return null
+  if (digits.length < 8) return null
   return `https://wa.me/${digits}`
 }
 
-/* ── Card primitives ───────────────────────────────────────────────── */
+/* ── Primitives ────────────────────────────────────────────────────── */
 
-function InfoCard({
+function SectionCard({
   title,
   icon,
   children,
@@ -127,21 +134,21 @@ function InfoCard({
   className?: string
 }) {
   return (
-    <div
-      className={`rounded-2xl border border-[#22334A]/[0.07] bg-white shadow-sm ring-1 ring-[#22334A]/[0.03] ${className}`}
+    <section
+      className={`overflow-hidden rounded-2xl border border-[#22334A]/[0.06] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${className}`}
     >
-      <div className="flex items-center gap-2 border-b border-[#22334A]/[0.06] bg-slate-50/70 px-3.5 py-2.5">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#2691C2]/10 text-[#2691C2]">
+      <div className="flex items-center gap-2.5 border-b border-[#22334A]/[0.05] bg-[#F8FAFC] px-4 py-3">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#22334A]/[0.06] text-[#22334A]/70">
           {icon}
         </span>
-        <h3 className="text-[11px] font-black text-[#22334A]">{title}</h3>
+        <h3 className="text-[12px] font-bold tracking-tight text-[#22334A]">{title}</h3>
       </div>
-      <div className="px-3.5 py-3">{children}</div>
-    </div>
+      <div className="px-4 py-3.5">{children}</div>
+    </section>
   )
 }
 
-function InfoRow({
+function FieldRow({
   label,
   value,
   dir,
@@ -151,28 +158,63 @@ function InfoRow({
   dir?: 'ltr' | 'rtl'
 }) {
   return (
-    <div className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5 last:border-0 last:pb-0">
-      <span className="shrink-0 text-[10px] font-black text-[#22334A]/45">{label}</span>
-      <span className="text-left text-[12px] font-bold text-[#22334A]" dir={dir}>
+    <div className="grid grid-cols-[minmax(88px,38%)_1fr] items-start gap-x-3 gap-y-0.5 border-b border-slate-100 py-2.5 last:border-0 last:pb-0">
+      <span className="text-[10px] font-semibold leading-relaxed text-slate-400">{label}</span>
+      <span
+        dir={dir}
+        className="text-[13px] font-bold leading-snug text-[#0F172A]"
+      >
         {displayValue(value)}
       </span>
     </div>
   )
 }
 
-function TextBlock({ text }: { text?: string | null }) {
+function ProseBlock({ text }: { text?: string | null }) {
   const content = text?.trim()
   if (!content) {
-    return <p className="text-[12px] font-semibold text-slate-400">—</p>
+    return <p className="text-[13px] font-medium text-slate-400">—</p>
   }
   return (
-    <p className="line-clamp-4 whitespace-pre-wrap text-[12px] font-medium leading-relaxed text-[#22334A]/85">
+    <p className="whitespace-pre-wrap text-[13px] font-medium leading-[1.75] text-[#0F172A]/90">
       {content}
     </p>
   )
 }
 
-/* ── WhatsApp icon ─────────────────────────────────────────────────── */
+function ActionBtn({
+  children,
+  onClick,
+  disabled,
+  variant = 'neutral',
+}: {
+  children: ReactNode
+  onClick: () => void
+  disabled?: boolean
+  variant?: 'neutral' | 'primary' | 'danger' | 'accent'
+}) {
+  const styles = {
+    neutral:
+      'border-[#22334A]/10 bg-white text-[#22334A] hover:border-[#22334A]/20 hover:bg-[#F8FAFC]',
+    primary:
+      'border-[#22334A] bg-[#22334A] text-white hover:bg-[#2691C2] hover:border-[#2691C2]',
+    danger:
+      'border-red-200/80 bg-white text-red-700 hover:bg-red-50',
+    accent:
+      'border-[#2691C2]/25 bg-[#2691C2]/[0.06] text-[#22334A] hover:bg-[#2691C2]/10',
+  }[variant]
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3.5 py-2 text-[11px] font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${styles}`}
+    >
+      {children}
+    </button>
+  )
+}
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -302,57 +344,58 @@ export default function VolunteerRequestDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5"
+      className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="volunteer-detail-title"
     >
-      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#0F172A]/55 backdrop-blur-[3px]"
         onClick={onClose}
         aria-hidden
       />
 
-      {/* Centered modal */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+        initial={{ opacity: 0, scale: 0.97, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 16 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 340 }}
-        className="relative z-10 flex max-h-[90vh] w-full max-w-[1024px] flex-col overflow-hidden rounded-3xl bg-gradient-to-b from-slate-50 to-white font-[Cairo,sans-serif] shadow-[0_32px_80px_-20px_rgba(15,23,42,0.45)] ring-1 ring-white/80"
+        exit={{ opacity: 0, scale: 0.97, y: 24 }}
+        transition={{ type: 'spring', damping: 30, stiffness: 380 }}
+        className="relative z-10 flex max-h-[92vh] w-full max-w-[1000px] flex-col overflow-hidden rounded-t-3xl bg-[#F8FAFC] font-[Cairo,sans-serif] shadow-[0_40px_100px_-24px_rgba(15,23,42,0.55)] ring-1 ring-[#22334A]/10 sm:max-h-[90vh] sm:rounded-3xl"
         dir="rtl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ───────────────────────────────────────────────── */}
-        <header className="shrink-0 border-b border-[#22334A]/[0.08] bg-white px-5 py-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[20px] font-black text-white shadow-lg shadow-[#2691C2]/25">
+        {/* Accent bar */}
+        <div className="h-1 shrink-0 bg-gradient-to-l from-[#2691C2] via-[#22334A] to-[#EC943C]" />
+
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <header className="shrink-0 border-b border-[#22334A]/[0.06] bg-white px-4 py-4 sm:px-6">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#22334A] text-[17px] font-bold text-white shadow-sm sm:h-14 sm:w-14 sm:text-[19px]">
               {req.full_name.charAt(0)}
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2
                   id="volunteer-detail-title"
-                  className="text-[20px] font-black leading-tight text-[#22334A]"
+                  className="text-[17px] font-bold leading-tight text-[#0F172A] sm:text-[19px]"
                 >
                   {req.full_name}
                 </h2>
                 <StatusBadge status={req.status} />
               </div>
-              <p className="mt-0.5 text-[13px] font-semibold text-slate-500" dir="ltr">
+              <p className="mt-1 truncate text-[12px] font-medium text-slate-500" dir="ltr">
                 {req.email}
               </p>
               {req.created_at && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                <p className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] font-medium text-slate-400">
+                  <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2691C2]/70" />
                   <span>تاريخ التقديم:</span>
-                  <span className="text-[#22334A]/70">{formatDate(req.created_at)}</span>
+                  <span className="font-bold text-[#22334A]/80">{formatDate(req.created_at)}</span>
                 </p>
               )}
             </div>
@@ -361,250 +404,278 @@ export default function VolunteerRequestDetailModal({
               type="button"
               onClick={onClose}
               aria-label="إغلاق"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-50 hover:text-[#22334A]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#22334A]/10 bg-[#F8FAFC] text-slate-500 transition hover:border-[#22334A]/20 hover:text-[#22334A]"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Quick actions */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
+          {/* Action bar */}
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#22334A]/[0.05] pt-4">
+            <ActionBtn
+              variant="primary"
               disabled={saving || req.status === 'accepted'}
               onClick={() => void quickStatus('accepted')}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-40"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               قبول
-            </button>
-            <button
-              type="button"
+            </ActionBtn>
+            <ActionBtn
+              variant="danger"
               disabled={saving || req.status === 'rejected'}
               onClick={() => void quickStatus('rejected')}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-[11px] font-black text-red-700 transition hover:bg-red-100 disabled:opacity-40"
             >
               <XCircle className="h-3.5 w-3.5" />
               رفض
-            </button>
-            <button
-              type="button"
+            </ActionBtn>
+            <ActionBtn
+              variant="neutral"
               disabled={saving}
               onClick={() => void quickStatus('reviewed')}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2 text-[11px] font-black text-violet-700 transition hover:bg-violet-100 disabled:opacity-40"
             >
-              <Video className="h-3.5 w-3.5" />
+              <Video className="h-3.5 w-3.5 text-[#2691C2]" />
               جدولة مقابلة
-            </button>
+            </ActionBtn>
             {whatsappUrl && (
-              <button
-                type="button"
-                disabled={saving}
-                onClick={openWhatsApp}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-[11px] font-black text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-40"
-              >
-                <WhatsAppIcon className="h-3.5 w-3.5" />
+              <ActionBtn variant="neutral" disabled={saving} onClick={openWhatsApp}>
+                <WhatsAppIcon className="h-3.5 w-3.5 text-emerald-600" />
                 واتساب
-              </button>
+              </ActionBtn>
             )}
           </div>
         </header>
 
-        {/* ── Scrollable body ──────────────────────────────────────── */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <InfoCard title="بيانات المتقدم" icon={<Users className="h-3.5 w-3.5" />}>
-              <InfoRow label="الاسم" value={req.full_name} />
-              <InfoRow label="البريد الإلكتروني" value={req.email} dir="ltr" />
-              <InfoRow label="الجوال" value={req.phone} dir="ltr" />
-              <InfoRow label="الدولة" value={req.country} />
-              <InfoRow label="المدينة" value={req.city} />
-              <InfoRow label="الجنس" value={genderLabel(req.gender)} />
-            </InfoCard>
+        {/* ── Body ───────────────────────────────────────────────── */}
+        <div className={`min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 ${SCROLL}`}>
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+            {/* 1. Applicant */}
+            <SectionCard title="بيانات المتقدم" icon={<User className="h-3.5 w-3.5" />}>
+              <FieldRow label="الاسم" value={req.full_name} />
+              <FieldRow label="الجنس" value={genderLabel(req.gender)} />
+            </SectionCard>
 
-            <InfoCard title="التطوع" icon={<Briefcase className="h-3.5 w-3.5" />}>
-              <InfoRow label="القسم المطلوب" value={req.desired_department} />
-              <InfoRow label="مستوى الخبرة" value={req.experience_level} />
-              <InfoRow label="التوفر" value={req.availability} />
-            </InfoCard>
+            {/* 2. Contact */}
+            <SectionCard title="معلومات التواصل" icon={<Phone className="h-3.5 w-3.5" />}>
+              <FieldRow label="البريد الإلكتروني" value={req.email} dir="ltr" />
+              <FieldRow label="الجوال" value={req.phone} dir="ltr" />
+              <FieldRow label="الدولة" value={req.country} />
+              <FieldRow label="المدينة" value={req.city} />
+            </SectionCard>
 
-            <InfoCard title="الخبرة السابقة" icon={<FileText className="h-3.5 w-3.5" />}>
-              <TextBlock text={req.previous_experience} />
-            </InfoCard>
+            {/* 3. Department & availability */}
+            <SectionCard title="القسم والتوفر" icon={<Briefcase className="h-3.5 w-3.5" />}>
+              <FieldRow label="القسم المطلوب" value={req.desired_department} />
+              <FieldRow label="مستوى الخبرة" value={req.experience_level} />
+              <FieldRow label="التوفر" value={req.availability} />
+            </SectionCard>
 
-            <InfoCard title="الدافع للتطوع" icon={<HeartHandshake className="h-3.5 w-3.5" />}>
-              <TextBlock text={req.motivation} />
-            </InfoCard>
+            {/* 4. Experience & skills */}
+            <SectionCard title="الخبرة والمهارات" icon={<Sparkles className="h-3.5 w-3.5" />}>
+              <p className="mb-2 text-[10px] font-semibold text-slate-400">الخبرة السابقة</p>
+              <ProseBlock text={req.previous_experience} />
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <p className="mb-2 text-[10px] font-semibold text-slate-400">المهارات</p>
+                {skills.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-lg bg-[#22334A]/[0.05] px-2.5 py-1 text-[11px] font-bold text-[#22334A]"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[13px] font-medium text-slate-400">—</p>
+                )}
+              </div>
+            </SectionCard>
 
-            <InfoCard
-              title="المهارات"
-              icon={<Sparkles className="h-3.5 w-3.5" />}
+            {/* 5. Motivation — full width on md when paired with empty slot, span 2 if alone */}
+            <SectionCard
+              title="الدافع للتطوع"
+              icon={<HeartHandshake className="h-3.5 w-3.5" />}
               className="md:col-span-2"
             >
-              {skills.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-xl border border-[#2691C2]/15 bg-[#2691C2]/[0.07] px-2.5 py-1 text-[11px] font-black text-[#2691C2]"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[12px] font-semibold text-slate-400">—</p>
-              )}
-            </InfoCard>
-          </div>
+              <ProseBlock text={req.motivation} />
+            </SectionCard>
 
-          {/* CV */}
-          <div className="mt-3 rounded-2xl border border-[#22334A]/[0.07] bg-white p-4 shadow-sm ring-1 ring-[#22334A]/[0.03]">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#EC943C]/15 text-[#EC943C]">
-                <FileText className="h-3.5 w-3.5" />
-              </span>
-              <h3 className="text-[11px] font-black text-[#22334A]">السيرة الذاتية</h3>
-            </div>
-            {hasCv ? (
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <a
-                  href={cvViewUrl ?? '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#22334A] px-5 py-3 text-[13px] font-black text-white transition hover:bg-[#2691C2]"
-                >
-                  <Eye className="h-4 w-4" />
-                  عرض السيرة الذاتية
-                </a>
-                <a
-                  href={cvDownloadUrl ?? '#'}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-[#2691C2]/30 bg-[#2691C2]/10 px-5 py-3 text-[13px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/18"
-                >
-                  <Download className="h-4 w-4" />
-                  تحميل السيرة الذاتية
-                </a>
-              </div>
-            ) : (
-              <p className="py-2 text-center text-[12px] font-semibold text-slate-400">
-                لا توجد سيرة ذاتية مرفوعة
-              </p>
-            )}
-          </div>
-
-          {/* Convert to member — compact */}
-          {req.status === 'accepted' && (
-            <div
-              className={`mt-3 rounded-2xl border p-3 ${
-                localConverted
-                  ? 'border-emerald-200 bg-emerald-50/80'
-                  : 'border-emerald-200/60 bg-emerald-50/40'
-              }`}
+            {/* 6. CV */}
+            <SectionCard
+              title="السيرة الذاتية"
+              icon={<FileText className="h-3.5 w-3.5" />}
+              className="md:col-span-2"
             >
-              {localConverted ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                  <p className="flex-1 text-[11px] font-black text-emerald-800">
-                    تمت إضافته إلى الأعضاء
-                  </p>
-                  <Link
-                    to="/dashboard/members"
-                    onClick={onClose}
-                    className="inline-flex items-center gap-1 rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-[10px] font-black text-emerald-700 transition hover:bg-emerald-50"
+              {hasCv ? (
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <a
+                    href={cvViewUrl ?? '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#22334A] bg-[#22334A] px-4 py-3 text-[12px] font-bold text-white transition hover:bg-[#2691C2] hover:border-[#2691C2]"
                   >
-                    <ExternalLink className="h-3 w-3" />
-                    عرض الأعضاء
-                  </Link>
+                    <Eye className="h-4 w-4" />
+                    عرض السيرة الذاتية
+                  </a>
+                  <a
+                    href={cvDownloadUrl ?? '#'}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#22334A]/15 bg-white px-4 py-3 text-[12px] font-bold text-[#22334A] transition hover:border-[#2691C2]/40 hover:bg-[#2691C2]/[0.04]"
+                  >
+                    <Download className="h-4 w-4 text-[#2691C2]" />
+                    تحميل السيرة الذاتية
+                  </a>
                 </div>
               ) : (
-                <div className="flex flex-wrap items-center gap-2">
-                  <UserPlus className="h-4 w-4 shrink-0 text-emerald-600" />
-                  <p className="min-w-0 flex-1 text-[11px] font-semibold text-emerald-800">
-                    إضافة إلى صفحة الأعضاء؟
-                  </p>
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-[#F8FAFC] px-4 py-6 text-center">
+                  <FileText className="mb-2 h-8 w-8 text-slate-300" />
+                  <p className="text-[12px] font-bold text-slate-500">لا توجد سيرة ذاتية مرفوعة</p>
+                </div>
+              )}
+            </SectionCard>
+
+            {/* Convert to member */}
+            {req.status === 'accepted' && (
+              <div
+                className={`md:col-span-2 rounded-2xl border px-4 py-3 ${
+                  localConverted
+                    ? 'border-emerald-200/80 bg-emerald-50/60'
+                    : 'border-[#22334A]/10 bg-white'
+                }`}
+              >
+                {localConverted ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <p className="flex-1 text-[12px] font-bold text-emerald-800">
+                      تمت إضافته إلى الأعضاء
+                    </p>
+                    <Link
+                      to="/dashboard/members"
+                      onClick={onClose}
+                      className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-50"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      عرض الأعضاء
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <UserPlus className="h-4 w-4 shrink-0 text-[#22334A]/60" />
+                    <p className="min-w-0 flex-1 text-[12px] font-medium text-[#22334A]">
+                      إضافة هذا المتطوع إلى صفحة الأعضاء؟
+                    </p>
+                    <button
+                      type="button"
+                      onClick={
+                        onOpenConvert
+                          ? () => {
+                              onClose()
+                              onOpenConvert(req)
+                            }
+                          : () => void handleConvert()
+                      }
+                      disabled={converting}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#22334A] bg-[#22334A] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#2691C2] disabled:opacity-50"
+                    >
+                      {converting ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <UserPlus className="h-3.5 w-3.5" />
+                      )}
+                      إضافة إلى الأعضاء
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 7. Admin actions — in scroll on mobile, also sticky footer below */}
+            <SectionCard
+              title="إجراءات الإدارة"
+              icon={<UserCheck className="h-3.5 w-3.5" />}
+              className="md:col-span-2"
+            >
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label
+                    htmlFor="volunteer-status-select"
+                    className="mb-1.5 block text-[10px] font-semibold text-slate-400"
+                  >
+                    حالة الطلب
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="volunteer-status-select"
+                      value={selectedStatus}
+                      onChange={(e) => {
+                        setSelectedStatus(e.target.value as VolunteerRequestStatus)
+                        setDirty(true)
+                      }}
+                      dir="rtl"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#22334A]/10 bg-white pl-9 pr-3.5 text-[13px] font-bold text-[#0F172A] outline-none transition focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+                    >
+                      {ALL_STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_CFG[s].label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+                      <span
+                        className={`inline-block h-2 w-2 rounded-full ${STATUS_CFG[selectedStatus].dot}`}
+                      />
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="volunteer-admin-notes"
+                    className="mb-1.5 block text-[10px] font-semibold text-slate-400"
+                  >
+                    ملاحظات الإدارة
+                  </label>
+                  <textarea
+                    id="volunteer-admin-notes"
+                    value={adminNotes}
+                    onChange={(e) => {
+                      setAdminNotes(e.target.value)
+                      setDirty(true)
+                    }}
+                    placeholder="ملاحظات داخلية للفريق..."
+                    rows={3}
+                    className="w-full resize-none rounded-xl border border-[#22334A]/10 bg-white px-3.5 py-2.5 text-[13px] font-medium leading-relaxed text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+                  />
+                </div>
+
+                <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={
-                      onOpenConvert
-                        ? () => {
-                            onClose()
-                            onOpenConvert(req)
-                          }
-                        : () => void handleConvert()
-                    }
-                    disabled={converting}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                    onClick={() => void handleSave()}
+                    disabled={!dirty || saving}
+                    className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {converting ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <UserPlus className="h-3.5 w-3.5" />
-                    )}
-                    إضافة إلى الأعضاء
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    حفظ التغييرات
                   </button>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            </SectionCard>
+          </div>
         </div>
 
-        {/* ── Admin footer ─────────────────────────────────────────── */}
-        <footer className="shrink-0 border-t border-[#22334A]/[0.08] bg-white px-5 py-4">
-          <div className="mb-2.5 flex items-center gap-2">
-            <UserCheck className="h-4 w-4 text-[#EC943C]" />
-            <h3 className="text-[12px] font-black text-[#22334A]">إجراءات الإدارة</h3>
-          </div>
-
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start">
-            <div className="relative shrink-0 sm:w-44">
-              <select
-                value={selectedStatus}
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value as VolunteerRequestStatus)
-                  setDirty(true)
-                }}
-                dir="rtl"
-                className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-[12px] font-black text-[#22334A] outline-none transition focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
-              >
-                {ALL_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_CFG[s].label}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2">
-                <span
-                  className={`inline-block h-2 w-2 rounded-full ${STATUS_CFG[selectedStatus].dot}`}
-                />
-              </span>
-            </div>
-
-            <textarea
-              value={adminNotes}
-              onChange={(e) => {
-                setAdminNotes(e.target.value)
-                setDirty(true)
-              }}
-              placeholder="ملاحظات داخلية للفريق..."
-              rows={2}
-              className="min-h-[40px] flex-1 resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-[#22334A] outline-none transition placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
-              aria-label="ملاحظات الإدارة"
-            />
-
-            <button
-              type="button"
-              onClick={() => void handleSave()}
-              disabled={!dirty || saving}
-              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-white shadow-md transition hover:brightness-105 disabled:opacity-40 sm:self-stretch"
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              حفظ
-            </button>
-          </div>
-        </footer>
+        {/* Sticky save hint when dirty — compact footer */}
+        {dirty && (
+          <footer className="shrink-0 border-t border-[#EC943C]/20 bg-[#EC943C]/[0.06] px-4 py-2.5 sm:px-6">
+            <p className="text-center text-[11px] font-medium text-[#22334A]">
+              لديك تغييرات غير محفوظة — اضغط «حفظ التغييرات» قبل الإغلاق
+            </p>
+          </footer>
+        )}
       </motion.div>
     </div>
   )

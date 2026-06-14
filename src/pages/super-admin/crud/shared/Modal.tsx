@@ -50,10 +50,10 @@ export function CrudModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-foreground/35 backdrop-blur-[2px]"
+            className="fixed inset-0 z-modal-overlay bg-foreground/35 backdrop-blur-[2px]"
             onClick={onClose}
           />
-          <div className="fixed inset-0 z-[141] grid place-items-center p-4" dir="rtl">
+          <div className="fixed inset-0 z-modal-content grid place-items-center p-4" dir="rtl">
             <motion.div
               role="dialog"
               aria-modal

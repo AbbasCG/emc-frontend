@@ -11,6 +11,7 @@
  * - Instructor scope: `/instructor/courses/{courseId}/…` (same shapes).
  */
 
+import axios from 'axios'
 import apiClient from '@/api/axios'
 import { asList, unwrapLms } from '@/api/lmsApi'
 import { unwrapData } from '@/api/unwrap'
@@ -476,6 +477,17 @@ export function normalizeStudentCourseLearn(payload: unknown, courseIdFallback: 
   const mats = normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents']))
   const assigns = normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework']))
 
+  // Include module-nested assignments in the top-level list (deduped)
+  const seenAssignIds = new Set(assigns.map((a) => a.id))
+  for (const mod of mods) {
+    for (const a of mod.assignments ?? []) {
+      if (!seenAssignIds.has(a.id)) {
+        assigns.push(a)
+        seenAssignIds.add(a.id)
+      }
+    }
+  }
+
   return {
     course,
     progress_percent: progressPct,
@@ -491,7 +503,7 @@ export function normalizeStudentCourseLearn(payload: unknown, courseIdFallback: 
 /** Single GET …/courses/{id}/content payload — admin + instructor scope. */
 export type CourseCmsContentBundle = {
   course: StudentLearnCourseOverview | null
-  modules: LmsModule[]
+  modules: StudentLearnModule[]
   sessions: CourseLearnSession[]
   materials: CourseLearnMaterial[]
   assignments: CourseLearnAssignment[]
@@ -521,14 +533,9 @@ function normalizeCourseCmsContentEnvelope(payload: unknown, courseIdFallback: n
     courseOv = buildCourseOverview(cr as Record<string, unknown>, courseIdFallback, 'محتوى الدورة')
   }
 
-  const modulesNormalized = normalizeModules(firstArray(root, ['modules', 'course_modules']))
-  const modules: LmsModule[] = modulesNormalized.map((m) => ({
-    id: m.id,
+  const modules = normalizeModules(firstArray(root, ['modules', 'course_modules'])).map((m) => ({
+    ...m,
     course_id: m.course_id && m.course_id > 0 ? m.course_id : courseIdFallback,
-    title: m.title,
-    sort_order: m.sort_order,
-    lessons_count: m.lessons_count,
-    completed_lessons: m.completed_lessons,
   }))
 
   return {
@@ -602,6 +609,21 @@ export async function saveCourseNotes(courseId: number, content: string): Promis
 
 /** Full course CMS tree (preferred); falls back gracefully if `/content` missing. */
 
+async function safeCmsList<T>(loader: () => Promise<T[]>, label: string): Promise<T[]> {
+  try {
+    return await loader()
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status
+      if (status === 404 || status === 405 || status === 403) {
+        if (import.meta.env.DEV) console.warn(`LMS CMS skip ${label}: HTTP ${status}`)
+        return []
+      }
+    }
+    throw err
+  }
+}
+
 export async function fetchCourseCmsContent(courseId: number, scope: CourseCmsScope): Promise<CourseCmsContentBundle> {
   const url = `${courseCmsBase(courseId, scope)}/content`
   logLmsApiRequest('GET', url)
@@ -609,11 +631,16 @@ export async function fetchCourseCmsContent(courseId: number, scope: CourseCmsSc
     const res = await apiClient.get<unknown>(url, silentLms)
     return normalizeCourseCmsContentEnvelope(res.data, courseId)
   } catch (_err: unknown) {
+    const assignmentsLoader =
+      scope === 'instructor'
+        ? () => Promise.resolve([] as CourseLearnAssignment[])
+        : () => adminListCourseAssignmentsLegacy(courseId, scope)
+
     const [mods, sess, mats, assigns] = await Promise.all([
-      adminListCourseModulesLegacy(courseId, scope),
-      adminListCourseSessionsLegacy(courseId, scope),
-      adminListCourseMaterialsLegacy(courseId, scope),
-      adminListCourseAssignmentsLegacy(courseId, scope),
+      safeCmsList(() => adminListCourseModulesLegacy(courseId, scope), 'modules'),
+      safeCmsList(() => adminListCourseSessionsLegacy(courseId, scope), 'sessions'),
+      safeCmsList(() => adminListCourseMaterialsLegacy(courseId, scope), 'materials'),
+      safeCmsList(assignmentsLoader, 'assignments'),
     ])
 
     const courseOv = buildCourseOverview({ id: courseId }, courseId, 'محتوى الدورة')
@@ -660,7 +687,7 @@ async function adminListCourseAssignmentsLegacy(courseId: number, scope: CourseC
 
 /** Module rows for admin CMS (reuse platform LmsModule shape + optional extras) */
 
-export async function adminListCourseModules(courseId: number, scope: CourseCmsScope): Promise<LmsModule[]> {
+export async function adminListCourseModules(courseId: number, scope: CourseCmsScope): Promise<StudentLearnModule[]> {
   return (await fetchCourseCmsContent(courseId, scope)).modules
 }
 
@@ -791,6 +818,28 @@ export async function adminUpdateCourseAssignment(courseId: number, assignmentId
 
 export async function adminDeleteCourseAssignment(courseId: number, assignmentId: number, scope: CourseCmsScope): Promise<void> {
   const url = `${courseCmsBase(courseId, scope)}/assignments/${assignmentId}`
+  logLmsApiRequest('DELETE', url)
+  await apiClient.delete(url, silentLms)
+}
+
+export async function adminCreateCourseLesson(courseId: number, body: Record<string, unknown>, scope: CourseCmsScope): Promise<ModuleLesson> {
+  const url = `${courseCmsBase(courseId, scope)}/lessons`
+  logLmsApiRequest('POST', url, body)
+  const res = await apiClient.post<unknown>(url, body, silentLms)
+  const raw = unwrapLms<Record<string, unknown>>(res.data)
+  return {
+    id: toNum(raw.id),
+    title: str(raw.title, 'درس'),
+    description: raw.description != null ? str(raw.description) || undefined : undefined,
+    video_url: raw.video_url != null ? str(raw.video_url) || undefined : undefined,
+    duration_minutes: raw.duration_minutes != null ? toNum(raw.duration_minutes) : undefined,
+    sort_order: toNum(raw.sort_order, 0),
+    status: str(raw.status, 'active'),
+  }
+}
+
+export async function adminDeleteCourseLesson(courseId: number, lessonId: number, scope: CourseCmsScope): Promise<void> {
+  const url = `${courseCmsBase(courseId, scope)}/lessons/${lessonId}`
   logLmsApiRequest('DELETE', url)
   await apiClient.delete(url, silentLms)
 }

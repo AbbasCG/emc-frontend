@@ -28,6 +28,7 @@ import {
   formatPublicTime,
   formatSessionDurationFromRange,
 } from '@/utils/publicDetailFormat'
+import { resolveCourseDisplayDuration } from '@/utils/courseDuration'
 import type { LucideIcon } from 'lucide-react'
 import {
   Award,
@@ -61,6 +62,9 @@ export type CourseDetailDerived = {
   deliveryAr: string | null
   programAr: string | null
   priceLabel: string
+  originalPriceLabel: string | null
+  discountPercent: number | null
+  languageDisplay: string | null
   seatsFull: boolean
   keywordTags: string[]
   quickFacts: PublicInfoCard[]
@@ -144,10 +148,8 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
   const languageDisplay = langLooksWrong ? null : langRaw || null
 
   const calculatedDuration = formatDuration(course.start_date, course.end_date)
-  const explicitDurationStr = safeTrimUnknown(course.duration)
   const displayDuration =
-    explicitDurationStr ||
-    calculatedDuration ||
+    resolveCourseDisplayDuration(course, apiExtra, calculatedDuration) ||
     (!hasParsableCourseDate(course.start_date) && !hasParsableCourseDate(course.end_date) ?
       'انضم إلى الدورة القادمة'
     : '')
@@ -225,7 +227,23 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
     apiExtra.completion_criteria ?? apiExtra.completion_requirements ?? apiExtra.passing_criteria,
   )
 
+  const priceNum = Number(course.price)
+  const originalRaw = apiExtra.original_price ?? apiExtra.compare_at_price ?? apiExtra.list_price
+  const originalNum = originalRaw != null ? Number(originalRaw) : NaN
+  const hasDiscount =
+    !isFree &&
+    Number.isFinite(priceNum) &&
+    Number.isFinite(originalNum) &&
+    originalNum > priceNum
+  const discountFromApi = apiExtra.discount_percent != null ? Number(apiExtra.discount_percent) : NaN
+  const discountPercent =
+    hasDiscount ?
+      Number.isFinite(discountFromApi) && discountFromApi > 0 ?
+        Math.round(discountFromApi)
+      : Math.round(((originalNum - priceNum) / originalNum) * 100)
+    : null
   const priceLabel = isFree ? 'مجانية' : formatPrice(course.price)
+  const originalPriceLabel = hasDiscount ? formatPrice(originalNum) : null
   const targetAudience = coerceCourseBlockText(course.target_audience ?? apiExtra.target_audience)
   const fullDescription = coerceCourseBlockText(course.description)
 
@@ -315,6 +333,9 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
     deliveryAr,
     programAr,
     priceLabel,
+    originalPriceLabel,
+    discountPercent,
+    languageDisplay,
     seatsFull,
     keywordTags,
     quickFacts,

@@ -7,6 +7,7 @@ import {
   mapProgramTypeArabic,
   resolveCourseCoverImageUrl,
 } from '@/utils/publicCourseDisplay'
+import { isOneSessionWorkshop, ONE_SESSION_WORKSHOP_DURATION_AR } from '@/utils/courseDuration'
 
 const INSTRUCTOR_FALLBACK_AR = 'لم يتم تعيين مدرب بعد'
 
@@ -162,9 +163,15 @@ function catalogTypeFromCourse(
   return { kind: 'course', label: programLabel ?? 'دورة تدريبية' }
 }
 
-function formatDurationDisplay(c: Course, weeksFallback: number): string {
+function formatDurationDisplay(c: Course, weeksFallback: number, extra: Record<string, unknown>): string {
+  if (isOneSessionWorkshop(c, extra)) return ONE_SESSION_WORKSHOP_DURATION_AR
+
   const d = c.duration
   if (typeof d === 'string' && d.trim() !== '') return d.trim()
+
+  const computed = String(extra.computed_duration_label ?? '').trim()
+  if (computed) return computed
+
   if (typeof c.training_hours === 'number' && c.training_hours > 0) {
     return `${c.training_hours} ساعة تدريبية`
   }
@@ -306,7 +313,7 @@ export function mapApiCourseToCourseItem(rawInput: Course | Record<string, unkno
     original_price: null,
     is_free: isFree,
     duration_weeks: weeks,
-    duration_label: formatDurationDisplay(c, weeks),
+    duration_label: formatDurationDisplay(c, weeks, extra),
     sessions_count: Math.max(1, Number(c.training_hours) > 0 ? Math.ceil(Number(c.training_hours) / 2) : 12),
     trainer: {
       name: trainerName,
