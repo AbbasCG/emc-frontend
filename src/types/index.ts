@@ -102,6 +102,20 @@ export type Course = {
   learning_outcomes?: string | null
   keywords?: string | null
   admin_notes?: string | null
+
+  /** Learning path membership — injected by AdminCourseController */
+  learning_path?: {
+    id: number
+    title: string
+    slug: string
+    status: string
+  } | null
+  is_part_of_learning_path?: boolean
+  learning_path_status?: string | null
+  can_delete?: boolean
+  can_archive?: boolean
+  can_deactivate?: boolean
+  lock_reason?: string | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'

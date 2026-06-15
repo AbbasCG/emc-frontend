@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
+import ConfirmDialog from '@/components/feedback/ConfirmDialog'
 import {
   ClipboardList,
   Layers,
@@ -12,10 +13,12 @@ import {
 import {
   createAccountFromRegistration,
   fetchAdminRegistrations,
+  repairRegistrationLinks,
   type AdminRegistrationListFilters,
   type AdminRegistrationListRow,
 } from '@/api/adminRegistrationsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import toast from '@/lib/toast'
 import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
 import { LoadingPanel, EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 import { CrudCardTable, CrudTable, Td, Th, Tr } from '@/pages/super-admin/crud/shared/TableChrome'
@@ -115,9 +118,11 @@ function CreateAccountButton({
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 
 export default function RegistrationsManagementPage() {
-  const [loading, setLoading] = useState(true)
-  const [rows, setRows] = useState<AdminRegistrationListRow[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [rows,        setRows]        = useState<AdminRegistrationListRow[]>([])
+  const [error,       setError]       = useState<string | null>(null)
+  const [repairBusy,   setRepairBusy]   = useState(false)
+  const [confirmRepair, setConfirmRepair] = useState(false)
 
   /* filter state — draft vs applied */
   const [searchDraft, setSearchDraft] = useState('')
@@ -199,6 +204,22 @@ export default function RegistrationsManagementPage() {
     )
   }
 
+  async function doRepairLinks() {
+    setConfirmRepair(false)
+    setRepairBusy(true)
+    try {
+      const result = await repairRegistrationLinks()
+      toast.success(
+        `تم ربط ${result.linked_registrations} تسجيل، إنشاء ${result.created_progress_records} سجل تقدم، تخطّي ${result.skipped_duplicates} مكرر.`
+      )
+      void load()
+    } catch (e) {
+      toast.error(getApiErrorMessage(e))
+    } finally {
+      setRepairBusy(false)
+    }
+  }
+
   return (
     <SaPageRoot className="space-y-8 pb-16">
       <EnterpriseCrudHero
@@ -207,14 +228,25 @@ export default function RegistrationsManagementPage() {
         subtitle="قائمة حقيقية من جدول registrations مع الدورة والمتعلم — تسجيلات الضيوف مميّزة بوضوح."
         variant="orange"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="inline-flex items-center gap-2 rounded-[18px] border border-white/25 bg-white/95 px-4 py-2.5 text-[12px] font-black text-deepBlue shadow backdrop-blur-md"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
-            تحديث
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex items-center gap-2 rounded-[18px] border border-white/25 bg-white/95 px-4 py-2.5 text-[12px] font-black text-deepBlue shadow backdrop-blur-md"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+              تحديث
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmRepair(true)}
+              disabled={repairBusy}
+              className="inline-flex items-center gap-2 rounded-[18px] border border-white/25 bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow backdrop-blur-md hover:bg-[#d97f2a] disabled:opacity-60 transition"
+            >
+              <UserPlus className={`h-4 w-4 ${repairBusy ? 'animate-spin' : ''}`} aria-hidden />
+              {repairBusy ? 'جار الربط…' : 'ربط التسجيلات'}
+            </button>
+          </div>
         }
       />
 
@@ -350,6 +382,16 @@ export default function RegistrationsManagementPage() {
         </div>
       </SaGlassCard>
 
+      {/* Result count */}
+      {!loading && !error && rows.length > 0 && (
+        <div className="flex items-center justify-end gap-1.5 text-[11px] font-bold text-slate-500" dir="rtl">
+          <span className="inline-flex h-5 min-w-[1.5rem] items-center justify-center rounded-full bg-slate-200 px-1.5 text-[10px] font-black text-slate-700">
+            {rows.length}
+          </span>
+          تسجيل في النطاق الحالي
+        </div>
+      )}
+
       {/* Table */}
       {error ? (
         <ErrorPanel title="تعذّر تحميل التسجيلات" hint={error} />
@@ -432,6 +474,17 @@ export default function RegistrationsManagementPage() {
           </CrudTable>
         </CrudCardTable>
       )}
+
+      <ConfirmDialog
+        open={confirmRepair}
+        title="ربط التسجيلات بالحسابات"
+        description="هل تريد ربط جميع تسجيلات الضيوف بالحسابات المطابقة وإنشاء سجلات التقدم المفقودة؟ لن تُحذف أي بيانات."
+        confirmLabel="تأكيد الربط"
+        cancelLabel="إلغاء"
+        variant="primary"
+        onConfirm={() => void doRepairLinks()}
+        onCancel={() => setConfirmRepair(false)}
+      />
     </SaPageRoot>
   )
 }

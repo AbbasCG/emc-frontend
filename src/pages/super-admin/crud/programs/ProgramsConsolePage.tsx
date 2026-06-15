@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import ConfirmDialog from '@/components/feedback/ConfirmDialog'
 import { motion } from 'framer-motion'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -11,6 +12,8 @@ import {
   Filter,
   Layers3,
   RefreshCw,
+  UserPlus,
+  Users,
   UserX,
 } from 'lucide-react'
 import toast from '@/lib/toast'
@@ -19,14 +22,18 @@ import {
   deleteCourse,
   fetchAdminCourseDetail,
   fetchAdminRegistrationsIndex,
+  fetchCourseStudents,
   fetchDepartmentOptions,
   patchCoursePublishState,
   patchCourseStatus,
+  removeStudentFromCourse,
   type AdminRegistrationRow,
+  type CourseParticipant,
 } from '@/api/adminCoursesApi'
 import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { fetchAdminCoursesStrict, fetchTracksStrict, type CatalogTrackRow } from '@/api/superAdminCatalogApi'
+import { fetchAdminLearningPaths } from '@/api/learningPathsApi'
 import type { Course } from '@/types'
 import { formatEuro } from '@/utils/currency'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
@@ -71,6 +78,9 @@ const AssignInstructorModal = lazy(() =>
 )
 const ScheduleCourseModal = lazy(() =>
   import('./ScheduleCourseModal').then((m) => ({ default: m.ScheduleCourseModal })),
+)
+const AddStudentModal = lazy(() =>
+  import('./AddStudentModal').then((m) => ({ default: m.AddStudentModal })),
 )
 
 /* ── Types ───────────────────────────────────────────────────────────── */
@@ -181,15 +191,17 @@ export default function ProgramsConsolePage() {
   const [regs,           setRegs]           = useState<AdminRegistrationRow[]>([])
   const [tracks,         setTracks]         = useState<CatalogTrackRow[]>([])
   const [departments,    setDepartments]    = useState<{ id: number; name: string }[]>([])
+  const [learningPaths,  setLearningPaths]  = useState<{ id: number; title: string; status: string }[]>([])
 
   const [q,    setQ]    = useState('')
   const [mode, setMode] = useState<FilterMode>('all')
 
-  const [preview,        setPreview]        = useState<CourseVM | null>(null)
-  const [formOpen,       setFormOpen]       = useState(false)
-  const [formCourse,     setFormCourse]     = useState<Course | null>(null)
-  const [assignCourse,   setAssignCourse]   = useState<Course | null>(null)
-  const [scheduleCourse, setScheduleCourse] = useState<Course | null>(null)
+  const [preview,             setPreview]             = useState<CourseVM | null>(null)
+  const [formOpen,            setFormOpen]            = useState(false)
+  const [formCourse,          setFormCourse]          = useState<Course | null>(null)
+  const [assignCourse,        setAssignCourse]        = useState<Course | null>(null)
+  const [scheduleCourse,      setScheduleCourse]      = useState<Course | null>(null)
+  const [confirmDeleteCourse, setConfirmDeleteCourse] = useState<Course | null>(null)
 
   // 300ms debounce — filter only recomputes after typing stops
   const debouncedQ = useDebounce(q, 300)
@@ -197,15 +209,19 @@ export default function ProgramsConsolePage() {
   const load = useCallback(async () => {
     setLoading(true)
     setFailed(false)
-    // All 5 requests fire in parallel — eliminates sequential 2-stage pattern
-    const [pack, insRows, rIndex, tr, dep] = await Promise.all([
+    // All 6 requests fire in parallel — eliminates sequential 2-stage pattern
+    const [pack, insRows, rIndex, tr, dep, lpRes] = await Promise.all([
       fetchAdminCoursesStrict(),
       fetchAdminInstructors().catch(() => [] as AdminInstructorOption[]),
       fetchAdminRegistrationsIndex().catch(() => [] as AdminRegistrationRow[]),
       fetchTracksStrict().catch(() => ({ ok: false as const })),
       fetchDepartmentOptions().catch(() => [] as { id: number; name: string }[]),
+      fetchAdminLearningPaths({ per_page: 200 }).catch(() => null),
     ])
     setInstructorRows(insRows)
+    setLearningPaths(
+      (lpRes?.data ?? []).map((lp) => ({ id: lp.id, title: lp.title, status: lp.status })),
+    )
     if (!pack.ok) {
       setFailed(true)
       setRows([])
@@ -296,8 +312,12 @@ export default function ProgramsConsolePage() {
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
-  async function removeCourse(c: Course) {
-    if (!window.confirm(`حذف «${c.title}»؟ لا يمكن التراجع عند نجاح الخادم.`)) return
+  function removeCourse(c: Course) {
+    setConfirmDeleteCourse(c)
+  }
+
+  async function doDeleteCourse(c: Course) {
+    setConfirmDeleteCourse(null)
     try {
       await deleteCourse(c.id)
       toast.success('تم حذف الدورة')
@@ -400,6 +420,12 @@ export default function ProgramsConsolePage() {
         />
       </CrudToolbar>
 
+      {!loading && !failed && (
+        <p className="mb-2 text-[11px] font-bold text-slate-400" dir="rtl">
+          عرض <span className="font-black text-[#22334A]">{filtered.length}</span> من أصل <span className="font-black text-[#22334A]">{rows.length}</span> برنامج
+        </p>
+      )}
+
       {failed ? (
         <ErrorPanel title="تعذّر الاتصال بـ GET /courses" hint="تحقّق من الخادم أو صلاحيات الجلسة." />
       ) : loading ? (
@@ -477,11 +503,21 @@ export default function ProgramsConsolePage() {
                         <Td className="text-[12px] font-bold">
                           <CourseInstructorTableCell course={c} lookup={instructorLookup} />
                         </Td>
-                        <Td className="max-w-[10rem] text-[11px] font-semibold text-slate-600">
-                          <span className="line-clamp-2">
-                            {(c.department_name ?? c.department?.name ?? '—') as string} ·{' '}
-                            {(c.track_title ?? c.track?.title ?? '—') as string}
-                          </span>
+                                        <Td className="max-w-[11rem] text-[11px] font-semibold text-slate-600">
+                          {c.is_part_of_learning_path && c.learning_path ? (
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
+                              c.learning_path.status === 'published' || c.learning_path.status === 'active'
+                                ? 'bg-[#2691C2]/10 text-[#2691C2]'
+                                : 'bg-slate-100 text-slate-500'
+                            }`}>
+                              🎓 {c.learning_path.title}
+                            </span>
+                          ) : (
+                            <span className="line-clamp-2">
+                              {(c.department_name ?? c.department?.name ?? '—') as string} ·{' '}
+                              {(c.track_title ?? c.track?.title ?? '—') as string}
+                            </span>
+                          )}
                         </Td>
                         <Td className="text-[12px] font-black">
                           {c._isPaid && c._priceNum > 0
@@ -504,13 +540,13 @@ export default function ProgramsConsolePage() {
                               ...(c._status === 'archived' ? [
                                 { key: 'restore', label: 'استعادة (تحويل لمسودة)', onClick: () => void changeStatus(c, 'draft') },
                               ] : c._status === 'published' ? [
-                                { key: 'p',    label: 'إلغاء النشر (تحويل لمسودة)', onClick: () => void togglePublish(c) },
-                                { key: 'arch', label: 'أرشفة',                       onClick: () => void changeStatus(c, 'archived') },
+                                { key: 'p',    label: 'إلغاء النشر (تحويل لمسودة)', onClick: () => void togglePublish(c), disabled: c.can_deactivate === false },
+                                { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                               ] : [
-                                { key: 'p',    label: 'نشر',     onClick: () => void togglePublish(c) },
-                                { key: 'arch', label: 'أرشفة',   onClick: () => void changeStatus(c, 'archived') },
+                                { key: 'p',    label: 'نشر',   onClick: () => void togglePublish(c) },
+                                { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                               ]),
-                              { key: 'x', label: 'حذف', onClick: () => void removeCourse(c) },
+                              { key: 'x', label: c.can_delete === false ? 'حذف (مقيّد — مرتبط بمسار نشط)' : 'حذف', onClick: () => void removeCourse(c), disabled: c.can_delete === false, destructive: true },
                             ]}
                           />
                         </Td>
@@ -598,6 +634,12 @@ export default function ProgramsConsolePage() {
                     </EntityDetailSection>
                   ),
                 },
+                {
+                  id: 'p', labelAr: 'المشتركون',
+                  content: (
+                    <ParticipantsTabContent courseId={preview.id} courseTitle={preview.title} />
+                  ),
+                },
               ]
             : undefined
         }
@@ -610,6 +652,7 @@ export default function ProgramsConsolePage() {
           initial={formCourse}
           tracks={tracks}
           departments={departments}
+          learningPaths={learningPaths}
           existingCourses={rows}
           onClose={() => setFormOpen(false)}
           onSaved={() => void load()}
@@ -644,6 +687,17 @@ export default function ProgramsConsolePage() {
           onSaved={() => void load()}
         />
       </Suspense>
+
+      <ConfirmDialog
+        open={confirmDeleteCourse !== null}
+        title="تأكيد حذف الدورة"
+        description={confirmDeleteCourse ? `هل أنت متأكد أنك تريد حذف «${confirmDeleteCourse.title}»؟ لا يمكن التراجع عند نجاح الخادم.` : undefined}
+        confirmLabel="حذف الدورة"
+        cancelLabel="إلغاء"
+        variant="danger"
+        onConfirm={() => confirmDeleteCourse && void doDeleteCourse(confirmDeleteCourse)}
+        onCancel={() => setConfirmDeleteCourse(null)}
+      />
     </SaPageRoot>
   )
 }
@@ -721,9 +775,19 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
           : <CrudBadge variant="default">مسودة</CrudBadge>}
         </div>
         <h3 className="mt-4 line-clamp-2 min-h-[2.75rem] text-lg font-black leading-snug">{c.title}</h3>
+        {/* Learning path membership badge */}
+        {c.is_part_of_learning_path && c.learning_path && (
+          <div className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+            c.learning_path.status === 'published' || c.learning_path.status === 'active'
+              ? 'bg-[#2691C2]/30 text-white'
+              : 'bg-white/15 text-white/70'
+          }`}>
+            🎓 ضمن مسار: {c.learning_path.title}
+          </div>
+        )}
         <p className="mt-2 text-[11px] font-semibold text-white/75">
           {hasInstructor(c)
-            ? <>المدرب: {c._instructorLabel}</>  // pre-computed, no Map lookup
+            ? <>المدرب: {c._instructorLabel}</>
             : <span className="inline-flex items-center gap-1 text-amber-200"><UserX size={14} aria-hidden /> بدون مدرب</span>}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-white/85">
@@ -744,38 +808,200 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
 
       <div className="relative mt-5 space-y-2.5 border-t border-white/10 pt-4">
         <div className="flex gap-1.5 rounded-xl bg-black/20 p-1">
-          {(['published', 'draft', 'archived'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => c._status !== s && onStatusChange(s)}
-              className={[
-                'flex-1 rounded-lg py-1 text-[10px] font-black transition',
-                c._status === s
-                  ? s === 'published' ? 'bg-emerald-500 text-white shadow'
-                    : s === 'archived' ? 'bg-slate-500 text-white shadow'
-                    : 'bg-white/20 text-white shadow'
-                  : 'text-white/55 hover:text-white/80',
-              ].join(' ')}
-            >
-              {s === 'published' ? 'منشور' : s === 'draft' ? 'مسودة' : 'مؤرشف'}
-            </button>
-          ))}
+          {(['published', 'draft', 'archived'] as const).map((s) => {
+            const isLocked = s === 'archived' ? c.can_archive === false : s === 'draft' ? c.can_deactivate === false : false
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => !isLocked && c._status !== s && onStatusChange(s)}
+                disabled={isLocked && c._status !== s}
+                title={isLocked ? c.lock_reason ?? undefined : undefined}
+                className={[
+                  'flex-1 rounded-lg py-1 text-[10px] font-black transition',
+                  c._status === s
+                    ? s === 'published' ? 'bg-emerald-500 text-white shadow'
+                      : s === 'archived' ? 'bg-slate-500 text-white shadow'
+                      : 'bg-white/20 text-white shadow'
+                    : isLocked ? 'cursor-not-allowed text-white/25' : 'text-white/55 hover:text-white/80',
+                ].join(' ')}
+              >
+                {s === 'published' ? 'منشور' : s === 'draft' ? 'مسودة' : 'مؤرشف'}
+              </button>
+            )
+          })}
         </div>
         <div className="flex flex-wrap gap-1.5">
           <button type="button" onClick={onPreview}  className="rounded-xl bg-white/15 px-3 py-1.5 text-[11px] font-black hover:bg-white/25">تفاصيل</button>
           <button type="button" onClick={onEdit}     className="rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black hover:bg-white/20">تعديل</button>
           <button type="button" onClick={onAssign}   className="rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black hover:bg-white/20">تعيين</button>
           <button type="button" onClick={onSchedule} className="rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black hover:bg-white/20">موعد</button>
-          <button type="button" onClick={onDelete}
-            className="rounded-xl border border-white/20 px-3 py-1.5 text-[11px] font-black text-rose-100 hover:bg-white/10">
-            حذف
+          <button
+            type="button"
+            onClick={c.can_delete === false ? undefined : onDelete}
+            title={c.lock_reason ?? undefined}
+            disabled={c.can_delete === false}
+            className={`rounded-xl border px-3 py-1.5 text-[11px] font-black transition ${
+              c.can_delete === false
+                ? 'cursor-not-allowed border-white/10 text-white/30 opacity-50'
+                : 'border-white/20 text-rose-100 hover:bg-white/10'
+            }`}
+          >
+            {c.can_delete === false ? '🔒 حذف' : 'حذف'}
           </button>
         </div>
       </div>
     </motion.article>
   )
 })
+
+/* ── ParticipantsTabContent ──────────────────────────────────────────── */
+
+function participantStatusClass(status: string): string {
+  if (status === 'registered' || status === 'payment_confirmed' || status === 'confirmed') return 'bg-emerald-100 text-emerald-700'
+  if (status === 'attended') return 'bg-blue-100 text-blue-700'
+  if (status === 'cancelled') return 'bg-rose-100 text-rose-700'
+  return 'bg-slate-100 text-slate-600'
+}
+
+function ParticipantsTabContent({ courseId, courseTitle }: { courseId: number; courseTitle: string }) {
+  const [participants, setParticipants] = useState<CourseParticipant[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [total,        setTotal]        = useState(0)
+  const [addOpen,      setAddOpen]      = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState<{ userId: number; name: string } | null>(null)
+  const [removeLoading, setRemoveLoading] = useState(false)
+
+  const loadParticipants = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetchCourseStudents(courseId, { per_page: 100 })
+      setParticipants(res.data)
+      setTotal(res.meta.total)
+    } catch {
+      setParticipants([])
+    } finally {
+      setLoading(false)
+    }
+  }, [courseId])
+
+  useEffect(() => { void loadParticipants() }, [loadParticipants])
+
+  function handleRemove(userId: number, name: string) {
+    setConfirmRemove({ userId, name })
+  }
+
+  async function doRemove() {
+    if (!confirmRemove) return
+    setRemoveLoading(true)
+    try {
+      await removeStudentFromCourse(courseId, confirmRemove.userId)
+      toast.success('تم إلغاء التسجيل')
+      setConfirmRemove(null)
+      void loadParticipants()
+    } catch (e) {
+      toast.error(getApiErrorMessage(e))
+    } finally {
+      setRemoveLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <EntityDetailSection title="المشتركون" icon={<Users className="size-4" aria-hidden />}>
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-xs font-black text-slate-500">{total} مشترك</span>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="flex items-center gap-1.5 rounded-xl bg-deepBlue px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-customBlue"
+          >
+            <UserPlus className="size-3.5" aria-hidden />
+            إضافة طالب
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-10 animate-pulse rounded-xl bg-slate-100" />
+            ))}
+          </div>
+        ) : participants.length === 0 ? (
+          <div className="rounded-xl bg-slate-50 py-8 text-center text-sm font-semibold text-slate-400">
+            لا يوجد مشتركون حتى الآن
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-slate-100">
+            <table className="w-full text-right text-xs">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="px-3 py-2 font-black text-slate-600">الاسم</th>
+                  <th className="px-3 py-2 font-black text-slate-600">البريد</th>
+                  <th className="px-3 py-2 font-black text-slate-600">الحالة</th>
+                  <th className="px-3 py-2 font-black text-slate-600">التقدم</th>
+                  <th className="px-3 py-2" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {participants.map((p) => (
+                  <tr key={p.registration_id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`size-1.5 shrink-0 rounded-full ${p.has_account ? 'bg-emerald-400' : 'bg-amber-400'}`} title={p.has_account ? 'لديه حساب' : 'بدون حساب'} />
+                        <span className="font-bold text-deepBlue">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 font-mono text-[10px] text-slate-500 dir-ltr">{p.email}</td>
+                    <td className="px-3 py-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${participantStatusClass(p.status)}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 font-bold text-slate-600">{p.progress_pct}%</td>
+                    <td className="px-3 py-2 text-end">
+                      {p.user_id != null && (
+                        <button
+                          type="button"
+                          onClick={() => void handleRemove(p.user_id!, p.name)}
+                          className="rounded-lg border border-rose-200 px-2 py-0.5 text-[10px] font-black text-rose-600 transition hover:bg-rose-50"
+                        >
+                          إلغاء
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </EntityDetailSection>
+
+      <Suspense fallback={null}>
+        {addOpen && (
+          <AddStudentModal
+            courseId={courseId}
+            courseTitle={courseTitle}
+            onClose={() => setAddOpen(false)}
+            onAdded={() => void loadParticipants()}
+          />
+        )}
+      </Suspense>
+
+      <ConfirmDialog
+        open={confirmRemove !== null}
+        title="تأكيد إلغاء التسجيل"
+        description={confirmRemove ? `هل أنت متأكد أنك تريد إلغاء تسجيل الطالب «${confirmRemove.name}» من هذه الدورة؟` : undefined}
+        confirmLabel={removeLoading ? 'جار الإلغاء…' : 'تأكيد إلغاء التسجيل'}
+        cancelLabel="إلغاء"
+        variant="danger"
+        onConfirm={() => void doRemove()}
+        onCancel={() => setConfirmRemove(null)}
+      />
+    </>
+  )
+}
 
 /* ── CourseInstructorTableCell ───────────────────────────────────────── */
 

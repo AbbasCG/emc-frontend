@@ -6,6 +6,9 @@ export function toLatinDigits(value: string | number): string {
   return String(value).replace(/[٠-٩]/g, (ch) => String(ARABIC_INDIC_DIGITS.indexOf(ch)))
 }
 
+/** Alias for toLatinDigits — always display digits as 0123456789. */
+export const toEnglishDigits = toLatinDigits
+
 /** English/Western numerals for counts, stats, and UI metrics. */
 export function formatNumberEn(n: number, options?: Intl.NumberFormatOptions): string {
   if (!Number.isFinite(n)) return ''

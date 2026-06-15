@@ -134,6 +134,8 @@ export type CourseUpsertPayload = {
   /** Related titles — plain strings; persisted as course_features rows on backend */
   features?: string[]
   requires_placement_test?: boolean
+  /** Set to a learning path ID to assign this course to that path, or null to remove from any path */
+  learning_path_id?: number | null
 }
 
 function unwrapCourse(res: unknown): Course {
@@ -201,7 +203,8 @@ export function sanitizeCoursePayload(payload: CourseUpsertPayload): CourseUpser
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(payload) as [keyof CourseUpsertPayload, unknown][]) {
     if (v === undefined) continue
-    if (v === null) continue
+    // Keep learning_path_id even when null (null = intentional removal from path)
+    if (v === null && k !== 'learning_path_id') continue
     if (typeof v === 'number' && Number.isNaN(v)) continue
     if (typeof v === 'string' && v.trim() === '') continue
     if (Array.isArray(v)) {
@@ -417,6 +420,74 @@ export async function patchCourseStatus(courseId: number, status: 'draft' | 'pub
 // ---------------------------------------------------------------------------
 
 export type OpsDepartmentOption = { id: number; name: string }
+
+// ---------------------------------------------------------------------------
+// Course students — manual enrollment, participant list, unenroll
+// ---------------------------------------------------------------------------
+
+export type CourseParticipant = {
+  registration_id: number
+  status: string
+  registered_at: string | null
+  user_id: number | null
+  name: string
+  email: string
+  phone: string | null
+  has_account: boolean
+  avatar_url: string | null
+  progress_status: string | null
+  progress_pct: number
+}
+
+export type CourseStudentsMeta = {
+  total: number
+  current_page: number
+  last_page: number
+  per_page: number
+}
+
+export type CourseStudentsParams = {
+  search?: string
+  status?: string
+  per_page?: number
+  page?: number
+}
+
+export async function fetchCourseStudents(
+  courseId: number,
+  params?: CourseStudentsParams,
+): Promise<{ data: CourseParticipant[]; meta: CourseStudentsMeta }> {
+  const res = await apiClient.get<unknown>(`/admin/courses/${courseId}/students`, { params, ...silent })
+  const raw = (res.data ?? {}) as Record<string, unknown>
+  const data = (Array.isArray(raw.data) ? raw.data : []) as CourseParticipant[]
+  const meta = (raw.meta ?? { total: data.length, current_page: 1, last_page: 1, per_page: 50 }) as CourseStudentsMeta
+  return { data, meta }
+}
+
+export type AddStudentPayload = {
+  user_id?: number
+  email?: string
+  full_name?: string
+  phone?: string
+  status?: string
+}
+
+export async function addStudentToCourse(
+  courseId: number,
+  data: AddStudentPayload,
+): Promise<CourseParticipant> {
+  const res = await apiClient.post<unknown>(`/admin/courses/${courseId}/students`, data, silent)
+  const raw = (res.data ?? {}) as Record<string, unknown>
+  return (raw.data ?? raw) as CourseParticipant
+}
+
+export async function removeStudentFromCourse(courseId: number, userId: number): Promise<void> {
+  await apiClient.delete(`/admin/courses/${courseId}/students/${userId}`, silent)
+}
+
+// ---------------------------------------------------------------------------
+// Departments (for form select)
+// ---------------------------------------------------------------------------
 
 export async function fetchDepartmentOptions(): Promise<OpsDepartmentOption[]> {
   try {

@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
-import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
+import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsers, fetchStudentCourses, type AdminManagedUser, type StudentCourseRow } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
@@ -374,6 +374,93 @@ function ActivityTab({ u }: { u: AdminManagedUser }) {
   )
 }
 
+/* ─── StudentCoursesTab ───────────────────────────────────────────────── */
+
+function courseStatusClass(status: string): string {
+  const s = status.toLowerCase()
+  if (s.includes('confirm') || s.includes('register') || s.includes('attend')) return 'bg-emerald-100 text-emerald-700'
+  if (s.includes('cancel')) return 'bg-rose-100 text-rose-700'
+  if (s.includes('pending')) return 'bg-amber-100 text-amber-700'
+  return 'bg-slate-100 text-slate-600'
+}
+
+function StudentCoursesTab({ userId }: { userId: number }) {
+  const [courses, setCourses] = useState<StudentCourseRow[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    fetchStudentCourses(userId)
+      .then(setCourses)
+      .catch(() => setCourses([]))
+      .finally(() => setLoading(false))
+  }, [userId])
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-10 animate-pulse rounded-2xl bg-slate-100" />
+        ))}
+      </div>
+    )
+  }
+
+  if (courses.length === 0) {
+    return (
+      <PlaceholderTab
+        icon={<BookOpen className="h-6 w-6" />}
+        title="لا دورات مسجَّلة"
+        description="لم يتم التسجيل في أي دورة حتى الآن، أو جميع التسجيلات ملغاة"
+      />
+    )
+  }
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-100">
+      <table className="w-full text-right text-[12px]">
+        <thead>
+          <tr className="bg-slate-50">
+            <th className="px-4 py-2.5 font-black text-slate-600">الدورة</th>
+            <th className="px-4 py-2.5 font-black text-slate-600">الحالة</th>
+            <th className="px-4 py-2.5 font-black text-slate-600">التقدم</th>
+            <th className="px-4 py-2.5 font-black text-slate-600">تاريخ التسجيل</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {courses.map((c) => (
+            <tr key={c.course_id} className="hover:bg-slate-50 transition-colors">
+              <td className="px-4 py-2.5">
+                <span className="font-bold text-[#22334A]">{c.course_title}</span>
+                <span className="mr-2 font-mono text-[10px] text-slate-400">#{c.course_id}</span>
+              </td>
+              <td className="px-4 py-2.5">
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${courseStatusClass(c.status)}`}>
+                  {c.status}
+                </span>
+              </td>
+              <td className="px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-[#2691C2] transition-all"
+                      style={{ width: `${c.progress_pct}%` }}
+                    />
+                  </div>
+                  <span className="font-bold text-slate-600">{c.progress_pct}%</span>
+                </div>
+              </td>
+              <td className="px-4 py-2.5 font-mono text-[11px] text-slate-400">
+                {c.registered_at ? c.registered_at.slice(0, 10) : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 /* ─── StudentProfile ──────────────────────────────────────────────────── */
 
 function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void }) {
@@ -516,11 +603,7 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
 
           {tab === 'courses' && (
             <SaGlassCard glow="blue" className="p-5">
-              <PlaceholderTab
-                icon={<BookOpen className="h-6 w-6" />}
-                title="بيانات الدورات غير متاحة حالياً"
-                description="يتطلب هذا القسم نقطة API مخصّصة GET /admin/students/{id}/courses لعرض الدورات المسجَّل فيها والتقدم والحضور"
-              />
+              <StudentCoursesTab userId={u.id} />
             </SaGlassCard>
           )}
 

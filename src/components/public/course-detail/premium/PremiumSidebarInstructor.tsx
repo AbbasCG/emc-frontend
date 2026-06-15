@@ -49,7 +49,7 @@ export default function PremiumSidebarInstructor({ instructor }: Props) {
             </button>
           : null}
           {instructor.email ?
-            <a href={`mailto:${instructor.email}`} className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-[#2691C2]" dir="ltr">
+            <a href={`mailto:${instructor.email}`} className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-[#2691C2]">
               <Mail className="h-3 w-3 shrink-0" />
               <span className="truncate">{instructor.email}</span>
             </a>

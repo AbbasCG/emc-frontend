@@ -52,23 +52,22 @@ function JourneyStep({
 
   return (
     <div ref={ref} className="relative flex flex-col items-center text-center">
-      {/* Connector line (not on last item) */}
+      {/* Connector line (not on last item) — spans from this step toward the next (left in RTL) */}
       {!isLast && (
         <div
           aria-hidden
           className="absolute right-[calc(50%+2.5rem)] top-8 hidden h-[2px] w-[calc(100%-5rem)] lg:block"
-          style={{ left: 'calc(50% + 2.5rem)' }}
         >
           <motion.div
             className="h-full rounded-full"
             style={{ backgroundColor: step.accent }}
-            initial={{ scaleX: 0, originX: 0 }}
+            initial={{ scaleX: 0, originX: 1 }}
             animate={inView ? { scaleX: 1 } : { scaleX: 0 }}
             transition={{ duration: 0.8, delay: 0.3 + index * 0.15, ease: [0.22, 0.61, 0.36, 1] }}
           />
-          {/* Arrow at end */}
+          {/* Arrowhead at the left end of the connector, pointing toward next step (left in RTL) */}
           <motion.div
-            className="absolute -top-1 right-0 h-2 w-2 rotate-45 border-r-2 border-t-2"
+            className="absolute -top-1 left-0 h-2 w-2 rotate-45 border-b-2 border-l-2"
             style={{ borderColor: step.accent }}
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : { opacity: 0 }}
@@ -120,7 +119,7 @@ export default function HomeLearningJourney() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f7f9fb] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f7f9fb] px-4 py-12 sm:px-6 lg:px-10 lg:py-16"
     >
       {/* Decorative background shape */}
       <div
@@ -135,7 +134,7 @@ export default function HomeLearningJourney() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
-          className="mb-16 text-right"
+          className="mb-10 text-right"
         >
           <p className="text-xs font-black tracking-widest text-customBlue uppercase">مسيرة التعلّم</p>
           <h2 className="mt-3 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.75rem]">
@@ -147,7 +146,7 @@ export default function HomeLearningJourney() {
         </motion.div>
 
         {/* Steps — horizontal on desktop, vertical on mobile */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-6">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 lg:gap-4">
           {steps.map((step, i) => (
             <JourneyStep key={step.num} step={step} index={i} isLast={i === steps.length - 1} />
           ))}

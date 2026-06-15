@@ -58,7 +58,7 @@ function StatCounter({
       className="text-center px-4"
     >
       <p className="text-3xl md:text-4xl font-black text-white tabular-nums">
-        {count.toLocaleString('ar-EG')}
+        {count.toLocaleString('en-US')}
         {suffix}
       </p>
       <p className="text-xs md:text-sm text-brand-300/90 mt-1 font-medium">{label}</p>

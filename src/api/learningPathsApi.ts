@@ -344,6 +344,62 @@ export async function fetchStudentLearningPath(id: number): Promise<StudentLearn
   }
 }
 
+// ─── Admin: Learning Path detail with students ────────────────────────────────
+
+export interface LearningPathStudent {
+  user_id: number
+  name: string
+  email: string
+  phone: string | null
+  avatar_url: string | null
+  enrollment_status: 'active' | 'completed' | 'dropped'
+  enrolled_at: string
+  completed_at: string | null
+  progress_percentage: number
+  courses_completed: number
+  total_courses: number
+}
+
+export interface LearningPathDetailResponse {
+  data: LearningPath
+  students: LearningPathStudent[]
+  counts: {
+    courses: number
+    students: number
+    active_students: number
+    completed_students: number
+  }
+}
+
+export async function fetchAdminLearningPathDetail(id: number): Promise<LearningPathDetailResponse | null> {
+  try {
+    const res = await apiClient.get(`/admin/learning-paths/${id}`, silent)
+    const body = res.data as {
+      success: boolean
+      data: LearningPath
+      students?: LearningPathStudent[]
+      counts?: LearningPathDetailResponse['counts']
+    }
+    return {
+      data: body.data,
+      students: body.students ?? [],
+      counts: body.counts ?? { courses: 0, students: 0, active_students: 0, completed_students: 0 },
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function fetchAdminLearningPathStudents(id: number): Promise<LearningPathStudent[]> {
+  try {
+    const res = await apiClient.get(`/admin/learning-paths/${id}/students`, silent)
+    const body = res.data as { success: boolean; data: LearningPathStudent[] }
+    return body.data ?? []
+  } catch {
+    return []
+  }
+}
+
 // ─── Instructor Options (for admin selects) ───────────────────────────────────
 
 export interface InstructorOption {

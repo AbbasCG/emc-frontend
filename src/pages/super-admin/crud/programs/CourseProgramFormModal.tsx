@@ -330,11 +330,14 @@ function BulletListCounter({ text, field }: { text: string; field: CourseBulletF
   )
 }
 
+type LearningPathOption = { id: number; title: string; status: string }
+
 type Props = {
   open: boolean
   initial: Course | null
   tracks: CatalogTrackRow[]
   departments: OpsDepartmentOption[]
+  learningPaths?: LearningPathOption[]
   existingCourses?: Course[]
   onClose: () => void
   onSaved: () => void
@@ -349,6 +352,7 @@ export function CourseProgramFormModal({
   initial,
   tracks,
   departments,
+  learningPaths = [],
   existingCourses = [],
   onClose,
   onSaved,
@@ -412,6 +416,7 @@ export function CourseProgramFormModal({
   const [keywords, setKeywords] = useState('')
   const [adminNotes, setAdminNotes] = useState('')
   const [requiresPlacementTest, setRequiresPlacementTest] = useState(false)
+  const [learningPathId, setLearningPathId] = useState('')
 
   const resetFromInitial = useCallback(() => {
     if (!initial) {
@@ -451,6 +456,7 @@ export function CourseProgramFormModal({
       setKeywords('')
       setAdminNotes('')
       setRequiresPlacementTest(false)
+      setLearningPathId('')
       setInstructorQuery('')
       setImageFile(null)
       setImagePreviewUrl((u) => {
@@ -518,6 +524,7 @@ export function CourseProgramFormModal({
     setKeywords(normalizeListText((initial as { keywords?: unknown; tags?: unknown }).keywords ?? (initial as { tags?: unknown }).tags))
     setAdminNotes((initial as { notes?: string | null }).notes ?? initial.admin_notes ?? '')
     setRequiresPlacementTest(Boolean((initial as Record<string, unknown>).requires_placement_test))
+    setLearningPathId(initial.learning_path?.id != null ? String(initial.learning_path.id) : '')
     setLearnText(loadBulletFieldFromApi(initial.features))
     setFieldErrors({})
     setImageFile(null)
@@ -975,6 +982,7 @@ export function CourseProgramFormModal({
       requirements: requirementsLines,
       curriculum_topics: topicLines,
       keywords: keywordLines,
+      learning_path_id: learningPathId ? Number(learningPathId) : null,
     }
   }
 
@@ -1309,6 +1317,28 @@ export function CourseProgramFormModal({
                 ))}
               </select>
             </label>
+            {learningPaths.length > 0 && (
+              <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+                المسار التعليمي (Learning Path)
+                <select
+                  value={learningPathId}
+                  onChange={(e) => setLearningPathId(e.target.value)}
+                  className={EMC_WIZARD_INPUT_BASE}
+                >
+                  <option value="">دورة مستقلة (غير مرتبطة بمسار)</option>
+                  {learningPaths.map((lp) => (
+                    <option key={lp.id} value={String(lp.id)}>
+                      {lp.title}{lp.status !== 'published' ? ` (${lp.status === 'draft' ? 'مسودة' : 'مؤرشف'})` : ''}
+                    </option>
+                  ))}
+                </select>
+                {learningPathId && (
+                  <p className="mt-1 text-[10px] font-semibold text-[#2691C2]">
+                    ⚠️ الدورة المرتبطة بمسار نشط لا تظهر في صفحة الدورات العامة، وتكون محمية من الحذف والأرشفة.
+                  </p>
+                )}
+              </label>
+            )}
           </div>
         </FormSectionCard>
       )
@@ -1868,6 +1898,8 @@ export function CourseProgramFormModal({
     showLocationField,
     isWorkshop,
     requiresPlacementTest,
+    learningPathId,
+    learningPaths,
     clearField,
     pickImageFile,
     fieldErrors,

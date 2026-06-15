@@ -20,15 +20,21 @@ import {
   EyeOff,
   ChevronDown,
   UserCircle,
+  TrendingUp,
+  Mail,
+  Phone,
+  ChevronRight,
 } from 'lucide-react'
 import {
   fetchAdminLearningPaths,
   fetchAdminLearningPath,
+  fetchAdminLearningPathDetail,
   createLearningPath,
   updateLearningPath,
   deleteLearningPath,
   fetchInstructorOptions,
   type LearningPath,
+  type LearningPathStudent,
   type InstructorOption,
 } from '../../../api/learningPathsApi'
 import CourseSelector from '../../../components/learning-paths/CourseSelector'
@@ -807,6 +813,11 @@ export default function LearningPathsManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState<LearningPath | null>(null)
   const [deleting, setDeleting]     = useState(false)
   const [toast, setToast]           = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [detailPath, setDetailPath] = useState<LearningPath | null>(null)
+  const [detailStudents, setDetailStudents] = useState<LearningPathStudent[]>([])
+  const [detailCounts, setDetailCounts] = useState({ courses: 0, students: 0, active_students: 0, completed_students: 0 })
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailTab, setDetailTab]   = useState<'overview' | 'courses' | 'students'>('overview')
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type })
@@ -847,6 +858,19 @@ export default function LearningPathsManagementPage() {
     } finally {
       setDeleting(false)
     }
+  }
+
+  const openDetail = async (p: LearningPath, tab: 'overview' | 'courses' | 'students' = 'overview') => {
+    setDetailPath(p)
+    setDetailTab(tab)
+    setDetailLoading(true)
+    const detail = await fetchAdminLearningPathDetail(p.id)
+    if (detail) {
+      setDetailStudents(detail.students)
+      setDetailCounts(detail.counts)
+      setDetailPath(detail.data)
+    }
+    setDetailLoading(false)
   }
 
   const statusTabs = [
@@ -935,6 +959,13 @@ export default function LearningPathsManagementPage() {
           ))}
         </div>
       </div>
+
+      {/* Result count */}
+      {!loading && (
+        <p className="mb-3 text-[11px] font-bold text-slate-400" dir="rtl">
+          تم العثور على <span className="font-black text-[#22334A]">{paths.length}</span> نتيجة من أصل <span className="font-black text-[#22334A]">{meta.total}</span> مسار
+        </p>
+      )}
 
       {/* Table */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -1032,11 +1063,18 @@ export default function LearningPathsManagementPage() {
                       </span>
                     </td>
 
-                    {/* Students — English number */}
+                    {/* Students — clickable to show drawer */}
                     <td className="hidden px-4 py-4 lg:table-cell">
-                      <span className="inline-flex items-center gap-1 text-slate-500" dir="ltr">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); void openDetail(p, 'students') }}
+                        className="inline-flex items-center gap-1 rounded-xl px-2 py-1 text-slate-500 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
+                        title="عرض الطلاب المسجلين"
+                        dir="ltr"
+                      >
                         <Users className="h-3.5 w-3.5" /> {en(p.students_count)}
-                      </span>
+                        {Number(p.students_count) > 0 && <ChevronRight className="h-3 w-3 opacity-50" />}
+                      </button>
                     </td>
 
                     {/* Price — English number */}
@@ -1054,6 +1092,13 @@ export default function LearningPathsManagementPage() {
                     {/* Actions — stopPropagation prevents row click */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); void openDetail(p) }}
+                          className="rounded-xl p-2 text-slate-400 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
+                          title="عرض التفاصيل والطلاب"
+                        >
+                          <Users className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); void openEdit(p) }}
                           className="rounded-xl p-2 text-slate-400 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
@@ -1129,6 +1174,303 @@ export default function LearningPathsManagementPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Learning Path Detail Drawer */}
+      <AnimatePresence>
+        {detailPath && (
+          <LearningPathDetailDrawer
+            path={detailPath}
+            students={detailStudents}
+            counts={detailCounts}
+            loading={detailLoading}
+            tab={detailTab}
+            onTabChange={setDetailTab}
+            onClose={() => { setDetailPath(null); setDetailStudents([]); setDetailCounts({ courses: 0, students: 0, active_students: 0, completed_students: 0 }) }}
+            onEdit={() => { setDetailPath(null); void openEdit(detailPath) }}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  )
+}
+
+// ─── Learning Path Detail Drawer ──────────────────────────────────────────────
+
+function enrollmentStatusBadge(status: string) {
+  if (status === 'completed') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  if (status === 'dropped')   return 'bg-rose-50 text-rose-700 border-rose-200'
+  return 'bg-[#2691C2]/10 text-[#2691C2] border-[#2691C2]/20'
+}
+
+function enrollmentStatusLabel(status: string) {
+  if (status === 'completed') return 'مكتمل'
+  if (status === 'dropped')   return 'منسحب'
+  return 'نشط'
+}
+
+function ProgressBar({ pct }: { pct: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#22334A] transition-all"
+          style={{ width: `${Math.min(100, pct)}%` }}
+        />
+      </div>
+      <span className="text-[10px] font-black tabular-nums text-slate-500" dir="ltr">{pct}%</span>
+    </div>
+  )
+}
+
+function LearningPathDetailDrawer({
+  path, students, counts, loading, tab, onTabChange, onClose, onEdit,
+}: {
+  path: LearningPath
+  students: LearningPathStudent[]
+  counts: { courses: number; students: number; active_students: number; completed_students: number }
+  loading: boolean
+  tab: 'overview' | 'courses' | 'students'
+  onTabChange: (t: 'overview' | 'courses' | 'students') => void
+  onClose: () => void
+  onEdit: () => void
+}) {
+  const TABS = [
+    { id: 'overview' as const,  label: 'نظرة عامة' },
+    { id: 'courses'  as const,  label: 'الدورات' },
+    { id: 'students' as const,  label: 'الطلاب' },
+  ]
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex justify-end bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 250 }}
+        className="relative flex h-full w-full max-w-2xl flex-col overflow-hidden bg-white shadow-2xl"
+        dir="rtl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 bg-gradient-to-bl from-[#22334A] to-[#2691C2] px-6 py-5 text-white">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/60">مسار تعليمي</p>
+            <h2 className="mt-1 text-xl font-black leading-snug">{path.title}</h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <StatusBadge status={path.status} />
+              <span className="text-[11px] font-bold text-white/70">{en(counts.courses)} دورة</span>
+              <span className="text-[11px] font-bold text-white/70">·</span>
+              <span className="text-[11px] font-bold text-white/70">{en(counts.students)} طالب</span>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button onClick={onEdit} className="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs font-black hover:bg-white/25 transition">
+              تعديل
+            </button>
+            <button onClick={onClose} className="rounded-xl p-2 text-white/70 hover:bg-white/15 transition">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Count cards */}
+        <div className="grid grid-cols-3 border-b border-slate-100 bg-slate-50">
+          {[
+            { label: 'إجمالي الطلاب', value: counts.students, icon: Users, color: 'text-[#2691C2]' },
+            { label: 'طلاب نشطون',    value: counts.active_students, icon: TrendingUp, color: 'text-emerald-600' },
+            { label: 'أتموا المسار',  value: counts.completed_students, icon: Award, color: 'text-amber-600' },
+          ].map((s) => (
+            <div key={s.label} className="border-l border-slate-100 px-4 py-3 text-center first:border-0">
+              <s.icon className={`mx-auto h-4 w-4 ${s.color}`} />
+              <p className="mt-1 text-xl font-black text-[#22334A]" dir="ltr">{en(s.value)}</p>
+              <p className="text-[10px] font-semibold text-slate-500">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-slate-100 bg-white px-2">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => onTabChange(t.id)}
+              className={`flex items-center gap-2 border-b-2 px-4 py-3 text-[12px] font-black transition ${
+                tab === t.id
+                  ? 'border-[#2691C2] text-[#2691C2]'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {t.label}
+              {t.id === 'students' && counts.students > 0 && (
+                <span className="rounded-full bg-[#2691C2]/10 px-1.5 py-0.5 text-[9px] font-black text-[#2691C2]" dir="ltr">
+                  {en(counts.students)}
+                </span>
+              )}
+              {t.id === 'courses' && counts.courses > 0 && (
+                <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-black text-slate-500" dir="ltr">
+                  {en(counts.courses)}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-[#2691C2]" />
+            </div>
+          ) : tab === 'overview' ? (
+            <div className="space-y-5 p-6">
+              {path.short_description && (
+                <div>
+                  <p className="mb-1 text-[11px] font-black text-slate-400">وصف</p>
+                  <p className="text-sm font-semibold leading-relaxed text-slate-700">{path.short_description}</p>
+                </div>
+              )}
+              <div className="grid gap-3 sm:grid-cols-2">
+                {path.language && (
+                  <div className="rounded-xl bg-slate-50 px-4 py-3">
+                    <p className="text-[10px] font-black text-slate-400">اللغة</p>
+                    <p className="mt-0.5 font-black text-slate-700">{path.language}</p>
+                  </div>
+                )}
+                {path.level && (
+                  <div className="rounded-xl bg-slate-50 px-4 py-3">
+                    <p className="text-[10px] font-black text-slate-400">المستوى</p>
+                    <p className="mt-0.5 font-black text-slate-700">{path.level}</p>
+                  </div>
+                )}
+                {path.duration && (
+                  <div className="rounded-xl bg-slate-50 px-4 py-3">
+                    <p className="text-[10px] font-black text-slate-400">المدة</p>
+                    <p className="mt-0.5 font-black text-slate-700" dir="ltr">
+                      {en(path.duration)} {path.duration_unit === 'weeks' ? 'أسابيع' : path.duration_unit === 'months' ? 'أشهر' : 'أيام'}
+                    </p>
+                  </div>
+                )}
+                {path.price != null && (
+                  <div className="rounded-xl bg-slate-50 px-4 py-3">
+                    <p className="text-[10px] font-black text-slate-400">السعر</p>
+                    <p className="mt-0.5 font-black text-slate-700" dir="ltr">€{en(path.price)}</p>
+                  </div>
+                )}
+              </div>
+              {path.instructor && (
+                <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-4">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#2691C2]/10 text-sm font-black text-[#2691C2]">
+                    {path.instructor.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-black text-[#22334A]">{path.instructor.name}</p>
+                    {path.instructor.title && <p className="text-xs font-semibold text-slate-500">{path.instructor.title}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : tab === 'courses' ? (
+            <div className="p-6">
+              {!path.courses || path.courses.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 py-10 text-center text-sm font-semibold text-slate-400">
+                  لا دورات مرتبطة بهذا المسار بعد
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {path.courses.map((c, i) => (
+                    <div key={c.id} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 hover:border-[#2691C2]/30 transition">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#2691C2]/10 text-[11px] font-black text-[#2691C2]" dir="ltr">
+                        {en(i + 1)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-black text-[#22334A]">{c.title}</p>
+                        {c.duration && (
+                          <p className="text-[11px] font-semibold text-slate-500" dir="ltr">
+                            <Clock className="mb-0.5 inline h-3 w-3" /> {c.duration}
+                          </p>
+                        )}
+                      </div>
+                      {c.level && (
+                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">
+                          {c.level}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6">
+              {students.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 py-10 text-center text-sm font-semibold text-slate-400">
+                  لا يوجد طلاب مسجلون في هذا المسار بعد
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-slate-100">
+                  <table className="w-full text-right text-[12px]">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-3 py-2.5 font-black text-slate-500">الطالب</th>
+                        <th className="hidden px-3 py-2.5 font-black text-slate-500 sm:table-cell">الحالة</th>
+                        <th className="hidden px-3 py-2.5 font-black text-slate-500 md:table-cell">التقدم</th>
+                        <th className="px-3 py-2.5 font-black text-slate-500">الدورات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {students.map((s) => (
+                        <tr key={s.user_id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#2691C2]/10 text-[11px] font-black text-[#2691C2]">
+                                {(s.name ?? '?').charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate font-black text-[#22334A]">{s.name}</p>
+                                <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500 dir-ltr">
+                                  <Mail className="h-3 w-3 shrink-0" /> {s.email}
+                                </p>
+                                {s.phone && (
+                                  <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-400 dir-ltr">
+                                    <Phone className="h-3 w-3 shrink-0" /> {s.phone}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden px-3 py-3 sm:table-cell">
+                            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black ${enrollmentStatusBadge(s.enrollment_status)}`}>
+                              {enrollmentStatusLabel(s.enrollment_status)}
+                            </span>
+                            {s.enrolled_at && (
+                              <p className="mt-0.5 text-[10px] text-slate-400">{new Date(s.enrolled_at).toLocaleDateString('ar-SA')}</p>
+                            )}
+                          </td>
+                          <td className="hidden px-3 py-3 md:table-cell">
+                            <ProgressBar pct={s.progress_percentage} />
+                          </td>
+                          <td className="px-3 py-3">
+                            <span className="font-bold text-slate-600" dir="ltr">
+                              {en(s.courses_completed)} / {en(s.total_courses)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }

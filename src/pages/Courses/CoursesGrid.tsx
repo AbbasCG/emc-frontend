@@ -1,21 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import CourseCard from './CourseCard'
 import type { CourseItem } from '@/services/coursesApi'
 
 type CoursesGridProps = {
   courses: CourseItem[]
-  /** Total courses returned from API (before client-side filters) */
   totalFromApi: number
   loading: boolean
   viewMode: 'grid' | 'list'
-  /** When true, renders grid only (no section shell/header) for embedding in parent pages */
   embedded?: boolean
   sectionId?: string
 }
 
-const INITIAL_VISIBLE = 9
+const FULL_GRID_PAGE = 9
+
+function useItemsPerPage() {
+  const [n, setN] = useState(3)
+  useEffect(() => {
+    const update = () =>
+      setN(window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3)
+    update()
+    window.addEventListener('resize', update, { passive: true })
+    return () => window.removeEventListener('resize', update)
+  }, [])
+  return n
+}
 
 function CourseSkeleton() {
   return (
@@ -40,15 +50,15 @@ function CourseSkeleton() {
 
 function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 py-24 text-center">
-      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-inner">
-        <Search className="h-9 w-9 text-muted-300" />
+    <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 py-16 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-inner">
+        <Search className="h-8 w-8 text-muted-300" />
       </div>
       {apiEmpty ? (
         <>
           <h3 className="mb-2 text-xl font-black text-deepBlue">لا توجد دورات في الكتالوج</h3>
           <p className="max-w-md text-sm leading-7 text-muted-500">
-            لم يُعثر على برامج منشورة. يُحدَّث الكتالوج تلقائياً عند نشر دورات جديدة من لوحة الإدارة.
+            لم يُعثر على برامج منشورة. يُحدَّث الكتالوج تلقائياً عند نشر دورات جديدة من لوحة الإدارة.
           </p>
         </>
       ) : (
@@ -63,6 +73,96 @@ function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
   )
 }
 
+function CoursesCarousel({
+  courses,
+  viewMode,
+}: {
+  courses: CourseItem[]
+  viewMode: 'grid' | 'list'
+}) {
+  const itemsPerPage = useItemsPerPage()
+  const [page, setPage] = useState(0)
+
+  useEffect(() => {
+    setPage(0)
+  }, [courses, itemsPerPage])
+
+  const totalPages = Math.max(1, Math.ceil(courses.length / itemsPerPage))
+  const clamped = Math.min(page, totalPages - 1)
+  const visible = courses.slice(clamped * itemsPerPage, (clamped + 1) * itemsPerPage)
+
+  const gridClass =
+    viewMode === 'grid'
+      ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
+      : 'flex flex-col gap-5'
+
+  const from = clamped * itemsPerPage + 1
+  const to = Math.min((clamped + 1) * itemsPerPage, courses.length)
+
+  return (
+    <div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${clamped}-${itemsPerPage}`}
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 16 }}
+          transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className={gridClass}
+        >
+          {visible.map((course, i) => (
+            <CourseCard key={course.id} course={course} index={i} viewMode={viewMode === 'list' ? 'list' : 'grid'} />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      {totalPages > 1 && (
+        <div className="mt-7 flex items-center justify-center gap-3" dir="ltr">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={clamped === 0}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
+            aria-label="السابق"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setPage(i)}
+                aria-label={`صفحة ${String(i + 1)}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === clamped
+                    ? 'w-7 bg-brand-500'
+                    : 'w-2 bg-slate-300 hover:bg-slate-400'
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={clamped === totalPages - 1}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
+            aria-label="التالي"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      <p className="mt-3 text-center text-xs text-muted-500" dir="rtl">
+        عرض {from}–{to} من {courses.length} دورة
+      </p>
+    </div>
+  )
+}
+
 export default function CoursesGrid({
   courses,
   totalFromApi,
@@ -71,10 +171,8 @@ export default function CoursesGrid({
   embedded = false,
   sectionId = 'catalog-courses',
 }: CoursesGridProps) {
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
-
-  const visibleCourses = courses.slice(0, visibleCount)
-  const hasMore = visibleCount < courses.length
+  const [showAll, setShowAll] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(FULL_GRID_PAGE)
 
   const gridClass =
     viewMode === 'grid'
@@ -84,8 +182,8 @@ export default function CoursesGrid({
   const gridBody = (
     <>
       {loading && (
-        <div className={gridClass}>
-          {Array.from({ length: INITIAL_VISIBLE }).map((_, i) => (
+        <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
             <CourseSkeleton key={i} />
           ))}
         </div>
@@ -99,38 +197,67 @@ export default function CoursesGrid({
 
       {!loading && courses.length > 0 && (
         <>
-          <div className={gridClass}>
-            <AnimatePresence>
-              {visibleCourses.map((course, i) => (
-                <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
-              ))}
-            </AnimatePresence>
-          </div>
+          {showAll ? (
+            <>
+              <div className={gridClass}>
+                <AnimatePresence>
+                  {courses.slice(0, visibleCount).map((course, i) => (
+                    <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
+                  ))}
+                </AnimatePresence>
+              </div>
 
-          {hasMore && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-12 flex flex-col items-center gap-3"
-            >
-              <button
-                type="button"
-                onClick={() => setVisibleCount((c) => c + INITIAL_VISIBLE)}
-                className="rounded-2xl bg-deepBlue px-10 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800"
+              <div className="mt-10 flex flex-col items-center gap-3">
+                {visibleCount < courses.length && (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((c) => c + FULL_GRID_PAGE)}
+                    className="rounded-2xl bg-deepBlue px-10 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800"
+                  >
+                    تحميل المزيد
+                  </button>
+                )}
+                {!visibleCount || visibleCount >= courses.length ? (
+                  <p className="text-xs text-muted-500">
+                    تم عرض جميع النتائج ({courses.length.toLocaleString('en-US')})
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-500">
+                    عرض {Math.min(visibleCount, courses.length).toLocaleString('en-US')} من{' '}
+                    {courses.length.toLocaleString('en-US')} دورة
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAll(false)
+                    setVisibleCount(FULL_GRID_PAGE)
+                  }}
+                  className="text-xs font-bold text-muted-500 underline underline-offset-4 hover:text-deepBlue"
+                >
+                  العودة للعرض المضغوط
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <CoursesCarousel courses={courses} viewMode={viewMode} />
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mt-6 flex justify-center"
               >
-                تحميل المزيد
-              </button>
-              <p className="text-xs text-muted-500">
-                عرض {visibleCourses.length.toLocaleString('ar-EG')} من{' '}
-                {courses.length.toLocaleString('ar-EG')} دورة
-              </p>
-            </motion.div>
-          )}
-
-          {!hasMore && courses.length > INITIAL_VISIBLE && (
-            <p className="mt-10 text-center text-xs text-muted-500">
-              تم عرض جميع النتائج ({courses.length.toLocaleString('ar-EG')})
-            </p>
+                <button
+                  type="button"
+                  onClick={() => setShowAll(true)}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50"
+                >
+                  <LayoutGrid className="h-4 w-4 text-brand-500" />
+                  عرض الكل ({courses.length.toLocaleString('en-US')} دورة)
+                </button>
+              </motion.div>
+            </>
           )}
         </>
       )}
@@ -142,9 +269,9 @@ export default function CoursesGrid({
   }
 
   return (
-    <section id={sectionId} className="scroll-mt-28 bg-white py-10 md:py-12">
+    <section id={sectionId} className="scroll-mt-28 bg-white py-8 md:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mb-10">
+        <div className="mb-7">
           <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-500">
             جميع الدورات
           </span>

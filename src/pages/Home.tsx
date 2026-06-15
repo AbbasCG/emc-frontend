@@ -41,26 +41,26 @@ export default function Home() {
       {/* 1. Cinematic dark hero + orbital visual + stat pills */}
       <HomeCinematicHero />
 
-      {/* 2. Impact metrics — dark strip, animated counters */}
-      <HomeImpactMetrics />
-
-      {/* 3. Partner marquee trust strip */}
-      <HomeTrustStrip />
-
-      {/* 4. Learning tracks — 5 premium cards, 3-col layout */}
-      <HomeLearningTracks />
-
-      {/* 5. Learning journey — Workshop → Course → Track → Outcome */}
-      <HomeLearningJourney />
-
-      {/* 6. Platform capabilities bento (dark, glass) */}
-      <Suspense fallback={<SectionFallback />}>
-        <HomeEcosystemBento />
-      </Suspense>
-
-      {/* 7. Featured courses from API */}
+      {/* 2. Featured courses from API — near the top so users see real content immediately */}
       <Suspense fallback={<SectionFallback />}>
         <FeaturedCoursesSection />
+      </Suspense>
+
+      {/* 3. Impact metrics — dark strip, animated counters */}
+      <HomeImpactMetrics />
+
+      {/* 4. Partner marquee trust strip */}
+      <HomeTrustStrip />
+
+      {/* 5. Learning tracks — 5 premium cards, 3-col layout */}
+      <HomeLearningTracks />
+
+      {/* 6. Learning journey — Workshop → Course → Track → Outcome */}
+      <HomeLearningJourney />
+
+      {/* 7. Platform capabilities bento (dark, glass) */}
+      <Suspense fallback={<SectionFallback />}>
+        <HomeEcosystemBento />
       </Suspense>
 
       {/* 8. Why EMC — dark editorial grid */}

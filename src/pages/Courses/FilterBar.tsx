@@ -179,9 +179,9 @@ export default function FilterBar({
             </div>
 
             <span className="hidden text-xs font-medium whitespace-nowrap text-muted-500 sm:block">
-              <span className="font-black text-deepBlue">{resultCount.toLocaleString('ar-EG')}</span>
+              <span className="font-black text-deepBlue">{resultCount.toLocaleString('en-US')}</span>
               {' من '}
-              <span className="font-black text-deepBlue">{totalCount.toLocaleString('ar-EG')}</span>
+              <span className="font-black text-deepBlue">{totalCount.toLocaleString('en-US')}</span>
               {' دورة'}
             </span>
           </div>

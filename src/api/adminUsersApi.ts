@@ -567,3 +567,56 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
 export async function deleteAdminUser(id: number): Promise<void> {
   await apiClient.delete(`${BASE}/${id}`, silent)
 }
+
+// ---------------------------------------------------------------------------
+// Quick user search (typeahead for admin modals)
+// ---------------------------------------------------------------------------
+
+export type UserSearchHit = {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  avatar: string | null
+}
+
+export async function searchAdminUsers(q: string): Promise<UserSearchHit[]> {
+  if (!q.trim()) return []
+  try {
+    const res = await apiClient.get<unknown>('/admin/users/search', { params: { q: q.trim() }, ...silent })
+    const inner = unwrapData<unknown>(res.data)
+    const list = Array.isArray(inner) ? inner : (inner && typeof inner === 'object' ? ((inner as Record<string, unknown>).data ?? []) : [])
+    return (Array.isArray(list) ? list : []) as UserSearchHit[]
+  } catch {
+    return []
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Student course enrollments
+// ---------------------------------------------------------------------------
+
+export type StudentCourseRow = {
+  course_id: number
+  course_title: string
+  status: string
+  registered_at: string | null
+  progress_status: string | null
+  progress_pct: number
+}
+
+export async function fetchStudentCourses(userId: number): Promise<StudentCourseRow[]> {
+  try {
+    const res = await apiClient.get<unknown>(`/admin/students/${userId}/courses`, silent)
+    const inner = unwrapData<unknown>(res.data)
+    const list =
+      Array.isArray(inner)
+        ? inner
+        : inner && typeof inner === 'object'
+          ? ((inner as Record<string, unknown>).data ?? [])
+          : []
+    return (Array.isArray(list) ? list : []) as StudentCourseRow[]
+  } catch {
+    return []
+  }
+}

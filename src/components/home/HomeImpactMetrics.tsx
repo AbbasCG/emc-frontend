@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const metrics = [
-  { raw: 850, suffix: '+', label: 'متعلّم نشط', sub: 'في المنظومة الآن' },
+  { raw: 850, suffix: '+', label: 'متعلّم', sub: 'في المنظومة الآن' },
   { raw: 420, suffix: '+', label: 'خريج معتمد', sub: 'شهادات موثّقة' },
   { raw: 95, suffix: '+', label: 'ورشة تنفيذية', sub: 'حضورية وعن بُعد' },
   { raw: 32, suffix: '+', label: 'مسار وبرنامج', sub: 'متخصص ومنظّم' },

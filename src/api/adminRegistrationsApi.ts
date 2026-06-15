@@ -135,3 +135,22 @@ export async function createAccountFromRegistration(registrationId: number): Pro
   }>(`/admin/registrations/${registrationId}/create-account`)
   return res.data.data
 }
+
+export type RepairLinksResult = {
+  linked_registrations: number
+  created_progress_records: number
+  skipped_duplicates: number
+  message?: string
+}
+
+/** POST /admin/registrations/repair-links — bulk-link guest regs + backfill missing progress */
+export async function repairRegistrationLinks(): Promise<RepairLinksResult> {
+  const res = await apiClient.post<unknown>('/admin/registrations/repair-links', {})
+  const raw = ((res.data ?? {}) as Record<string, unknown>)
+  return {
+    linked_registrations:     Number(raw.linked_registrations ?? 0),
+    created_progress_records: Number(raw.created_progress_records ?? 0),
+    skipped_duplicates:       Number(raw.skipped_duplicates ?? 0),
+    message:                  typeof raw.message === 'string' ? raw.message : undefined,
+  }
+}

@@ -107,6 +107,7 @@ export default function CourseEnrollmentCard({
   const loginHref = buildPublicLoginHref(`/courses/${course.slug}`)
   const isStudent = isStudentUser(user?.role)
   const canEnroll = registrationOpen && !seatsFull && !alreadyEnrolled && !success
+  const whatsappUrl = (import.meta.env.VITE_WHATSAPP_COMMUNITY_URL as string | undefined)?.trim() || ''
 
   const loadProfile = useCallback(async () => {
     if (!isAuthenticated || !user) {
@@ -330,6 +331,21 @@ export default function CourseEnrollmentCard({
               >
                 عرض تسجيلي
               </Link>
+              {success && whatsappUrl && (
+                <div className="mt-4 border-t border-emerald-200 pt-4">
+                  <p className="mb-3 text-xs font-semibold leading-6 text-emerald-800">
+                    انضم إلى مجتمع الواتساب للتذكير باللقاءات والتحديثات
+                  </p>
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-black text-white"
+                  >
+                    الانضمام إلى مجتمع واتساب
+                  </a>
+                </div>
+              )}
             </div>
           : !isAuthenticated ?
             <div className="space-y-4 text-right">

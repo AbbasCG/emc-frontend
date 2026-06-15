@@ -13,6 +13,7 @@ function formatDate(dateStr: string): string {
   return new Intl.DateTimeFormat('ar-EG', {
     day: 'numeric',
     month: 'long',
+    numberingSystem: 'latn',
   }).format(new Date(dateStr))
 }
 

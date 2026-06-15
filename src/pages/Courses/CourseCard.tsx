@@ -12,6 +12,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
+import { toLatinDigits } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -43,7 +44,12 @@ function formatStartAr(iso: string | null): string | null {
   if (!iso) return null
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return null
-  return d.toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Intl.DateTimeFormat('ar-SA', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    numberingSystem: 'latn',
+  }).format(d)
 }
 
 export default function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
@@ -57,8 +63,8 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
   const startLabel = formatStartAr(course.start_date)
   const seatsLine =
     course.seats_count != null
-      ? `${course.registrations_count.toLocaleString('ar-EG')} / ${course.seats_count.toLocaleString('ar-EG')} مقعداً`
-      : `${course.registrations_count.toLocaleString('ar-EG')} تسجيل`
+      ? `${course.registrations_count.toLocaleString('en-US')} / ${course.seats_count.toLocaleString('en-US')} مقعداً`
+      : `${course.registrations_count.toLocaleString('en-US')} تسجيل`
 
   const statusBadge =
     course.status === 'upcoming'
@@ -115,7 +121,7 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
               course.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 text-brand-700'
             }`}
           >
-            {course.is_free ? 'مجاناً' : formatEuroInteger(course.price, 'ar')}
+            {course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))}
           </span>
         </div>
       </div>
@@ -173,7 +179,7 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
           <div>
             <p className="text-[10px] font-bold text-muted-400">الاستثمار</p>
             <p className={`text-lg font-black ${course.is_free ? 'text-emerald-600' : 'text-ink-900'}`}>
-              {course.is_free ? 'مجاناً بالكامل' : formatEuroInteger(course.price, 'ar')}
+              {course.is_free ? 'مجاناً بالكامل' : toLatinDigits(formatEuroInteger(course.price, 'ar'))}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
