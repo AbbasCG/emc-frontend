@@ -201,6 +201,8 @@ const WorkshopsManagementPage     = lazy(() => import('./pages/super-admin/crud/
 const RegistrationsManagementPage = lazy(() => import('./pages/super-admin/crud/RegistrationsManagementPage'))
 const PartnersManagementPage         = lazy(() => import('./pages/super-admin/crud/PartnersManagementPage'))
 const LearningPathsManagementPage      = lazy(() => import('./pages/super-admin/crud/LearningPathsManagementPage'))
+const EmailSettingsPage                = lazy(() => import('./pages/super-admin/EmailSettingsPage'))
+const EmailLogsPage                    = lazy(() => import('./pages/super-admin/EmailLogsPage'))
 const InstructorLearningPathsPage      = lazy(() => import('./pages/lms/instructor/InstructorLearningPathsPage'))
 const InstructorLearningPathDetailPage = lazy(() => import('./pages/lms/instructor/InstructorLearningPathDetailPage'))
 
@@ -363,6 +365,8 @@ function App() {
                     element={<CourseContentManagerPage />}
                   />
                   <Route path="/dashboard/super-admin/crud/*" element={<Navigate to="/dashboard/super-admin" replace />} />
+                  <Route path="/dashboard/super-admin/email-settings" element={<Suspense fallback={<RouteFallback />}><EmailSettingsPage /></Suspense>} />
+                  <Route path="/dashboard/super-admin/email-logs" element={<Suspense fallback={<RouteFallback />}><EmailLogsPage /></Suspense>} />
 
                   <Route path="/dashboard/admin/programs" element={<ProgramsManagementPage />} />
 

@@ -4,13 +4,18 @@ import type { AdminAuditLogEntry } from '@/types/adminAudit'
 
 export type AdminAuditLogQuery = {
   action?: string
+  user_id?: number | string
+  role?: string
+  entity_type?: string
+  date_from?: string
+  date_to?: string
+  search?: string
+  per_page?: number
+  // Legacy query param aliases
   actor?: string
   actor_role?: string
-  entity_type?: string
   from?: string
   to?: string
-  /** Free-text probe — backend may ignore if unsupported */
-  search?: string
 }
 
 function pickStr(v: unknown): string {
@@ -39,6 +44,23 @@ function coerceJsonMaybe(v: unknown): unknown {
   return v
 }
 
+function coerceStringArray(v: unknown): string[] | null {
+  if (v == null) return null
+  if (Array.isArray(v)) return v.map(String)
+  if (typeof v === 'string') {
+    const t = v.trim()
+    if (!t) return null
+    try {
+      const parsed = JSON.parse(t) as unknown
+      if (Array.isArray(parsed)) return parsed.map(String)
+    } catch {
+      // ignore
+    }
+    return [t]
+  }
+  return null
+}
+
 function uaBrief(ua?: string | null): string {
   const s = ua?.trim() ?? ''
   if (!s) return '—'
@@ -51,13 +73,16 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
   if (!raw || typeof raw !== 'object') return null
   const r = raw as Record<string, unknown>
 
-  const actorWrap = r.actor
-  const actorObj = actorWrap && typeof actorWrap === 'object' && !Array.isArray(actorWrap) ? actorWrap : null
+  // Support nested user object (new format) or flat actor fields (legacy)
+  const userObj =
+    r.user && typeof r.user === 'object' && !Array.isArray(r.user)
+      ? (r.user as Record<string, unknown>)
+      : null
 
   const actor_name =
     pickStr(r.actor_name) ||
     pickStr(r.user_name) ||
-    (actorObj && pickStr((actorObj as Record<string, unknown>).name)) ||
+    (userObj ? pickStr(userObj.name) : '') ||
     pickStr(r.performed_by) ||
     '—'
 
@@ -65,7 +90,7 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
     pickStr(r.actor_role) ||
     pickStr(r.user_role) ||
     pickStr(r.role) ||
-    (actorObj && pickStr((actorObj as Record<string, unknown>).role)) ||
+    (userObj ? pickStr(userObj.role) : '') ||
     ''
 
   const action = pickStr(r.action) || pickStr(r.event) || pickStr(r.operation) || 'unknown'
@@ -79,8 +104,8 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
 
   const entity_label =
     pickStr(r.entity_label) ||
-    pickStr(r.summary) ||
     pickStr(r.entity_name) ||
+    pickStr(r.summary) ||
     pickStr(r.title) ||
     (r.entity_id != null ? `#${pickStr(r.entity_id)}` : '') ||
     (r.subject_id != null ? `#${pickStr(r.subject_id)}` : '')
@@ -93,20 +118,15 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
     ''
 
   const old_values =
-    'old_values' in r ?
-      coerceJsonMaybe(r.old_values ?? r.old)
-    : coerceJsonMaybe(r.old)
+    'old_values' in r ? coerceJsonMaybe(r.old_values ?? r.old) : coerceJsonMaybe(r.old)
 
   const new_values =
-    'new_values' in r ?
-      coerceJsonMaybe(r.new_values ?? r.new)
-    : coerceJsonMaybe(r.new)
+    'new_values' in r ? coerceJsonMaybe(r.new_values ?? r.new) : coerceJsonMaybe(r.new)
+
+  const changed_fields = coerceStringArray(r.changed_fields)
 
   const ip_address =
-    pickStr(r.ip_address) ||
-    pickStr(r.ip) ||
-    pickStr(r.client_ip) ||
-    null
+    pickStr(r.ip_address) || pickStr(r.ip) || pickStr(r.client_ip) || null
 
   const user_agent_summary =
     pickStr(r.user_agent_summary) ||
@@ -114,16 +134,41 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
 
   return {
     id: coerceId(r.id),
+
+    // Legacy flat fields
     actor_name,
     actor_role,
+
+    // New nested user object
+    user: userObj
+      ? {
+          id: typeof userObj.id === 'number' ? userObj.id : null,
+          name: pickStr(userObj.name) || null,
+          email: pickStr(userObj.email) || null,
+          role: pickStr(userObj.role) || null,
+        }
+      : undefined,
+
     action,
+    action_label: pickStr(r.action_label) || null,
+    action_color: pickStr(r.action_color) || null,
+    action_icon: pickStr(r.action_icon) || null,
+
     entity_type,
     entity_label: entity_label || '—',
-    created_at: created_at || '—',
+    entity_name: pickStr(r.entity_name) || null,
+    entity_id: r.entity_id != null ? Number(r.entity_id) : null,
+
+    description: pickStr(r.description) || null,
+    changed_fields,
     old_values,
     new_values,
+
     ip_address: ip_address || null,
     user_agent_summary,
+    route: pickStr(r.route) || null,
+    method: pickStr(r.method) || null,
+    created_at: created_at || '—',
   }
 }
 
@@ -140,8 +185,15 @@ export function isImpersonationAuditEvent(e: AdminAuditLogEntry): boolean {
 }
 
 export async function fetchAdminAuditLogs(params?: AdminAuditLogQuery): Promise<AdminAuditLogEntry[]> {
+  // Map legacy param names to new backend param names
+  const query: Record<string, unknown> = { ...params }
+  if (params?.actor) query.search = params.actor
+  if (params?.actor_role) query.role = params.actor_role
+  if (params?.from) query.date_from = params.from
+  if (params?.to) query.date_to = params.to
+
   const res = await apiClient.get<unknown>('/admin/audit-logs', {
-    params,
+    params: query,
     skipErrorToast: true,
   })
   const rows = asList<unknown>(res.data)
