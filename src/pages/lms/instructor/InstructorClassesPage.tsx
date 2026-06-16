@@ -17,6 +17,7 @@ import {
   createClassGroup,
   deleteClassGroup,
   fetchClassAssignmentStudents,
+  fetchCourseEnrolledStudents,
   fetchInstructorClasses,
   removeStudentFromClass,
   updateClassGroup,
@@ -92,10 +93,9 @@ export default function InstructorClassesPage() {
   useEffect(() => {
     fetchInstructorCourses()
       .then((list) => {
-        const placement = list.filter((c) => c.requires_placement_test)
-        setCourses(placement)
-        if (!selectedCourse && placement.length === 1) {
-          setSelectedCourse(placement[0].id)
+        setCourses(list)
+        if (!selectedCourse && list.length === 1) {
+          setSelectedCourse(list[0].id)
         }
       })
       .catch(() => toast.error('تعذّر تحميل الدورات'))
@@ -117,14 +117,26 @@ export default function InstructorClassesPage() {
     if (!selectedCourse) { setStudents([]); return }
     setStudentsLoading(true)
     try {
-      const data = await fetchClassAssignmentStudents(selectedCourse)
+      const course = courses.find((c) => c.id === selectedCourse)
+      // For placement courses try the placement endpoint (includes scores/levels)
+      // then fall back to the general enrollment endpoint
+      let data: ClassAssignmentStudent[] = []
+      if (course?.requires_placement_test) {
+        try {
+          data = await fetchClassAssignmentStudents(selectedCourse)
+        } catch {
+          data = await fetchCourseEnrolledStudents(selectedCourse)
+        }
+      } else {
+        data = await fetchCourseEnrolledStudents(selectedCourse)
+      }
       setStudents(data)
     } catch {
       toast.error('تعذّر تحميل الطلاب')
     } finally {
       setStudentsLoading(false)
     }
-  }, [selectedCourse])
+  }, [selectedCourse, courses])
 
   useEffect(() => { void loadGroups() }, [loadGroups])
   useEffect(() => { void loadStudents() }, [loadStudents])
@@ -233,7 +245,7 @@ export default function InstructorClassesPage() {
     }
   }
 
-  const noPlacementCourses = !loading && courses.length === 0
+  const noPlacementCourses = !loading && courses.length === 0 && !selectedCourse
 
   return (
     <div className="space-y-5 pb-16" dir="rtl">
@@ -255,9 +267,9 @@ export default function InstructorClassesPage() {
       {noPlacementCourses && (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
           <GraduationCap className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-4 font-black text-deepBlue">لا توجد دورات تتطلب اختبار تحديد مستوى حالياً</p>
+          <p className="mt-4 font-black text-deepBlue">لا توجد دورات مُسندة إليك حالياً</p>
           <p className="mt-2 text-[12px] font-semibold text-deepBlue/45">
-            ستظهر هنا المجموعات عند إسناد دورة تتضمن اختبار تحديد المستوى
+            ستظهر هنا المجموعات عند إسناد دورة إليك من قِبَل الإدارة
           </p>
         </div>
       )}

@@ -3,13 +3,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   GraduationCap,
+  Lock,
   RefreshCw,
   Route,
   Save,
   UserCheck,
   Users,
 } from 'lucide-react'
+import DashboardBreadcrumbs from '@/components/ui/DashboardBreadcrumbs'
 import {
+  type AttendanceSessionResult,
   fetchInstructorAttendanceSession,
   fetchInstructorSessions,
   fetchInstructorStudents,
@@ -94,6 +97,7 @@ export default function InstructorAttendancePage() {
   const [sessionId, setSessionId] = useState<number | ''>('')
   const [rows, setRows] = useState<AttendanceRow[]>([])
   const [baseline, setBaseline] = useState<AttendanceRow[]>([])
+  const [lockInfo, setLockInfo] = useState<Pick<AttendanceSessionResult, 'is_locked' | 'locked_at' | 'locked_by'>>({ is_locked: false, locked_at: null, locked_by: null })
   const [loading, setLoading] = useState(true)
   const [loadingRows, setLoadingRows] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -175,10 +179,12 @@ export default function InstructorAttendancePage() {
   const loadAttendanceRows = useCallback(async (sid: number, gid: number | '') => {
     setLoadingRows(true)
     try {
-      const [saved, roster] = await Promise.all([
+      const [sessionResult, roster] = await Promise.all([
         fetchInstructorAttendanceSession(sid),
         loadRoster(sid, gid),
       ])
+      setLockInfo({ is_locked: sessionResult.is_locked, locked_at: sessionResult.locked_at, locked_by: sessionResult.locked_by })
+      const saved = sessionResult.rows
       const merged = saved.length > 0 ? mergeAttendanceRows(saved, roster) : roster
       setRows(cloneRows(merged))
       setBaseline(cloneRows(merged))
@@ -227,6 +233,10 @@ export default function InstructorAttendancePage() {
 
   async function save() {
     if (sessionId === '') return
+    if (lockInfo.is_locked) {
+      toast.error('تم حفظ الحضور مسبقاً ولا يمكن تعديله.')
+      return
+    }
     if (rows.some((r) => !r.status)) {
       toast.error('يرجى تحديد حالة الحضور لكل طالب قبل الحفظ.')
       return
@@ -241,11 +251,17 @@ export default function InstructorAttendancePage() {
           notes: r.notes?.trim() || null,
         })),
       )
-      toast.success('تم حفظ الحضور بنجاح.')
+      toast.success('تم حفظ الحضور بنجاح وتم قفله.')
       await loadAttendanceRows(Number(sessionId), classId)
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('[attendance] save failed:', err)
-      toast.error('تعذّر الحفظ — تحقق من صلاحياتك أو نقطة النهاية على الخادم.')
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number; data?: { message?: string } } })?.response?.status
+      if (status === 423) {
+        toast.error('تم حفظ الحضور مسبقاً ولا يمكن تعديله.')
+        setLockInfo({ is_locked: true, locked_at: null, locked_by: null })
+      } else {
+        if (import.meta.env.DEV) console.error('[attendance] save failed:', err)
+        toast.error('تعذّر الحفظ — تحقق من صلاحياتك أو نقطة النهاية على الخادم.')
+      }
     } finally {
       setSaving(false)
     }
@@ -262,6 +278,10 @@ export default function InstructorAttendancePage() {
 
   return (
     <div className="space-y-4 pb-24" dir="rtl">
+      <DashboardBreadcrumbs items={[
+        { label: 'دوراتي', href: '/dashboard/instructor/courses' },
+        { label: 'الحضور' },
+      ]} />
       <InstructorHero
         title="تسجيل الحضور"
         subtitle="اختر الجلسة، حدّد حالات الطلاب بسرعة، ثم احفظ"
@@ -307,15 +327,22 @@ export default function InstructorAttendancePage() {
             ))}
           </SelectField>
 
-          <button
-            type="button"
-            disabled={sessionId === '' || saving || loadingRows || rows.length === 0}
-            onClick={() => void save()}
-            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-50"
-          >
-            {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saving ? 'جارٍ الحفظ…' : 'حفظ الحضور'}
-          </button>
+          {lockInfo.is_locked ? (
+            <div className="flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 text-[12px] font-black text-amber-700">
+              <Lock className="h-4 w-4" />
+              تم الحفظ — مقفل
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={sessionId === '' || saving || loadingRows || rows.length === 0}
+              onClick={() => void save()}
+              className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-50"
+            >
+              {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {saving ? 'جارٍ الحفظ…' : 'حفظ الحضور'}
+            </button>
+          )}
         </div>
 
         {selectedSession && (
@@ -347,11 +374,16 @@ export default function InstructorAttendancePage() {
             <span className="rounded-lg bg-[#2691C2]/10 px-2.5 py-1 text-[11px] font-semibold text-[#2691C2]">
               {fmt(markedCount)} محدّد
             </span>
-            {hasUnsavedChanges && (
+            {lockInfo.is_locked ? (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-200">
+                <Lock className="h-3 w-3" />
+                تم حفظ الحضور ولا يمكن تعديله
+              </span>
+            ) : hasUnsavedChanges ? (
               <span className="rounded-lg bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-200">
                 تغييرات غير محفوظة
               </span>
-            )}
+            ) : null}
             {Object.entries(attendanceSummary).map(([status, count]) => {
               if (count === 0) return null
               const cfg = STAT_COLORS[status as keyof typeof STAT_COLORS]
@@ -393,13 +425,13 @@ export default function InstructorAttendancePage() {
           rows={rows}
           baseline={baseline}
           onChange={updateRow}
-          disabled={saving}
-          onMarkAllPresent={markAllPresent}
-          onClearAll={clearAll}
+          disabled={saving || lockInfo.is_locked}
+          onMarkAllPresent={lockInfo.is_locked ? undefined : markAllPresent}
+          onClearAll={lockInfo.is_locked ? undefined : clearAll}
         />
       )}
 
-      {showRoster && (
+      {showRoster && !lockInfo.is_locked && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-sm lg:hidden">
           <button
             type="button"
@@ -413,7 +445,7 @@ export default function InstructorAttendancePage() {
         </div>
       )}
 
-      {showRoster && hasUnsavedChanges && (
+      {showRoster && !lockInfo.is_locked && hasUnsavedChanges && (
         <div className="fixed inset-x-0 bottom-0 z-30 hidden border-t border-slate-200 bg-white/95 px-6 py-3 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-sm lg:block">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <p className="text-[13px] font-bold text-amber-700">لديك تغييرات غير محفوظة</p>

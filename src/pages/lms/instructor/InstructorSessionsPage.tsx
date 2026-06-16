@@ -234,12 +234,23 @@ function SessionSection({
   )
 }
 
+type Tab = 'all' | 'live' | 'scheduled' | 'completed' | 'cancelled'
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'all',       label: 'الكل' },
+  { key: 'scheduled', label: 'القادمة' },
+  { key: 'live',      label: 'مباشرة' },
+  { key: 'completed', label: 'المكتملة' },
+  { key: 'cancelled', label: 'الملغاة' },
+]
+
 /* ── Page ─────────────────────────────────────────────────────────────── */
 
 export default function InstructorSessionsPage() {
   const [sessions,   setSessions]  = useState<LmsSession[]>([])
   const [lpPaths,    setLpPaths]   = useState<LearningPath[]>([])
   const [loading,    setLoading]   = useState(true)
+  const [activeTab,  setActiveTab] = useState<Tab>('all')
   const [, setApiMissing] = useState(false)
 
   async function load() {
@@ -281,12 +292,22 @@ export default function InstructorSessionsPage() {
 
   const grouped = useMemo(() => ({
     live:      sessions.filter((s) => s.status === 'live'),
-    upcoming:  sessions.filter((s) => s.status === 'scheduled'),
+    scheduled: sessions.filter((s) => s.status === 'scheduled'),
     completed: sessions.filter((s) => s.status === 'completed'),
     cancelled: sessions.filter((s) => s.status === 'cancelled'),
   }), [sessions])
 
-  const liveAndUpcomingCount = grouped.live.length + grouped.upcoming.length
+  const tabCount = (tab: Tab) => {
+    if (tab === 'all') return sessions.length
+    return grouped[tab as keyof typeof grouped]?.length ?? 0
+  }
+
+  const visibleSessions = useMemo(() => {
+    if (activeTab === 'all') return sessions
+    return grouped[activeTab as keyof typeof grouped] ?? []
+  }, [activeTab, sessions, grouped])
+
+  const liveAndUpcomingCount = grouped.live.length + grouped.scheduled.length
 
   return (
     <div className="space-y-6 pb-16" dir="rtl">
@@ -314,6 +335,33 @@ export default function InstructorSessionsPage() {
         </button>
       </InstructorHero>
 
+      {/* Tabs */}
+      {!loading && sessions.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {TABS.map((tab) => {
+            const count = tabCount(tab.key)
+            const active = activeTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black transition ${
+                  active
+                    ? 'bg-[#22334A] text-white shadow-sm'
+                    : 'bg-white text-[#22334A]/60 ring-1 ring-slate-200 hover:ring-[#2691C2]/40'
+                }`}
+              >
+                {tab.label}
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -330,12 +378,23 @@ export default function InstructorSessionsPage() {
             ستُعرض الجلسات المرتبطة بدوراتك ومساراتك التعليمية هنا
           </p>
         </div>
-      ) : (
+      ) : visibleSessions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-14 text-center">
+          <Calendar className="mb-3 h-8 w-8 text-slate-200" />
+          <p className="font-black text-[#22334A]">لا توجد جلسات في هذه الفئة</p>
+        </div>
+      ) : activeTab === 'all' ? (
         <div className="space-y-8">
           <SessionSection sessions={grouped.live}      statusKey="live"      lpMap={lpMap} />
-          <SessionSection sessions={grouped.upcoming}  statusKey="scheduled" lpMap={lpMap} />
+          <SessionSection sessions={grouped.scheduled} statusKey="scheduled" lpMap={lpMap} />
           <SessionSection sessions={grouped.completed} statusKey="completed" lpMap={lpMap} />
           <SessionSection sessions={grouped.cancelled} statusKey="cancelled" lpMap={lpMap} />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {visibleSessions.map((s, i) => (
+            <SessionRow key={s.id} session={s} lpName={s.course_id != null ? lpMap.get(s.course_id) : undefined} index={i} />
+          ))}
         </div>
       )}
     </div>

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
   MessageSquare,
   X,
 } from 'lucide-react'
@@ -11,10 +13,69 @@ import {
   getLevelFromScore,
   PLACEMENT_LEVELS,
   type InstructorOralAssessment,
+  type OralRubric,
 } from '@/api/placementApi'
 import type { InstructorStudentRow } from '@/api/instructorApi'
 import toast from '@/lib/toast'
 import { InstructorHero, InstructorStudentCard, InstructorStudentDrawer } from '@/components/instructor'
+
+/* ── Rubric criteria ─────────────────────────────────────────────────────── */
+
+const RUBRIC_CRITERIA: { key: keyof OralRubric; label: string; hint: string }[] = [
+  { key: 'pronunciation_score', label: 'النطق',    hint: 'وضوح الأصوات والمخارج' },
+  { key: 'grammar_score',       label: 'القواعد',  hint: 'صحة البنية النحوية' },
+  { key: 'vocabulary_score',    label: 'المفردات', hint: 'ثراء وتنوع المفردات' },
+  { key: 'fluency_score',       label: 'الطلاقة',  hint: 'الانسياب وعدم التوقف' },
+  { key: 'comprehension_score', label: 'الفهم',    hint: 'استيعاب الأسئلة والسياق' },
+  { key: 'confidence_score',    label: 'الثقة',    hint: 'الثقة والإقناع في الأداء' },
+]
+
+function computeTotalFromRubric(rubric: OralRubric): number | null {
+  const vals = RUBRIC_CRITERIA.map((c) => rubric[c.key])
+  if (vals.some((v) => v === null)) return null
+  return Math.round((vals.reduce((s, v) => s + (v ?? 0), 0) / 60) * 100)
+}
+
+function ScoreInput({
+  label, hint, value, onChange, disabled,
+}: { label: string; hint: string; value: number | null; onChange: (v: number | null) => void; disabled?: boolean }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div>
+          <p className="text-[13px] font-black text-[#22334A]">{label}</p>
+          <p className="text-[10px] font-semibold text-slate-400">{hint}</p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min={0}
+            max={10}
+            value={value ?? ''}
+            disabled={disabled}
+            onChange={(e) => {
+              const v = e.target.value === '' ? null : Math.min(10, Math.max(0, Number(e.target.value)))
+              onChange(v)
+            }}
+            className="w-12 rounded-xl border border-slate-200 bg-white px-2 py-1 text-center text-[14px] font-black text-[#22334A] outline-none focus:border-[#2691C2] disabled:opacity-50"
+            dir="ltr"
+          />
+          <span className="text-[10px] font-semibold text-slate-400">/10</span>
+        </div>
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={10}
+        step={1}
+        value={value ?? 0}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-[#2691C2] disabled:opacity-50"
+      />
+    </div>
+  )
+}
 
 /* ── CEFR mapping for final_level payload ────────────────────────────────── */
 
@@ -58,6 +119,8 @@ type ModalState = {
   final_level: string
   oral_score: string
   notes: string
+  showRubric: boolean
+  rubric: OralRubric
 }
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
@@ -98,18 +161,42 @@ export default function InstructorOralAssessmentsPage() {
       final_level: row.final_level ?? estimated,
       oral_score:  row.oral_score != null ? String(row.oral_score) : '',
       notes:       row.instructor_notes ?? row.notes ?? '',
+      showRubric:  true,
+      rubric: {
+        pronunciation_score: row.pronunciation_score,
+        grammar_score:       row.grammar_score,
+        vocabulary_score:    row.vocabulary_score,
+        fluency_score:       row.fluency_score,
+        comprehension_score: row.comprehension_score,
+        confidence_score:    row.confidence_score,
+      },
     })
     setDrawerRow(null)
+  }
+
+  function updateRubric(key: keyof OralRubric, value: number | null) {
+    setModal((m) => {
+      if (!m) return null
+      const rubric = { ...m.rubric, [key]: value }
+      const total = computeTotalFromRubric(rubric)
+      return { ...m, rubric, oral_score: total != null ? String(total) : m.oral_score }
+    })
   }
 
   async function handleSave() {
     if (!modal) return
     setSaving(true)
     try {
+      const rubricPayload: Partial<OralRubric> = {}
+      RUBRIC_CRITERIA.forEach((c) => {
+        if (modal.rubric[c.key] !== null) rubricPayload[c.key] = modal.rubric[c.key] as number
+      })
+
       const result = await completeOralAssessment(modal.row.id, {
         final_level: LEVEL_TO_CEFR[modal.final_level] ?? modal.final_level,
         ...(modal.oral_score !== '' ? { oral_score: Number(modal.oral_score) } : {}),
         ...(modal.notes.trim() ? { instructor_notes: modal.notes.trim() } : {}),
+        ...rubricPayload,
       })
       toast.success('تم حفظ نتيجة التقييم')
       const savedScore = result.oral_score ?? (modal.oral_score !== '' ? Number(modal.oral_score) : null)
@@ -117,7 +204,7 @@ export default function InstructorOralAssessmentsPage() {
       const savedNotes = result.instructor_notes ?? (modal.notes.trim() || null)
       setRows((prev) => prev.map((r) =>
         r.id === modal.row.id
-          ? { ...r, oral_score: savedScore, final_level: savedLevel, instructor_notes: savedNotes, status: 'completed' }
+          ? { ...r, ...modal.rubric, oral_score: savedScore, final_level: savedLevel, instructor_notes: savedNotes, status: 'completed' }
           : r,
       ))
       setModal(null)
@@ -141,6 +228,7 @@ export default function InstructorOralAssessmentsPage() {
   ]
 
   const drawerStudent = drawerRow ? toStudentRow(drawerRow) : null
+  const autoTotal = modal ? computeTotalFromRubric(modal.rubric) : null
 
   return (
     <div className="space-y-5 pb-16" dir="rtl">
@@ -203,109 +291,152 @@ export default function InstructorOralAssessmentsPage() {
       {/* ── Assessment modal ──────────────────────────────────────────── */}
       <AnimatePresence>
         {modal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" dir="rtl">
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-8" dir="rtl">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="mb-8 w-full max-w-lg rounded-3xl bg-white shadow-2xl"
             >
-              <div className="mb-5 flex items-start justify-between">
+              {/* Header */}
+              <div className="flex items-start justify-between border-b border-slate-100 p-6 pb-4">
                 <div>
                   <h2 className="text-[17px] font-black text-deepBlue">إتمام التقييم الشفوي</h2>
                   <p className="mt-0.5 text-[12px] font-semibold text-deepBlue/50">{modal.row.student_name}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setModal(null)}
-                  className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100"
-                >
+                <button type="button" onClick={() => setModal(null)}
+                  className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {modal.row.written_score != null && (
-                <div className="mb-5 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="font-semibold text-deepBlue/55">الدرجة الكتابية</span>
-                    <span className="font-mono font-black tabular-nums text-deepBlue">
-                      {modal.row.written_score}/{modal.row.total_questions ?? 70}
-                    </span>
+              <div className="space-y-5 p-6">
+                {/* Written test summary */}
+                {modal.row.written_score != null && (
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                    <div className="flex items-center justify-between text-[13px]">
+                      <span className="font-semibold text-deepBlue/55">الدرجة الكتابية</span>
+                      <span className="font-mono font-black tabular-nums text-deepBlue">
+                        {modal.row.written_score}/{modal.row.total_questions ?? 70}
+                      </span>
+                    </div>
+                    {modal.row.estimated_level && (
+                      <div className="mt-1 flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-deepBlue/45">المستوى التقديري</span>
+                        <span className="font-black text-deepBlue">{modal.row.estimated_level}</span>
+                      </div>
+                    )}
                   </div>
-                  {modal.row.estimated_level && (
-                    <div className="mt-1 flex items-center justify-between text-[12px]">
-                      <span className="font-semibold text-deepBlue/45">المستوى التقديري</span>
-                      <span className="font-black text-deepBlue">{modal.row.estimated_level}</span>
+                )}
+
+                {/* Rubric section */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setModal((m) => m ? { ...m, showRubric: !m.showRubric } : null)}
+                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-black text-[#22334A] transition hover:border-[#2691C2]/40"
+                  >
+                    <span>تقييم المعايير التفصيلية</span>
+                    <div className="flex items-center gap-2">
+                      {autoTotal !== null && (
+                        <span className="rounded-lg bg-[#2691C2]/10 px-2 py-0.5 text-[11px] font-black text-[#2691C2]">
+                          إجمالي: {autoTotal}%
+                        </span>
+                      )}
+                      {modal.showRubric
+                        ? <ChevronUp className="h-4 w-4 text-slate-400" />
+                        : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                    </div>
+                  </button>
+
+                  {modal.showRubric && (
+                    <div className="mt-3 space-y-3">
+                      {RUBRIC_CRITERIA.map((c) => (
+                        <ScoreInput
+                          key={c.key}
+                          label={c.label}
+                          hint={c.hint}
+                          value={modal.rubric[c.key]}
+                          onChange={(v) => updateRubric(c.key, v)}
+                          disabled={saving}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
-              )}
 
-              <div className="mb-4">
-                <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
-                  المستوى النهائي <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={modal.final_level}
-                  onChange={(e) => setModal((m) => m ? { ...m, final_level: e.target.value } : null)}
-                  dir="rtl"
-                  className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
-                >
-                  <option value="">اختر المستوى</option>
-                  {PLACEMENT_LEVELS.map((lvl) => (
-                    <option key={lvl.level} value={lvl.level}>{lvl.label} — {lvl.description}</option>
-                  ))}
-                </select>
-              </div>
+                {/* Total oral score (auto-filled or manual) */}
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
+                    الدرجة الإجمالية للمقابلة
+                    {autoTotal !== null
+                      ? <span className="mr-1 font-normal text-[#2691C2]">(محسوبة من المعايير)</span>
+                      : <span className="mr-1 font-normal text-deepBlue/35">(0–100، اختياري)</span>}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={modal.oral_score}
+                    onChange={(e) => setModal((m) => m ? { ...m, oral_score: e.target.value } : null)}
+                    placeholder="مثال: 85"
+                    dir="ltr"
+                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                  />
+                </div>
 
-              <div className="mb-4">
-                <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
-                  درجة المقابلة الشفوية
-                  <span className="mr-1 font-normal text-deepBlue/35">(اختياري، 0–100)</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={modal.oral_score}
-                  onChange={(e) => setModal((m) => m ? { ...m, oral_score: e.target.value } : null)}
-                  placeholder="مثال: 85"
-                  dir="ltr"
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
-                />
-              </div>
+                {/* Final level */}
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
+                    المستوى النهائي <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={modal.final_level}
+                    onChange={(e) => setModal((m) => m ? { ...m, final_level: e.target.value } : null)}
+                    dir="rtl"
+                    className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                  >
+                    <option value="">اختر المستوى</option>
+                    {PLACEMENT_LEVELS.map((lvl) => (
+                      <option key={lvl.level} value={lvl.level}>{lvl.label} — {lvl.description}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="mb-6">
-                <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
-                  ملاحظات <span className="mr-1 font-normal text-deepBlue/35">(اختياري)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={modal.notes}
-                  onChange={(e) => setModal((m) => m ? { ...m, notes: e.target.value } : null)}
-                  placeholder="ملاحظات حول أداء الطالب..."
-                  dir="rtl"
-                  className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
-                />
-              </div>
+                {/* Notes */}
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
+                    ملاحظات <span className="mr-1 font-normal text-deepBlue/35">(اختياري)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={modal.notes}
+                    onChange={(e) => setModal((m) => m ? { ...m, notes: e.target.value } : null)}
+                    placeholder="ملاحظات حول أداء الطالب..."
+                    dir="rtl"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                  />
+                </div>
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => void handleSave()}
-                  disabled={!modal.final_level || saving}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  {saving ? 'جاري الحفظ...' : 'اعتماد المستوى'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModal(null)}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-[13px] font-black text-deepBlue/65 transition hover:bg-slate-50"
-                >
-                  إلغاء
-                </button>
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void handleSave()}
+                    disabled={!modal.final_level || saving}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    {saving ? 'جاري الحفظ...' : 'اعتماد المستوى'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModal(null)}
+                    className="rounded-2xl border border-slate-200 px-4 py-3 text-[13px] font-black text-deepBlue/65 transition hover:bg-slate-50"
+                  >
+                    إلغاء
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

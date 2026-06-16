@@ -253,6 +253,8 @@ export default function InstructorAvailabilityPage() {
       setShowForm(false)
       setForm(EMPTY_FORM)
       setErrors({})
+      // Prepend immediately so UI updates without waiting for reload
+      setSlots(prev => [...created, ...prev].sort((a, b) => a.starts_at.localeCompare(b.starts_at)))
       void load()
     } catch (err: unknown) {
       const resp = (err as {

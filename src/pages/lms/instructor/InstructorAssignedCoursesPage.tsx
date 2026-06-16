@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookMarked,
   BookOpen,
@@ -8,24 +8,28 @@ import {
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
+  GraduationCap,
   Layers,
   MessageSquare,
   RefreshCw,
+  Search,
   UserCheck,
   Users,
-  GraduationCap,
 } from 'lucide-react'
 import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import { useAuth } from '@/contexts/AuthContext'
-/* ── Status maps ─────────────────────────────────────────────────────────── */
+
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
 
 const STATUS_COLOR: Record<string, string> = {
   active:    'bg-emerald-100 text-emerald-700',
   draft:     'bg-slate-100 text-slate-500',
   inactive:  'bg-red-100 text-red-600',
   published: 'bg-emerald-100 text-emerald-700',
-  upcoming:  'bg-amber-100 text-amber-700',
+  upcoming:  'bg-sky-100 text-sky-700',
+  completed: 'bg-blue-100 text-blue-700',
+  archived:  'bg-slate-200 text-slate-500',
 }
 
 const STATUS_AR: Record<string, string> = {
@@ -34,23 +38,29 @@ const STATUS_AR: Record<string, string> = {
   inactive:  'غير نشط',
   published: 'منشور',
   upcoming:  'قادم',
+  completed: 'مكتمل',
+  archived:  'مؤرشف',
 }
 
-/* ── Quick actions (base — placement-specific ones added conditionally) ─── */
+type TabKey = 'all' | 'active' | 'upcoming' | 'completed' | 'draft'
 
-const BASE_ACTIONS = [
-  { label: 'كل طلابي',        href: '/dashboard/instructor/students',     icon: Users,         placement: false },
-  { label: 'التوفر والمواعيد', href: '/dashboard/instructor/availability', icon: CalendarDays,  placement: false },
-  { label: 'الجلسات',          href: '/dashboard/instructor/sessions',     icon: CalendarCheck, placement: false },
-  { label: 'التسليمات',        href: '/dashboard/instructor/submissions',  icon: ClipboardList, placement: false },
-  { label: 'الحضور',           href: '/dashboard/instructor/attendance',   icon: UserCheck,     placement: false },
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'all',       label: 'الكل'    },
+  { key: 'active',    label: 'نشطة'    },
+  { key: 'upcoming',  label: 'قادمة'   },
+  { key: 'completed', label: 'مكتملة'  },
+  { key: 'draft',     label: 'مسودة'   },
 ]
 
-const PLACEMENT_ACTIONS = [
-  { label: 'اختبارات تحديد المستوى', href: '/dashboard/instructor/placement-tests',  icon: ClipboardCheck, placement: true },
-  { label: 'المقابلات الشفوية',       href: '/dashboard/instructor/oral-assessments', icon: MessageSquare,  placement: true },
-  { label: 'الصفوف والمجموعات',       href: '/dashboard/instructor/classes',          icon: GraduationCap,  placement: true },
-]
+function groupCourse(c: TeachingCourseLms, today: string): 'active' | 'upcoming' | 'completed' | 'draft' {
+  const st = (c.status ?? '').toLowerCase()
+  if (st === 'draft') return 'draft'
+  const startDate = (c as Record<string, unknown>).start_date as string | null | undefined
+  const endDate   = (c as Record<string, unknown>).end_date   as string | null | undefined
+  if (st === 'archived' || st === 'inactive' || (endDate && endDate < today)) return 'completed'
+  if (startDate && startDate > today) return 'upcoming'
+  return 'active'
+}
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
@@ -59,6 +69,8 @@ export default function InstructorAssignedCoursesPage() {
   const [rows, setRows]       = useState<TeachingCourseLms[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(false)
+  const [search, setSearch]   = useState('')
+  const [tab, setTab]         = useState<TabKey>('all')
 
   async function load() {
     setLoading(true)
@@ -66,10 +78,9 @@ export default function InstructorAssignedCoursesPage() {
     try {
       const list = await fetchInstructorCourses()
       setRows(Array.isArray(list) ? list : [])
-    } catch (err) {
+    } catch {
       setError(true)
       setRows([])
-      if (import.meta.env.DEV) console.error('[courses] load failed:', err)
     } finally {
       setLoading(false)
     }
@@ -77,27 +88,52 @@ export default function InstructorAssignedCoursesPage() {
 
   useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hasPlacementCourses = useMemo(
-    () => rows.some((c) => c.requires_placement_test),
-    [rows],
-  )
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
-  const quickActions = useMemo(
-    () => hasPlacementCourses
-      ? [...PLACEMENT_ACTIONS, ...BASE_ACTIONS]
-      : BASE_ACTIONS,
-    [hasPlacementCourses],
-  )
+  const grouped = useMemo(() => {
+    const active: TeachingCourseLms[] = []
+    const upcoming: TeachingCourseLms[] = []
+    const completed: TeachingCourseLms[] = []
+    const draft: TeachingCourseLms[] = []
+    for (const c of rows) {
+      const g = groupCourse(c, today)
+      if (g === 'active')    active.push(c)
+      else if (g === 'upcoming')  upcoming.push(c)
+      else if (g === 'completed') completed.push(c)
+      else                        draft.push(c)
+    }
+    return { active, upcoming, completed, draft }
+  }, [rows, today])
 
   const kpi = useMemo(() => ({
-    courses:  rows.length,
-    students: rows.reduce((s, c) => s + (c.enrolled_students_count ?? c.students_count ?? c.student_count ?? 0), 0),
-    written:  rows.reduce((s, c) => s + (c.written_tests_count ?? c.written_completed_count ?? c.placement_completed_count ?? 0), 0),
-    final:    rows.reduce((s, c) => s + (c.final_level_count ?? c.oral_completed_count ?? 0), 0),
-  }), [rows])
+    total:     rows.length,
+    active:    grouped.active.length,
+    upcoming:  grouped.upcoming.length,
+    completed: grouped.completed.length,
+    students:  rows.reduce((s, c) => s + (c.enrolled_students_count ?? c.students_count ?? c.student_count ?? 0), 0),
+  }), [rows, grouped])
+
+  const hasPlacementCourses = useMemo(() => rows.some((c) => c.requires_placement_test), [rows])
+
+  // Tabs → visible subset, then filter by search
+  const visible = useMemo(() => {
+    let pool: TeachingCourseLms[]
+    if (tab === 'all')       pool = rows
+    else if (tab === 'active')    pool = grouped.active
+    else if (tab === 'upcoming')  pool = grouped.upcoming
+    else if (tab === 'completed') pool = grouped.completed
+    else                          pool = grouped.draft
+
+    if (!search.trim()) return pool
+    const q = search.trim().toLowerCase()
+    return pool.filter((c) => c.title.toLowerCase().includes(q))
+  }, [tab, rows, grouped, search])
+
+  // For "all" tab, render grouped sections; otherwise flat
+  const showGrouped = tab === 'all' && !search.trim()
 
   return (
-    <div className="space-y-6 pb-16 text-right" dir="rtl">
+    <div className="space-y-5 pb-16 text-right" dir="rtl">
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <motion.div
@@ -117,7 +153,7 @@ export default function InstructorAssignedCoursesPage() {
                 <p className="mt-1 text-[12px] font-semibold text-white/55">أهلًا، {user.name}</p>
               )}
               <p className="mt-2 max-w-lg text-[11px] font-medium leading-loose text-white/40">
-                تابع دوراتك وطلابك واختبارات تحديد المستوى والمقابلات من مكان واحد.
+                تابع دوراتك، الطلاب، الجلسات، الواجبات، والحضور من مكان واحد.
               </p>
             </div>
             <button
@@ -132,16 +168,17 @@ export default function InstructorAssignedCoursesPage() {
           </div>
 
           {!loading && (
-            <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <div className="mt-5 grid grid-cols-3 gap-2.5 sm:grid-cols-5">
               {([
-                { label: 'دورة مسندة',    value: kpi.courses   },
-                { label: 'طالب مسجّل',    value: kpi.students  },
-                { label: 'اختبار مكتمل',  value: kpi.written   },
-                { label: 'نتيجة معتمدة',  value: kpi.final     },
+                { label: 'إجمالي الدورات', value: kpi.total    },
+                { label: 'دورات نشطة',     value: kpi.active   },
+                { label: 'دورات قادمة',    value: kpi.upcoming },
+                { label: 'دورات مكتملة',   value: kpi.completed},
+                { label: 'طالب مسجّل',     value: kpi.students },
               ] as const).map(({ label, value }) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.07] px-4 py-3 backdrop-blur-sm">
-                  <p className="font-mono text-[22px] font-black tabular-nums text-white">{value}</p>
-                  <p className="mt-0.5 text-[10px] font-semibold text-white/45">{label}</p>
+                  <p className="font-mono text-[20px] font-black tabular-nums text-white">{value}</p>
+                  <p className="mt-0.5 text-[9px] font-semibold text-white/45">{label}</p>
                 </div>
               ))}
             </div>
@@ -152,8 +189,19 @@ export default function InstructorAssignedCoursesPage() {
       {/* ── Quick actions ─────────────────────────────────────────────────── */}
       <section>
         <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-deepBlue/30">وصول سريع</p>
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-          {quickActions.map(({ label, href, icon: Icon }, i) => (
+        <div className={`grid gap-2 ${hasPlacementCourses ? 'grid-cols-4 sm:grid-cols-8' : 'grid-cols-4 sm:grid-cols-5'}`}>
+          {[
+            ...(hasPlacementCourses ? [
+              { label: 'اختبارات التحديد', href: '/dashboard/instructor/placement-tests',  icon: ClipboardCheck },
+              { label: 'المقابلات',         href: '/dashboard/instructor/oral-assessments', icon: MessageSquare  },
+              { label: 'الصفوف',            href: '/dashboard/instructor/classes',          icon: GraduationCap  },
+            ] : []),
+            { label: 'طلابي',            href: '/dashboard/instructor/students',     icon: Users         },
+            { label: 'المواعيد',          href: '/dashboard/instructor/availability', icon: CalendarDays  },
+            { label: 'الجلسات',           href: '/dashboard/instructor/sessions',     icon: CalendarCheck },
+            { label: 'التسليمات',         href: '/dashboard/instructor/submissions',  icon: ClipboardList },
+            { label: 'الحضور',            href: '/dashboard/instructor/attendance',   icon: UserCheck     },
+          ].map(({ label, href, icon: Icon }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 8 }}
@@ -172,7 +220,48 @@ export default function InstructorAssignedCoursesPage() {
         </div>
       </section>
 
-      {/* ── Course grid ───────────────────────────────────────────────────── */}
+      {/* ── Search + Tabs ─────────────────────────────────────────────────── */}
+      {!loading && rows.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث بعنوان الدورة..."
+              dir="rtl"
+              className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-9 pl-3 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+            />
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-1.5">
+            {TABS.map(({ key, label }) => {
+              const count = key === 'all' ? rows.length : grouped[key]?.length ?? 0
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTab(key)}
+                  className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black transition ${
+                    tab === key
+                      ? 'bg-[#2691C2] text-white shadow-sm'
+                      : 'bg-white border border-slate-200 text-deepBlue/60 hover:bg-slate-50'
+                  }`}
+                >
+                  {label}
+                  <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-black ${tab === key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Course list ───────────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((i) => (
@@ -204,9 +293,45 @@ export default function InstructorAssignedCoursesPage() {
             عند إسناد دورة جديدة ستظهر هنا
           </p>
         </motion.div>
+      ) : visible.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-14 text-center">
+          <Search className="mx-auto h-8 w-8 text-slate-300" />
+          <p className="mt-3 font-black text-deepBlue">لا توجد نتائج</p>
+          <p className="mt-1 text-[12px] font-semibold text-deepBlue/40">جرّب تغيير الفلتر أو مصطلح البحث</p>
+        </div>
+      ) : showGrouped ? (
+        <div className="space-y-10">
+          <AnimatePresence>
+            {([
+              { label: 'دورات نشطة',   courses: grouped.active,    color: 'text-emerald-600',  dot: 'bg-emerald-500' },
+              { label: 'دورات قادمة',  courses: grouped.upcoming,  color: 'text-sky-600',       dot: 'bg-sky-500'     },
+              { label: 'دورات مكتملة', courses: grouped.completed, color: 'text-slate-500',     dot: 'bg-slate-400'   },
+              { label: 'مسودات',       courses: grouped.draft,     color: 'text-slate-400',     dot: 'bg-slate-300'   },
+            ] as const).map(({ label, courses, color, dot }) =>
+              courses.length === 0 ? null : (
+                <motion.section
+                  key={label}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${dot}`} />
+                    <h2 className={`text-[13px] font-black tracking-wide ${color}`}>
+                      {label}
+                      <span className="mr-2 text-[11px] font-semibold opacity-60">({courses.length})</span>
+                    </h2>
+                  </div>
+                  <div className={`grid gap-4 ${courses.length === 1 ? 'mx-auto max-w-sm' : 'sm:grid-cols-2 xl:grid-cols-3'}`}>
+                    {courses.map((c, i) => <CourseCard key={c.id} course={c} index={i} />)}
+                  </div>
+                </motion.section>
+              )
+            )}
+          </AnimatePresence>
+        </div>
       ) : (
-        <div className={`grid gap-5 ${rows.length === 1 ? 'mx-auto max-w-sm' : 'md:grid-cols-2 xl:grid-cols-3'}`}>
-          {rows.map((c, i) => <CourseCard key={c.id} course={c} index={i} />)}
+        <div className={`grid gap-4 ${visible.length === 1 ? 'mx-auto max-w-sm' : 'sm:grid-cols-2 xl:grid-cols-3'}`}>
+          {visible.map((c, i) => <CourseCard key={c.id} course={c} index={i} />)}
         </div>
       )}
     </div>
@@ -216,37 +341,41 @@ export default function InstructorAssignedCoursesPage() {
 /* ── CourseCard ───────────────────────────────────────────────────────────── */
 
 function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: number }) {
-  const enrolled  = c.enrolled_students_count ?? c.students_count ?? c.student_count ?? null
-  const written   = c.written_tests_count ?? c.written_completed_count ?? c.placement_completed_count ?? null
-  const oralPend  = c.oral_pending_count ?? c.waiting_oral_count ?? null
-  const oralBook  = c.oral_booked_count ?? null
-  const finalLvl  = c.final_level_count ?? c.oral_completed_count ?? null
-  const statusKey = (c.status ?? '').toLowerCase()
-
+  const enrolled       = c.enrolled_students_count ?? c.students_count ?? c.student_count ?? 0
+  const written        = c.written_tests_count ?? c.written_completed_count ?? c.placement_completed_count ?? null
+  const oralPend       = c.oral_pending_count ?? c.waiting_oral_count ?? null
+  const finalLvl       = c.final_level_count ?? c.oral_completed_count ?? null
+  const statusKey      = (c.status ?? '').toLowerCase()
   const needsPlacement = !!c.requires_placement_test
 
-  const metrics = needsPlacement ? [
-    { label: 'الطلاب',           value: enrolled, color: 'text-[#2691C2]'   },
-    { label: 'اختبارات مكتملة',  value: written,  color: 'text-[#EC943C]'  },
-    { label: 'بانتظار المقابلة', value: oralPend, color: 'text-amber-500'   },
-    { label: 'مقابلات محجوزة',   value: oralBook, color: 'text-violet-600'  },
-    { label: 'نتائج معتمدة',     value: finalLvl, color: 'text-emerald-600' },
-  ] : [
-    { label: 'الطلاب',  value: enrolled, color: 'text-[#2691C2]'   },
-  ]
+  const startDate = (c as Record<string, unknown>).start_date as string | null | undefined
+  const endDate   = (c as Record<string, unknown>).end_date   as string | null | undefined
 
-  const baseActions = [
+  function fmtDate(d: string | null | undefined) {
+    if (!d) return null
+    try { return new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(d)) }
+    catch { return d }
+  }
+
+  // Action shortcuts specific to this course
+  const actions = [
     {
-      label: 'طلاب الدورة',
-      icon:  BookOpen,
+      label: 'الطلاب',
+      icon:  Users,
       href:  `/dashboard/instructor/courses/${c.id}/students`,
       cls:   'border-[#2691C2]/20 bg-[#2691C2]/[0.05] text-[#2691C2] hover:bg-[#2691C2]/[0.12]',
     },
     {
-      label: 'التوفر',
-      icon:  CalendarDays,
-      href:  '/dashboard/instructor/availability',
-      cls:   'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100',
+      label: 'الحضور',
+      icon:  UserCheck,
+      href:  `/dashboard/instructor/attendance`,
+      cls:   'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+    },
+    {
+      label: 'التسليمات',
+      icon:  ClipboardList,
+      href:  `/dashboard/instructor/submissions?course_id=${c.id}`,
+      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
     },
     {
       label: 'المحتوى',
@@ -254,49 +383,32 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       href:  `/dashboard/instructor/courses/${c.id}/content`,
       cls:   'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100',
     },
+    ...(needsPlacement ? [
+      {
+        label: 'تحديد المستوى',
+        icon:  ClipboardCheck,
+        href:  `/dashboard/instructor/courses/${c.id}/placement-students`,
+        cls:   'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100',
+      },
+    ] : []),
   ]
-
-  const placementActions = needsPlacement ? [
-    {
-      label: 'تحديد المستوى',
-      icon:  ClipboardCheck,
-      href:  `/dashboard/instructor/courses/${c.id}/placement-students`,
-      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
-    },
-    {
-      label: 'المقابلات',
-      icon:  MessageSquare,
-      href:  '/dashboard/instructor/oral-assessments',
-      cls:   'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100',
-    },
-    {
-      label: 'الصفوف',
-      icon:  GraduationCap,
-      href:  `/dashboard/instructor/classes?course_id=${c.id}`,
-      cls:   'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-    },
-  ] : []
-
-  const actions = needsPlacement
-    ? [baseActions[0], ...placementActions, ...baseActions.slice(1)]
-    : baseActions
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:shadow-md"
+      transition={{ delay: index * 0.04 }}
+      className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
     >
-      {/* Image or gradient banner */}
+      {/* Banner */}
       {(c.thumbnail ?? (c as Record<string, unknown>).image) ? (
-        <div className="relative h-36 overflow-hidden">
+        <div className="relative h-32 overflow-hidden">
           <img
-            src={((c.thumbnail ?? (c as Record<string, unknown>).image) as string)}
+            src={(c.thumbnail ?? (c as Record<string, unknown>).image) as string}
             alt={c.title}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/60 via-transparent to-transparent" />
           {c.status && (
             <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-0.5 text-[9px] font-black shadow-sm ${STATUS_COLOR[statusKey] ?? 'bg-slate-100 text-slate-500'}`}>
               {STATUS_AR[statusKey] ?? c.status}
@@ -304,9 +416,9 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
           )}
         </div>
       ) : (
-        <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2]">
-          <div aria-hidden className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-[#EC943C]/20 blur-2xl" />
-          <BookMarked className="relative h-8 w-8 text-white/20" />
+        <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2]">
+          <div aria-hidden className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-[#EC943C]/20 blur-2xl" />
+          <BookMarked className="relative h-7 w-7 text-white/20" />
           {c.status && (
             <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-0.5 text-[9px] font-black ${STATUS_COLOR[statusKey] ?? 'bg-white/15 text-white'}`}>
               {STATUS_AR[statusKey] ?? c.status}
@@ -318,16 +430,25 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       <div className="flex flex-1 flex-col p-4">
         <h2 className="line-clamp-2 text-[14px] font-black leading-snug text-deepBlue">{c.title}</h2>
 
-        {/* Metric tiles */}
-        <div className="mt-3 grid grid-cols-5 gap-1.5">
-          {metrics.map(({ label, value, color }) => (
-            <div key={label} className="rounded-xl bg-slate-50 px-1 py-2 text-center">
-              <p className={`font-mono text-[16px] font-black tabular-nums ${color}`}>
-                {value ?? '—'}
-              </p>
-              <p className="mt-0.5 text-[8px] font-black leading-tight text-deepBlue/35">{label}</p>
-            </div>
-          ))}
+        {/* Date range */}
+        {(startDate || endDate) && (
+          <p className="mt-1.5 text-[10px] font-semibold text-deepBlue/40">
+            {fmtDate(startDate)}{startDate && endDate ? ' — ' : ''}{fmtDate(endDate)}
+          </p>
+        )}
+
+        {/* Stat pills */}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <StatPill value={enrolled} label="طالب" color="text-[#2691C2] bg-sky-50" />
+          {needsPlacement && written != null && (
+            <StatPill value={written} label="اختبار مكتمل" color="text-[#EC943C] bg-orange-50" />
+          )}
+          {needsPlacement && oralPend != null && oralPend > 0 && (
+            <StatPill value={oralPend} label="ينتظر مقابلة" color="text-amber-600 bg-amber-50" />
+          )}
+          {needsPlacement && finalLvl != null && (
+            <StatPill value={finalLvl} label="نتيجة معتمدة" color="text-emerald-600 bg-emerald-50" />
+          )}
         </div>
 
         {/* Action buttons */}
@@ -348,3 +469,11 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
   )
 }
 
+function StatPill({ value, label, color }: { value: number; label: string; color: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 text-[10px] font-black ${color}`}>
+      <span className="font-mono tabular-nums">{value}</span>
+      <span className="font-semibold opacity-70">{label}</span>
+    </span>
+  )
+}

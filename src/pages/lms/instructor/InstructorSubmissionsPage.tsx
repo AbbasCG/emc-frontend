@@ -9,6 +9,7 @@ import {
   Filter,
   Search,
 } from 'lucide-react'
+import DashboardBreadcrumbs from '@/components/ui/DashboardBreadcrumbs'
 import {
   fetchInstructorAssignmentsQueue,
   fetchSubmissionDetail,
@@ -199,6 +200,10 @@ export default function InstructorSubmissionsPage() {
 
   return (
     <div className="space-y-5 pb-16 font-[Cairo,sans-serif]" dir="rtl">
+      <DashboardBreadcrumbs items={[
+        { label: 'دوراتي', href: '/dashboard/instructor/courses' },
+        { label: 'التسليمات' },
+      ]} />
 
       <InstructorHero
         title="التسليمات"

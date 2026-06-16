@@ -323,7 +323,7 @@ export default function VolunteerApply() {
     if (!form.availability) e.availability = 'التوفر مطلوب'
     if (!form.motivation.trim()) e.motivation = 'سبب التطوع مطلوب'
     else if (form.motivation.trim().length < 20) e.motivation = 'يرجى كتابة سبب التطوع بما لا يقل عن 20 حرفًا'
-    if (!form.cv_file) e.cv_file = 'السيرة الذاتية مطلوبة'
+    // if (!form.cv_file) e.cv_file = 'السيرة الذاتية مطلوبة'
     return e
   }
 

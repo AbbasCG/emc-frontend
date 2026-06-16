@@ -239,7 +239,7 @@ export async function putInstructorAttendance(
   sessionId: number,
   records: { student_id: number; status: string; notes?: string | null }[],
 ): Promise<void> {
-  await apiClient.put(`/instructor/attendance/${sessionId}`, { records })
+  await apiClient.put(`/instructor/attendance/${sessionId}`, { attendances: records })
 }
 
 function normalizeAttendanceStatus(raw: unknown): AttendanceStatus | null {
@@ -313,23 +313,38 @@ export function mergeAttendanceRows(saved: AttendanceRow[], roster: AttendanceRo
   return [...byId.values()].sort((a, b) => a.student_name.localeCompare(b.student_name, 'ar'))
 }
 
-export async function fetchInstructorAttendanceSession(sessionId: number): Promise<AttendanceRow[]> {
+export type AttendanceSessionResult = {
+  rows: AttendanceRow[]
+  is_locked: boolean
+  locked_at: string | null
+  locked_by: string | null
+}
+
+export async function fetchInstructorAttendanceSession(sessionId: number): Promise<AttendanceSessionResult> {
   try {
     const res = await apiClient.get<unknown>(`/instructor/attendance/${sessionId}`, { skipErrorToast: true } as Record<string, unknown>)
     const inner = unwrapData<unknown>(res.data)
+    let rows: AttendanceRow[] = []
+    let is_locked = false
+    let locked_at: string | null = null
+    let locked_by: string | null = null
+
     if (Array.isArray(inner)) {
-      return inner.map(normalizeAttendanceRow).filter((r): r is AttendanceRow => r != null)
-    }
-    if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+      rows = inner.map(normalizeAttendanceRow).filter((r): r is AttendanceRow => r != null)
+    } else if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
       const obj = inner as Record<string, unknown>
-      const rows = obj.records ?? obj.attendance ?? obj.students ?? obj.data
-      if (Array.isArray(rows)) {
-        return rows.map(normalizeAttendanceRow).filter((r): r is AttendanceRow => r != null)
+      is_locked = obj.is_locked === true
+      locked_at = obj.locked_at != null ? String(obj.locked_at) : null
+      locked_by = obj.locked_by != null ? String(obj.locked_by) : null
+      const rawRows = obj.records ?? obj.attendance ?? obj.students ?? obj.data
+      if (Array.isArray(rawRows)) {
+        rows = rawRows.map(normalizeAttendanceRow).filter((r): r is AttendanceRow => r != null)
       }
     }
-    return asList<unknown>(res.data).map(normalizeAttendanceRow).filter((r): r is AttendanceRow => r != null)
+
+    return { rows, is_locked, locked_at, locked_by }
   } catch {
-    return []
+    return { rows: [], is_locked: false, locked_at: null, locked_by: null }
   }
 }
 

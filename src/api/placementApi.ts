@@ -1026,7 +1026,17 @@ export type OralAssessmentCompleteResult = {
 
 export async function completeOralAssessment(
   bookingId: number,
-  data: { final_level: string; oral_score?: number; instructor_notes?: string },
+  data: {
+    final_level: string
+    oral_score?: number
+    instructor_notes?: string
+    pronunciation_score?: number | null
+    grammar_score?: number | null
+    vocabulary_score?: number | null
+    fluency_score?: number | null
+    comprehension_score?: number | null
+    confidence_score?: number | null
+  },
 ): Promise<OralAssessmentCompleteResult> {
   const res = await apiClient.patch<unknown>(
     `/instructor/oral-assessments/${bookingId}/complete`,
@@ -1046,6 +1056,15 @@ export async function completeOralAssessment(
 }
 
 /* ── Instructor Oral Assessments ─────────────────────────────────────────── */
+
+export type OralRubric = {
+  pronunciation_score: number | null
+  grammar_score: number | null
+  vocabulary_score: number | null
+  fluency_score: number | null
+  comprehension_score: number | null
+  confidence_score: number | null
+}
 
 export type InstructorOralAssessment = {
   id: number
@@ -1067,7 +1086,7 @@ export type InstructorOralAssessment = {
   notes: string | null
   instructor_notes: string | null
   avatar_url: string | null
-}
+} & OralRubric
 
 function resolveCourseTitle(r: Record<string, unknown>): string {
   const ct = r.course_title
@@ -1123,6 +1142,12 @@ function normalizeOralAssessment(r: Record<string, unknown>): InstructorOralAsse
     instructor_notes: r.instructor_notes != null ? String(r.instructor_notes) : null,
     avatar_url:       r.avatar_url != null ? String(r.avatar_url) :
                       r.profile_photo_url != null ? String(r.profile_photo_url) : null,
+    pronunciation_score: r.pronunciation_score != null ? Number(r.pronunciation_score) : null,
+    grammar_score:       r.grammar_score != null ? Number(r.grammar_score) : null,
+    vocabulary_score:    r.vocabulary_score != null ? Number(r.vocabulary_score) : null,
+    fluency_score:       r.fluency_score != null ? Number(r.fluency_score) : null,
+    comprehension_score: r.comprehension_score != null ? Number(r.comprehension_score) : null,
+    confidence_score:    r.confidence_score != null ? Number(r.confidence_score) : null,
   }
 }
 
@@ -1349,6 +1374,7 @@ export type ClassAssignmentStudent = {
   student_id: number
   student_name: string
   student_email: string
+  student_phone?: string | null
   written_score: number | null
   total_questions: number | null
   percentage: number | null
@@ -1438,6 +1464,37 @@ export async function updateClassGroup(id: number, data: Partial<ClassGroup>): P
 
 export async function deleteClassGroup(id: number): Promise<void> {
   await apiClient.delete(`/instructor/classes/${id}`, silent)
+}
+
+/** GET /instructor/courses/{course}/students — all enrolled students (no placement filter) */
+export async function fetchCourseEnrolledStudents(courseId: number): Promise<ClassAssignmentStudent[]> {
+  const res = await apiClient.get<unknown>(`/instructor/courses/${courseId}/students`, silent)
+  const payload = extractPayload(res.data)
+  let raw: unknown[] = []
+  for (const key of ['data', 'items', 'students']) {
+    if (Array.isArray(payload[key])) { raw = payload[key] as unknown[]; break }
+  }
+  return raw.map((r) => {
+    const o = r as Record<string, unknown>
+    return {
+      student_id:       Number(o.student_id ?? 0),
+      student_name:     String(o.student_name ?? ''),
+      student_email:    String(o.student_email ?? ''),
+      student_phone:    o.student_phone != null ? String(o.student_phone) : null,
+      written_score:    null,
+      total_questions:  null,
+      percentage:       null,
+      written_level:    null,
+      oral_score:       null,
+      final_level:      null,
+      instructor_notes: null,
+      placement_status: 'not_started',
+      attempt_id:       null,
+      booking_id:       null,
+      is_assigned:      !!o.is_assigned,
+      avatar_url:       o.avatar_url != null ? String(o.avatar_url) : null,
+    }
+  })
 }
 
 export async function fetchClassAssignmentStudents(courseId: number): Promise<ClassAssignmentStudent[]> {
