@@ -136,6 +136,8 @@ export type CourseUpsertPayload = {
   requires_placement_test?: boolean
   /** Set to a learning path ID to assign this course to that path, or null to remove from any path */
   learning_path_id?: number | null
+  /** Optional WhatsApp community link — must start with https://chat.whatsapp.com/ */
+  whatsapp_community_url?: string | null
 }
 
 function unwrapCourse(res: unknown): Course {

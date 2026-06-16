@@ -116,6 +116,9 @@ export type Course = {
   can_archive?: boolean
   can_deactivate?: boolean
   lock_reason?: string | null
+
+  /** Optional WhatsApp community link for the course (must start with https://chat.whatsapp.com/) */
+  whatsapp_community_url?: string | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'

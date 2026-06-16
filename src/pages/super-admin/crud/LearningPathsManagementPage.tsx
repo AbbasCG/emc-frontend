@@ -288,7 +288,13 @@ interface FormState {
   course_ids: number[]
   featured_image_file: File | null
   featured_image_preview: string | null
+  study_days_per_week: string
+  study_days: string[]
+  study_time: string
+  schedule_note: string
 }
+
+const STUDY_DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
 const defaultForm = (): FormState => ({
   title: '',
@@ -312,6 +318,10 @@ const defaultForm = (): FormState => ({
   course_ids: [],
   featured_image_file: null,
   featured_image_preview: null,
+  study_days_per_week: '',
+  study_days: [],
+  study_time: '',
+  schedule_note: '',
 })
 
 function pathToForm(p: LearningPath): FormState {
@@ -337,6 +347,10 @@ function pathToForm(p: LearningPath): FormState {
     course_ids:           (p.courses ?? []).map((c) => c.id),
     featured_image_file:  null,
     featured_image_preview: p.featured_image ?? null,
+    study_days_per_week:  p.study_days_per_week != null ? String(p.study_days_per_week) : '',
+    study_days:           p.study_days ?? [],
+    study_time:           p.study_time ?? '',
+    schedule_note:        p.schedule_note ?? '',
   }
 }
 
@@ -388,6 +402,10 @@ function FormModal({
       form.learning_outcomes.filter(Boolean).forEach((o, i) => fd.append(`learning_outcomes[${i}]`, o))
       form.requirements.filter(Boolean).forEach((r, i)      => fd.append(`requirements[${i}]`, r))
       form.course_ids.forEach((id, i) => fd.append(`course_ids[${i}]`, String(id)))
+      if (form.study_days_per_week.trim()) fd.append('study_days_per_week', form.study_days_per_week.trim())
+      form.study_days.forEach((d, i) => fd.append(`study_days[${i}]`, d))
+      if (form.study_time.trim()) fd.append('study_time', form.study_time.trim())
+      if (form.schedule_note.trim()) fd.append('schedule_note', form.schedule_note.trim())
       if (form.featured_image_file) fd.append('featured_image', form.featured_image_file)
 
       if (editPath) {
@@ -736,6 +754,76 @@ function FormModal({
                 >
                   + إضافة متطلب
                 </button>
+              </div>
+
+              {/* Schedule metadata */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="mb-3 text-sm font-black text-slate-800">جدول الدراسة (اختياري)</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-bold text-slate-700">عدد أيام الدراسة في الأسبوع</label>
+                    <select
+                      value={form.study_days_per_week}
+                      onChange={(e) => set('study_days_per_week', e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                    >
+                      <option value="">— غير محدد —</option>
+                      {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                        <option key={n} value={String(n)}>{en(n)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-bold text-slate-700">وقت الدراسة</label>
+                    <input
+                      value={form.study_time}
+                      onChange={(e) => set('study_time', e.target.value)}
+                      placeholder="19:00 - 20:30"
+                      dir="ltr"
+                      className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#2691C2] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="mb-2 block text-sm font-bold text-slate-700">أيام الدراسة</label>
+                  <div className="flex flex-wrap gap-2">
+                    {STUDY_DAYS_AR.map((day) => {
+                      const checked = form.study_days.includes(day)
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() =>
+                            set(
+                              'study_days',
+                              checked ?
+                                form.study_days.filter((d) => d !== day)
+                              : [...form.study_days, day],
+                            )
+                          }
+                          className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                            checked
+                              ? 'border-[#2691C2] bg-[#2691C2] text-white'
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/50'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="mb-1 block text-sm font-bold text-slate-700">ملاحظات الجدول</label>
+                  <input
+                    value={form.schedule_note}
+                    onChange={(e) => set('schedule_note', e.target.value)}
+                    placeholder="مرتين في الأسبوع"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                  />
+                </div>
               </div>
             </div>
           )}

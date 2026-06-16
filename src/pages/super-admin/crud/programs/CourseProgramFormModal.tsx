@@ -306,6 +306,7 @@ const FIELD_LABEL_AR: Record<string, string> = {
   notes: 'الملاحظات الداخلية',
   curriculum_topics: 'محاور الدورة',
   program_type: 'نوع البرنامج',
+  whatsapp_community_url: 'رابط مجتمع الواتساب',
 }
 
 /** Laravel errors like `features.0` resolve to the base field label */
@@ -417,6 +418,7 @@ export function CourseProgramFormModal({
   const [adminNotes, setAdminNotes] = useState('')
   const [requiresPlacementTest, setRequiresPlacementTest] = useState(false)
   const [learningPathId, setLearningPathId] = useState('')
+  const [whatsappCommunityUrl, setWhatsappCommunityUrl] = useState('')
 
   const resetFromInitial = useCallback(() => {
     if (!initial) {
@@ -457,6 +459,7 @@ export function CourseProgramFormModal({
       setAdminNotes('')
       setRequiresPlacementTest(false)
       setLearningPathId('')
+      setWhatsappCommunityUrl('')
       setInstructorQuery('')
       setImageFile(null)
       setImagePreviewUrl((u) => {
@@ -525,6 +528,7 @@ export function CourseProgramFormModal({
     setAdminNotes((initial as { notes?: string | null }).notes ?? initial.admin_notes ?? '')
     setRequiresPlacementTest(Boolean((initial as Record<string, unknown>).requires_placement_test))
     setLearningPathId(initial.learning_path?.id != null ? String(initial.learning_path.id) : '')
+    setWhatsappCommunityUrl((initial as { whatsapp_community_url?: string | null }).whatsapp_community_url ?? '')
     setLearnText(loadBulletFieldFromApi(initial.features))
     setFieldErrors({})
     setImageFile(null)
@@ -890,6 +894,15 @@ export function CourseProgramFormModal({
           return false
         }
       }
+      const wa = whatsappCommunityUrl.trim()
+      if (wa && !wa.startsWith('https://chat.whatsapp.com/')) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          whatsapp_community_url: 'يجب أن يبدأ الرابط بـ https://chat.whatsapp.com/',
+        }))
+        toast.warning('يجب أن يبدأ الرابط بـ https://chat.whatsapp.com/')
+        return false
+      }
       return true
     }
     return true
@@ -983,6 +996,7 @@ export function CourseProgramFormModal({
       curriculum_topics: topicLines,
       keywords: keywordLines,
       learning_path_id: learningPathId ? Number(learningPathId) : null,
+      whatsapp_community_url: whatsappCommunityUrl.trim() || undefined,
     }
   }
 
@@ -1834,6 +1848,24 @@ export function CourseProgramFormModal({
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'notes')}</span>
             : null}
           </label>
+          <label className="block text-[11px] font-black text-[#22334A]">
+            رابط مجتمع الواتساب (اختياري)
+            <input
+              value={whatsappCommunityUrl}
+              onChange={(e) => {
+                setWhatsappCommunityUrl(e.target.value)
+                clearField('whatsapp_community_url')
+              }}
+              dir="ltr"
+              className={`${EMC_WIZARD_INPUT_BASE} font-mono`}
+              placeholder="https://chat.whatsapp.com/JHpRw1TryB89mUpqSReKh1"
+            />
+            {fieldErrorFor(fieldErrors, 'whatsapp_community_url') ?
+              <span className="mt-1 block text-[11px] font-bold text-rose-600">
+                {fieldErrorFor(fieldErrors, 'whatsapp_community_url')}
+              </span>
+            : null}
+          </label>
           <p className="rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-[11px] font-semibold text-slate-600">
             تم إنشاء السجل بواسطة: {user?.name ? `${user.name} (#${user.id})` : `#${user?.id ?? '—'}`}
           </p>
@@ -1894,6 +1926,7 @@ export function CourseProgramFormModal({
     capacity,
     registrationOpen,
     adminNotes,
+    whatsappCommunityUrl,
     editing,
     showLocationField,
     isWorkshop,

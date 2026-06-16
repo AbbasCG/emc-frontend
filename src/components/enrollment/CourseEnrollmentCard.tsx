@@ -107,7 +107,10 @@ export default function CourseEnrollmentCard({
   const loginHref = buildPublicLoginHref(`/courses/${course.slug}`)
   const isStudent = isStudentUser(user?.role)
   const canEnroll = registrationOpen && !seatsFull && !alreadyEnrolled && !success
-  const whatsappUrl = (import.meta.env.VITE_WHATSAPP_COMMUNITY_URL as string | undefined)?.trim() || ''
+  const whatsappUrl =
+    course.whatsapp_community_url?.trim() ||
+    (import.meta.env.VITE_WHATSAPP_COMMUNITY_URL as string | undefined)?.trim() ||
+    ''
 
   const loadProfile = useCallback(async () => {
     if (!isAuthenticated || !user) {
@@ -225,13 +228,19 @@ export default function CourseEnrollmentCard({
       if (axios.isAxiosError(err)) {
         const st = err.response?.status
         const raw = err.response?.data as
-          | { message?: string; errors?: Record<string, string | string[]> }
+          | { message?: string; message_ar?: string; errors?: Record<string, string | string[]> }
           | undefined
 
         if (st === 409 || registrationLooksDuplicate(raw)) {
           const msg = 'أنت مسجل بالفعل في هذا البرنامج'
           setApiError(msg)
           toast.error(msg)
+          return
+        }
+
+        if (st === 422 && typeof raw?.message_ar === 'string' && raw.message_ar.trim() !== '') {
+          setApiError(raw.message_ar)
+          toast.error(raw.message_ar)
           return
         }
 
@@ -334,16 +343,15 @@ export default function CourseEnrollmentCard({
               {success && whatsappUrl && (
                 <div className="mt-4 border-t border-emerald-200 pt-4">
                   <p className="mb-3 text-xs font-semibold leading-6 text-emerald-800">
-                    انضم إلى مجتمع الواتساب للتذكير باللقاءات والتحديثات
+                    انضم إلى مجتمع الواتساب الخاص بالدورة لتبقى على اطلاع بجميع التحديثات والمعلومات.
                   </p>
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-black text-white"
                   >
-                    الانضمام إلى مجتمع واتساب
-                  </a>
+                    الانضمام إلى مجتمع الواتساب
+                  </button>
                 </div>
               )}
             </div>

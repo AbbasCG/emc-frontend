@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import DOMPurify from 'dompurify'
 import {
   GraduationCap,
   Clock,
@@ -15,6 +16,8 @@ import {
   Globe,
   BarChart2,
   CircleDot,
+  CalendarDays,
+  MessageCircle,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
@@ -109,6 +112,7 @@ export default function LearningPathDetail() {
 
   const effectivePrice = path.discount_price ?? path.price
   const durationLabel = DurationLabel(path)
+  const whatsappCourses = (path.courses ?? []).filter((c) => c.whatsapp_community_url)
 
   return (
     <main className="bg-slate-50 pt-20" dir="rtl">
@@ -300,8 +304,69 @@ export default function LearningPathDetail() {
                 <h2 className="mb-4 text-2xl font-black text-[#22334A]">عن هذا المسار</h2>
                 <div
                   className="prose prose-slate max-w-none text-right leading-9 text-slate-600"
-                  dangerouslySetInnerHTML={{ __html: path.full_description }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(path.full_description) }}
                 />
+              </motion.section>
+            )}
+
+            {/* Schedule info */}
+            {(path.study_days_per_week != null ||
+              (path.study_days && path.study_days.length > 0) ||
+              path.study_time ||
+              path.schedule_note) && (
+              <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                <h2 className="mb-4 text-2xl font-black text-[#22334A]">جدول الدراسة</h2>
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  {path.study_days_per_week != null && (
+                    <div className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                      <CalendarDays className="h-5 w-5 shrink-0 text-[#2691C2]" />
+                      <span>عدد أيام الدراسة في الأسبوع: {path.study_days_per_week}</span>
+                    </div>
+                  )}
+                  {path.study_days && path.study_days.length > 0 && (
+                    <div className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                      <CalendarDays className="h-5 w-5 shrink-0 text-[#2691C2]" />
+                      <span>أيام الدراسة: {path.study_days.join('، ')}</span>
+                    </div>
+                  )}
+                  {path.study_time && (
+                    <div className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                      <Clock className="h-5 w-5 shrink-0 text-[#2691C2]" />
+                      <span>وقت الدراسة: {path.study_time}</span>
+                    </div>
+                  )}
+                  {path.schedule_note && (
+                    <div className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                      <CircleDot className="h-5 w-5 shrink-0 text-[#2691C2]" />
+                      <span>{path.schedule_note}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.section>
+            )}
+
+            {/* WhatsApp communities for enrolled students */}
+            {enrollStatus.enrolled && whatsappCourses.length > 0 && (
+              <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                <h2 className="mb-4 text-2xl font-black text-[#22334A]">مجتمعات الواتساب للدورات</h2>
+                <div className="space-y-3">
+                  {whatsappCourses.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                    >
+                      <span className="text-sm font-black text-[#22334A]">{c.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => window.open(c.whatsapp_community_url!, '_blank', 'noopener,noreferrer')}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-4 py-2 text-xs font-black text-white"
+                      >
+                        <MessageCircle className="h-4 w-4" aria-hidden />
+                        الانضمام
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </motion.section>
             )}
 

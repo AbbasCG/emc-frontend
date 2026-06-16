@@ -331,6 +331,13 @@ export default function CourseDetails() {
     seatsFull,
   } = derived
 
+  const courseX = course as unknown as Record<string, unknown>
+  const isPartOfLearningPath = Boolean(
+    courseX.is_part_of_learning_path ?? courseX.is_path_owned ?? false,
+  )
+  const learningPathSlug =
+    (courseX.learning_path as { slug?: string } | null | undefined)?.slug ?? null
+
   const enrollCta = resolveCourseEnrollCta({
     registrationOpen: registration.open,
     seatsFull,
@@ -339,6 +346,8 @@ export default function CourseDetails() {
     userRole: user?.role,
     courseSlug: course.slug,
     courseId: course.id,
+    isPartOfLearningPath,
+    learningPathSlug,
   })
 
   const gallery = extractCourseGallery(course, coverUrl)

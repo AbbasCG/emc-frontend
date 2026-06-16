@@ -5,10 +5,13 @@ import {
   ArrowLeft,
   Award,
   BookOpen,
+  CalendarDays,
   CheckCircle,
   ChevronRight,
+  CircleDot,
   Clock,
   GraduationCap,
+  MessageCircle,
   PlayCircle,
   Users,
 } from 'lucide-react'
@@ -107,6 +110,12 @@ export default function StudentLearningPathDetailPage() {
     : null
 
   const certInfo = path.certificate_name ? certStatusLabel(certStatus) : null
+  const hasSchedule =
+    path.study_days_per_week != null ||
+    (path.study_days && path.study_days.length > 0) ||
+    Boolean(path.study_time) ||
+    Boolean(path.schedule_note)
+  const whatsappCourses = (path.courses ?? []).filter((c) => c.whatsapp_community_url)
 
   return (
     <div className="space-y-6 pb-20 text-right" dir="rtl">
@@ -188,6 +197,64 @@ export default function StudentLearningPathDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Schedule info ────────────────────────────────────────────────── */}
+      {hasSchedule && (
+        <section>
+          <h2 className="mb-3 text-xl font-black text-[#22334A]">جدول الدراسة</h2>
+          <div className="space-y-3 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+            {path.study_days_per_week != null && (
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
+                <CalendarDays className="h-4 w-4 shrink-0 text-[#2691C2]" />
+                <span>عدد أيام الدراسة في الأسبوع: {path.study_days_per_week}</span>
+              </div>
+            )}
+            {path.study_days && path.study_days.length > 0 && (
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
+                <CalendarDays className="h-4 w-4 shrink-0 text-[#2691C2]" />
+                <span>أيام الدراسة: {path.study_days.join('، ')}</span>
+              </div>
+            )}
+            {path.study_time && (
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
+                <Clock className="h-4 w-4 shrink-0 text-[#2691C2]" />
+                <span>وقت الدراسة: {path.study_time}</span>
+              </div>
+            )}
+            {path.schedule_note && (
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
+                <CircleDot className="h-4 w-4 shrink-0 text-[#2691C2]" />
+                <span>{path.schedule_note}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── WhatsApp communities ─────────────────────────────────────────── */}
+      {whatsappCourses.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-xl font-black text-[#22334A]">مجتمعات الواتساب للدورات</h2>
+          <div className="space-y-3">
+            {whatsappCourses.map((c) => (
+              <div
+                key={c.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm"
+              >
+                <span className="text-[13px] font-black text-[#22334A]">{c.title}</span>
+                <button
+                  type="button"
+                  onClick={() => window.open(c.whatsapp_community_url!, '_blank', 'noopener,noreferrer')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-4 py-2 text-[12px] font-black text-white"
+                >
+                  <MessageCircle className="h-4 w-4" aria-hidden />
+                  الانضمام
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Journey Timeline ──────────────────────────────────────────────── */}
       {(path.courses?.length ?? 0) > 0 && (

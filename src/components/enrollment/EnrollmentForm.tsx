@@ -75,6 +75,8 @@ type Props = {
 export default function EnrollmentForm({ course, onSuccess }: Props) {
   const navigate = useNavigate()
   const { user, isAuthenticated, refreshUser } = useAuth()
+  const [showWhatsappSuccess, setShowWhatsappSuccess] = useState(false)
+  const whatsappUrl = course.whatsapp_community_url?.trim() || ''
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -220,6 +222,10 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
       toast.success('تم التسجيل بنجاح')
       notifyStudentScopeRefresh()
       notifyNotificationsRefresh()
+      if (whatsappUrl) {
+        setShowWhatsappSuccess(true)
+        return
+      }
       if (onSuccess) {
         onSuccess()
       } else {
@@ -229,13 +235,19 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
       if (axios.isAxiosError(err)) {
         const st = err.response?.status
         const raw = err.response?.data as
-          | { message?: string; errors?: Record<string, string | string[]> }
+          | { message?: string; message_ar?: string; errors?: Record<string, string | string[]> }
           | undefined
 
         if (st === 409 || registrationLooksDuplicate(raw)) {
           const msg = 'أنت مسجل بالفعل في هذه الدورة'
           setApiError(msg)
           toast.error(msg)
+          return
+        }
+
+        if (st === 422 && typeof raw?.message_ar === 'string' && raw.message_ar.trim() !== '') {
+          setApiError(raw.message_ar)
+          toast.error(raw.message_ar)
           return
         }
 
@@ -265,6 +277,38 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (showWhatsappSuccess) {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-10 text-center" dir="rtl">
+        <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" aria-hidden />
+        <h3 className="mt-4 text-xl font-black text-emerald-900">تم تسجيلك بنجاح</h3>
+        <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-7 text-emerald-800">
+          انضم إلى مجتمع الواتساب الخاص بالدورة لتبقى على اطلاع بجميع التحديثات والمعلومات.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
+          className="mt-6 inline-flex w-full max-w-md items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-black text-white shadow-md sm:w-auto"
+        >
+          الانضمام إلى مجتمع الواتساب
+        </button>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => {
+              setShowWhatsappSuccess(false)
+              if (onSuccess) onSuccess()
+              else navigate('/thank-you')
+            }}
+            className="text-sm font-bold text-emerald-700 underline"
+          >
+            متابعة
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

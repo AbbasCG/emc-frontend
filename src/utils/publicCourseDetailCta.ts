@@ -22,6 +22,10 @@ export function resolveCourseEnrollCta(input: {
   userRole?: string | null
   courseSlug: string
   courseId: number
+  /** True when this course belongs to a learning path and cannot be enrolled directly */
+  isPartOfLearningPath?: boolean
+  /** Slug of the owning learning path, used to build the "view path" link */
+  learningPathSlug?: string | null
 }): PublicEnrollCta {
   const {
     registrationOpen,
@@ -31,7 +35,18 @@ export function resolveCourseEnrollCta(input: {
     userRole,
     courseSlug,
     courseId,
+    isPartOfLearningPath,
+    learningPathSlug,
   } = input
+
+  if (isPartOfLearningPath && !alreadyEnrolled) {
+    return {
+      label: 'عرض المسار التعليمي',
+      disabled: false,
+      href: learningPathSlug ? `/learning-paths/${learningPathSlug}` : '/learning-paths',
+      variant: 'primary',
+    }
+  }
 
   if (!registrationOpen) {
     return { label: 'التسجيل مغلق', disabled: true, variant: 'muted' }

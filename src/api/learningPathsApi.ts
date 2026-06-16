@@ -99,6 +99,8 @@ export interface LearningPathCourse {
   sessions_count?: number
   materials_count?: number
   assignments_count?: number
+  /** Optional WhatsApp community link for this course */
+  whatsapp_community_url?: string | null
 }
 
 export interface LearningPathInstructor {
@@ -137,6 +139,12 @@ export interface LearningPath {
   is_path_instructor?: boolean
   created_at: string
   updated_at: string
+
+  /** Schedule metadata — all optional/nullable */
+  study_days_per_week?: number | null
+  study_days?: string[] | null
+  study_time?: string | null
+  schedule_note?: string | null
 }
 
 export interface InstructorPathSession {
