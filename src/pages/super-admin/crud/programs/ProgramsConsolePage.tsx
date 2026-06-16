@@ -106,7 +106,13 @@ function vmFromCourse(
   lookup: Map<number, CourseInstructorLookupRow>,
 ): CourseVM {
   const id = Number(c.id)
-  const count = (Number.isFinite(id) ? regMap.get(id) : 0) ?? c.registrations_count ?? 0
+  // Prefer the backend-computed effective_enrollment_count (which uses LP enrollments for
+  // LP-owned courses instead of the direct registrations table that would return 0).
+  // Fall back to regMap (client-side count from registrations index) for legacy rows.
+  const effectiveFromApi = (c as Record<string, unknown>).effective_enrollment_count
+  const count = effectiveFromApi != null
+    ? Number(effectiveFromApi)
+    : ((Number.isFinite(id) ? regMap.get(id) : 0) ?? c.registrations_count ?? 0)
   const ins = getCourseInstructor(c, { lookupByInstructorId: lookup })
   const n   = typeof c.price === 'string' ? parseFloat(String(c.price)) : Number(c.price)
   const pub = isPublishedCourse(c)

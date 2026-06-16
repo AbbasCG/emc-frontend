@@ -251,7 +251,9 @@ export function mapApiCourseToCourseItem(rawInput: Course | Record<string, unkno
   const isFree = parseIsFree(c, extra, price, typeStr)
 
   const trainerName = instructorDisplayName(c, extra)
-  const regs = Math.max(0, Number(c.registrations_count ?? extra.registrations_count ?? 0) || 0)
+  // Prefer effective_enrollment_count (backend-computed: uses LP enrollments for LP-owned courses)
+  const effectiveCount = (c as Record<string, unknown>).effective_enrollment_count ?? (extra as Record<string, unknown>).effective_enrollment_count
+  const regs = Math.max(0, Number(effectiveCount ?? c.registrations_count ?? extra.registrations_count ?? 0) || 0)
 
   let seats: number | null = null
   const sc = c.seats_count ?? extra.seats_count
@@ -321,6 +323,7 @@ export function mapApiCourseToCourseItem(rawInput: Course | Record<string, unkno
     },
     enrolled_count: regs,
     registrations_count: regs,
+    effective_enrollment_count: regs,
     seats_count: seats,
     thumbnail: thumb,
     cover_placeholder: EMC_COURSE_COVER_PLACEHOLDER,

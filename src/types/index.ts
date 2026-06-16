@@ -90,6 +90,7 @@ export type Course = {
   department_name?: string | null
   instructor_id?: number | null
   registrations_count?: number | null
+  effective_enrollment_count?: number | null
   is_published?: boolean | number | null
   registration_open?: boolean | number | null
   start_time?: string | null

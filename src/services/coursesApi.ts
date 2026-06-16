@@ -34,6 +34,7 @@ export type CourseItem = {
   trainer: { name: string; avatar: string | null }
   enrolled_count: number
   registrations_count: number
+  effective_enrollment_count: number
   seats_count: number | null
   thumbnail: string | null
   /** data-URI SVG when no cover */
@@ -111,6 +112,7 @@ const MOCK_CATALOG_ITEMS: CourseItem[] = [
     trainer: { name: 'فريق EMC', avatar: null },
     enrolled_count: 0,
     registrations_count: 0,
+    effective_enrollment_count: 0,
     seats_count: 30,
     thumbnail: null,
     cover_placeholder: EMC_COURSE_COVER_PLACEHOLDER,
