@@ -33,7 +33,7 @@ const RUBRIC_CRITERIA: { key: keyof OralRubric; label: string; hint: string }[] 
 function computeTotalFromRubric(rubric: OralRubric): number | null {
   const vals = RUBRIC_CRITERIA.map((c) => rubric[c.key])
   if (vals.some((v) => v === null)) return null
-  return Math.round((vals.reduce((s, v) => s + (v ?? 0), 0) / 60) * 100)
+  return Math.round((vals.reduce<number>((s, v) => s + (v ?? 0), 0) / 60) * 100)
 }
 
 function ScoreInput({

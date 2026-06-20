@@ -171,6 +171,16 @@ const PartnerProgramsPage       = lazy(() => import('./pages/platform/partner/Pa
 const PartnerReportsPage        = lazy(() => import('./pages/platform/partner/PartnerReportsPage'))
 const PartnerDocumentsPage      = lazy(() => import('./pages/platform/partner/PartnerDocumentsPage'))
 
+// ── Lazy: dashboard pages — tech admin ───────────────────────────────────────
+const TechAdminDashboardPage = lazy(() => import('./pages/tech-admin/TechAdminDashboardPage'))
+
+// ── Lazy: dashboard pages — manager role home pages ──────────────────────────
+const ProgramsManagerDashboardPage   = lazy(() => import('./pages/manager-dashboards/ProgramsManagerDashboardPage'))
+const OperationsManagerDashboardPage = lazy(() => import('./pages/manager-dashboards/OperationsManagerDashboardPage'))
+const PartnershipsManagerDashboardPage = lazy(() => import('./pages/manager-dashboards/PartnershipsManagerDashboardPage'))
+const CommunityManagerDashboardPage  = lazy(() => import('./pages/manager-dashboards/CommunityManagerDashboardPage'))
+const SectionLeadDashboardPage       = lazy(() => import('./pages/manager-dashboards/SectionLeadDashboardPage'))
+
 // ── Lazy: dashboard pages — HR ───────────────────────────────────────────────
 const HrDashboardPage   = lazy(() => import('./pages/hr/HrDashboardPage'))
 const HrTeamPage        = lazy(() => import('./pages/hr/HrTeamPage'))
@@ -208,6 +218,9 @@ const InstructorLearningPathDetailPage = lazy(() => import('./pages/lms/instruct
 
 // ── Lazy: internal members page ──────────────────────────────────────────────
 const MembersPage = lazy(() => import('./pages/dashboard/MembersPage'))
+
+// ── Lazy: admin coming-soon placeholder ──────────────────────────────────────
+const AdminComingSoonPage = lazy(() => import('./pages/admin/AdminComingSoonPage'))
 
 // ── Lazy: settings, profile, calendar, error pages ───────────────────────────
 const NotificationPreferencesPage = lazy(() => import('./pages/settings/NotificationPreferencesPage'))
@@ -436,6 +449,18 @@ function App() {
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
 
+                  {/* ── Tech Admin dedicated dashboard ── */}
+                  <Route path="/dashboard/tech-admin" element={<Suspense fallback={<RouteFallback />}><TechAdminDashboardPage /></Suspense>} />
+                  <Route path="/dashboard/tech-admin/learning-paths" element={<Suspense fallback={<RouteFallback />}><LearningPathsManagementPage /></Suspense>} />
+
+                  {/* ── Dedicated manager home pages ── */}
+                  <Route path="/dashboard/programs-manager" element={<ProgramsManagerDashboardPage />} />
+                  <Route path="/dashboard/programs-manager/learning-paths" element={<Suspense fallback={<RouteFallback />}><LearningPathsManagementPage /></Suspense>} />
+                  <Route path="/dashboard/operations-manager" element={<OperationsManagerDashboardPage />} />
+                  <Route path="/dashboard/partnerships-manager" element={<PartnershipsManagerDashboardPage />} />
+                  <Route path="/dashboard/community-manager" element={<CommunityManagerDashboardPage />} />
+                  <Route path="/dashboard/section-lead" element={<SectionLeadDashboardPage />} />
+
                   <Route path="/dashboard/members" element={<Suspense fallback={<RouteFallback />}><MembersPage /></Suspense>} />
 
                   <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />
@@ -524,6 +549,50 @@ function App() {
                   <Route path="/dashboard/admin/ai/usage" element={<AdminAiUsagePage />} />
                   <Route path="/dashboard/admin/workshop-requests" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestsPage /></Suspense>} />
                   <Route path="/dashboard/admin/workshop-requests/:id" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestDetailPage /></Suspense>} />
+
+                  {/* ── Admin alias routes (requirement list) — redirect to canonical paths ── */}
+                  <Route path="/dashboard/admin/sessions" element={<Navigate to="/dashboard/admin/lms/sessions" replace />} />
+                  <Route path="/dashboard/admin/attendance" element={<Navigate to="/dashboard/admin/lms/attendance" replace />} />
+                  <Route path="/dashboard/admin/assignments" element={<Navigate to="/dashboard/admin/lms/assignments" replace />} />
+                  <Route path="/dashboard/admin/materials" element={<Navigate to="/dashboard/admin/lms/materials" replace />} />
+                  <Route path="/dashboard/admin/evaluations" element={<Navigate to="/dashboard/admin/lms/evaluations" replace />} />
+                  <Route path="/dashboard/admin/progress" element={<Navigate to="/dashboard/admin/lms/progress" replace />} />
+                  <Route path="/dashboard/admin/volunteer-requests" element={<Navigate to="/dashboard/admin/volunteers" replace />} />
+                  <Route path="/dashboard/admin/grants" element={<Navigate to="/dashboard/admin/scholarships" replace />} />
+                  <Route path="/dashboard/admin/quality-review" element={<Navigate to="/dashboard/admin/quality" replace />} />
+                  <Route path="/dashboard/admin/performance-indicators" element={<Navigate to="/dashboard/admin/kpi" replace />} />
+                  <Route path="/dashboard/admin/analytics-reports" element={<Navigate to="/dashboard/admin/reports" replace />} />
+                  <Route path="/dashboard/admin/knowledge-base" element={<Navigate to="/dashboard/admin/knowledge" replace />} />
+                  <Route path="/dashboard/admin/knowledge-categories" element={<Navigate to="/dashboard/admin/knowledge/categories" replace />} />
+                  <Route path="/dashboard/admin/educational-units" element={<Navigate to="/dashboard/admin/modules" replace />} />
+                  <Route path="/dashboard/admin/tests" element={<Navigate to="/dashboard/admin/quizzes" replace />} />
+                  <Route path="/dashboard/admin/development" element={<Navigate to="/dashboard/admin/automations" replace />} />
+                  <Route path="/dashboard/admin/admin-documents" element={<Navigate to="/dashboard/admin/documents" replace />} />
+                  <Route path="/dashboard/admin/audit-log" element={<Navigate to="/dashboard/admin/audit-logs" replace />} />
+                  <Route path="/dashboard/admin/platform-growth" element={<Navigate to="/dashboard/admin/platform-scale" replace />} />
+                  <Route path="/dashboard/admin/developer-tokens" element={<Navigate to="/dashboard/admin/developer/api-tokens" replace />} />
+                  <Route path="/dashboard/admin/admin-calendar" element={<Navigate to="/dashboard/admin/calendar" replace />} />
+                  <Route path="/dashboard/admin/training-program-requests" element={<Navigate to="/dashboard/admin/workshop-requests" replace />} />
+                  <Route path="/dashboard/admin/general-reports" element={<Navigate to="/dashboard/admin/reports" replace />} />
+                  <Route path="/dashboard/admin/settings" element={<Navigate to="/dashboard/settings/notifications" replace />} />
+                  <Route path="/dashboard/admin/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
+                  <Route path="/dashboard/admin/notification-preferences" element={<Navigate to="/dashboard/settings/notifications" replace />} />
+                  <Route path="/dashboard/admin/files" element={<Navigate to="/documents" replace />} />
+                  <Route path="/dashboard/admin/ai-assistant" element={<Navigate to="/ai" replace />} />
+                  <Route path="/dashboard/admin/profile" element={<Navigate to="/dashboard/profile" replace />} />
+                  <Route path="/dashboard/admin/members" element={<Navigate to="/dashboard/members" replace />} />
+
+                  {/* ── Admin placeholder — pages visible in sidebar but not yet implemented ── */}
+                  <Route path="/dashboard/admin/users" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
+
+                  {/* ── Admin-wide sidebar shortcut paths (no /admin/ prefix) ── */}
+                  <Route path="/dashboard/courses" element={<Navigate to="/dashboard/admin/programs" replace />} />
+                  <Route path="/dashboard/programs" element={<Navigate to="/dashboard/admin/programs" replace />} />
+                  <Route path="/dashboard/reports" element={<Navigate to="/dashboard/admin/reports" replace />} />
+                  <Route path="/dashboard/students" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
+                  <Route path="/dashboard/registrations" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
+                  <Route path="/dashboard/schedule" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
+                  <Route path="/dashboard/users" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                 </Route>
 
               </Route>

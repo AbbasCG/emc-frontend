@@ -31,7 +31,7 @@ import {
   Settings2,
 } from 'lucide-react'
 import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
-import { fetchVolunteers } from '@/api/volunteersApi'
+import { fetchVolunteers, fetchVolunteerRequestsStats } from '@/api/volunteersApi'
 import {
   fetchAdminRegistrations,
   type AdminRegistrationListRow,
@@ -230,7 +230,7 @@ function KpiCell({ item, loading }: { item: KpiItem; loading: boolean }) {
   const isNeg = item.growth !== null && item.growth < 0
 
   const inner = (
-    <div className="group flex flex-col gap-2.5 px-5 py-4 transition hover:bg-slate-50/60">
+    <div className="group flex flex-col gap-2 px-4 py-3 transition hover:bg-slate-50/60 sm:gap-2.5 sm:px-5 sm:py-4">
       <div className="flex items-center justify-between">
         <div
           className="flex h-7 w-7 items-center justify-center rounded-lg transition group-hover:scale-105"
@@ -402,6 +402,8 @@ export default function SuperAdminOverviewPage() {
 
   const [users, setUsers] = useState<AdminManagedUser[]>([])
   const [volunteers, setVolunteers] = useState<OpsVolunteer[]>([])
+  const [volunteerRequestsTotal, setVolunteerRequestsTotal] = useState(0)
+  const [pendingVolRequestsCount, setPendingVolRequestsCount] = useState(0)
   const [registrations, setRegistrations] = useState<AdminRegistrationListRow[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [instructors, setInstructors] = useState<AdminInstructorDirectoryRow[]>([])
@@ -425,14 +427,19 @@ export default function SuperAdminOverviewPage() {
     setKpiLoading(false)
 
     // Phase 2 — secondary: volunteers, instructors, departments, finance
-    const [vR, iR, dR] = await Promise.allSettled([
+    const [vR, iR, dR, vsR] = await Promise.allSettled([
       fetchVolunteers(),
       fetchAdminInstructorsDirectory(),
       fetchWorkspaceDepartmentsForSuperAdmin(),
+      fetchVolunteerRequestsStats(),
     ])
     if (vR.status === 'fulfilled') setVolunteers(vR.value)
     if (iR.status === 'fulfilled') setInstructors(iR.value.rows)
     if (dR.status === 'fulfilled') setDepartments(dR.value)
+    if (vsR.status === 'fulfilled') {
+      setVolunteerRequestsTotal(vsR.value.total)
+      setPendingVolRequestsCount(vsR.value.pending)
+    }
     try {
       const fin = await fetchFinanceDashboard()
       if (fin && typeof fin.total_revenue === 'number') setFinance(fin)
@@ -449,7 +456,6 @@ export default function SuperAdminOverviewPage() {
 
   /* ── مشتقات ──────────────────────────────────────────────────── */
   const students = users.filter((u) => normalizeRole(u.role) === 'student')
-  const instrUsers = users.filter((u) => normalizeRole(u.role) === 'instructor')
   const pendingRegs = registrations.filter(
     (r) => r.status === 'pending' || r.status === 'processing' || r.status === null,
   )
@@ -551,7 +557,7 @@ export default function SuperAdminOverviewPage() {
     },
     {
       labelAr: 'المدربون',
-      value: instrUsers.length,
+      value: instructors.length,
       growth: null,
       icon: UserCog,
       accent: '#7c3aed',
@@ -575,7 +581,7 @@ export default function SuperAdminOverviewPage() {
     },
     {
       labelAr: 'المتطوعون',
-      value: volunteers.length,
+      value: volunteerRequestsTotal,
       growth: null,
       icon: HeartHandshake,
       accent: '#e11d48',
@@ -595,8 +601,8 @@ export default function SuperAdminOverviewPage() {
     {
       key: 'vols',
       labelAr: 'طلبات التطوع',
-      value: pendingVols.length,
-      status: pendingVols.length === 0 ? 'ok' : pendingVols.length < 8 ? 'warn' : 'crit',
+      value: pendingVolRequestsCount,
+      status: pendingVolRequestsCount === 0 ? 'ok' : pendingVolRequestsCount < 8 ? 'warn' : 'crit',
       href: '/dashboard/super-admin/volunteer-requests',
     },
     {
@@ -641,7 +647,7 @@ export default function SuperAdminOverviewPage() {
      RENDER
   ══════════════════════════════════════════════════════════════════ */
   return (
-    <div dir="rtl" className="space-y-4 pb-10 text-[#22334A]">
+    <div dir="rtl" className="space-y-4 pb-28 text-[#22334A] sm:pb-10">
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           رأس الصفحة
@@ -679,9 +685,9 @@ export default function SuperAdminOverviewPage() {
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <Card noPad className="overflow-hidden">
         {kpiLoading ? (
-          <div className="flex divide-x divide-slate-100 rtl:divide-x-reverse">
+          <div className="grid grid-cols-2 gap-px bg-slate-100 sm:grid-cols-3 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex-1 p-5">
+              <div key={i} className="bg-white p-4 sm:p-5">
                 <Sk className="mb-3 h-6 w-6" />
                 <Sk className="mb-2 h-6 w-14" />
                 <Sk className="h-3 w-12" />
@@ -689,9 +695,9 @@ export default function SuperAdminOverviewPage() {
             ))}
           </div>
         ) : (
-          <div className="flex divide-x divide-slate-100 rtl:divide-x-reverse">
+          <div className="grid grid-cols-2 gap-px bg-slate-100 sm:grid-cols-3 lg:grid-cols-6">
             {kpiItems.map((item) => (
-              <div key={item.labelAr} className="flex-1 min-w-0">
+              <div key={item.labelAr} className="bg-white">
                 <KpiCell item={item} loading={false} />
               </div>
             ))}

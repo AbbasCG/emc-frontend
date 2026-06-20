@@ -174,7 +174,10 @@ export default function UsersManagementPage() {
         navigate(getDashboardPathByRole(normalizeRole(target.role)))
       } catch (e) {
         if (axios.isAxiosError(e) && e.response?.status === 403) {
-          toast.warning('لا تملك صلاحية تنفيذ هذا الإجراء')
+          const msgAr =
+            (e.response?.data as { message_ar?: string } | undefined)?.message_ar ??
+            'لا تملك صلاحية تسجيل الدخول كمستخدم آخر.'
+          toast.warning(msgAr)
         } else if (e instanceof Error) {
           if (e.message === 'already_impersonating' || e.message === 'missing_session') return
           toast.error(getApiErrorMessage(e))
@@ -502,7 +505,7 @@ export default function UsersManagementPage() {
           disabled: !editOk || isDeletedUser(u),
           onClick: () => void openEdit(u.id),
         },
-        ...(normalizeRole(currentUser?.role ?? '') === 'super_admin' &&
+        ...(currentUser?.permissions?.includes('users.impersonate') === true &&
         !isImpersonating &&
         Number(currentUser?.id ?? 0) !== Number(u.id) &&
         !isDeletedUser(u) ?

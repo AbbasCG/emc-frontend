@@ -1,7 +1,7 @@
 import axios from 'axios'
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
-import { getApiErrorMessage } from './apiErrors'
+import { getApiErrorMessage, getLaravelFieldErrors, translateLaravelFieldMessage } from './apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'
 
 const silent = { skipErrorToast: true as const }
@@ -238,13 +238,40 @@ export function unwrapAdminUsersList(payload: unknown): AdminManagedUser[] {
     .filter((u) => u.id > 0)
 }
 
-/** Map 403 responses to copy required by Super Admin UX. */
+/** Map 403/422 responses to copy required by Super Admin UX. */
 export function getAdminUserMutationMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.status === 403) {
-    const body = err.response?.data as Record<string, unknown> | undefined
+  if (!axios.isAxiosError(err)) return getApiErrorMessage(err)
+
+  const status = err.response?.status
+  const body = err.response?.data as Record<string, unknown> | undefined
+
+  if (status === 403) {
     if (body && typeof body.message === 'string' && body.message.trim()) return body.message
     return ADMIN_USER_FORBIDDEN_AR
   }
+
+  // For 422 validation failures: collect ALL field errors, translate, and join them so the
+  // user sees exactly which field was rejected (e.g. "الدور: القيمة المختارة غير مقبولة").
+  if (status === 422) {
+    const FIELD_LABELS: Record<string, string> = {
+      name: 'الاسم',
+      email: 'البريد الإلكتروني',
+      role: 'الدور',
+      password: 'كلمة المرور',
+      phone: 'الهاتف',
+      city: 'المدينة',
+      country: 'الدولة',
+      department: 'الإدارة',
+      is_active: 'الحالة',
+    }
+    const fieldErrors = getLaravelFieldErrors(err)
+    const lines = Object.entries(fieldErrors).map(([field, msg]) => {
+      const label = FIELD_LABELS[field] ?? field
+      return `${label}: ${translateLaravelFieldMessage(msg)}`
+    })
+    if (lines.length > 0) return lines.join('\n')
+  }
+
   return getApiErrorMessage(err)
 }
 

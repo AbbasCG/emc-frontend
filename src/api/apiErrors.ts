@@ -30,6 +30,7 @@ export function translateLaravelFieldMessage(msg: string): string {
   if (lower.includes('must be an image')) return 'الصورة غير صالحة.'
   if (lower.includes('image could not')) return 'الصورة غير صالحة.'
   if (lower.includes('field is required') || lower === 'the given data was invalid.') return 'الحقل مطلوب.'
+  if (lower.includes('selected') && lower.includes('invalid')) return 'القيمة المختارة غير مقبولة من الخادم.'
   if (lower.includes('validation') && lower.includes('selected')) return 'القيمة المحدّدة غير صالحة.'
   if (lower.includes('status') && lower.includes('invalid')) return 'حالة النشر غير صحيحة.'
   if (lower.includes('learning_outcomes') && lower.includes('500')) {
@@ -97,14 +98,15 @@ export function getApiErrorMessage(error: unknown): string {
   const status = error.response?.status
   const data = error.response?.data as Record<string, unknown> | undefined
 
-  if (data && typeof data.message === 'string' && data.message.trim()) {
-    return data.message
-  }
-
+  // For 422: prefer specific field-level errors over the generic "The given data was invalid."
   if (status === 422 && data?.errors) {
     const first = firstValidationMessage(data.errors)
     if (first) return translateLaravelFieldMessage(String(first))
     return STATUS_MESSAGES[422] ?? FALLBACK
+  }
+
+  if (data && typeof data.message === 'string' && data.message.trim()) {
+    return data.message
   }
 
   if (status && STATUS_MESSAGES[status]) {

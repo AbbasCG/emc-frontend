@@ -6,8 +6,13 @@ import { DashboardSection } from '@/components/dashboard'
 import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
 import { notifyStudentScopeRefresh } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { isNeedsResubmission } from '@/utils/lmsAssignment'
 
 const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
+
+function canOpenModal(status: StudentAssignment['status']): boolean {
+  return !NON_SUBMITTABLE.includes(status) || isNeedsResubmission(status)
+}
 
 export default function StudentAssignmentsPage() {
   const { submissionId: submissionIdParam } = useParams()
@@ -35,7 +40,7 @@ export default function StudentAssignmentsPage() {
     const match = assignmentsScoped.find(
       (a) => a.assignment_id === targetId || a.id === targetId,
     )
-    if (match && !NON_SUBMITTABLE.includes(match.status)) {
+    if (match && canOpenModal(match.status)) {
       setActive(match)
       setSearchParams({}, { replace: true })
     }
@@ -108,9 +113,7 @@ export default function StudentAssignmentsPage() {
                 <AssignmentCard
                   assignment={a}
                   onSubmit={
-                    NON_SUBMITTABLE.includes(a.status) ?
-                      undefined
-                    : () => setActive(a)
+                    canOpenModal(a.status) ? () => setActive(a) : undefined
                   }
                 />
               </div>

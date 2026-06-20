@@ -57,5 +57,5 @@ export function filterSidebarGroups(
 
 export function isAdminSidebarSearchRole(roleRaw?: string | null): boolean {
   const n = normalizeRole(roleRaw ?? null)
-  return n === 'admin' || n === 'super_admin'
+  return n === 'admin' || n === 'super_admin' || n === 'tech_admin'
 }

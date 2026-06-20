@@ -1,4 +1,3 @@
-import axios from 'axios'
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
 import type { NotificationType, PlatformNotification } from '@/types/platform'
@@ -179,13 +178,46 @@ function resolveReadAt(raw: Record<string, unknown>): string | null {
   return null
 }
 
+/**
+ * Reformat raw ISO datetime strings embedded in notification body text.
+ * Old notifications may contain "— الموعد: 2026-06-18T21:00:00+00:00" or garbled
+ * variants. Replace valid ISO patterns with Arabic Amsterdam-local time; remove
+ * unrecoverable garbled patterns rather than show broken text.
+ */
+function sanitizeNotificationBody(body: string): string {
+  return body.replace(/—\s*الموعد:\s*(\S+)/g, (_match, raw: string) => {
+    // Try to parse as a valid ISO datetime
+    const d = new Date(raw)
+    if (!Number.isNaN(d.getTime())) {
+      try {
+        const formatted = new Intl.DateTimeFormat('ar', {
+          timeZone: 'Europe/Amsterdam',
+          numberingSystem: 'latn',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(d)
+        return `— الموعد: ${formatted}`
+      } catch {
+        return ''
+      }
+    }
+    // Garbled / unparseable — strip the broken datetime suffix
+    return ''
+  })
+}
+
 export function normalizePlatformNotification(raw: unknown): PlatformNotification | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
   const o = raw as Record<string, unknown>
   const id = Number(o.id)
   if (!Number.isFinite(id)) return null
   const title = trimStr(o.title) ?? 'إشعار'
-  const body = trimStr(o.body ?? o.message ?? o.content)
+  const rawBody = trimStr(o.body ?? o.message ?? o.content)
+  const body = rawBody ? sanitizeNotificationBody(rawBody) : rawBody
   const created_at = trimStr(o.created_at ?? o.createdAt) ?? new Date().toISOString()
   const read_at = resolveReadAt(o)
   const type = coalesceType(o.type ?? o.category ?? o.kind)
@@ -245,16 +277,9 @@ export async function fetchNotifications(): Promise<PlatformNotification[]> {
 
 export async function markNotificationRead(id: number): Promise<void> {
   try {
-    await apiClient.post(`/notifications/${id}/read`, undefined, silent)
-    return
-  } catch (first) {
-    if (!axios.isAxiosError(first)) return
-    if (first.response?.status !== 404 && first.response?.status !== 405) return
-    try {
-      await apiClient.patch(`/notifications/${id}/read`, undefined, silent)
-    } catch {
-      /* ignore */
-    }
+    await apiClient.put(`/notifications/${id}/read`, undefined, silent)
+  } catch {
+    /* ignore — fire and forget */
   }
 }
 

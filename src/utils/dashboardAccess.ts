@@ -8,6 +8,7 @@ export const EMC_DASHBOARD_ROLES = [
   'instructor',
   'admin',
   'super_admin',
+  'tech_admin',
   'executive_admin',
   'finance_manager',
   'quality_manager',
@@ -17,6 +18,11 @@ export const EMC_DASHBOARD_ROLES = [
   'support_agent',
   'volunteer',
   'department_manager',
+  'programs_manager',
+  'operations_manager',
+  'partnerships_manager',
+  'community_manager',
+  'section_lead',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
@@ -35,6 +41,7 @@ const ROLE_ALIASES: Record<string, string> = {
 
 const ROLE_HOME: Record<string, string> = {
   super_admin: '/dashboard/super-admin',
+  tech_admin: '/dashboard/tech-admin',
   admin: '/dashboard/admin',
   executive_admin: '/dashboard/executive',
   instructor: '/dashboard/instructor',
@@ -47,6 +54,11 @@ const ROLE_HOME: Record<string, string> = {
   support_agent: '/dashboard/support',
   volunteer: '/dashboard/volunteer',
   department_manager: '/dashboard/department',
+  programs_manager: '/dashboard/programs-manager',
+  operations_manager: '/dashboard/operations-manager',
+  partnerships_manager: '/dashboard/partnerships-manager',
+  community_manager: '/dashboard/community-manager',
+  section_lead: '/dashboard/section-lead',
 }
 
 /**
@@ -54,7 +66,26 @@ const ROLE_HOME: Record<string, string> = {
  */
 export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string[] }[] = [
   { prefix: '/dashboard/super-admin', roles: ['super_admin'] },
-  { prefix: '/dashboard/admin', roles: ['admin', 'super_admin'] },
+
+  // ── Granular sub-path rules for new manager roles (longer = higher priority) ──
+  // These must be defined before the generic /dashboard/admin rule so they win.
+  { prefix: '/dashboard/admin/partnership-requests', roles: ['admin', 'super_admin', 'partnerships_manager'] },
+  { prefix: '/dashboard/admin/volunteers',    roles: ['admin', 'super_admin', 'community_manager'] },
+  { prefix: '/dashboard/admin/operations',    roles: ['admin', 'super_admin', 'operations_manager'] },
+  { prefix: '/dashboard/admin/knowledge',     roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/programs',      roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/partners',      roles: ['admin', 'super_admin', 'partnerships_manager'] },
+  { prefix: '/dashboard/admin/meetings',      roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/reports',       roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/tasks',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/forms',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/departments',   roles: ['admin', 'super_admin', 'operations_manager'] },
+  { prefix: '/dashboard/admin/kpi',           roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager'] },
+  { prefix: '/dashboard/admin/lms',           roles: ['admin', 'super_admin', 'programs_manager'] },
+
+  // ── Generic namespace: admin/super_admin/tech_admin ──
+  { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
+
   { prefix: '/dashboard/executive', roles: ['executive_admin'] },
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
   { prefix: '/dashboard/student', roles: ['student'] },
@@ -66,6 +97,11 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/support', roles: ['support_agent'] },
   { prefix: '/dashboard/volunteer', roles: ['volunteer'] },
   { prefix: '/dashboard/department', roles: ['department_manager'] },
+  { prefix: '/dashboard/programs-manager', roles: ['programs_manager'] },
+  { prefix: '/dashboard/operations-manager', roles: ['operations_manager'] },
+  { prefix: '/dashboard/partnerships-manager', roles: ['partnerships_manager'] },
+  { prefix: '/dashboard/community-manager', roles: ['community_manager'] },
+  { prefix: '/dashboard/section-lead', roles: ['section_lead'] },
 ].sort((a, b) => b.prefix.length - a.prefix.length)
 
 const STUDENT_EXTRA_PREFIXES = [
@@ -155,8 +191,9 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     path === '/dashboard/admin/workshop-requests' ||
     path.startsWith('/dashboard/admin/workshop-requests/')
   ) {
-    return ['admin', 'super_admin', 'executive_admin', 'department_manager',
-            'quality_manager', 'finance_manager', 'marketing_manager', 'hr_manager', 'support_agent']
+    return ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'department_manager',
+            'quality_manager', 'finance_manager', 'marketing_manager', 'hr_manager', 'support_agent',
+            'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager']
   }
 
   for (const rule of DASHBOARD_NAMESPACE_RULES) {
@@ -171,7 +208,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 
   /* Course content management is admin/instructor, NOT student — check before student prefix */
   if (/^\/dashboard\/courses\/[^/]+\/content(\/|$)/.test(path))
-    return ['admin', 'super_admin', 'instructor']
+    return ['admin', 'super_admin', 'tech_admin', 'instructor', 'programs_manager']
 
   /* Student LMS paths (/dashboard/courses/:id/modules, lessons, quizzes, …) */
   if (matchesAnyPrefix(path, STUDENT_EXTRA_PREFIXES)) return ['student']
@@ -184,7 +221,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 export function canAccessDashboardPath(roleRaw: string | null | undefined, pathname: string): boolean {
   const role = normalizeRole(roleRaw ?? null)
   /** Highest privilege: unrestricted access to the entire dashboard namespace */
-  if (role === 'super_admin' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/'))) return true
+  if ((role === 'super_admin' || role === 'tech_admin') && (pathname === '/dashboard' || pathname.startsWith('/dashboard/'))) return true
 
   const allowed = getAllowedRolesForPath(pathname)
 

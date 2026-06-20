@@ -144,3 +144,34 @@ export function formatNotificationDate(
     return formatDate(dateStr, 'ar', timezone)
   }
 }
+
+/**
+ * "18 يونيو 2026، 23:00 - 00:30" or cross-day: "18 يونيو 2026، 23:00 - 19 يونيو 2026، 00:30"
+ * Both datetimes are converted from UTC to Europe/Amsterdam for display.
+ */
+export function formatAmsterdamDateTimeRange(
+  startsAt: string | null | undefined,
+  endsAt: string | null | undefined,
+  timezone = TZ,
+): string {
+  if (!startsAt) return '—'
+  const start = new Date(startsAt)
+  if (isNaN(start.getTime())) return '—'
+
+  const startDate = formatDate(startsAt, 'ar', timezone)
+  const startTime = timeStr(start, timezone)
+
+  if (!endsAt) return `${startDate}، ${startTime}`
+
+  const end = new Date(endsAt)
+  if (isNaN(end.getTime())) return `${startDate}، ${startTime}`
+
+  const endTime = timeStr(end, timezone)
+
+  if (localDay(end, timezone) !== localDay(start, timezone)) {
+    const endDate = formatDate(endsAt, 'ar', timezone)
+    return `${startDate}، ${startTime} - ${endDate}، ${endTime}`
+  }
+
+  return `${startDate}، ${startTime} - ${endTime}`
+}

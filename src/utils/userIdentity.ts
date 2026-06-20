@@ -47,6 +47,10 @@ export function extractUserRecord(payload: unknown): Record<string, unknown> | n
 
 /** Map API / cached shapes into a canonical `User` for auth store (empty strings when unknown). */
 export function normalizeAuthUser(payload: unknown): User {
+  // `r` is the user sub-record; `outer` is the full envelope (may have sibling `permissions`)
+  const outer = payload && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : {}
   const r = extractUserRecord(payload) ?? {}
   const name = trimStr(r.name ?? r.full_name ?? r.fullName)
   const email = trimStr(r.email ?? r.email_address ?? r.mail)
@@ -104,6 +108,11 @@ export function normalizeAuthUser(payload: unknown): User {
   let updated_at: string | undefined
   if (r.updated_at != null && String(r.updated_at).trim() !== '') updated_at = String(r.updated_at)
 
+  // permissions may live on the outer envelope (sibling to `user`) or directly on `r`
+  const rawPerms = outer.permissions ?? r.permissions
+  const permissions: string[] | undefined =
+    Array.isArray(rawPerms) ? (rawPerms as unknown[]).map(String).filter(Boolean) : undefined
+
   return {
     id: finiteId(r.id),
     name,
@@ -121,6 +130,7 @@ export function normalizeAuthUser(payload: unknown): User {
     updated_at,
     is_active,
     role,
+    permissions,
   }
 }
 
@@ -148,12 +158,10 @@ export function normalizeAuthLoginPayload(payload: unknown): { token: string; us
     )
   }
 
-  const userCandidate =
-    innerObj?.user ?? root.user ?? extractUserRecord(payload) ?? inner ?? payload
-
+  // Pass the full inner envelope so normalizeAuthUser can pick up sibling `permissions`.
   return {
     token,
-    user: normalizeAuthUser(userCandidate),
+    user: normalizeAuthUser(innerObj ?? payload),
   }
 }
 

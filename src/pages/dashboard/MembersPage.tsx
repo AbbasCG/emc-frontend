@@ -113,7 +113,7 @@ const AVATAR_GRADIENTS = [
 ]
 
 /** Roles that can grant recognition to ANY member/department. */
-const FULL_GRANT_ROLES = new Set(['super_admin', 'admin', 'hr_manager', 'executive_admin'])
+const FULL_GRANT_ROLES = new Set(['super_admin', 'tech_admin', 'admin', 'hr_manager', 'executive_admin', 'community_manager', 'partnerships_manager'])
 
 function initials(name: string): string {
   return name

@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import apiClient from '../api/axios'
 import { fetchInstructorDashboardStats } from '@/api/instructorApi'
 import {
   DashboardSection,
@@ -24,7 +23,7 @@ import {
   UpcomingSessionCard,
 } from '../components/dashboard'
 import { useAuth } from '../contexts/AuthContext'
-import type { TeacherDashboardData, TeachingCourse } from '../types'
+import type { TeachingCourse } from '../types'
 import { formatSessionSchedule } from '@/utils/lmsSession'
 import type { LmsSession, TeachingCourseLms } from '@/types/lms'
 
@@ -33,12 +32,6 @@ function hourGreeting(): string {
   if (h < 12) return 'صباح الخير'
   if (h < 18) return 'مساء الخير'
   return 'مساء النور'
-}
-
-function normalise(raw: unknown): TeacherDashboardData {
-  if (raw && typeof raw === 'object' && 'data' in raw)
-    return (raw as { data: TeacherDashboardData }).data
-  return raw as TeacherDashboardData
 }
 
 function mapLmsCourseToTeaching(c: TeachingCourseLms): TeachingCourse {
@@ -126,36 +119,29 @@ export default function TeacherDashboard() {
   const { user } = useAuth()
   const greeting = hourGreeting()
 
-  const [legacyDash, setLegacyDash] = useState<TeacherDashboardData | null>(null)
   const [dashStats, setDashStats] = useState<Awaited<ReturnType<typeof fetchInstructorDashboardStats>> | null>(null)
   const [loadState, setLoadState] = useState<LoadState>('loading')
 
   useEffect(() => {
     let alive = true
     setLoadState('loading')
-    void Promise.allSettled([
-      apiClient
-        .get('/dashboard/teacher', { skipErrorToast: true } as Record<string, unknown>)
-        .then((res) => normalise(res.data))
-        .catch(() => null),
-      fetchInstructorDashboardStats(),
-    ]).then(([legacy, stats]) => {
-      if (!alive) return
-      setLegacyDash((legacy as PromiseFulfilledResult<TeacherDashboardData | null>).value ?? null)
-      setDashStats((stats as PromiseFulfilledResult<Awaited<ReturnType<typeof fetchInstructorDashboardStats>>>).value ?? null)
-      setLoadState('ok')
-    })
+    void fetchInstructorDashboardStats()
+      .then((stats) => {
+        if (!alive) return
+        setDashStats(stats)
+        setLoadState('ok')
+      })
+      .catch(() => {
+        if (!alive) return
+        setLoadState('error')
+      })
     return () => { alive = false }
   }, [])
 
   const insLms = dashStats?.dashboard ?? null
 
   const effective = useMemo(() => {
-    const legacy = legacyDash
     const stats = dashStats
-    if (legacy?.stats || (legacy?.courses && legacy.courses.length > 0)) {
-      return { stats: legacy.stats, courses: legacy.courses ?? [], sessions: legacy.upcoming_sessions ?? [] }
-    }
     const courses = (stats?.courses ?? insLms?.assigned_courses ?? []).map(mapLmsCourseToTeaching)
     const sessions = (stats?.sessions ?? insLms?.upcoming_sessions ?? []).map((s: LmsSession) => ({
       id: s.id,
@@ -172,12 +158,12 @@ export default function TeacherDashboard() {
         total_students:   stats?.studentsCount ?? insLms?.student_count ?? 0,
         upcoming_sessions: sessions.length,
         active_courses:   courses.filter((c) => c.status !== 'completed').length,
-        completion_rate:  legacy?.stats?.completion_rate ?? 0,
+        completion_rate:  0,
       },
       courses,
       sessions,
     }
-  }, [legacyDash, dashStats, insLms])
+  }, [dashStats, insLms])
 
   const displayName = user?.name?.trim() || 'مدرّب EMC'
   const isLoading = loadState === 'loading'

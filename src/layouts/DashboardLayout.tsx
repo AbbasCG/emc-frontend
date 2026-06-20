@@ -26,6 +26,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
+import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
 import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
@@ -68,6 +69,14 @@ const pageTitles: Record<string, string> = {
   '/dashboard/volunteer': 'المتطوعون',
   '/dashboard/department': 'الإدارات',
   '/dashboard/department/programs': 'البرامج — الإدارة',
+  '/dashboard/tech-admin': 'لوحة مدير التقنية',
+  '/dashboard/tech-admin/learning-paths': 'المسارات التعليمية — التقنية',
+  '/dashboard/programs-manager': 'لوحة مدير البرامج والمسارات',
+  '/dashboard/programs-manager/learning-paths': 'المسارات التعليمية',
+  '/dashboard/operations-manager': 'لوحة مدير التشغيل والعمليات',
+  '/dashboard/partnerships-manager': 'لوحة مدير الشراكات والعلاقات',
+  '/dashboard/community-manager': 'لوحة مدير المجتمع والصحة',
+  '/dashboard/section-lead': 'لوحة قائد القسم',
   '/dashboard/teacher':      'لوحة المدرب',
   '/dashboard/student/sessions':      'جلساتي',
   '/dashboard/student/courses':       'دوراتي',
@@ -209,7 +218,16 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const sidebarSearching = sidebarQuery.trim().length > 0
   const navGroups = sidebarSearching ? filteredGroups : groups
 
-  const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>({})
+  const sidebarStorageKey = `emc_sidebar_collapsed_${normalizeRole(user?.role ?? null) ?? 'guest'}`
+
+  const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(sidebarStorageKey)
+      return stored ? (JSON.parse(stored) as Record<string, boolean>) : {}
+    } catch {
+      return {}
+    }
+  })
 
   useEffect(() => {
     setSidebarQuery('')
@@ -232,14 +250,18 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     }
   }, [location.pathname, groups])
 
-  function collapsibleSectionOpen(title?: string, collapsible?: boolean) {
+  function collapsibleSectionOpen(title?: string, collapsible?: boolean, defaultOpen = true) {
     if (!collapsible || !title) return true
-    return collapsibleExpanded[title] ?? true
+    return collapsibleExpanded[title] ?? defaultOpen
   }
 
-  function toggleCollapsibleSection(title?: string) {
+  function toggleCollapsibleSection(title?: string, defaultOpen = true) {
     if (!title) return
-    setCollapsibleExpanded((prev) => ({ ...prev, [title]: !(prev[title] ?? true) }))
+    setCollapsibleExpanded((prev) => {
+      const next = { ...prev, [title]: !(prev[title] ?? defaultOpen) }
+      try { localStorage.setItem(sidebarStorageKey, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
   }
 
   function isActive(href: string) {
@@ -336,7 +358,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           {sidebarSearching && navGroups.length === 0 ?
             <p className="px-2 py-8 text-center text-[12px] font-semibold text-white/45">لا توجد نتائج</p>
           : navGroups.map((group, gi) => {
-            const open = sidebarSearching ? true : collapsibleSectionOpen(group.title, group.collapsible)
+            const open = sidebarSearching ? true : collapsibleSectionOpen(group.title, group.collapsible, group.defaultOpen)
 
             return (
             <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
@@ -344,7 +366,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                 <button
                   type="button"
                   aria-expanded={open}
-                  onClick={() => toggleCollapsibleSection(group.title)}
+                  onClick={() => toggleCollapsibleSection(group.title, group.defaultOpen)}
                   className="group/cap mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/46 transition hover:bg-white/[0.05]"
                 >
                   <ChevronDown

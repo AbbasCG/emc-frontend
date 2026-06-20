@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
   ClipboardList,
   Download,
+  Eye,
   FileText,
   Loader2,
   Star,
@@ -76,6 +77,60 @@ export default function SubmissionReviewPanel({
   const [status, setStatus] = useState<ReviewPayload['status']>('reviewed')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [fileLoading, setFileLoading] = useState<'preview' | 'download' | null>(null)
+  const previewUrlRef = useRef<string | null>(null)
+
+  async function fetchSubmissionFile(submissionId: number, download: boolean): Promise<void> {
+    setFileLoading(download ? 'download' : 'preview')
+    try {
+      const token = localStorage.getItem('emc_token')
+      const base = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+      const url = `${base}/instructor/submissions/${submissionId}/file${download ? '?download=1' : ''}`
+      const res = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error((json as { message?: string }).message ?? `خطأ ${res.status}`)
+      }
+      const blob = await res.blob()
+      const blobUrl = URL.createObjectURL(blob)
+
+      if (download) {
+        const a = document.createElement('a')
+        a.href = blobUrl
+        const cd = res.headers.get('Content-Disposition') ?? ''
+        const match = cd.match(/filename="?([^"]+)"?/)
+        a.download = match?.[1] ?? 'submission-file'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000)
+      } else {
+        // Revoke previous preview URL to avoid memory leak
+        if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+        previewUrlRef.current = blobUrl
+
+        const mime = blob.type
+        if (mime.startsWith('image/') || mime === 'application/pdf') {
+          window.open(blobUrl, '_blank', 'noopener,noreferrer')
+        } else {
+          // Non-previewable type: fall back to download
+          const a = document.createElement('a')
+          a.href = blobUrl
+          a.download = 'submission-file'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000)
+        }
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'فشل تحميل الملف')
+    } finally {
+      setFileLoading(null)
+    }
+  }
 
   useEffect(() => {
     if (!submission) return
@@ -202,6 +257,9 @@ export default function SubmissionReviewPanel({
                         ? formatDateTime(submission.submitted_at)
                         : 'غير متوفر'
                     } />
+                    {submission.resubmitted_at && (
+                      <InfoRow label="تاريخ إعادة التسليم" value={formatDateTime(submission.resubmitted_at)} />
+                    )}
                   </Section>
 
                   <Section title="بيانات الدورة" icon={BookOpen}>
@@ -233,15 +291,34 @@ export default function SubmissionReviewPanel({
 
                   <Section title="الملف المرفق" icon={Download}>
                     {submission.file_url ? (
-                      <a
-                        href={resolvePublicAssetUrl(submission.file_url) ?? submission.file_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#2691C2] ring-1 ring-[#2691C2]/20 transition hover:bg-[#2691C2]/5"
-                      >
-                        <Download className="h-4 w-4" />
-                        تنزيل الملف المرفق
-                      </a>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={fileLoading !== null}
+                          onClick={() => fetchSubmissionFile(submission.id, false)}
+                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#2691C2] ring-1 ring-[#2691C2]/20 transition hover:bg-[#2691C2]/5 disabled:opacity-60"
+                        >
+                          {fileLoading === 'preview' ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          معاينة الملف
+                        </button>
+                        <button
+                          type="button"
+                          disabled={fileLoading !== null}
+                          onClick={() => fetchSubmissionFile(submission.id, true)}
+                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#22334A] ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:opacity-60"
+                        >
+                          {fileLoading === 'download' ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                          تنزيل الملف
+                        </button>
+                      </div>
                     ) : (
                       <p className="text-[12px] font-semibold text-slate-400">غير متوفر</p>
                     )}
@@ -282,8 +359,8 @@ export default function SubmissionReviewPanel({
                           onChange={(e) => setStatus(e.target.value as ReviewPayload['status'])}
                           className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#22334A] outline-none focus:border-[#2691C2]"
                         >
-                          <option value="reviewed">تمت المراجعة</option>
-                          <option value="needs_revision">يحتاج إعادة تسليم</option>
+                          <option value="reviewed">تمت المراجعة ✓</option>
+                          <option value="needs_revision">طلب إعادة التسليم ↩</option>
                         </select>
                       </label>
 

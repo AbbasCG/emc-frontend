@@ -10,6 +10,20 @@ export type KnowledgeCategory = {
   description?: string
 }
 
+export type AdminKnowledgeCategory = {
+  id: number
+  name: string
+  slug: string
+  description?: string | null
+  status?: string | null
+  sort_order?: number
+  parent_id?: number | null
+  articles_count: number
+  created_at?: string | null
+  department?: { id: number; name: string } | null
+  children?: AdminKnowledgeCategory[]
+}
+
 export type KnowledgeArticle = {
   id: number
   slug: string

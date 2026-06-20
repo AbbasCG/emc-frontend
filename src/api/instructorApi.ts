@@ -176,20 +176,25 @@ export async function fetchInstructorDashboardStats(): Promise<InstructorDashboa
   }
 }
 
-export async function fetchInstructorSessions(): Promise<LmsSession[]> {
-  const res = await apiClient.get<unknown>('/instructor/sessions', { skipErrorToast: true } as Record<string, unknown>)
+export async function fetchInstructorSessions(params?: { course_id?: number; status?: string }): Promise<LmsSession[]> {
+  const res = await apiClient.get<unknown>('/instructor/sessions', {
+    params,
+    skipErrorToast: true,
+  } as Record<string, unknown>)
   const sessions = parseSessionsPayload(res.data)
   if (sessions.length > 0) return sessions
 
-  /* Fallback: dashboard embeds upcoming_sessions for some backends */
-  try {
-    const dash = await fetchInstructorLmsDashboard()
-    const fromDash = (dash.upcoming_sessions ?? [])
-      .map(normalizeLmsSessionRow)
-      .filter((x): x is LmsSession => x != null)
-    if (fromDash.length > 0) return fromDash
-  } catch {
-    /* ignore */
+  /* Fallback: dashboard embeds upcoming_sessions for some backends (only without course filter) */
+  if (!params?.course_id) {
+    try {
+      const dash = await fetchInstructorLmsDashboard()
+      const fromDash = (dash.upcoming_sessions ?? [])
+        .map(normalizeLmsSessionRow)
+        .filter((x): x is LmsSession => x != null)
+      if (fromDash.length > 0) return fromDash
+    } catch {
+      /* ignore */
+    }
   }
 
   return sessions
@@ -261,7 +266,8 @@ function normalizeAttendanceRow(raw: unknown): AttendanceRow | null {
       : o.user && typeof o.user === 'object' && !Array.isArray(o.user)
         ? (o.user as Record<string, unknown>)
         : null
-  const student_id = Number(o.student_id ?? student?.id ?? o.user_id ?? 0)
+  // Backend show() returns `id` (not student_id/user_id) — handle all variants
+  const student_id = Number(o.student_id ?? o.user_id ?? student?.id ?? o.id ?? 0)
   if (!student_id) return null
   const student_name = String(
     o.student_name ?? student?.name ?? o.name ?? o.full_name ?? student?.full_name ?? '',
@@ -274,11 +280,14 @@ function normalizeAttendanceRow(raw: unknown): AttendanceRow | null {
       : student?.email != null ? String(student.email)
       : o.student_email != null ? String(o.student_email)
       : null,
+    // Backend returns `avatar` (not avatar_url) for user records
     avatar_url:
       o.avatar_url != null ? String(o.avatar_url)
+      : o.avatar != null ? String(o.avatar)
       : student?.avatar_url != null ? String(student.avatar_url)
+      : student?.avatar != null ? String(student.avatar)
       : null,
-    status: normalizeAttendanceStatus(o.status ?? o.attendance_status),
+    status: normalizeAttendanceStatus(o.status ?? o.attendance_status ?? o.current_attendance_status),
     notes: o.notes != null ? String(o.notes) : o.note != null ? String(o.note) : null,
   }
 }

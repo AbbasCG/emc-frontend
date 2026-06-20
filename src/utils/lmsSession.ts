@@ -188,13 +188,13 @@ export function formatSessionPickerLabel(session: LmsSession): string {
 }
 
 export const SESSION_STATUS_AR: Record<LmsSessionStatus, string> = {
-  scheduled: 'قادمة',
-  live: 'مباشرة الآن',
-  completed: 'انتهت',
+  scheduled: 'مجدولة',
+  live: 'متاحة الآن',
+  completed: 'منتهية',
   cancelled: 'ملغاة',
 }
 
-const JOIN_WINDOW_MS = 15 * 60_000
+const JOIN_WINDOW_MS = 10 * 60_000
 
 export type SessionJoinState =
   | { kind: 'cancelled'; label: string }
@@ -237,7 +237,7 @@ export function getSessionJoinState(
   const endMs = sessionEndMs(session, startMs)
 
   if (session.status === 'completed' || (Number.isFinite(endMs) && now >= endMs)) {
-    return { kind: 'ended', label: 'انتهت الجلسة' }
+    return { kind: 'ended', label: 'منتهية' }
   }
 
   if (session.type === 'offline') {
@@ -249,16 +249,17 @@ export function getSessionJoinState(
 
   if (!link) {
     if (!Number.isFinite(startMs)) {
-      return { kind: 'no_link', label: 'سيتم إشعارك عند تحديد الموعد' }
+      return { kind: 'no_link', label: 'لم يتم إضافة رابط الجلسة بعد' }
     }
     if (Number.isFinite(windowStart) && now < windowStart) {
-      return { kind: 'waiting', label: 'الرابط سيتاح قبل الموعد' }
+      return { kind: 'waiting', label: 'الرابط سيظهر قبل الموعد بـ 10 دقائق' }
     }
-    return { kind: 'no_link', label: 'سيتم إشعارك عند تحديد الموعد' }
+    // Within the 10-min window but still no link
+    return { kind: 'no_link', label: 'بانتظار إضافة رابط الجلسة من المدرس' }
   }
 
   if (Number.isFinite(windowStart) && now < windowStart) {
-    return { kind: 'waiting', label: 'الرابط سيتاح قبل الموعد' }
+    return { kind: 'waiting', label: 'الرابط سيظهر قبل الموعد بـ 10 دقائق' }
   }
 
   return { kind: 'join', label: joinLabel, href: link }

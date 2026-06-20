@@ -368,7 +368,7 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
     {
       label: 'الحضور',
       icon:  UserCheck,
-      href:  `/dashboard/instructor/attendance`,
+      href:  `/dashboard/instructor/attendance?course_id=${c.id}`,
       cls:   'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
     },
     {

@@ -37,7 +37,7 @@ export type LmsMaterial = {
   updated_at?: string | null
 }
 
-export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' | 'late'
+export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' | 'late' | 'needs_resubmission'
 
 export type StudentAssignment = {
   id: number
@@ -221,17 +221,19 @@ export type InstructorSubmission = {
   student_email?: string | null
   student_avatar?: string | null
   submitted_at?: string | null
-  status: 'pending_review' | 'reviewed' | 'needs_revision' | 'not_submitted'
+  status: 'pending_review' | 'reviewed' | 'needs_revision' | 'not_submitted' | 'resubmitted'
   score?: number | null
   max_score?: number | null
   body_preview?: string | null
   file_url?: string | null
+  resubmitted_at?: string | null
 }
 
 export type SubmissionDetail = InstructorSubmission & {
   body_text?: string | null
   file_url?: string | null
   feedback?: string | null
+  resubmitted_at?: string | null
   learning_path?: { id: number; title: string; slug?: string | null } | null
   assignment?: {
     id: number

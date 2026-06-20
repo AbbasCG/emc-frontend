@@ -165,8 +165,8 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
               )}
             </div>
 
-            <span className="inline-flex items-center gap-1 rounded-xl bg-[#22334A] px-3 py-1.5 text-[11px] font-black text-white transition-colors group-hover:bg-[#2691C2]">
-              إدارة المسار
+            <span className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black text-white transition-colors group-hover:bg-[#2691C2] ${path.is_path_instructor === false ? 'bg-slate-500' : 'bg-[#22334A]'}`}>
+              {path.is_path_instructor === false ? 'عرض المسار' : 'إدارة المسار'}
             </span>
           </div>
         </div>

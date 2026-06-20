@@ -15,6 +15,14 @@ const ROLE_PILL: Record<string, string> = {
   quality_manager: 'bg-teal-50 text-teal-800 border-teal-200',
   support_agent: 'bg-sky-50 text-sky-800 border-sky-200',
   department_manager: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+  tech_admin: 'bg-[#22334A] text-white border-[#22334A]/70 shadow-sm',
+  programs_manager: 'bg-cyan-50 text-cyan-800 border-cyan-200',
+  operations_manager: 'bg-orange-50 text-orange-800 border-orange-200',
+  partnerships_manager: 'bg-lime-50 text-lime-800 border-lime-200',
+  community_manager: 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200',
+  volunteer: 'bg-green-50 text-green-800 border-green-200',
+  partner: 'bg-yellow-50 text-yellow-800 border-yellow-200',
+  section_lead: 'bg-rose-50 text-rose-800 border-rose-200',
 }
 
 const STATUS_PILL = {

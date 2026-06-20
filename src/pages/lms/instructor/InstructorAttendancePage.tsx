@@ -1,11 +1,11 @@
 import axios from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   BookOpen,
   GraduationCap,
   Lock,
   RefreshCw,
-  Route,
   Save,
   UserCheck,
   Users,
@@ -15,13 +15,9 @@ import {
   type AttendanceSessionResult,
   fetchInstructorAttendanceSession,
   fetchInstructorSessions,
-  fetchInstructorStudents,
   mergeAttendanceRows,
   putInstructorAttendance,
-  usersToAttendanceRows,
 } from '@/api/instructorApi'
-import { fetchClassGroupStudents, fetchInstructorClasses, type ClassGroup } from '@/api/placementApi'
-import { fetchInstructorLearningPaths, type LearningPath } from '@/api/learningPathsApi'
 import type { AttendanceRow, LmsSession } from '@/types/lms'
 import { AttendanceTable } from '@/components/lms'
 import { InstructorHero } from '@/components/instructor'
@@ -34,6 +30,7 @@ const fmtDate = (iso: string | null | undefined): string => {
   if (!iso) return '—'
   try {
     return new Intl.DateTimeFormat('ar', {
+      timeZone: 'Europe/Amsterdam',
       numberingSystem: 'latn',
       day: 'numeric',
       month: 'short',
@@ -46,9 +43,9 @@ const fmtDate = (iso: string | null | undefined): string => {
 
 const STAT_COLORS = {
   present: { bg: 'bg-emerald-500', text: 'text-emerald-700', light: 'bg-emerald-50', border: 'border-emerald-200', label: 'حاضر' },
-  absent: { bg: 'bg-rose-500', text: 'text-rose-700', light: 'bg-rose-50', border: 'border-rose-200', label: 'غائب' },
-  late: { bg: 'bg-amber-500', text: 'text-amber-700', light: 'bg-amber-50', border: 'border-amber-200', label: 'متأخر' },
-  excused: { bg: 'bg-sky-500', text: 'text-sky-700', light: 'bg-sky-50', border: 'border-sky-200', label: 'معذور' },
+  absent:  { bg: 'bg-rose-500',    text: 'text-rose-700',    light: 'bg-rose-50',    border: 'border-rose-200',    label: 'غائب'   },
+  late:    { bg: 'bg-amber-500',   text: 'text-amber-700',   light: 'bg-amber-50',   border: 'border-amber-200',   label: 'متأخر'  },
+  excused: { bg: 'bg-sky-500',     text: 'text-sky-700',     light: 'bg-sky-50',     border: 'border-sky-200',     label: 'معذور'  },
 }
 
 function cloneRows(rows: AttendanceRow[]): AttendanceRow[] {
@@ -90,102 +87,101 @@ function SelectField({
 }
 
 export default function InstructorAttendancePage() {
-  const [classes, setClasses] = useState<ClassGroup[]>([])
-  const [sessions, setSessions] = useState<LmsSession[]>([])
-  const [lpPaths, setLpPaths] = useState<LearningPath[]>([])
-  const [classId, setClassId] = useState<number | ''>('')
-  const [sessionId, setSessionId] = useState<number | ''>('')
-  const [rows, setRows] = useState<AttendanceRow[]>([])
-  const [baseline, setBaseline] = useState<AttendanceRow[]>([])
-  const [lockInfo, setLockInfo] = useState<Pick<AttendanceSessionResult, 'is_locked' | 'locked_at' | 'locked_by'>>({ is_locked: false, locked_at: null, locked_by: null })
-  const [loading, setLoading] = useState(true)
-  const [loadingRows, setLoadingRows] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [searchParams] = useSearchParams()
+  const paramCourseId  = searchParams.get('course_id')  ? Number(searchParams.get('course_id'))  : null
+  const paramSessionId = searchParams.get('session_id') ? Number(searchParams.get('session_id')) : null
 
+  const [sessions,    setSessions]    = useState<LmsSession[]>([])
+  const [courseId,    setCourseId]    = useState<number | ''>('')
+  const [sessionId,   setSessionId]   = useState<number | ''>('')
+  const [rows,        setRows]        = useState<AttendanceRow[]>([])
+  const [baseline,    setBaseline]    = useState<AttendanceRow[]>([])
+  const [lockInfo,    setLockInfo]    = useState<Pick<AttendanceSessionResult, 'is_locked' | 'locked_at' | 'locked_by'>>({
+    is_locked: false, locked_at: null, locked_by: null,
+  })
+  const [loading,     setLoading]     = useState(true)
+  const [loadingRows, setLoadingRows] = useState(false)
+  const [saving,      setSaving]      = useState(false)
+
+  // Load all sessions on mount (or for specific course if URL param present)
   useEffect(() => {
     let alive = true
-    Promise.all([
-      fetchInstructorClasses(),
-      fetchInstructorSessions(),
-      fetchInstructorLearningPaths().then((r) => r.paths).catch(() => [] as LearningPath[]),
-    ])
-      .then(([cls, sess, paths]) => {
+    setLoading(true)
+    fetchInstructorSessions(paramCourseId ? { course_id: paramCourseId } : undefined)
+      .then((sess) => {
         if (!alive) return
-        setClasses(cls)
         setSessions(sess)
-        setLpPaths(paths)
+        // Apply URL param pre-selections after sessions load
+        if (paramSessionId) {
+          setSessionId(paramSessionId)
+        } else if (paramCourseId) {
+          setCourseId(paramCourseId)
+        }
       })
-      .catch((err) => {
-        if (!alive || axios.isCancel(err)) return
-      })
+      .catch((err) => { if (!alive || axios.isCancel(err)) return })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
+  // Only run once on mount — URL params are read once
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const lpMap = useMemo(() => {
-    const m = new Map<number, string>()
-    lpPaths.forEach((lp) => {
-      ;(lp.courses ?? []).forEach((c) => {
-        if (!m.has(c.id)) m.set(c.id, lp.title)
-      })
+  // Unique courses derived from loaded sessions
+  const courses = useMemo(() => {
+    const seen = new Set<number>()
+    const list: { id: number; title: string }[] = []
+    sessions.forEach((s) => {
+      if (s.course_id && !seen.has(s.course_id)) {
+        seen.add(s.course_id)
+        list.push({ id: s.course_id, title: s.course_name || `دورة #${s.course_id}` })
+      }
     })
-    return m
-  }, [lpPaths])
+    return list.sort((a, b) => a.title.localeCompare(b.title, 'ar'))
+  }, [sessions])
 
+  // Sessions filtered by selected course
   const filteredSessions = useMemo(() => {
-    if (classId === '') return sessions
-    const cls = classes.find((c) => c.id === classId)
-    if (!cls) return sessions
-    return sessions.filter((s) => !s.course_id || s.course_id === cls.course_id)
-  }, [sessions, classes, classId])
+    if (courseId === '') return sessions
+    return sessions.filter((s) => s.course_id === courseId)
+  }, [sessions, courseId])
 
   const selectedSession = useMemo(
     () => (sessionId !== '' ? sessions.find((s) => s.id === Number(sessionId)) ?? null : null),
     [sessions, sessionId],
   )
 
-  const sessionLpName = useMemo(
-    () => (selectedSession?.course_id != null ? lpMap.get(selectedSession.course_id) : null),
-    [selectedSession, lpMap],
-  )
+  // Auto-select nearest upcoming session when course changes
+  useEffect(() => {
+    if (courseId === '' || filteredSessions.length === 0) return
+    // Don't auto-select if a session from URL param is already selected for this course
+    if (sessionId !== '' && filteredSessions.some((s) => s.id === Number(sessionId))) return
 
-  const loadRoster = useCallback(async (sid: number, gid: number | ''): Promise<AttendanceRow[]> => {
-    if (gid !== '') {
-      try {
-        const classStudents = await fetchClassGroupStudents(Number(gid))
-        if (classStudents.length > 0) {
-          return classStudents.map((s) => ({
-            student_id: s.student_id,
-            student_name: s.student_name,
-            email: s.student_email,
-            avatar_url: s.avatar_url ?? null,
-            status: null,
-            notes: null,
-          }))
-        }
-      } catch {
-        /* fallback below */
-      }
-    }
+    const now = Date.now()
+    const upcoming = filteredSessions
+      .filter((s) => s.starts_at && Date.parse(s.starts_at) > now)
+      .sort((a, b) => Date.parse(a.starts_at!) - Date.parse(b.starts_at!))
+    const nearest = upcoming[0] ?? filteredSessions[filteredSessions.length - 1]
+    if (nearest) setSessionId(nearest.id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId, filteredSessions])
 
-    const users = await fetchInstructorStudents({
-      session_id: sid,
-      class_group_id: gid === '' ? undefined : Number(gid),
-      course_id: gid !== '' ? classes.find((c) => c.id === gid)?.course_id : undefined,
-    })
-    return usersToAttendanceRows(users)
-  }, [classes])
-
-  const loadAttendanceRows = useCallback(async (sid: number, gid: number | '') => {
+  // Load attendance rows when session changes
+  const loadAttendanceRows = useCallback(async (sid: number) => {
     setLoadingRows(true)
     try {
-      const [sessionResult, roster] = await Promise.all([
-        fetchInstructorAttendanceSession(sid),
-        loadRoster(sid, gid),
-      ])
-      setLockInfo({ is_locked: sessionResult.is_locked, locked_at: sessionResult.locked_at, locked_by: sessionResult.locked_by })
-      const saved = sessionResult.rows
-      const merged = saved.length > 0 ? mergeAttendanceRows(saved, roster) : roster
+      const sessionResult = await fetchInstructorAttendanceSession(sid)
+      setLockInfo({
+        is_locked: sessionResult.is_locked,
+        locked_at: sessionResult.locked_at,
+        locked_by: sessionResult.locked_by,
+      })
+
+      // Backend show() returns ALL enrolled students with attendance merged.
+      // If rows came back (even with null status), use them as the authoritative roster.
+      // Only fall back to mergeAttendanceRows if rows is completely empty (no enrollment data).
+      const merged = sessionResult.rows.length > 0
+        ? sessionResult.rows
+        : mergeAttendanceRows([], [])
+
       setRows(cloneRows(merged))
       setBaseline(cloneRows(merged))
     } catch (err) {
@@ -195,7 +191,7 @@ export default function InstructorAttendancePage() {
     } finally {
       setLoadingRows(false)
     }
-  }, [loadRoster])
+  }, [])
 
   useEffect(() => {
     if (sessionId === '') {
@@ -203,13 +199,10 @@ export default function InstructorAttendancePage() {
       setBaseline([])
       return
     }
-    void loadAttendanceRows(Number(sessionId), classId)
-  }, [sessionId, classId, loadAttendanceRows])
+    void loadAttendanceRows(Number(sessionId))
+  }, [sessionId, loadAttendanceRows])
 
-  function updateRow(
-    studentId: number,
-    patch: { status?: AttendanceRow['status']; notes?: string | null },
-  ) {
+  function updateRow(studentId: number, patch: { status?: AttendanceRow['status']; notes?: string | null }) {
     setRows((prev) => prev.map((r) => (r.student_id === studentId ? { ...r, ...patch } : r)))
   }
 
@@ -245,16 +238,12 @@ export default function InstructorAttendancePage() {
     try {
       await putInstructorAttendance(
         Number(sessionId),
-        rows.map((r) => ({
-          student_id: r.student_id,
-          status: r.status!,
-          notes: r.notes?.trim() || null,
-        })),
+        rows.map((r) => ({ student_id: r.student_id, status: r.status!, notes: r.notes?.trim() || null })),
       )
       toast.success('تم حفظ الحضور بنجاح وتم قفله.')
-      await loadAttendanceRows(Number(sessionId), classId)
+      await loadAttendanceRows(Number(sessionId))
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number; data?: { message?: string } } })?.response?.status
+      const status = (err as { response?: { status?: number } })?.response?.status
       if (status === 423) {
         toast.error('تم حفظ الحضور مسبقاً ولا يمكن تعديله.')
         setLockInfo({ is_locked: true, locked_at: null, locked_by: null })
@@ -274,7 +263,7 @@ export default function InstructorAttendancePage() {
   }, [rows])
 
   const markedCount = rows.filter((r) => r.status).length
-  const showRoster = sessionId !== '' && !loadingRows && rows.length > 0
+  const showRoster  = sessionId !== '' && !loadingRows && rows.length > 0
 
   return (
     <div className="space-y-4 pb-24" dir="rtl">
@@ -284,40 +273,44 @@ export default function InstructorAttendancePage() {
       ]} />
       <InstructorHero
         title="تسجيل الحضور"
-        subtitle="اختر الجلسة، حدّد حالات الطلاب بسرعة، ثم احفظ"
+        subtitle="اختر الدورة والجلسة، حدّد حالات الطلاب، ثم احفظ"
         backTo="/dashboard/instructor/courses"
         backLabel="الدورات"
         refreshing={loading}
         pills={loading ? [] : [
-          { label: 'صف', value: fmt(classes.length) },
+          { label: 'دورة',  value: fmt(courses.length)  },
           { label: 'جلسة', value: fmt(sessions.length) },
         ]}
       />
 
-      {/* Compact toolbar */}
+      {/* Filters toolbar */}
       <div className="sticky top-16 z-20 rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur-sm">
         <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+
+          {/* Course filter */}
           <SelectField
-            label="الصف / المجموعة"
+            label="الدورة"
             icon={GraduationCap}
-            value={classId}
-            onChange={(v) => { setClassId(v === '' ? '' : Number(v)); setSessionId('') }}
+            value={courseId}
+            onChange={(v) => {
+              setCourseId(v === '' ? '' : Number(v))
+              setSessionId('')
+            }}
             disabled={loading}
           >
-            <option value="">— كل الصفوف —</option>
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}{c.course_title ? ` · ${c.course_title}` : ''}
-              </option>
+            <option value="">— كل الدورات —</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>{c.title}</option>
             ))}
           </SelectField>
 
+          {/* Session filter */}
           <SelectField
             label="الجلسة"
             icon={BookOpen}
             value={sessionId}
             onChange={(v) => setSessionId(v === '' ? '' : Number(v))}
-            disabled={loading}
+            disabled={loading || filteredSessions.length === 0}
           >
             <option value="">— اختر جلسة —</option>
             {filteredSessions.map((s) => (
@@ -345,26 +338,27 @@ export default function InstructorAttendancePage() {
           )}
         </div>
 
+        {/* Session context info */}
         {selectedSession && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-            {selectedSession.course_name && (
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-[#2691C2]">
-                <BookOpen className="h-3 w-3" />
-                {selectedSession.course_name}
-              </span>
-            )}
-            {sessionLpName && (
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-[#EC943C]">
-                <Route className="h-3 w-3" />
-                {sessionLpName}
-              </span>
-            )}
-            {selectedSession.starts_at && (
-              <span className="text-[11px] text-slate-400">{fmtDate(selectedSession.starts_at)}</span>
-            )}
+          <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+              {selectedSession.course_name && (
+                <span className="flex items-center gap-1 font-semibold text-[#2691C2]">
+                  <BookOpen className="h-3 w-3" />
+                  {selectedSession.course_name}
+                </span>
+              )}
+              {selectedSession.title && selectedSession.title !== selectedSession.course_name && (
+                <span className="font-black text-[#22334A]">{selectedSession.title}</span>
+              )}
+              {selectedSession.starts_at && (
+                <span className="text-slate-400">{fmtDate(selectedSession.starts_at)}</span>
+              )}
+            </div>
           </div>
         )}
 
+        {/* Attendance stats bar */}
         {sessionId !== '' && rows.length > 0 && !loadingRows && (
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
             <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-[#22334A]/70">
@@ -401,14 +395,33 @@ export default function InstructorAttendancePage() {
         )}
       </div>
 
+      {/* Main content area */}
       {sessionId === '' ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
-          <UserCheck className="mb-3 h-10 w-10 text-slate-300" />
-          <p className="text-base font-black text-[#22334A]">اختر جلسة للبدء</p>
-          <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
-            يمكنك تصفية الجلسات حسب الصف أولاً، ثم اختيار الجلسة
-          </p>
-        </div>
+        courseId === '' && sessions.length === 0 && !loading ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+            <UserCheck className="mb-3 h-10 w-10 text-slate-300" />
+            <p className="text-base font-black text-[#22334A]">لا توجد جلسات</p>
+            <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
+              لم يتم إنشاء جلسات لدوراتك بعد
+            </p>
+          </div>
+        ) : courseId !== '' && filteredSessions.length === 0 && !loading ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+            <BookOpen className="mb-3 h-10 w-10 text-slate-300" />
+            <p className="text-base font-black text-[#22334A]">لا توجد جلسات لهذه الدورة</p>
+            <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
+              أنشئ جلسة للدورة أولاً
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+            <UserCheck className="mb-3 h-10 w-10 text-slate-300" />
+            <p className="text-base font-black text-[#22334A]">اختر جلسة للبدء</p>
+            <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
+              يمكنك تصفية الجلسات حسب الدورة أولاً، ثم اختيار الجلسة
+            </p>
+          </div>
+        )
       ) : loadingRows ? (
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -418,7 +431,7 @@ export default function InstructorAttendancePage() {
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-14 text-center">
           <Users className="mb-3 h-10 w-10 text-slate-200" />
-          <p className="font-black text-[#22334A]">لا يوجد طلاب لهذه الجلسة</p>
+          <p className="font-black text-[#22334A]">لا يوجد طلاب مسجّلون في هذه الدورة</p>
         </div>
       ) : (
         <AttendanceTable
@@ -431,6 +444,7 @@ export default function InstructorAttendancePage() {
         />
       )}
 
+      {/* Mobile fixed save bar */}
       {showRoster && !lockInfo.is_locked && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-sm lg:hidden">
           <button
@@ -445,6 +459,7 @@ export default function InstructorAttendancePage() {
         </div>
       )}
 
+      {/* Desktop fixed save bar (only when unsaved changes) */}
       {showRoster && !lockInfo.is_locked && hasUnsavedChanges && (
         <div className="fixed inset-x-0 bottom-0 z-30 hidden border-t border-slate-200 bg-white/95 px-6 py-3 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-sm lg:block">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">

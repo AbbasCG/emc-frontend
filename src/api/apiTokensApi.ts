@@ -3,10 +3,31 @@ import { asList } from './lmsApi'
 import { unwrapData } from './unwrap'
 import type { ApiAccessTokenRow, ApiTokenScope } from '@/types/phase7'
 
+type RawToken = {
+  id: number
+  name: string
+  abilities?: string[]
+  scopes?: string[]
+  last_used_at?: string | null
+  created_at?: string
+  token_preview?: string
+}
+
+function normToken(r: RawToken): ApiAccessTokenRow {
+  return {
+    id:            r.id,
+    name:          r.name,
+    scopes:        (r.scopes ?? r.abilities ?? []) as ApiTokenScope[],
+    last_used_at:  r.last_used_at ?? null,
+    created_at:    r.created_at ?? '',
+    token_preview: r.token_preview,
+  }
+}
+
 export async function fetchApiTokens(): Promise<ApiAccessTokenRow[]> {
   try {
     const res = await apiClient.get<unknown>('/developer/api-tokens')
-    return asList<ApiAccessTokenRow>(res.data)
+    return asList<RawToken>(res.data).map(normToken)
   } catch {
     return []
   }

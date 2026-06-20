@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   FileSearch,
   Filter,
+  RefreshCw,
   Search,
 } from 'lucide-react'
 import DashboardBreadcrumbs from '@/components/ui/DashboardBreadcrumbs'
@@ -49,7 +50,7 @@ function studentInitials(name: string): string {
   return (name[0] ?? '?').toUpperCase()
 }
 
-type StatusFilter = 'all' | InstructorSubmission['status']
+type StatusFilter = 'all' | InstructorSubmission['status'] | 'resubmitted'
 
 function KpiCard({
   label,
@@ -145,6 +146,7 @@ export default function InstructorSubmissionsPage() {
     pending: list.filter((r) => r.status === 'pending_review').length,
     reviewed: list.filter((r) => r.status === 'reviewed').length,
     needsRevision: list.filter((r) => r.status === 'needs_revision').length,
+    resubmitted: list.filter((r) => r.status === 'resubmitted').length,
   }), [list])
 
   const openRow = useCallback(async (row: InstructorSubmission) => {
@@ -223,7 +225,7 @@ export default function InstructorSubmissionsPage() {
       />
 
       {/* KPI cards */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <KpiCard
           label="إجمالي التسليمات"
           value={kpis.total}
@@ -243,10 +245,16 @@ export default function InstructorSubmissionsPage() {
           accent="bg-emerald-50 text-emerald-600"
         />
         <KpiCard
-          label="ناقصة المراجعة"
+          label="طلب إعادة تسليم"
           value={kpis.needsRevision}
           icon={FileSearch}
           accent="bg-amber-50 text-amber-600"
+        />
+        <KpiCard
+          label="تمت إعادة التسليم"
+          value={kpis.resubmitted}
+          icon={RefreshCw}
+          accent="bg-violet-50 text-violet-600"
         />
       </div>
 
@@ -292,7 +300,8 @@ export default function InstructorSubmissionsPage() {
               <option value="all">كل الحالات</option>
               <option value="pending_review">بانتظار المراجعة</option>
               <option value="reviewed">تمت المراجعة</option>
-              <option value="needs_revision">ناقصة المراجعة</option>
+              <option value="needs_revision">طلب إعادة تسليم</option>
+              <option value="resubmitted">تمت إعادة التسليم</option>
             </select>
           </div>
         </div>
@@ -393,7 +402,7 @@ export default function InstructorSubmissionsPage() {
                             }}
                             className="rounded-xl bg-[#2691C2] px-3 py-1.5 text-[11px] font-black text-white transition hover:brightness-105"
                           >
-                            {row.status === 'pending_review' ? 'مراجعة' : 'عرض'}
+                            {row.status === 'pending_review' || row.status === 'resubmitted' ? 'مراجعة' : 'عرض'}
                           </button>
                         ) : (
                           <span className="text-[11px] font-bold text-slate-400">—</span>

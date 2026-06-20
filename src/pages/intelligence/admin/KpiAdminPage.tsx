@@ -28,8 +28,8 @@ export default function KpiAdminPage() {
       try {
         const d = await fetchKpiDashboard(tab)
         if (!cancelled) {
-          setMetrics(d.metrics)
-          setHighlights(d.highlights)
+          setMetrics(Array.isArray(d.metrics) ? d.metrics : [])
+          setHighlights(Array.isArray(d.highlights) ? d.highlights : undefined)
         }
       } catch {
         if (!cancelled) {

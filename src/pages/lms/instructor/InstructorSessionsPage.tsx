@@ -28,6 +28,7 @@ const fmtDate = (iso: string | null | undefined): string => {
   if (!iso) return '—'
   try {
     return new Intl.DateTimeFormat('ar', {
+      timeZone: 'Europe/Amsterdam',
       numberingSystem: 'latn',
       weekday: 'short',
       day: 'numeric',
@@ -43,9 +44,11 @@ const fmtTime = (iso: string | null | undefined): string => {
   if (!iso) return ''
   try {
     return new Intl.DateTimeFormat('ar', {
+      timeZone: 'Europe/Amsterdam',
       numberingSystem: 'latn',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: false,
     }).format(new Date(iso))
   } catch {
     return ''

@@ -1,11 +1,20 @@
 import apiClient from './axios'
 import { asList, unwrapLms } from './lmsApi'
-import type { KnowledgeArticle, KnowledgeCategory } from '@/types/platform'
+import type { AdminKnowledgeCategory, KnowledgeArticle, KnowledgeCategory } from '@/types/platform'
 
 export async function fetchKnowledgeCategories(): Promise<KnowledgeCategory[]> {
   try {
     const res = await apiClient.get<unknown>('/knowledge/categories')
     return asList<KnowledgeCategory>(res.data)
+  } catch {
+    return []
+  }
+}
+
+export async function fetchAdminKnowledgeCategories(): Promise<AdminKnowledgeCategory[]> {
+  try {
+    const res = await apiClient.get<unknown>('/admin/knowledge/categories')
+    return asList<AdminKnowledgeCategory>(res.data)
   } catch {
     return []
   }

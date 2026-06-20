@@ -22,6 +22,8 @@ export type User = {
   is_active?: boolean | null
   /** Backends may return extended roles beyond the frontend union — keep readable on profile. */
   role?: UserRole | string | null
+  /** Permission slugs granted to this user — populated from the auth response alongside `user`. */
+  permissions?: string[]
 }
 
 export type Course = {

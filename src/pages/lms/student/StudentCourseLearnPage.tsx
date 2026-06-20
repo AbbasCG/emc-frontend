@@ -680,7 +680,7 @@ export default function StudentCourseLearnPage() {
                                         key={a.id}
                                         assignment={sa}
                                         onSubmit={
-                                          ['pending', 'revision', 'late'].includes(String(sa.status))
+                                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
                                             ? () => setActiveAssignment(sa)
                                             : undefined
                                         }
@@ -810,7 +810,7 @@ export default function StudentCourseLearnPage() {
                                               key={a.id}
                                               assignment={sa}
                                               onSubmit={
-                                                ['pending', 'revision', 'late'].includes(String(sa.status))
+                                                ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
                                                   ? () => setActiveAssignment(sa)
                                                   : undefined
                                               }
@@ -882,7 +882,7 @@ export default function StudentCourseLearnPage() {
                                         key={a.id}
                                         assignment={sa}
                                         onSubmit={
-                                          ['pending', 'revision', 'late'].includes(String(sa.status))
+                                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
                                             ? () => setActiveAssignment(sa)
                                             : undefined
                                         }
@@ -992,7 +992,7 @@ export default function StudentCourseLearnPage() {
                       key={a.id}
                       assignment={a}
                       onSubmit={
-                        ['pending', 'revision', 'late'].includes(String(a.status))
+                        ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(a.status))
                           ? () => setActiveAssignment(a)
                           : undefined
                       }

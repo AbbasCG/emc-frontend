@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, Calendar, ClipboardList, Loader2, Send, X } from 'lucide-react'
+import { AlertCircle, Calendar, ClipboardList, Loader2, RefreshCw, Send, X } from 'lucide-react'
 import { submitStudentAssignment } from '@/api/studentApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import AppFileUpload from '@/components/ui/AppFileUpload'
 import type { StudentAssignment } from '@/types/lms'
 import { formatDateTime } from '@/utils/dateTime'
+import { isNeedsResubmission } from '@/utils/lmsAssignment'
 import toast from '@/lib/toast'
 
 const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
@@ -33,11 +34,13 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
     }
   }, [assignment])
 
+  const isResubmission = isNeedsResubmission(assignment?.status)
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!assignment) return
-    if (NON_SUBMITTABLE.includes(assignment.status)) {
-      setSubmitError('تم تسليم هذا الواجب مسبقاً.')
+    if (NON_SUBMITTABLE.includes(assignment.status) && !isResubmission) {
+      setSubmitError('تم تسليم هذا الواجب مسبقاً ولا يمكن إعادة التسليم إلا بطلب من المدرس.')
       return
     }
     if (!assignment.assignment_id || assignment.assignment_id <= 0) {
@@ -58,7 +61,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
         notes: notes.trim() || undefined,
         file,
       })
-      toast.success('تم تسليم الواجب بنجاح.')
+      toast.success(isResubmission ? 'تمت إعادة تسليم الواجب بنجاح.' : 'تم تسليم الواجب بنجاح.')
       await onSuccess?.()
       onClose()
     } catch (err) {
@@ -101,7 +104,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
             <div className="border-b border-slate-100 bg-gradient-to-l from-[#22334A] to-[#1a2940] px-5 py-4 text-white">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 text-right">
-                  <p className="text-[10px] font-black tracking-[0.14em] text-[#2691C2]">تسليم الواجب</p>
+                  <p className="text-[10px] font-black tracking-[0.14em] text-[#2691C2]">{isResubmission ? 'إعادة تسليم الواجب' : 'تسليم الواجب'}</p>
                   <h2 id="assignment-submit-title" className="mt-0.5 flex items-start justify-start gap-2 text-lg font-black leading-snug">
                     <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-[#EC943C]" aria-hidden />
                     {assignment.title}
@@ -137,6 +140,12 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
 
             <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
               <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 text-right">
+                {isResubmission && !submitError && (
+                  <div className="flex items-start gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-[12px] font-bold text-orange-800">
+                    <RefreshCw className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <span>طلب المدرس إعادة تسليم هذا الواجب. يمكنك إرسال نسخة جديدة.</span>
+                  </div>
+                )}
                 {submitError ?
                   <div
                     role="alert"
@@ -200,11 +209,17 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                       جارٍ الإرسال…
                     </>
-                  : <>
+                  : isResubmission ? (
+                    <>
+                      <RefreshCw size={14} aria-hidden />
+                      إعادة تسليم الواجب
+                    </>
+                  ) : (
+                    <>
                       <Send size={14} aria-hidden />
                       إرسال التسليم
                     </>
-                  }
+                  )}
                 </button>
               </div>
             </form>

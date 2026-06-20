@@ -79,7 +79,9 @@ type TabId = 'modules' | 'sessions' | 'materials' | 'assignments'
 const LMS_SUPPORTS_MODULE_REORDER = import.meta.env.VITE_LMS_MODULE_REORDER === 'true'
 
 /**
- * Convert API datetime (ISO, SQL, etc.) to `datetime-local` value in local time (`YYYY-MM-DDTHH:mm`).
+ * Convert API datetime (ISO UTC) to `datetime-local` value in Europe/Amsterdam time.
+ * The datetime-local input displays Amsterdam local time so the instructor sees the
+ * correct local clock value, not a UTC value offset by 1–2 hours.
  */
 function isoOrDateToDatetimeLocal(raw: string | null | undefined): string {
   if (raw == null || String(raw).trim() === '') return ''
@@ -89,11 +91,18 @@ function isoOrDateToDatetimeLocal(raw: string | null | undefined): string {
     const m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/)
     return m ? `${m[1]}T${m[2]}` : s.slice(0, 16)
   }
-  const y = d.getFullYear()
-  const mo = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  const h = String(d.getHours()).padStart(2, '0')
-  const min = String(d.getMinutes()).padStart(2, '0')
+  // Extract date/time parts in Amsterdam local time
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(d)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '00'
+  const y   = get('year')
+  const mo  = get('month')
+  const day = get('day')
+  const h   = get('hour') === '24' ? '00' : get('hour')
+  const min = get('minute')
   return `${y}-${mo}-${day}T${h}:${min}`
 }
 
@@ -134,6 +143,7 @@ export default function CourseContentManagerPage() {
   const [tab, setTab] = useState<TabId>('modules')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [accessError, setAccessError] = useState<string | null>(null)
 
   const [mods, setMods] = useState<StudentLearnModule[]>([])
   const [openModuleIds, setOpenModuleIds] = useState<Set<number>>(new Set())
@@ -192,13 +202,19 @@ export default function CourseContentManagerPage() {
     setRefreshing(true)
     try {
       const b = await fetchCourseCmsContent(courseId, cmsScope)
+      setAccessError(null)
       setCourseMeta(b.course ?? null)
       setMods([...b.modules].sort((x, y) => (x.sort_order ?? 0) - (y.sort_order ?? 0)))
       setSess(b.sessions)
       setAsgn(b.assignments)
       setMats(b.materials)
     } catch (e) {
-      toast.error(getApiErrorMessage(e as AxiosError))
+      const status = (e as AxiosError)?.response?.status
+      if (status === 403) {
+        setAccessError('لا يمكنك إدارة هذه الدورة لأنها غير مسندة إليك.')
+      } else {
+        toast.error(getApiErrorMessage(e as AxiosError))
+      }
     } finally {
       setRefreshing(false)
       setLoading(false)
@@ -247,6 +263,20 @@ export default function CourseContentManagerPage() {
     return (
       <div className="rounded-3xl border border-rose-100 bg-rose-50 p-8 text-center font-black text-rose-900">
         معرّف دورة غير صالح
+      </div>
+    )
+
+  if (accessError)
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-10 text-center" dir="rtl">
+        <p className="text-lg font-black text-amber-900">{accessError}</p>
+        <button
+          type="button"
+          onClick={() => navigate(cmsBackTo)}
+          className="rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-black text-white transition hover:bg-amber-700"
+        >
+          العودة إلى قائمة الدورات
+        </button>
       </div>
     )
 

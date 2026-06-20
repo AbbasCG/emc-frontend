@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import { CheckCircle2, ClipboardList } from 'lucide-react'
+import { CheckCircle2, ClipboardList, RefreshCw } from 'lucide-react'
 import type { StudentAssignment } from '@/types/lms'
 import { formatDateTime } from '@/utils/dateTime'
+import { isNeedsResubmission } from '@/utils/lmsAssignment'
 import LmsStatusBadge from './LmsStatusBadge'
 
 type Props = {
@@ -12,9 +13,15 @@ type Props = {
 const STATUS_SUBMITTED: StudentAssignment['status'][] = ['submitted', 'graded']
 
 export default function AssignmentCard({ assignment, onSubmit }: Props) {
+  const needsResub = isNeedsResubmission(assignment.status)
   const canSubmit =
-    (assignment.status === 'pending' || assignment.status === 'revision' || assignment.status === 'late') &&
-    !STATUS_SUBMITTED.includes(assignment.status)
+    needsResub ||
+    assignment.status === 'pending' ||
+    assignment.status === 'revision' ||
+    assignment.status === 'late'
+
+  const trulySubmitted =
+    STATUS_SUBMITTED.includes(assignment.status) && !needsResub
 
   const dueLabel = assignment.due_at ? formatDateTime(assignment.due_at) : null
   const submittedLabel = assignment.submitted_at ? formatDateTime(assignment.submitted_at) : null
@@ -31,7 +38,7 @@ export default function AssignmentCard({ assignment, onSubmit }: Props) {
             {dueLabel && (
               <span className="text-[10px] font-semibold text-slate-500">التسليم: {dueLabel}</span>
             )}
-            {submittedLabel && STATUS_SUBMITTED.includes(assignment.status) && (
+            {submittedLabel && trulySubmitted && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700">
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                 تم التسليم: {submittedLabel}
@@ -54,16 +61,21 @@ export default function AssignmentCard({ assignment, onSubmit }: Props) {
             </div>
           )}
         </div>
+
         {canSubmit && onSubmit && (
           <button
             type="button"
             onClick={onSubmit}
-            className="shrink-0 rounded-xl bg-[#EC943C] px-4 py-2.5 text-[11px] font-bold text-white shadow-sm transition hover:brightness-105"
+            className={`shrink-0 inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[11px] font-bold text-white shadow-sm transition hover:brightness-105 ${
+              needsResub ? 'bg-orange-500' : 'bg-[#EC943C]'
+            }`}
           >
-            تسليم الواجب
+            {needsResub && <RefreshCw size={13} aria-hidden />}
+            {needsResub ? 'إعادة تسليم الواجب' : 'تسليم الواجب'}
           </button>
         )}
-        {!canSubmit && STATUS_SUBMITTED.includes(assignment.status) && (
+
+        {trulySubmitted && (
           <span className="shrink-0 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-800">
             مُسلَّم
           </span>

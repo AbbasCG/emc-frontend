@@ -23,6 +23,7 @@ import {
   HeartHandshake,
   LayoutDashboard,
   Layers,
+  Mail,
   Megaphone,
   Percent,
   PieChart,
@@ -51,6 +52,8 @@ export type SidebarNavGroup = {
   items: SidebarNavItem[]
   /** When true, renders a collapsible section (RTL). Default expanded. */
   collapsible?: boolean
+  /** Controls initial state when no localStorage value is stored. Defaults to true (open). */
+  defaultOpen?: boolean
 }
 
 export const exactMatchSidebarRoutes = new Set([
@@ -70,6 +73,12 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/super-admin',
   '/dashboard/super-admin/audit-logs',
   '/dashboard/admin/operations',
+  '/dashboard/tech-admin',
+  '/dashboard/programs-manager',
+  '/dashboard/operations-manager',
+  '/dashboard/partnerships-manager',
+  '/dashboard/community-manager',
+  '/dashboard/section-lead',
   '/dashboard/learning',
   '/dashboard/members',
   // Student-prefixed top-level routes
@@ -243,18 +252,22 @@ function superMasterSidebar(): SidebarNavGroup[] {
     {
       title: 'لوحات الأدوار (وصول كامل)',
       items: [
-        { label: 'الإدارة العامة', href: '/dashboard/admin', icon: LayoutDashboard },
-        { label: 'الطالب', href: '/dashboard/student', icon: GraduationCap },
-        { label: 'المدرب', href: '/dashboard/instructor', icon: UserCheck },
-        { label: 'المالية', href: '/dashboard/finance', icon: Wallet },
-        { label: 'الموارد البشرية', href: '/dashboard/hr', icon: Briefcase },
-        { label: 'الجودة والحوكمة', href: '/dashboard/quality', icon: ClipboardCheck },
-        { label: 'التسويق والإعلام', href: '/dashboard/marketing', icon: Megaphone },
-        { label: 'الدعم الفني', href: '/dashboard/support', icon: ShieldQuestion },
-        { label: 'الشركاء', href: '/dashboard/partner', icon: HeartHandshake },
-        { label: 'المتطوعون', href: '/dashboard/volunteer', icon: Users },
-        { label: 'مساحة الإدارات', href: '/dashboard/department', icon: Building2 },
-        { label: 'اللوحة التنفيذية', href: '/dashboard/executive', icon: PieChart },
+        { label: 'الإدارة العامة',          href: '/dashboard/admin',              icon: LayoutDashboard },
+        { label: 'الطالب',                  href: '/dashboard/student',             icon: GraduationCap   },
+        { label: 'المدرب',                  href: '/dashboard/instructor',          icon: UserCheck       },
+        { label: 'المالية',                 href: '/dashboard/finance',             icon: Wallet          },
+        { label: 'الموارد البشرية',         href: '/dashboard/hr',                  icon: Briefcase       },
+        { label: 'الجودة والحوكمة',         href: '/dashboard/quality',             icon: ClipboardCheck  },
+        { label: 'التسويق والإعلام',        href: '/dashboard/marketing',           icon: Megaphone       },
+        { label: 'الدعم الفني',             href: '/dashboard/support',             icon: ShieldQuestion  },
+        { label: 'الشركاء',                 href: '/dashboard/partner',             icon: HeartHandshake  },
+        { label: 'المتطوعون',               href: '/dashboard/volunteer',           icon: Users           },
+        { label: 'مساحة الإدارات',          href: '/dashboard/department',          icon: Building2       },
+        { label: 'اللوحة التنفيذية',        href: '/dashboard/executive',           icon: PieChart        },
+        { label: 'مدير البرامج',            href: '/dashboard/admin/programs',      icon: BookMarked      },
+        { label: 'مدير العمليات',           href: '/dashboard/admin/operations',    icon: Sparkles        },
+        { label: 'مدير الشراكات',          href: '/dashboard/admin/partners',      icon: HeartHandshake  },
+        { label: 'مدير المجتمع',           href: '/dashboard/admin/volunteers',    icon: Users           },
       ],
     },
     {
@@ -277,11 +290,119 @@ function superMasterSidebar(): SidebarNavGroup[] {
   ]
 }
 
+/** Dedicated sidebar for tech_admin — 7 collapsible groups, full platform reach. */
+function techAdminSidebar(): SidebarNavGroup[] {
+  return [
+    // ── Group 1: لوحة التقنية ──────────────────────────────────────────────
+    {
+      title: 'لوحة التقنية',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'لوحة التحكم',     href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+        { label: 'حالة النظام',      href: '/dashboard/admin/platform-scale',    icon: Cpu             },
+        { label: 'سجلات التدقيق',   href: '/dashboard/super-admin/audit-logs',  icon: ScrollText      },
+      ],
+    },
+    // ── Group 2: المستخدمون والصلاحيات ────────────────────────────────────
+    {
+      title: 'المستخدمون والصلاحيات',
+      collapsible: true,
+      defaultOpen: false,
+      items: [
+        { label: 'المستخدمون',         href: '/dashboard/super-admin/crud/users',        icon: Users       },
+        { label: 'الطلاب',             href: '/dashboard/super-admin/crud/students',     icon: GraduationCap },
+        { label: 'المدرسون',           href: '/dashboard/super-admin/crud/instructors',  icon: UserCheck   },
+        { label: 'الأدوار والصلاحيات', href: '/dashboard/super-admin/crud/roles',        icon: ShieldCheck },
+        { label: 'الأقسام',            href: '/dashboard/super-admin/crud/departments',  icon: Building2   },
+        { label: 'الفريق',             href: '/dashboard/super-admin/crud/team',         icon: UserCog     },
+        membersNavItem(),
+      ],
+    },
+    // ── Group 3: التعليم والمسارات ────────────────────────────────────────
+    {
+      title: 'التعليم والمسارات',
+      collapsible: true,
+      defaultOpen: false,
+      items: [
+        { label: 'البرامج والدورات',   href: '/dashboard/admin/programs',                  icon: BookMarked    },
+        { label: 'المسارات التعليمية', href: '/dashboard/super-admin/crud/learning-paths', icon: Layers        },
+        { label: 'الجلسات',            href: '/dashboard/admin/lms/sessions',              icon: Calendar      },
+        { label: 'الحضور',             href: '/dashboard/admin/lms/attendance',            icon: Users         },
+        { label: 'الواجبات',           href: '/dashboard/admin/lms/assignments',           icon: ClipboardList },
+        { label: 'المواد',             href: '/dashboard/admin/lms/materials',             icon: FolderOpen    },
+        { label: 'التقييمات',          href: '/dashboard/admin/lms/evaluations',           icon: FileText      },
+        { label: 'التقدّم',            href: '/dashboard/admin/lms/progress',             icon: BarChart3     },
+        { label: 'الشهادات',           href: '/dashboard/admin/certificates',             icon: Award         },
+        { label: 'الاختبارات',         href: '/dashboard/admin/quizzes',                  icon: ClipboardCheck},
+        { label: 'الدروس',             href: '/dashboard/admin/lessons',                  icon: FileText      },
+        { label: 'الوحدات التعليمية',  href: '/dashboard/admin/modules',                  icon: BookOpen      },
+      ],
+    },
+    // ── Group 4: العمليات والطلبات ────────────────────────────────────────
+    {
+      title: 'العمليات والطلبات',
+      collapsible: true,
+      defaultOpen: false,
+      items: [
+        { label: 'طلبات التطوع',            href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
+        { label: 'المتطوعون',               href: '/dashboard/admin/volunteers',               icon: Users          },
+        { label: 'الشركاء',                  href: '/dashboard/admin/partners',                icon: Briefcase      },
+        { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests',    icon: HeartHandshake },
+        { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests',       icon: Presentation   },
+        { label: 'المهام',                   href: '/dashboard/admin/tasks',                   icon: ClipboardList  },
+        { label: 'الاجتماعات',              href: '/dashboard/admin/meetings',                icon: Calendar       },
+        { label: 'النماذج',                  href: '/dashboard/admin/forms',                   icon: FileText       },
+        { label: 'الدعم / التذاكر',         href: '/dashboard/admin/support-tickets',         icon: ShieldQuestion },
+      ],
+    },
+    // ── Group 5: المالية والجودة والتقارير ───────────────────────────────
+    {
+      title: 'المالية والجودة والتقارير',
+      collapsible: true,
+      defaultOpen: false,
+      items: [
+        { label: 'المالية',             href: '/dashboard/admin/finance',          icon: Wallet         },
+        { label: 'الكوبونات',           href: '/dashboard/admin/coupons',          icon: Percent        },
+        { label: 'المنح',               href: '/dashboard/admin/scholarships',     icon: GraduationCap  },
+        { label: 'الجودة',              href: '/dashboard/admin/quality',          icon: ClipboardCheck },
+        { label: 'مؤشرات الأداء',       href: '/dashboard/admin/kpi',              icon: PieChart       },
+        { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports',          icon: FileBarChart   },
+      ],
+    },
+    // ── Group 6: النظام والتكاملات ────────────────────────────────────────
+    {
+      title: 'النظام والتكاملات',
+      collapsible: true,
+      defaultOpen: false,
+      items: [
+        { label: 'الإعدادات',          href: '/dashboard/settings/notifications',     icon: Settings          },
+        { label: 'البريد الإلكتروني',  href: '/dashboard/super-admin/email-settings', icon: Mail              },
+        { label: 'سجلات البريد',       href: '/dashboard/super-admin/email-logs',     icon: ScrollText        },
+        { label: 'الإشعارات',          href: '/dashboard/notifications',              icon: Bell              },
+        { label: 'الملفات',            href: '/documents',                            icon: FolderOpen        },
+        { label: 'التكاملات',          href: '/dashboard/admin/integrations',         icon: Plug2             },
+        { label: 'الويبهوكس',          href: '/dashboard/admin/webhooks',             icon: WebhookIcon       },
+        { label: 'API Tokens',         href: '/dashboard/admin/developer/api-tokens', icon: Code2             },
+      ],
+    },
+    // ── Group 7: الحساب ───────────────────────────────────────────────────
+    {
+      title: 'الحساب',
+      items: [
+        { label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog },
+      ],
+    },
+  ]
+}
+
 /** Role-specific sidebar navigation (Arabic RTL labels). */
 export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
   const n = normalizeRole(roleRaw ?? null)
 
   if (n === 'super_admin') return superMasterSidebar()
+
+  if (n === 'tech_admin') return techAdminSidebar()
 
   if (n === 'admin') return adminSuperAdminSidebar('/dashboard/admin')
 
@@ -461,6 +582,118 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'الملف الشخصي',   href: '/dashboard/student/profile',           icon: UserCog         },
         ],
       },
+    ]
+  }
+
+  if (n === 'programs_manager') {
+    return [
+      { items: [{ label: 'لوحة البرامج والمسارات', href: '/dashboard/programs-manager', icon: BookMarked }] },
+      {
+        title: 'البرامج والمحتوى',
+        items: [
+          { label: 'البرامج والدورات',    href: '/dashboard/admin/programs',                  icon: GraduationCap },
+          { label: 'المسارات التعليمية', href: '/dashboard/programs-manager/learning-paths', icon: Layers        },
+          { label: 'التسجيلات',           href: '/dashboard/admin/registrations',             icon: UserCheck     },
+        ],
+      },
+      {
+        title: 'نظام التعلّم LMS',
+        items: [
+          { label: 'الجلسات',    href: '/dashboard/admin/lms/sessions',    icon: Calendar      },
+          { label: 'الواجبات',   href: '/dashboard/admin/lms/assignments',  icon: ClipboardList },
+          { label: 'المواد',     href: '/dashboard/admin/lms/materials',    icon: FolderOpen    },
+          { label: 'التقدّم',    href: '/dashboard/admin/lms/progress',     icon: BarChart3     },
+        ],
+      },
+      {
+        title: 'التقارير والمتابعة',
+        items: [
+          { label: 'مؤشرات الأداء', href: '/dashboard/admin/kpi',     icon: PieChart     },
+          { label: 'التقارير',       href: '/dashboard/admin/reports', icon: FileBarChart },
+          membersNavItem(),
+        ],
+      },
+      ...communicationsBlock(),
+    ]
+  }
+
+  if (n === 'operations_manager') {
+    return [
+      { items: [{ label: 'لوحة التشغيل والعمليات', href: '/dashboard/operations-manager', icon: Sparkles }] },
+      {
+        title: 'إدارة العمليات',
+        items: [
+          { label: 'الإدارات',   href: '/dashboard/admin/departments', icon: Building2     },
+          { label: 'المهام',     href: '/dashboard/admin/tasks',        icon: ClipboardList },
+          { label: 'الاجتماعات', href: '/dashboard/admin/meetings',     icon: Calendar      },
+          { label: 'النماذج',    href: '/dashboard/admin/forms',        icon: FileText      },
+        ],
+      },
+      {
+        title: 'المتابعة والتقارير',
+        items: [
+          { label: 'مؤشرات الأداء', href: '/dashboard/admin/kpi',     icon: PieChart     },
+          { label: 'التقارير',       href: '/dashboard/admin/reports', icon: FileBarChart },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
+          membersNavItem(),
+        ],
+      },
+      ...communicationsBlock(),
+    ]
+  }
+
+  if (n === 'partnerships_manager') {
+    return [
+      { items: [{ label: 'لوحة الشراكات والعلاقات', href: '/dashboard/partnerships-manager', icon: HeartHandshake }] },
+      {
+        title: 'الشراكات والعلاقات',
+        items: [
+          { label: 'طلبات الشراكة', href: '/dashboard/admin/partnership-requests', icon: Briefcase   },
+          { label: 'البرامج',       href: '/dashboard/admin/programs',              icon: BookMarked  },
+          { label: 'التقارير',      href: '/dashboard/admin/reports',               icon: FileBarChart },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
+          membersNavItem(),
+        ],
+      },
+      ...communicationsBlock(),
+    ]
+  }
+
+  if (n === 'community_manager') {
+    return [
+      { items: [{ label: 'لوحة المجتمع والصحة', href: '/dashboard/community-manager', icon: HeartHandshake }] },
+      {
+        title: 'المجتمع والنشاطات',
+        items: [
+          { label: 'المتطوعون', href: '/dashboard/admin/volunteers', icon: Users         },
+          { label: 'المهام',    href: '/dashboard/admin/tasks',      icon: ClipboardList },
+          { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
+          { label: 'النماذج',   href: '/dashboard/admin/forms',     icon: FileText      },
+        ],
+      },
+      {
+        title: 'التقارير والمتابعة',
+        items: [
+          { label: 'التقارير', href: '/dashboard/admin/reports', icon: FileBarChart },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
+          membersNavItem(),
+        ],
+      },
+      ...communicationsBlock(),
+    ]
+  }
+
+  if (n === 'section_lead') {
+    return [
+      { items: [{ label: 'لوحة قائد القسم', href: '/dashboard/section-lead', icon: LayoutDashboard }] },
+      {
+        title: 'نشاطات القسم',
+        items: [
+          { label: 'المهام',     href: '/dashboard/admin/tasks',    icon: ClipboardList },
+          { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
+        ],
+      },
+      ...communicationsBlock(),
     ]
   }
 

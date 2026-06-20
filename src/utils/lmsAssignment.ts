@@ -24,9 +24,24 @@ export function resolveLmsAssignmentSubmitId(raw: {
   return null
 }
 
+/** Returns true for any status that means the instructor requested a new submission. */
+export function isNeedsResubmission(status: string | null | undefined): boolean {
+  const s = String(status ?? '').toLowerCase()
+  return (
+    s === 'needs_resubmission' ||
+    s === 'resubmission_required' ||
+    s === 'returned' ||
+    s === 'rejected' ||
+    s === 'needs_revision' ||
+    s.includes('يحتاج') ||
+    s.includes('إعادة تسليم')
+  )
+}
+
 export function normalizeAssignmentStatus(raw: string | null | undefined): AssignmentStatus {
   const s = String(raw ?? '').toLowerCase()
   if (/grad|reviewed|nota/.test(s)) return 'graded'
+  if (s === 'needs_resubmission') return 'needs_resubmission'
   if (/submit|turned|deliver|مسلم|تم\s*التسليم/.test(s)) return 'submitted'
   if (/revision|needs|rev\b/.test(s)) return 'revision'
   if (/late|متأخر|overdue/.test(s)) return 'late'
