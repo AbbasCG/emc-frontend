@@ -3,6 +3,37 @@ import { Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
 
+/** ArrowUp/ArrowDown/Home/End roving handler shared by the time columns. */
+function listboxKeyDown(
+  e: React.KeyboardEvent,
+  items: number[],
+  value: number,
+  onSelect: (v: number) => void,
+) {
+  const idx = items.indexOf(value)
+  const current = idx < 0 ? 0 : idx
+  let next: number
+  switch (e.key) {
+    case 'ArrowDown':
+      next = Math.min(items.length - 1, current + 1)
+      break
+    case 'ArrowUp':
+      next = Math.max(0, current - 1)
+      break
+    case 'Home':
+      next = 0
+      break
+    case 'End':
+      next = items.length - 1
+      break
+    default:
+      return
+  }
+  e.preventDefault()
+  const target = items[next]
+  if (target != null) onSelect(target)
+}
+
 function parseTime(v: string): { h: number; m: number } | null {
   const match = v.trim().match(/^(\d{1,2}):(\d{2})/)
   if (!match) return null
@@ -28,22 +59,45 @@ function TimeColumn({
   items,
   value,
   onSelect,
+  open,
 }: {
   label: string
   items: number[]
   value: number
   onSelect: (v: number) => void
+  open: boolean
 }) {
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // Scroll the active option into view when the picker opens or the value moves.
+  useEffect(() => {
+    if (!open) return
+    const list = listRef.current
+    if (!list) return
+    const el = list.querySelector<HTMLElement>(`[data-option-value="${value}"]`)
+    el?.scrollIntoView({ block: 'nearest' })
+  }, [open, value])
+
   return (
     <div className="min-w-0">
       <p className="mb-1 text-center text-[10px] font-bold text-slate-500">{label}</p>
-      <div className="max-h-36 overflow-y-auto rounded-xl border border-[#22334A]/10 bg-white p-1 scrollbar-thin">
+      <div
+        ref={listRef}
+        role="listbox"
+        aria-label={label}
+        onKeyDown={(e) => listboxKeyDown(e, items, value, onSelect)}
+        className="max-h-36 overflow-y-auto rounded-xl border border-[#22334A]/10 bg-white p-1 scrollbar-thin"
+      >
         {items.map(item => {
           const active = item === value
           return (
             <button
               key={item}
               type="button"
+              role="option"
+              aria-selected={active}
+              data-option-value={item}
+              tabIndex={active ? 0 : -1}
               onClick={() => onSelect(item)}
               className={cn(
                 'flex w-full items-center justify-center rounded-lg py-1.5 text-[12px] font-bold tabular-nums transition',
@@ -135,6 +189,7 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
       >
         <div
           role="dialog"
+          aria-modal="true"
           aria-label={label}
           className="overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
           dir="rtl"
@@ -165,8 +220,8 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
 
           <div className="px-3 py-3">
             <div className="grid grid-cols-2 gap-2">
-              <TimeColumn label="ساعة" items={hours} value={draftH} onSelect={setDraftH} />
-              <TimeColumn label="دقيقة" items={minutes} value={draftM} onSelect={setDraftM} />
+              <TimeColumn label="ساعة" items={hours} value={draftH} onSelect={setDraftH} open={open} />
+              <TimeColumn label="دقيقة" items={minutes} value={draftM} onSelect={setDraftM} open={open} />
             </div>
           </div>
 

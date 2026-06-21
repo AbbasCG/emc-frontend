@@ -2,8 +2,19 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import { usePickerKeyboard } from '@/components/ui/usePickerKeyboard'
 
 const WEEKDAYS = ['أحد', 'إثن', 'ثل', 'أرب', 'خم', 'جم', 'سب'] as const
+
+function dayAriaLabel(year: number, month: number, day: number): string {
+  return new Intl.DateTimeFormat('ar', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    numberingSystem: 'latn',
+  }).format(new Date(year, month - 1, day))
+}
 
 function todayIso(): string {
   const d = new Date()
@@ -108,6 +119,25 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
     setOpen(false)
   }
 
+  const selectedIndex = calendarDays.findIndex((day) => {
+    if (day == null) return false
+    const iso = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    return value === iso
+  })
+
+  const { gridRef, onGridKeyDown, activeIndex } = usePickerKeyboard({
+    cells: calendarDays,
+    selectedIndex,
+    open,
+    onSelect: (index) => {
+      const day = calendarDays[index]
+      if (day != null) selectDay(day)
+    },
+    onPrevMonth: prevMonth,
+    onNextMonth: nextMonth,
+    onClose: () => setOpen(false),
+  })
+
   return (
     <div className="block text-right">
       <span className="text-[12px] font-black text-[#22334A]/70">
@@ -148,6 +178,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
       >
         <div
           role="dialog"
+          aria-modal="true"
           aria-label={label}
           className="overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
           dir="rtl"
@@ -185,7 +216,13 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-0.5 px-2 pb-3">
+          <div
+            ref={gridRef}
+            role="grid"
+            aria-label={monthLabel(viewYear, viewMonth)}
+            onKeyDown={onGridKeyDown}
+            className="grid grid-cols-7 gap-0.5 px-2 pb-3"
+          >
             {calendarDays.map((day, idx) => {
               if (day == null) return <div key={`e-${idx}`} className="aspect-square" />
               const iso = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -195,6 +232,12 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
                 <button
                   key={`d-${day}-${idx}`}
                   type="button"
+                  role="gridcell"
+                  data-cell-index={idx}
+                  aria-selected={isSelected}
+                  aria-current={isToday ? 'date' : undefined}
+                  aria-label={dayAriaLabel(viewYear, viewMonth, day)}
+                  tabIndex={idx === activeIndex ? 0 : -1}
                   onClick={() => selectDay(day)}
                   className={cn(
                     'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',

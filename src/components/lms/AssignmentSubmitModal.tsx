@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, Calendar, ClipboardList, Loader2, RefreshCw, Send, X } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { submitStudentAssignment } from '@/api/studentApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import AppFileUpload from '@/components/ui/AppFileUpload'
@@ -23,6 +24,14 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const panelRef = useRef<HTMLDivElement | null>(null)
+
+  useFocusTrap(panelRef, {
+    active: Boolean(assignment),
+    onEscape: () => {
+      if (!submitting) onClose()
+    },
+  })
 
   useEffect(() => {
     if (!assignment) {
@@ -95,6 +104,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
           />
 
           <motion.div
+            ref={panelRef}
             initial={{ y: 24, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 16, opacity: 0, scale: 0.98 }}

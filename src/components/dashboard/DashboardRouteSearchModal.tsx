@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { getSidebarByRole } from '@/layouts/dashboardSidebar'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   filterDashboardSearchEntries,
@@ -29,6 +30,9 @@ export default function DashboardRouteSearchModal({
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLElement | null>(null)
+
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
   const allEntries = useMemo(
     () => flattenSidebarForSearch(getSidebarByRole(user?.role)),
@@ -89,6 +93,7 @@ export default function DashboardRouteSearchModal({
             role="presentation"
           >
             <motion.section
+              ref={panelRef}
               role="dialog"
               aria-modal="true"
               aria-label="بحث لوحة التحكم"

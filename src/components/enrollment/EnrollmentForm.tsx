@@ -21,6 +21,7 @@ import { notifyStudentScopeRefresh } from '@/api/studentApi'
 import { notifyNotificationsRefresh } from '@/api/notificationsApi'
 import { useAuth } from '@/contexts/AuthContext'
 import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
+import { countryFromPhone } from '@/lib/countryFromPhone'
 import PaymentProviderSelector from '@/components/payments/PaymentProviderSelector'
 import type { Course } from '@/types'
 import type { PublicItemType } from '@/utils/publicCourseDisplay'
@@ -95,6 +96,22 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
 
   function clearField(key: keyof FieldErrors) {
     setFieldErrors((p) => ({ ...p, [key]: undefined }))
+  }
+
+  // Auto-fill the country from the phone number on blur — only when no country
+  // is selected yet. Keeps the Country field fully visible/selectable.
+  function autofillCountryFromPhone() {
+    if (selectedCountry) return
+    const raw = localPhone.trim()
+    if (!raw) return
+    const candidate = raw.startsWith('+') ? raw : `+${raw}`
+    const iso = countryFromPhone(candidate)
+    if (!iso) return
+    const match = COUNTRIES.find((c) => c.code === iso)
+    if (match) {
+      setSelectedCountry(match)
+      clearField('country_code')
+    }
   }
 
   // Prefill from auth profile
@@ -402,6 +419,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
               dir="ltr"
               value={localPhone}
               onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
+              onBlur={autofillCountryFromPhone}
               placeholder="000 000 0000"
               className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-slate-400"
             />

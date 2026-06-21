@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Search, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { semanticSearch } from '@/api/aiSearchApi'
 import type { AiContextScope, AiSearchGroup } from '@/types/ai'
 import { LoadingSkeleton } from './LoadingSkeleton'
@@ -29,6 +30,9 @@ export default function SemanticSearchModal({
   const [groups, setGroups] = useState<AiSearchGroup[]>([])
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState<AiContextScope | 'all'>('all')
+  const panelRef = useRef<HTMLElement | null>(null)
+
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
   useEffect(() => {
     if (!open) return
@@ -67,6 +71,10 @@ export default function SemanticSearchModal({
             onClick={onClose}
           />
           <motion.section
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="بحث دلالي"
             dir="rtl"
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

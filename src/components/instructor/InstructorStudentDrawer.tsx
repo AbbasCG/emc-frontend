@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Award, CheckCircle2, ClipboardCheck, ExternalLink, Mic, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { fetchPlacementTestAnswers, progressFromStatus, type PlacementTestAnswerRow } from '@/api/placementApi'
 import type { InstructorStudentRow } from '@/api/instructorApi'
 
@@ -75,6 +76,10 @@ interface Props {
 /* ── Exported drawer wrapper ────────────────────────────────────────────── */
 
 export function InstructorStudentDrawer({ student, onClose, onStartAssessment }: Props) {
+  const panelRef = useRef<HTMLElement | null>(null)
+
+  useFocusTrap(panelRef, { active: Boolean(student), onEscape: onClose })
+
   return (
     <AnimatePresence>
       {student && (
@@ -95,6 +100,10 @@ export function InstructorStudentDrawer({ student, onClose, onStartAssessment }:
 
           {/* Drawer panel */}
           <motion.aside
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="تفاصيل الطالب"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

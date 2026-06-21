@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { SubmissionDetail } from '@/types/lms'
 import type { ReviewPayload } from '@/api/instructorApi'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import LmsStatusBadge from './LmsStatusBadge'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
@@ -79,6 +80,9 @@ export default function SubmissionReviewPanel({
   const [error, setError] = useState('')
   const [fileLoading, setFileLoading] = useState<'preview' | 'download' | null>(null)
   const previewUrlRef = useRef<string | null>(null)
+  const panelRef = useRef<HTMLElement | null>(null)
+
+  useFocusTrap(panelRef, { active: Boolean(submission), onEscape: onClose })
 
   async function fetchSubmissionFile(submissionId: number, download: boolean): Promise<void> {
     setFileLoading(download ? 'download' : 'preview')
@@ -189,6 +193,10 @@ export default function SubmissionReviewPanel({
           />
 
           <motion.aside
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="مراجعة التسليم"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

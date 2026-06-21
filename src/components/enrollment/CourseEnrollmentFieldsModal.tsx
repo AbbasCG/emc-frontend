@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, Loader2, MapPin, Phone, X } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import CountrySelector, { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
 import PaymentProviderSelector from '@/components/payments/PaymentProviderSelector'
 import type { Course } from '@/types'
@@ -52,6 +53,9 @@ export default function CourseEnrollmentFieldsModal({
   const [gender, setGender] = useState('')
   const [notes, setNotes] = useState('')
   const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'paypal' | 'fake'>('stripe')
+  const panelRef = useRef<HTMLDivElement | null>(null)
+
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
   useEffect(() => {
     if (!open) return
@@ -111,9 +115,11 @@ export default function CourseEnrollmentFieldsModal({
           className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45 p-4 sm:items-center"
           role="dialog"
           aria-modal="true"
+          aria-labelledby="enrollment-fields-title"
           onClick={() => !submitting && onClose()}
         >
           <motion.div
+            ref={panelRef}
             initial={{ y: 32, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 24, opacity: 0 }}
@@ -123,7 +129,7 @@ export default function CourseEnrollmentFieldsModal({
           >
             <div className="mb-5 flex items-start justify-between gap-3 text-right">
               <div>
-                <h2 className="text-lg font-black text-deepBlue">إكمال بيانات الالتحاق</h2>
+                <h2 id="enrollment-fields-title" className="text-lg font-black text-deepBlue">إكمال بيانات الالتحاق</h2>
                 <p className="mt-1 text-sm font-semibold text-slate-500">نحتاج بعض الحقول قبل تأكيد التسجيل.</p>
               </div>
               <button

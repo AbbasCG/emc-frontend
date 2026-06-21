@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Loader2, Search, Sparkles, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { globalSearch } from '@/api/searchApi'
 
 type Props = {
@@ -15,6 +16,9 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [groups, setGroups] = useState<Awaited<ReturnType<typeof globalSearch>>['groups']>([])
+  const panelRef = useRef<HTMLDivElement | null>(null)
+
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
   const run = useCallback(async (query: string) => {
     setLoading(true)
@@ -63,6 +67,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
             onClick={onClose}
           />
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label="بحث عام"

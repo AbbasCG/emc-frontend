@@ -332,17 +332,12 @@ export default function SubmitWorkshop() {
     if (targetStep === 3) {
       required('topics', 'يرجى كتابة محاور الورشة.')
       required('target_audience', 'يرجى تحديد الجمهور المستهدف.')
+      // Only the first time slot is required; slots 2 and 3 are optional.
       required('proposed_date_1', 'يرجى اختيار تاريخ الخيار الأول.')
       required('proposed_start_time_1', 'يرجى اختيار وقت البداية للخيار الأول.')
       required('proposed_end_time_1', 'يرجى اختيار وقت الانتهاء للخيار الأول.')
-      required('proposed_date_2', 'يرجى اختيار تاريخ الخيار الثاني.')
-      required('proposed_start_time_2', 'يرجى اختيار وقت البداية للخيار الثاني.')
-      required('proposed_end_time_2', 'يرجى اختيار وقت الانتهاء للخيار الثاني.')
-      required('proposed_date_3', 'يرجى اختيار تاريخ الخيار الثالث.')
-      required('proposed_start_time_3', 'يرجى اختيار وقت البداية للخيار الثالث.')
-      required('proposed_end_time_3', 'يرجى اختيار وقت الانتهاء للخيار الثالث.')
       if (selectedLocations.length === 0) errors.location_types = ['يرجى اختيار طريقة تنفيذ واحدة على الأقل.']
-      // End time must be after start time
+      // End time must be after start time — only when both ends of a slot are filled.
       ;([1, 2, 3] as const).forEach((n) => {
         const startKey = `proposed_start_time_${n}` as keyof WorkshopFormValues
         const endKey = `proposed_end_time_${n}` as keyof WorkshopFormValues
@@ -791,7 +786,7 @@ export default function SubmitWorkshop() {
                         {/* Header + copy button */}
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#2691C2]/20 bg-[#2691C2]/[0.04] px-4 py-3">
                           <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#2691C2]">
-                            المواعيد المقترحة — ثلاثة خيارات مطلوبة
+                            المواعيد المقترحة — موعد واحد مطلوب والخياران الآخران اختياريان
                           </p>
                           {(form.proposed_date_1 || form.proposed_start_time_1) && (
                             <button
@@ -815,6 +810,9 @@ export default function SubmitWorkshop() {
                             <div key={n} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
                               <p className="mb-3 text-[12px] font-black text-[#22334A]">
                                 الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
+                                {n !== 1 && (
+                                  <span className="mr-1.5 font-semibold text-muted-500">(اختياري)</span>
+                                )}
                               </p>
                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <EmcDatePicker
@@ -822,14 +820,14 @@ export default function SubmitWorkshop() {
                                   value={form[`proposed_date_${n}` as keyof WorkshopFormValues]}
                                   onChange={(v) => updateField(`proposed_date_${n}` as keyof WorkshopFormValues, v)}
                                   error={getError(`proposed_date_${n}`)}
-                                  required
+                                  required={n === 1}
                                 />
                                 <EmcTimePicker
                                   label="وقت البداية"
                                   value={startTime}
                                   onChange={(v) => updateField(`proposed_start_time_${n}` as keyof WorkshopFormValues, v)}
                                   error={getError(`proposed_start_time_${n}`)}
-                                  required
+                                  required={n === 1}
                                 />
                                 <EmcTimePicker
                                   label="وقت الانتهاء"
@@ -837,7 +835,7 @@ export default function SubmitWorkshop() {
                                   onChange={(v) => updateField(`proposed_end_time_${n}` as keyof WorkshopFormValues, v)}
                                   error={endTimeErr || (timingInvalid ? 'وقت الانتهاء يجب أن يكون بعد وقت البداية.' : undefined)}
                                   durationFrom={startTime || undefined}
-                                  required
+                                  required={n === 1}
                                 />
                               </div>
                             </div>

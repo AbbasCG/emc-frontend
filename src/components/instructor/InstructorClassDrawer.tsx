@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Calendar, CalendarCheck, ExternalLink, GraduationCap, Mail, UserCheck, Users, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { fetchClassGroupStudents, type ClassAssignmentStudent, type ClassGroup } from '@/api/placementApi'
 import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
 import { formatDate } from '@/utils/dateTime'
@@ -27,6 +28,9 @@ function initials(name: string): string {
 export function InstructorClassDrawer({ group, onClose }: Props) {
   const [students, setStudents] = useState<ClassAssignmentStudent[]>([])
   const [loading, setLoading] = useState(false)
+  const panelRef = useRef<HTMLElement | null>(null)
+
+  useFocusTrap(panelRef, { active: Boolean(group), onEscape: onClose })
 
   useEffect(() => {
     if (!group) { setStudents([]); return }
@@ -55,6 +59,10 @@ export function InstructorClassDrawer({ group, onClose }: Props) {
           <div className="absolute inset-0 bg-[#0F172A]/50 backdrop-blur-sm" onClick={onClose} />
 
           <motion.aside
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="تفاصيل الصف"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

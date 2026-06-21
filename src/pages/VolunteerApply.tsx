@@ -15,7 +15,8 @@ import {
   ClipboardList,
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
-import CountrySelector, { type Country } from '@/components/ui/CountrySelector'
+import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
+import { countryFromPhone } from '@/lib/countryFromPhone'
 import { submitVolunteerApplication } from '@/api/volunteerApplicationApi'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import toast from '@/lib/toast'
@@ -112,6 +113,7 @@ function Input({
   type = 'text',
   hasError,
   dir,
+  onBlur,
 }: {
   value: string
   onChange: (v: string) => void
@@ -119,12 +121,14 @@ function Input({
   type?: string
   hasError?: boolean
   dir?: string
+  onBlur?: () => void
 }) {
   return (
     <input
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
       placeholder={placeholder}
       dir={dir}
       className={`h-14 w-full rounded-xl border bg-slate-50 px-4 text-right font-semibold text-deepBlue outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-sky-100 ${
@@ -295,6 +299,19 @@ export default function VolunteerApply() {
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }))
     setFieldErrors((e) => ({ ...e, [key]: undefined }))
+  }
+
+  // Auto-fill the country from the phone number on blur — only when no country
+  // is selected yet. Keeps the Country field fully visible/selectable.
+  function autofillCountryFromPhone() {
+    if (form.country) return
+    const raw = form.phone.trim()
+    if (!raw) return
+    const candidate = raw.startsWith('+') ? raw : `+${raw}`
+    const iso = countryFromPhone(candidate)
+    if (!iso) return
+    const match = COUNTRIES.find((c) => c.code === iso)
+    if (match) set('country', match)
   }
 
   /* ── Validation ── */
@@ -547,6 +564,7 @@ export default function VolunteerApply() {
                       <Input
                         value={form.phone}
                         onChange={(v) => set('phone', v)}
+                        onBlur={autofillCountryFromPhone}
                         type="tel"
                         placeholder="+31 6 12345678"
                         dir="ltr"

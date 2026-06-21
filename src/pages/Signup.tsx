@@ -7,7 +7,8 @@ import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
-import CountrySelector, { type Country } from '../components/ui/CountrySelector'
+import CountrySelector, { type Country, COUNTRIES } from '../components/ui/CountrySelector'
+import { countryFromPhone } from '@/lib/countryFromPhone'
 
 export default function Signup() {
   const { registerAccount } = useAuth()
@@ -29,6 +30,43 @@ export default function Signup() {
 
   function clearField(key: string) {
     setFieldErrors((p) => ({ ...p, [key]: '' }))
+  }
+
+  function setFieldError(key: string, message: string) {
+    setFieldErrors((p) => ({ ...p, [key]: message }))
+  }
+
+  // Auto-fill the country from the phone number on blur — only when no country
+  // is selected yet. Keeps the Country field fully visible/selectable.
+  function autofillCountryFromPhone() {
+    if (selectedCountry) return
+    const raw = localPhone.trim()
+    if (!raw) return
+    const candidate = raw.startsWith('+') ? raw : `+${raw}`
+    const iso = countryFromPhone(candidate)
+    if (!iso) return
+    const match = COUNTRIES.find((c) => c.code === iso)
+    if (match) {
+      setSelectedCountry(match)
+      clearField('country_code')
+    }
+  }
+
+  // Instant per-field validation on blur, mirroring VolunteerApply's per-field display.
+  function validateEmailField() {
+    const value = email.trim()
+    if (!value) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) setFieldError('email', 'البريد الإلكتروني غير صحيح')
+  }
+
+  function validatePasswordField() {
+    if (!password) return
+    if (password.length < 8) setFieldError('password', 'كلمة المرور يجب ألا تقل عن 8 أحرف')
+  }
+
+  function validatePasswordConfirmationField() {
+    if (!passwordConfirmation) return
+    if (passwordConfirmation !== password) setFieldError('password_confirmation', 'كلمتا المرور غير متطابقتين')
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -156,6 +194,7 @@ export default function Signup() {
                     autoComplete="email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); clearField('email') }}
+                    onBlur={validateEmailField}
                     className={inputCls('email')}
                   />
                 </span>
@@ -173,6 +212,7 @@ export default function Signup() {
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); clearField('password') }}
+                    onBlur={validatePasswordField}
                     className={inputCls('password')}
                   />
                 </span>
@@ -190,6 +230,7 @@ export default function Signup() {
                     autoComplete="new-password"
                     value={passwordConfirmation}
                     onChange={(e) => { setPasswordConfirmation(e.target.value); clearField('password_confirmation') }}
+                    onBlur={validatePasswordConfirmationField}
                     className={inputCls('password_confirmation')}
                   />
                 </span>
@@ -229,6 +270,7 @@ export default function Signup() {
                     dir="ltr"
                     value={localPhone}
                     onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
+                    onBlur={autofillCountryFromPhone}
                     placeholder="000 000 0000"
                     className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-slate-400"
                   />

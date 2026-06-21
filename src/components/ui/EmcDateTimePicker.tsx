@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import { usePickerKeyboard } from '@/components/ui/usePickerKeyboard'
 import {
   addDaysToDatetimeLocal,
   addMinutesToDatetimeLocal,
@@ -50,6 +51,16 @@ function monthLabel(year: number, month: number): string {
     year: 'numeric',
     numberingSystem: 'latn',
   }).format(d)
+}
+
+function dayAriaLabel(year: number, month: number, day: number): string {
+  return new Intl.DateTimeFormat('ar', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    numberingSystem: 'latn',
+  }).format(new Date(year, month - 1, day))
 }
 
 function buildCalendarDays(viewYear: number, viewMonth: number): (number | null)[] {
@@ -216,6 +227,24 @@ export default function EmcDateTimePicker({
     }
   }
 
+  const selectedIndex = calendarDays.findIndex(
+    (day) => day != null && draft.year === viewYear && draft.month === viewMonth && draft.day === day,
+  )
+
+  const { gridRef, onGridKeyDown, activeIndex } = usePickerKeyboard({
+    cells: calendarDays,
+    selectedIndex,
+    open,
+    // Enter/Space updates the DRAFT only; commit happens via the تأكيد button.
+    onSelect: (index) => {
+      const day = calendarDays[index]
+      if (day != null) selectDay(day)
+    },
+    onPrevMonth: prevMonth,
+    onNextMonth: nextMonth,
+    onClose: () => setOpen(false),
+  })
+
   const hours = Array.from({ length: 24 }, (_, i) => i)
   const minutes = Array.from({ length: 60 }, (_, i) => i)
 
@@ -264,6 +293,7 @@ export default function EmcDateTimePicker({
       >
         <div
           role="dialog"
+          aria-modal="true"
           aria-label={label}
           className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
           dir="rtl"
@@ -324,7 +354,13 @@ export default function EmcDateTimePicker({
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5 px-2 pb-3">
+            <div
+              ref={gridRef}
+              role="grid"
+              aria-label={monthLabel(viewYear, viewMonth)}
+              onKeyDown={onGridKeyDown}
+              className="grid grid-cols-7 gap-0.5 px-2 pb-3"
+            >
               {calendarDays.map((day, idx) => {
                 if (day == null) return <div key={`e-${idx}`} className="aspect-square" />
                 const isSelected =
@@ -335,6 +371,12 @@ export default function EmcDateTimePicker({
                   <button
                     key={`d-${day}-${idx}`}
                     type="button"
+                    role="gridcell"
+                    data-cell-index={idx}
+                    aria-selected={isSelected}
+                    aria-current={isToday ? 'date' : undefined}
+                    aria-label={dayAriaLabel(viewYear, viewMonth, day)}
+                    tabIndex={idx === activeIndex ? 0 : -1}
                     onClick={() => selectDay(day)}
                     className={cn(
                       'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',
