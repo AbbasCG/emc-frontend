@@ -8,7 +8,7 @@ const steps = [
     icon: BookOpen,
     title: 'ورشة تنفيذية',
     desc: 'تبدأ بتجربة عملية مركّزة — يوم أو يومان تُطبّق فيهما مهارة محددة بإشراف مباشر.',
-    accent: '#2691C2',
+    accent: '#0077B6',
     tag: 'Workshop',
   },
   {
@@ -16,7 +16,7 @@ const steps = [
     icon: Layers,
     title: 'دورة متخصصة',
     desc: 'تبني قاعدة متينة عبر دورة منظّمة — محتوى، تقييم، وتفاعل حقيقي مع مدرّبك.',
-    accent: '#EC943C',
+    accent: '#F28C00',
     tag: 'Course',
   },
   {
@@ -24,7 +24,7 @@ const steps = [
     icon: Target,
     title: 'مسار متكامل',
     desc: 'تتعمّق في تخصّصك عبر مسار هيكلي يجمع أكثر من دورة ومشاريع تطبيقية موزونة.',
-    accent: '#2691C2',
+    accent: '#0077B6',
     tag: 'Track',
   },
   {
@@ -32,7 +32,7 @@ const steps = [
     icon: GraduationCap,
     title: 'مخرج احترافي',
     desc: 'شهادة معتمدة، ملف أعمال قابل للعرض، وانتماء لمجتمع EMC من المتخصصين.',
-    accent: '#EC943C',
+    accent: '#F28C00',
     tag: 'Outcome',
   },
 ] as const
@@ -155,7 +155,7 @@ export default function HomeLearningJourney() {
         {/* Mobile connector (vertical) */}
         <div
           aria-hidden
-          className="pointer-events-none absolute right-[calc(50%-1px)] top-[170px] hidden w-[2px] bg-gradient-to-b from-customBlue via-customOrange to-customBlue opacity-20 lg:hidden"
+          className="pointer-events-none absolute right-[calc(50%-1px)] top-[170px] hidden w-[2px] bg-gradient-to-b from-customBlue via-customBlue/60 to-customBlue opacity-20 lg:hidden"
           style={{ height: 'calc(100% - 230px)' }}
         />
       </div>

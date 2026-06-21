@@ -114,7 +114,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-[#0F172A] px-5 py-4 text-white">
           <div className="flex items-center gap-2.5">
-            <UserPlus className="size-5 text-[#2691C2]" aria-hidden />
+            <UserPlus className="size-5 text-[#0077B6]" aria-hidden />
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-widest text-white/50">إضافة طالب</p>
               <p id="add-student-modal-title" className="truncate text-sm font-black">{courseTitle}</p>
@@ -135,7 +135,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
               className={[
                 'flex-1 py-2.5 text-[11px] font-black transition',
                 mode === m
-                  ? 'border-b-2 border-[#2691C2] bg-white text-[#0F172A]'
+                  ? 'border-b-2 border-[#0077B6] bg-white text-[#0F172A]'
                   : 'text-slate-400 hover:text-slate-600',
               ].join(' ')}
             >
@@ -165,7 +165,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
                 </div>
               ) : (
                 <div className="relative">
-                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-[#2691C2] focus-within:ring-2 focus-within:ring-[#2691C2]/20 transition">
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-[#0077B6] focus-within:ring-2 focus-within:ring-[#0077B6]/20 transition">
                     <Search className="size-4 shrink-0 text-slate-400" aria-hidden />
                     <input
                       ref={searchRef}
@@ -177,7 +177,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
                       className="flex-1 bg-transparent text-sm font-semibold text-right text-[#0F172A] outline-none placeholder:text-slate-400"
                     />
                     {searching && (
-                      <div className="size-4 shrink-0 animate-spin rounded-full border-2 border-[#2691C2] border-t-transparent" />
+                      <div className="size-4 shrink-0 animate-spin rounded-full border-2 border-[#0077B6] border-t-transparent" />
                     )}
                   </div>
 
@@ -260,7 +260,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 rounded-xl bg-[#0F172A] py-2.5 text-sm font-black text-white transition hover:bg-[#2691C2] disabled:opacity-50"
+              className="flex-1 rounded-xl bg-[#0F172A] py-2.5 text-sm font-black text-white transition hover:bg-[#0077B6] disabled:opacity-50"
             >
               {loading ? 'جار الإضافة…' : 'إضافة الطالب'}
             </button>
@@ -281,7 +281,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
 const inputCls =
-  'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold focus:border-[#2691C2] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/20 transition'
+  'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold focus:border-[#0077B6] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20 transition'
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -312,7 +312,7 @@ function Avatar({ user, size }: { user: UserSearchHit; size: number }) {
   return (
     <div
       style={{ width: s, height: s }}
-      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[11px] font-black text-white"
+      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[11px] font-black text-white"
     >
       {initialsOf(user.name)}
     </div>

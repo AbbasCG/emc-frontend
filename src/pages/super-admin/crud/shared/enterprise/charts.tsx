@@ -17,17 +17,17 @@ import {
   Area,
 } from 'recharts'
 
-export const EMC_CHART_PALETTE = ['#2691C2', '#EC943C', '#22334A', '#10B981', '#6366F1', '#94A3B8'] as const
+export const EMC_CHART_PALETTE = ['#0077B6', '#F28C00', '#0C2A4B', '#10B981', '#6366F1', '#94A3B8'] as const
 
 export const emcTooltipStyle: CSSProperties = {
   borderRadius: 14,
-  border: '1px solid rgba(34,51,74,0.08)',
+  border: '1px solid rgba(12, 42, 75,0.08)',
   boxShadow: '0 22px 50px -24px rgba(15,42,67,0.22)',
 }
 
-export const emcTooltipLabelStyle = { color: '#22334A', fontWeight: 900, fontSize: 12 }
+export const emcTooltipLabelStyle = { color: '#0C2A4B', fontWeight: 900, fontSize: 12 }
 
-export const emcTooltipItemStyle = { color: '#22334A', fontWeight: 700, fontSize: 12 }
+export const emcTooltipItemStyle = { color: '#0C2A4B', fontWeight: 700, fontSize: 12 }
 
 type Point = Record<string, string | number>
 
@@ -51,14 +51,14 @@ export function EnterpriseBarChartRtl({
         <BarChart layout="vertical" data={data} margin={{ left: 8, right: 28, top: 8, bottom: 8 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor="#2691C2" stopOpacity={0.95} />
-              <stop offset="100%" stopColor="#22334A" stopOpacity={0.92} />
+              <stop offset="0%" stopColor="#0077B6" stopOpacity={0.95} />
+              <stop offset="100%" stopColor="#0C2A4B" stopOpacity={0.92} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(15,23,42,0.06)" />
           <XAxis hide type="number" />
           <YAxis type="category" dataKey={nameKey} tick={{ fill: '#64748B', fontSize: 11, fontWeight: 700 }} width={118} />
-          <Tooltip cursor={{ fill: 'rgba(38,145,194,0.06)' }} contentStyle={emcTooltipStyle} labelStyle={emcTooltipLabelStyle} itemStyle={emcTooltipItemStyle} />
+          <Tooltip cursor={{ fill: 'rgba(0, 119, 182,0.06)' }} contentStyle={emcTooltipStyle} labelStyle={emcTooltipLabelStyle} itemStyle={emcTooltipItemStyle} />
           <Bar dataKey={dataKey} fill={`url(#${gradientId})`} radius={[0, 12, 12, 0]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>
@@ -157,7 +157,7 @@ export function EnterpriseScatterPlot({
               return [`${p.x} برنامج`, `${p.y} شهرًا`]
             }}
           />
-          <Scatter name="مسارات" data={data} fill="#2691C2">
+          <Scatter name="مسارات" data={data} fill="#0077B6">
             {data.map((d, i) => (
               <Cell key={d.id} fill={EMC_CHART_PALETTE[i % EMC_CHART_PALETTE.length]} />
             ))}
@@ -182,12 +182,12 @@ export function EnterpriseTinyArea({
         <AreaChart data={data} margin={{ top: 6, left: 0, right: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="emc-area" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2691C2" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="#2691C2" stopOpacity={0} />
+              <stop offset="0%" stopColor="#0077B6" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="#0077B6" stopOpacity={0} />
             </linearGradient>
           </defs>
           <Tooltip contentStyle={{ ...emcTooltipStyle, fontSize: 11 }} labelStyle={{ display: 'none' }} />
-          <Area type="monotone" dataKey="v" stroke="#22334A" strokeWidth={2} fillOpacity={1} fill="url(#emc-area)" />
+          <Area type="monotone" dataKey="v" stroke="#0C2A4B" strokeWidth={2} fillOpacity={1} fill="url(#emc-area)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

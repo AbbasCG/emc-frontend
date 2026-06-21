@@ -40,8 +40,8 @@ function riskLevel(slug: string): 'high' | 'medium' | 'low' {
 }
 
 const TYPE_META: Record<RoleType, { labelAr: string; cls: string }> = {
-  system:      { labelAr: 'نظام', cls: 'bg-[#22334A] text-white ring-[#22334A]/30' },
-  admin:       { labelAr: 'إدارة', cls: 'bg-[#2691C2]/15 text-[#2691C2] ring-[#2691C2]/30' },
+  system:      { labelAr: 'نظام', cls: 'bg-[#0C2A4B] text-white ring-[#0C2A4B]/30' },
+  admin:       { labelAr: 'إدارة', cls: 'bg-[#0077B6]/15 text-[#0077B6] ring-[#0077B6]/30' },
   operational: { labelAr: 'تشغيلي', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
   external:    { labelAr: 'خارجي', cls: 'bg-slate-100 text-slate-600 ring-slate-200' },
 }
@@ -142,7 +142,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
         <div className="flex gap-2">
           <Link
             to="/dashboard/super-admin/crud/users"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white transition hover:opacity-90"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#0C2A4B] px-4 py-2.5 text-[12px] font-black text-white transition hover:opacity-90"
           >
             <Users className="h-4 w-4" aria-hidden />
             إدارة المستخدمين
@@ -150,7 +150,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-slate-600 transition hover:border-[#22334A]/20"
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-slate-600 transition hover:border-[#0C2A4B]/20"
           >
             إغلاق
           </button>
@@ -172,15 +172,15 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
 
       <div className="mb-5 grid grid-cols-3 gap-2">
         <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-center">
-          <p className="text-lg font-black tabular-nums text-[#22334A]">{usageCount}</p>
+          <p className="text-lg font-black tabular-nums text-[#0C2A4B]">{usageCount}</p>
           <p className="text-[10px] font-black text-slate-400">مستخدم مرتبط</p>
         </div>
         <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-center">
-          <p className="text-lg font-black tabular-nums text-[#22334A]">{grantedCount}</p>
+          <p className="text-lg font-black tabular-nums text-[#0C2A4B]">{grantedCount}</p>
           <p className="text-[10px] font-black text-slate-400">صلاحية ممنوحة</p>
         </div>
         <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-center">
-          <p className="text-lg font-black tabular-nums text-[#22334A]">{grantedCaps.length}</p>
+          <p className="text-lg font-black tabular-nums text-[#0C2A4B]">{grantedCaps.length}</p>
           <p className="text-[10px] font-black text-slate-400">محور عام</p>
         </div>
       </div>
@@ -194,8 +194,8 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
             onClick={() => setTab(t.id)}
             className={`flex-1 rounded-lg px-3 py-2 text-[12px] font-black transition ${
               tab === t.id
-                ? 'bg-white text-[#22334A] shadow-sm ring-1 ring-slate-200'
-                : 'text-slate-500 hover:text-[#22334A]'
+                ? 'bg-white text-[#0C2A4B] shadow-sm ring-1 ring-slate-200'
+                : 'text-slate-500 hover:text-[#0C2A4B]'
             }`}
           >
             {t.label}
@@ -227,7 +227,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
                     <div className="flex items-start gap-2">
                       <CapIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
                       <div>
-                        <span className="text-[13px] font-black text-[#22334A]">{c.labelAr}</span>
+                        <span className="text-[13px] font-black text-[#0C2A4B]">{c.labelAr}</span>
                         <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{ROLE_CAPABILITY_HINTS_AR[c.id]}</p>
                       </div>
                     </div>
@@ -239,7 +239,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
           </div>
 
           <p className="text-[12px] font-semibold leading-relaxed text-slate-500">
-            انتقل إلى تبويب <strong className="text-[#22334A]">الصلاحيات</strong> لإدارة الصلاحيات التفصيلية (عرض، إنشاء، موافقة، حذف، …) لكل موديول.
+            انتقل إلى تبويب <strong className="text-[#0C2A4B]">الصلاحيات</strong> لإدارة الصلاحيات التفصيلية (عرض، إنشاء، موافقة، حذف، …) لكل موديول.
           </p>
         </div>
       )}
@@ -265,11 +265,11 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
             <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
               {roleUsers.map((u) => (
                 <li key={u.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[12px] font-black text-[#2691C2]">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[12px] font-black text-[#0077B6]">
                     {initialsFromName(u.name)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-black text-[#22334A]">{u.name}</p>
+                    <p className="truncate text-[13px] font-black text-[#0C2A4B]">{u.name}</p>
                     <p className="truncate text-[11px] font-semibold text-slate-500" dir="ltr">{u.email}</p>
                   </div>
                   {u.is_active === false || u.status === 'inactive' ? (

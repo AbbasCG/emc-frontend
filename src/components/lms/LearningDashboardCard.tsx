@@ -18,8 +18,8 @@ export default function LearningDashboardCard({
 }: Props) {
   const glow =
     accent === 'orange'
-      ? 'shadow-[0_18px_45px_-18px_rgba(236,148,60,0.45)]'
-      : 'shadow-[0_18px_45px_-18px_rgba(38,145,194,0.38)]'
+      ? 'shadow-[0_18px_45px_-18px_rgba(242, 140, 0,0.45)]'
+      : 'shadow-[0_18px_45px_-18px_rgba(0, 119, 182,0.38)]'
 
   return (
     <motion.div

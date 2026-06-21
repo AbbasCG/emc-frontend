@@ -140,8 +140,8 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
 
   return (
     <div className="block text-right">
-      <span className="text-[12px] font-black text-[#22334A]/70">
-        {label}{required ? <span className="text-[#EC943C]"> *</span> : null}
+      <span className="text-[12px] font-black text-[#0C2A4B]/70">
+        {label}{required ? <span className="text-[#F28C00]"> *</span> : null}
       </span>
       <button
         ref={anchorRef}
@@ -152,14 +152,14 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
         onClick={() => setOpen(v => !v)}
         className={cn(
           'mt-1.5 flex w-full items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-right transition',
-          error ? 'border-rose-400' : 'border-[#22334A]/12',
-          'bg-white hover:border-[#2691C2]/30 focus:border-[#2691C2]/50 focus:outline-none focus:ring-4 focus:ring-[#2691C2]/10',
+          error ? 'border-rose-400' : 'border-[#0C2A4B]/12',
+          'bg-white hover:border-[#0077B6]/30 focus:border-[#0077B6]/50 focus:outline-none focus:ring-4 focus:ring-[#0077B6]/10',
         )}
       >
-        <Calendar className="h-4 w-4 shrink-0 text-[#2691C2]" aria-hidden />
+        <Calendar className="h-4 w-4 shrink-0 text-[#0077B6]" aria-hidden />
         <span className="min-w-0 flex-1">
           {value
-            ? <span className="block truncate text-[13px] font-semibold text-[#22334A]">{formatDateDisplay(value)}</span>
+            ? <span className="block truncate text-[13px] font-semibold text-[#0C2A4B]">{formatDateDisplay(value)}</span>
             : <span className="block text-[13px] font-semibold text-slate-400">اختر التاريخ</span>
           }
         </span>
@@ -180,7 +180,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className="overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
+          className="overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12, 42, 75,0.35)]"
           dir="rtl"
         >
           <div className="flex flex-wrap gap-1.5 border-b border-slate-100 bg-slate-50/80 p-2.5">
@@ -193,7 +193,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
                 key={p.label}
                 type="button"
                 onClick={() => applyPreset(p.iso)}
-                className="rounded-lg border border-[#22334A]/10 bg-white px-2.5 py-1 text-[11px] font-black text-[#22334A] transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+                className="rounded-lg border border-[#0C2A4B]/10 bg-white px-2.5 py-1 text-[11px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/30 hover:text-[#0077B6]"
               >
                 {p.label}
               </button>
@@ -201,11 +201,11 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
           </div>
 
           <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-            <button type="button" onClick={nextMonth} className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100" aria-label="الشهر التالي">
+            <button type="button" onClick={nextMonth} className="rounded-lg p-1.5 text-[#0C2A4B]/60 transition hover:bg-slate-100" aria-label="الشهر التالي">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <p className="text-[13px] font-black text-[#22334A]">{monthLabel(viewYear, viewMonth)}</p>
-            <button type="button" onClick={prevMonth} className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100" aria-label="الشهر السابق">
+            <p className="text-[13px] font-black text-[#0C2A4B]">{monthLabel(viewYear, viewMonth)}</p>
+            <button type="button" onClick={prevMonth} className="rounded-lg p-1.5 text-[#0C2A4B]/60 transition hover:bg-slate-100" aria-label="الشهر السابق">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -241,9 +241,9 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
                   onClick={() => selectDay(day)}
                   className={cn(
                     'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',
-                    isSelected ? 'bg-[#2691C2] text-white shadow-sm'
-                      : isToday ? 'bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/30'
-                        : 'text-[#22334A] hover:bg-slate-100',
+                    isSelected ? 'bg-[#0077B6] text-white shadow-sm'
+                      : isToday ? 'bg-[#0077B6]/10 text-[#0077B6] ring-1 ring-[#0077B6]/30'
+                        : 'text-[#0C2A4B] hover:bg-slate-100',
                   )}
                 >
                   {day}

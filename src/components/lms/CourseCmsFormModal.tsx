@@ -8,9 +8,9 @@ import { formatDatetimeLocalPreview } from '@/utils/datetimeLocal'
 export { formatDatetimeLocalPreview }
 
 const INPUT =
-  'w-full rounded-xl border bg-white px-3.5 py-2.5 text-[13px] font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10'
+  'w-full rounded-xl border bg-white px-3.5 py-2.5 text-[13px] font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/50 focus:ring-4 focus:ring-[#0077B6]/10'
 const INPUT_ERR = 'border-rose-400 focus:border-rose-400 focus:ring-rose-100'
-const INPUT_OK = 'border-[#22334A]/12'
+const INPUT_OK = 'border-[#0C2A4B]/12'
 
 type ModalProps = {
   title: string
@@ -44,7 +44,7 @@ export function CmsFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-end justify-center bg-[#22334A]/50 p-3 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-[#0C2A4B]/50 p-3 backdrop-blur-sm sm:items-center sm:p-4"
       dir="rtl"
       role="presentation"
     >
@@ -56,13 +56,13 @@ export function CmsFormModal({
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-        className="relative z-[210] flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_24px_64px_-16px_rgba(34,51,74,0.35)]"
+        className="relative z-[210] flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_24px_64px_-16px_rgba(12, 42, 75,0.35)]"
       >
-        <div className="border-b border-slate-100 bg-gradient-to-l from-[#22334A] to-[#1a2940] px-5 py-4 text-white sm:px-6">
+        <div className="border-b border-slate-100 bg-gradient-to-l from-[#0C2A4B] to-[#1a2940] px-5 py-4 text-white sm:px-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 text-right">
               {eyebrow ?
-                <p className="text-[10px] font-black tracking-[0.14em] text-[#2691C2]">{eyebrow}</p>
+                <p className="text-[10px] font-black tracking-[0.14em] text-[#0077B6]">{eyebrow}</p>
               : null}
               <h2 id={`${formId}-title`} className="text-lg font-black leading-snug">
                 {title}
@@ -90,14 +90,14 @@ export function CmsFormModal({
               type="button"
               onClick={onClose}
               disabled={busy}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#0C2A4B] transition hover:bg-slate-50 disabled:opacity-50"
             >
               {cancelLabel}
             </button>
             <button
               type="submit"
               disabled={busy}
-              className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
+              className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               {busy ? 'جارٍ الحفظ…' : submitLabel}
@@ -112,7 +112,7 @@ export function CmsFormModal({
 export function CmsFormSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-      <h3 className="mb-3 text-[11px] font-black tracking-wide text-[#EC943C]">{title}</h3>
+      <h3 className="mb-3 text-[11px] font-black tracking-wide text-[#F28C00]">{title}</h3>
       <div className="space-y-3.5">{children}</div>
     </section>
   )
@@ -139,9 +139,9 @@ export function CmsField({
 }) {
   return (
     <label className="block text-right">
-      <span className="text-[12px] font-black text-[#22334A]/70">
+      <span className="text-[12px] font-black text-[#0C2A4B]/70">
         {label}
-        {required ? <span className="text-[#EC943C]"> *</span> : null}
+        {required ? <span className="text-[#F28C00]"> *</span> : null}
       </span>
       {hint ? <p className="mt-0.5 text-[11px] font-medium text-slate-400">{hint}</p> : null}
       <input
@@ -174,7 +174,7 @@ export function CmsTextarea({
 }) {
   return (
     <label className="block text-right">
-      <span className="text-[12px] font-black text-[#22334A]/70">{label}</span>
+      <span className="text-[12px] font-black text-[#0C2A4B]/70">{label}</span>
       <textarea
         rows={rows}
         placeholder={placeholder}
@@ -204,7 +204,7 @@ export function CmsSelect({
 }) {
   return (
     <label className="block text-right">
-      <span className="text-[12px] font-black text-[#22334A]/70">{label}</span>
+      <span className="text-[12px] font-black text-[#0C2A4B]/70">{label}</span>
       <select
         dir={dir}
         className={cn('mt-1.5 appearance-none', INPUT, error ? INPUT_ERR : INPUT_OK)}

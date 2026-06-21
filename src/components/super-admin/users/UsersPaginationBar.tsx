@@ -40,7 +40,7 @@ export function UsersPaginationBar({
         <select
           value={perPage}
           onChange={(e) => onPerPageChange(Number(e.target.value))}
-          className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-bold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-2 focus:ring-[#2691C2]/12"
+          className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-bold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/50 focus:ring-2 focus:ring-[#0077B6]/12"
         >
           {[15, 25, 50, 100].map((n) => (
             <option key={n} value={n}>
@@ -48,7 +48,7 @@ export function UsersPaginationBar({
             </option>
           ))}
         </select>
-        <span className="rounded-full bg-[#22334A]/5 px-3 py-1 font-black text-[#22334A]">
+        <span className="rounded-full bg-[#0C2A4B]/5 px-3 py-1 font-black text-[#0C2A4B]">
           {from}–{to} من {total} مستخدم
         </span>
       </div>
@@ -58,7 +58,7 @@ export function UsersPaginationBar({
           type="button"
           disabled={safePage <= 1}
           onClick={() => onPageChange(safePage - 1)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-[#2691C2]/40 hover:text-[#2691C2] disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-[#0077B6]/40 hover:text-[#0077B6] disabled:cursor-not-allowed disabled:opacity-30"
           aria-label="الصفحة السابقة"
         >
           <ChevronRight className="h-4 w-4" aria-hidden />
@@ -77,8 +77,8 @@ export function UsersPaginationBar({
               className={cn(
                 'flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl border px-2 text-[12px] font-black tabular-nums transition',
                 safePage === p
-                  ? 'border-[#2691C2] bg-[#2691C2] text-white shadow-md shadow-[#2691C2]/25'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/40 hover:text-[#2691C2]',
+                  ? 'border-[#0077B6] bg-[#0077B6] text-white shadow-md shadow-[#0077B6]/25'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/40 hover:text-[#0077B6]',
               )}
             >
               {p}
@@ -90,7 +90,7 @@ export function UsersPaginationBar({
           type="button"
           disabled={safePage >= lastPage}
           onClick={() => onPageChange(safePage + 1)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-[#2691C2]/40 hover:text-[#2691C2] disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-[#0077B6]/40 hover:text-[#0077B6] disabled:cursor-not-allowed disabled:opacity-30"
           aria-label="الصفحة التالية"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />

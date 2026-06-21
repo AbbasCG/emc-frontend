@@ -97,7 +97,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
           >
             <Link
               to="/learning-paths"
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-[#EC943C]/25 transition hover:bg-[#d9832e]"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-[#F28C00]/25 transition hover:bg-[#d9832e]"
             >
               ابدأ رحلتك التعليمية
               <ChevronLeft className="h-4 w-4" aria-hidden />

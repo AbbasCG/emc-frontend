@@ -6,11 +6,11 @@ import { useEffect, useRef } from 'react'
 // ── Orbital ecosystem visual ──────────────────────────────────────────────────
 
 const ORBIT_ITEMS = [
-  { label: 'ورش', angle: 0, r: 120, color: '#2691C2', size: 42 },
-  { label: 'دورات', angle: 72, r: 140, color: '#EC943C', size: 46 },
-  { label: 'مسارات', angle: 144, r: 128, color: '#22334A', size: 44 },
-  { label: 'ذكاء اصطناعي', angle: 216, r: 138, color: '#2691C2', size: 50 },
-  { label: 'مجتمع', angle: 288, r: 118, color: '#EC943C', size: 40 },
+  { label: 'ورش', angle: 0, r: 120, color: '#0077B6', size: 42 },
+  { label: 'دورات', angle: 72, r: 140, color: '#F28C00', size: 46 },
+  { label: 'مسارات', angle: 144, r: 128, color: '#0C2A4B', size: 44 },
+  { label: 'ذكاء اصطناعي', angle: 216, r: 138, color: '#0077B6', size: 50 },
+  { label: 'مجتمع', angle: 288, r: 118, color: '#F28C00', size: 40 },
 ] as const
 
 function OrbitalVisual() {
@@ -42,7 +42,7 @@ function OrbitalVisual() {
         initial={{ opacity: 0, scale: 0.7 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.3 }}
-        className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_40px_rgba(38,145,194,0.35)] backdrop-blur-xl"
+        className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_40px_rgba(0, 119, 182,0.35)] backdrop-blur-xl"
       >
         <span className="font-latin text-lg font-black tracking-widest text-white">EMC</span>
         <span className="mt-0.5 text-[9px] font-black tracking-widest text-white/50">PLATFORM</span>
@@ -85,7 +85,7 @@ function OrbitalVisual() {
         <div
           className="h-full w-full rounded-full"
           style={{
-            background: 'conic-gradient(from 0deg, transparent 80%, rgba(38,145,194,0.4) 90%, transparent 100%)',
+            background: 'conic-gradient(from 0deg, transparent 80%, rgba(0, 119, 182,0.4) 90%, transparent 100%)',
           }}
         />
       </motion.div>
@@ -124,7 +124,7 @@ function DotGrid() {
           const alpha = (wave + 1) / 2 * 0.2 + 0.03
           ctx.beginPath()
           ctx.arc(x, y, 1.2, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(38, 145, 194, ${alpha})`
+          ctx.fillStyle = `rgba(0, 119, 182, ${alpha})`
           ctx.fill()
         }
       }
@@ -213,7 +213,7 @@ export default function HomeCinematicHero() {
             <br />
             <span
               className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(135deg, #2691C2 0%, #5bb8e8 40%, #EC943C 100%)' }}
+              style={{ backgroundImage: 'linear-gradient(135deg, #0077B6 0%, #5bb8e8 40%, #F28C00 100%)' }}
             >
               بمنهج يقود للعمق
             </span>
@@ -237,7 +237,7 @@ export default function HomeCinematicHero() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(38,145,194,0.6)] transition-all duration-300 hover:bg-[#1e7dab] hover:shadow-[0_24px_50px_-14px_rgba(38,145,194,0.7)]"
+                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(0, 119, 182,0.6)] transition-all duration-300 hover:bg-[#1e7dab] hover:shadow-[0_24px_50px_-14px_rgba(0, 119, 182,0.7)]"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 استكشف البرامج والمسارات

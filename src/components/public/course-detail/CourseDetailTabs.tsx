@@ -72,8 +72,8 @@ export default function CourseDetailTabs({ tabs, panels, defaultTab = 'overview'
   }, [active, visible])
 
   return (
-    <section className="overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/80 shadow-[0_20px_50px_-24px_rgba(34,51,74,0.15)] backdrop-blur-xl">
-      <div className="sticky top-[calc(4.25rem+0.5rem)] z-10 border-b border-[#22334A]/6 bg-white/90 backdrop-blur-xl">
+    <section className="overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/80 shadow-[0_20px_50px_-24px_rgba(12, 42, 75,0.15)] backdrop-blur-xl">
+      <div className="sticky top-[calc(4.25rem+0.5rem)] z-10 border-b border-[#0C2A4B]/6 bg-white/90 backdrop-blur-xl">
         <div
           role="tablist"
           aria-label="أقسام الدورة"
@@ -94,8 +94,8 @@ export default function CourseDetailTabs({ tabs, panels, defaultTab = 'overview'
               className={cn(
                 'shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-black transition-all duration-200',
                 current === tab.id ?
-                  'bg-gradient-to-l from-[#2691C2] to-[#1e7aa8] text-white shadow-[0_6px_18px_-6px_rgba(38,145,194,0.55)]'
-                : 'text-[#22334A]/65 hover:bg-[#2691C2]/5 hover:text-[#22334A]',
+                  'bg-gradient-to-l from-[#0077B6] to-[#0077B6] text-white shadow-[0_6px_18px_-6px_rgba(0, 119, 182,0.55)]'
+                : 'text-[#0C2A4B]/65 hover:bg-[#0077B6]/5 hover:text-[#0C2A4B]',
               )}
             >
               {tab.label}

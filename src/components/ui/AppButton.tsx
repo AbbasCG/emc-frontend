@@ -28,11 +28,11 @@ export default function AppButton({
 }: AppButtonProps) {
   const variants = {
     primary:
-      'bg-[#D67C28] text-white shadow-lg shadow-amber-200/60 hover:bg-[#B16221]',
+      'bg-[#DD7C02] text-white shadow-lg shadow-amber-200/60 hover:bg-[#C97208]',
     secondary:
       'bg-deepBlue text-white shadow-lg shadow-slate-300/60 hover:bg-[#172536]',
     outline:
-      'border border-amber-300 bg-white text-deepBlue shadow-sm shadow-amber-100/70 hover:border-[#D67C28] hover:bg-amber-50',
+      'border border-amber-300 bg-white text-deepBlue shadow-sm shadow-amber-100/70 hover:border-[#DD7C02] hover:bg-amber-50',
     ghost: 'bg-transparent text-deepBlue hover:bg-amber-50',
   }
 

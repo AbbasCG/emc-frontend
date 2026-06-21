@@ -48,16 +48,16 @@ export function CmsSessionTimingSection({
       </div>
 
       {(startPreview || endPreview) && (
-        <div className="rounded-2xl border border-[#2691C2]/15 bg-[#2691C2]/5 px-4 py-3 text-right">
-          <p className="text-[11px] font-black text-[#22334A]/60">معاينة الجدولة</p>
+        <div className="rounded-2xl border border-[#0077B6]/15 bg-[#0077B6]/5 px-4 py-3 text-right">
+          <p className="text-[11px] font-black text-[#0C2A4B]/60">معاينة الجدولة</p>
           {startPreview ?
-            <p className="mt-1.5 text-[13px] font-semibold text-[#22334A]">
-              <span className="font-black text-[#2691C2]">يبدأ:</span> {startPreview}
+            <p className="mt-1.5 text-[13px] font-semibold text-[#0C2A4B]">
+              <span className="font-black text-[#0077B6]">يبدأ:</span> {startPreview}
             </p>
           : null}
           {endPreview ?
-            <p className="mt-1 text-[13px] font-semibold text-[#22334A]">
-              <span className="font-black text-[#EC943C]">ينتهي:</span> {endPreview}
+            <p className="mt-1 text-[13px] font-semibold text-[#0C2A4B]">
+              <span className="font-black text-[#F28C00]">ينتهي:</span> {endPreview}
             </p>
           : null}
         </div>

@@ -70,7 +70,7 @@ export default function AiAssistantPanel({
       />
 
       <section className="relative flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(38,145,194,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(236,148,60,0.1),transparent_40%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0, 119, 182,0.08),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(242, 140, 0,0.1),transparent_40%)]" />
         <header className="relative border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <div>

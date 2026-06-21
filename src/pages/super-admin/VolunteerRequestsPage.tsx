@@ -101,9 +101,9 @@ function ConvertToMemberModal({ req, onClose, onConverted }: ConvertModalProps) 
       >
         <div className="h-1 bg-gradient-to-l from-emerald-500 to-teal-400" />
         <div className="px-7 py-6 text-right">
-          <h2 className="text-[18px] font-black text-[#22334A]">تحويل المتطوع إلى عضو</h2>
+          <h2 className="text-[18px] font-black text-[#0C2A4B]">تحويل المتطوع إلى عضو</h2>
           <p className="mt-3 text-[14px] font-semibold leading-relaxed text-slate-600">
-            <span className="font-black text-[#22334A]">{req.full_name}</span> — هل تريد نقل بياناته إلى صفحة الأعضاء؟
+            <span className="font-black text-[#0C2A4B]">{req.full_name}</span> — هل تريد نقل بياناته إلى صفحة الأعضاء؟
           </p>
           <div className="mt-6 flex flex-col gap-3">
             <button
@@ -221,15 +221,15 @@ export default function VolunteerRequestsPage() {
   return (
     <div className="space-y-6 pb-16" dir="rtl">
       {/* ── Premium Hero ───────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-[#22334A] via-[#1a2a3a] to-[#2691C2] p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-[#0C2A4B] via-[#1a2a3a] to-[#0077B6] p-8 text-white shadow-xl">
         <div className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-white/[0.04]" />
-        <div className="pointer-events-none absolute -bottom-12 left-24 h-48 w-48 rounded-full bg-[#EC943C]/[0.12]" />
-        <div className="pointer-events-none absolute -right-8 top-8 h-32 w-32 rounded-full bg-[#2691C2]/20" />
+        <div className="pointer-events-none absolute -bottom-12 left-24 h-48 w-48 rounded-full bg-[#F28C00]/[0.12]" />
+        <div className="pointer-events-none absolute -right-8 top-8 h-32 w-32 rounded-full bg-[#0077B6]/20" />
 
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-sm">
-              <HeartHandshake className="h-4 w-4 text-[#EC943C]" />
+              <HeartHandshake className="h-4 w-4 text-[#F28C00]" />
               <span className="text-[11px] font-black uppercase tracking-widest text-white/80">إدارة الموارد البشرية</span>
             </div>
             <h1 className="text-[24px] font-black text-white">طلبات التطوع</h1>
@@ -256,14 +256,14 @@ export default function VolunteerRequestsPage() {
           onClick={() => setFilterStatus('all')}
           className={`flex flex-col gap-1.5 rounded-2xl border p-4 text-right transition hover:shadow-md ${
             filterStatus === 'all'
-              ? 'border-[#22334A] bg-[#22334A] text-white shadow-md'
-              : 'border-slate-200 bg-white text-[#22334A] hover:border-[#22334A]/30'
+              ? 'border-[#0C2A4B] bg-[#0C2A4B] text-white shadow-md'
+              : 'border-slate-200 bg-white text-[#0C2A4B] hover:border-[#0C2A4B]/30'
           }`}
         >
           <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${filterStatus === 'all' ? 'bg-white/15' : 'bg-slate-100'}`}>
-            <Users className={`h-4 w-4 ${filterStatus === 'all' ? 'text-white' : 'text-[#22334A]/60'}`} />
+            <Users className={`h-4 w-4 ${filterStatus === 'all' ? 'text-white' : 'text-[#0C2A4B]/60'}`} />
           </div>
-          <p className={`text-[20px] font-black tabular-nums ${filterStatus === 'all' ? 'text-white' : 'text-[#22334A]'}`} dir="ltr">
+          <p className={`text-[20px] font-black tabular-nums ${filterStatus === 'all' ? 'text-white' : 'text-[#0C2A4B]'}`} dir="ltr">
             {fmt(counts.all)}
           </p>
           <p className={`text-[10px] font-black ${filterStatus === 'all' ? 'text-white/70' : 'text-slate-400'}`}>الكل</p>
@@ -278,7 +278,7 @@ export default function VolunteerRequestsPage() {
               type="button"
               onClick={() => setFilterStatus(s)}
               className={`flex flex-col gap-1.5 rounded-2xl border p-4 text-right transition hover:shadow-md ${
-                active ? `${cfg.badge} shadow-md` : 'border-slate-200 bg-white text-[#22334A] hover:border-slate-300'
+                active ? `${cfg.badge} shadow-md` : 'border-slate-200 bg-white text-[#0C2A4B] hover:border-slate-300'
               }`}
             >
               <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${active ? 'bg-white/50' : 'bg-slate-50'}`}>
@@ -304,7 +304,7 @@ export default function VolunteerRequestsPage() {
             placeholder="بحث بالاسم أو البريد أو المدينة..."
             dir="rtl"
             aria-label="بحث في طلبات التطوع"
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-[13px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-[13px] font-semibold text-[#0C2A4B] outline-none placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
           />
         </div>
         <div className="relative">
@@ -313,7 +313,7 @@ export default function VolunteerRequestsPage() {
             onChange={(e) => setFilterDept(e.target.value)}
             dir="rtl"
             aria-label="تصفية حسب القسم"
-            className="h-11 min-w-[160px] appearance-none rounded-xl border border-slate-200 bg-white pr-4 pl-9 text-[13px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+            className="h-11 min-w-[160px] appearance-none rounded-xl border border-slate-200 bg-white pr-4 pl-9 text-[13px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
           >
             <option value="all">كل الأقسام</option>
             {DEPARTMENTS.map((d) => (
@@ -329,7 +329,7 @@ export default function VolunteerRequestsPage() {
       {loadError && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
           <p className="font-black text-rose-800">{loadError}</p>
-          <button type="button" onClick={() => void load()} className="mt-4 rounded-xl bg-[#22334A] px-6 py-2.5 text-[13px] font-black text-white">
+          <button type="button" onClick={() => void load()} className="mt-4 rounded-xl bg-[#0C2A4B] px-6 py-2.5 text-[13px] font-black text-white">
             إعادة المحاولة
           </button>
         </div>
@@ -346,7 +346,7 @@ export default function VolunteerRequestsPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-50">
             <HeartHandshake className="h-8 w-8 text-slate-300" />
           </div>
-          <p className="font-black text-[#22334A]">لا توجد طلبات</p>
+          <p className="font-black text-[#0C2A4B]">لا توجد طلبات</p>
           <p className="mt-1 text-[13px] text-slate-400">
             {search || filterStatus !== 'all' || filterDept !== 'all'
               ? 'لا نتائج تطابق الفلتر الحالي.'
@@ -354,13 +354,13 @@ export default function VolunteerRequestsPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-[#22334A]/[0.07] bg-white shadow-lg ring-1 ring-[#22334A]/[0.04]">
+        <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-lg ring-1 ring-[#0C2A4B]/[0.04]">
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
                 <tr className="border-b border-slate-100 bg-gradient-to-l from-slate-50 to-slate-50/50">
                   {['#', 'الاسم', 'البريد', 'الجوال', 'القسم', 'التوفر', 'الحالة', 'تاريخ التقديم'].map((h) => (
-                    <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-[#22334A]/40">
+                    <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-[#0C2A4B]/40">
                       {h}
                     </th>
                   ))}
@@ -374,18 +374,18 @@ export default function VolunteerRequestsPage() {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.18, delay: Math.min(idx * 0.03, 0.3) }}
-                    className="group cursor-pointer transition-colors hover:bg-[#2691C2]/[0.03]"
+                    className="group cursor-pointer transition-colors hover:bg-[#0077B6]/[0.03]"
                     onClick={() => openRow(r)}
                   >
-                    <td className="px-5 py-4 text-[11px] font-black text-[#22334A]/30 tabular-nums" dir="ltr">
+                    <td className="px-5 py-4 text-[11px] font-black text-[#0C2A4B]/30 tabular-nums" dir="ltr">
                       {fmt(r.id)}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[12px] font-black text-white">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[12px] font-black text-white">
                           {r.full_name.charAt(0)}
                         </div>
-                        <span className="text-[13px] font-black text-[#22334A]">{r.full_name}</span>
+                        <span className="text-[13px] font-black text-[#0C2A4B]">{r.full_name}</span>
                       </div>
                     </td>
                     <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 md:table-cell" dir="ltr">
@@ -422,7 +422,7 @@ export default function VolunteerRequestsPage() {
                           e.stopPropagation()
                           openRow(r)
                         }}
-                        className="inline-flex items-center gap-1 rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/[0.06] px-3 py-1.5 text-[10px] font-black text-[#2691C2] opacity-0 transition group-hover:opacity-100 hover:bg-[#2691C2]/[0.12]"
+                        className="inline-flex items-center gap-1 rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-3 py-1.5 text-[10px] font-black text-[#0077B6] opacity-0 transition group-hover:opacity-100 hover:bg-[#0077B6]/[0.12]"
                       >
                         مراجعة
                         <ChevronLeft className="h-3 w-3" />

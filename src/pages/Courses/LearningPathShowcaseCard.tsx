@@ -20,7 +20,7 @@ import {
   levelLabelAr,
 } from '@/pages/LearningPaths/learningPathDisplay'
 
-const PLACEHOLDER_GRADIENT = 'bg-gradient-to-br from-[#22334A] to-[#2691C2]'
+const PLACEHOLDER_GRADIENT = 'bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]'
 
 type Props = {
   path: LearningPath
@@ -46,7 +46,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}
-      className="group overflow-hidden rounded-3xl border border-[#22334A]/10 bg-white shadow-lg transition-all duration-300 hover:border-[#2691C2]/30 hover:shadow-xl"
+      className="group overflow-hidden rounded-3xl border border-[#0C2A4B]/10 bg-white shadow-lg transition-all duration-300 hover:border-[#0077B6]/30 hover:shadow-xl"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,260px)_1fr_minmax(0,220px)]">
         {/* Cover */}
@@ -61,10 +61,10 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
               <Route className="h-16 w-16 text-white/30" aria-hidden />
             </div>
           }
-          <div className="absolute inset-0 bg-gradient-to-t from-[#22334A]/80 via-[#22334A]/25 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/80 via-[#0C2A4B]/25 to-transparent" />
 
           {path.is_featured && (
-            <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#EC943C] px-2.5 py-1 text-[10px] font-black text-white shadow">
+            <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#F28C00] px-2.5 py-1 text-[10px] font-black text-white shadow">
               <Star className="h-3 w-3 fill-white" aria-hidden />
               مميز
             </span>
@@ -78,7 +78,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
             {price.hasPrice && (
               <span
                 className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black shadow backdrop-blur ${
-                  price.isFree ? 'bg-customBlue/95 text-white' : 'bg-[#EC943C]/95 text-white'
+                  price.isFree ? 'bg-customBlue/95 text-white' : 'bg-[#F28C00]/95 text-white'
                 }`}
               >
                 {price.label}
@@ -168,7 +168,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
         </div>
 
         {/* Stats + CTA */}
-        <div className="flex flex-col justify-between border-t border-slate-100 bg-gradient-to-br from-[#22334A]/[0.03] to-white p-5 text-right lg:border-t-0 lg:border-s lg:border-slate-100">
+        <div className="flex flex-col justify-between border-t border-slate-100 bg-gradient-to-br from-[#0C2A4B]/[0.03] to-white p-5 text-right lg:border-t-0 lg:border-s lg:border-slate-100">
           <div className="space-y-3">
             {duration && (
               <div className="flex items-center justify-start gap-2 rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-100">
@@ -225,7 +225,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
             </Link>
             <Link
               to={href}
-              className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#EC943C]/40 px-4 py-2.5 text-xs font-black text-accent-700 transition hover:border-[#EC943C] hover:bg-[#EC943C]/5"
+              className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#F28C00]/40 px-4 py-2.5 text-xs font-black text-accent-700 transition hover:border-[#F28C00] hover:bg-[#F28C00]/5"
             >
               استكشف المسار
             </Link>

@@ -67,7 +67,7 @@ export default function AppSelect({
             disabled && 'cursor-not-allowed bg-slate-100 text-slate-500',
             error
               ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-              : 'border-amber-100 focus:border-[#D67C28] emc-focus-ring',
+              : 'border-amber-100 focus:border-[#DD7C02] emc-focus-ring',
           )}
         >
           {placeholder && <option value="">{placeholder}</option>}

@@ -30,8 +30,8 @@ function Metric({
 }) {
   const glow =
     accent === 'orange'
-      ? 'shadow-[0_22px_48px_-20px_rgba(236,148,60,0.35)]'
-      : 'shadow-[0_22px_48px_-20px_rgba(38,145,194,0.35)]'
+      ? 'shadow-[0_22px_48px_-20px_rgba(242, 140, 0,0.35)]'
+      : 'shadow-[0_22px_48px_-20px_rgba(0, 119, 182,0.35)]'
 
   return (
     <Link to={to}>
@@ -191,7 +191,7 @@ export default function OperationsDashboard({ data }: { data: OperationsDashboar
                     </div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-l from-customOrange to-customBlue"
+                        className="h-full rounded-full bg-gradient-to-l from-brand-400 to-brand-600"
                         initial={{ width: 0 }}
                         animate={{ width: `${d.score}%` }}
                       />

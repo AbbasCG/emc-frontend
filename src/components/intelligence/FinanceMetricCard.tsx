@@ -16,8 +16,8 @@ export default function FinanceMetricCard({
 }) {
   const glow =
     accent === 'orange'
-      ? 'shadow-[0_18px_42px_-18px_rgba(236,148,60,0.35)]'
-      : 'shadow-[0_18px_42px_-18px_rgba(38,145,194,0.35)]'
+      ? 'shadow-[0_18px_42px_-18px_rgba(242, 140, 0,0.35)]'
+      : 'shadow-[0_18px_42px_-18px_rgba(0, 119, 182,0.35)]'
 
   return (
     <motion.div

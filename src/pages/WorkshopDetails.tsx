@@ -177,7 +177,7 @@ export default function WorkshopDetailsPage() {
   if (loading) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center bg-slate-50 pt-28">
-        <Loader2 className="h-10 w-10 animate-spin text-[#2691C2]" />
+        <Loader2 className="h-10 w-10 animate-spin text-[#0077B6]" />
       </main>
     )
   }

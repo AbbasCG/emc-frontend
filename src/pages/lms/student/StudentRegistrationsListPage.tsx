@@ -13,7 +13,7 @@ export default function StudentRegistrationsListPage() {
       <motion.header
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-[1.65rem] border border-deepBlue/[0.08] bg-gradient-to-bl from-[#0F172A] to-[#22334A] p-6 text-white shadow-lg"
+        className="rounded-[1.65rem] border border-deepBlue/[0.08] bg-gradient-to-bl from-[#0F172A] to-[#0C2A4B] p-6 text-white shadow-lg"
       >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

@@ -20,7 +20,7 @@ export default function QuizResult({ result, courseId = 1 }: Props) {
           'relative px-8 py-10 text-white',
           result.passed
             ? 'bg-gradient-to-bl from-emerald-600 via-customBlue to-deepBlue'
-            : 'bg-gradient-to-bl from-customOrange via-amber-600 to-deepBlue',
+            : 'bg-gradient-to-bl from-deepBlue via-ocean to-night',
         ].join(' ')}
       >
         <div className="flex items-start justify-between gap-4">

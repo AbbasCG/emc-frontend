@@ -57,7 +57,7 @@ export default function SessionCard({ session, showRecording = true, joinMeeting
         joinState.kind === 'join' ? 'bg-emerald-500'
         : joinState.kind === 'ended' ? 'bg-slate-300'
         : joinState.kind === 'cancelled' ? 'bg-rose-400'
-        : 'bg-gradient-to-b from-customBlue to-customOrange'
+        : 'bg-customOrange'
       }`} />
       <div className={`flex flex-col gap-3 text-right ${compact ? '' : 'sm:flex-row sm:items-center sm:justify-between'}`}>
         <div className="min-w-0 flex-1 space-y-2 pr-2">

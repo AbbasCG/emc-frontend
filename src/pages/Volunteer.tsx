@@ -113,7 +113,7 @@ export default function Volunteer() {
                 <motion.div
                   key={item.title}
                   variants={staggerItem}
-                  className="group relative overflow-hidden rounded-3xl bg-white p-8 text-right shadow-[0_4px_24px_-4px_rgba(34,51,74,0.08)] ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_48px_-12px_rgba(34,51,74,0.14)]"
+                  className="group relative overflow-hidden rounded-3xl bg-white p-8 text-right shadow-[0_4px_24px_-4px_rgba(12, 42, 75,0.08)] ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_48px_-12px_rgba(12, 42, 75,0.14)]"
                 >
                   <div className={`absolute inset-x-0 top-0 h-[3px] ${item.accentBar}`} />
                   <div
@@ -155,7 +155,7 @@ export default function Volunteer() {
               <motion.article
                 key={dept.id}
                 variants={staggerItem}
-                className="group relative overflow-hidden rounded-2xl bg-white p-6 text-right shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-[0_8px_32px_-6px_rgba(34,51,74,0.12)] hover:ring-customBlue/20"
+                className="group relative overflow-hidden rounded-2xl bg-white p-6 text-right shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-[0_8px_32px_-6px_rgba(12, 42, 75,0.12)] hover:ring-customBlue/20"
               >
                 <div className="absolute inset-y-0 right-0 w-[3px] rounded-r-2xl bg-gradient-to-b from-customBlue/60 to-customBlue/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="flex items-start gap-4">
@@ -332,8 +332,8 @@ export default function Volunteer() {
           transition={{ duration: 0.5 }}
           className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-deepBlue text-right text-white shadow-2xl"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_110%_-10%,rgba(38,145,194,0.38),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_-10%_110%,rgba(236,148,60,0.18),transparent_52%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_110%_-10%,rgba(0, 119, 182,0.38),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_-10%_110%,rgba(242, 140, 0,0.18),transparent_52%)]" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-customBlue/40 to-transparent" />
 
           <div className="relative px-8 py-12 lg:px-14 lg:py-14">

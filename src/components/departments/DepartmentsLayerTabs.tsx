@@ -67,7 +67,7 @@ export default function DepartmentsLayerTabs() {
         </div>
 
         <div className="relative mt-8 min-h-[200px] overflow-hidden rounded-3xl border border-deepBlue/10 bg-white/90 p-8 text-right shadow-[0_24px_60px_-30px_rgba(15,42,67,0.18)] backdrop-blur-md sm:p-10">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-customBlue/[0.04] via-transparent to-customOrange/[0.05]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-customBlue/[0.04] via-transparent to-transparent" />
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id}

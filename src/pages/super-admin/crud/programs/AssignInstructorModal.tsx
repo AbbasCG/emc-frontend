@@ -105,7 +105,7 @@ export function AssignInstructorModal({ open, course, onClose, onAssigned }: Pro
                     type="button"
                     disabled={busy}
                     onClick={() => void assign(ins)}
-                    className="shrink-0 rounded-xl bg-gradient-to-l from-[#22334A] to-[#2691C2] px-4 py-2 text-xs font-black text-white shadow-md disabled:opacity-50"
+                    className="shrink-0 rounded-xl bg-gradient-to-l from-[#0C2A4B] to-[#0077B6] px-4 py-2 text-xs font-black text-white shadow-md disabled:opacity-50"
                   >
                     {busy ?
                       <>

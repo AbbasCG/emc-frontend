@@ -113,7 +113,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
     <motion.article
       layout
       whileHover={{ y: -4 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white shadow-[0_18px_50px_-24px_rgba(34,51,74,0.45)] transition-shadow duration-300 hover:shadow-[0_24px_60px_-20px_rgba(38,145,194,0.35)]"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white shadow-[0_18px_50px_-24px_rgba(12, 42, 75,0.45)] transition-shadow duration-300 hover:shadow-[0_24px_60px_-20px_rgba(0, 119, 182,0.35)]"
     >
       {/* ── Image ─────────────────────────────────────────────────────── */}
       <div className="relative h-36 overflow-hidden sm:h-40">

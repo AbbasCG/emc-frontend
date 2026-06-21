@@ -16,7 +16,7 @@ function NavBtn({ onClick, label }: { onClick: () => void; label: string }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+      className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-[#0077B6]/40 hover:text-[#0077B6]"
     >
       {label === 'prev' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
     </button>
@@ -46,12 +46,12 @@ export default function CalendarMonthView({
   return (
     <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6" dir="rtl">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-black text-[#22334A]">{formatMonthTitle(anchor)}</h2>
+        <h2 className="text-lg font-black text-[#0C2A4B]">{formatMonthTitle(anchor)}</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onToday}
-            className="rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-xs font-black text-[#2691C2]"
+            className="rounded-xl bg-[#0077B6]/10 px-3 py-1.5 text-xs font-black text-[#0077B6]"
           >
             اليوم
           </button>
@@ -83,14 +83,14 @@ export default function CalendarMonthView({
               onClick={() => onSelectDay(cell.date)}
               className={[
                 'min-h-[72px] rounded-xl border p-1 text-start transition sm:min-h-[110px] sm:p-2',
-                cell.inMonth ? 'border-slate-100 bg-[#F6F8FB]/80 hover:border-[#2691C2]/30' : 'border-transparent bg-slate-50/50 opacity-50',
-                cell.isToday ? 'ring-2 ring-[#2691C2]/40' : '',
+                cell.inMonth ? 'border-slate-100 bg-[#F6F8FB]/80 hover:border-[#0077B6]/30' : 'border-transparent bg-slate-50/50 opacity-50',
+                cell.isToday ? 'ring-2 ring-[#0077B6]/40' : '',
               ].join(' ')}
             >
               <span
                 className={[
                   'inline-flex h-6 w-6 items-center justify-center rounded-lg text-[11px] font-black sm:text-xs',
-                  cell.isToday ? 'bg-[#2691C2] text-white' : 'text-[#22334A]',
+                  cell.isToday ? 'bg-[#0077B6] text-white' : 'text-[#0C2A4B]',
                 ].join(' ')}
               >
                 {dayNum}
@@ -105,7 +105,7 @@ export default function CalendarMonthView({
                   />
                 ))}
                 {extra > 0 && (
-                  <p className="px-1 text-[10px] font-bold text-[#2691C2]">+{String(extra)} أخرى</p>
+                  <p className="px-1 text-[10px] font-bold text-[#0077B6]">+{String(extra)} أخرى</p>
                 )}
               </div>
             </button>

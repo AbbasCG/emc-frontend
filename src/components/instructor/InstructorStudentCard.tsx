@@ -85,7 +85,7 @@ export function InstructorStudentCard({
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.03, 0.3) }}
-      className="group flex cursor-pointer flex-col gap-2.5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="group flex cursor-pointer flex-col gap-2.5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
       onClick={onClick}
     >
       {/* Header: avatar + name + badges */}
@@ -97,13 +97,13 @@ export function InstructorStudentCard({
             className="h-10 w-10 shrink-0 rounded-2xl object-cover"
           />
         ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2] text-[14px] font-black text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#0C2A4B]/90 to-[#0077B6] text-[14px] font-black text-white">
             {s.name.charAt(0)}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-black text-[#22334A]">{s.name}</p>
-          <p className="truncate text-[10px] font-semibold text-[#22334A]/40" dir="ltr">{s.email}</p>
+          <p className="truncate text-[13px] font-black text-[#0C2A4B]">{s.name}</p>
+          <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40" dir="ltr">{s.email}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           {enrollKey && !['active', 'approved'].includes(enrollKey) && s.enrollment_status && (
@@ -125,13 +125,13 @@ export function InstructorStudentCard({
           <Link
             to={courseLink}
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1 truncate text-[11px] font-black text-[#2691C2] transition hover:underline"
+            className="flex items-center gap-1 truncate text-[11px] font-black text-[#0077B6] transition hover:underline"
           >
             <BookOpen className="h-3 w-3 shrink-0" />
             {s.course_title}
           </Link>
         ) : (
-          <p className="flex items-center gap-1 truncate text-[11px] font-semibold text-[#22334A]/40">
+          <p className="flex items-center gap-1 truncate text-[11px] font-semibold text-[#0C2A4B]/40">
             <BookOpen className="h-3 w-3 shrink-0" />
             {s.course_title}
           </p>
@@ -144,15 +144,15 @@ export function InstructorStudentCard({
           {s.written_score != null && (
             <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-2">
               <ClipboardCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-              <span className="font-mono text-[13px] font-black tabular-nums text-[#22334A]">
-                {s.written_score}<span className="text-[10px] text-[#22334A]/40">/{s.total_questions ?? 70}</span>
+              <span className="font-mono text-[13px] font-black tabular-nums text-[#0C2A4B]">
+                {s.written_score}<span className="text-[10px] text-[#0C2A4B]/40">/{s.total_questions ?? 70}</span>
               </span>
               {pct != null && (
                 <span className="rounded-lg bg-emerald-100 px-1.5 py-0.5 font-mono text-[9px] font-black text-emerald-700">{pct}%</span>
               )}
               {cefrInfo && (
-                <span className="mr-auto font-mono text-[10px] font-black text-[#22334A]">
-                  {cefrInfo.cefr} <span className="font-normal text-[#22334A]/40">· {cefrInfo.arabic}</span>
+                <span className="mr-auto font-mono text-[10px] font-black text-[#0C2A4B]">
+                  {cefrInfo.cefr} <span className="font-normal text-[#0C2A4B]/40">· {cefrInfo.arabic}</span>
                 </span>
               )}
             </div>
@@ -179,7 +179,7 @@ export function InstructorStudentCard({
               </span>
             )}
             {s.enrolled_at && !s.oral_booking_at && !s.final_level && (
-              <span className="font-mono text-[9px] font-semibold tabular-nums text-[#22334A]/30">
+              <span className="font-mono text-[9px] font-semibold tabular-nums text-[#0C2A4B]/30">
                 {toDMY(s.enrolled_at)}
               </span>
             )}
@@ -190,7 +190,7 @@ export function InstructorStudentCard({
                 className={`mr-auto rounded-xl border px-2.5 py-1 text-[10px] font-black transition ${
                   assessed
                     ? 'border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'
-                    : 'border-[#2691C2]/30 bg-[#2691C2]/[0.07] text-[#2691C2] hover:bg-[#2691C2]/[0.14]'
+                    : 'border-[#0077B6]/30 bg-[#0077B6]/[0.07] text-[#0077B6] hover:bg-[#0077B6]/[0.14]'
                 }`}
               >
                 {assessed ? 'تعديل' : assessLabel}
@@ -209,7 +209,7 @@ export function InstructorStudentCard({
             </span>
           )}
           {s.enrolled_at && (
-            <span className="flex items-center gap-1 text-[9px] font-semibold text-[#22334A]/40">
+            <span className="flex items-center gap-1 text-[9px] font-semibold text-[#0C2A4B]/40">
               <User className="h-3 w-3" />
               {toDMY(s.enrolled_at)}
             </span>
@@ -218,7 +218,7 @@ export function InstructorStudentCard({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onAssess() }}
-              className="mr-auto rounded-xl border border-[#2691C2]/30 bg-[#2691C2]/[0.07] px-2.5 py-1 text-[10px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.14]"
+              className="mr-auto rounded-xl border border-[#0077B6]/30 bg-[#0077B6]/[0.07] px-2.5 py-1 text-[10px] font-black text-[#0077B6] transition hover:bg-[#0077B6]/[0.14]"
             >
               {assessLabel}
             </button>

@@ -11,7 +11,7 @@ import { safeTrimUnknown } from '@/utils/publicCourseNormalize'
 const PLACEHOLDER =
   'data:image/svg+xml,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><circle cx="80" cy="80" r="80" fill="#2691C2"/><circle cx="80" cy="62" r="22" fill="#fff3"/><path fill="#fff4" d="M36 138c10-26 26-38 44-38s34 12 44 38"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><circle cx="80" cy="80" r="80" fill="#0077B6"/><circle cx="80" cy="62" r="22" fill="#fff3"/><path fill="#fff4" d="M36 138c10-26 26-38 44-38s34 12 44 38"/></svg>`,
   )
 
 function Card({
@@ -28,13 +28,13 @@ function Card({
   const accents = {
     default: 'border-white/80 bg-white/90',
     emerald: 'border-emerald-100/80 bg-gradient-to-l from-emerald-50/60 to-white/90',
-    sky: 'border-[#2691C2]/12 bg-gradient-to-l from-[#2691C2]/5 to-white/90',
+    sky: 'border-[#0077B6]/12 bg-gradient-to-l from-[#0077B6]/5 to-white/90',
     amber: 'border-amber-100/80 bg-gradient-to-l from-amber-50/50 to-white/90',
     violet: 'border-violet-100/80 bg-gradient-to-l from-violet-50/40 to-white/90',
   }
   return (
     <div className={cn('rounded-2xl border p-3 shadow-sm', accents[accent ?? 'default'], className)}>
-      <h3 className="text-[9px] font-black uppercase tracking-wider text-[#22334A]/45">{title}</h3>
+      <h3 className="text-[9px] font-black uppercase tracking-wider text-[#0C2A4B]/45">{title}</h3>
       <div className="mt-2">{children}</div>
     </div>
   )
@@ -100,7 +100,7 @@ export function OverviewTabPanel({
             {derived.keywordTags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-[#22334A] ring-1 ring-[#2691C2]/15"
+                className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-[#0C2A4B] ring-1 ring-[#0077B6]/15"
               >
                 {tag}
               </span>
@@ -149,7 +149,7 @@ export function OverviewTabPanel({
           {derived.trainingStats.map((s) => (
             <span
               key={s.label}
-              className="rounded-lg border border-[#22334A]/8 bg-white/90 px-2.5 py-1 text-[10px] font-black tabular-nums text-[#22334A]"
+              className="rounded-lg border border-[#0C2A4B]/8 bg-white/90 px-2.5 py-1 text-[10px] font-black tabular-nums text-[#0C2A4B]"
             >
               {s.label}: {formatPublicText(s.value)}
             </span>
@@ -166,22 +166,22 @@ function CurriculumAccordionGroup({ group }: { group: CurriculumGroup }) {
   if (items.length === 0) return null
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#22334A]/8 bg-white/90 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/8 bg-white/90 shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-right transition hover:bg-[#2691C2]/5"
+        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-right transition hover:bg-[#0077B6]/5"
       >
         <div>
-          <p className="text-[13px] font-black text-[#22334A]">{group.title}</p>
+          <p className="text-[13px] font-black text-[#0C2A4B]">{group.title}</p>
           <p className="text-[10px] font-semibold text-slate-500 tabular-nums">
             {formatPublicText(items.length)} عنصر
           </p>
         </div>
-        <ChevronDown className={cn('h-4 w-4 shrink-0 text-[#2691C2] transition', open && 'rotate-180')} />
+        <ChevronDown className={cn('h-4 w-4 shrink-0 text-[#0077B6] transition', open && 'rotate-180')} />
       </button>
       {open ?
-        <ul className="space-y-1 border-t border-[#22334A]/6 px-3 py-2">
+        <ul className="space-y-1 border-t border-[#0C2A4B]/6 px-3 py-2">
           {items.map((item) => (
             <li
               key={item}
@@ -232,7 +232,7 @@ export function RequirementsTabPanel({
       {uniq.map((item) => (
         <li
           key={item}
-          className="rounded-2xl border border-[#2691C2]/12 bg-gradient-to-l from-[#2691C2]/5 to-white px-4 py-3 text-sm font-semibold leading-7 text-slate-700"
+          className="rounded-2xl border border-[#0077B6]/12 bg-gradient-to-l from-[#0077B6]/5 to-white px-4 py-3 text-sm font-semibold leading-7 text-slate-700"
         >
           {item}
         </li>
@@ -257,29 +257,29 @@ export function InstructorTabPanel({
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-[#2691C2]/10 bg-gradient-to-l from-[#2691C2]/5 to-white p-3">
+    <div className="flex items-start gap-3 rounded-2xl border border-[#0077B6]/10 bg-gradient-to-l from-[#0077B6]/5 to-white p-3">
       <img
         src={instructor.avatarUrl ?? PLACEHOLDER}
         alt=""
         loading="lazy"
-        className="h-14 w-14 shrink-0 rounded-xl object-cover ring-2 ring-[#2691C2]/15"
+        className="h-14 w-14 shrink-0 rounded-xl object-cover ring-2 ring-[#0077B6]/15"
       />
       <div className="min-w-0 flex-1 text-right">
-        <p className="text-base font-black text-[#22334A]">{instructor.name}</p>
+        <p className="text-base font-black text-[#0C2A4B]">{instructor.name}</p>
         {instructor.title ?
-          <p className="text-[11px] font-bold text-[#2691C2]">{instructor.title}</p>
+          <p className="text-[11px] font-bold text-[#0077B6]">{instructor.title}</p>
         : null}
         {instructor.bio ?
           <p className="mt-1.5 line-clamp-3 text-[12px] leading-5 text-slate-600">{instructor.bio}</p>
         : null}
         <div className="mt-2 flex flex-wrap gap-1.5">
           {coursesTaught ?
-            <span className="rounded-lg bg-[#22334A]/5 px-2 py-1 text-[10px] font-black tabular-nums text-[#22334A]">
+            <span className="rounded-lg bg-[#0C2A4B]/5 px-2 py-1 text-[10px] font-black tabular-nums text-[#0C2A4B]">
               دورات: {coursesTaught}
             </span>
           : null}
           {studentsTaught ?
-            <span className="rounded-lg bg-[#2691C2]/10 px-2 py-1 text-[10px] font-black tabular-nums text-[#2691C2]">
+            <span className="rounded-lg bg-[#0077B6]/10 px-2 py-1 text-[10px] font-black tabular-nums text-[#0077B6]">
               متدربون: {studentsTaught}
             </span>
           : null}
@@ -287,7 +287,7 @@ export function InstructorTabPanel({
         {instructor.email ?
           <a
             href={`mailto:${instructor.email}`}
-            className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1 text-[11px] font-semibold text-[#2691C2]"
+            className="mt-2 inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1 text-[11px] font-semibold text-[#0077B6]"
             dir="ltr"
           >
             <Mail className="h-3 w-3" />
@@ -345,13 +345,13 @@ export function ScheduleTabPanel({ course, derived }: { course: Course; derived:
   return (
     <div className="grid gap-1.5 sm:grid-cols-2">
       {rows.map((row) => (
-        <div key={row.label} className="rounded-xl border border-[#22334A]/8 bg-white/90 px-3 py-2 text-right">
+        <div key={row.label} className="rounded-xl border border-[#0C2A4B]/8 bg-white/90 px-3 py-2 text-right">
           <p className="text-[9px] font-black text-slate-400">{row.label}</p>
           {row.label === 'رابط الاجتماع' ?
-            <a href={row.value} className="mt-0.5 block truncate text-[12px] font-bold text-[#2691C2]" dir="ltr" target="_blank" rel="noreferrer">
+            <a href={row.value} className="mt-0.5 block truncate text-[12px] font-bold text-[#0077B6]" dir="ltr" target="_blank" rel="noreferrer">
               {row.value}
             </a>
-          : <p className="mt-0.5 text-[12px] font-black tabular-nums text-[#22334A]">{row.value}</p>}
+          : <p className="mt-0.5 text-[12px] font-black tabular-nums text-[#0C2A4B]">{row.value}</p>}
         </div>
       ))}
     </div>
@@ -378,16 +378,16 @@ export function ReviewsTabPanel({
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 py-12 text-center">
         <Star className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-2 text-sm font-black text-[#22334A]">لا توجد تقييمات بعد</p>
+        <p className="mt-2 text-sm font-black text-[#0C2A4B]">لا توجد تقييمات بعد</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-[#2691C2]/12 bg-gradient-to-l from-[#2691C2]/8 to-white px-4 py-3">
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-[#0077B6]/12 bg-gradient-to-l from-[#0077B6]/8 to-white px-4 py-3">
         <div className="text-center">
-          <p className="text-3xl font-black tabular-nums text-[#22334A]">
+          <p className="text-3xl font-black tabular-nums text-[#0C2A4B]">
             {formatPublicText(averageRating ?? '—')}
           </p>
           <p className="text-[11px] font-bold text-slate-500">من 5</p>
@@ -400,7 +400,7 @@ export function ReviewsTabPanel({
               <div key={stars} className="flex items-center gap-2 text-[11px]">
                 <span className="w-3 tabular-nums">{formatPublicText(stars)}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
-                  <div className="h-full rounded-full bg-[#EC943C]" style={{ width: `${pct}%` }} />
+                  <div className="h-full rounded-full bg-[#F28C00]" style={{ width: `${pct}%` }} />
                 </div>
                 <span className="w-8 tabular-nums text-slate-500">{formatPublicText(count)}</span>
               </div>
@@ -411,10 +411,10 @@ export function ReviewsTabPanel({
 
       <div className="space-y-2">
         {reviews.map((r) => (
-          <article key={r.id} className="rounded-2xl border border-[#22334A]/8 bg-white/90 p-4 text-right shadow-sm">
+          <article key={r.id} className="rounded-2xl border border-[#0C2A4B]/8 bg-white/90 p-4 text-right shadow-sm">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-black text-[#22334A]">{r.author}</p>
-              <span className="inline-flex items-center gap-1 text-[12px] font-black tabular-nums text-[#EC943C]">
+              <p className="font-black text-[#0C2A4B]">{r.author}</p>
+              <span className="inline-flex items-center gap-1 text-[12px] font-black tabular-nums text-[#F28C00]">
                 <Star className="h-3.5 w-3.5 fill-current" />
                 {formatPublicText(r.rating)}
               </span>
@@ -430,17 +430,17 @@ export function ReviewsTabPanel({
 function FaqItem({ item }: { item: CourseFaqItem }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#22334A]/8 bg-white/90 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/8 bg-white/90 shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right font-black text-[#22334A] transition hover:bg-[#2691C2]/5"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right font-black text-[#0C2A4B] transition hover:bg-[#0077B6]/5"
       >
         <span className="text-sm">{item.question}</span>
-        <ChevronDown className={cn('h-4 w-4 shrink-0 text-[#2691C2] transition', open && 'rotate-180')} />
+        <ChevronDown className={cn('h-4 w-4 shrink-0 text-[#0077B6] transition', open && 'rotate-180')} />
       </button>
       {open ?
-        <p className="border-t border-[#22334A]/6 px-4 py-3 text-sm leading-7 text-slate-600">{item.answer}</p>
+        <p className="border-t border-[#0C2A4B]/6 px-4 py-3 text-sm leading-7 text-slate-600">{item.answer}</p>
       : null}
     </div>
   )
@@ -466,7 +466,7 @@ export function TrainingStatsStrip({ derived }: { derived: CourseDetailDerived }
       {derived.trainingStats.map((s) => (
         <span
           key={s.label}
-          className="rounded-xl border border-[#22334A]/10 bg-white/90 px-3 py-1.5 text-[11px] font-black tabular-nums text-[#22334A] shadow-sm"
+          className="rounded-xl border border-[#0C2A4B]/10 bg-white/90 px-3 py-1.5 text-[11px] font-black tabular-nums text-[#0C2A4B] shadow-sm"
         >
           {s.label}: {formatPublicText(s.value)}
         </span>

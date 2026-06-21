@@ -30,7 +30,7 @@ export default function ImpactTimeline() {
         >
           <span
             aria-hidden
-            className="absolute right-8 top-2 bottom-12 w-px bg-gradient-to-b from-customBlue/45 via-deepBlue/[0.12] to-customOrange/35 sm:right-12"
+            className="absolute right-8 top-2 bottom-12 w-px bg-gradient-to-b from-customBlue/45 via-deepBlue/[0.12] to-transparent sm:right-12"
           />
           {milestones.map((m) => (
             <motion.li key={m.title} variants={staggerItem} className="relative text-right">

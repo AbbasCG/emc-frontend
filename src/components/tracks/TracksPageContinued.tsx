@@ -83,7 +83,7 @@ export default function TracksPageContinued() {
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_90%_0%,rgba(38,145,194,0.22),transparent_55%),radial-gradient(ellipse_60%_50%_at_10%_100%,rgba(236,148,60,0.14),transparent_50%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_90%_0%,rgba(0, 119, 182,0.22),transparent_55%),radial-gradient(ellipse_60%_50%_at_10%_100%,rgba(242, 140, 0,0.14),transparent_50%)]"
           />
           <div className="relative flex flex-col items-stretch gap-10 text-right lg:flex-row-reverse lg:items-center lg:justify-between">
             <div className="max-w-xl">

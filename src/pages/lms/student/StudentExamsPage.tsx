@@ -86,7 +86,7 @@ export default function StudentExamsPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-deepBlue via-[#1f3046] to-customBlue px-6 py-7 shadow-[0_20px_50px_-20px_rgba(34,51,74,0.5)] sm:px-10"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-deepBlue via-[#1f3046] to-customBlue px-6 py-7 shadow-[0_20px_50px_-20px_rgba(12, 42, 75,0.5)] sm:px-10"
       >
         <div aria-hidden className="pointer-events-none absolute -left-20 top-0 h-48 w-48 rounded-full bg-amber-400/15 blur-[90px]" />
         <div className="relative">

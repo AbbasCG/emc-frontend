@@ -60,7 +60,7 @@ export default function HomeFeaturedInstructors() {
               <motion.div key={ins.id} variants={staggerItem}>
                 <Link
                   to={`/instructors/${ins.slug}`}
-                  className="group block h-full rounded-[1.35rem] border border-deepBlue/[0.08] bg-emcBg/80 p-6 text-right shadow-[0_22px_48px_-26px_rgba(15,42,67,0.35)] backdrop-blur-sm transition hover:-translate-y-1 hover:border-customBlue/25 hover:shadow-[0_28px_60px_-22px_rgba(38,145,194,0.28)]"
+                  className="group block h-full rounded-[1.35rem] border border-deepBlue/[0.08] bg-emcBg/80 p-6 text-right shadow-[0_22px_48px_-26px_rgba(15,42,67,0.35)] backdrop-blur-sm transition hover:-translate-y-1 hover:border-customBlue/25 hover:shadow-[0_28px_60px_-22px_rgba(0, 119, 182,0.28)]"
                 >
                   <div className="flex items-start gap-4">
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-deepBlue/[0.06] ring-1 ring-deepBlue/[0.06]">

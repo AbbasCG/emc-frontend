@@ -8,19 +8,19 @@ const capabilities = [
     icon: BrainCircuit,
     title: 'مسارات ذكاء اصطناعي تطبيقي',
     desc: 'لا نكتفي بشرح النظرية — نبني مشاريع حقيقية: نماذج لغوية، رؤية حاسوبية، وأنظمة توصية تعمل في بيئة إنتاجية.',
-    color: '#2691C2',
+    color: '#0077B6',
   },
   {
     icon: Bot,
     title: 'مساعد تعلّم ذكي',
     desc: 'منصة EMC تدمج الذكاء الاصطناعي في تجربة التعلّم — تلخيص المحتوى، إجابة الأسئلة، وتوصيات مخصصة لكل متعلّم.',
-    color: '#EC943C',
+    color: '#F28C00',
   },
   {
     icon: Zap,
     title: 'أتمتة وسير عمل ذكي',
     desc: 'نعلّمك أتمتة المهام، بناء الوكلاء الذكيين، وتضمين الذكاء الاصطناعي في أعمالك دون الحاجة إلى خبرة برمجية عميقة.',
-    color: '#2691C2',
+    color: '#0077B6',
   },
 ] as const
 
@@ -54,15 +54,15 @@ export default function HomeAiSection() {
       className="relative overflow-hidden bg-[#060e1a] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
       {/* Ambient orbs */}
-      <PulsingOrb color="#2691C2" size={500} x="70%" y="30%" delay={0} />
-      <PulsingOrb color="#EC943C" size={350} x="15%" y="70%" delay={1.5} />
+      <PulsingOrb color="#0077B6" size={500} x="70%" y="30%" delay={0} />
+      <PulsingOrb color="#F28C00" size={350} x="15%" y="70%" delay={1.5} />
 
       {/* Grid overlay */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
-          backgroundImage: `linear-gradient(rgba(38,145,194,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(38,145,194,0.6) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(0, 119, 182,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 119, 182,0.6) 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
         }}
       />
@@ -85,7 +85,7 @@ export default function HomeAiSection() {
               نُدمج الذكاء الاصطناعي في{' '}
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(90deg, #2691C2, #EC943C)' }}
+                style={{ backgroundImage: 'linear-gradient(90deg, #0077B6, #F28C00)' }}
               >
                 قلب مسيرتك التعليمية
               </span>
@@ -165,7 +165,7 @@ export default function HomeAiSection() {
           </p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white shadow-[0_8px_24px_rgba(38,145,194,0.35)] transition-all hover:bg-[#1e7dab]"
+            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white shadow-[0_8px_24px_rgba(0, 119, 182,0.35)] transition-all hover:bg-[#1e7dab]"
           >
             انضم الآن
             <ArrowLeft size={15} aria-hidden />

@@ -92,7 +92,7 @@ export default function AttendanceTable({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث بالاسم أو البريد…"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-3 text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-[#2691C2]/10"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10"
             />
           </div>
 
@@ -100,7 +100,7 @@ export default function AttendanceTable({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as AttendanceStatus | 'all' | 'unset')}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2]"
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6]"
             >
               <option value="all">كل الحالات</option>
               <option value="unset">بدون تحديد</option>
@@ -124,7 +124,7 @@ export default function AttendanceTable({
                 type="button"
                 disabled={disabled}
                 onClick={onClearAll}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-[#22334A] disabled:opacity-50"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-[#0C2A4B] disabled:opacity-50"
               >
                 مسح الكل
               </button>
@@ -142,7 +142,7 @@ export default function AttendanceTable({
         <div className="max-h-[min(62vh,640px)] overflow-auto">
           <table className="w-full min-w-[760px] border-collapse text-right">
             <thead className="sticky top-0 z-10 bg-white shadow-[0_1px_0_0_rgba(15,23,42,0.06)]">
-              <tr className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/50">
+              <tr className="text-[10px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                 <th className="px-4 py-3 font-black">الطالب</th>
                 <th className="px-3 py-3 font-black">الحالة</th>
                 <th className="w-12 px-2 py-3 font-black">ملاحظات</th>
@@ -163,13 +163,13 @@ export default function AttendanceTable({
                   >
                     <td className="px-4 py-2.5">
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[11px] font-black text-white">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[11px] font-black text-white">
                           {row.avatar_url ?
                             <img src={row.avatar_url} alt="" className="h-full w-full object-cover" />
                           : initials(row.student_name)}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-[13px] font-black text-[#22334A]">{row.student_name}</p>
+                          <p className="truncate text-[13px] font-black text-[#0C2A4B]">{row.student_name}</p>
                           {row.email ?
                             <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500" dir="ltr">
                               <Mail className="h-3 w-3 shrink-0" />
@@ -213,7 +213,7 @@ export default function AttendanceTable({
                         className={cn(
                           'inline-flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:opacity-50',
                           notesOpen || row.notes ?
-                            'border-[#2691C2]/30 bg-[#2691C2]/10 text-[#2691C2]'
+                            'border-[#0077B6]/30 bg-[#0077B6]/10 text-[#0077B6]'
                           : 'border-slate-200 text-slate-400 hover:bg-slate-50',
                         )}
                         aria-label="ملاحظات"
@@ -238,7 +238,7 @@ export default function AttendanceTable({
                   value={row.notes ?? ''}
                   onChange={(e) => onChange(row.student_id, { notes: e.target.value || null })}
                   placeholder={`ملاحظة — ${row.student_name}`}
-                  className="h-9 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2]"
+                  className="h-9 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6]"
                 />
                 <button
                   type="button"
@@ -265,7 +265,7 @@ export default function AttendanceTable({
               className={cn('px-4 py-3', dirty ? 'bg-amber-50/60' : '')}
             >
               <div className="flex items-start gap-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[11px] font-black text-white">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[11px] font-black text-white">
                   {row.avatar_url ?
                     <img src={row.avatar_url} alt="" className="h-full w-full object-cover" />
                   : initials(row.student_name)}
@@ -273,7 +273,7 @@ export default function AttendanceTable({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-[13px] font-black text-[#22334A]">{row.student_name}</p>
+                      <p className="truncate text-[13px] font-black text-[#0C2A4B]">{row.student_name}</p>
                       {row.email ?
                         <p className="truncate text-[10px] font-semibold text-slate-500" dir="ltr">{row.email}</p>
                       : null}
@@ -320,7 +320,7 @@ export default function AttendanceTable({
                       value={row.notes ?? ''}
                       onChange={(e) => onChange(row.student_id, { notes: e.target.value || null })}
                       placeholder="ملاحظة…"
-                      className="mt-2 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold outline-none focus:border-[#2691C2]"
+                      className="mt-2 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold outline-none focus:border-[#0077B6]"
                     />
                   : null}
                 </div>

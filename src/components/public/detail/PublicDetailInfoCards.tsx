@@ -13,7 +13,7 @@ export default function PublicDetailInfoCards({ items }: { items: PublicInfoCard
   const accentCls = {
     blue: 'bg-sky-50 text-customBlue ring-sky-100',
     orange: 'bg-orange-50 text-customOrange ring-orange-100',
-    navy: 'bg-[#22334A]/5 text-deepBlue ring-[#22334A]/10',
+    navy: 'bg-[#0C2A4B]/5 text-deepBlue ring-[#0C2A4B]/10',
   } as const
 
   return (

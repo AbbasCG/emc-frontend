@@ -51,7 +51,7 @@ export const STATUS_CFG: Record<
   reviewed: {
     label: 'تحت المراجعة',
     badge: 'bg-sky-50 text-sky-800 ring-1 ring-sky-200/80',
-    dot: 'bg-[#2691C2]',
+    dot: 'bg-[#0077B6]',
   },
   accepted: {
     label: 'مقبول',
@@ -136,13 +136,13 @@ function SectionCard({
 }) {
   return (
     <section
-      className={`overflow-hidden rounded-2xl border border-[#22334A]/[0.06] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${className}`}
+      className={`overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.06] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${className}`}
     >
-      <div className="flex items-center gap-2.5 border-b border-[#22334A]/[0.05] bg-[#F8FAFC] px-4 py-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#22334A]/[0.06] text-[#22334A]/70">
+      <div className="flex items-center gap-2.5 border-b border-[#0C2A4B]/[0.05] bg-[#F8FAFC] px-4 py-3">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0C2A4B]/[0.06] text-[#0C2A4B]/70">
           {icon}
         </span>
-        <h3 className="text-[12px] font-bold tracking-tight text-[#22334A]">{title}</h3>
+        <h3 className="text-[12px] font-bold tracking-tight text-[#0C2A4B]">{title}</h3>
       </div>
       <div className="px-4 py-3.5">{children}</div>
     </section>
@@ -196,13 +196,13 @@ function ActionBtn({
 }) {
   const styles = {
     neutral:
-      'border-[#22334A]/10 bg-white text-[#22334A] hover:border-[#22334A]/20 hover:bg-[#F8FAFC]',
+      'border-[#0C2A4B]/10 bg-white text-[#0C2A4B] hover:border-[#0C2A4B]/20 hover:bg-[#F8FAFC]',
     primary:
-      'border-[#22334A] bg-[#22334A] text-white hover:bg-[#2691C2] hover:border-[#2691C2]',
+      'border-[#0C2A4B] bg-[#0C2A4B] text-white hover:bg-[#0077B6] hover:border-[#0077B6]',
     danger:
       'border-red-200/80 bg-white text-red-700 hover:bg-red-50',
     accent:
-      'border-[#2691C2]/25 bg-[#2691C2]/[0.06] text-[#22334A] hover:bg-[#2691C2]/10',
+      'border-[#0077B6]/25 bg-[#0077B6]/[0.06] text-[#0C2A4B] hover:bg-[#0077B6]/10',
   }[variant]
 
   return (
@@ -369,17 +369,17 @@ export default function VolunteerRequestDetailModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 24 }}
         transition={{ type: 'spring', damping: 30, stiffness: 380 }}
-        className="relative z-10 flex max-h-[92vh] w-full max-w-[1000px] flex-col overflow-hidden rounded-t-3xl bg-[#F8FAFC] font-[Cairo,sans-serif] shadow-[0_40px_100px_-24px_rgba(15,23,42,0.55)] ring-1 ring-[#22334A]/10 sm:max-h-[90vh] sm:rounded-3xl"
+        className="relative z-10 flex max-h-[92vh] w-full max-w-[1000px] flex-col overflow-hidden rounded-t-3xl bg-[#F8FAFC] font-[Cairo,sans-serif] shadow-[0_40px_100px_-24px_rgba(15,23,42,0.55)] ring-1 ring-[#0C2A4B]/10 sm:max-h-[90vh] sm:rounded-3xl"
         dir="rtl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Accent bar */}
-        <div className="h-1 shrink-0 bg-gradient-to-l from-[#2691C2] via-[#22334A] to-[#EC943C]" />
+        <div className="h-1 shrink-0 bg-gradient-to-l from-[#0077B6] via-[#0C2A4B] to-[#F28C00]" />
 
         {/* ── Header ─────────────────────────────────────────────── */}
-        <header className="shrink-0 border-b border-[#22334A]/[0.06] bg-white px-4 py-4 sm:px-6">
+        <header className="shrink-0 border-b border-[#0C2A4B]/[0.06] bg-white px-4 py-4 sm:px-6">
           <div className="flex items-start gap-3 sm:gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#22334A] text-[17px] font-bold text-white shadow-sm sm:h-14 sm:w-14 sm:text-[19px]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0C2A4B] text-[17px] font-bold text-white shadow-sm sm:h-14 sm:w-14 sm:text-[19px]">
               {req.full_name.charAt(0)}
             </div>
 
@@ -398,9 +398,9 @@ export default function VolunteerRequestDetailModal({
               </p>
               {req.created_at && (
                 <p className="mt-1.5 flex flex-wrap items-center gap-1 text-[11px] font-medium text-slate-400">
-                  <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2691C2]/70" />
+                  <Calendar className="h-3.5 w-3.5 shrink-0 text-[#0077B6]/70" />
                   <span>تاريخ التقديم:</span>
-                  <span className="font-bold text-[#22334A]/80">{formatDate(req.created_at)}</span>
+                  <span className="font-bold text-[#0C2A4B]/80">{formatDate(req.created_at)}</span>
                 </p>
               )}
             </div>
@@ -409,14 +409,14 @@ export default function VolunteerRequestDetailModal({
               type="button"
               onClick={onClose}
               aria-label="إغلاق"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#22334A]/10 bg-[#F8FAFC] text-slate-500 transition hover:border-[#22334A]/20 hover:text-[#22334A]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#0C2A4B]/10 bg-[#F8FAFC] text-slate-500 transition hover:border-[#0C2A4B]/20 hover:text-[#0C2A4B]"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Action bar */}
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#22334A]/[0.05] pt-4">
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#0C2A4B]/[0.05] pt-4">
             <ActionBtn
               variant="primary"
               disabled={saving || req.status === 'accepted'}
@@ -438,7 +438,7 @@ export default function VolunteerRequestDetailModal({
               disabled={saving}
               onClick={() => void quickStatus('reviewed')}
             >
-              <Video className="h-3.5 w-3.5 text-[#2691C2]" />
+              <Video className="h-3.5 w-3.5 text-[#0077B6]" />
               جدولة مقابلة
             </ActionBtn>
             {whatsappUrl && (
@@ -485,7 +485,7 @@ export default function VolunteerRequestDetailModal({
                     {skills.map((skill) => (
                       <span
                         key={skill}
-                        className="rounded-lg bg-[#22334A]/[0.05] px-2.5 py-1 text-[11px] font-bold text-[#22334A]"
+                        className="rounded-lg bg-[#0C2A4B]/[0.05] px-2.5 py-1 text-[11px] font-bold text-[#0C2A4B]"
                       >
                         {skill}
                       </span>
@@ -518,7 +518,7 @@ export default function VolunteerRequestDetailModal({
                     href={cvViewUrl ?? '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#22334A] bg-[#22334A] px-4 py-3 text-[12px] font-bold text-white transition hover:bg-[#2691C2] hover:border-[#2691C2]"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#0C2A4B] bg-[#0C2A4B] px-4 py-3 text-[12px] font-bold text-white transition hover:bg-[#0077B6] hover:border-[#0077B6]"
                   >
                     <Eye className="h-4 w-4" />
                     عرض السيرة الذاتية
@@ -528,9 +528,9 @@ export default function VolunteerRequestDetailModal({
                     download
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#22334A]/15 bg-white px-4 py-3 text-[12px] font-bold text-[#22334A] transition hover:border-[#2691C2]/40 hover:bg-[#2691C2]/[0.04]"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#0C2A4B]/15 bg-white px-4 py-3 text-[12px] font-bold text-[#0C2A4B] transition hover:border-[#0077B6]/40 hover:bg-[#0077B6]/[0.04]"
                   >
-                    <Download className="h-4 w-4 text-[#2691C2]" />
+                    <Download className="h-4 w-4 text-[#0077B6]" />
                     تحميل السيرة الذاتية
                   </a>
                 </div>
@@ -548,7 +548,7 @@ export default function VolunteerRequestDetailModal({
                 className={`md:col-span-2 rounded-2xl border px-4 py-3 ${
                   localConverted
                     ? 'border-emerald-200/80 bg-emerald-50/60'
-                    : 'border-[#22334A]/10 bg-white'
+                    : 'border-[#0C2A4B]/10 bg-white'
                 }`}
               >
                 {localConverted ? (
@@ -568,8 +568,8 @@ export default function VolunteerRequestDetailModal({
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-2">
-                    <UserPlus className="h-4 w-4 shrink-0 text-[#22334A]/60" />
-                    <p className="min-w-0 flex-1 text-[12px] font-medium text-[#22334A]">
+                    <UserPlus className="h-4 w-4 shrink-0 text-[#0C2A4B]/60" />
+                    <p className="min-w-0 flex-1 text-[12px] font-medium text-[#0C2A4B]">
                       إضافة هذا المتطوع إلى صفحة الأعضاء؟
                     </p>
                     <button
@@ -583,7 +583,7 @@ export default function VolunteerRequestDetailModal({
                           : () => void handleConvert()
                       }
                       disabled={converting}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#22334A] bg-[#22334A] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#2691C2] disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#0C2A4B] bg-[#0C2A4B] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#0077B6] disabled:opacity-50"
                     >
                       {converting ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -620,7 +620,7 @@ export default function VolunteerRequestDetailModal({
                         setDirty(true)
                       }}
                       dir="rtl"
-                      className="h-11 w-full appearance-none rounded-xl border border-[#22334A]/10 bg-white pl-9 pr-3.5 text-[13px] font-bold text-[#0F172A] outline-none transition focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#0C2A4B]/10 bg-white pl-9 pr-3.5 text-[13px] font-bold text-[#0F172A] outline-none transition focus:border-[#0077B6] focus:ring-2 focus:ring-[#0077B6]/15"
                     >
                       {ALL_STATUSES.map((s) => (
                         <option key={s} value={s}>
@@ -653,7 +653,7 @@ export default function VolunteerRequestDetailModal({
                     }}
                     placeholder="ملاحظات داخلية للفريق..."
                     rows={3}
-                    className="w-full resize-none rounded-xl border border-[#22334A]/10 bg-white px-3.5 py-2.5 text-[13px] font-medium leading-relaxed text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+                    className="w-full resize-none rounded-xl border border-[#0C2A4B]/10 bg-white px-3.5 py-2.5 text-[13px] font-medium leading-relaxed text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-2 focus:ring-[#0077B6]/15"
                   />
                 </div>
 
@@ -662,7 +662,7 @@ export default function VolunteerRequestDetailModal({
                     type="button"
                     onClick={() => void handleSave()}
                     disabled={!dirty || saving}
-                    className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                     حفظ التغييرات
@@ -675,8 +675,8 @@ export default function VolunteerRequestDetailModal({
 
         {/* Sticky save hint when dirty — compact footer */}
         {dirty && (
-          <footer className="shrink-0 border-t border-[#EC943C]/20 bg-[#EC943C]/[0.06] px-4 py-2.5 sm:px-6">
-            <p className="text-center text-[11px] font-medium text-[#22334A]">
+          <footer className="shrink-0 border-t border-[#F28C00]/20 bg-[#F28C00]/[0.06] px-4 py-2.5 sm:px-6">
+            <p className="text-center text-[11px] font-medium text-[#0C2A4B]">
               لديك تغييرات غير محفوظة — اضغط «حفظ التغييرات» قبل الإغلاق
             </p>
           </footer>

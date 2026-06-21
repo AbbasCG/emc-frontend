@@ -81,7 +81,7 @@ function UsersDataTableInner({ users, getRowActions, onRowClick }: Props) {
                   <UserVerifiedBadge user={u} />
                 </Td>
                 <Td>
-                  <p className="text-[12px] font-semibold text-[#22334A]">{formatLastLogin(u.last_login_at)}</p>
+                  <p className="text-[12px] font-semibold text-[#0C2A4B]">{formatLastLogin(u.last_login_at)}</p>
                 </Td>
                 <Td>
                   <p className="text-[12px] text-slate-500">{formatDate(u.created_at)}</p>

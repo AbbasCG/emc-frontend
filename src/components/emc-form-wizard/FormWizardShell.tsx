@@ -73,8 +73,8 @@ export function FormWizardShell({
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className={cn(EMC_WIZARD_HEADER_GRADIENT, variant === 'overlay' && 'm-3 shrink-0 sm:m-4 !py-3 sm:!py-4')}>
-        <div className="pointer-events-none absolute -end-24 -top-24 h-56 w-56 rounded-full bg-[#2691C2]/25 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 start-0 h-64 w-64 rounded-full bg-[#EC943C]/20 blur-3xl" />
+        <div className="pointer-events-none absolute -end-24 -top-24 h-56 w-56 rounded-full bg-[#0077B6]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 start-0 h-64 w-64 rounded-full bg-[#F28C00]/20 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 text-right">
             {eyebrow ?
@@ -103,7 +103,7 @@ export function FormWizardShell({
               <FormStepper steps={stepsMeta} currentStep={currentStep} onStepSelect={onStepSelect} compact />
               <div className="h-0.5 overflow-hidden rounded-full bg-white/15">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C]"
+                  className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]"
                   initial={false}
                   animate={{ width: `${progressPercent}%` }}
                   transition={{ type: 'spring', stiffness: 320, damping: 34 }}

@@ -131,7 +131,7 @@ export default function FinanceBentoWidgets({ data }: { data: FinanceDashboardDa
                     initial={{ width: 0 }}
                     animate={{ width: `${(g.amount / gwMax) * 100}%` }}
                     transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1] }}
-                    className="h-full rounded-full bg-gradient-to-l from-brand-500 to-accent-500"
+                    className="h-full rounded-full bg-gradient-to-l from-brand-400 to-brand-600"
                   />
                 </div>
               </li>

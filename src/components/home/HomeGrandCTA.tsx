@@ -32,7 +32,7 @@ export default function HomeGrandCTA() {
       <div
         className="relative mx-auto max-w-[1540px] overflow-hidden rounded-[2rem] px-8 py-16 text-white sm:px-14 sm:py-20 lg:px-20 lg:py-24"
         style={{
-          background: 'linear-gradient(135deg, #22334A 0%, #1a4f78 40%, #2691C2 75%, #1e6a9a 100%)',
+          background: 'linear-gradient(135deg, #0C2A4B 0%, #1a4f78 40%, #0077B6 75%, #1e6a9a 100%)',
         }}
       >
         {/* Grid overlay */}
@@ -110,7 +110,7 @@ export default function HomeGrandCTA() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white shadow-[0_20px_50px_-12px_rgba(236,148,60,0.6)] transition-all hover:brightness-105"
+                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white shadow-[0_20px_50px_-12px_rgba(242, 140, 0,0.6)] transition-all hover:brightness-105"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/15 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 استعرض البرامج والدورات

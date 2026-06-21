@@ -149,7 +149,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 function CardSkeleton() {
   return (
-    <div className="relative h-72 overflow-hidden rounded-[1.35rem] bg-gradient-to-bl from-[#22334A] to-[#1a2535] p-5">
+    <div className="relative h-72 overflow-hidden rounded-[1.35rem] bg-gradient-to-bl from-[#0C2A4B] to-[#1a2535] p-5">
       <div className="animate-pulse space-y-3">
         <div className="flex items-start justify-between">
           <div className="h-4 w-16 rounded-full bg-white/15" />
@@ -347,9 +347,9 @@ export default function ProgramsConsolePage() {
       <motion.header
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-[1.75rem] border border-white/60 bg-gradient-to-bl from-[#22334A] via-[#0F172A] to-[#2691C2] p-[1px] shadow-2xl"
+        className="overflow-hidden rounded-[1.75rem] border border-white/60 bg-gradient-to-bl from-[#0C2A4B] via-[#0F172A] to-[#0077B6] p-[1px] shadow-2xl"
       >
-        <div className="rounded-[1.7rem] bg-gradient-to-bl from-[#22334A]/95 via-[#0F172A]/98 to-[#2691C2]/88 px-6 py-8 text-white sm:px-10 sm:py-10">
+        <div className="rounded-[1.7rem] bg-gradient-to-bl from-[#0C2A4B]/95 via-[#0F172A]/98 to-[#0077B6]/88 px-6 py-8 text-white sm:px-10 sm:py-10">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 text-right">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/55">EMC · Course OS</p>
@@ -371,7 +371,7 @@ export default function ProgramsConsolePage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="rounded-2xl bg-[#EC943C] px-5 py-2.5 text-xs font-black text-[#0F172A] shadow-lg shadow-black/20"
+                className="rounded-2xl bg-[#F28C00] px-5 py-2.5 text-xs font-black text-[#0F172A] shadow-lg shadow-black/20"
               >
                 + إنشاء برنامج
               </button>
@@ -428,7 +428,7 @@ export default function ProgramsConsolePage() {
 
       {!loading && !failed && (
         <p className="mb-2 text-[11px] font-bold text-slate-400" dir="rtl">
-          عرض <span className="font-black text-[#22334A]">{filtered.length}</span> من أصل <span className="font-black text-[#22334A]">{rows.length}</span> برنامج
+          عرض <span className="font-black text-[#0C2A4B]">{filtered.length}</span> من أصل <span className="font-black text-[#0C2A4B]">{rows.length}</span> برنامج
         </p>
       )}
 
@@ -483,13 +483,13 @@ export default function ProgramsConsolePage() {
                 <tbody>
                   {filtered.map((c) => {
                     const dateLabel = !c._hasDate
-                      ? <span className="font-black text-[#EC943C]">الموعد لم يحدد بعد</span>
+                      ? <span className="font-black text-[#F28C00]">الموعد لم يحدد بعد</span>
                       : String(c.start_date ?? '').slice(0, 10)
                     return (
                       <Tr key={c.id}>
                         <Td>
                           <div className="flex items-center gap-3">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#2691C2]/25">
+                            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#0077B6]/25">
                               {initialsFromName(c.title)}
                             </span>
                             <div className="min-w-0 text-right">
@@ -513,7 +513,7 @@ export default function ProgramsConsolePage() {
                           {c.is_part_of_learning_path && c.learning_path ? (
                             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
                               c.learning_path.status === 'published' || c.learning_path.status === 'active'
-                                ? 'bg-[#2691C2]/10 text-[#2691C2]'
+                                ? 'bg-[#0077B6]/10 text-[#0077B6]'
                                 : 'bg-slate-100 text-slate-500'
                             }`}>
                               🎓 {c.learning_path.title}
@@ -577,7 +577,7 @@ export default function ProgramsConsolePage() {
         }
         avatar={
           preview
-            ? <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#2691C2]/15 text-sm font-black text-deepBlue ring-2 ring-white">
+            ? <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#0077B6]/15 text-sm font-black text-deepBlue ring-2 ring-white">
                 {initialsFromName(preview.title)}
               </span>
             : null
@@ -633,7 +633,7 @@ export default function ProgramsConsolePage() {
                       <dl className="grid gap-3 sm:grid-cols-2">
                         <EntityDetailField label="معرّف"    value={<span className="font-mono">#{preview.id}</span>} />
                         <EntityDetailField label="تسجيلات"  value={<span className="font-mono">{String(preview._regs)}</span>} />
-                        <EntityDetailField label="موعد"     value={!preview._hasDate ? <span className="font-black text-[#EC943C]">انضم إلى الدورة القادمة</span> : String(preview.start_date ?? '')} />
+                        <EntityDetailField label="موعد"     value={!preview._hasDate ? <span className="font-black text-[#F28C00]">انضم إلى الدورة القادمة</span> : String(preview.start_date ?? '')} />
                         <EntityDetailField label="رابط اجتماع" value={preview.meeting_link ?? '—'} />
                         <EntityDetailField label="المدرب"   value={instructorDrawerField(preview)} />
                       </dl>
@@ -716,7 +716,7 @@ function KpiMini({ icon: Icon, label, value, tone }: {
 }) {
   const ring: Record<typeof tone, string> = {
     sky: 'ring-sky-400/30', mint: 'ring-emerald-400/30', amber: 'ring-amber-400/35',
-    rose: 'ring-rose-400/35', violet: 'ring-violet-400/35', orange: 'ring-[#EC943C]/40',
+    rose: 'ring-rose-400/35', violet: 'ring-violet-400/35', orange: 'ring-[#F28C00]/40',
   }
   return (
     <div className={`rounded-2xl border border-white/10 bg-white/10 px-4 py-3 shadow-inner shadow-black/10 ring-1 ${ring[tone]} backdrop-blur-md`}>
@@ -744,9 +744,9 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
   onDelete: () => void
 }) {
   const palette =
-    index % 3 === 0 ? 'from-[#22334A] to-[#2691C2]'
-    : index % 3 === 1 ? 'from-[#EC943C] to-[#22334A]'
-    : 'from-[#0F172A] to-[#22334A]'
+    index % 3 === 0 ? 'from-[#0C2A4B] to-[#0077B6]'
+    : index % 3 === 1 ? 'from-[#F28C00] to-[#0C2A4B]'
+    : 'from-[#0F172A] to-[#0C2A4B]'
   const imgUrl = getCourseImage(c)
 
   return (
@@ -785,7 +785,7 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
         {c.is_part_of_learning_path && c.learning_path && (
           <div className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
             c.learning_path.status === 'published' || c.learning_path.status === 'active'
-              ? 'bg-[#2691C2]/30 text-white'
+              ? 'bg-[#0077B6]/30 text-white'
               : 'bg-white/15 text-white/70'
           }`}>
             🎓 ضمن مسار: {c.learning_path.title}
@@ -1027,7 +1027,7 @@ function CourseInstructorTableCell({
   const showImg = Boolean(resolved.avatarUrl && !imgFailed)
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#2691C2]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#2691C2]/22">
+      <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#0077B6]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#0077B6]/22">
         {showImg && resolved.avatarUrl
           ? <img src={resolved.avatarUrl} alt="" loading="lazy" decoding="async"
               className="h-full w-full object-cover" referrerPolicy="no-referrer"

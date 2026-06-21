@@ -104,20 +104,20 @@ function QuickRejectModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(34,51,74,0.35)] ring-1 ring-slate-200/60"
+        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-slate-200/60"
         dir="rtl"
       >
         <div className="flex items-center gap-3 bg-red-50 px-6 py-4">
           <XCircle className="h-5 w-5 shrink-0 text-red-500" />
           <div>
-            <p className="text-[14px] font-black text-[#22334A]">رفض الطلب</p>
+            <p className="text-[14px] font-black text-[#0C2A4B]">رفض الطلب</p>
             <p className="text-[11px] font-semibold text-slate-500">{req.program_name}</p>
           </div>
         </div>
         <div className="px-6 py-5">
-          <label className="block text-[13px] font-black text-[#22334A]">سبب الرفض (مطلوب)</label>
+          <label className="block text-[13px] font-black text-[#0C2A4B]">سبب الرفض (مطلوب)</label>
           <textarea
-            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[#2691C2]/50 focus:outline-none focus:ring-2 focus:ring-[#2691C2]/15"
+            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[#0077B6]/50 focus:outline-none focus:ring-2 focus:ring-[#0077B6]/15"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -208,7 +208,7 @@ export default function WorkshopRequestsPage() {
   const isAdmin = ['admin', 'super_admin', 'executive_admin'].includes(user?.role ?? '')
 
   return (
-    <main dir="rtl" className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#2691C2]/[0.05] pb-20 pt-[5.25rem]">
+    <main dir="rtl" className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#0077B6]/[0.05] pb-20 pt-[5.25rem]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
@@ -216,13 +216,13 @@ export default function WorkshopRequestsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#22334A] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
+          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#0C2A4B] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
         >
-          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#2691C2]/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#EC943C]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#F28C00]/20 blur-3xl" />
           <div className="relative flex flex-wrap items-start justify-between gap-4 text-right">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#EC943C]">إدارة الطلبات</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#F28C00]">إدارة الطلبات</p>
               <h1 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">طلبات البرامج التدريبية</h1>
               <p className="mt-2 text-[14px] font-semibold text-white/80">
                 مراجعة وإدارة طلبات الورش عبر مراحل الاعتماد السبع
@@ -235,7 +235,7 @@ export default function WorkshopRequestsPage() {
                 </span>
               )}
               {data && (
-                <span className="rounded-2xl bg-[#2691C2]/30 px-3 py-1.5 text-[11px] font-black text-white">
+                <span className="rounded-2xl bg-[#0077B6]/30 px-3 py-1.5 text-[11px] font-black text-white">
                   {data.total} طلب
                 </span>
               )}
@@ -285,7 +285,7 @@ export default function WorkshopRequestsPage() {
               placeholder="البحث باسم البرنامج أو مقدم الطلب..."
               value={searchInput}
               onChange={(e) => handleSearchInput(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200/80 bg-white py-2.5 pe-10 ps-4 text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[#2691C2]/50 focus:outline-none focus:ring-2 focus:ring-[#2691C2]/15 sm:max-w-sm"
+              className="w-full rounded-2xl border border-slate-200/80 bg-white py-2.5 pe-10 ps-4 text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[#0077B6]/50 focus:outline-none focus:ring-2 focus:ring-[#0077B6]/15 sm:max-w-sm"
             />
             {searchInput && (
               <button
@@ -308,8 +308,8 @@ export default function WorkshopRequestsPage() {
                 className={cn(
                   'rounded-2xl px-3.5 py-1.5 text-[12px] font-black ring-1 transition',
                   filterStatus === opt.value
-                    ? 'bg-[#2691C2] text-white ring-[#2691C2]'
-                    : 'bg-white text-slate-600 ring-slate-200 hover:ring-[#2691C2]/35',
+                    ? 'bg-[#0077B6] text-white ring-[#0077B6]'
+                    : 'bg-white text-slate-600 ring-slate-200 hover:ring-[#0077B6]/35',
                 )}
               >
                 {opt.label}
@@ -323,11 +323,11 @@ export default function WorkshopRequestsPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.06 }}
-          className="mt-5 overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
+          className="mt-5 overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_20px_60px_-18px_rgba(12, 42, 75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
         >
           {loading && (
             <div className="flex items-center justify-center py-24">
-              <Loader2 className="h-8 w-8 animate-spin text-[#2691C2]" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#0077B6]" />
             </div>
           )}
 
@@ -336,7 +336,7 @@ export default function WorkshopRequestsPage() {
               <AlertCircle className="h-8 w-8 text-red-500" />
               <p className="text-[14px] font-bold text-slate-600">{error}</p>
               <button type="button" onClick={() => void load()}
-                className="mt-1 rounded-2xl bg-[#2691C2] px-5 py-2 text-[13px] font-black text-white">
+                className="mt-1 rounded-2xl bg-[#0077B6] px-5 py-2 text-[13px] font-black text-white">
                 إعادة المحاولة
               </button>
             </div>
@@ -350,7 +350,7 @@ export default function WorkshopRequestsPage() {
               </p>
               {search && (
                 <button type="button" onClick={() => { setSearchInput(''); setSearch('') }}
-                  className="text-[13px] font-bold text-[#2691C2] hover:underline">
+                  className="text-[13px] font-bold text-[#0077B6] hover:underline">
                   مسح البحث
                 </button>
               )}
@@ -394,14 +394,14 @@ export default function WorkshopRequestsPage() {
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.18, delay: idx * 0.025 }}
-                          className="group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#2691C2]/[0.025]"
+                          className="group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0077B6]/[0.025]"
                           onClick={() => navigate(`/dashboard/admin/workshop-requests/${req.id}`)}
                         >
                           <td className="py-4 pe-5 ps-4 text-[12px] font-black text-slate-400">
                             {req.id}
                           </td>
                           <td className="py-4 pe-3 max-w-[220px]">
-                            <p className="truncate text-[13px] font-black text-[#22334A]">{req.program_name}</p>
+                            <p className="truncate text-[13px] font-black text-[#0C2A4B]">{req.program_name}</p>
                             <p className="mt-0.5 text-[11px] font-semibold text-slate-500">
                               خطوة {req.current_step} / 7
                             </p>
@@ -411,7 +411,7 @@ export default function WorkshopRequestsPage() {
                             <p className="mt-0.5 text-[11px] text-slate-400 truncate max-w-[160px]">{req.requester_email}</p>
                           </td>
                           <td className="py-4 pe-3">
-                            <span className="text-[12px] font-bold text-[#2691C2]">
+                            <span className="text-[12px] font-bold text-[#0077B6]">
                               {DEPT_LABELS[req.current_department] ?? req.current_department}
                             </span>
                           </td>
@@ -461,7 +461,7 @@ export default function WorkshopRequestsPage() {
                               <Link
                                 to={`/dashboard/admin/workshop-requests/${req.id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="grid h-8 w-8 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/20 transition hover:bg-[#2691C2] hover:text-white"
+                                className="grid h-8 w-8 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6] ring-1 ring-[#0077B6]/20 transition hover:bg-[#0077B6] hover:text-white"
                                 title="عرض التفاصيل"
                               >
                                 <ChevronLeft className="h-4 w-4" />
@@ -485,7 +485,7 @@ export default function WorkshopRequestsPage() {
               type="button"
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1 || loading}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[12px] font-black text-slate-600 transition hover:border-[#2691C2]/30 hover:text-[#2691C2] disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[12px] font-black text-slate-600 transition hover:border-[#0077B6]/30 hover:text-[#0077B6] disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
               السابق
@@ -497,7 +497,7 @@ export default function WorkshopRequestsPage() {
               type="button"
               onClick={() => setPage((p) => Math.min(p + 1, data.last_page))}
               disabled={page === data.last_page || loading}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[12px] font-black text-slate-600 transition hover:border-[#2691C2]/30 hover:text-[#2691C2] disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[12px] font-black text-slate-600 transition hover:border-[#0077B6]/30 hover:text-[#0077B6] disabled:opacity-40"
             >
               التالي
               <ChevronLeft className="h-4 w-4" />

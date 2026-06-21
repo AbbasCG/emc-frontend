@@ -5,7 +5,7 @@ import type { ResolvedPublicCourseInstructor } from '@/utils/courseInstructor'
 const PLACEHOLDER =
   'data:image/svg+xml,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#22334A"/><stop offset="100%" stop-color="#2691C2"/></linearGradient></defs><circle cx="80" cy="80" r="80" fill="url(#g)"/><circle cx="80" cy="62" r="22" fill="#ffffff33"/><path fill="#ffffff44" d="M36 138c10-26 26-38 44-38s34 12 44 38"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0C2A4B"/><stop offset="100%" stop-color="#0077B6"/></linearGradient></defs><circle cx="80" cy="80" r="80" fill="url(#g)"/><circle cx="80" cy="62" r="22" fill="#ffffff33"/><path fill="#ffffff44" d="M36 138c10-26 26-38 44-38s34 12 44 38"/></svg>`,
   )
 
 export type WorkshopInstructor = {

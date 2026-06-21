@@ -9,7 +9,7 @@ const testimonials = [
     role: 'رئيسة قسم التحول الرقمي',
     org: 'جهة أكاديمية شريكة',
     initial: 'ل',
-    color: '#2691C2',
+    color: '#0077B6',
     stars: 5,
   },
   {
@@ -18,7 +18,7 @@ const testimonials = [
     role: 'مدير برامج التطوير',
     org: 'قطاع غير ربحي',
     initial: 'ك',
-    color: '#EC943C',
+    color: '#F28C00',
     stars: 5,
   },
   {
@@ -27,7 +27,7 @@ const testimonials = [
     role: 'مسؤولة التعلّم والتطوير',
     org: 'شركة تقنية رائدة',
     initial: 'س',
-    color: '#2691C2',
+    color: '#0077B6',
     stars: 5,
   },
   {
@@ -36,7 +36,7 @@ const testimonials = [
     role: 'محلل بيانات',
     org: 'قطاع الاتصالات',
     initial: 'ي',
-    color: '#EC943C',
+    color: '#F28C00',
     stars: 5,
   },
 ] as const
@@ -51,7 +51,7 @@ function StarRating({ count }: { count: number }) {
           key={i}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
-          fill={i < count ? '#EC943C' : '#e2e8f0'}
+          fill={i < count ? '#F28C00' : '#e2e8f0'}
           className="h-4 w-4"
           aria-hidden
         >

@@ -122,7 +122,7 @@ export default function WorkshopsManagementPage() {
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
-            <Link to="/submit-workshop" className="rounded-2xl bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
+            <Link to="/submit-workshop" className="rounded-2xl bg-[#F28C00] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
               قبول ورش من الزوار
             </Link>
           </>
@@ -209,10 +209,10 @@ export default function WorkshopsManagementPage() {
       : !filtered.length ?
         <EmptyPanel title="لا ورش في هذا الشق الزمني." subtitle="جرّب تبويبًا آخر أو امسح المرشحات." />
       :
-        <div className="relative mt-6 space-y-5 before:absolute before:inset-y-0 before:right-4 before:w-px before:bg-gradient-to-b before:from-customBlue/20 before:via-accent-400/30 before:to-transparent sm:before:right-6">
+        <div className="relative mt-6 space-y-5 before:absolute before:inset-y-0 before:right-4 before:w-px before:bg-gradient-to-b before:from-customBlue/20 before:via-customBlue/15 before:to-transparent sm:before:right-6">
           {filtered.map((w) => (
               <SaGlassCard key={w.id} className="relative me-10 p-5 sm:me-14" glow="orange">
-                <span className="absolute -right-1 top-6 grid h-10 w-10 place-items-center rounded-2xl border-2 border-white bg-gradient-to-br from-[#2691C2] to-[#22334A] text-xs font-black text-white shadow-lg sm:right-1">
+                <span className="absolute -right-1 top-6 grid h-10 w-10 place-items-center rounded-2xl border-2 border-white bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-xs font-black text-white shadow-lg sm:right-1">
                   {w.date ?
                     String(w.date).slice(8, 10)
                   : '—'}

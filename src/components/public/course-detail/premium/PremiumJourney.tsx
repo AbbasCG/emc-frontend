@@ -68,8 +68,8 @@ export default function PremiumJourney({ course, derived }: Props) {
 
   return (
     <section aria-label="رحلة التعلم" dir="rtl">
-      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-black text-[#22334A]">
-        <span className="h-4 w-1 rounded-full bg-[#2691C2]" aria-hidden />
+      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-black text-[#0C2A4B]">
+        <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
         رحلة التعلم
       </h2>
 
@@ -87,7 +87,7 @@ export default function PremiumJourney({ course, derived }: Props) {
             {i < steps.length - 1 && (
               <span
                 aria-hidden
-                className="pointer-events-none absolute top-6 left-0 block h-px w-full translate-x-[calc(-50%+1.5rem)] bg-gradient-to-l from-transparent via-[#2691C2]/22 to-transparent"
+                className="pointer-events-none absolute top-6 left-0 block h-px w-full translate-x-[calc(-50%+1.5rem)] bg-gradient-to-l from-transparent via-[#0077B6]/22 to-transparent"
               />
             )}
 
@@ -96,22 +96,22 @@ export default function PremiumJourney({ course, derived }: Props) {
               className={cn(
                 'relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2',
                 step.isOrange
-                  ? 'border-[#EC943C]/25 bg-gradient-to-br from-[#EC943C]/12 to-[#EC943C]/5 text-[#EC943C] shadow-[0_4px_16px_-4px_rgba(236,148,60,0.22)]'
-                  : 'border-[#2691C2]/25 bg-gradient-to-br from-[#2691C2]/12 to-[#2691C2]/5 text-[#2691C2] shadow-[0_4px_16px_-4px_rgba(38,145,194,0.22)]',
+                  ? 'border-[#F28C00]/25 bg-gradient-to-br from-[#F28C00]/12 to-[#F28C00]/5 text-[#F28C00] shadow-[0_4px_16px_-4px_rgba(242, 140, 0,0.22)]'
+                  : 'border-[#0077B6]/25 bg-gradient-to-br from-[#0077B6]/12 to-[#0077B6]/5 text-[#0077B6] shadow-[0_4px_16px_-4px_rgba(0, 119, 182,0.22)]',
               )}
             >
               <step.icon className="h-5 w-5" />
               <span
                 className={cn(
                   'absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-black text-white',
-                  step.isOrange ? 'bg-[#EC943C]' : 'bg-[#2691C2]',
+                  step.isOrange ? 'bg-[#F28C00]' : 'bg-[#0077B6]',
                 )}
               >
                 {step.number}
               </span>
             </div>
 
-            <p className="mt-3 text-[12.5px] font-black text-[#22334A]">{step.phase}</p>
+            <p className="mt-3 text-[12.5px] font-black text-[#0C2A4B]">{step.phase}</p>
             <p className="mt-1 px-1 text-[10.5px] leading-[1.55] text-slate-500">{step.desc}</p>
           </motion.div>
         ))}
@@ -125,22 +125,22 @@ export default function PremiumJourney({ course, derived }: Props) {
             className={cn(
               'flex items-start gap-3 rounded-xl border p-3',
               step.isOrange
-                ? 'border-[#EC943C]/14 bg-gradient-to-l from-[#EC943C]/6 to-white'
-                : 'border-[#2691C2]/14 bg-gradient-to-l from-[#2691C2]/6 to-white',
+                ? 'border-[#F28C00]/14 bg-gradient-to-l from-[#F28C00]/6 to-white'
+                : 'border-[#0077B6]/14 bg-gradient-to-l from-[#0077B6]/6 to-white',
             )}
           >
             <div
               className={cn(
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-black',
                 step.isOrange
-                  ? 'border-[#EC943C]/30 bg-white text-[#EC943C]'
-                  : 'border-[#2691C2]/30 bg-white text-[#2691C2]',
+                  ? 'border-[#F28C00]/30 bg-white text-[#F28C00]'
+                  : 'border-[#0077B6]/30 bg-white text-[#0077B6]',
               )}
             >
               {step.number}
             </div>
             <div className="text-right">
-              <p className="text-xs font-black text-[#22334A]">{step.phase}</p>
+              <p className="text-xs font-black text-[#0C2A4B]">{step.phase}</p>
               <p className="mt-0.5 text-[11px] leading-[1.55] text-slate-500">{step.desc}</p>
             </div>
           </div>

@@ -108,7 +108,7 @@ const stepAnimation = {
 }
 
 const glassCard =
-  'rounded-3xl border border-white/70 bg-white/75 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
+  'rounded-3xl border border-white/70 bg-white/75 shadow-[0_20px_60px_-18px_rgba(12, 42, 75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
 
 const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
 const SUCCESS_DESCRIPTION =
@@ -130,7 +130,7 @@ function WorkshopSuccessCelebration({
     top: `${8 + (i * 29) % 72}%`,
     delay: i * 0.035,
     wide: i % 3 === 0,
-    tone: i % 2 === 0 ? '#2691C2' : '#EC943C',
+    tone: i % 2 === 0 ? '#0077B6' : '#F28C00',
   }))
 
   return (
@@ -153,9 +153,9 @@ function WorkshopSuccessCelebration({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 10 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(34,51,74,0.35)] ring-1 ring-[#2691C2]/15 backdrop-blur-xl"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-[#0077B6]/15 backdrop-blur-xl"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(38,145,194,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(236,148,60,0.12),transparent_48%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(0, 119, 182,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(242, 140, 0,0.12),transparent_48%)]" />
 
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               {particles.map((p) => (
@@ -195,8 +195,8 @@ function WorkshopSuccessCelebration({
                 >
                   <defs>
                     <linearGradient id="workshopSuccessRing" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#2691C2" />
-                      <stop offset="100%" stopColor="#EC943C" />
+                      <stop offset="0%" stopColor="#0077B6" />
+                      <stop offset="100%" stopColor="#F28C00" />
                     </linearGradient>
                   </defs>
                   <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" strokeWidth="5" />
@@ -231,7 +231,7 @@ function WorkshopSuccessCelebration({
                 </motion.div>
               </div>
 
-              <h2 id="workshop-success-title" className="text-xl font-black leading-snug text-[#22334A] sm:text-2xl">
+              <h2 id="workshop-success-title" className="text-xl font-black leading-snug text-[#0C2A4B] sm:text-2xl">
                 {SUCCESS_TITLE}
               </h2>
               <p id="workshop-success-desc" className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-muted-600">
@@ -242,9 +242,9 @@ function WorkshopSuccessCelebration({
                 <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     to="/"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-[13px] font-black text-[#22334A] shadow-sm transition hover:border-[#2691C2]/35 hover:bg-slate-50 sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-[13px] font-black text-[#0C2A4B] shadow-sm transition hover:border-[#0077B6]/35 hover:bg-slate-50 sm:w-auto"
                   >
-                    <Home className="h-4 w-4 text-[#2691C2]" aria-hidden />
+                    <Home className="h-4 w-4 text-[#0077B6]" aria-hidden />
                     العودة للرئيسية
                   </Link>
                 </motion.div>
@@ -252,7 +252,7 @@ function WorkshopSuccessCelebration({
                   <button
                     type="button"
                     onClick={onReset}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(38,145,194,0.38)] transition hover:brightness-[1.05] sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(0, 119, 182,0.38)] transition hover:brightness-[1.05] sm:w-auto"
                   >
                     <RotateCcw className="h-4 w-4" aria-hidden />
                     تقديم طلب جديد
@@ -479,23 +479,23 @@ export default function SubmitWorkshop() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#2691C2]/[0.06] pb-20 pt-[5.25rem]"
+      className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#0077B6]/[0.06] pb-20 pt-[5.25rem]"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#22334A] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
+          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#0C2A4B] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
         >
-          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#2691C2]/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#EC943C]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#F28C00]/20 blur-3xl" />
           <div className="relative text-right">
             <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-white/85">
               <Link to="/" className="transition hover:text-white">
                 الرئيسية
               </Link>
-              <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-[#EC943C]" aria-hidden />
+              <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-[#F28C00]" aria-hidden />
               <span className="text-white">تقديم ورشة عمل</span>
             </nav>
             <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">تقديم ورشة عمل</h1>
@@ -528,7 +528,7 @@ export default function SubmitWorkshop() {
               <div className="border-b border-slate-200/70 bg-gradient-to-l from-white via-slate-50/80 to-white px-6 py-6 sm:px-8">
                 <div className="hidden lg:block">
                   <div className="relative mb-8">
-                    <div className="absolute end-[12%] start-[12%] top-[22px] z-0 h-[5px] rounded-full bg-gradient-to-l from-slate-200 via-[#2691C2]/25 to-slate-200" aria-hidden />
+                    <div className="absolute end-[12%] start-[12%] top-[22px] z-0 h-[5px] rounded-full bg-gradient-to-l from-slate-200 via-[#0077B6]/25 to-slate-200" aria-hidden />
                     <div className="relative z-[1] grid grid-cols-4 gap-2">
                       {STEP_META.map((meta) => {
                         const done = step > meta.id
@@ -542,7 +542,7 @@ export default function SubmitWorkshop() {
                                 done && 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white',
                                 active &&
                                   !done &&
-                                  'bg-gradient-to-br from-[#EC943C] to-amber-600 text-white shadow-[0_12px_28px_rgba(236,148,60,0.35)]',
+                                  'bg-gradient-to-br from-[#F28C00] to-amber-600 text-white shadow-[0_12px_28px_rgba(242, 140, 0,0.35)]',
                                 !done && !active && 'border border-slate-200 bg-white text-slate-500',
                               )}
                             >
@@ -550,19 +550,19 @@ export default function SubmitWorkshop() {
                                 <Check className="h-5 w-5" aria-hidden />
                               : meta.id}
                             </motion.span>
-                            <p className="mt-3 hidden text-[11px] font-black leading-snug text-[#22334A] lg:block">{meta.title}</p>
+                            <p className="mt-3 hidden text-[11px] font-black leading-snug text-[#0C2A4B] lg:block">{meta.title}</p>
                           </div>
                         )
                       })}
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#2691C2]/20 bg-[#2691C2]/[0.07] px-4 py-3">
-                    <span className="text-[12px] font-black text-[#22334A]">تقدّم الطلب</span>
-                    <span className="text-sm font-black text-[#2691C2]">{progressPct}%</span>
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.07] px-4 py-3">
+                    <span className="text-[12px] font-black text-[#0C2A4B]">تقدّم الطلب</span>
+                    <span className="text-sm font-black text-[#0077B6]">{progressPct}%</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200/90">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C]"
+                      className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]"
                       initial={false}
                       animate={{ width: `${progressPct}%` }}
                       transition={{ type: 'spring', stiffness: 320, damping: 34 }}
@@ -580,7 +580,7 @@ export default function SubmitWorkshop() {
                           key={meta.id}
                           className={cn(
                             'flex items-center gap-3 rounded-2xl border px-4 py-3 transition',
-                            active && 'border-[#2691C2]/45 bg-[#2691C2]/[0.06] shadow-sm',
+                            active && 'border-[#0077B6]/45 bg-[#0077B6]/[0.06] shadow-sm',
                             done && !active && 'border-emerald-200/80 bg-emerald-50/50',
                             !done && !active && 'border-slate-200/80 bg-white/90',
                           )}
@@ -589,7 +589,7 @@ export default function SubmitWorkshop() {
                             className={cn(
                               'grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[12px] font-black',
                               done && 'bg-emerald-600 text-white',
-                              active && !done && 'bg-[#EC943C] text-white',
+                              active && !done && 'bg-[#F28C00] text-white',
                               !done && !active && 'bg-slate-100 text-slate-600',
                             )}
                           >
@@ -598,7 +598,7 @@ export default function SubmitWorkshop() {
                             : meta.id}
                           </span>
                           <div className="min-w-0 flex-1 text-right">
-                            <p className="text-[13px] font-black text-[#22334A]">{meta.title}</p>
+                            <p className="text-[13px] font-black text-[#0C2A4B]">{meta.title}</p>
                             <p className="text-[11px] font-semibold text-muted-600">{meta.hint}</p>
                           </div>
                         </div>
@@ -607,7 +607,7 @@ export default function SubmitWorkshop() {
                   </div>
                   <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-100/90 px-4 py-2.5">
                     <span className="text-[11px] font-black text-slate-700">التقدّم</span>
-                    <span className="text-[13px] font-black text-[#2691C2]">{progressPct}%</span>
+                    <span className="text-[13px] font-black text-[#0077B6]">{progressPct}%</span>
                   </div>
                 </div>
               </div>
@@ -617,8 +617,8 @@ export default function SubmitWorkshop() {
                   {step === 1 && (
                     <motion.div key="requester" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ١ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">بيانات مقدم الطلب</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0077B6]">الخطوة ١ من ٤</p>
+                        <h2 className="mt-2 text-xl font-black text-[#0C2A4B]">بيانات مقدم الطلب</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
                           بيانات التواصل التي سيستخدمها فريق EMC لمتابعة طلبك.
                         </p>
@@ -678,8 +678,8 @@ export default function SubmitWorkshop() {
                   {step === 2 && (
                     <motion.div key="program" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ٢ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">بيانات الورشة</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0077B6]">الخطوة ٢ من ٤</p>
+                        <h2 className="mt-2 text-xl font-black text-[#0C2A4B]">بيانات الورشة</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
                           صِف البرنامج، المتحدث، والمجالات التي تمثل محتواك.
                         </p>
@@ -750,8 +750,8 @@ export default function SubmitWorkshop() {
                   {step === 3 && (
                     <motion.div key="details" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ٣ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">تفاصيل التنفيذ</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0077B6]">الخطوة ٣ من ٤</p>
+                        <h2 className="mt-2 text-xl font-black text-[#0C2A4B]">تفاصيل التنفيذ</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
                           المحاور، الجمهور، الموعد المقترح، وأسلوب التنفيذ.
                         </p>
@@ -784,15 +784,15 @@ export default function SubmitWorkshop() {
 
                       <div className="space-y-3">
                         {/* Header + copy button */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#2691C2]/20 bg-[#2691C2]/[0.04] px-4 py-3">
-                          <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#2691C2]">
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.04] px-4 py-3">
+                          <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#0077B6]">
                             المواعيد المقترحة — موعد واحد مطلوب والخياران الآخران اختياريان
                           </p>
                           {(form.proposed_date_1 || form.proposed_start_time_1) && (
                             <button
                               type="button"
                               onClick={copySlot1ToAll}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-[#2691C2]/30 bg-white px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2] hover:text-white"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-[#0077B6]/30 bg-white px-3 py-1.5 text-[11px] font-black text-[#0077B6] transition hover:bg-[#0077B6] hover:text-white"
                             >
                               <Copy className="h-3 w-3" aria-hidden />
                               نسخ إلى المواعيد الثلاثة
@@ -808,7 +808,7 @@ export default function SubmitWorkshop() {
 
                           return (
                             <div key={n} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
-                              <p className="mb-3 text-[12px] font-black text-[#22334A]">
+                              <p className="mb-3 text-[12px] font-black text-[#0C2A4B]">
                                 الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
                                 {n !== 1 && (
                                   <span className="mr-1.5 font-semibold text-muted-500">(اختياري)</span>
@@ -861,8 +861,8 @@ export default function SubmitWorkshop() {
                   {step === 4 && (
                     <motion.div key="pricing" {...stepAnimation} className="space-y-6">
                       <header className="text-right">
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#2691C2]">الخطوة ٤ من ٤</p>
-                        <h2 className="mt-2 text-xl font-black text-[#22334A]">المراجعة والإرسال</h2>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0077B6]">الخطوة ٤ من ٤</p>
+                        <h2 className="mt-2 text-xl font-black text-[#0C2A4B]">المراجعة والإرسال</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
                           حدّد نوع السعر ثم أرسل الطلب بعد المراجعة النهائية.
                         </p>
@@ -898,9 +898,9 @@ export default function SubmitWorkshop() {
                         />
                       )}
 
-                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#2691C2]/25 bg-[#2691C2]/[0.06] px-4 py-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#0077B6]/25 bg-[#0077B6]/[0.06] px-4 py-4">
                         <div className="text-right">
-                          <p className="text-[13px] font-black text-[#22334A]">جاهز للإرسال؟</p>
+                          <p className="text-[13px] font-black text-[#0C2A4B]">جاهز للإرسال؟</p>
                           <p className="mt-1 text-[12px] font-semibold text-muted-600">
                             راجع الملخص على الجانب قبل تأكيد الطلب.
                           </p>
@@ -915,7 +915,7 @@ export default function SubmitWorkshop() {
                   <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:justify-end">
                     {step > 1 && (
                       <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }} className="sm:min-w-[8rem]">
-                        <AppButton type="button" variant="outline" onClick={goToPreviousStep} fullWidth className="rounded-2xl border-2 border-slate-200 bg-white font-black text-[#22334A] hover:border-[#2691C2]/35 hover:bg-slate-50">
+                        <AppButton type="button" variant="outline" onClick={goToPreviousStep} fullWidth className="rounded-2xl border-2 border-slate-200 bg-white font-black text-[#0C2A4B] hover:border-[#0077B6]/35 hover:bg-slate-50">
                           <ArrowRight size={18} aria-hidden />
                           السابق
                         </AppButton>
@@ -928,7 +928,7 @@ export default function SubmitWorkshop() {
                           variant="secondary"
                           onClick={goToNextStep}
                           fullWidth
-                          className="rounded-2xl border-0 bg-gradient-to-l from-[#2691C2] to-[#1e7aad] font-black shadow-[0_14px_32px_rgba(38,145,194,0.35)] hover:brightness-[1.05]"
+                          className="rounded-2xl border-0 bg-gradient-to-l from-[#0077B6] to-[#1e7aad] font-black shadow-[0_14px_32px_rgba(0, 119, 182,0.35)] hover:brightness-[1.05]"
                         >
                           التالي
                           <ArrowLeft size={18} aria-hidden />
@@ -941,8 +941,8 @@ export default function SubmitWorkshop() {
                         whileHover={!isSubmitting ? { y: -2 } : undefined}
                         whileTap={!isSubmitting ? { scale: 0.99 } : undefined}
                         className={cn(
-                          'inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-6 py-3 text-[14px] font-black text-white shadow-[0_14px_36px_rgba(236,148,60,0.38)] transition disabled:cursor-not-allowed disabled:opacity-55 sm:flex-none sm:px-10',
-                          'bg-gradient-to-l from-[#EC943C] to-amber-600 hover:brightness-[1.03]',
+                          'inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-6 py-3 text-[14px] font-black text-white shadow-[0_14px_36px_rgba(242, 140, 0,0.38)] transition disabled:cursor-not-allowed disabled:opacity-55 sm:flex-none sm:px-10',
+                          'bg-gradient-to-l from-[#F28C00] to-amber-600 hover:brightness-[1.03]',
                         )}
                       >
                         {isSubmitting ?
@@ -967,10 +967,10 @@ export default function SubmitWorkshop() {
             >
               <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-4 text-right">
                 <div>
-                  <h3 className="text-lg font-black text-[#22334A]">ملخص الطلب</h3>
+                  <h3 className="text-lg font-black text-[#0C2A4B]">ملخص الطلب</h3>
                   <p className="mt-1 text-[12px] font-semibold text-muted-600">يتجدّد أثناء تعبئة الخطوات</p>
                 </div>
-                <span className="rounded-xl bg-[#2691C2]/10 px-2.5 py-1 text-[11px] font-black text-[#2691C2] ring-1 ring-[#2691C2]/25">
+                <span className="rounded-xl bg-[#0077B6]/10 px-2.5 py-1 text-[11px] font-black text-[#0077B6] ring-1 ring-[#0077B6]/25">
                   مباشر
                 </span>
               </div>
@@ -984,13 +984,13 @@ export default function SubmitWorkshop() {
                   {previewRows.map((row) => (
                     <motion.div key={row.label} layout initial={{ opacity: 0.85 }} animate={{ opacity: 1 }} className="border-b border-slate-100 pb-3 last:border-0">
                       <dt className="text-[11px] font-black uppercase tracking-wide text-muted-500">{row.label}</dt>
-                      <dd className="mt-1 text-[13px] font-bold text-[#22334A]">{row.value.trim() || '—'}</dd>
+                      <dd className="mt-1 text-[13px] font-bold text-[#0C2A4B]">{row.value.trim() || '—'}</dd>
                     </motion.div>
                   ))}
                   {form.requester_department.trim() ?
                     <motion.div layout className="border-b border-slate-100 pb-3">
                       <dt className="text-[11px] font-black uppercase tracking-wide text-muted-500">القسم أو الجهة</dt>
-                      <dd className="mt-1 text-[13px] font-bold text-[#22334A]">{form.requester_department}</dd>
+                      <dd className="mt-1 text-[13px] font-bold text-[#0C2A4B]">{form.requester_department}</dd>
                     </motion.div>
                   : null}
                 </motion.dl>
@@ -1003,12 +1003,12 @@ export default function SubmitWorkshop() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className={cn(glassCard, 'overflow-hidden')}
             >
-              <div className="flex items-start gap-4 bg-gradient-to-l from-[#EC943C]/15 via-white to-white p-6 text-right">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/15 text-[#2691C2] ring-1 ring-[#2691C2]/25">
+              <div className="flex items-start gap-4 bg-gradient-to-l from-[#F28C00]/15 via-white to-white p-6 text-right">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/15 text-[#0077B6] ring-1 ring-[#0077B6]/25">
                   <Headphones className="h-6 w-6" aria-hidden />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-[#22334A]">تحتاج مساعدة؟</h3>
+                  <h3 className="text-base font-black text-[#0C2A4B]">تحتاج مساعدة؟</h3>
                   <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
                     فريق EMC سيراجع طلبك ويتواصل معك بعد الإرسال.
                   </p>
@@ -1022,7 +1022,7 @@ export default function SubmitWorkshop() {
               transition={{ duration: 0.4, delay: 0.14 }}
               className={cn(glassCard, 'p-6')}
             >
-              <h3 className="text-right text-[13px] font-black text-[#22334A]">قائمة التحقّق</h3>
+              <h3 className="text-right text-[13px] font-black text-[#0C2A4B]">قائمة التحقّق</h3>
               <ul className="mt-4 space-y-3 text-right">
                 {STEP_META.map((meta) => {
                   const done = step > meta.id
@@ -1033,7 +1033,7 @@ export default function SubmitWorkshop() {
                         className={cn(
                           'grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[12px] font-black shadow-sm ring-2 ring-white',
                           done && 'bg-emerald-500 text-white',
-                          active && !done && 'bg-[#2691C2] text-white shadow-[0_8px_20px_rgba(38,145,194,0.35)]',
+                          active && !done && 'bg-[#0077B6] text-white shadow-[0_8px_20px_rgba(0, 119, 182,0.35)]',
                           !done && !active && 'border border-slate-200 bg-slate-50 text-slate-500',
                         )}
                       >
@@ -1041,7 +1041,7 @@ export default function SubmitWorkshop() {
                           <Check className="h-4 w-4" aria-hidden />
                         : meta.id}
                       </span>
-                      <span className={cn('text-[13px] font-bold', active ? 'text-[#22334A]' : 'text-muted-600')}>{meta.title}</span>
+                      <span className={cn('text-[13px] font-bold', active ? 'text-[#0C2A4B]' : 'text-muted-600')}>{meta.title}</span>
                     </li>
                   )
                 })}

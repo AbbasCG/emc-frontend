@@ -32,7 +32,7 @@ export function CrudFilterBar({
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
           type="search"
-          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/70 ps-10 pe-4 text-right text-[13px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2691C2]/50 focus:bg-white focus:ring-2 focus:ring-[#2691C2]/12"
+          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/70 ps-10 pe-4 text-right text-[13px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#0077B6]/50 focus:bg-white focus:ring-2 focus:ring-[#0077B6]/12"
         />
       </label>
 
@@ -64,9 +64,9 @@ export function MiniSelect(props: {
       className={cn(
         'h-10 min-w-[7.5rem] cursor-pointer rounded-xl border px-3 pe-7 text-right text-[12.5px] font-semibold outline-none transition appearance-none',
         isActive
-          ? 'border-[#2691C2]/40 bg-[#2691C2]/8 text-[#1a6e9a] font-black'
+          ? 'border-[#0077B6]/40 bg-[#0077B6]/8 text-[#1a6e9a] font-black'
           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
-        'focus:border-[#2691C2]/50 focus:ring-2 focus:ring-[#2691C2]/12',
+        'focus:border-[#0077B6]/50 focus:ring-2 focus:ring-[#0077B6]/12',
         disabled && 'cursor-not-allowed opacity-45',
       )}
     >

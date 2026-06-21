@@ -25,7 +25,7 @@ const STATUS_CFG: Record<string, { label: string; badge: string; glow: string }>
   published: {
     label: 'منشور',
     badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    glow:  'from-emerald-500/20 to-[#2691C2]/10',
+    glow:  'from-emerald-500/20 to-[#0077B6]/10',
   },
   draft: {
     label: 'مسودة',
@@ -65,10 +65,10 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
     >
       <Link
         to={`/dashboard/instructor/learning-paths/${path.id}`}
-        className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#2691C2]/40 hover:shadow-xl"
+        className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0077B6]/40 hover:shadow-xl"
       >
         {/* Cover image / gradient */}
-        <div className="relative h-32 shrink-0 overflow-hidden bg-gradient-to-br from-[#22334A] to-[#2691C2]">
+        <div className="relative h-32 shrink-0 overflow-hidden bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]">
           {path.featured_image ? (
             <img
               src={path.featured_image}
@@ -82,7 +82,7 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
               <GraduationCap className="absolute inset-0 m-auto h-14 w-14 text-white/10" />
             </>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#22334A]/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/70 via-transparent to-transparent" />
 
           {/* Status badge */}
           <div className="absolute bottom-3 right-3">
@@ -105,7 +105,7 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
         {/* Body */}
         <div className="flex flex-1 flex-col gap-3 p-4">
           {/* Title */}
-          <h3 className="line-clamp-2 font-black leading-snug text-[#22334A] transition-colors group-hover:text-[#2691C2]">
+          <h3 className="line-clamp-2 font-black leading-snug text-[#0C2A4B] transition-colors group-hover:text-[#0077B6]">
             {path.title}
           </h3>
 
@@ -119,11 +119,11 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
             <span className="inline-flex items-center gap-1">
-              <BookOpen className="h-3 w-3 text-[#EC943C]" />
+              <BookOpen className="h-3 w-3 text-[#F28C00]" />
               {fmt(path.courses_count)} دورة
             </span>
             <span className="inline-flex items-center gap-1">
-              <Users className="h-3 w-3 text-[#2691C2]" />
+              <Users className="h-3 w-3 text-[#0077B6]" />
               {fmt(path.students_count)} طالب
             </span>
             {durationLabel && (
@@ -136,9 +136,9 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
 
           {/* Next session preview if path has courses */}
           {(path.courses?.length ?? 0) > 0 && (
-            <div className="flex items-center gap-1.5 rounded-xl border border-[#2691C2]/10 bg-[#2691C2]/[0.04] px-3 py-2">
-              <Calendar className="h-3 w-3 shrink-0 text-[#2691C2]" />
-              <span className="text-[11px] font-semibold text-[#22334A]/70">
+            <div className="flex items-center gap-1.5 rounded-xl border border-[#0077B6]/10 bg-[#0077B6]/[0.04] px-3 py-2">
+              <Calendar className="h-3 w-3 shrink-0 text-[#0077B6]" />
+              <span className="text-[11px] font-semibold text-[#0C2A4B]/70">
                 {fmt(path.courses_count)} دورة مضمّنة في المسار
               </span>
             </div>
@@ -154,7 +154,7 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
                   className="h-6 w-6 rounded-full object-cover"
                 />
               ) : path.instructor?.name ? (
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#22334A]/10 text-[9px] font-black text-[#22334A]">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0C2A4B]/10 text-[9px] font-black text-[#0C2A4B]">
                   {path.instructor.name.charAt(0)}
                 </div>
               ) : null}
@@ -165,7 +165,7 @@ function PathCard({ path, index }: { path: LearningPath; index: number }) {
               )}
             </div>
 
-            <span className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black text-white transition-colors group-hover:bg-[#2691C2] ${path.is_path_instructor === false ? 'bg-slate-500' : 'bg-[#22334A]'}`}>
+            <span className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black text-white transition-colors group-hover:bg-[#0077B6] ${path.is_path_instructor === false ? 'bg-slate-500' : 'bg-[#0C2A4B]'}`}>
               {path.is_path_instructor === false ? 'عرض المسار' : 'إدارة المسار'}
             </span>
           </div>
@@ -244,7 +244,7 @@ export default function InstructorLearningPathsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ابحث عن مسار..."
-            className="min-w-[180px] flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-[#22334A] placeholder:text-slate-400 outline-none focus:border-[#2691C2]/50 focus:ring-1 focus:ring-[#2691C2]/20"
+            className="min-w-[180px] flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-[#0C2A4B] placeholder:text-slate-400 outline-none focus:border-[#0077B6]/50 focus:ring-1 focus:ring-[#0077B6]/20"
           />
           <div className="flex gap-1.5">
             {FILTER_OPTS.map((f) => (
@@ -254,8 +254,8 @@ export default function InstructorLearningPathsPage() {
                 onClick={() => setFilter(f.id)}
                 className={`rounded-2xl px-3 py-2 text-[12px] font-black transition ${
                   filter === f.id
-                    ? 'bg-[#22334A] text-white shadow-sm'
-                    : 'border border-slate-200 bg-white text-slate-500 hover:border-[#22334A]/30 hover:text-[#22334A]'
+                    ? 'bg-[#0C2A4B] text-white shadow-sm'
+                    : 'border border-slate-200 bg-white text-slate-500 hover:border-[#0C2A4B]/30 hover:text-[#0C2A4B]'
                 }`}
               >
                 {f.label}
@@ -277,11 +277,11 @@ export default function InstructorLearningPathsPage() {
       {/* Load error */}
       {!loading && loadError && !forbidden && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-amber-200 bg-amber-50/80 py-16 text-center shadow-sm">
-          <p className="text-lg font-black text-[#22334A]">{accessMessage ?? 'تعذر تحميل المسارات.'}</p>
+          <p className="text-lg font-black text-[#0C2A4B]">{accessMessage ?? 'تعذر تحميل المسارات.'}</p>
           <button
             type="button"
             onClick={load}
-            className="mt-4 rounded-2xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white"
+            className="mt-4 rounded-2xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white"
           >
             إعادة المحاولة
           </button>
@@ -291,7 +291,7 @@ export default function InstructorLearningPathsPage() {
       {/* Access denied */}
       {!loading && forbidden && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-rose-200 bg-rose-50/80 py-20 text-center shadow-sm">
-          <p className="text-lg font-black text-[#22334A]">{accessMessage ?? 'لا تملك صلاحية عرض مسارات التعلّم.'}</p>
+          <p className="text-lg font-black text-[#0C2A4B]">{accessMessage ?? 'لا تملك صلاحية عرض مسارات التعلّم.'}</p>
           <p className="mx-auto mt-2 max-w-sm text-[13px] text-slate-500">
             تواصل مع الإدارة إذا كنت تعتقد أن هذا خطأ.
           </p>
@@ -301,10 +301,10 @@ export default function InstructorLearningPathsPage() {
       {/* Empty — no paths assigned */}
       {!loading && !forbidden && !loadError && (paths.length === 0 || notFound) && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-24 text-center shadow-sm">
-          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#22334A]/5 to-[#2691C2]/10">
-            <Route className="h-9 w-9 text-[#22334A]/20" />
+          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#0C2A4B]/5 to-[#0077B6]/10">
+            <Route className="h-9 w-9 text-[#0C2A4B]/20" />
           </div>
-          <p className="text-lg font-black text-[#22334A]">لا توجد مسارات تعليمية مرتبطة بك</p>
+          <p className="text-lg font-black text-[#0C2A4B]">لا توجد مسارات تعليمية مرتبطة بك</p>
           <p className="mx-auto mt-2 max-w-sm text-[13px] text-slate-400">
             تواصل مع الإدارة لتسنيد مسار تعليمي إليك، أو لإضافتك كمدرب لأحد دورات مسار قائم.
           </p>
@@ -314,11 +314,11 @@ export default function InstructorLearningPathsPage() {
       {/* Empty — search/filter produced no results */}
       {!loading && !forbidden && paths.length > 0 && filtered.length === 0 && (
         <div className="rounded-3xl border border-slate-200 bg-white py-12 text-center">
-          <p className="font-black text-[#22334A]">لا نتائج مطابقة</p>
+          <p className="font-black text-[#0C2A4B]">لا نتائج مطابقة</p>
           <button
             type="button"
             onClick={() => { setSearch(''); setFilter('all') }}
-            className="mt-3 text-[12px] font-black text-[#2691C2] hover:underline"
+            className="mt-3 text-[12px] font-black text-[#0077B6] hover:underline"
           >
             مسح الفلاتر
           </button>

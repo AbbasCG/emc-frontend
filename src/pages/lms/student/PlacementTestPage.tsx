@@ -232,7 +232,7 @@ export default function PlacementTestPage() {
             </div>
           )}
 
-          <div className="rounded-3xl border border-deepBlue/[0.07] bg-white p-8 shadow-[0_8px_40px_-16px_rgba(34,51,74,0.25)] text-center">
+          <div className="rounded-3xl border border-deepBlue/[0.07] bg-white p-8 shadow-[0_8px_40px_-16px_rgba(12, 42, 75,0.25)] text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg">
               <ClipboardCheck className="h-10 w-10 text-white" />
             </div>
@@ -429,7 +429,7 @@ export default function PlacementTestPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 18 }}
             transition={{ duration: 0.2 }}
-            className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_8px_32px_-12px_rgba(34,51,74,0.16)] sm:p-8"
+            className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_8px_32px_-12px_rgba(12, 42, 75,0.16)] sm:p-8"
           >
             <p className="text-[17px] font-black leading-relaxed text-deepBlue sm:text-[19px]">
               {current.text}

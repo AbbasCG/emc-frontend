@@ -8,12 +8,12 @@ import {
 } from '@/utils/calendarFormat'
 
 const TYPE_BAR: Record<string, string> = {
-  session: 'bg-[#2691C2]',
+  session: 'bg-[#0077B6]',
   workshop: 'bg-purple-500',
   meeting: 'bg-amber-500',
   task: 'bg-red-500',
   course: 'bg-emerald-500',
-  program: 'bg-[#22334A]',
+  program: 'bg-[#0C2A4B]',
   learning_path: 'bg-indigo-500',
   event: 'bg-slate-400',
 }
@@ -40,7 +40,7 @@ export default function CalendarGridEventChip({
           e.stopPropagation()
           onClick?.(event)
         }}
-        className={`flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-start text-[10px] font-bold text-[#22334A] ring-1 ring-slate-100 transition hover:ring-[#2691C2]/30 ${colorCls}`}
+        className={`flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-start text-[10px] font-bold text-[#0C2A4B] ring-1 ring-slate-100 transition hover:ring-[#0077B6]/30 ${colorCls}`}
       >
         <span className={`h-2 w-1 shrink-0 rounded-full ${bar}`} />
         <span className="truncate">{formatCalendarTime(event.start_at)}</span>
@@ -54,7 +54,7 @@ export default function CalendarGridEventChip({
       type="button"
       dir="rtl"
       onClick={() => onClick?.(event)}
-      className="w-full rounded-xl border border-slate-100 border-s-4 bg-white p-3 text-right shadow-sm transition hover:border-[#2691C2]/25 hover:shadow-md"
+      className="w-full rounded-xl border border-slate-100 border-s-4 bg-white p-3 text-right shadow-sm transition hover:border-[#0077B6]/25 hover:shadow-md"
       style={{ borderInlineStartColor: undefined }}
     >
       <div className={`mb-2 h-1 w-full rounded-full ${bar}`} />
@@ -68,7 +68,7 @@ export default function CalendarGridEventChip({
           </span>
         )}
       </div>
-      <p className="mt-2 text-sm font-black text-[#22334A]">{event.title}</p>
+      <p className="mt-2 text-sm font-black text-[#0C2A4B]">{event.title}</p>
       <p className="mt-1 text-[11px] font-bold text-slate-500">{formatCalendarTime(event.start_at)}</p>
       {event.meeting_link && (
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>

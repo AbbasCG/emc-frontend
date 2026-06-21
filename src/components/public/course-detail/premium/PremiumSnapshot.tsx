@@ -5,19 +5,19 @@ import type { MetricWidget } from '@/components/public/course-detail/CourseDetai
 
 const accentStyles = {
   blue: {
-    card: 'border-[#2691C2]/14 bg-[#2691C2]/5 hover:border-[#2691C2]/28',
-    icon: 'bg-[#2691C2]/10 text-[#2691C2]',
+    card: 'border-[#0077B6]/14 bg-[#0077B6]/5 hover:border-[#0077B6]/28',
+    icon: 'bg-[#0077B6]/10 text-[#0077B6]',
     value: 'text-[#1e7aaa]',
   },
   orange: {
-    card: 'border-[#EC943C]/16 bg-[#EC943C]/5 hover:border-[#EC943C]/32',
-    icon: 'bg-[#EC943C]/10 text-[#EC943C]',
+    card: 'border-[#F28C00]/16 bg-[#F28C00]/5 hover:border-[#F28C00]/32',
+    icon: 'bg-[#F28C00]/10 text-[#F28C00]',
     value: 'text-[#c07828]',
   },
   navy: {
-    card: 'border-[#22334A]/10 bg-[#22334A]/4 hover:border-[#22334A]/20',
-    icon: 'bg-[#22334A]/8 text-[#22334A]',
-    value: 'text-[#22334A]',
+    card: 'border-[#0C2A4B]/10 bg-[#0C2A4B]/4 hover:border-[#0C2A4B]/20',
+    icon: 'bg-[#0C2A4B]/8 text-[#0C2A4B]',
+    value: 'text-[#0C2A4B]',
   },
   green: {
     card: 'border-emerald-200/50 bg-emerald-50/60 hover:border-emerald-300/60',
@@ -35,7 +35,7 @@ export default function PremiumSnapshot({ items }: Props) {
     <section
       aria-label="ملخص الدورة"
       dir="rtl"
-      className="border-b border-[#22334A]/8 bg-white/95 px-4 py-4 shadow-sm backdrop-blur-sm sm:px-6 lg:px-10"
+      className="border-b border-[#0C2A4B]/8 bg-white/95 px-4 py-4 shadow-sm backdrop-blur-sm sm:px-6 lg:px-10"
     >
       <div className="mx-auto max-w-[88rem]">
         <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide sm:gap-2.5 lg:flex-wrap lg:overflow-visible">

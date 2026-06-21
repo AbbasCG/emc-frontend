@@ -17,7 +17,7 @@ export default function DepartmentCard({
     <motion.article
       layout
       whileHover={{ y: -3 }}
-      className="group relative overflow-hidden rounded-2xl border border-white/90 bg-white p-5 shadow-[0_18px_46px_-22px_rgba(34,51,74,0.35)] ring-1 ring-deepBlue/[0.05]"
+      className="group relative overflow-hidden rounded-2xl border border-white/90 bg-white p-5 shadow-[0_18px_46px_-22px_rgba(12, 42, 75,0.35)] ring-1 ring-deepBlue/[0.05]"
     >
       <div className="pointer-events-none absolute -left-16 top-0 h-40 w-40 rounded-full bg-customBlue/[0.06] blur-3xl transition-opacity group-hover:opacity-100" />
       <div className="relative flex flex-col gap-4 text-right">

@@ -35,7 +35,7 @@ function KpiCard({ icon, label, value, color }: { icon: React.ReactNode; label: 
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-black text-[#22334A]">{value}</p>
+        <p className="text-2xl font-black text-[#0C2A4B]">{value}</p>
         <p className="text-xs text-slate-400 font-medium mt-0.5">{label}</p>
       </div>
     </div>
@@ -110,11 +110,11 @@ export default function EmailLogsPage() {
 
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-[#22334A] flex items-center justify-center">
+        <div className="h-10 w-10 rounded-xl bg-[#0C2A4B] flex items-center justify-center">
           <Mail className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-black text-[#22334A]">سجل الرسائل الإلكترونية</h1>
+          <h1 className="text-xl font-black text-[#0C2A4B]">سجل الرسائل الإلكترونية</h1>
           <p className="text-xs text-slate-500 mt-0.5">مراقبة الرسائل المُرسلة والفاشلة</p>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function EmailLogsPage() {
           icon={<Mail className="h-5 w-5 text-white" />}
           label="إجمالي الرسائل"
           value={stats?.total ?? '—'}
-          color="bg-[#22334A]"
+          color="bg-[#0C2A4B]"
         />
         <KpiCard
           icon={<CheckCircle className="h-5 w-5 text-white" />}
@@ -152,7 +152,7 @@ export default function EmailLogsPage() {
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#22334A] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/40"
+          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#0C2A4B] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/40"
         >
           <option value="">كل الحالات</option>
           <option value="sent">مُرسَل</option>
@@ -162,7 +162,7 @@ export default function EmailLogsPage() {
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#22334A] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/40"
+          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#0C2A4B] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/40"
         >
           <option value="">كل الأنواع</option>
           {Object.entries(TYPE_LABELS).map(([k, v]) => (
@@ -177,7 +177,7 @@ export default function EmailLogsPage() {
           تحديث
         </button>
         <span className="text-xs text-slate-400 mr-auto">
-          إجمالي: <strong className="text-[#22334A]">{meta.total}</strong> رسالة
+          إجمالي: <strong className="text-[#0C2A4B]">{meta.total}</strong> رسالة
         </span>
       </div>
 

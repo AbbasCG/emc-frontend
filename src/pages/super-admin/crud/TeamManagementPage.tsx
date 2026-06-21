@@ -1456,7 +1456,7 @@ export default function TeamManagementPage() {
   return (
     <div className="space-y-6 pb-14" dir="rtl">
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <header className="overflow-hidden rounded-[1.75rem] bg-gradient-to-bl from-[#22334A] via-[#1c3a56] to-[#162334] p-8 text-right text-white shadow-2xl lg:p-10">
+      <header className="overflow-hidden rounded-[1.75rem] bg-gradient-to-bl from-[#0C2A4B] via-[#1c3a56] to-[#162334] p-8 text-right text-white shadow-2xl lg:p-10">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur-sm">

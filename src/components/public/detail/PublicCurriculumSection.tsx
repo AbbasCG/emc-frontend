@@ -63,7 +63,7 @@ function GroupBlock({ group }: { group: CurriculumGroup }) {
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="mt-3 w-full rounded-xl border border-dashed border-[#2691C2]/30 bg-[#2691C2]/5 py-2.5 text-xs font-black text-[#1a6b96] transition hover:bg-[#2691C2]/10"
+              className="mt-3 w-full rounded-xl border border-dashed border-[#0077B6]/30 bg-[#0077B6]/5 py-2.5 text-xs font-black text-[#1a6b96] transition hover:bg-[#0077B6]/10"
             >
               عرض المزيد ({String(hidden)})
             </button>

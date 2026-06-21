@@ -35,26 +35,26 @@ export default function PremiumSchedule({ course, derived }: Props) {
 
   return (
     <section aria-label="الجدول" dir="rtl" className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-[#22334A]">
-        <span className="h-4 w-1 rounded-full bg-[#EC943C]" aria-hidden />
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-[#0C2A4B]">
+        <span className="h-4 w-1 rounded-full bg-[#F28C00]" aria-hidden />
         الجدول والتفاصيل
       </h2>
-      <ol className="relative space-y-0 border-r-2 border-[#2691C2]/18 pr-3.5">
+      <ol className="relative space-y-0 border-r-2 border-[#0077B6]/18 pr-3.5">
         {rows.map((row, i) => (
           <li key={row.label} className="relative pb-2 last:pb-0">
             <span
-              className="absolute -right-[calc(0.4rem+4px)] top-1.5 h-2 w-2 rounded-full bg-[#2691C2] ring-2 ring-white"
+              className="absolute -right-[calc(0.4rem+4px)] top-1.5 h-2 w-2 rounded-full bg-[#0077B6] ring-2 ring-white"
               aria-hidden
             />
             {i < rows.length - 1 ?
-              <span className="absolute -right-px top-3 h-[calc(100%-0.25rem)] border-r border-dashed border-[#2691C2]/12" aria-hidden />
+              <span className="absolute -right-px top-3 h-[calc(100%-0.25rem)] border-r border-dashed border-[#0077B6]/12" aria-hidden />
             : null}
             <p className="text-[9px] font-black text-slate-400">{row.label}</p>
             {row.link ?
-              <a href={row.value} className="mt-0.5 block truncate text-[12px] font-bold text-[#2691C2]" dir="ltr" target="_blank" rel="noreferrer">
+              <a href={row.value} className="mt-0.5 block truncate text-[12px] font-bold text-[#0077B6]" dir="ltr" target="_blank" rel="noreferrer">
                 {row.value}
               </a>
-            : <p className="mt-0.5 text-[12px] font-black tabular-nums text-[#22334A]">{row.value}</p>}
+            : <p className="mt-0.5 text-[12px] font-black tabular-nums text-[#0C2A4B]">{row.value}</p>}
           </li>
         ))}
       </ol>

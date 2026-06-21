@@ -24,9 +24,9 @@ const fmt = (n: number | undefined) =>
 
 function StatPill({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-[#22334A]/[0.08] bg-white px-5 py-4 text-center shadow-sm">
-      <Icon className="h-5 w-5 text-[#2691C2]" />
-      <p className="text-[20px] font-black text-[#22334A]" dir="ltr">{value}</p>
+    <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-[#0C2A4B]/[0.08] bg-white px-5 py-4 text-center shadow-sm">
+      <Icon className="h-5 w-5 text-[#0077B6]" />
+      <p className="text-[20px] font-black text-[#0C2A4B]" dir="ltr">{value}</p>
       <p className="text-[11px] font-semibold text-slate-400">{label}</p>
     </div>
   )
@@ -38,7 +38,7 @@ function CourseItem({ course }: { course: { id: number; slug: string; title: str
   return (
     <Link
       to={`/courses/${course.slug}`}
-      className="group flex items-center justify-between gap-3 rounded-xl border border-[#22334A]/[0.08] bg-[#22334A]/[0.02] px-4 py-3 text-sm font-black text-[#22334A] transition hover:border-[#2691C2]/35 hover:bg-[#2691C2]/[0.04]"
+      className="group flex items-center justify-between gap-3 rounded-xl border border-[#0C2A4B]/[0.08] bg-[#0C2A4B]/[0.02] px-4 py-3 text-sm font-black text-[#0C2A4B] transition hover:border-[#0077B6]/35 hover:bg-[#0077B6]/[0.04]"
     >
       <div className="flex items-center gap-3 min-w-0">
         {course.image_url && (
@@ -46,7 +46,7 @@ function CourseItem({ course }: { course: { id: number; slug: string; title: str
         )}
         <span className="line-clamp-2 leading-tight">{course.title}</span>
       </div>
-      <ArrowLeft className="h-4 w-4 shrink-0 text-[#EC943C] transition group-hover:text-[#2691C2]" />
+      <ArrowLeft className="h-4 w-4 shrink-0 text-[#F28C00] transition group-hover:text-[#0077B6]" />
     </Link>
   )
 }
@@ -57,13 +57,13 @@ function PathItem({ path }: { path: { id: number; slug: string; title: string } 
   return (
     <Link
       to={`/learning-paths/${path.slug}`}
-      className="group flex items-center justify-between gap-3 rounded-xl border border-[#EC943C]/15 bg-[#EC943C]/[0.04] px-4 py-3 text-sm font-black text-[#22334A] transition hover:border-[#EC943C]/40 hover:bg-[#EC943C]/[0.08]"
+      className="group flex items-center justify-between gap-3 rounded-xl border border-[#F28C00]/15 bg-[#F28C00]/[0.04] px-4 py-3 text-sm font-black text-[#0C2A4B] transition hover:border-[#F28C00]/40 hover:bg-[#F28C00]/[0.08]"
     >
       <div className="flex items-center gap-2 min-w-0">
-        <Route className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" />
+        <Route className="h-3.5 w-3.5 shrink-0 text-[#F28C00]" />
         <span className="line-clamp-1">{path.title}</span>
       </div>
-      <ArrowLeft className="h-4 w-4 shrink-0 text-[#EC943C] opacity-50 transition group-hover:opacity-100" />
+      <ArrowLeft className="h-4 w-4 shrink-0 text-[#F28C00] opacity-50 transition group-hover:opacity-100" />
     </Link>
   )
 }
@@ -95,10 +95,10 @@ export default function InstructorDetail() {
     return (
       <main className="min-h-[50vh] bg-emcBg px-4 pb-20 pt-28">
         <div className="mx-auto max-w-5xl animate-pulse space-y-6">
-          <div className="h-44 rounded-3xl bg-white ring-1 ring-[#22334A]/[0.06]" />
+          <div className="h-44 rounded-3xl bg-white ring-1 ring-[#0C2A4B]/[0.06]" />
           <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-            <div className="h-64 rounded-3xl bg-white ring-1 ring-[#22334A]/[0.06]" />
-            <div className="h-64 rounded-3xl bg-white ring-1 ring-[#22334A]/[0.06]" />
+            <div className="h-64 rounded-3xl bg-white ring-1 ring-[#0C2A4B]/[0.06]" />
+            <div className="h-64 rounded-3xl bg-white ring-1 ring-[#0C2A4B]/[0.06]" />
           </div>
         </div>
       </main>
@@ -111,8 +111,8 @@ export default function InstructorDetail() {
       <main className="bg-emcBg px-4 pb-20 pt-28 text-right" dir="rtl">
         <div className="mx-auto max-w-xl">
           <div className="flex flex-col items-center justify-center rounded-3xl border border-orange-200 bg-orange-50 py-16 text-center">
-            <UserCircle className="mb-4 h-14 w-14 text-[#EC943C]/40" />
-            <p className="text-[18px] font-black text-[#22334A]">
+            <UserCircle className="mb-4 h-14 w-14 text-[#F28C00]/40" />
+            <p className="text-[18px] font-black text-[#0C2A4B]">
               {err || 'المدرب غير موجود'}
             </p>
             <p className="mt-2 text-[13px] text-slate-500">
@@ -121,7 +121,7 @@ export default function InstructorDetail() {
           </div>
           <Link
             to="/instructors"
-            className="mt-6 inline-flex items-center gap-2 font-black text-[#2691C2] hover:underline"
+            className="mt-6 inline-flex items-center gap-2 font-black text-[#0077B6] hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             العودة لقائمة المدربين
@@ -178,45 +178,45 @@ export default function InstructorDetail() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-4"
           >
-            <div className="overflow-hidden rounded-[1.35rem] border border-[#22334A]/[0.08] bg-white p-4 shadow-xl ring-1 ring-white/90">
-              <div className="aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-[#22334A]/10 to-[#2691C2]/15 ring-1 ring-[#22334A]/[0.06]">
+            <div className="overflow-hidden rounded-[1.35rem] border border-[#0C2A4B]/[0.08] bg-white p-4 shadow-xl ring-1 ring-white/90">
+              <div className="aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-[#0C2A4B]/10 to-[#0077B6]/15 ring-1 ring-[#0C2A4B]/[0.06]">
                 {ins.image_url ? (
                   <img src={ins.image_url} alt={ins.name} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[56px] font-black text-white">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[56px] font-black text-white">
                     {ins.name.charAt(0)}
                   </div>
                 )}
               </div>
               {specialization && (
-                <div className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-[#EC943C]/10 px-3 py-2">
-                  <Sparkles className="h-3.5 w-3.5 text-[#EC943C]" />
-                  <p className="text-center text-[12px] font-black text-[#EC943C]">{specialization}</p>
+                <div className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-[#F28C00]/10 px-3 py-2">
+                  <Sparkles className="h-3.5 w-3.5 text-[#F28C00]" />
+                  <p className="text-center text-[12px] font-black text-[#F28C00]">{specialization}</p>
                 </div>
               )}
             </div>
 
             {/* Contact — only shown when backend allows it */}
             {showContact && (
-              <div className="rounded-[1.35rem] border border-[#22334A]/[0.08] bg-white p-4 shadow-md ring-1 ring-white/90">
-                <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-[#22334A]/40">تواصل</p>
+              <div className="rounded-[1.35rem] border border-[#0C2A4B]/[0.08] bg-white p-4 shadow-md ring-1 ring-white/90">
+                <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-[#0C2A4B]/40">تواصل</p>
                 {ins.email && (
                   <a
                     href={`mailto:${ins.email}`}
-                    className="flex items-center gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-[12px] font-semibold text-[#22334A] transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+                    className="flex items-center gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-[12px] font-semibold text-[#0C2A4B] transition hover:border-[#0077B6]/30 hover:text-[#0077B6]"
                     dir="ltr"
                   >
-                    <Mail className="h-4 w-4 shrink-0 text-[#2691C2]" />
+                    <Mail className="h-4 w-4 shrink-0 text-[#0077B6]" />
                     {ins.email}
                   </a>
                 )}
                 {ins.phone && (
                   <a
                     href={`tel:${ins.phone}`}
-                    className="mt-2 flex items-center gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-[12px] font-semibold text-[#22334A] transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+                    className="mt-2 flex items-center gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-[12px] font-semibold text-[#0C2A4B] transition hover:border-[#0077B6]/30 hover:text-[#0077B6]"
                     dir="ltr"
                   >
-                    <Phone className="h-4 w-4 shrink-0 text-[#EC943C]" />
+                    <Phone className="h-4 w-4 shrink-0 text-[#F28C00]" />
                     {ins.phone}
                   </a>
                 )}
@@ -233,14 +233,14 @@ export default function InstructorDetail() {
           >
 
             {/* Bio card */}
-            <div className="rounded-[1.35rem] border border-[#22334A]/[0.08] bg-white p-8 text-right shadow-xl ring-1 ring-white/90">
-              <h2 className="flex items-center gap-2 text-[18px] font-black text-[#22334A]">
-                <UserCircle className="h-5 w-5 text-[#2691C2]" />
+            <div className="rounded-[1.35rem] border border-[#0C2A4B]/[0.08] bg-white p-8 text-right shadow-xl ring-1 ring-white/90">
+              <h2 className="flex items-center gap-2 text-[18px] font-black text-[#0C2A4B]">
+                <UserCircle className="h-5 w-5 text-[#0077B6]" />
                 نبذة تعريفية
               </h2>
-              <span className="mt-3 block h-1 w-12 rounded-full bg-[#EC943C]" />
+              <span className="mt-3 block h-1 w-12 rounded-full bg-[#F28C00]" />
               {ins.bio ? (
-                <p className="mt-5 whitespace-pre-line text-[14px] font-medium leading-9 text-[#22334A]/75">
+                <p className="mt-5 whitespace-pre-line text-[14px] font-medium leading-9 text-[#0C2A4B]/75">
                   {ins.bio}
                 </p>
               ) : (
@@ -249,16 +249,16 @@ export default function InstructorDetail() {
             </div>
 
             {/* Related courses */}
-            <div className="rounded-[1.35rem] border border-[#22334A]/[0.08] bg-white p-8 text-right shadow-xl ring-1 ring-white/90">
+            <div className="rounded-[1.35rem] border border-[#0C2A4B]/[0.08] bg-white p-8 text-right shadow-xl ring-1 ring-white/90">
               <div className="mb-5 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-[16px] font-black text-[#22334A]">
-                  <BookOpen className="h-5 w-5 text-[#2691C2]" />
+                <h3 className="flex items-center gap-2 text-[16px] font-black text-[#0C2A4B]">
+                  <BookOpen className="h-5 w-5 text-[#0077B6]" />
                   دورات مرتبطة
                 </h3>
                 {courses.length > 0 && (
                   <Link
                     to="/courses"
-                    className="flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline"
+                    className="flex items-center gap-1 text-[11px] font-black text-[#0077B6] hover:underline"
                   >
                     <ExternalLink className="h-3 w-3" />
                     جميع الدورات
@@ -282,9 +282,9 @@ export default function InstructorDetail() {
 
             {/* Related learning paths */}
             {learningPaths.length > 0 && (
-              <div className="rounded-[1.35rem] border border-[#22334A]/[0.08] bg-white p-8 text-right shadow-xl ring-1 ring-white/90">
-                <h3 className="mb-5 flex items-center gap-2 text-[16px] font-black text-[#22334A]">
-                  <Route className="h-5 w-5 text-[#EC943C]" />
+              <div className="rounded-[1.35rem] border border-[#0C2A4B]/[0.08] bg-white p-8 text-right shadow-xl ring-1 ring-white/90">
+                <h3 className="mb-5 flex items-center gap-2 text-[16px] font-black text-[#0C2A4B]">
+                  <Route className="h-5 w-5 text-[#F28C00]" />
                   مسارات تعليمية
                 </h3>
                 <ul className="space-y-2.5">
@@ -304,7 +304,7 @@ export default function InstructorDetail() {
         <div className="mt-10 text-right">
           <Link
             to="/instructors"
-            className="inline-flex items-center gap-2 rounded-2xl border border-[#22334A]/10 bg-white px-5 py-3 text-[13px] font-black text-[#22334A] shadow-sm transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+            className="inline-flex items-center gap-2 rounded-2xl border border-[#0C2A4B]/10 bg-white px-5 py-3 text-[13px] font-black text-[#0C2A4B] shadow-sm transition hover:border-[#0077B6]/30 hover:text-[#0077B6]"
           >
             <ArrowLeft className="h-4 w-4" />
             العودة لقائمة المدربين

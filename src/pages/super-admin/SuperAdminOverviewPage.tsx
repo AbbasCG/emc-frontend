@@ -185,13 +185,13 @@ function SectionHead({
   return (
     <div className="mb-4 flex items-start justify-between gap-2">
       <div>
-        <h3 className="text-[13px] font-bold text-[#22334A]">{title}</h3>
+        <h3 className="text-[13px] font-bold text-[#0C2A4B]">{title}</h3>
         {sub && <p className="mt-0.5 text-[11px] font-medium text-slate-400">{sub}</p>}
       </div>
       {action && (
         <Link
           to={action.href}
-          className="shrink-0 text-[11px] font-semibold text-[#2691C2] transition hover:text-[#1e7aaa]"
+          className="shrink-0 text-[11px] font-semibold text-[#0077B6] transition hover:text-[#1e7aaa]"
         >
           {action.label}
         </Link>
@@ -372,7 +372,7 @@ function ChartTip({
 ══════════════════════════════════════════════════════════════════ */
 
 function HealthBar({ score }: { score: number }) {
-  const color = score >= 80 ? '#10b981' : score >= 50 ? '#EC943C' : '#ef4444'
+  const color = score >= 80 ? '#10b981' : score >= 50 ? '#F28C00' : '#ef4444'
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
@@ -545,7 +545,7 @@ export default function SuperAdminOverviewPage() {
       value: users.length,
       growth: calcGrowth(users),
       icon: Users,
-      accent: '#22334A',
+      accent: '#0C2A4B',
       href: '/dashboard/super-admin/crud/users',
     },
     {
@@ -569,7 +569,7 @@ export default function SuperAdminOverviewPage() {
       value: courses.length,
       growth: null,
       icon: BookOpen,
-      accent: '#2691C2',
+      accent: '#0077B6',
       href: '/dashboard/super-admin/crud/programs',
     },
     {
@@ -577,7 +577,7 @@ export default function SuperAdminOverviewPage() {
       value: registrations.length,
       growth: calcGrowth(registrations.map((r) => ({ created_at: r.created_at }))),
       icon: FileSignature,
-      accent: '#EC943C',
+      accent: '#F28C00',
       href: '/dashboard/super-admin/crud/registrations',
     },
     {
@@ -648,14 +648,14 @@ export default function SuperAdminOverviewPage() {
      RENDER
   ══════════════════════════════════════════════════════════════════ */
   return (
-    <div dir="rtl" className="space-y-4 pb-28 text-[#22334A] sm:pb-10">
+    <div dir="rtl" className="space-y-4 pb-28 text-[#0C2A4B] sm:pb-10">
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           رأس الصفحة
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="flex items-center justify-between py-1">
         <div>
-          <h1 className="text-[18px] font-bold tracking-tight text-[#22334A]">
+          <h1 className="text-[18px] font-bold tracking-tight text-[#0C2A4B]">
             لوحة القيادة التنفيذية
           </h1>
           <p className="mt-0.5 text-[11px] text-slate-400">
@@ -720,7 +720,7 @@ export default function SuperAdminOverviewPage() {
               <Link
                 key={a.href}
                 to={a.href}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12px] font-semibold text-[#22334A] transition hover:border-[#2691C2]/40 hover:bg-[#2691C2]/[0.05] hover:text-[#2691C2]"
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12px] font-semibold text-[#0C2A4B] transition hover:border-[#0077B6]/40 hover:bg-[#0077B6]/[0.05] hover:text-[#0077B6]"
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
                 {a.labelAr}
@@ -752,7 +752,7 @@ export default function SuperAdminOverviewPage() {
         <Card accent="#10b981">
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h3 className="text-[13px] font-bold text-[#22334A]">نمو الطلاب</h3>
+              <h3 className="text-[13px] font-bold text-[#0C2A4B]">نمو الطلاب</h3>
               <p className="text-[11px] font-medium text-slate-400">آخر 6 أشهر</p>
             </div>
             {!kpiLoading && students.length > 0 && (
@@ -805,15 +805,15 @@ export default function SuperAdminOverviewPage() {
         </Card>
 
         {/* مخطط التسجيلات */}
-        <Card accent="#2691C2">
+        <Card accent="#0077B6">
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h3 className="text-[13px] font-bold text-[#22334A]">اتجاه التسجيلات</h3>
+              <h3 className="text-[13px] font-bold text-[#0C2A4B]">اتجاه التسجيلات</h3>
               <p className="text-[11px] font-medium text-slate-400">آخر 6 أشهر</p>
             </div>
             {!loading && registrations.length > 0 && (
               <div className="text-end">
-                <p className="font-mono text-[22px] font-bold leading-none text-[#2691C2]">
+                <p className="font-mono text-[22px] font-bold leading-none text-[#0077B6]">
                   {formatNumberEn(registrations.length)}
                 </p>
                 <p className="text-[10px] font-medium text-slate-400">إجمالي التسجيلات</p>
@@ -844,7 +844,7 @@ export default function SuperAdminOverviewPage() {
                   dataKey="registrations"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={36}
-                  fill="#2691C2"
+                  fill="#0077B6"
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -857,7 +857,7 @@ export default function SuperAdminOverviewPage() {
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid gap-4 lg:grid-cols-5">
         {/* أداء الدورات */}
-        <Card className="lg:col-span-2" accent="#EC943C">
+        <Card className="lg:col-span-2" accent="#F28C00">
           <SectionHead
             title="أداء الدورات"
             sub="الأكثر تسجيلاً"
@@ -883,7 +883,7 @@ export default function SuperAdminOverviewPage() {
                     {formatNumberEn(idx + 1)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-[12px] font-semibold text-[#22334A]">
+                    <p className="truncate text-[12px] font-semibold text-[#0C2A4B]">
                       {course.title}
                     </p>
                     <p className="truncate text-[10px] font-medium text-slate-400">
@@ -891,7 +891,7 @@ export default function SuperAdminOverviewPage() {
                     </p>
                   </div>
                   <div className="shrink-0 text-end">
-                    <p className="font-mono text-[13px] font-bold text-[#22334A]">
+                    <p className="font-mono text-[13px] font-bold text-[#0C2A4B]">
                       {formatNumberEn(course.enrolled)}
                     </p>
                     <p className="text-[9px] font-medium text-slate-400">مسجّل</p>
@@ -915,14 +915,14 @@ export default function SuperAdminOverviewPage() {
         <Card noPad className="lg:col-span-3 overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <div>
-              <h3 className="text-[13px] font-bold text-[#22334A]">صحة الإدارات</h3>
+              <h3 className="text-[13px] font-bold text-[#0C2A4B]">صحة الإدارات</h3>
               <p className="mt-0.5 text-[11px] font-medium text-slate-400">
                 الحالة التشغيلية لكل إدارة
               </p>
             </div>
             <Link
               to="/dashboard/super-admin/crud/departments"
-              className="text-[11px] font-semibold text-[#2691C2] transition hover:text-[#1e7aaa]"
+              className="text-[11px] font-semibold text-[#0077B6] transition hover:text-[#1e7aaa]"
             >
               إدارة
             </Link>
@@ -968,7 +968,7 @@ export default function SuperAdminOverviewPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: idx * 0.04 }}
-                      className="transition-colors hover:bg-[#2691C2]/[0.03]"
+                      className="transition-colors hover:bg-[#0077B6]/[0.03]"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -982,7 +982,7 @@ export default function SuperAdminOverviewPage() {
                             }`}
                           />
                           <div>
-                            <p className="text-[12px] font-semibold text-[#22334A]">{deptName}</p>
+                            <p className="text-[12px] font-semibold text-[#0C2A4B]">{deptName}</p>
                             {dept.leader_name && (
                               <p className="text-[10px] font-medium text-slate-400">
                                 {dept.leader_name}
@@ -1072,7 +1072,7 @@ export default function SuperAdminOverviewPage() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-[12px] font-semibold text-[#22334A]">
+                      <p className="truncate text-[12px] font-semibold text-[#0C2A4B]">
                         {instr.name}
                       </p>
                       <p className="truncate text-[10px] text-slate-400">{instr.email}</p>
@@ -1106,7 +1106,7 @@ export default function SuperAdminOverviewPage() {
             <>
               <div className="mb-4 flex items-center justify-center gap-6 rounded-2xl bg-slate-50 py-4">
                 <div className="text-center">
-                  <p className="font-mono text-3xl font-bold text-[#22334A]">
+                  <p className="font-mono text-3xl font-bold text-[#0C2A4B]">
                     {formatNumberEn(volunteers.length)}
                   </p>
                   <p className="mt-0.5 text-[10px] font-semibold text-slate-400">
@@ -1119,7 +1119,7 @@ export default function SuperAdminOverviewPage() {
                   {
                     labelAr: 'معلق / مراجعة',
                     value: pendingVols.length,
-                    color: '#EC943C',
+                    color: '#F28C00',
                     bg: 'bg-amber-50 border-amber-100',
                   },
                   {
@@ -1149,7 +1149,7 @@ export default function SuperAdminOverviewPage() {
               {volunteers.length > 0 && (
                 <div className="mt-4 flex h-2 overflow-hidden rounded-full">
                   {[
-                    { value: pendingVols.length, color: '#EC943C' },
+                    { value: pendingVols.length, color: '#F28C00' },
                     { value: approvedVols.length, color: '#10b981' },
                     { value: withdrawnVols.length, color: '#e2e8f0' },
                   ]
@@ -1171,7 +1171,7 @@ export default function SuperAdminOverviewPage() {
         </Card>
 
         {/* سجل النشاط الأخير */}
-        <Card accent="#2691C2">
+        <Card accent="#0077B6">
           <SectionHead title="سجل النشاط الأخير" sub="آخر الأحداث" />
           {detailLoading ? (
             <div className="space-y-3">
@@ -1192,8 +1192,8 @@ export default function SuperAdminOverviewPage() {
                   <span
                     className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg ${
                       item.type === 'reg'
-                        ? 'bg-[#2691C2]/10 text-[#2691C2]'
-                        : 'bg-[#EC943C]/10 text-[#EC943C]'
+                        ? 'bg-[#0077B6]/10 text-[#0077B6]'
+                        : 'bg-[#F28C00]/10 text-[#F28C00]'
                     }`}
                   >
                     {item.type === 'reg' ? (
@@ -1203,7 +1203,7 @@ export default function SuperAdminOverviewPage() {
                     )}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-[12px] font-semibold text-[#22334A]">
+                    <p className="truncate text-[12px] font-semibold text-[#0C2A4B]">
                       {item.name}
                     </p>
                     <p className="truncate text-[10px] text-slate-400">{item.detail}</p>
@@ -1229,8 +1229,8 @@ export default function SuperAdminOverviewPage() {
             <div className="flex items-stretch divide-x divide-slate-100 rtl:divide-x-reverse">
               {[
                 { labelAr: 'إجمالي الإيرادات', value: finance.total_revenue, color: '#059669' },
-                { labelAr: 'الإيرادات المؤكدة', value: finance.confirmed_revenue, color: '#2691C2' },
-                { labelAr: 'الإيرادات المعلقة', value: finance.pending_revenue, color: '#EC943C' },
+                { labelAr: 'الإيرادات المؤكدة', value: finance.confirmed_revenue, color: '#0077B6' },
+                { labelAr: 'الإيرادات المعلقة', value: finance.pending_revenue, color: '#F28C00' },
               ].map((s) => (
                 <div key={s.labelAr} className="flex-1 px-5 py-4">
                   <p className="text-[11px] font-semibold text-slate-400">{s.labelAr}</p>

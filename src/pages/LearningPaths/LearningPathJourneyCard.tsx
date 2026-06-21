@@ -20,7 +20,7 @@ import {
   levelLabelAr,
 } from './learningPathDisplay'
 
-const PLACEHOLDER_GRADIENT = 'bg-gradient-to-br from-[#22334A] to-[#2691C2]'
+const PLACEHOLDER_GRADIENT = 'bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]'
 
 type Props = {
   path: LearningPath
@@ -73,7 +73,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
           navigate(href)
         }
       }}
-      className="group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-md transition-all duration-300 hover:border-[#2691C2]/35 hover:shadow-xl"
+      className="group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-md transition-all duration-300 hover:border-[#0077B6]/35 hover:shadow-xl"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,240px)_1fr_minmax(0,200px)]">
           {/* Cover + journey spine */}
@@ -88,10 +88,10 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
                 <Route className="h-14 w-14 text-white/35" aria-hidden />
               </div>
             }
-            <div className="absolute inset-0 bg-gradient-to-t from-[#22334A]/75 via-[#22334A]/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/75 via-[#0C2A4B]/20 to-transparent" />
 
             {path.is_featured && (
-              <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#EC943C] px-2.5 py-1 text-[10px] font-black text-white shadow">
+              <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#F28C00] px-2.5 py-1 text-[10px] font-black text-white shadow">
                 <Star className="h-3 w-3 fill-white" aria-hidden />
                 مميز
               </span>

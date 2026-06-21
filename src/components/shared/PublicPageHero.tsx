@@ -84,7 +84,7 @@ export default function PublicPageHero({
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Link
                       to={ctaLink}
-                      className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl bg-accent-gradient px-7 py-4 text-base font-extrabold text-white shadow-emc-glow-accent transition-all duration-300 ease-emc-out hover:shadow-[0_20px_44px_-10px_rgba(236,148,60,0.55)]"
+                      className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl bg-accent-gradient px-7 py-4 text-base font-extrabold text-white shadow-emc-glow-accent transition-all duration-300 ease-emc-out hover:shadow-[0_20px_44px_-10px_rgba(242, 140, 0,0.55)]"
                     >
                       <span className="pointer-events-none absolute inset-0 -translate-x-full bg-emc-shimmer bg-[length:200%_100%] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:translate-x-full" aria-hidden />
                       <span className="relative">{ctaText}</span>
@@ -133,7 +133,7 @@ export default function PublicPageHero({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.45, delay: 0.25 + i * 0.1 }}
                   className={[
-                    'shadow-[0_16px_40px_-20px_rgba(34,51,74,0.12)]',
+                    'shadow-[0_16px_40px_-20px_rgba(12, 42, 75,0.12)]',
                     i === 1 ? 'sm:mr-4 lg:mr-8' : '',
                     i === 2 ? 'sm:ml-4 lg:ml-0' : '',
                   ].join(' ')}

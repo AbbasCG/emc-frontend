@@ -17,11 +17,11 @@ import type { FinanceDashboardData } from '@/types/intelligence'
 import { gatewayTotalsFromPayments } from './financeDashboardDerivations'
 import { formatEuroCompact, formatEuroInteger } from '@/utils/currency'
 
-const brand = '#2691C2'
-const accent = '#EC943C'
-const ink = '#22334A'
+const brand = '#0077B6'
+const accent = '#F28C00'
+const ink = '#0C2A4B'
 
-const GATEWAY_COLORS = ['#2691C2', '#EC943C', '#1B6489', '#F5B561', '#6B7F98']
+const GATEWAY_COLORS = ['#0077B6', '#F28C00', '#0E5A8A', '#F5B561', '#6B7F98']
 
 const PROVIDER_LABEL: Record<string, string> = {
   stripe: 'سترايب',
@@ -63,7 +63,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
 
   const tooltipStyle = {
     borderRadius: 14,
-    border: `1px solid rgba(34,51,74,0.08)`,
+    border: `1px solid rgba(12, 42, 75,0.08)`,
     boxShadow: '0 22px 50px -24px rgba(15,42,67,0.22)',
     fontFamily: '"Tajawal",sans-serif',
   }
@@ -96,7 +96,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
                     <stop offset="100%" stopColor={brand} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 8" stroke="rgba(34,51,74,0.06)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 8" stroke="rgba(12, 42, 75,0.06)" vertical={false} />
                 <XAxis
                   dataKey="label"
                   tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Tajawal' }}
@@ -159,7 +159,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
                       <stop offset="100%" stopColor={ink} stopOpacity={0.55} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 8" stroke="rgba(34,51,74,0.06)" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 8" stroke="rgba(12, 42, 75,0.06)" horizontal={false} />
                   <XAxis
                     type="number"
                     tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Inter' }}

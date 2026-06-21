@@ -54,7 +54,7 @@ function MeetingLinkAction({ event, compact }: { event: CalendarEventRecord; com
         href={event.meeting_link}
         target="_blank"
         rel="noreferrer"
-        className={`inline-flex items-center gap-2 rounded-xl bg-[#2691C2] font-black text-white shadow-md transition hover:opacity-90 ${base}`}
+        className={`inline-flex items-center gap-2 rounded-xl bg-[#0077B6] font-black text-white shadow-md transition hover:opacity-90 ${base}`}
       >
         <Video size={compact ? 13 : 14} />
         انضم للاجتماع
@@ -90,7 +90,7 @@ export default function CalendarEventCard({ event, onEdit, onDelete, onClick }: 
   return (
     <article
       dir="rtl"
-      className={`group cursor-pointer rounded-2xl border border-slate-100 border-s-4 bg-white p-5 shadow-sm transition hover:border-[#2691C2]/25 hover:shadow-md ${accentCls}`}
+      className={`group cursor-pointer rounded-2xl border border-slate-100 border-s-4 bg-white p-5 shadow-sm transition hover:border-[#0077B6]/25 hover:shadow-md ${accentCls}`}
       onClick={() => onClick?.(event)}
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -120,7 +120,7 @@ export default function CalendarEventCard({ event, onEdit, onDelete, onClick }: 
             )}
           </div>
 
-          <h3 className="mt-3 text-base font-black leading-snug text-[#22334A]">{event.title}</h3>
+          <h3 className="mt-3 text-base font-black leading-snug text-[#0C2A4B]">{event.title}</h3>
 
           {contextLine && (
             <p className="mt-1 text-[11px] font-medium text-slate-400">{contextLine}</p>
@@ -132,7 +132,7 @@ export default function CalendarEventCard({ event, onEdit, onDelete, onClick }: 
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-slate-500">
             <span className="inline-flex items-center gap-2">
-              <CalendarClock size={14} className="text-[#2691C2]" />
+              <CalendarClock size={14} className="text-[#0077B6]" />
               {formatCalendarDateShort(event.start_at)}
             </span>
             {event.end_at && (
@@ -146,7 +146,7 @@ export default function CalendarEventCard({ event, onEdit, onDelete, onClick }: 
 
           {event.location && (
             <p className="mt-2 flex items-center gap-2 text-xs font-bold text-slate-500">
-              <MapPin size={14} className="text-[#EC943C]" />
+              <MapPin size={14} className="text-[#F28C00]" />
               {event.location}
             </p>
           )}
@@ -159,7 +159,7 @@ export default function CalendarEventCard({ event, onEdit, onDelete, onClick }: 
           <button
             type="button"
             onClick={() => onClick?.(event)}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-[#2691C2] opacity-0 transition group-hover:opacity-100 hover:bg-[#2691C2]/5"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-[#0077B6] opacity-0 transition group-hover:opacity-100 hover:bg-[#0077B6]/5"
           >
             التفاصيل
             <ChevronLeft size={14} />
@@ -170,7 +170,7 @@ export default function CalendarEventCard({ event, onEdit, onDelete, onClick }: 
               <button
                 type="button"
                 onClick={() => onEdit?.(event)}
-                className="rounded-xl bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
+                className="rounded-xl bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 transition hover:bg-[#0077B6]/10 hover:text-[#0077B6]"
               >
                 تعديل
               </button>

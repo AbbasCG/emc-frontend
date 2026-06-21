@@ -570,7 +570,7 @@ export default function UsersManagementPage() {
                 type="button"
                 onClick={() => void load()}
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/90 px-4 py-2.5 text-[12px] font-semibold text-[#22334A] shadow-sm transition hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/90 px-4 py-2.5 text-[12px] font-semibold text-[#0C2A4B] shadow-sm transition hover:bg-white"
               >
                 <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} aria-hidden />
                 تحديث
@@ -578,7 +578,7 @@ export default function UsersManagementPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_16px_40px_-12px_rgba(236,148,60,0.55)] transition hover:brightness-[1.04]"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_16px_40px_-12px_rgba(242, 140, 0,0.55)] transition hover:brightness-[1.04]"
               >
                 <UserSquare2 className="h-4 w-4" aria-hidden />
                 مستخدم جديد
@@ -636,14 +636,14 @@ export default function UsersManagementPage() {
           {loading ?
             <motion.div
               layout
-              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(34,51,74,0.08)]"
+              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(12, 42, 75,0.08)]"
             >
               <EnterpriseTableSkeleton cols={10} rows={perPage > 8 ? 8 : perPage} />
             </motion.div>
           : (
             <motion.div
               layout
-              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(34,51,74,0.08)] ring-1 ring-[#22334A]/[0.04]"
+              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(12, 42, 75,0.08)] ring-1 ring-[#0C2A4B]/[0.04]"
             >
               <div className="max-h-[min(70vh,720px)] overflow-auto">
                 <UsersDataTable
@@ -743,7 +743,7 @@ export default function UsersManagementPage() {
                       <Labeled label="كلمة المرور" children={<Input type="password" value={pw} onChange={setPw} />} />
                       <Labeled label="التأكيد" children={<Input type="password" value={pwConf} onChange={setPwConf} />} />
                       {pw.trim() ?
-                        <p className="rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/6 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-[#1a6b96] rtl:text-right break-all">
+                        <p className="rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/6 px-3 py-2 text-[11px] font-mono font-bold leading-relaxed text-[#1a6b96] rtl:text-right break-all">
                           {pw}
                         </p>
                       : null}
@@ -930,7 +930,7 @@ function PasswordInlineTools({
       <button
         type="button"
         onClick={() => gen()}
-        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#2691C2]/25 bg-[#2691C2]/8 px-3 py-2 text-[11px] font-black text-[#1a6b96] transition hover:bg-[#2691C2]/14"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#0077B6]/25 bg-[#0077B6]/8 px-3 py-2 text-[11px] font-black text-[#1a6b96] transition hover:bg-[#0077B6]/14"
       >
         <Sparkles className="h-3.5 w-3.5" aria-hidden />
         توليد كلمة مرور
@@ -939,7 +939,7 @@ function PasswordInlineTools({
         type="button"
         onClick={() => void copy()}
         disabled={!pw.trim()}
-        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-40"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-[#0C2A4B] transition hover:bg-slate-50 disabled:opacity-40"
       >
         <Copy className="h-3.5 w-3.5" aria-hidden />
         نسخ
@@ -976,14 +976,14 @@ function Input({
         type={inputType}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full rounded-xl border border-slate-200 px-4 py-2.5 text-[13px] font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/40 focus:ring-2 focus:ring-[#2691C2]/12 ${isPassword ? 'pe-10' : ''}`}
+        className={`w-full rounded-xl border border-slate-200 px-4 py-2.5 text-[13px] font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/40 focus:ring-2 focus:ring-[#0077B6]/12 ${isPassword ? 'pe-10' : ''}`}
       />
       {isPassword && (
         <button
           type="button"
           aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
           onClick={() => setShowPw((s) => !s)}
-          className="absolute end-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-[#22334A]"
+          className="absolute end-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-[#0C2A4B]"
           tabIndex={-1}
         >
           {showPw ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}

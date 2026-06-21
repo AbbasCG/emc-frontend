@@ -74,7 +74,7 @@ export default function AppInput({
             size={20}
             className={cn(
               'pointer-events-none absolute right-4 top-1/2 -translate-y-1/2',
-              iconClassName ?? (variant === 'emc' ? 'text-[#2691C2]' : 'text-amber-500'),
+              iconClassName ?? (variant === 'emc' ? 'text-[#0077B6]' : 'text-amber-500'),
             )}
             aria-hidden="true"
           />
@@ -97,8 +97,8 @@ export default function AppInput({
             error
               ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
               : variant === 'emc'
-                ? 'border-slate-200/90 shadow-sm focus:border-[#2691C2] focus:ring-4 focus:ring-[#2691C2]/22'
-                : 'border-amber-100 focus:border-[#D67C28] focus:ring-4 focus:ring-amber-100',
+                ? 'border-slate-200/90 shadow-sm focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/22'
+                : 'border-amber-100 focus:border-[#DD7C02] focus:ring-4 focus:ring-amber-100',
             disabled && 'cursor-not-allowed bg-slate-100 text-slate-500',
             inputClassName,
           )}

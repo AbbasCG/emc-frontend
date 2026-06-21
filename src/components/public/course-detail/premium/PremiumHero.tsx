@@ -14,7 +14,7 @@ import { formatPublicText } from '@/utils/publicDetailFormat'
 const AVATAR_PLACEHOLDER =
   'data:image/svg+xml,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="40" fill="#2691C2"/><circle cx="40" cy="30" r="13" fill="rgba(255,255,255,0.35)"/><path fill="rgba(255,255,255,0.25)" d="M10 74c7-18 17-26 30-26s23 8 30 26"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="40" fill="#0077B6"/><circle cx="40" cy="30" r="13" fill="rgba(255,255,255,0.35)"/><path fill="rgba(255,255,255,0.25)" d="M10 74c7-18 17-26 30-26s23 8 30 26"/></svg>`,
   )
 
 type Props = {
@@ -59,7 +59,7 @@ export default function PremiumHero({
     <section className="relative overflow-hidden bg-gradient-to-br from-[#2a4568] via-[#256a9a] to-[#2fa0d4]">
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 right-1/4 h-[420px] w-[420px] rounded-full bg-[#3db4e8]/28 blur-[100px]" />
-        <div className="absolute -bottom-16 left-0 h-[320px] w-[320px] rounded-full bg-[#EC943C]/16 blur-[80px]" />
+        <div className="absolute -bottom-16 left-0 h-[320px] w-[320px] rounded-full bg-[#F28C00]/16 blur-[80px]" />
       </div>
 
       <div
@@ -92,7 +92,7 @@ export default function PremiumHero({
               {derived.L.badge}
             </span>
             {level && (
-              <span className="rounded-full border border-[#EC943C]/50 bg-[#EC943C]/25 px-3 py-1 text-[11px] font-black text-[#fff4e8]">
+              <span className="rounded-full border border-[#F28C00]/50 bg-[#F28C00]/25 px-3 py-1 text-[11px] font-black text-[#fff4e8]">
                 {level}
               </span>
             )}
@@ -128,7 +128,7 @@ export default function PremiumHero({
                     key={i}
                     className={cn(
                       'h-3.5 w-3.5',
-                      i < Math.round(rating) ? 'fill-[#EC943C] text-[#EC943C]' : 'fill-white/15 text-white/20',
+                      i < Math.round(rating) ? 'fill-[#F28C00] text-[#F28C00]' : 'fill-white/15 text-white/20',
                     )}
                   />
                 ))}
@@ -207,7 +207,7 @@ export default function PremiumHero({
                 className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100"
               >
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 shadow-2xl ring-4 ring-white/25 transition-transform hover:scale-105">
-                  <Play className="ms-0.5 h-5 w-5 fill-[#2691C2] text-[#2691C2]" />
+                  <Play className="ms-0.5 h-5 w-5 fill-[#0077B6] text-[#0077B6]" />
                 </span>
               </button>
             )}
@@ -223,7 +223,7 @@ export default function PremiumHero({
                   className={cn(
                     'h-12 flex-1 overflow-hidden rounded-lg border-2 transition-all duration-200',
                     activeImg === item.url
-                      ? 'border-[#EC943C] shadow-[0_0_0_2px_rgba(236,148,60,0.2)]'
+                      ? 'border-[#F28C00] shadow-[0_0_0_2px_rgba(242, 140, 0,0.2)]'
                       : 'border-white/20 hover:border-white/40',
                   )}
                 >

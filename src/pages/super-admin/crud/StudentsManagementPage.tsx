@@ -85,19 +85,19 @@ function StudentCard({ u, idx, onSelect }: { u: AdminManagedUser; idx: number; o
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(idx * 0.025, 0.4) }}
-      className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
     >
       <div className="flex items-center gap-3">
         {u.avatar_url ? (
           <img src={u.avatar_url} alt={u.name} className="h-11 w-11 rounded-2xl object-cover" />
         ) : (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[13px] font-black text-white">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[13px] font-black text-white">
             {initials(u.name)}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-black text-[#22334A]">{u.name}</p>
-          <p className="truncate text-[10px] font-semibold text-[#22334A]/40" dir="ltr">{u.email}</p>
+          <p className="truncate text-[13px] font-black text-[#0C2A4B]">{u.name}</p>
+          <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40" dir="ltr">{u.email}</p>
         </div>
         <span className={`shrink-0 rounded-xl px-2 py-0.5 text-[9px] font-black ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
           {active ? 'نشط' : 'موقوف'}
@@ -127,7 +127,7 @@ function StudentCard({ u, idx, onSelect }: { u: AdminManagedUser; idx: number; o
         <button
           type="button"
           onClick={onSelect}
-          className="rounded-xl border border-[#2691C2]/25 bg-[#2691C2]/[0.07] px-3 py-1.5 text-[10px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.14]"
+          className="rounded-xl border border-[#0077B6]/25 bg-[#0077B6]/[0.07] px-3 py-1.5 text-[10px] font-black text-[#0077B6] transition hover:bg-[#0077B6]/[0.14]"
         >
           عرض الملف
         </button>
@@ -164,20 +164,20 @@ function StudentSearchDropdown({
       <button
         type="button"
         onClick={() => { setOpen((v) => !v); setQ('') }}
-        className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm transition hover:border-[#2691C2]/40 focus:outline-none"
+        className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm transition hover:border-[#0077B6]/40 focus:outline-none"
       >
         {selected ? (
           <>
             {selected.avatar_url ? (
               <img src={selected.avatar_url} alt="" className="h-7 w-7 rounded-xl object-cover" />
             ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[10px] font-black text-white">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[10px] font-black text-white">
                 {initials(selected.name)}
               </div>
             )}
             <div className="min-w-0 flex-1 text-right">
-              <p className="truncate text-[12px] font-black text-[#22334A]">{selected.name}</p>
-              <p className="truncate text-[10px] font-semibold text-[#22334A]/40" dir="ltr">{selected.email}</p>
+              <p className="truncate text-[12px] font-black text-[#0C2A4B]">{selected.name}</p>
+              <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40" dir="ltr">{selected.email}</p>
             </div>
             <X
               className="h-4 w-4 shrink-0 text-slate-400 hover:text-red-500"
@@ -216,7 +216,7 @@ function StudentSearchDropdown({
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="ابحث بالاسم أو البريد..."
                 dir="rtl"
-                className="flex-1 bg-transparent text-[12px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400"
+                className="flex-1 bg-transparent text-[12px] font-semibold text-[#0C2A4B] outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -233,13 +233,13 @@ function StudentSearchDropdown({
                 {s.avatar_url ? (
                   <img src={s.avatar_url} alt="" className="h-8 w-8 rounded-xl object-cover" />
                 ) : (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A]/80 to-[#2691C2]/80 text-[10px] font-black text-white">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B]/80 to-[#0077B6]/80 text-[10px] font-black text-white">
                     {initials(s.name)}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-black text-[#22334A]">{s.name}</p>
-                  <p className="truncate text-[10px] font-semibold text-[#22334A]/45" dir="ltr">{s.email}</p>
+                  <p className="truncate text-[12px] font-black text-[#0C2A4B]">{s.name}</p>
+                  <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/45" dir="ltr">{s.email}</p>
                 </div>
                 <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${s.is_active !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
                   {s.is_active !== false ? 'نشط' : 'موقوف'}
@@ -264,21 +264,21 @@ function JourneyTimeline({ steps }: { steps: JourneyStep[] }) {
           <div key={step.id} className="relative flex gap-3">
             {!isLast && (
               <div
-                className={`absolute right-[17px] top-9 z-0 w-0.5 ${step.done ? 'bg-[#2691C2]' : 'bg-slate-200'}`}
+                className={`absolute right-[17px] top-9 z-0 w-0.5 ${step.done ? 'bg-[#0077B6]' : 'bg-slate-200'}`}
                 style={{ height: 'calc(100% - 4px)' }}
               />
             )}
             <div className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl ${
               step.done
-                ? 'bg-[#2691C2] text-white shadow-sm'
+                ? 'bg-[#0077B6] text-white shadow-sm'
                 : step.current
-                ? 'border-2 border-[#2691C2] bg-white text-[#2691C2]'
+                ? 'border-2 border-[#0077B6] bg-white text-[#0077B6]'
                 : 'border border-slate-200 bg-slate-50 text-slate-400'
             }`}>
               {step.done ? <CheckCircle2 className="h-4 w-4" /> : step.icon}
             </div>
             <div className="flex flex-1 flex-col justify-center pb-5">
-              <p className={`text-[12px] font-black ${step.done ? 'text-[#22334A]' : step.current ? 'text-[#2691C2]' : 'text-slate-400'}`}>
+              <p className={`text-[12px] font-black ${step.done ? 'text-[#0C2A4B]' : step.current ? 'text-[#0077B6]' : 'text-slate-400'}`}>
                 {step.label}
               </p>
               {step.date && (
@@ -303,8 +303,8 @@ function JourneyTimeline({ steps }: { steps: JourneyStep[] }) {
 function InfoField({ label, value, ltr }: { label: string; value: string | null | undefined; ltr?: boolean }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3">
-      <p className="mb-0.5 text-[10px] font-black text-[#22334A]/45">{label}</p>
-      <p className={`text-[13px] font-bold text-[#22334A] ${ltr ? 'text-left' : ''}`} dir={ltr ? 'ltr' : undefined}>
+      <p className="mb-0.5 text-[10px] font-black text-[#0C2A4B]/45">{label}</p>
+      <p className={`text-[13px] font-bold text-[#0C2A4B] ${ltr ? 'text-left' : ''}`} dir={ltr ? 'ltr' : undefined}>
         {value?.trim() ? value : '—'}
       </p>
     </div>
@@ -319,8 +319,8 @@ function PlaceholderTab({ icon, title, description }: { icon: ReactNode; title: 
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-3xl border border-slate-100 bg-slate-50 text-slate-300">
         {icon}
       </div>
-      <p className="text-[13px] font-black text-[#22334A]/60">{title}</p>
-      <p className="mt-1.5 max-w-xs text-[11px] font-semibold text-[#22334A]/35">{description}</p>
+      <p className="text-[13px] font-black text-[#0C2A4B]/60">{title}</p>
+      <p className="mt-1.5 max-w-xs text-[11px] font-semibold text-[#0C2A4B]/35">{description}</p>
       <span className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-[10px] font-black text-amber-600">
         قيد التطوير · يتطلب نقطة API مخصّصة
       </span>
@@ -365,7 +365,7 @@ function ActivityTab({ u }: { u: AdminManagedUser }) {
             {ev.icon}
           </div>
           <div className="flex-1">
-            <p className="text-[12px] font-black text-[#22334A]">{ev.label}</p>
+            <p className="text-[12px] font-black text-[#0C2A4B]">{ev.label}</p>
             <p className="font-mono text-[10px] tabular-nums text-slate-400">{toDMY(ev.date)}</p>
           </div>
         </motion.div>
@@ -431,7 +431,7 @@ function StudentCoursesTab({ userId }: { userId: number }) {
           {courses.map((c) => (
             <tr key={c.course_id} className="hover:bg-slate-50 transition-colors">
               <td className="px-4 py-2.5">
-                <span className="font-bold text-[#22334A]">{c.course_title}</span>
+                <span className="font-bold text-[#0C2A4B]">{c.course_title}</span>
                 <span className="mr-2 font-mono text-[10px] text-slate-400">#{c.course_id}</span>
               </td>
               <td className="px-4 py-2.5">
@@ -443,7 +443,7 @@ function StudentCoursesTab({ userId }: { userId: number }) {
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-[#2691C2] transition-all"
+                      className="h-full rounded-full bg-[#0077B6] transition-all"
                       style={{ width: `${c.progress_pct}%` }}
                     />
                   </div>
@@ -495,7 +495,7 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[11px] font-black text-[#22334A] shadow-sm transition hover:bg-slate-50"
+        className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[11px] font-black text-[#0C2A4B] shadow-sm transition hover:bg-slate-50"
       >
         <ChevronDown className="h-4 w-4 rotate-90" />
         العودة إلى قائمة الطلاب
@@ -503,7 +503,7 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
 
       {/* Profile header */}
       <SaGlassCard glow="blue" className="overflow-hidden p-0">
-        <div className="bg-gradient-to-l from-[#22334A] to-[#2691C2] px-6 py-7">
+        <div className="bg-gradient-to-l from-[#0C2A4B] to-[#0077B6] px-6 py-7">
           <div className="flex items-start gap-4" dir="rtl">
             {u.avatar_url ? (
               <img src={u.avatar_url} alt={u.name} className="h-16 w-16 rounded-2xl object-cover ring-4 ring-white/25" />
@@ -545,9 +545,9 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
             { label: 'الهاتف',         value: u.phone ?? '—',          icon: <Phone className="h-3.5 w-3.5" />, ltr: true },
           ].map((item) => (
             <div key={item.label} className="flex flex-col items-center gap-1 py-4 text-center">
-              {item.icon && <span className="text-[#2691C2]/70">{item.icon}</span>}
-              <p className="text-[10px] font-black text-[#22334A]/40">{item.label}</p>
-              <p className="font-mono text-[11px] font-black tabular-nums text-[#22334A]" dir={item.ltr ? 'ltr' : undefined}>{item.value}</p>
+              {item.icon && <span className="text-[#0077B6]/70">{item.icon}</span>}
+              <p className="text-[10px] font-black text-[#0C2A4B]/40">{item.label}</p>
+              <p className="font-mono text-[11px] font-black tabular-nums text-[#0C2A4B]" dir={item.ltr ? 'ltr' : undefined}>{item.value}</p>
             </div>
           ))}
         </div>
@@ -562,7 +562,7 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
               type="button"
               onClick={() => setTab(t.id)}
               className={`rounded-xl px-4 py-2 text-[11px] font-black transition ${
-                tab === t.id ? 'bg-[#2691C2] text-white shadow-sm' : 'text-[#22334A]/55 hover:bg-slate-50 hover:text-[#22334A]'
+                tab === t.id ? 'bg-[#0077B6] text-white shadow-sm' : 'text-[#0C2A4B]/55 hover:bg-slate-50 hover:text-[#0C2A4B]'
               }`}
             >
               {t.label}
@@ -577,7 +577,7 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
           {tab === 'overview' && (
             <div className="grid gap-5 lg:grid-cols-[1fr_300px]" dir="rtl">
               <SaGlassCard glow="blue" className="space-y-4 p-5">
-                <p className="text-[11px] font-black text-[#22334A]/45">معلومات الحساب</p>
+                <p className="text-[11px] font-black text-[#0C2A4B]/45">معلومات الحساب</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <InfoField label="الاسم الكامل"         value={u.name} />
                   <InfoField label="البريد الإلكتروني"    value={u.email} ltr />
@@ -595,7 +595,7 @@ function StudentProfile({ u, onBack }: { u: AdminManagedUser; onBack: () => void
               </SaGlassCard>
 
               <SaGlassCard glow="blue" className="p-5">
-                <p className="mb-4 text-[11px] font-black text-[#22334A]/45">رحلة الطالب</p>
+                <p className="mb-4 text-[11px] font-black text-[#0C2A4B]/45">رحلة الطالب</p>
                 <JourneyTimeline steps={journeySteps} />
               </SaGlassCard>
             </div>
@@ -747,7 +747,7 @@ export default function StudentsManagementPage() {
       {showDashboard && (
         <SaGlassCard glow="blue" className="overflow-visible p-4">
           <div dir="rtl">
-            <p className="mb-2 text-[10px] font-black text-[#22334A]/45">اختيار الطالب</p>
+            <p className="mb-2 text-[10px] font-black text-[#0C2A4B]/45">اختيار الطالب</p>
             <StudentSearchDropdown students={users} selected={selected} onChange={setSelected} />
           </div>
         </SaGlassCard>
@@ -781,7 +781,7 @@ export default function StudentsManagementPage() {
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="بحث بالاسم أو البريد أو الجوال..."
                     dir="rtl"
-                    className="flex-1 bg-transparent text-[12px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400"
+                    className="flex-1 bg-transparent text-[12px] font-semibold text-[#0C2A4B] outline-none placeholder:text-slate-400"
                   />
                   {q && <button type="button" onClick={() => setQ('')} className="text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>}
                 </div>
@@ -791,7 +791,7 @@ export default function StudentsManagementPage() {
                       key={v}
                       type="button"
                       onClick={() => setStatus(v)}
-                      className={`rounded-lg px-3 py-1.5 text-[11px] font-black transition ${status === v ? 'bg-[#2691C2] text-white shadow-sm' : 'text-[#22334A]/50 hover:text-[#22334A]'}`}
+                      className={`rounded-lg px-3 py-1.5 text-[11px] font-black transition ${status === v ? 'bg-[#0077B6] text-white shadow-sm' : 'text-[#0C2A4B]/50 hover:text-[#0C2A4B]'}`}
                     >
                       {v === 'all' ? 'الكل' : v === 'active' ? 'نشط' : 'موقوف'}
                     </button>
@@ -807,8 +807,8 @@ export default function StudentsManagementPage() {
             ) : forbidden || error ? null : !filtered.length ? (
               <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center" dir="rtl">
                 <GraduationCap className="mx-auto h-12 w-12 text-slate-200" />
-                <p className="mt-4 text-[14px] font-black text-[#22334A]/50">لا طلاب مطابقون</p>
-                <p className="mt-1 text-[12px] font-semibold text-[#22334A]/30">جرّب تغيير فلتر الحالة أو كلمة البحث</p>
+                <p className="mt-4 text-[14px] font-black text-[#0C2A4B]/50">لا طلاب مطابقون</p>
+                <p className="mt-1 text-[12px] font-semibold text-[#0C2A4B]/30">جرّب تغيير فلتر الحالة أو كلمة البحث</p>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" dir="rtl">
@@ -822,21 +822,21 @@ export default function StudentsManagementPage() {
             {showDashboard && !loading && filtered.length > 0 && (
               <div className="grid gap-5 lg:grid-cols-3">
                 <SaGlassCard glow="blue" className="p-5">
-                  <p className="mb-3 text-[11px] font-black text-[#22334A]/45">توزيع حالة الحسابات</p>
+                  <p className="mb-3 text-[11px] font-black text-[#0C2A4B]/45">توزيع حالة الحسابات</p>
                   {statusPie.length > 0
                     ? <EnterprisePieRadial data={statusPie} height={160} />
                     : <p className="py-8 text-center text-[12px] text-slate-400">لا بيانات كافية</p>}
                 </SaGlassCard>
 
                 <SaGlassCard glow="orange" className="p-5">
-                  <p className="mb-3 text-[11px] font-black text-[#22334A]/45">توزيع الطلاب حسب المدينة</p>
+                  <p className="mb-3 text-[11px] font-black text-[#0C2A4B]/45">توزيع الطلاب حسب المدينة</p>
                   {cityData.length > 0
                     ? <EnterpriseColumnChart data={cityData} bars={[{ key: 'طلاب', color: EMC_CHART_PALETTE[1], label: 'طلاب' }]} height={140} />
                     : <p className="py-8 text-center text-[12px] text-slate-400">لا بيانات مدن متاحة</p>}
                 </SaGlassCard>
 
                 <SaGlassCard glow="blue" className="p-5">
-                  <p className="mb-3 text-[11px] font-black text-[#22334A]/45">التسجيلات الشهرية</p>
+                  <p className="mb-3 text-[11px] font-black text-[#0C2A4B]/45">التسجيلات الشهرية</p>
                   {monthlyData.length > 0
                     ? <EnterpriseColumnChart data={monthlyData} bars={[{ key: 'تسجيل', color: EMC_CHART_PALETTE[0], label: 'تسجيل' }]} height={140} />
                     : <p className="py-8 text-center text-[12px] text-slate-400">لا بيانات تسجيلات</p>}

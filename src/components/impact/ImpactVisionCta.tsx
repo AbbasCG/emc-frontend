@@ -15,11 +15,11 @@ export default function ImpactVisionCta() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,#22334a_0%,#1a2a3d_45%,#142131_100%)]"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,#0C2A4B_0%,#1a2a3d_45%,#142131_100%)]"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_0%_0%,rgba(38,145,194,0.35),transparent_52%),radial-gradient(ellipse_60%_50%_at_100%_100%,rgba(236,148,60,0.22),transparent_48%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_0%_0%,rgba(0, 119, 182,0.35),transparent_52%),radial-gradient(ellipse_60%_50%_at_100%_100%,rgba(242, 140, 0,0.22),transparent_48%)]"
         />
         <div className="relative max-w-3xl">
           <p className="text-xs font-black text-customOrange sm:text-sm">الرؤية المستقبلية</p>

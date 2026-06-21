@@ -42,12 +42,12 @@ const toneIconChip: Record<StatTone, string> = {
 }
 
 const toneGlow: Record<StatTone, string> = {
-  brand:   'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(38,145,194,0.18),transparent)]',
-  accent:  'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(236,148,60,0.16),transparent)]',
-  ink:     'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(34,51,74,0.10),transparent)]',
+  brand:   'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(0, 119, 182,0.18),transparent)]',
+  accent:  'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(242, 140, 0,0.16),transparent)]',
+  ink:     'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(12, 42, 75,0.10),transparent)]',
   success: 'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(16,185,129,0.14),transparent)]',
   danger:  'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(244,63,94,0.14),transparent)]',
-  neutral: 'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(34,51,74,0.06),transparent)]',
+  neutral: 'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(12, 42, 75,0.06),transparent)]',
 }
 
 function trendClasses(trend?: StatTrend) {

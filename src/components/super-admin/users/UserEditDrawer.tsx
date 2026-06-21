@@ -65,7 +65,7 @@ type Props = {
 }
 
 const INPUT =
-  'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/45 focus:ring-4 focus:ring-[#2691C2]/10'
+  'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/45 focus:ring-4 focus:ring-[#0077B6]/10'
 
 export function UserEditDrawer({
   open,
@@ -188,7 +188,7 @@ export function UserEditDrawer({
               type="submit"
               form="user-edit-form"
               disabled={saving || loading}
-              className="inline-flex min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(34,51,74,0.45)] transition hover:opacity-90 disabled:opacity-50"
+              className="inline-flex min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(12, 42, 75,0.45)] transition hover:opacity-90 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               {saving ? 'جارٍ الحفظ…' : 'حفظ التغييرات'}
@@ -199,13 +199,13 @@ export function UserEditDrawer({
     >
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-[#2691C2]" aria-hidden />
+          <Loader2 className="h-8 w-8 animate-spin text-[#0077B6]" aria-hidden />
           <p className="text-[13px] font-semibold text-slate-500">جارٍ تحميل بيانات المستخدم…</p>
         </div>
       ) : (
         <form id="user-edit-form" onSubmit={handleSubmit} className="space-y-5">
           {metaLine ? (
-            <p className="rounded-2xl border border-[#2691C2]/15 bg-gradient-to-l from-[#2691C2]/8 to-transparent px-4 py-3 text-[11px] font-semibold text-[#1a6b96]">
+            <p className="rounded-2xl border border-[#0077B6]/15 bg-gradient-to-l from-[#0077B6]/8 to-transparent px-4 py-3 text-[11px] font-semibold text-[#1a6b96]">
               {metaLine}
             </p>
           ) : null}
@@ -271,7 +271,7 @@ export function UserEditDrawer({
                 ))}
               </select>
             </Field>
-            <p className="rounded-xl bg-[#22334A]/5 px-3 py-2 text-[11px] font-bold text-[#22334A]">
+            <p className="rounded-xl bg-[#0C2A4B]/5 px-3 py-2 text-[11px] font-bold text-[#0C2A4B]">
               الدور الحالي: {adminRoleLabelAr(formRole)}
             </p>
           </Section>
@@ -291,11 +291,11 @@ export function UserEditDrawer({
 
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="text-[12px] font-black text-[#22334A]">كلمة مرور جديدة (اختياري)</p>
+                <p className="text-[12px] font-black text-[#0C2A4B]">كلمة مرور جديدة (اختياري)</p>
                 <button
                   type="button"
                   onClick={genPassword}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-[10px] font-black text-[#1a6b96] transition hover:bg-[#2691C2]/16"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#0077B6]/10 px-3 py-1.5 text-[10px] font-black text-[#1a6b96] transition hover:bg-[#0077B6]/16"
                 >
                   <Sparkles className="h-3 w-3" aria-hidden />
                   توليد
@@ -342,7 +342,7 @@ function AvatarUploadBlock({
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-100 bg-gradient-to-b from-slate-50/80 to-white p-5 sm:flex-row sm:items-start">
       <div className="relative">
-        <div className="h-20 w-20 overflow-hidden rounded-2xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-xl font-black text-white shadow-md ring-4 ring-white">
+        <div className="h-20 w-20 overflow-hidden rounded-2xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-xl font-black text-white shadow-md ring-4 ring-white">
           {displayUrl ?
             <img src={displayUrl} alt="" className="h-full w-full object-cover" />
           : <span className="flex h-full w-full items-center justify-center">{initialsFromName(name)}</span>}
@@ -354,10 +354,10 @@ function AvatarUploadBlock({
         : null}
       </div>
       <div className="flex-1 space-y-2 text-center sm:text-right">
-        <p className="text-[12px] font-black text-[#22334A]">صورة الملف الشخصي</p>
+        <p className="text-[12px] font-black text-[#0C2A4B]">صورة الملف الشخصي</p>
         <p className="text-[11px] font-medium text-slate-500">PNG أو JPG — يُرفع مع الحفظ</p>
         <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
-          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#2691C2] px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:opacity-90">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#0077B6] px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:opacity-90">
             <Camera className="h-3.5 w-3.5" aria-hidden />
             {hasFile ? 'تغيير الصورة' : 'رفع صورة'}
             <input
@@ -394,12 +394,12 @@ function AvatarUploadBlock({
 
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof Shield; children: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_8px_32px_-16px_rgba(34,51,74,0.12)] ring-1 ring-black/[0.03]">
-      <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-l from-[#22334A]/[0.05] to-transparent px-5 py-3.5">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+    <section className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_8px_32px_-16px_rgba(12, 42, 75,0.12)] ring-1 ring-black/[0.03]">
+      <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-l from-[#0C2A4B]/[0.05] to-transparent px-5 py-3.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
-        <h3 className="text-[13px] font-black text-[#22334A]">{title}</h3>
+        <h3 className="text-[13px] font-black text-[#0C2A4B]">{title}</h3>
       </div>
       <div className="space-y-4 p-5">{children}</div>
     </section>
@@ -439,7 +439,7 @@ function PasswordInput({
       <button
         type="button"
         onClick={onToggle}
-        className="absolute end-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:text-[#22334A]"
+        className="absolute end-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:text-[#0C2A4B]"
         aria-label={show ? 'إخفاء' : 'إظهار'}
         tabIndex={-1}
       >

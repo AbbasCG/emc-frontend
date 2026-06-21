@@ -35,11 +35,11 @@ export function InstructorHero({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] px-5 py-5 shadow-[0_16px_40px_-18px_rgba(34,51,74,0.45)] sm:px-8 sm:py-5"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1a2d44] to-[#0077B6] px-5 py-5 shadow-[0_16px_40px_-18px_rgba(12, 42, 75,0.45)] sm:px-8 sm:py-5"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-10 top-0 h-28 w-28 rounded-full bg-[#EC943C]/15 blur-[60px]"
+        className="pointer-events-none absolute -left-10 top-0 h-28 w-28 rounded-full bg-[#F28C00]/15 blur-[60px]"
       />
 
       {/* Back button */}

@@ -87,10 +87,10 @@ export default function LegalDocumentLayout({ doc }: Props) {
                 key={section.id}
                 id={section.id}
                 variants={staggerItem}
-                className="scroll-mt-32 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_-20px_rgba(34,51,74,0.12)] ring-1 ring-slate-100 sm:p-8"
+                className="scroll-mt-32 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_-20px_rgba(12, 42, 75,0.12)] ring-1 ring-slate-100 sm:p-8"
               >
-                <h2 className="flex items-start gap-3 text-right text-xl font-black text-[#22334A] sm:text-2xl">
-                  <span className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                <h2 className="flex items-start gap-3 text-right text-xl font-black text-[#0C2A4B] sm:text-2xl">
+                  <span className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
                     <BookOpen className="h-4 w-4" aria-hidden />
                   </span>
                   {section.title}
@@ -112,7 +112,7 @@ export default function LegalDocumentLayout({ doc }: Props) {
               aria-label="جدول المحتويات"
               className="sticky top-28 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-lg ring-1 ring-slate-100"
             >
-              <p className="mb-4 flex items-center gap-2 text-[10px] font-black tracking-[0.16em] text-[#EC943C] uppercase">
+              <p className="mb-4 flex items-center gap-2 text-[10px] font-black tracking-[0.16em] text-[#F28C00] uppercase">
                 <Scale className="h-3.5 w-3.5" aria-hidden />
                 جدول المحتويات
               </p>
@@ -125,8 +125,8 @@ export default function LegalDocumentLayout({ doc }: Props) {
                       className={cn(
                         'w-full rounded-xl px-3 py-2.5 text-right text-[12px] font-bold leading-relaxed transition',
                         activeId === item.id
-                          ? 'bg-[#22334A] text-white shadow-sm'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-[#22334A]',
+                          ? 'bg-[#0C2A4B] text-white shadow-sm'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-[#0C2A4B]',
                       )}
                     >
                       {item.title}
@@ -137,7 +137,7 @@ export default function LegalDocumentLayout({ doc }: Props) {
               <div className="mt-5 border-t border-slate-100 pt-4">
                 <Link
                   to="/contact"
-                  className="inline-flex items-center gap-1.5 text-[12px] font-black text-[#2691C2] hover:underline"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-black text-[#0077B6] hover:underline"
                 >
                   تواصل معنا
                   <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
@@ -150,7 +150,7 @@ export default function LegalDocumentLayout({ doc }: Props) {
         {/* Mobile TOC */}
         <div className="mt-8 lg:hidden">
           <details className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <summary className="cursor-pointer text-sm font-black text-[#22334A]">جدول المحتويات</summary>
+            <summary className="cursor-pointer text-sm font-black text-[#0C2A4B]">جدول المحتويات</summary>
             <ul className="mt-3 space-y-1 text-right">
               {toc.map((item) => (
                 <li key={item.id}>
@@ -175,14 +175,14 @@ function TrustStrip() {
   return (
     <motion.div
       variants={fadeUp}
-      className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#2691C2]/20 bg-gradient-to-l from-[#22334A] to-[#1a2940] px-5 py-4 text-white shadow-lg"
+      className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#0077B6]/20 bg-gradient-to-l from-[#0C2A4B] to-[#1a2940] px-5 py-4 text-white shadow-lg"
     >
       <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" aria-hidden />
       <p className="text-[13px] font-semibold leading-relaxed text-white/85">
         وثائق EMC القانونية معدّة للشفافية قبل الإطلاق الإنتاجي — راجع{' '}
-        <Link to="/privacy" className="font-black text-[#EC943C] hover:underline">الخصوصية</Link>
+        <Link to="/privacy" className="font-black text-[#F28C00] hover:underline">الخصوصية</Link>
         {' '}و{' '}
-        <Link to="/cookies" className="font-black text-[#2691C2] hover:underline">ملفات تعريف الارتباط</Link>.
+        <Link to="/cookies" className="font-black text-[#0077B6] hover:underline">ملفات تعريف الارتباط</Link>.
       </p>
     </motion.div>
   )
@@ -197,7 +197,7 @@ function BlockRenderer({ block }: { block: LegalBlock }) {
         <ul className="list-none space-y-2 ps-0">
           {block.items.map((item, i) => (
             <li key={i} className="flex gap-3 text-[14px] font-medium leading-8 text-slate-700">
-              <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#EC943C]" aria-hidden />
+              <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#F28C00]" aria-hidden />
               {item}
             </li>
           ))}
@@ -205,7 +205,7 @@ function BlockRenderer({ block }: { block: LegalBlock }) {
       )
     case 'ol':
       return (
-        <ol className="list-decimal space-y-2 ps-6 marker:font-black marker:text-[#2691C2]">
+        <ol className="list-decimal space-y-2 ps-6 marker:font-black marker:text-[#0077B6]">
           {block.items.map((item, i) => (
             <li key={i} className="text-[14px] font-medium leading-8 text-slate-700">
               {item}
@@ -220,7 +220,7 @@ function BlockRenderer({ block }: { block: LegalBlock }) {
             'rounded-2xl border px-5 py-4 text-right',
             block.variant === 'warning' && 'border-amber-200 bg-amber-50/90 text-amber-950',
             block.variant === 'trust' && 'border-emerald-200/80 bg-emerald-50/80 text-emerald-950',
-            (!block.variant || block.variant === 'info') && 'border-[#2691C2]/25 bg-[#2691C2]/6 text-[#1a4a66]',
+            (!block.variant || block.variant === 'info') && 'border-[#0077B6]/25 bg-[#0077B6]/6 text-[#1a4a66]',
           )}
         >
           {block.title ?
@@ -244,11 +244,11 @@ function ContactCard({ email }: { email: string }) {
   return (
     <motion.section
       variants={fadeUp}
-      className="rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1c3550] to-[#162334] p-8 text-right text-white shadow-xl"
+      className="rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1c3550] to-[#162334] p-8 text-right text-white shadow-xl"
     >
       <div className="flex items-start gap-4">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/10">
-          <Mail className="h-5 w-5 text-[#EC943C]" aria-hidden />
+          <Mail className="h-5 w-5 text-[#F28C00]" aria-hidden />
         </span>
         <div>
           <h3 className="text-lg font-black">أسئلة قانونية أو خصوصية؟</h3>
@@ -257,13 +257,13 @@ function ContactCard({ email }: { email: string }) {
           </p>
           <a
             href={`mailto:${email}`}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#EC943C] px-5 py-2.5 text-sm font-black text-white transition hover:brightness-105"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#F28C00] px-5 py-2.5 text-sm font-black text-white transition hover:brightness-105"
           >
             {email}
           </a>
           <p className="mt-4 text-[11px] text-white/45">
             الدعم الفني:{' '}
-            <a href={`mailto:${LEGAL_CONTACT.support}`} className="font-bold text-[#2691C2] hover:underline">
+            <a href={`mailto:${LEGAL_CONTACT.support}`} className="font-bold text-[#0077B6] hover:underline">
               {LEGAL_CONTACT.support}
             </a>
           </p>

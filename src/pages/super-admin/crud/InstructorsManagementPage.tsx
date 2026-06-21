@@ -63,7 +63,7 @@ function InstructorAvatar({ row, className }: { row: AdminInstructorDirectoryRow
   const ini = initialsFromName(row.name)
   return (
     <div
-      className={`grid place-items-center rounded-2xl bg-gradient-to-br from-[#2691C2] via-[#1e6f96] to-[#22334A] text-lg font-black text-white shadow-inner ring-2 ring-white/30 ${className ?? ''}`}
+      className={`grid place-items-center rounded-2xl bg-gradient-to-br from-[#0077B6] via-[#1e6f96] to-[#0C2A4B] text-lg font-black text-white shadow-inner ring-2 ring-white/30 ${className ?? ''}`}
     >
       {ini.slice(0, 2)}
     </div>
@@ -187,8 +187,8 @@ export default function InstructorsManagementPage() {
   return (
     <SaPageRoot className="space-y-8 pb-16">
       <section className="relative overflow-hidden rounded-[28px] border border-white/30 bg-gradient-to-bl from-[#0b1f33] via-[#132b45] to-[#0e3a52] px-6 py-8 text-white shadow-[0_32px_80px_-32px_rgba(15,23,42,0.55)] md:px-10">
-        <div className="pointer-events-none absolute -start-24 top-0 h-72 w-72 rounded-full bg-[#2691C2]/25 blur-[100px]" />
-        <div className="pointer-events-none absolute -end-16 bottom-0 h-56 w-56 rounded-full bg-[#EC943C]/20 blur-[90px]" />
+        <div className="pointer-events-none absolute -start-24 top-0 h-72 w-72 rounded-full bg-[#0077B6]/25 blur-[100px]" />
+        <div className="pointer-events-none absolute -end-16 bottom-0 h-56 w-56 rounded-full bg-[#F28C00]/20 blur-[90px]" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-3 text-right">
             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/55">Faculty · EMC</p>
@@ -209,7 +209,7 @@ export default function InstructorsManagementPage() {
             </button>
             <Link
               to="/dashboard/super-admin/crud/programs"
-              className="rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-[#0f172a] shadow-lg transition hover:brightness-105"
+              className="rounded-2xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-[#0f172a] shadow-lg transition hover:brightness-105"
             >
               إسناد دورات
             </Link>
@@ -268,7 +268,7 @@ export default function InstructorsManagementPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="rounded-2xl bg-[#2691C2] px-6 py-2.5 text-[12px] font-black text-white shadow-md"
+              className="rounded-2xl bg-[#0077B6] px-6 py-2.5 text-[12px] font-black text-white shadow-md"
             >
               إعادة المحاولة
             </button>
@@ -291,7 +291,7 @@ export default function InstructorsManagementPage() {
               >
                 <div className="relative flex flex-col items-center px-5 pb-4 pt-8 text-center">
                   <div
-                    className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#2691C2]/12 via-[#2691C2]/5 to-transparent"
+                    className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#0077B6]/12 via-[#0077B6]/5 to-transparent"
                     aria-hidden
                   />
                   <div className="relative mb-4 h-28 w-28 shrink-0 sm:h-32 sm:w-32">
@@ -306,7 +306,7 @@ export default function InstructorsManagementPage() {
                   </div>
                   <h2 className="line-clamp-2 min-h-[3rem] text-lg font-black leading-snug text-deepBlue">{row.name}</h2>
                   <p className="mt-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-500 dir-ltr">
-                    <Mail className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" aria-hidden />
+                    <Mail className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" aria-hidden />
                     <span className="truncate">{row.email || '—'}</span>
                   </p>
                   {row.phone ?
@@ -320,7 +320,7 @@ export default function InstructorsManagementPage() {
                       row.expertise!.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full border border-[#2691C2]/25 bg-[#2691C2]/[0.07] px-2.5 py-0.5 text-[10px] font-black text-[#0f3a52]"
+                          className="rounded-full border border-[#0077B6]/25 bg-[#0077B6]/[0.07] px-2.5 py-0.5 text-[10px] font-black text-[#0f3a52]"
                         >
                           {tag}
                         </span>
@@ -343,7 +343,7 @@ export default function InstructorsManagementPage() {
                   </div>
                   <div>
                     <p className="text-[9px] font-black uppercase text-slate-500">قادمة</p>
-                    <p className="text-lg font-black tabular-nums text-[#EC943C]">{row.upcoming_workshops_count ?? 0}</p>
+                    <p className="text-lg font-black tabular-nums text-[#F28C00]">{row.upcoming_workshops_count ?? 0}</p>
                   </div>
                 </div>
 
@@ -356,14 +356,14 @@ export default function InstructorsManagementPage() {
                   <button
                     type="button"
                     onClick={() => setView(row)}
-                    className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#2691C2]/40"
+                    className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#0077B6]/40"
                   >
                     عرض الملف
                   </button>
                   {row.user_id ?
                     <Link
                       to={`/dashboard/super-admin/crud/users/${row.user_id}/edit`}
-                      className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#2691C2]/40"
+                      className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#0077B6]/40"
                     >
                       تعديل
                     </Link>
@@ -501,7 +501,7 @@ export default function InstructorsManagementPage() {
                     </p>
                     <Link
                       to="/dashboard/super-admin/crud/programs"
-                      className="mt-4 inline-flex rounded-xl bg-[#2691C2] px-4 py-2 text-[12px] font-black text-white shadow-md"
+                      className="mt-4 inline-flex rounded-xl bg-[#0077B6] px-4 py-2 text-[12px] font-black text-white shadow-md"
                     >
                       فتح إدارة البرامج
                     </Link>
@@ -571,7 +571,7 @@ function Kpi({
   const ring: Record<typeof tone, string> = {
     sky: 'ring-sky-400/25',
     emerald: 'ring-emerald-400/30',
-    blue: 'ring-[#2691C2]/35',
+    blue: 'ring-[#0077B6]/35',
     amber: 'ring-amber-400/35',
     rose: 'ring-rose-400/30',
     violet: 'ring-violet-400/35',
@@ -579,7 +579,7 @@ function Kpi({
   const bg: Record<typeof tone, string> = {
     sky: 'from-sky-500/15 to-white',
     emerald: 'from-emerald-500/15 to-white',
-    blue: 'from-[#2691C2]/15 to-white',
+    blue: 'from-[#0077B6]/15 to-white',
     amber: 'from-amber-500/15 to-white',
     rose: 'from-rose-500/12 to-white',
     violet: 'from-violet-500/12 to-white',

@@ -77,10 +77,10 @@ function FooterAccordion({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between py-3 text-right md:hidden"
       >
-        <span className="text-[11px] font-black tracking-[0.12em] text-[#EC943C]">{title}</span>
+        <span className="text-[11px] font-black tracking-[0.12em] text-[#F28C00]">{title}</span>
         <ChevronDown className={cn('h-4 w-4 text-white/50 transition', open && 'rotate-180')} aria-hidden />
       </button>
-      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-[#EC943C] md:block">{title}</h3>
+      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-[#F28C00] md:block">{title}</h3>
       <div className={cn(open ? 'block pb-3' : 'hidden', 'md:block md:pb-0')}>{children}</div>
     </div>
   )
@@ -104,14 +104,14 @@ export default function Footer() {
   const cookieConsent = useCookieConsentOptional()
 
   return (
-    <footer className="relative isolate overflow-hidden bg-[#22334A] text-white" dir="rtl">
+    <footer className="relative isolate overflow-hidden bg-[#0C2A4B] text-white" dir="rtl">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-[#2691C2]/45 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-[#0077B6]/45 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 end-0 h-48 w-48 rounded-full bg-[#2691C2]/10 blur-[80px]"
+        className="pointer-events-none absolute -top-24 end-0 h-48 w-48 rounded-full bg-[#0077B6]/10 blur-[80px]"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -132,7 +132,7 @@ export default function Footer() {
             </p>
             <Link
               to="/contact"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#2691C2] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-[#1e7dab]"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-[#1e7dab]"
             >
               تواصل معنا
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
@@ -154,7 +154,7 @@ export default function Footer() {
                   href={`tel:${siteContact.phone.replace(/\s/g, '')}`}
                   className="inline-flex items-center gap-2 transition hover:text-white"
                 >
-                  <Phone className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" aria-hidden />
+                  <Phone className="h-3.5 w-3.5 shrink-0 text-[#F28C00]" aria-hidden />
                   <span dir="ltr" className="font-latin">
                     {siteContact.phone}
                   </span>
@@ -165,7 +165,7 @@ export default function Footer() {
                   href={`mailto:${siteContact.email}`}
                   className="inline-flex items-center gap-2 transition hover:text-white"
                 >
-                  <Mail className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" aria-hidden />
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" aria-hidden />
                   <span className="font-latin text-[11px]">{siteContact.email}</span>
                 </a>
               </li>
@@ -196,7 +196,7 @@ export default function Footer() {
                       ·
                     </span>
                   : null}
-                  <Link to={link.href} className="transition hover:text-[#2691C2]">
+                  <Link to={link.href} className="transition hover:text-[#0077B6]">
                     {link.label}
                   </Link>
                 </span>
@@ -209,7 +209,7 @@ export default function Footer() {
                   <button
                     type="button"
                     onClick={cookieConsent.openPreferences}
-                    className="inline-flex items-center gap-1 transition hover:text-[#EC943C]"
+                    className="inline-flex items-center gap-1 transition hover:text-[#F28C00]"
                   >
                     <Cookie className="h-3 w-3" aria-hidden />
                     الكوكيز
@@ -226,7 +226,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/40 transition hover:border-[#2691C2]/40 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/40 transition hover:border-[#0077B6]/40 hover:text-white"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3" aria-hidden>
                     <path d={s.path} />

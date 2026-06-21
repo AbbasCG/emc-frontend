@@ -28,7 +28,7 @@ export default function PublicFinalCTA({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.45 }}
-      className={`overflow-hidden bg-gradient-to-l from-[#22334A] via-[#1c4567] to-[#162334] ring-1 ring-white/10 ${
+      className={`overflow-hidden bg-gradient-to-l from-[#0C2A4B] via-[#1c4567] to-[#162334] ring-1 ring-white/10 ${
         compact ? 'mt-8 rounded-2xl shadow-lg' : 'mt-10 rounded-[2rem] shadow-2xl'
       }`}
     >

@@ -13,8 +13,8 @@ export default function PremiumLearnGrid({ items }: Props) {
 
   return (
     <section aria-label="ماذا ستتعلم" dir="rtl">
-      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-black text-[#22334A]">
-        <span className="h-4 w-1 rounded-full bg-[#EC943C]" aria-hidden />
+      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-black text-[#0C2A4B]">
+        <span className="h-4 w-1 rounded-full bg-[#F28C00]" aria-hidden />
         ماذا ستتعلم
       </h2>
       <div className="grid gap-2.5 sm:grid-cols-2">
@@ -30,21 +30,21 @@ export default function PremiumLearnGrid({ items }: Props) {
               className={cn(
                 'flex items-start gap-3 rounded-xl border p-3.5 text-right transition-all hover:-translate-y-0.5 hover:shadow-md',
                 isOrange
-                  ? 'border-[#EC943C]/13 bg-gradient-to-br from-[#EC943C]/6 to-white'
-                  : 'border-[#2691C2]/12 bg-gradient-to-br from-[#2691C2]/6 to-white',
+                  ? 'border-[#F28C00]/13 bg-gradient-to-br from-[#F28C00]/6 to-white'
+                  : 'border-[#0077B6]/12 bg-gradient-to-br from-[#0077B6]/6 to-white',
               )}
             >
               <div
                 className={cn(
                   'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
                   isOrange
-                    ? 'bg-[#EC943C]/12 text-[#EC943C]'
-                    : 'bg-[#2691C2]/10 text-[#2691C2]',
+                    ? 'bg-[#F28C00]/12 text-[#F28C00]'
+                    : 'bg-[#0077B6]/10 text-[#0077B6]',
                 )}
               >
                 <Icon className="h-4 w-4" />
               </div>
-              <p className="text-[13px] font-semibold leading-[1.6] text-[#22334A]">{item}</p>
+              <p className="text-[13px] font-semibold leading-[1.6] text-[#0C2A4B]">{item}</p>
             </motion.div>
           )
         })}

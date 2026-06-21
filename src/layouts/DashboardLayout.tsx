@@ -394,12 +394,12 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                           className={[
                             'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
                             active
-                              ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(38,145,194,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
+                              ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(0, 119, 182,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
                               : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
                           ].join(' ')}
                         >
                           {active ?
-                            <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(236,148,60,0.7)]" />
+                            <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(242, 140, 0,0.7)]" />
                           : null}
                           <item.icon
                             size={17}
@@ -425,7 +425,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.06] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
             <UserAvatar
               user={user}
-              className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[10px] leading-none text-white ring-2 ring-white/10 font-latin"
+              className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#0E5A8A] text-[10px] leading-none text-white ring-2 ring-white/10 font-latin"
               textClassName="text-[10px] font-black text-white font-latin"
             />
             <div className="min-w-0 flex-1 text-right">
@@ -538,7 +538,7 @@ function Topbar({
           >
             <UserAvatar
               user={user}
-              className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(38,145,194,0.55)] ring-2 ring-white font-latin"
+              className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#0E5A8A] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(0, 119, 182,0.55)] ring-2 ring-white font-latin"
               textClassName="text-[11px] font-black text-white font-latin"
             />
             <div className="min-w-0 flex-1 text-right max-sm:hidden">
@@ -712,7 +712,7 @@ export default function DashboardLayout() {
       <Link
         to="/ai"
         aria-label="المساعد الذكي"
-        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(15,42,67,0.55),0_0_0_1px_rgba(38,145,194,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(38,145,194,0.6),0_0_0_1px_rgba(38,145,194,0.35)]"
+        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(15,42,67,0.55),0_0_0_1px_rgba(0, 119, 182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0, 119, 182,0.6),0_0_0_1px_rgba(0, 119, 182,0.35)]"
       >
         <span
           aria-hidden

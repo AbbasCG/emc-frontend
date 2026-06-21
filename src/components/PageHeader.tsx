@@ -20,7 +20,7 @@ export default function PageHeader({ title, subtitle, breadcrumbs }: PageHeaderP
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_30%,rgba(38,145,194,0.38),transparent_32%),linear-gradient(135deg,#22334a_0%,#172536_70%,#0f1c2b_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_30%,rgba(0, 119, 182,0.38),transparent_32%),linear-gradient(135deg,#0C2A4B_0%,#172536_70%,#0f1c2b_100%)]" />
       <div className="relative mx-auto max-w-7xl text-center">
         <div className="mb-5 flex items-center justify-center gap-2 text-sm font-bold text-sky-100">
           {breadcrumbs.map((item, index) => (

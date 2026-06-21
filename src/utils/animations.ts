@@ -34,10 +34,10 @@ export const staggerItem: Variants = {
 }
 
 export const cardHover = {
-  rest: { y: 0, boxShadow: '0 14px 40px -14px rgba(34, 51, 74, 0.14)' },
+  rest: { y: 0, boxShadow: '0 14px 40px -14px rgba(12, 42, 75, 0.14)' },
   hover: {
     y: -2,
-    boxShadow: '0 18px 44px -18px rgba(34, 51, 74, 0.16)',
+    boxShadow: '0 18px 44px -18px rgba(12, 42, 75, 0.16)',
     transition: { duration: 0.18, ease: 'easeOut' as const },
   },
 }

@@ -113,7 +113,7 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       initial={{ opacity: 0, y: 24 }}
       animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.09, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(34,51,74,0.10)' }}
+      whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(12, 42, 75,0.10)' }}
       className="min-w-[300px] max-w-[300px] bg-white rounded-xl border border-slate-200 p-5 flex flex-col transition-shadow duration-300"
     >
       <Link to={`/workshops/${workshop.slug}`} className="flex flex-col flex-1">

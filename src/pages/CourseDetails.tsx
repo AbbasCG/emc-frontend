@@ -357,9 +357,9 @@ export default function CourseDetails() {
 
   const enrollSidebar = (
     <div className="overflow-hidden text-right">
-      <div className="border-b border-[#22334A]/6 bg-gradient-to-l from-[#2691C2]/8 via-white to-[#EC943C]/5 px-5 py-4">
+      <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-[#0077B6]/8 via-white to-[#F28C00]/5 px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-black text-[#22334A]">الالتحاق بالبرنامج</h3>
+          <h3 className="text-base font-black text-[#0C2A4B]">الالتحاق بالبرنامج</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
             registration.open && !seatsFull
               ? 'bg-emerald-50 text-emerald-800 ring-emerald-100'
@@ -369,7 +369,7 @@ export default function CourseDetails() {
           </span>
         </div>
       </div>
-      <div className="border-b border-[#22334A]/6 px-5 py-4">
+      <div className="border-b border-[#0C2A4B]/6 px-5 py-4">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-black text-slate-400">الرسوم</span>
           <div className="text-left">
@@ -378,7 +378,7 @@ export default function CourseDetails() {
                 {originalPriceLabel}
               </span>
             )}
-            <span className={`text-xl font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-accent-700'}`}>
+            <span className={`text-xl font-black tabular-nums ${isFree ? 'text-[#0077B6]' : 'text-accent-700'}`}>
               {isFree ? 'مجانية' : priceLabel}
             </span>
           </div>
@@ -386,7 +386,7 @@ export default function CourseDetails() {
         {discountPercent != null && discountPercent > 0 && !isFree && (
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[11px] font-black text-slate-400">الخصم</span>
-            <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-accent-700">
+            <span className="rounded-full bg-[#F28C00]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-accent-700">
               {String(discountPercent)}%
             </span>
           </div>
@@ -401,7 +401,7 @@ export default function CourseDetails() {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <main
-      className={`relative overflow-x-hidden bg-[#22334A] pb-20 ${PAGE_TOP} lg:pb-8`}
+      className={`relative overflow-x-hidden bg-[#0C2A4B] pb-20 ${PAGE_TOP} lg:pb-8`}
       dir="rtl"
     >
       <PublicSeo
@@ -523,7 +523,7 @@ export default function CourseDetails() {
           enrollCta.href ? (
             <Link
               to={enrollCta.href}
-              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#EC943C] px-4 text-sm font-black text-white"
+              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#F28C00] px-4 text-sm font-black text-white"
             >
               {enrollCta.label}
             </Link>
@@ -531,7 +531,7 @@ export default function CourseDetails() {
             <button
               type="button"
               onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
-              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#EC943C] px-4 text-sm font-black text-white"
+              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#F28C00] px-4 text-sm font-black text-white"
             >
               {enrollCta.label}
             </button>
@@ -545,20 +545,20 @@ export default function CourseDetails() {
 function CourseDetailsLoading() {
   return (
     <main
-      className={`relative overflow-x-hidden bg-gradient-to-br from-[#22334A] to-[#2691C2] ${PAGE_TOP}`}
+      className={`relative overflow-x-hidden bg-gradient-to-br from-[#0C2A4B] to-[#0077B6] ${PAGE_TOP}`}
       dir="rtl"
     >
       <div className="flex min-h-[280px] items-center justify-center py-12">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-3 w-3 animate-bounce rounded-full bg-[#2691C2] [animation-delay:0s]" />
-          <div className="h-3 w-3 animate-bounce rounded-full bg-[#EC943C] [animation-delay:0.15s]" />
-          <div className="h-3 w-3 animate-bounce rounded-full bg-[#2691C2] [animation-delay:0.3s]" />
+          <div className="h-3 w-3 animate-bounce rounded-full bg-[#0077B6] [animation-delay:0s]" />
+          <div className="h-3 w-3 animate-bounce rounded-full bg-[#F28C00] [animation-delay:0.15s]" />
+          <div className="h-3 w-3 animate-bounce rounded-full bg-[#0077B6] [animation-delay:0.3s]" />
         </div>
       </div>
 
       {/* Content skeleton */}
       <div className="bg-gradient-to-b from-[#f0f4f8] to-[#f8fafc] px-4 pb-16 sm:px-6 lg:px-10">
-        <div className="flex gap-2 overflow-hidden border-b border-[#22334A]/8 bg-white py-4">
+        <div className="flex gap-2 overflow-hidden border-b border-[#0C2A4B]/8 bg-white py-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-12 w-32 shrink-0 animate-pulse rounded-xl bg-slate-100" />
           ))}

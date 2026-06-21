@@ -41,7 +41,7 @@ const toast = {
       id: opts?.id,
       duration: opts?.duration,
       icon: '⚠️',
-      style: { borderRight: '4px solid #EC943C' },
+      style: { borderRight: '4px solid #F28C00' },
     }),
 
   message: (message: string, opts?: Opts) =>
@@ -49,7 +49,7 @@ const toast = {
       id: opts?.id,
       duration: opts?.duration,
       icon: 'ℹ️',
-      style: { borderRight: '4px solid #2691C2' },
+      style: { borderRight: '4px solid #0077B6' },
     }),
 
   loading: (message: string, opts?: Opts) =>
@@ -86,7 +86,7 @@ export function warningToast(message: string): string {
   return _toast(message, {
     icon: '⚠️',
     duration: 5000,
-    style: { borderRight: '4px solid #EC943C' },
+    style: { borderRight: '4px solid #F28C00' },
   })
 }
 
@@ -94,7 +94,7 @@ export function infoToast(message: string): string {
   return _toast(message, {
     icon: 'ℹ️',
     duration: 5000,
-    style: { borderRight: '4px solid #2691C2' },
+    style: { borderRight: '4px solid #0077B6' },
   })
 }
 

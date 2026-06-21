@@ -69,7 +69,7 @@ function KpiCard({
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0 text-right">
-        <p className="text-[22px] font-black leading-none text-[#22334A]">{value}</p>
+        <p className="text-[22px] font-black leading-none text-[#0C2A4B]">{value}</p>
         <p className="mt-1 text-[11px] font-bold text-slate-500">{label}</p>
       </div>
     </div>
@@ -230,7 +230,7 @@ export default function InstructorSubmissionsPage() {
           label="إجمالي التسليمات"
           value={kpis.total}
           icon={ClipboardCheck}
-          accent="bg-[#2691C2]/10 text-[#2691C2]"
+          accent="bg-[#0077B6]/10 text-[#0077B6]"
         />
         <KpiCard
           label="بانتظار المراجعة"
@@ -274,7 +274,7 @@ export default function InstructorSubmissionsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث بالطالب، الدورة، أو الواجب..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-10 pl-4 text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-10 pl-4 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-2 focus:ring-[#0077B6]/15"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -285,7 +285,7 @@ export default function InstructorSubmissionsPage() {
                 const v = e.target.value
                 setCourseFilter(v === 'all' ? 'all' : Number(v))
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#22334A] outline-none focus:border-[#2691C2]"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#0C2A4B] outline-none focus:border-[#0077B6]"
             >
               <option value="all">كل الدورات</option>
               {courseOptions.map(([id, name]) => (
@@ -295,7 +295,7 @@ export default function InstructorSubmissionsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#22334A] outline-none focus:border-[#2691C2]"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#0C2A4B] outline-none focus:border-[#0077B6]"
             >
               <option value="all">كل الحالات</option>
               <option value="pending_review">بانتظار المراجعة</option>
@@ -352,9 +352,9 @@ export default function InstructorSubmissionsPage() {
                       onClick={() => clickable && void openRow(row)}
                       className={`transition-colors ${
                         clickable
-                          ? 'cursor-pointer hover:bg-[#2691C2]/[0.03]'
+                          ? 'cursor-pointer hover:bg-[#0077B6]/[0.03]'
                           : 'opacity-70'
-                      } ${detail?.id === row.id ? 'bg-[#2691C2]/[0.06]' : ''}`}
+                      } ${detail?.id === row.id ? 'bg-[#0077B6]/[0.06]' : ''}`}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
@@ -365,11 +365,11 @@ export default function InstructorSubmissionsPage() {
                               className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-100"
                             />
                           ) : (
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2691C2]/10 text-[11px] font-black text-[#2691C2]">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0077B6]/10 text-[11px] font-black text-[#0077B6]">
                               {studentInitials(row.student_name)}
                             </div>
                           )}
-                          <span className="text-[12px] font-black text-[#22334A]">
+                          <span className="text-[12px] font-black text-[#0C2A4B]">
                             {row.student_name}
                           </span>
                         </div>
@@ -377,7 +377,7 @@ export default function InstructorSubmissionsPage() {
                       <td className="px-4 py-3 text-[12px] font-semibold text-slate-600">
                         {row.course_name ? row.course_name : '—'}
                       </td>
-                      <td className="max-w-[180px] px-4 py-3 text-[12px] font-semibold text-[#22334A]">
+                      <td className="max-w-[180px] px-4 py-3 text-[12px] font-semibold text-[#0C2A4B]">
                         <span className="line-clamp-2">{displayField(row.assignment_title)}</span>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-[11px] font-semibold text-slate-500">
@@ -386,7 +386,7 @@ export default function InstructorSubmissionsPage() {
                       <td className="px-4 py-3">
                         <LmsStatusBadge status={row.status} kind="submission" />
                       </td>
-                      <td className="px-4 py-3 text-[12px] font-black text-[#22334A]">
+                      <td className="px-4 py-3 text-[12px] font-black text-[#0C2A4B]">
                         {formatGrade(row)}
                       </td>
                       <td className="px-4 py-3 text-[11px] font-semibold text-slate-500">
@@ -400,7 +400,7 @@ export default function InstructorSubmissionsPage() {
                               e.stopPropagation()
                               void openRow(row)
                             }}
-                            className="rounded-xl bg-[#2691C2] px-3 py-1.5 text-[11px] font-black text-white transition hover:brightness-105"
+                            className="rounded-xl bg-[#0077B6] px-3 py-1.5 text-[11px] font-black text-white transition hover:brightness-105"
                           >
                             {row.status === 'pending_review' || row.status === 'resubmitted' ? 'مراجعة' : 'عرض'}
                           </button>

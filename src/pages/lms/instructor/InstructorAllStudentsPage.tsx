@@ -23,7 +23,7 @@ const PLACEMENT_AR: Record<string, string> = {
 }
 
 const selectCls =
-  'h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[11px] font-semibold text-[#22334A]/70 outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100'
+  'h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[11px] font-semibold text-[#0C2A4B]/70 outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100'
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
@@ -122,7 +122,7 @@ export default function InstructorAllStudentsPage() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="بحث باسم أو بريد..."
             dir="rtl"
-            className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-[#22334A] outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+            className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-[#0C2A4B] outline-none placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
           />
         </div>
         <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)} dir="rtl" className={selectCls}>
@@ -148,7 +148,7 @@ export default function InstructorAllStudentsPage() {
           <button
             type="button"
             onClick={() => { setSearch(''); setFilterCourse(''); setFilterEnroll(''); setFilterPlacement('') }}
-            className="flex items-center gap-1 rounded-2xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#22334A]/55 transition hover:bg-slate-50"
+            className="flex items-center gap-1 rounded-2xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#0C2A4B]/55 transition hover:bg-slate-50"
           >
             <XCircle className="h-3.5 w-3.5" /> مسح
           </button>
@@ -163,14 +163,14 @@ export default function InstructorAllStudentsPage() {
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-16 text-center">
           <Users className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-4 text-[16px] font-black text-[#22334A]">لا يوجد طلاب</p>
-          <p className="mt-1.5 text-[12px] font-semibold text-[#22334A]/45">
+          <p className="mt-4 text-[16px] font-black text-[#0C2A4B]">لا يوجد طلاب</p>
+          <p className="mt-1.5 text-[12px] font-semibold text-[#0C2A4B]/45">
             {students.length === 0 ? 'لا يوجد طلاب مسجلون في دوراتك' : 'لا توجد نتائج تطابق الفلتر'}
           </p>
         </div>
       ) : (
         <>
-          <p className="text-[11px] font-black text-[#22334A]/30">
+          <p className="text-[11px] font-black text-[#0C2A4B]/30">
             {filtered.length} طالب من أصل {students.length}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">

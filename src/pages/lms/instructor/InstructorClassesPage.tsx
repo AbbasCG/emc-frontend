@@ -283,7 +283,7 @@ export default function InstructorClassesPage() {
               value={selectedCourse ?? ''}
               onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
               dir="rtl"
-              className="h-9 min-w-[160px] appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+              className="h-9 min-w-[160px] appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
             >
               <option value="">جميع الدورات</option>
               {courses.map((c) => (
@@ -296,7 +296,7 @@ export default function InstructorClassesPage() {
               value={filterLevel}
               onChange={(e) => setFilterLevel(e.target.value)}
               dir="rtl"
-              className="h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[12px] font-semibold text-deepBlue/70 outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+              className="h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[12px] font-semibold text-deepBlue/70 outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
             >
               <option value="">جميع المستويات</option>
               {CEFR_LEVELS.map((l) => (
@@ -312,7 +312,7 @@ export default function InstructorClassesPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="بحث باسم الطالب..."
                 dir="rtl"
-                className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
               />
             </div>
 
@@ -321,7 +321,7 @@ export default function InstructorClassesPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="flex items-center gap-1.5 rounded-2xl bg-[#2691C2] px-3.5 py-2 text-[11px] font-black text-white transition hover:brightness-105"
+                className="flex items-center gap-1.5 rounded-2xl bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:brightness-105"
               >
                 <Plus className="h-3.5 w-3.5" />
                 مجموعة جديدة
@@ -349,7 +349,7 @@ export default function InstructorClassesPage() {
                     <button
                       type="button"
                       onClick={openCreate}
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-2xl bg-[#2691C2] px-3.5 py-2 text-[11px] font-black text-white transition hover:brightness-105"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-2xl bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:brightness-105"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       إنشاء أول مجموعة
@@ -455,7 +455,7 @@ export default function InstructorClassesPage() {
                     onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="مثال: مجموعة A1 صباح"
                     dir="rtl"
-                    className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                    className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
                   />
                 </div>
 
@@ -467,7 +467,7 @@ export default function InstructorClassesPage() {
                       value={groupForm.level_code}
                       onChange={(e) => setGroupForm((f) => ({ ...f, level_code: e.target.value }))}
                       dir="rtl"
-                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-3 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-3 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                     >
                       <option value="">— اختر المستوى —</option>
                       {CEFR_LEVELS.map((l) => (
@@ -484,7 +484,7 @@ export default function InstructorClassesPage() {
                       value={groupForm.capacity}
                       onChange={(e) => setGroupForm((f) => ({ ...f, capacity: e.target.value }))}
                       dir="ltr"
-                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                     />
                   </div>
 
@@ -495,7 +495,7 @@ export default function InstructorClassesPage() {
                       value={groupForm.schedule_day}
                       onChange={(e) => setGroupForm((f) => ({ ...f, schedule_day: e.target.value }))}
                       dir="rtl"
-                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-3 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-3 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                     >
                       <option value="">— اختر اليوم —</option>
                       {Object.entries(WEEKDAYS_AR).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -509,7 +509,7 @@ export default function InstructorClassesPage() {
                       type="time"
                       value={groupForm.schedule_time}
                       onChange={(e) => setGroupForm((f) => ({ ...f, schedule_time: e.target.value }))}
-                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                     />
                   </div>
 
@@ -520,7 +520,7 @@ export default function InstructorClassesPage() {
                       type="date"
                       value={groupForm.start_date}
                       onChange={(e) => setGroupForm((f) => ({ ...f, start_date: e.target.value }))}
-                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                     />
                   </div>
 
@@ -531,7 +531,7 @@ export default function InstructorClassesPage() {
                       value={groupForm.location_type}
                       onChange={(e) => setGroupForm((f) => ({ ...f, location_type: e.target.value }))}
                       dir="rtl"
-                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-3 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-3 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                     >
                       <option value="online">أونلاين</option>
                       <option value="in_person">حضوري</option>
@@ -548,7 +548,7 @@ export default function InstructorClassesPage() {
                     onChange={(e) => setGroupForm((f) => ({ ...f, meeting_link: e.target.value }))}
                     placeholder="https://meet.google.com/..."
                     dir="ltr"
-                    className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                    className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6]"
                   />
                 </div>
               </div>
@@ -558,7 +558,7 @@ export default function InstructorClassesPage() {
                   type="button"
                   onClick={() => void handleSaveGroup()}
                   disabled={saving || !groupForm.name.trim()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#2691C2] py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0077B6] py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
                 >
                   <CheckCircle className="h-4 w-4" />
                   {saving ? 'جاري الحفظ...' : (editGroup ? 'حفظ التعديلات' : 'إنشاء المجموعة')}
@@ -611,7 +611,7 @@ function GroupCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen() } }}
-      className="cursor-pointer rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="cursor-pointer rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -660,7 +660,7 @@ function GroupCard({
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
           <div
-            className={`h-full rounded-full transition-all ${isFull ? 'bg-red-400' : 'bg-[#2691C2]'}`}
+            className={`h-full rounded-full transition-all ${isFull ? 'bg-red-400' : 'bg-[#0077B6]'}`}
             style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>
@@ -720,7 +720,7 @@ function StudentAssignCard({
   return (
     <div className={`rounded-2xl border p-3 transition ${s.is_assigned ? 'border-emerald-100 bg-emerald-50/40' : 'border-slate-200 bg-white'}`}>
       <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2] text-[13px] font-black text-white">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-bl from-[#0C2A4B]/90 to-[#0077B6] text-[13px] font-black text-white">
           {s.student_name.charAt(0)}
         </div>
         <div className="min-w-0 flex-1">
@@ -766,7 +766,7 @@ function StudentAssignCard({
           <button
             type="button"
             onClick={() => setShowAssign((v) => !v)}
-            className="mr-auto flex items-center gap-1 rounded-xl bg-[#2691C2]/[0.08] px-2.5 py-1 text-[9px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.15]"
+            className="mr-auto flex items-center gap-1 rounded-xl bg-[#0077B6]/[0.08] px-2.5 py-1 text-[9px] font-black text-[#0077B6] transition hover:bg-[#0077B6]/[0.15]"
           >
             <GraduationCap className="h-3 w-3" />
             تعيين إلى صف
@@ -793,7 +793,7 @@ function StudentAssignCard({
                   type="button"
                   disabled={assigning === g.id || g.enrolled >= g.capacity}
                   onClick={() => { onAssign(g.id); setShowAssign(false) }}
-                  className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold text-deepBlue transition hover:border-[#2691C2]/30 hover:bg-[#2691C2]/[0.04] disabled:opacity-50"
+                  className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold text-deepBlue transition hover:border-[#0077B6]/30 hover:bg-[#0077B6]/[0.04] disabled:opacity-50"
                 >
                   <span className="font-black">{g.name}</span>
                   <span className={g.enrolled >= g.capacity ? 'text-red-400' : 'text-deepBlue/45'}>

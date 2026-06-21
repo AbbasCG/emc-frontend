@@ -84,7 +84,7 @@ function DeptNode({
       >
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-t from-customBlue/0 via-transparent to-customOrange/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-t from-customBlue/0 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
         <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-customBlue transition-colors duration-300 group-hover:bg-customBlue group-hover:text-white">
           <Icon size={24} strokeWidth={2} aria-hidden />
@@ -204,9 +204,9 @@ export default function DepartmentsOrgEcosystem() {
             >
               <defs>
                 <linearGradient id="emcConnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#2691C2" stopOpacity="0.95" />
-                  <stop offset="55%" stopColor="#2691C2" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#ec943c" stopOpacity="0.9" />
+                  <stop offset="0%" stopColor="#0077B6" stopOpacity="0.95" />
+                  <stop offset="55%" stopColor="#0077B6" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#F28C00" stopOpacity="0.9" />
                 </linearGradient>
                 <filter id="emcGlow" x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur stdDeviation="0.9" result="blur" />
@@ -380,7 +380,7 @@ function SpotlightPanel({
 }) {
   return (
     <div className="relative min-h-[300px] overflow-hidden rounded-[1.35rem] border border-deepBlue/10 bg-white/90 shadow-[0_28px_70px_-24px_rgba(15,42,67,0.22)] backdrop-blur-xl">
-      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-customOrange via-customBlue to-deepBlue" />
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-customBlue via-ocean to-deepBlue" />
       <div className="pointer-events-none absolute -right-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-customBlue/[0.07] blur-3xl" />
       <AnimatePresence mode="wait">
         {selected ? (

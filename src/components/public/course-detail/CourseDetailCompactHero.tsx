@@ -56,18 +56,18 @@ export default function CourseDetailCompactHero({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="relative max-h-[400px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-bl from-[#22334A] via-[#1a3550] to-[#162334] text-white shadow-[0_20px_50px_-18px_rgba(34,51,74,0.45)]"
+      className="relative max-h-[400px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-bl from-[#0C2A4B] via-[#1a3550] to-[#162334] text-white shadow-[0_20px_50px_-18px_rgba(12, 42, 75,0.45)]"
     >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -end-12 top-0 h-48 w-48 rounded-full bg-[#2691C2]/25 blur-3xl" />
-        <div className="absolute -bottom-8 start-6 h-36 w-36 rounded-full bg-[#EC943C]/18 blur-3xl" />
+        <div className="absolute -end-12 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
+        <div className="absolute -bottom-8 start-6 h-36 w-36 rounded-full bg-[#F28C00]/18 blur-3xl" />
       </div>
 
       <div className="relative grid max-h-[400px] gap-2.5 p-3 sm:p-4 lg:grid-cols-[2fr_3fr] lg:gap-4 lg:p-5">
         <div className="flex min-h-0 flex-col gap-1.5">
           <div className="group relative h-[120px] overflow-hidden rounded-xl ring-1 ring-white/20 sm:h-[130px] lg:h-[min(200px,calc(400px-4rem))]">
             <img src={activeImage} alt="" loading="eager" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#22334A]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/60 to-transparent" />
             {videoUrl ?
               <button
                 type="button"
@@ -75,7 +75,7 @@ export default function CourseDetailCompactHero({
                 className="absolute inset-0 flex items-center justify-center bg-black/15 transition hover:bg-black/25"
                 aria-label="معاينة الفيديو"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#2691C2] shadow-lg">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0077B6] shadow-lg">
                   <Play className="h-4 w-4 fill-current" />
                 </span>
               </button>
@@ -90,7 +90,7 @@ export default function CourseDetailCompactHero({
                   onClick={() => setActiveImage(t.url)}
                   className={cn(
                     'h-9 w-11 shrink-0 overflow-hidden rounded-md ring-2 transition',
-                    activeImage === t.url ? 'ring-[#EC943C]' : 'ring-white/25',
+                    activeImage === t.url ? 'ring-[#F28C00]' : 'ring-white/25',
                   )}
                   aria-label={t.label ?? 'صورة المعرض'}
                 >
@@ -109,14 +109,14 @@ export default function CourseDetailCompactHero({
           </nav>
 
           <div className="mb-1.5 flex flex-wrap gap-1">
-            <span className="rounded-full bg-[#2691C2]/25 px-2 py-0.5 text-[9px] font-black text-[#7dd3fc] ring-1 ring-[#2691C2]/35">
+            <span className="rounded-full bg-[#0077B6]/25 px-2 py-0.5 text-[9px] font-black text-[#7dd3fc] ring-1 ring-[#0077B6]/35">
               {derived.L.badge}
             </span>
             {category ?
               <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black ring-1 ring-white/15">{category}</span>
             : null}
             {level ?
-              <span className="rounded-full bg-[#EC943C]/25 px-2 py-0.5 text-[9px] font-black text-[#fcd9b0] ring-1 ring-[#EC943C]/30">{level}</span>
+              <span className="rounded-full bg-[#F28C00]/25 px-2 py-0.5 text-[9px] font-black text-[#fcd9b0] ring-1 ring-[#F28C00]/30">{level}</span>
             : null}
             {status ?
               <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black">{status}</span>
@@ -131,7 +131,7 @@ export default function CourseDetailCompactHero({
 
           {rating != null ?
             <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-white/60">
-              <Star className="h-3 w-3 fill-[#EC943C] text-[#EC943C]" />
+              <Star className="h-3 w-3 fill-[#F28C00] text-[#F28C00]" />
               <span className="tabular-nums">{formatPublicText(rating)}</span>
               {reviewCount > 0 ?
                 <span className="tabular-nums text-white/45">({formatPublicText(reviewCount)} تقييم)</span>

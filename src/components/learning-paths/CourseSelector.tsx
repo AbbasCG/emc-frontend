@@ -80,9 +80,9 @@ export default function CourseSelector({ value, onChange }: Props) {
               return (
                 <div
                   key={id}
-                  className="flex items-center gap-3 rounded-2xl border border-[#2691C2]/20 bg-[#2691C2]/5 p-3"
+                  className="flex items-center gap-3 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/5 p-3"
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#2691C2] text-xs font-black text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#0077B6] text-xs font-black text-white">
                     {i + 1}
                   </span>
                   {course ? courseThumb(course) : (
@@ -91,7 +91,7 @@ export default function CourseSelector({ value, onChange }: Props) {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-[#22334A]">
+                    <p className="truncate text-sm font-bold text-[#0C2A4B]">
                       {course?.title ?? `دورة #${id}`}
                     </p>
                     <p className="text-[11px] text-slate-400">
@@ -150,13 +150,13 @@ export default function CourseSelector({ value, onChange }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="بحث بالعنوان أو اسم المدرب..."
-            className="w-full rounded-xl border border-slate-200 py-2.5 pl-4 pr-9 text-sm text-right focus:border-[#2691C2] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/20"
+            className="w-full rounded-xl border border-slate-200 py-2.5 pl-4 pr-9 text-sm text-right focus:border-[#0077B6] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           />
         </div>
 
         {fetching ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-[#2691C2]" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#0077B6]" />
           </div>
         ) : catalog.length === 0 ? (
           <p className="rounded-xl border border-slate-200 py-6 text-center text-sm text-slate-400">
@@ -178,7 +178,7 @@ export default function CourseSelector({ value, onChange }: Props) {
                 >
                   {courseThumb(course)}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-[#22334A]">{course.title}</p>
+                    <p className="truncate text-sm font-bold text-[#0C2A4B]">{course.title}</p>
                     <p className="text-[11px] text-slate-400">
                       {course.instructor?.name ?? course.instructor_name ?? '—'}
                       {course.duration ? ` · ${course.duration}` : ''}
@@ -191,7 +191,7 @@ export default function CourseSelector({ value, onChange }: Props) {
                     type="button"
                     onClick={() => add(course.id)}
                     disabled={already}
-                    className="shrink-0 rounded-xl bg-[#2691C2] px-3 py-1.5 text-xs font-black text-white transition hover:bg-[#1d7aab] disabled:invisible"
+                    className="shrink-0 rounded-xl bg-[#0077B6] px-3 py-1.5 text-xs font-black text-white transition hover:bg-[#1d7aab] disabled:invisible"
                   >
                     إضافة
                   </button>

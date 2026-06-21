@@ -76,7 +76,7 @@ export default function ImpersonationBanner() {
             type="button"
             disabled={busy}
             onClick={() => void onStop()}
-            className="inline-flex items-center justify-center rounded-2xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:bg-deepBlue disabled:opacity-55"
+            className="inline-flex items-center justify-center rounded-2xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:bg-deepBlue disabled:opacity-55"
           >
             {busy ? 'جاري الإنهاء…' : 'إنهاء المعاينة'}
           </button>

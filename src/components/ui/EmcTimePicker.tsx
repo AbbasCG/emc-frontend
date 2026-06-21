@@ -86,7 +86,7 @@ function TimeColumn({
         role="listbox"
         aria-label={label}
         onKeyDown={(e) => listboxKeyDown(e, items, value, onSelect)}
-        className="max-h-36 overflow-y-auto rounded-xl border border-[#22334A]/10 bg-white p-1 scrollbar-thin"
+        className="max-h-36 overflow-y-auto rounded-xl border border-[#0C2A4B]/10 bg-white p-1 scrollbar-thin"
       >
         {items.map(item => {
           const active = item === value
@@ -101,7 +101,7 @@ function TimeColumn({
               onClick={() => onSelect(item)}
               className={cn(
                 'flex w-full items-center justify-center rounded-lg py-1.5 text-[12px] font-bold tabular-nums transition',
-                active ? 'bg-[#2691C2] text-white' : 'text-[#22334A] hover:bg-slate-100',
+                active ? 'bg-[#0077B6] text-white' : 'text-[#0C2A4B] hover:bg-slate-100',
               )}
             >
               {String(item).padStart(2, '0')}
@@ -151,8 +151,8 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
 
   return (
     <div className="block text-right">
-      <span className="text-[12px] font-black text-[#22334A]/70">
-        {label}{required ? <span className="text-[#EC943C]"> *</span> : null}
+      <span className="text-[12px] font-black text-[#0C2A4B]/70">
+        {label}{required ? <span className="text-[#F28C00]"> *</span> : null}
       </span>
       <button
         ref={anchorRef}
@@ -163,14 +163,14 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
         onClick={() => setOpen(v => !v)}
         className={cn(
           'mt-1.5 flex w-full items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-right transition',
-          error ? 'border-rose-400' : 'border-[#22334A]/12',
-          'bg-white hover:border-[#2691C2]/30 focus:border-[#2691C2]/50 focus:outline-none focus:ring-4 focus:ring-[#2691C2]/10',
+          error ? 'border-rose-400' : 'border-[#0C2A4B]/12',
+          'bg-white hover:border-[#0077B6]/30 focus:border-[#0077B6]/50 focus:outline-none focus:ring-4 focus:ring-[#0077B6]/10',
         )}
       >
-        <Clock className="h-4 w-4 shrink-0 text-[#2691C2]" aria-hidden />
+        <Clock className="h-4 w-4 shrink-0 text-[#0077B6]" aria-hidden />
         <span className="min-w-0 flex-1">
           {value
-            ? <span className="block text-[13px] font-semibold tabular-nums text-[#22334A]">{value}</span>
+            ? <span className="block text-[13px] font-semibold tabular-nums text-[#0C2A4B]">{value}</span>
             : <span className="block text-[13px] font-semibold text-slate-400">اختر الوقت</span>
           }
         </span>
@@ -191,7 +191,7 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className="overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
+          className="overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12, 42, 75,0.35)]"
           dir="rtl"
         >
           {showDurationPresets && (
@@ -210,7 +210,7 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
                     onChange(next)
                     setOpen(false)
                   }}
-                  className="flex-1 rounded-lg border border-[#EC943C]/25 bg-[#EC943C]/10 px-2.5 py-1 text-[11px] font-black text-[#b36a1f] transition hover:bg-[#EC943C]/20"
+                  className="flex-1 rounded-lg border border-[#F28C00]/25 bg-[#F28C00]/10 px-2.5 py-1 text-[11px] font-black text-[#C97208] transition hover:bg-[#F28C00]/20"
                 >
                   {p.label}
                 </button>
@@ -226,21 +226,21 @@ export default function EmcTimePicker({ label, value, onChange, error, required,
           </div>
 
           <div className="border-t border-slate-100 px-3 py-2.5">
-            <p className="mb-2 text-center text-[13px] font-black tabular-nums text-[#2691C2]">
+            <p className="mb-2 text-center text-[13px] font-black tabular-nums text-[#0077B6]">
               {formatTime(draftH, draftM)}
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#22334A]"
+                className="rounded-xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#0C2A4B]"
               >
                 إلغاء
               </button>
               <button
                 type="button"
                 onClick={confirm}
-                className="rounded-xl bg-[#2691C2] px-4 py-2 text-[11px] font-black text-white"
+                className="rounded-xl bg-[#0077B6] px-4 py-2 text-[11px] font-black text-white"
               >
                 تأكيد
               </button>

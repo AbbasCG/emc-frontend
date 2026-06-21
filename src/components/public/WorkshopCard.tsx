@@ -39,8 +39,8 @@ export default function WorkshopCard({ workshop, index = 0, layout = 'grid' }: W
       whileHover={{ y: -4 }}
       className={
         layout === 'list' ?
-          'group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-[#2691C2]/35 hover:shadow-lg sm:flex-row'
-        : 'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-[#2691C2]/35 hover:shadow-lg'
+          'group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-[#0077B6]/35 hover:shadow-lg sm:flex-row'
+        : 'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-[#0077B6]/35 hover:shadow-lg'
       }
     >
       <Link
@@ -52,11 +52,11 @@ export default function WorkshopCard({ workshop, index = 0, layout = 'grid' }: W
         }
       >
         <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#22334A]/75 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/75 via-transparent to-transparent" />
         <div className="absolute start-3 top-3 flex flex-wrap gap-2">
           <span
             className={`rounded-lg px-2.5 py-1 text-[10px] font-black ${
-              workshop.is_free ? 'bg-emerald-500 text-white' : 'bg-[#EC943C] text-white'
+              workshop.is_free ? 'bg-emerald-500 text-white' : 'bg-[#F28C00] text-white'
             }`}
           >
             {workshop.is_free ? 'مجانية' : 'برسوم'}
@@ -73,13 +73,13 @@ export default function WorkshopCard({ workshop, index = 0, layout = 'grid' }: W
 
       <div className="flex flex-1 flex-col p-5 text-right">
         {workshop.certificate_name ?
-          <p className="mb-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#2691C2]">
+          <p className="mb-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#0077B6]">
             <Award className="h-3.5 w-3.5" />
             {workshop.certificate_name}
           </p>
         : null}
         <Link to={`/workshops/${workshop.slug}`}>
-          <h3 className="line-clamp-2 text-base font-black leading-snug text-deepBlue transition group-hover:text-[#2691C2]">
+          <h3 className="line-clamp-2 text-base font-black leading-snug text-deepBlue transition group-hover:text-[#0077B6]">
             {workshop.title}
           </h3>
         </Link>
@@ -89,20 +89,20 @@ export default function WorkshopCard({ workshop, index = 0, layout = 'grid' }: W
 
         <div className="mt-4 space-y-2 text-[11px] font-semibold text-slate-600">
           <p className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" />
+            <Calendar className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" />
             {formatDate(workshop.start_date)}
             {workshop.start_time ? ` · ${workshop.start_time}` : ''}
           </p>
           {workshop.duration_hours ?
             <p className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" />
+              <Clock className="h-3.5 w-3.5 shrink-0 text-[#F28C00]" />
               {workshop.duration_hours} ساعات
             </p>
           : null}
           <p className="flex items-center gap-2">
             {workshop.is_online ?
-              <Wifi className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" />
-            : <MapPin className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" />}
+              <Wifi className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" />
+            : <MapPin className="h-3.5 w-3.5 shrink-0 text-[#F28C00]" />}
             {workshop.is_online ? 'عن بُعد' : 'حضوري / مختلط'}
           </p>
           {spots != null ?
@@ -115,7 +115,7 @@ export default function WorkshopCard({ workshop, index = 0, layout = 'grid' }: W
 
         <Link
           to={`/workshops/${workshop.slug}`}
-          className="mt-auto pt-5 text-[12px] font-black text-[#2691C2] transition hover:text-deepBlue"
+          className="mt-auto pt-5 text-[12px] font-black text-[#0077B6] transition hover:text-deepBlue"
         >
           عرض التفاصيل ←
         </Link>

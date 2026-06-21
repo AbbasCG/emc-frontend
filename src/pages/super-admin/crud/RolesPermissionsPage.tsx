@@ -42,8 +42,8 @@ function riskLevel(slug: string): 'high' | 'medium' | 'low' {
 }
 
 const TYPE_META: Record<RoleType, { labelAr: string; cls: string }> = {
-  system:      { labelAr: 'نظام', cls: 'bg-[#22334A] text-white ring-[#22334A]/30' },
-  admin:       { labelAr: 'إدارة', cls: 'bg-[#2691C2]/15 text-[#2691C2] ring-[#2691C2]/30' },
+  system:      { labelAr: 'نظام', cls: 'bg-[#0C2A4B] text-white ring-[#0C2A4B]/30' },
+  admin:       { labelAr: 'إدارة', cls: 'bg-[#0077B6]/15 text-[#0077B6] ring-[#0077B6]/30' },
   operational: { labelAr: 'تشغيلي', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
   external:    { labelAr: 'خارجي', cls: 'bg-slate-100 text-slate-600 ring-slate-200' },
 }
@@ -93,9 +93,9 @@ function KpiTile({
   accent: 'navy' | 'blue' | 'orange' | 'success' | 'warning'
 }) {
   const colorMap = {
-    navy:    'text-[#22334A] bg-[#22334A]/10 ring-[#22334A]/20',
-    blue:    'text-[#2691C2] bg-[#2691C2]/10 ring-[#2691C2]/20',
-    orange:  'text-[#EC943C] bg-[#EC943C]/10 ring-[#EC943C]/20',
+    navy:    'text-[#0C2A4B] bg-[#0C2A4B]/10 ring-[#0C2A4B]/20',
+    blue:    'text-[#0077B6] bg-[#0077B6]/10 ring-[#0077B6]/20',
+    orange:  'text-[#F28C00] bg-[#F28C00]/10 ring-[#F28C00]/20',
     success: 'text-emerald-700 bg-emerald-50 ring-emerald-200',
     warning: 'text-amber-700 bg-amber-50 ring-amber-200',
   }
@@ -106,7 +106,7 @@ function KpiTile({
       </div>
       <div className="min-w-0">
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">{label}</p>
-        <p className="mt-1 text-xl font-black tracking-tight text-[#22334A]">{value}</p>
+        <p className="mt-1 text-xl font-black tracking-tight text-[#0C2A4B]">{value}</p>
         {sub ? <p className="mt-0.5 truncate text-[10px] font-semibold text-slate-400">{sub}</p> : null}
       </div>
     </div>
@@ -139,7 +139,7 @@ function RoleCard({
     <button
       type="button"
       onClick={onDetail}
-      className="group relative flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-5 text-right shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="group relative flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-5 text-right shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
     >
       {isSystem && (
         <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-rose-300/70 to-transparent" aria-hidden />
@@ -147,11 +147,11 @@ function RoleCard({
 
       {/* Top row */}
       <div className="flex items-start gap-3">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl text-sm font-black ${isSystem ? 'bg-[#22334A] text-white' : 'bg-slate-100 text-[#22334A]'}`}>
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl text-sm font-black ${isSystem ? 'bg-[#0C2A4B] text-white' : 'bg-slate-100 text-[#0C2A4B]'}`}>
           {initial}
         </span>
         <div className="min-w-0 flex-1 text-right">
-          <p className="truncate font-black text-[#22334A] text-[14px]">{labelAr}</p>
+          <p className="truncate font-black text-[#0C2A4B] text-[14px]">{labelAr}</p>
           <code className="mt-0.5 block truncate font-mono text-[11px] text-slate-400">{slug}</code>
         </div>
         <Badge cls={typeMeta.cls}>{typeMeta.labelAr}</Badge>
@@ -161,7 +161,7 @@ function RoleCard({
       <div className="mt-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1 text-[11px] font-black text-slate-500">
-            <Users className="h-3.5 w-3.5 text-[#2691C2]" aria-hidden />
+            <Users className="h-3.5 w-3.5 text-[#0077B6]" aria-hidden />
             {usage} مستخدم
           </span>
           <span className="inline-flex items-center gap-1 text-[11px] font-black text-slate-500">
@@ -183,7 +183,7 @@ function RoleCard({
             <span
               key={c.id}
               title={c.labelAr}
-              className={`h-1.5 flex-1 rounded-full transition ${has ? 'bg-[#2691C2]' : 'bg-slate-100'}`}
+              className={`h-1.5 flex-1 rounded-full transition ${has ? 'bg-[#0077B6]' : 'bg-slate-100'}`}
             />
           )
         })}
@@ -203,8 +203,8 @@ function CapabilityMatrix({ roles, usageCounts, onDetail }: {
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="min-w-[640px] w-full border-collapse text-right text-[12px]">
         <thead>
-          <tr className="border-b border-slate-100 bg-[#22334A]/[0.03]">
-            <th className="sticky right-0 z-[2] min-w-[160px] bg-white px-4 py-3 text-[11px] font-black text-[#22334A] shadow-[inset_-1px_0_0_#e2e8f0]">
+          <tr className="border-b border-slate-100 bg-[#0C2A4B]/[0.03]">
+            <th className="sticky right-0 z-[2] min-w-[160px] bg-white px-4 py-3 text-[11px] font-black text-[#0C2A4B] shadow-[inset_-1px_0_0_#e2e8f0]">
               الدور
             </th>
             {CAPABILITIES.map((c) => {
@@ -230,15 +230,15 @@ function CapabilityMatrix({ roles, usageCounts, onDetail }: {
             return (
               <tr
                 key={r.slug}
-                className="group border-b border-slate-100/70 transition-colors hover:bg-[#2691C2]/[0.03]"
+                className="group border-b border-slate-100/70 transition-colors hover:bg-[#0077B6]/[0.03]"
               >
-                <td className="sticky right-0 bg-white px-4 py-3 shadow-[inset_-1px_0_0_#e2e8f0] group-hover:bg-[#2691C2]/[0.03]">
+                <td className="sticky right-0 bg-white px-4 py-3 shadow-[inset_-1px_0_0_#e2e8f0] group-hover:bg-[#0077B6]/[0.03]">
                   <button
                     type="button"
                     onClick={() => onDetail(r.slug)}
                     className="block w-full text-right"
                   >
-                    <p className="font-black text-[#22334A] hover:text-[#2691C2] transition-colors">{r.labelAr}</p>
+                    <p className="font-black text-[#0C2A4B] hover:text-[#0077B6] transition-colors">{r.labelAr}</p>
                     <div className="mt-1 flex items-center gap-1.5">
                       <Badge cls={typeMeta.cls}>{typeMeta.labelAr}</Badge>
                       {risk === 'high' && (
@@ -261,7 +261,7 @@ function CapabilityMatrix({ roles, usageCounts, onDetail }: {
                   )
                 })}
                 <td className="px-3 py-3 text-center">
-                  <span className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black tabular-nums ${usage > 0 ? 'bg-[#2691C2]/10 text-[#2691C2]' : 'bg-slate-100 text-slate-400'}`}>
+                  <span className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-black tabular-nums ${usage > 0 ? 'bg-[#0077B6]/10 text-[#0077B6]' : 'bg-slate-100 text-slate-400'}`}>
                     {usage}
                   </span>
                 </td>
@@ -332,12 +332,12 @@ export default function RolesPermissionsPage() {
   return (
     <SaPageRoot className="space-y-8 pb-16">
       {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] to-[#1a2840] px-8 py-10 shadow-xl">
-        <div className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[#2691C2]/20 blur-[80px]" aria-hidden />
-        <div className="pointer-events-none absolute -start-16 bottom-0 h-48 w-48 rounded-full bg-[#EC943C]/15 blur-[60px]" aria-hidden />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] to-[#1a2840] px-8 py-10 shadow-xl">
+        <div className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[#0077B6]/20 blur-[80px]" aria-hidden />
+        <div className="pointer-events-none absolute -start-16 bottom-0 h-48 w-48 rounded-full bg-[#F28C00]/15 blur-[60px]" aria-hidden />
         <div className="relative flex flex-wrap items-start justify-between gap-6">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#2691C2]">RBAC · Access Control</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#0077B6]">RBAC · Access Control</p>
             <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">الأدوار والصلاحيات</h1>
             <p className="mt-2 max-w-lg text-[13px] font-semibold leading-relaxed text-white/60">
               إدارة الوصول والصلاحيات وربط الأدوار بالوحدات التشغيلية داخل منصة EMC.
@@ -356,7 +356,7 @@ export default function RolesPermissionsPage() {
             <button
               type="button"
               onClick={() => { setShowMatrix(true); matrixRef.current?.scrollIntoView({ behavior: 'smooth' }) }}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:opacity-90"
             >
               <Handshake className="h-4 w-4" aria-hidden />
               مصفوفة الصلاحيات
@@ -401,10 +401,10 @@ export default function RolesPermissionsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="بحث باسم الدور أو المعرّف (slug)..."
-            className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pe-4 ps-10 text-[13px] font-semibold text-[#22334A] placeholder:text-slate-400 outline-none ring-[#2691C2]/30 transition focus:ring-2"
+            className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pe-4 ps-10 text-[13px] font-semibold text-[#0C2A4B] placeholder:text-slate-400 outline-none ring-[#0077B6]/30 transition focus:ring-2"
           />
           {q ? (
-            <button type="button" onClick={() => setQ('')} className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#22334A]">
+            <button type="button" onClick={() => setQ('')} className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0C2A4B]">
               <X className="h-4 w-4" aria-hidden />
             </button>
           ) : null}
@@ -420,7 +420,7 @@ export default function RolesPermissionsPage() {
                 key={t}
                 type="button"
                 onClick={() => setTypeFilter(t)}
-                className={`rounded-xl px-3 py-1.5 text-[12px] font-black transition ring-1 ${active ? 'bg-[#22334A] text-white ring-[#22334A]' : 'bg-white text-slate-500 ring-slate-200 hover:ring-[#2691C2]/40'}`}
+                className={`rounded-xl px-3 py-1.5 text-[12px] font-black transition ring-1 ${active ? 'bg-[#0C2A4B] text-white ring-[#0C2A4B]' : 'bg-white text-slate-500 ring-slate-200 hover:ring-[#0077B6]/40'}`}
               >
                 {labels[t]}
               </button>
@@ -437,7 +437,7 @@ export default function RolesPermissionsPage() {
                 key={g.id}
                 type="button"
                 onClick={() => setGroupFilter(g.id)}
-                className={`rounded-xl px-3 py-1.5 text-[12px] font-black transition ring-1 ${active ? 'bg-[#2691C2] text-white ring-[#2691C2]' : 'bg-white text-slate-500 ring-slate-200 hover:ring-[#2691C2]/40'}`}
+                className={`rounded-xl px-3 py-1.5 text-[12px] font-black transition ring-1 ${active ? 'bg-[#0077B6] text-white ring-[#0077B6]' : 'bg-white text-slate-500 ring-slate-200 hover:ring-[#0077B6]/40'}`}
               >
                 {g.titleAr}
               </button>
@@ -455,7 +455,7 @@ export default function RolesPermissionsPage() {
       {/* ── Role cards ───────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-5 py-12 text-center">
-          <p className="font-black text-[#22334A]">لا توجد أدوار مطابقة</p>
+          <p className="font-black text-[#0C2A4B]">لا توجد أدوار مطابقة</p>
           <p className="mt-1 text-[13px] font-semibold text-slate-400">عدّل البحث أو أزل أحد الفلاتر</p>
         </div>
       ) : (
@@ -482,10 +482,10 @@ export default function RolesPermissionsPage() {
               key={g.id}
               type="button"
               onClick={() => setGroupFilter(g.id === groupFilter ? 'all' : g.id)}
-              className={`rounded-2xl border p-4 text-right transition ${groupFilter === g.id ? 'border-[#2691C2]/30 bg-[#2691C2]/[0.06]' : 'border-slate-200 bg-white hover:border-[#2691C2]/20'}`}
+              className={`rounded-2xl border p-4 text-right transition ${groupFilter === g.id ? 'border-[#0077B6]/30 bg-[#0077B6]/[0.06]' : 'border-slate-200 bg-white hover:border-[#0077B6]/20'}`}
             >
               <p className="text-[11px] font-black text-slate-400">{g.titleAr}</p>
-              <p className="mt-1 text-lg font-black text-[#22334A]">{groupRoles.length} أدوار</p>
+              <p className="mt-1 text-lg font-black text-[#0C2A4B]">{groupRoles.length} أدوار</p>
               <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{usageLoading ? '...' : `${groupUsers} مستخدم`}</p>
             </button>
           )
@@ -497,14 +497,14 @@ export default function RolesPermissionsPage() {
         <button
           type="button"
           onClick={() => setShowMatrix((v) => !v)}
-          className="mb-4 flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 text-right shadow-sm transition hover:border-[#2691C2]/30"
+          className="mb-4 flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 text-right shadow-sm transition hover:border-[#0077B6]/30"
         >
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#22334A]/[0.06] text-[#22334A]">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0C2A4B]/[0.06] text-[#0C2A4B]">
               <Handshake className="h-5 w-5" aria-hidden />
             </span>
             <div className="text-right">
-              <p className="font-black text-[#22334A]">مصفوفة الصلاحيات</p>
+              <p className="font-black text-[#0C2A4B]">مصفوفة الصلاحيات</p>
               <p className="text-[11px] font-semibold text-slate-400">{totalRoles} دور × {CAPABILITIES.length} محاور</p>
             </div>
           </div>

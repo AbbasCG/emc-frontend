@@ -100,7 +100,7 @@ export function UsersEnterpriseDetailDrawer({
             <button
               type="button"
               onClick={() => onEdit(user.id)}
-              className="flex-1 rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow-md"
+              className="flex-1 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] px-4 py-2.5 text-[12px] font-black text-white shadow-md"
             >
               فتح تحرير سريع
             </button>
@@ -122,10 +122,10 @@ export function UsersEnterpriseDetailDrawer({
           <aside className="space-y-3 rounded-[22px] border border-white/80 bg-white/85 p-4 shadow-inner ring-1 ring-ink-100/70">
             <div className="flex flex-col items-center gap-3 text-center">
               {user.avatar_url ?
-                <span className="relative grid h-[4.75rem] w-[4.75rem] place-items-center overflow-hidden rounded-[22px] ring-4 ring-white/80 shadow-[0_12px_32px_-8px_rgba(38,145,194,0.55)]">
+                <span className="relative grid h-[4.75rem] w-[4.75rem] place-items-center overflow-hidden rounded-[22px] ring-4 ring-white/80 shadow-[0_12px_32px_-8px_rgba(0, 119, 182,0.55)]">
                   <img src={user.avatar_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                 </span>
-              : <span className="grid h-[4.75rem] w-[4.75rem] place-items-center rounded-[22px] bg-gradient-to-br from-[#2691C2] to-[#22334A] text-lg font-black text-white shadow-[0_12px_32px_-8px_rgba(38,145,194,0.55)] ring-4 ring-white/80">
+              : <span className="grid h-[4.75rem] w-[4.75rem] place-items-center rounded-[22px] bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-lg font-black text-white shadow-[0_12px_32px_-8px_rgba(0, 119, 182,0.55)] ring-4 ring-white/80">
                   {initialsFromName(user.name)}
                 </span>
               }
@@ -222,7 +222,7 @@ export function UsersEnterpriseDetailDrawer({
                   <ul className="relative space-y-4 border-r-2 border-customBlue/20 pe-6 rtl:border-r-0 rtl:border-l rtl:pe-0 rtl:ps-6">
                     {timeline.map((e) => (
                       <li key={`${e.t}-${e.label}`} className="relative text-right rtl:text-right">
-                        <span className="absolute -start-[25px] top-2 h-2.5 w-2.5 rounded-full bg-[#2691C2] ring-4 ring-white rtl:-start-auto rtl:end-[-25px]" />
+                        <span className="absolute -start-[25px] top-2 h-2.5 w-2.5 rounded-full bg-[#0077B6] ring-4 ring-white rtl:-start-auto rtl:end-[-25px]" />
                         <p className="text-[13px] font-black text-deepBlue">{e.label}</p>
                         <p className="mt-0.5 text-[11px] font-semibold text-muted-600">{e.detail}</p>
                         <time className="mt-1 block text-[11px] font-bold text-accent-900">{fmtDate(e.t)}</time>

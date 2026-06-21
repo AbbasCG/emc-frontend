@@ -27,7 +27,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
     top: `${8 + (i * 29) % 72}%`,
     delay: i * 0.035,
     wide: i % 3 === 0,
-    tone: i % 2 === 0 ? '#2691C2' : '#EC943C',
+    tone: i % 2 === 0 ? '#0077B6' : '#F28C00',
   }))
 
   return (
@@ -50,10 +50,10 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 10 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(34,51,74,0.35)] ring-1 ring-[#2691C2]/15 backdrop-blur-xl"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-[#0077B6]/15 backdrop-blur-xl"
             dir="rtl"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(38,145,194,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(236,148,60,0.12),transparent_48%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(0, 119, 182,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(242, 140, 0,0.12),transparent_48%)]" />
 
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               {particles.map((p) => (
@@ -87,8 +87,8 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
                 <svg width={120} height={120} viewBox="0 0 120 120" className="-rotate-90 shrink-0 overflow-visible" aria-hidden>
                   <defs>
                     <linearGradient id="emcFormSuccessRing" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#2691C2" />
-                      <stop offset="100%" stopColor="#EC943C" />
+                      <stop offset="0%" stopColor="#0077B6" />
+                      <stop offset="100%" stopColor="#F28C00" />
                     </linearGradient>
                   </defs>
                   <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" strokeWidth="5" />
@@ -108,7 +108,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
                 </svg>
 
                 <motion.span
-                  className="absolute grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-[#2691C2] to-[#22334A] text-white shadow-lg"
+                  className="absolute grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-white shadow-lg"
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.35 }}
@@ -117,7 +117,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
                 </motion.span>
               </div>
 
-              <h3 id="emc-form-success-title" className="text-xl font-black text-[#22334A] sm:text-2xl">
+              <h3 id="emc-form-success-title" className="text-xl font-black text-[#0C2A4B] sm:text-2xl">
                 {title}
               </h3>
               {description ?
@@ -132,7 +132,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
                 <button
                   type="button"
                   onClick={onContinue}
-                  className="mt-8 w-full rounded-2xl bg-gradient-to-l from-[#EC943C] to-[#2691C2] px-6 py-3 text-sm font-black text-white shadow-[0_16px_40px_-14px_rgba(236,148,60,0.55)] transition hover:brightness-[1.03]"
+                  className="mt-8 w-full rounded-2xl bg-gradient-to-l from-[#F28C00] to-[#0077B6] px-6 py-3 text-sm font-black text-white shadow-[0_16px_40px_-14px_rgba(242, 140, 0,0.55)] transition hover:brightness-[1.03]"
                 >
                   {continueLabel}
                 </button>

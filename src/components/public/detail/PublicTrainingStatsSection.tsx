@@ -9,9 +9,9 @@ export type TrainingStat = {
 }
 
 const accentCls = {
-  blue: 'from-[#2691C2]/12 to-white text-customBlue ring-[#2691C2]/15',
-  orange: 'from-[#EC943C]/12 to-white text-customOrange ring-[#EC943C]/15',
-  navy: 'from-[#22334A]/8 to-white text-deepBlue ring-[#22334A]/10',
+  blue: 'from-[#0077B6]/12 to-white text-customBlue ring-[#0077B6]/15',
+  orange: 'from-[#F28C00]/12 to-white text-customOrange ring-[#F28C00]/15',
+  navy: 'from-[#0C2A4B]/8 to-white text-deepBlue ring-[#0C2A4B]/10',
 } as const
 
 export default function PublicTrainingStatsSection({ stats }: { stats: TrainingStat[] }) {

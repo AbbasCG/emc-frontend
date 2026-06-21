@@ -241,7 +241,7 @@ export default function RegistrationsManagementPage() {
               type="button"
               onClick={() => setConfirmRepair(true)}
               disabled={repairBusy}
-              className="inline-flex items-center gap-2 rounded-[18px] border border-white/25 bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow backdrop-blur-md hover:bg-[#d97f2a] disabled:opacity-60 transition"
+              className="inline-flex items-center gap-2 rounded-[18px] border border-white/25 bg-[#F28C00] px-4 py-2.5 text-[12px] font-black text-white shadow backdrop-blur-md hover:bg-[#d97f2a] disabled:opacity-60 transition"
             >
               <UserPlus className={`h-4 w-4 ${repairBusy ? 'animate-spin' : ''}`} aria-hidden />
               {repairBusy ? 'جار الربط…' : 'ربط التسجيلات'}

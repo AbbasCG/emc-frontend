@@ -7,9 +7,9 @@ import { fadeUp, staggerContainer, staggerItem, viewportOnce } from '@/utils/ani
 type RoleTone = (typeof impactAudienceRoles)[number]['tone']
 
 const toneHex: Record<RoleTone, string> = {
-  blue: '#2691C2',
-  orange: '#EC943C',
-  ink: '#22334A',
+  blue: '#0077B6',
+  orange: '#F28C00',
+  ink: '#0C2A4B',
   amber: '#E8A047',
 }
 

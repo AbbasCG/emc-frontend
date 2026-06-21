@@ -93,7 +93,7 @@ export default function PartnersManagementPage() {
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
-            <Link to="/dashboard/admin/partners" className="rounded-2xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
+            <Link to="/dashboard/admin/partners" className="rounded-2xl bg-[#0077B6] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
               إدارة كاملة (Ops)
             </Link>
             <Link

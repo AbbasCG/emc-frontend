@@ -20,7 +20,7 @@ const capabilities = [
     desc: 'جلسات ذكية، واجبات تفاعلية، تتبّع تقدّم آني — تجربة متعلّم مبنية على بيانات حقيقية.',
     href: '/platform',
     icon: BookOpen,
-    color: '#2691C2',
+    color: '#0077B6',
     featured: true,
   },
   {
@@ -29,7 +29,7 @@ const capabilities = [
     desc: 'إصدار موثّق قابل للتحقق الفوري، مربوط بالإنجاز الفعلي لكل مسار.',
     href: '/courses',
     icon: Award,
-    color: '#EC943C',
+    color: '#F28C00',
     featured: false,
   },
   {
@@ -38,7 +38,7 @@ const capabilities = [
     desc: 'رؤية تشغيلية كاملة للبرامج والفرق والامتثال — جاهزة للعرض القيادي.',
     href: '/departments',
     icon: LayoutDashboard,
-    color: '#2691C2',
+    color: '#0077B6',
     featured: false,
   },
   {
@@ -47,7 +47,7 @@ const capabilities = [
     desc: 'تسجيل، جداول، مواد، واجبات — كل ما يحتاجه المتعلّم في مكان واحد.',
     href: '/dashboard',
     icon: UserRound,
-    color: '#EC943C',
+    color: '#F28C00',
     featured: false,
   },
   {
@@ -56,7 +56,7 @@ const capabilities = [
     desc: 'مؤشرات أداء تعليمي متقدمة — استخرج القرار من البيانات لا من التخمين.',
     href: '/impact',
     icon: BarChart3,
-    color: '#2691C2',
+    color: '#0077B6',
     featured: false,
   },
   {
@@ -65,7 +65,7 @@ const capabilities = [
     desc: 'تنسيق حضور، بث مباشر، وتسجيلات تلقائية — كل ورشة موثّقة ومتاحة.',
     href: '/submit-workshop',
     icon: Video,
-    color: '#EC943C',
+    color: '#F28C00',
     featured: false,
   },
   {
@@ -74,7 +74,7 @@ const capabilities = [
     desc: 'مساعد معرفة، تلخيص تلقائي، وتوصيات مخصصة لكل مسار متعلم.',
     href: '/platform',
     icon: Bot,
-    color: '#2691C2',
+    color: '#0077B6',
     featured: false,
   },
   {
@@ -83,7 +83,7 @@ const capabilities = [
     desc: 'اثنا عشر محوراً تعريفياً متصلاً بذكاء مع البرامج والمدربين والمخرجات.',
     href: '/tracks',
     icon: Sparkles,
-    color: '#EC943C',
+    color: '#F28C00',
     featured: false,
   },
 ] as const
@@ -215,7 +215,7 @@ export default function HomeEcosystemBento() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden bg-[#0d1b2a] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      className="relative overflow-hidden bg-[#06182C] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
       {/* Ambient glows */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
@@ -246,7 +246,7 @@ export default function HomeEcosystemBento() {
               كل أداة تحتاجها —{' '}
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(90deg, #2691C2 30%, #EC943C 100%)' }}
+                style={{ backgroundImage: 'linear-gradient(90deg, #0077B6 30%, #F28C00 100%)' }}
               >
                 في منظومة واحدة
               </span>

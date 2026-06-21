@@ -65,14 +65,14 @@ export default function AppCheckboxGroup({
               className={cn(
                 'flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-right transition',
                 checked
-                  ? 'border-[#D67C28] bg-amber-50 text-deepBlue shadow-sm shadow-amber-100'
+                  ? 'border-[#DD7C02] bg-amber-50 text-deepBlue shadow-sm shadow-amber-100'
                   : 'border-amber-100 bg-white text-deepBlue hover:border-amber-300 hover:bg-amber-50/60',
               )}
             >
               <span
                 className={cn(
                   'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition',
-                  checked ? 'border-[#D67C28] bg-[#D67C28]' : 'border-slate-300 bg-white',
+                  checked ? 'border-[#DD7C02] bg-[#DD7C02]' : 'border-slate-300 bg-white',
                 )}
                 aria-hidden="true"
               >

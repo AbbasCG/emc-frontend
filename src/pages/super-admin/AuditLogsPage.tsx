@@ -66,7 +66,7 @@ const BADGE_THEME = {
 }
 const RAIL_ACCENT: Record<BadgeTheme, string> = {
   create:   'bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.42)]',
-  update:   'bg-[#2691C2] shadow-[0_0_18px_rgba(38,145,194,0.38)]',
+  update:   'bg-[#0077B6] shadow-[0_0_18px_rgba(0, 119, 182,0.38)]',
   delete:   'bg-red-600 shadow-[0_0_18px_rgba(220,38,38,0.35)]',
   status:   'bg-amber-500 shadow-[0_0_18px_rgba(245,158,11,0.4)]',
   role:     'bg-violet-500 shadow-[0_0_18px_rgba(139,92,246,0.4)]',
@@ -565,7 +565,7 @@ export default function SuperAdminAuditLogsPage() {
           <button
             type="button"
             onClick={() => void load()}
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-md transition hover:bg-[#1e7eab]"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white shadow-md transition hover:bg-[#1e7eab]"
           >
             <Search className="h-4 w-4" aria-hidden />
             تطبيق الفلاتر
@@ -600,7 +600,7 @@ export default function SuperAdminAuditLogsPage() {
         />
       :
         <div dir="rtl" className="relative isolate space-y-4">
-          <div aria-hidden className="pointer-events-none absolute end-[15px] top-10 bottom-0 w-px bg-gradient-to-b from-customBlue/55 via-accent-400/55 to-transparent" />
+          <div aria-hidden className="pointer-events-none absolute end-[15px] top-10 bottom-0 w-px bg-gradient-to-b from-customBlue/55 via-customBlue/15 to-transparent" />
 
           <AnimatePresence mode="popLayout">
             {fuzzyFiltered.map((e, idx) => {

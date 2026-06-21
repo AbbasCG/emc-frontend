@@ -238,11 +238,11 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex min-h-[20rem] items-center justify-center" dir="rtl">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#22334A]/[0.06] bg-white px-12 py-14 shadow-xl">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#0C2A4B]/[0.06] bg-white px-12 py-14 shadow-xl">
           <div className="relative">
-            <div className="h-14 w-14 rounded-full border-4 border-[#2691C2]/20 border-t-[#2691C2] animate-spin" />
+            <div className="h-14 w-14 rounded-full border-4 border-[#0077B6]/20 border-t-[#0077B6] animate-spin" />
           </div>
-          <p className="text-sm font-bold text-[#22334A]/70">جاري تجهيز ملفّك الشخصي…</p>
+          <p className="text-sm font-bold text-[#0C2A4B]/70">جاري تجهيز ملفّك الشخصي…</p>
         </div>
       </div>
     )
@@ -264,9 +264,9 @@ export default function ProfilePage() {
       : null}
 
       {/* Page header */}
-      <div className="border-b border-[#22334A]/[0.07] pb-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#2691C2]">EMC — مركز التعلم</p>
-        <h1 className="mt-2 text-[1.75rem] font-black leading-tight tracking-tight text-[#22334A]">
+      <div className="border-b border-[#0C2A4B]/[0.07] pb-5">
+        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#0077B6]">EMC — مركز التعلم</p>
+        <h1 className="mt-2 text-[1.75rem] font-black leading-tight tracking-tight text-[#0C2A4B]">
           الملف الشخصي
         </h1>
         <p className="mt-1.5 text-sm font-medium text-slate-500">
@@ -277,19 +277,19 @@ export default function ProfilePage() {
       <div className="grid gap-6 lg:grid-cols-[280px_1fr] xl:grid-cols-[300px_1fr]">
         {/* ── Sidebar: Avatar card ── */}
         <aside>
-          <div className="sticky top-6 overflow-hidden rounded-2xl border border-[#22334A]/[0.07] bg-white shadow-[0_8px_32px_-8px_rgba(34,51,74,0.12)]">
+          <div className="sticky top-6 overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_8px_32px_-8px_rgba(12, 42, 75,0.12)]">
             {/* Header strip */}
-            <div className="h-20 bg-gradient-to-l from-[#22334A] to-[#2691C2]" />
+            <div className="h-20 bg-gradient-to-l from-[#0C2A4B] to-[#0077B6]" />
 
             {/* Avatar */}
             <div className="-mt-10 flex flex-col items-center px-6 pb-6">
               <div className="relative">
                 <UserAvatar
                   user={merged.id > 0 ? merged : null}
-                  className="relative h-20 w-20 rounded-full border-[3px] border-white bg-[#22334A] shadow-lg text-white"
+                  className="relative h-20 w-20 rounded-full border-[3px] border-white bg-[#0C2A4B] shadow-lg text-white"
                   textClassName="text-xl font-black text-white"
                 />
-                <label className="absolute -bottom-1 -left-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#2691C2] shadow-md transition hover:bg-[#22334A] disabled:pointer-events-none">
+                <label className="absolute -bottom-1 -left-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#0077B6] shadow-md transition hover:bg-[#0C2A4B] disabled:pointer-events-none">
                   <Camera className="h-3.5 w-3.5 text-white" />
                   <input
                     type="file"
@@ -302,13 +302,13 @@ export default function ProfilePage() {
               </div>
 
               <div className="mt-4 text-center">
-                <p className="text-base font-black text-[#22334A]">{displayTitle}</p>
+                <p className="text-base font-black text-[#0C2A4B]">{displayTitle}</p>
                 <p className="mt-0.5 truncate text-xs font-medium text-slate-500 font-latin" dir="ltr">
                   {getUserDisplayEmail(merged) || initials}
                 </p>
                 {merged.role ?
-                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#22334A]/[0.06] px-3 py-1 text-[11px] font-black text-[#22334A]">
-                    <Shield className="h-3 w-3 text-[#EC943C]" />
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#0C2A4B]/[0.06] px-3 py-1 text-[11px] font-black text-[#0C2A4B]">
+                    <Shield className="h-3 w-3 text-[#F28C00]" />
                     {roleLabel || String(merged.role)}
                   </span>
                 : null}
@@ -335,9 +335,9 @@ export default function ProfilePage() {
                 : null}
               </div>
 
-              <div className="mt-5 w-full rounded-xl border border-[#22334A]/[0.06] bg-slate-50/80 px-3 py-2.5">
+              <div className="mt-5 w-full rounded-xl border border-[#0C2A4B]/[0.06] bg-slate-50/80 px-3 py-2.5">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">معرّف الحساب</p>
-                <p className="mt-0.5 font-mono text-sm font-black text-[#22334A]">
+                <p className="mt-0.5 font-mono text-sm font-black text-[#0C2A4B]">
                   {merged.id > 0 ? `#${merged.id}` : AR_UNSPECIFIED}
                 </p>
               </div>
@@ -351,13 +351,13 @@ export default function ProfilePage() {
           {/* البيانات الأساسية */}
           <motion.section
             layout
-            className="rounded-2xl border border-[#22334A]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(34,51,74,0.10)]"
+            className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.10)]"
           >
-            <div className="flex items-center gap-3 border-b border-[#22334A]/[0.06] px-6 py-4">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2691C2]/10">
-                <BadgeCheck className="h-4 w-4 text-[#2691C2]" />
+            <div className="flex items-center gap-3 border-b border-[#0C2A4B]/[0.06] px-6 py-4">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0077B6]/10">
+                <BadgeCheck className="h-4 w-4 text-[#0077B6]" />
               </span>
-              <h2 className="text-sm font-black text-[#22334A]">البيانات الأساسية</h2>
+              <h2 className="text-sm font-black text-[#0C2A4B]">البيانات الأساسية</h2>
             </div>
 
             <div className="p-6">
@@ -410,7 +410,7 @@ export default function ProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   disabled={saving || !emailValid}
                   onClick={() => void onSaveProfile()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#22334A] px-6 py-2.5 text-sm font-black text-white shadow-md shadow-[#22334A]/20 transition hover:bg-[#2691C2] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0C2A4B] px-6 py-2.5 text-sm font-black text-white shadow-md shadow-[#0C2A4B]/20 transition hover:bg-[#0077B6] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {saving ?
                     <><Loader2 className="h-4 w-4 animate-spin" /> جاري الحفظ…</>
@@ -424,14 +424,14 @@ export default function ProfilePage() {
           {isInstructorUser ?
             <motion.section
               layout
-              className="rounded-2xl border border-[#22334A]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(34,51,74,0.10)]"
+              className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.10)]"
             >
-              <div className="flex items-center gap-3 border-b border-[#22334A]/[0.06] px-6 py-4">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EC943C]/10">
-                  <BookOpen className="h-4 w-4 text-[#EC943C]" />
+              <div className="flex items-center gap-3 border-b border-[#0C2A4B]/[0.06] px-6 py-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F28C00]/10">
+                  <BookOpen className="h-4 w-4 text-[#F28C00]" />
                 </span>
                 <div>
-                  <h2 className="text-sm font-black text-[#22334A]">نبذة عني</h2>
+                  <h2 className="text-sm font-black text-[#0C2A4B]">نبذة عني</h2>
                   <p className="text-[11px] font-medium text-slate-400">تظهر هذه النبذة للطلاب في صفحة تفاصيل الدورة.</p>
                 </div>
               </div>
@@ -444,7 +444,7 @@ export default function ProfilePage() {
                     rows={5}
                     maxLength={2000}
                     placeholder="اكتب نبذة قصيرة عن خبرتك ومجالاتك التعليمية..."
-                    className="w-full resize-y rounded-xl border border-[#22334A]/[0.08] bg-slate-50/80 px-4 py-3 text-sm font-semibold text-[#22334A] outline-none ring-2 ring-transparent transition placeholder:font-normal placeholder:text-slate-400 focus:border-[#2691C2]/40 focus:bg-white focus:ring-[#2691C2]/10"
+                    className="w-full resize-y rounded-xl border border-[#0C2A4B]/[0.08] bg-slate-50/80 px-4 py-3 text-sm font-semibold text-[#0C2A4B] outline-none ring-2 ring-transparent transition placeholder:font-normal placeholder:text-slate-400 focus:border-[#0077B6]/40 focus:bg-white focus:ring-[#0077B6]/10"
                   />
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-medium text-slate-400">
@@ -464,13 +464,13 @@ export default function ProfilePage() {
           {/* حالة الحساب والأمان */}
           <motion.section
             layout
-            className="rounded-2xl border border-[#22334A]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(34,51,74,0.10)]"
+            className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.10)]"
           >
-            <div className="flex items-center gap-3 border-b border-[#22334A]/[0.06] px-6 py-4">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#22334A]/[0.06]">
-                <Lock className="h-4 w-4 text-[#22334A]/60" />
+            <div className="flex items-center gap-3 border-b border-[#0C2A4B]/[0.06] px-6 py-4">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0C2A4B]/[0.06]">
+                <Lock className="h-4 w-4 text-[#0C2A4B]/60" />
               </span>
-              <h2 className="text-sm font-black text-[#22334A]">حالة الحساب والأمان</h2>
+              <h2 className="text-sm font-black text-[#0C2A4B]">حالة الحساب والأمان</h2>
             </div>
 
             <div className="p-6">
@@ -490,7 +490,7 @@ export default function ProfilePage() {
           {/* حذف الحساب */}
           <motion.section
             layout
-            className="rounded-2xl border border-red-200/60 bg-white shadow-[0_4px_24px_-6px_rgba(34,51,74,0.08)]"
+            className="rounded-2xl border border-red-200/60 bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.08)]"
           >
             <div className="flex items-center gap-3 border-b border-red-100/80 px-6 py-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50">
@@ -546,16 +546,16 @@ export default function ProfilePage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.22 }}
-              className="w-full max-w-sm overflow-hidden rounded-2xl border border-[#22334A]/[0.08] bg-white shadow-2xl"
+              className="w-full max-w-sm overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.08] bg-white shadow-2xl"
             >
-              <div className="border-b border-[#22334A]/[0.06] px-6 py-5">
+              <div className="border-b border-[#0C2A4B]/[0.06] px-6 py-5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-100 bg-red-50">
                   <UserRound className="h-5 w-5 text-red-600" />
                 </div>
-                <h3 className="mt-3 text-base font-black text-[#22334A]">تأكيد حذف الحساب</h3>
+                <h3 className="mt-3 text-base font-black text-[#0C2A4B]">تأكيد حذف الحساب</h3>
                 <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">
                   اكتب حرفًا بحرف للتأكيد:&nbsp;
-                  <span className="font-black text-[#22334A]">تأكيد الحذف</span>
+                  <span className="font-black text-[#0C2A4B]">تأكيد الحذف</span>
                 </p>
               </div>
 
@@ -564,13 +564,13 @@ export default function ProfilePage() {
                   value={deletePhrase}
                   onChange={(e) => setDeletePhrase(e.target.value)}
                   placeholder="تأكيد الحذف"
-                  className="w-full rounded-xl border border-[#22334A]/[0.08] bg-slate-50 px-4 py-3 text-sm font-bold outline-none transition focus:border-red-300 focus:bg-white focus:ring-2 focus:ring-red-100"
+                  className="w-full rounded-xl border border-[#0C2A4B]/[0.08] bg-slate-50 px-4 py-3 text-sm font-bold outline-none transition focus:border-red-300 focus:bg-white focus:ring-2 focus:ring-red-100"
                   autoComplete="off"
                 />
                 <div className="flex flex-wrap justify-end gap-2">
                   <button
                     type="button"
-                    className="rounded-xl border border-[#22334A]/10 bg-slate-50 px-5 py-2.5 text-sm font-black text-[#22334A] transition hover:bg-slate-100"
+                    className="rounded-xl border border-[#0C2A4B]/10 bg-slate-50 px-5 py-2.5 text-sm font-black text-[#0C2A4B] transition hover:bg-slate-100"
                     disabled={deleteBusy}
                     onClick={() => setDeleteOpen(false)}
                   >
@@ -624,7 +624,7 @@ function ProfileInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`h-11 w-full rounded-xl border border-[#22334A]/[0.08] bg-slate-50/80 px-4 text-sm font-semibold text-[#22334A] outline-none ring-2 ring-transparent transition placeholder:font-normal placeholder:text-slate-400 focus:border-[#2691C2]/40 focus:bg-white focus:ring-[#2691C2]/10 ${dir === 'ltr' ? 'text-right' : ''}`}
+        className={`h-11 w-full rounded-xl border border-[#0C2A4B]/[0.08] bg-slate-50/80 px-4 text-sm font-semibold text-[#0C2A4B] outline-none ring-2 ring-transparent transition placeholder:font-normal placeholder:text-slate-400 focus:border-[#0077B6]/40 focus:bg-white focus:ring-[#0077B6]/10 ${dir === 'ltr' ? 'text-right' : ''}`}
       />
     </label>
   )
@@ -646,10 +646,10 @@ function InfoCell({
   const textColor =
     accent === 'green' ? 'text-emerald-700'
     : accent === 'amber' ? 'text-amber-700'
-    : 'text-[#22334A]'
+    : 'text-[#0C2A4B]'
 
   return (
-    <div className="rounded-xl border border-[#22334A]/[0.05] bg-slate-50/70 px-4 py-3">
+    <div className="rounded-xl border border-[#0C2A4B]/[0.05] bg-slate-50/70 px-4 py-3">
       <dt className="text-[10px] font-black uppercase tracking-wide text-slate-400">{label}</dt>
       <dd className={`mt-1 break-all text-sm font-bold ${mono ? 'font-mono' : ''} ${textColor}`} dir={dir}>
         {value}

@@ -17,10 +17,10 @@ export default function AppToaster() {
           direction: 'rtl',
           textAlign: 'right',
           borderRadius: '14px',
-          border: '1px solid rgba(34,51,74,0.08)',
-          boxShadow: '0 8px 32px rgba(34,51,74,0.12)',
+          border: '1px solid rgba(12, 42, 75,0.08)',
+          boxShadow: '0 8px 32px rgba(12, 42, 75,0.12)',
           padding: '12px 16px',
-          color: '#22334A',
+          color: '#0C2A4B',
           background: '#ffffff',
           fontSize: '14px',
           fontWeight: '600',
@@ -35,7 +35,7 @@ export default function AppToaster() {
           duration: 6000,
         },
         loading: {
-          iconTheme: { primary: '#2691C2', secondary: '#ffffff' },
+          iconTheme: { primary: '#0077B6', secondary: '#ffffff' },
           duration: Infinity,
         },
       }}

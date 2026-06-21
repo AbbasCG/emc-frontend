@@ -32,7 +32,7 @@ export default function PublicCurriculumJourney({
         {nonEmpty.map((group) => (
           <div key={group.id}>
             <h3 className="mb-4 text-sm font-black text-customBlue">{group.title}</h3>
-            <ol className="relative space-y-0 border-s-2 border-[#2691C2]/20 ps-6">
+            <ol className="relative space-y-0 border-s-2 border-[#0077B6]/20 ps-6">
               {group.items.map((item, step) => (
                 <li key={`${group.id}-${item}`} className="relative pb-6 last:pb-0">
                   <span

@@ -9,7 +9,7 @@ function NavBtn({ onClick, label }: { onClick: () => void; label: string }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+      className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-[#0077B6]/40 hover:text-[#0077B6]"
     >
       {label === 'prev' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
     </button>
@@ -46,12 +46,12 @@ export default function CalendarDayView({
   return (
     <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6" dir="rtl">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-black text-[#22334A]">{formatDayTitle(anchor)}</h2>
+        <h2 className="text-lg font-black text-[#0C2A4B]">{formatDayTitle(anchor)}</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onToday}
-            className="rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-xs font-black text-[#2691C2]"
+            className="rounded-xl bg-[#0077B6]/10 px-3 py-1.5 text-xs font-black text-[#0077B6]"
           >
             اليوم
           </button>

@@ -41,7 +41,7 @@ export default function CTASection({
 }: CTASectionProps) {
   return (
     <section className="relative overflow-hidden bg-deepBlue px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(38,145,194,0.2),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(0, 119, 182,0.2),transparent_55%)]" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-customOrange/10 blur-3xl" />
       <motion.div
         className="relative z-10 mx-auto max-w-3xl text-center"
@@ -62,7 +62,7 @@ export default function CTASection({
         >
           <Link
             to={buttonLink}
-            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-8 py-4 text-base font-extrabold text-white shadow-[0_12px_36px_-8px_rgba(236,148,60,0.45)] transition hover:brightness-105"
+            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-8 py-4 text-base font-extrabold text-white shadow-[0_12px_36px_-8px_rgba(242, 140, 0,0.45)] transition hover:brightness-105"
           >
             <BookOpen size={20} aria-hidden />
             {buttonText}

@@ -37,7 +37,7 @@ export default function CookiePreferencesModal() {
           <motion.button
             type="button"
             aria-label="إغلاق"
-            className="fixed inset-0 z-[200] bg-[#22334A]/55 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] bg-[#0C2A4B]/55 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -49,7 +49,7 @@ export default function CookiePreferencesModal() {
             aria-modal="true"
             aria-labelledby="cookie-prefs-title"
             dir="rtl"
-            className="fixed inset-x-4 top-[8vh] z-[201] mx-auto max-h-[84vh] max-w-lg overflow-y-auto rounded-3xl border border-slate-200/80 bg-white shadow-[0_32px_80px_-20px_rgba(34,51,74,0.35)] sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2"
+            className="fixed inset-x-4 top-[8vh] z-[201] mx-auto max-h-[84vh] max-w-lg overflow-y-auto rounded-3xl border border-slate-200/80 bg-white shadow-[0_32px_80px_-20px_rgba(12, 42, 75,0.35)] sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -57,11 +57,11 @@ export default function CookiePreferencesModal() {
           >
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-100 bg-white/95 px-6 py-5 backdrop-blur-md">
               <div className="flex items-start gap-3 text-right">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/10 text-[#2691C2]">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/10 text-[#0077B6]">
                   <Cookie className="h-5 w-5" aria-hidden />
                 </span>
                 <div>
-                  <h2 id="cookie-prefs-title" className="text-lg font-black text-[#22334A]">
+                  <h2 id="cookie-prefs-title" className="text-lg font-black text-[#0C2A4B]">
                     إعدادات ملفات تعريف الارتباط
                   </h2>
                   <p className="mt-1 text-[12px] font-semibold leading-relaxed text-slate-500">
@@ -72,7 +72,7 @@ export default function CookiePreferencesModal() {
               <button
                 type="button"
                 onClick={closePreferences}
-                className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#22334A]"
+                className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#0C2A4B]"
               >
                 <X className="h-5 w-5" aria-hidden />
               </button>
@@ -103,7 +103,7 @@ export default function CookiePreferencesModal() {
 
               <p className="rounded-xl bg-slate-50 px-4 py-3 text-[11px] font-semibold leading-relaxed text-slate-500">
                 لمزيد من التفاصيل راجع{' '}
-                <Link to="/cookies" onClick={closePreferences} className="font-black text-[#2691C2] hover:underline">
+                <Link to="/cookies" onClick={closePreferences} className="font-black text-[#0077B6] hover:underline">
                   سياسة ملفات تعريف الارتباط
                 </Link>
                 .
@@ -123,21 +123,21 @@ export default function CookiePreferencesModal() {
               <button
                 type="button"
                 onClick={rejectNonEssential}
-                className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#0C2A4B] transition hover:bg-slate-50"
               >
                 رفض غير الضرورية
               </button>
               <button
                 type="button"
                 onClick={() => savePreferences({ analytics, marketing })}
-                className="rounded-xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:opacity-90"
+                className="rounded-xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:opacity-90"
               >
                 حفظ التفضيلات
               </button>
               <button
                 type="button"
                 onClick={acceptAll}
-                className="rounded-xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105"
+                className="rounded-xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105"
               >
                 قبول الكل
               </button>
@@ -168,11 +168,11 @@ function CategoryRow({
     <div className="rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-4 text-right">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-[#2691C2] shadow-sm ring-1 ring-slate-100">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-[#0077B6] shadow-sm ring-1 ring-slate-100">
             <Icon className="h-4 w-4" aria-hidden />
           </span>
           <div>
-            <p className="text-[13px] font-black text-[#22334A]">{title}</p>
+            <p className="text-[13px] font-black text-[#0C2A4B]">{title}</p>
             <p className="mt-1 text-[12px] font-medium leading-relaxed text-slate-500">{description}</p>
           </div>
         </div>
@@ -184,7 +184,7 @@ function CategoryRow({
             onChange={(e) => onChange?.(e.target.checked)}
             className="peer sr-only"
           />
-          <span className="h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-[#2691C2] peer-disabled:bg-[#2691C2]/60" />
+          <span className="h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-[#0077B6] peer-disabled:bg-[#0077B6]/60" />
           <span className="absolute start-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5 peer-disabled:translate-x-5" />
         </label>
       </div>

@@ -68,11 +68,11 @@ const STATUS_CFG = {
   },
   scheduled: {
     label: 'قادمة',
-    badge: 'bg-[#2691C2]/10 text-[#2691C2] ring-[#2691C2]/20',
-    dot: 'bg-[#2691C2]',
-    sectionIcon: <Clock className="h-3.5 w-3.5 text-[#2691C2]" />,
+    badge: 'bg-[#0077B6]/10 text-[#0077B6] ring-[#0077B6]/20',
+    dot: 'bg-[#0077B6]',
+    sectionIcon: <Clock className="h-3.5 w-3.5 text-[#0077B6]" />,
     sectionLabel: 'جلسات قادمة',
-    sectionCls: 'text-[#2691C2]',
+    sectionCls: 'text-[#0077B6]',
   },
   completed: {
     label: 'انتهت',
@@ -114,7 +114,7 @@ function SessionRow({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
-      className="group flex gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="group flex gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
     >
       {/* Status dot */}
       <div className="flex flex-col items-center pt-1">
@@ -126,7 +126,7 @@ function SessionRow({
       <div className="min-w-0 flex-1 space-y-2">
         {/* Title + badge */}
         <div className="flex flex-wrap items-start gap-2">
-          <p className="font-black leading-tight text-[#22334A]">
+          <p className="font-black leading-tight text-[#0C2A4B]">
             {session.title ?? `جلسة #${fmt(session.id)}`}
           </p>
           <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${cfg.badge}`}>
@@ -137,13 +137,13 @@ function SessionRow({
         {/* Course + LP context */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold text-slate-500">
           {session.course_name && (
-            <span className="inline-flex items-center gap-1 text-[#2691C2]">
+            <span className="inline-flex items-center gap-1 text-[#0077B6]">
               <BookOpen className="h-3 w-3" />
               {session.course_name}
             </span>
           )}
           {lpName && (
-            <span className="inline-flex items-center gap-1 text-[#EC943C]">
+            <span className="inline-flex items-center gap-1 text-[#F28C00]">
               <Route className="h-3 w-3" />
               {lpName}
             </span>
@@ -178,7 +178,7 @@ function SessionRow({
             href={session.meeting_link}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-[#2691C2]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-[#0077B6]"
           >
             <Video className="h-3.5 w-3.5" />
             انضمام
@@ -187,7 +187,7 @@ function SessionRow({
         {session.course_id && (
           <a
             href={`/dashboard/instructor/courses/${session.course_id}/content`}
-            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-2.5 py-1.5 text-[10px] font-black text-[#22334A] transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-2.5 py-1.5 text-[10px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/40 hover:text-[#0077B6]"
           >
             <ExternalLink className="h-3 w-3" />
             الدورة
@@ -351,8 +351,8 @@ export default function InstructorSessionsPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-black transition ${
                   active
-                    ? 'bg-[#22334A] text-white shadow-sm'
-                    : 'bg-white text-[#22334A]/60 ring-1 ring-slate-200 hover:ring-[#2691C2]/40'
+                    ? 'bg-[#0C2A4B] text-white shadow-sm'
+                    : 'bg-white text-[#0C2A4B]/60 ring-1 ring-slate-200 hover:ring-[#0077B6]/40'
                 }`}
               >
                 {tab.label}
@@ -376,7 +376,7 @@ export default function InstructorSessionsPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-50">
             <Calendar className="h-8 w-8 text-slate-300" />
           </div>
-          <p className="text-base font-black text-[#22334A]">لا توجد جلسات مجدولة</p>
+          <p className="text-base font-black text-[#0C2A4B]">لا توجد جلسات مجدولة</p>
           <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
             ستُعرض الجلسات المرتبطة بدوراتك ومساراتك التعليمية هنا
           </p>
@@ -384,7 +384,7 @@ export default function InstructorSessionsPage() {
       ) : visibleSessions.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-14 text-center">
           <Calendar className="mb-3 h-8 w-8 text-slate-200" />
-          <p className="font-black text-[#22334A]">لا توجد جلسات في هذه الفئة</p>
+          <p className="font-black text-[#0C2A4B]">لا توجد جلسات في هذه الفئة</p>
         </div>
       ) : activeTab === 'all' ? (
         <div className="space-y-8">

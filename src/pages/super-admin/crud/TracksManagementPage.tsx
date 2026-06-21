@@ -38,9 +38,9 @@ function PathwayNodes({ count }: { count: number }) {
       {Array.from({ length: shown }, (_, idx) => idx + 1).map((step, i) => (
         <Fragment key={step}>
           {i > 0 ?
-            <span className="hidden h-1 w-8 shrink-0 rounded-full bg-gradient-to-l from-customBlue/35 to-accent-400/35 sm:block" aria-hidden />
+            <span className="hidden h-1 w-8 shrink-0 rounded-full bg-customOrange sm:block" aria-hidden />
           : null}
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#2691C2] to-[#22334A] text-[10px] font-black text-white shadow-md ring-2 ring-white">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-[10px] font-black text-white shadow-md ring-2 ring-white">
             {step}
           </span>
         </Fragment>

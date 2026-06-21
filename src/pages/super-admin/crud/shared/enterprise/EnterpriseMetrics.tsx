@@ -3,9 +3,9 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 const accentBg: Record<'blue' | 'orange' | 'navy' | 'mint', string> = {
-  blue: 'from-[#2691C2]/15 via-white to-transparent',
-  orange: 'from-[#EC943C]/14 via-white to-transparent',
-  navy: 'from-[#22334A]/14 via-white to-transparent',
+  blue: 'from-[#0077B6]/15 via-white to-transparent',
+  orange: 'from-[#F28C00]/14 via-white to-transparent',
+  navy: 'from-[#0C2A4B]/14 via-white to-transparent',
   mint: 'from-emerald-400/14 via-white to-transparent',
 }
 
@@ -35,7 +35,7 @@ export function EnterpriseMetricTile({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: [0.22, 0.61, 0.36, 1] }}
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_10px_40px_-12px_rgba(34,51,74,0.12)] ring-1 ring-ink-100/50 backdrop-blur-md',
+        'relative overflow-hidden rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_10px_40px_-12px_rgba(12, 42, 75,0.12)] ring-1 ring-ink-100/50 backdrop-blur-md',
       )}
     >
       <div
@@ -105,11 +105,11 @@ export function EnterpriseCrudHero({
       className={cn(
         'relative overflow-hidden rounded-[28px] border border-ink-100/80 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.18)]',
         ring,
-        'bg-gradient-to-bl from-[#22334A] via-[#1a2940] to-[#0F172A]',
+        'bg-gradient-to-bl from-[#0C2A4B] via-[#1a2940] to-[#0F172A]',
       )}
     >
-      <div aria-hidden className="pointer-events-none absolute -start-28 top-0 h-64 w-64 rounded-full bg-[#2691C2]/20 blur-[100px]" />
-      <div aria-hidden className="pointer-events-none absolute -end-20 bottom-0 h-52 w-52 rounded-full bg-[#EC943C]/14 blur-[90px]" />
+      <div aria-hidden className="pointer-events-none absolute -start-28 top-0 h-64 w-64 rounded-full bg-[#0077B6]/20 blur-[100px]" />
+      <div aria-hidden className="pointer-events-none absolute -end-20 bottom-0 h-52 w-52 rounded-full bg-[#F28C00]/14 blur-[90px]" />
       <div className="relative flex flex-wrap items-start justify-between gap-5 p-6 sm:p-8">
         <div className="min-w-0 max-w-3xl text-right text-white rtl:text-right">
           {eyebrow ?

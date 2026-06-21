@@ -55,7 +55,7 @@ export default function PublicPageHero({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Link
             to={primaryAction.href}
-            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_32px_-8px_rgba(236,148,60,0.45)] transition hover:brightness-105"
+            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_32px_-8px_rgba(242, 140, 0,0.45)] transition hover:brightness-105"
           >
             {primaryAction.label}
             <ArrowLeft size={18} />
@@ -103,7 +103,7 @@ export default function PublicPageHero({
           variants={fadeUp}
           className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-black text-white/95 backdrop-blur-sm"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-customOrange shadow-[0_0_10px_rgba(236,148,60,0.6)]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-customOrange shadow-[0_0_10px_rgba(242, 140, 0,0.6)]" />
           {badge}
         </motion.span>
       ) : (
@@ -148,9 +148,9 @@ export default function PublicPageHero({
       transition={{ duration: 0.45 }}
     >
       <div className="absolute inset-0 bg-deepBlue" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_100%_-15%,rgba(38,145,194,0.38),transparent_52%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_-10%_110%,rgba(236,148,60,0.14),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(34,51,74,0.98)_0%,rgba(34,51,74,0.92)_45%,rgba(26,42,62,1)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_100%_-15%,rgba(0, 119, 182,0.38),transparent_52%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_-10%_110%,rgba(242, 140, 0,0.14),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(12, 42, 75,0.98)_0%,rgba(12, 42, 75,0.92)_45%,rgba(26,42,62,1)_100%)]" />
       <div className="pointer-events-none absolute -left-28 top-1/4 h-72 w-72 rounded-full bg-customBlue/15 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-customOrange/12 blur-3xl" />
 

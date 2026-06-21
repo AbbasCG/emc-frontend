@@ -42,8 +42,8 @@ export default function QualityScoreRing({
           />
           <defs>
             <linearGradient id="qcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#2691C2" />
-              <stop offset="100%" stopColor="#ec943c" />
+              <stop offset="0%" stopColor="#0077B6" />
+              <stop offset="100%" stopColor="#F28C00" />
             </linearGradient>
           </defs>
         </svg>

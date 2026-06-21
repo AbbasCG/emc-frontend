@@ -113,7 +113,7 @@ export default function WorkshopsPage() {
           </div>
         : loading ?
           <div className="flex justify-center py-24">
-            <Loader2 className="h-10 w-10 animate-spin text-[#2691C2]" />
+            <Loader2 className="h-10 w-10 animate-spin text-[#0077B6]" />
           </div>
         : workshops.length === 0 ?
           <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
@@ -174,7 +174,7 @@ function FilterChip({
       className={`rounded-xl px-3.5 py-2 text-[11px] font-black transition ${
         active ?
           'bg-deepBlue text-white shadow-sm'
-        : 'border border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/40'
+        : 'border border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/40'
       }`}
     >
       {label}

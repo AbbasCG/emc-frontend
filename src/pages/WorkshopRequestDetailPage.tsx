@@ -104,7 +104,7 @@ type ProposedDates = {
   date3: string | null; time3: string | null
 }
 
-const sectionCard = 'rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
+const sectionCard = 'rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(12, 42, 75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
 
 // ── Info row ──────────────────────────────────────────────────────────────────
 
@@ -112,12 +112,12 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
   if (!value || value === '—') return null
   return (
     <div className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
-      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
         <Icon className="h-3.5 w-3.5" aria-hidden />
       </div>
       <div className="min-w-0 flex-1 text-right">
         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</p>
-        <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">{value}</p>
+        <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]">{value}</p>
       </div>
     </div>
   )
@@ -142,7 +142,7 @@ function AnnouncementCard({ text }: { text: string }) {
   return (
     <div className={sectionCard}>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-[15px] font-black text-[#22334A]">نص الإعلان المقترح</h2>
+        <h2 className="text-[15px] font-black text-[#0C2A4B]">نص الإعلان المقترح</h2>
         <button
           type="button"
           onClick={copy}
@@ -150,7 +150,7 @@ function AnnouncementCard({ text }: { text: string }) {
             'inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-black transition',
             copied
               ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-              : 'border-slate-200 bg-white text-[#22334A] hover:border-[#2691C2]/30 hover:text-[#2691C2]',
+              : 'border-slate-200 bg-white text-[#0C2A4B] hover:border-[#0077B6]/30 hover:text-[#0077B6]',
           )}
         >
           {copied
@@ -161,8 +161,8 @@ function AnnouncementCard({ text }: { text: string }) {
       </div>
 
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8fafc] to-white p-5 ring-1 ring-slate-200/70 shadow-inner">
-        <div className="pointer-events-none absolute end-0 top-0 h-20 w-20 bg-[radial-gradient(ellipse_at_100%_0%,rgba(38,145,194,0.08),transparent_70%)]" aria-hidden />
-        <p className="relative whitespace-pre-wrap text-[14px] font-[500] leading-[1.9] text-[#22334A]/88 tracking-[0.01em]">
+        <div className="pointer-events-none absolute end-0 top-0 h-20 w-20 bg-[radial-gradient(ellipse_at_100%_0%,rgba(0, 119, 182,0.08),transparent_70%)]" aria-hidden />
+        <p className="relative whitespace-pre-wrap text-[14px] font-[500] leading-[1.9] text-[#0C2A4B]/88 tracking-[0.01em]">
           {displayText}
         </p>
       </div>
@@ -171,7 +171,7 @@ function AnnouncementCard({ text }: { text: string }) {
         <button
           type="button"
           onClick={() => setExpanded(v => !v)}
-          className="mt-3 inline-flex items-center gap-1 text-[12px] font-black text-[#2691C2] transition hover:opacity-80"
+          className="mt-3 inline-flex items-center gap-1 text-[12px] font-black text-[#0077B6] transition hover:opacity-80"
         >
           {expanded
             ? <><ChevronUp className="h-3.5 w-3.5" aria-hidden /> عرض مختصر</>
@@ -239,7 +239,7 @@ function ActionModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-            className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(34,51,74,0.35)] ring-1 ring-slate-200/60"
+            className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-slate-200/60"
           >
             <div className={cn('px-6 py-4', isApprove ? 'bg-emerald-50' : 'bg-red-50')}>
               <div className="flex items-center gap-3">
@@ -247,7 +247,7 @@ function ActionModal({
                   ? <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600" />
                   : <XCircle className="h-6 w-6 shrink-0 text-red-600" />
                 }
-                <h2 className="text-[16px] font-black text-[#22334A]">
+                <h2 className="text-[16px] font-black text-[#0C2A4B]">
                   {isApprove ? 'الموافقة على الطلب' : 'رفض الطلب'}
                 </h2>
               </div>
@@ -257,7 +257,7 @@ function ActionModal({
             <div className="px-6 py-5 text-right" dir="rtl">
               {showDatePicker && (
                 <div className="mb-4">
-                  <p className="text-[13px] font-black text-[#22334A]">تحديد الموعد المعتمد</p>
+                  <p className="text-[13px] font-black text-[#0C2A4B]">تحديد الموعد المعتمد</p>
                   <p className="mt-0.5 text-[11px] font-semibold text-slate-500">اختر الموعد المناسب لتنفيذ البرنامج (اختياري)</p>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {([1, 2, 3] as const).map((n) => {
@@ -274,13 +274,13 @@ function ActionModal({
                             !d && 'cursor-not-allowed opacity-40',
                             selectedDateOption === n
                               ? 'border-emerald-400 bg-emerald-50 ring-1 ring-emerald-300'
-                              : 'border-slate-200 bg-slate-50 hover:border-[#2691C2]/40',
+                              : 'border-slate-200 bg-slate-50 hover:border-[#0077B6]/40',
                           )}
                         >
-                          <p className="text-[10px] font-black uppercase tracking-wide text-[#2691C2]">
+                          <p className="text-[10px] font-black uppercase tracking-wide text-[#0077B6]">
                             {['الأول', 'الثاني', 'الثالث'][n - 1]}
                           </p>
-                          <p className="mt-1 text-[12px] font-black text-[#22334A]">
+                          <p className="mt-1 text-[12px] font-black text-[#0C2A4B]">
                             {d ? formatDate(d) : '—'}
                           </p>
                           {t && <p className="text-[11px] font-semibold text-slate-500 tabular-nums">{formatTimeRange(t)}</p>}
@@ -293,11 +293,11 @@ function ActionModal({
                   </div>
                 </div>
               )}
-              <label className="block text-[13px] font-black text-[#22334A]">
+              <label className="block text-[13px] font-black text-[#0C2A4B]">
                 {isApprove ? 'ملاحظات (اختياري)' : 'سبب الرفض (مطلوب)'}
               </label>
               <textarea
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[#2691C2]/60 focus:outline-none focus:ring-2 focus:ring-[#2691C2]/20"
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:border-[#0077B6]/60 focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -419,7 +419,7 @@ export default function WorkshopRequestDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-[#2691C2]" />
+        <Loader2 className="h-10 w-10 animate-spin text-[#0077B6]" />
       </div>
     )
   }
@@ -448,7 +448,7 @@ export default function WorkshopRequestDetailPage() {
             </button>
           )}
           <button type="button" onClick={() => navigate(-1)}
-            className="rounded-2xl bg-[#2691C2] px-6 py-2.5 text-[13px] font-black text-white">
+            className="rounded-2xl bg-[#0077B6] px-6 py-2.5 text-[13px] font-black text-white">
             رجوع
           </button>
         </div>
@@ -460,7 +460,7 @@ export default function WorkshopRequestDetailPage() {
   const wfLabel = WORKFLOW_STATUS_LABELS[detail.workflow_status] ?? detail.workflow_status
 
   return (
-    <main dir="rtl" className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#2691C2]/[0.05] pb-24 pt-[5.25rem]">
+    <main dir="rtl" className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#0077B6]/[0.05] pb-24 pt-[5.25rem]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
         {/* Action feedback */}
@@ -486,16 +486,16 @@ export default function WorkshopRequestDetailPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#22334A] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
+          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#0C2A4B] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
         >
-          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#2691C2]/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#EC943C]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#F28C00]/20 blur-3xl" />
           <div className="relative">
             <nav className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-white/80">
               <Link to="/dashboard/admin/workshop-requests" className="transition hover:text-white">
                 طلبات البرامج
               </Link>
-              <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-[#EC943C]" />
+              <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-[#F28C00]" />
               <span className="text-white">#{detail.id}</span>
             </nav>
             <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
@@ -553,7 +553,7 @@ export default function WorkshopRequestDetailPage() {
               transition={{ delay: 0.05 }}
               className={cn(sectionCard, 'lg:sticky lg:top-28')}
             >
-              <h2 className="mb-5 text-[15px] font-black text-[#22334A]">مسار الاعتماد</h2>
+              <h2 className="mb-5 text-[15px] font-black text-[#0C2A4B]">مسار الاعتماد</h2>
               <div className="relative">
                 <div className="absolute end-[19px] top-0 w-[2px] bg-slate-200" style={{ height: 'calc(100% - 24px)' }} />
                 <ol className="space-y-5">
@@ -568,7 +568,7 @@ export default function WorkshopRequestDetailPage() {
                             'relative z-10 mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-[12px] font-black ring-2 ring-white',
                             isDone && 'bg-emerald-500 text-white',
                             isRejected && 'bg-red-500 text-white',
-                            isCurrent && !isDone && !isRejected && 'bg-[#EC943C] text-white shadow-[0_8px_20px_rgba(236,148,60,0.38)]',
+                            isCurrent && !isDone && !isRejected && 'bg-[#F28C00] text-white shadow-[0_8px_20px_rgba(242, 140, 0,0.38)]',
                             !isDone && !isRejected && !isCurrent && 'bg-slate-100 text-slate-500',
                           )}
                         >
@@ -580,7 +580,7 @@ export default function WorkshopRequestDetailPage() {
                         <div className="flex-1 text-right">
                           <p className={cn(
                             'text-[13px] font-black',
-                            isCurrent ? 'text-[#2691C2]' : isDone ? 'text-emerald-700' : isRejected ? 'text-red-600' : 'text-slate-500',
+                            isCurrent ? 'text-[#0077B6]' : isDone ? 'text-emerald-700' : isRejected ? 'text-red-600' : 'text-slate-500',
                           )}>
                             {step.department_label}
                           </p>
@@ -626,7 +626,7 @@ export default function WorkshopRequestDetailPage() {
               transition={{ delay: 0.06 }}
               className={sectionCard}
             >
-              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">بيانات مقدم الطلب</h2>
+              <h2 className="mb-4 text-[15px] font-black text-[#0C2A4B]">بيانات مقدم الطلب</h2>
               <div className="space-y-3">
                 <InfoRow icon={User} label="الاسم الكامل" value={detail.requester_name ?? '—'} />
                 <InfoRow icon={Mail} label="البريد الإلكتروني" value={detail.requester_email ?? '—'} />
@@ -646,7 +646,7 @@ export default function WorkshopRequestDetailPage() {
               transition={{ delay: 0.09 }}
               className={sectionCard}
             >
-              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">بيانات البرنامج</h2>
+              <h2 className="mb-4 text-[15px] font-black text-[#0C2A4B]">بيانات البرنامج</h2>
 
               {/* Speaker photo + info */}
               <div className={cn('mb-4 flex items-start gap-4', detail.speaker_photo_url ? '' : '')}>
@@ -658,11 +658,11 @@ export default function WorkshopRequestDetailPage() {
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-black text-[#22334A]">{detail.speaker_name}</p>
+                  <p className="text-[15px] font-black text-[#0C2A4B]">{detail.speaker_name}</p>
                   {detail.speaker_job_title && (
-                    <div className="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-[#2691C2]/10 px-2.5 py-0.5">
-                      <Briefcase className="h-3 w-3 shrink-0 text-[#2691C2]" aria-hidden />
-                      <span className="text-[12px] font-black text-[#2691C2]">{detail.speaker_job_title}</span>
+                    <div className="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-[#0077B6]/10 px-2.5 py-0.5">
+                      <Briefcase className="h-3 w-3 shrink-0 text-[#0077B6]" aria-hidden />
+                      <span className="text-[12px] font-black text-[#0077B6]">{detail.speaker_job_title}</span>
                     </div>
                   )}
                 </div>
@@ -671,12 +671,12 @@ export default function WorkshopRequestDetailPage() {
               {detail.categories && detail.categories.length > 0 && (
                 <div className="border-t border-slate-100 pt-4">
                   <div className="flex items-start gap-2.5">
-                    <Tag className="mt-0.5 h-4 w-4 shrink-0 text-[#2691C2]" aria-hidden />
+                    <Tag className="mt-0.5 h-4 w-4 shrink-0 text-[#0077B6]" aria-hidden />
                     <div className="min-w-0 flex-1 text-right">
                       <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">الفئات</p>
                       <div className="flex flex-wrap gap-1.5">
                         {detail.categories.map(cat => (
-                          <span key={cat} className="rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-[#22334A]">
+                          <span key={cat} className="rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-[#0C2A4B]">
                             {cat}
                           </span>
                         ))}
@@ -694,45 +694,45 @@ export default function WorkshopRequestDetailPage() {
               transition={{ delay: 0.12 }}
               className={sectionCard}
             >
-              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">تفاصيل التنفيذ</h2>
+              <h2 className="mb-4 text-[15px] font-black text-[#0C2A4B]">تفاصيل التنفيذ</h2>
               <div className="space-y-3">
                 {detail.topics && (
                   <div className="border-b border-slate-100 pb-3 last:border-0">
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">المواضيع والمحاور</p>
-                    <p className="mt-1.5 whitespace-pre-wrap text-[13px] font-semibold leading-relaxed text-[#22334A]">
+                    <p className="mt-1.5 whitespace-pre-wrap text-[13px] font-semibold leading-relaxed text-[#0C2A4B]">
                       {detail.topics}
                     </p>
                   </div>
                 )}
                 {detail.target_audience && (
                   <div className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
-                    <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                    <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
                       <Users className="h-3.5 w-3.5" aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1 text-right">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">الجمهور المستهدف</p>
-                      <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">{detail.target_audience}</p>
+                      <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]">{detail.target_audience}</p>
                     </div>
                   </div>
                 )}
                 {detail.location_types && detail.location_types.length > 0 && (
                   <div className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0">
-                    <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                    <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
                       <MapPin className="h-3.5 w-3.5" aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1 text-right">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">طريقة أو مكان التنفيذ</p>
-                      <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">{detail.location_types.join(' / ')}</p>
+                      <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]">{detail.location_types.join(' / ')}</p>
                     </div>
                   </div>
                 )}
                 <div className="flex items-start gap-3 last:border-0">
-                  <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+                  <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
                     <Banknote className="h-3.5 w-3.5" aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1 text-right">
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">رسوم الحضور</p>
-                    <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]">
+                    <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]">
                       {detail.price_type === 'free'
                         ? 'مجاني'
                         : `مدفوع — ${detail.price_amount ?? ''} ريال`
@@ -750,7 +750,7 @@ export default function WorkshopRequestDetailPage() {
               transition={{ delay: 0.15 }}
               className={sectionCard}
             >
-              <h2 className="mb-4 text-[15px] font-black text-[#22334A]">المواعيد المقترحة</h2>
+              <h2 className="mb-4 text-[15px] font-black text-[#0C2A4B]">المواعيد المقترحة</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {([1, 2, 3] as const).map((n) => {
                   const d = detail[`proposed_date_${n}` as keyof WorkshopRequestDetail] as string | null
@@ -765,17 +765,17 @@ export default function WorkshopRequestDetailPage() {
                         isSelected
                           ? 'border-emerald-400/70 bg-emerald-50/80 ring-1 ring-emerald-300/60'
                           : hasDate
-                            ? 'border-[#2691C2]/20 bg-[#2691C2]/[0.04]'
+                            ? 'border-[#0077B6]/20 bg-[#0077B6]/[0.04]'
                             : 'border-slate-200/80 bg-slate-50/60 opacity-45',
                       )}
                     >
                       <p className={cn(
                         'text-[10px] font-black uppercase tracking-wider',
-                        isSelected ? 'text-emerald-600' : 'text-[#2691C2]',
+                        isSelected ? 'text-emerald-600' : 'text-[#0077B6]',
                       )}>
                         الخيار {['الأول', 'الثاني', 'الثالث'][n - 1]}
                       </p>
-                      <p className="mt-2 text-[13px] font-black text-[#22334A]">
+                      <p className="mt-2 text-[13px] font-black text-[#0C2A4B]">
                         {formatDate(d)}
                       </p>
                       {t && (

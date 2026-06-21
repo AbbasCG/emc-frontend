@@ -168,18 +168,18 @@ a {
 }
 .emc-scroll::-webkit-scrollbar-track { background: transparent; }
 .emc-scroll::-webkit-scrollbar-thumb {
-  background: rgba(34, 51, 74, 0.18);
+  background: rgba(12, 42, 75, 0.18);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .emc-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 51, 74, 0.35);
+  background: rgba(12, 42, 75, 0.35);
   background-clip: padding-box;
 }
 
 /* Inertial scroll feel + horizontal fade-out edges helper. */
-.emc-scroll { scrollbar-width: thin; scrollbar-color: rgba(34,51,74,0.2) transparent; }
+.emc-scroll { scrollbar-width: thin; scrollbar-color: rgba(12, 42, 75,0.2) transparent; }
 
 /* ── EMC UI system: consistent rhythm & surfaces (Tailwind-compatible) ── */
 @layer components {

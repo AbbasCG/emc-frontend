@@ -10,9 +10,9 @@ export type MetricWidget = {
 }
 
 const accentMap = {
-  blue: 'border-[#2691C2]/15 from-[#2691C2]/6 text-[#2691C2]',
-  orange: 'border-[#EC943C]/18 from-[#EC943C]/6 text-[#EC943C]',
-  navy: 'border-[#22334A]/10 from-[#22334A]/5 text-[#22334A]',
+  blue: 'border-[#0077B6]/15 from-[#0077B6]/6 text-[#0077B6]',
+  orange: 'border-[#F28C00]/18 from-[#F28C00]/6 text-[#F28C00]',
+  navy: 'border-[#0C2A4B]/10 from-[#0C2A4B]/5 text-[#0C2A4B]',
   green: 'border-emerald-200/60 from-emerald-50/70 text-emerald-700',
 } as const
 
@@ -39,8 +39,8 @@ export default function CourseDetailMetricsDashboard({ items }: { items: MetricW
               <Icon className="h-3 w-3" aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[8px] font-bold text-[#22334A]/45">{item.label}</p>
-              <p className="line-clamp-2 text-[10px] font-black leading-tight tabular-nums text-[#22334A]">
+              <p className="truncate text-[8px] font-bold text-[#0C2A4B]/45">{item.label}</p>
+              <p className="line-clamp-2 text-[10px] font-black leading-tight tabular-nums text-[#0C2A4B]">
                 {item.value}
               </p>
             </div>

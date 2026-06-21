@@ -51,7 +51,7 @@ export function FormActions({
             type="button"
             onClick={onBack}
             disabled={busy}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-black text-[#22334A] shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-black text-[#0C2A4B] shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {backLabel}
@@ -62,7 +62,7 @@ export function FormActions({
             type="button"
             onClick={onNext}
             disabled={busy || disableNext}
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_14px_34px_-12px_rgba(34,51,74,0.45)] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_14px_34px_-12px_rgba(12, 42, 75,0.45)] disabled:opacity-50"
           >
             {nextLabel}
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -73,7 +73,7 @@ export function FormActions({
             type="button"
             onClick={onSubmit}
             disabled={busy || disableSubmit}
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#EC943C] to-[#2691C2] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_16px_40px_-14px_rgba(236,148,60,0.55)] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#F28C00] to-[#0077B6] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_16px_40px_-14px_rgba(242, 140, 0,0.55)] disabled:opacity-50"
           >
             {busy ?
               <>

@@ -34,7 +34,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<EmcButtonVariant, string> = {
   primary:
-    'bg-customBlue text-white shadow-[0_12px_30px_-12px_rgba(38,145,194,0.55)] hover:bg-[#1e7dab] hover:shadow-[0_18px_36px_-12px_rgba(38,145,194,0.6)] disabled:opacity-50',
+    'bg-customBlue text-white shadow-[0_12px_30px_-12px_rgba(0, 119, 182,0.55)] hover:bg-[#1e7dab] hover:shadow-[0_18px_36px_-12px_rgba(0, 119, 182,0.6)] disabled:opacity-50',
   secondary:
     'border border-slate-200 bg-white text-deepBlue shadow-emc-xs hover:border-customBlue/35 hover:bg-sky-50 disabled:opacity-50',
   ghost:
@@ -43,11 +43,11 @@ const variantClass: Record<EmcButtonVariant, string> = {
     'bg-red-600 text-white shadow-[0_12px_30px_-12px_rgba(220,38,38,0.45)] hover:bg-red-700 disabled:opacity-50',
   /** New variants */
   gradient:
-    'bg-brand-gradient text-white shadow-[0_14px_34px_-12px_rgba(38,145,194,0.55)] hover:brightness-[1.05] hover:shadow-[0_18px_40px_-12px_rgba(38,145,194,0.62)] disabled:opacity-50',
+    'bg-brand-gradient text-white shadow-[0_14px_34px_-12px_rgba(0, 119, 182,0.55)] hover:brightness-[1.05] hover:shadow-[0_18px_40px_-12px_rgba(0, 119, 182,0.62)] disabled:opacity-50',
   outline:
     'border border-deepBlue/15 bg-transparent text-deepBlue hover:border-customBlue/35 hover:bg-customBlue/[0.05] disabled:opacity-50',
   accent:
-    'bg-customOrange text-white shadow-[0_12px_30px_-12px_rgba(236,148,60,0.5)] hover:brightness-[1.05] hover:shadow-[0_18px_36px_-12px_rgba(236,148,60,0.55)] disabled:opacity-50',
+    'bg-customOrange text-white shadow-[0_12px_30px_-12px_rgba(242, 140, 0,0.5)] hover:brightness-[1.05] hover:shadow-[0_18px_36px_-12px_rgba(242, 140, 0,0.55)] disabled:opacity-50',
   dark:
     'bg-deepBlue text-white shadow-[0_14px_30px_-12px_rgba(15,42,67,0.55)] hover:bg-[#1a283b] disabled:opacity-50',
 }

@@ -23,7 +23,7 @@ export function UserAvatarCell({ name, email, avatarUrl, size = 'md', status }: 
     <div className="flex min-w-0 items-center gap-3">
       <div className="relative shrink-0">
         <div
-          className={`${dim} overflow-hidden rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] font-black text-white ring-2 ring-white shadow-sm`}
+          className={`${dim} overflow-hidden rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] font-black text-white ring-2 ring-white shadow-sm`}
         >
           {resolved ?
             <img src={resolved} alt="" className="h-full w-full object-cover" />
@@ -37,7 +37,7 @@ export function UserAvatarCell({ name, email, avatarUrl, size = 'md', status }: 
         : null}
       </div>
       <div className="min-w-0 flex-1 text-right">
-        <p className="truncate text-[13px] font-black text-[#22334A]">{name}</p>
+        <p className="truncate text-[13px] font-black text-[#0C2A4B]">{name}</p>
         <p className="truncate text-[11px] font-semibold text-slate-400" dir="ltr">{email}</p>
       </div>
     </div>

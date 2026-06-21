@@ -148,7 +148,7 @@ export default function Signup() {
           transition={{ duration: 0.5 }}
         >
           <div className="relative hidden min-h-[420px] bg-deepBlue lg:block">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(38,145,194,0.35),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(236,148,60,0.25),transparent_40%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0, 119, 182,0.35),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(242, 140, 0,0.25),transparent_40%)]" />
             <div className="relative flex h-full flex-col justify-end p-10 text-white">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-customOrange">EMC OS</p>
               <h2 className="mt-3 text-3xl font-black leading-tight">انضم إلى منظومة EMC الرقمية</h2>

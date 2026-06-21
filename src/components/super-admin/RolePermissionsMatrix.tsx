@@ -201,7 +201,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-[#2691C2]" aria-hidden />
+        <Loader2 className="h-8 w-8 animate-spin text-[#0077B6]" aria-hidden />
         <p className="text-[13px] font-semibold text-slate-500">جارٍ تحميل الصلاحيات…</p>
       </div>
     )
@@ -215,7 +215,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
         <button
           type="button"
           onClick={() => { void loadCatalog(); void loadRolePermissions(roleSlug) }}
-          className="mt-4 rounded-xl bg-[#22334A] px-4 py-2 text-[12px] font-black text-white"
+          className="mt-4 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[12px] font-black text-white"
         >
           إعادة المحاولة
         </button>
@@ -233,11 +233,11 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="بحث في الصلاحيات…"
-            className="h-10 w-full rounded-xl border border-slate-200 bg-white pe-3 ps-9 text-[12px] font-semibold text-[#22334A] outline-none focus:ring-2 focus:ring-[#2691C2]/30"
+            className="h-10 w-full rounded-xl border border-slate-200 bg-white pe-3 ps-9 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:ring-2 focus:ring-[#0077B6]/30"
           />
         </div>
         {dirty && (
-          <span className="rounded-full bg-[#EC943C]/15 px-3 py-1 text-[11px] font-black text-[#EC943C] ring-1 ring-[#EC943C]/25">
+          <span className="rounded-full bg-[#F28C00]/15 px-3 py-1 text-[11px] font-black text-[#F28C00] ring-1 ring-[#F28C00]/25">
             تغييرات غير محفوظة
           </span>
         )}
@@ -266,16 +266,16 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
                 key={group.key}
                 className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-black/[0.03]"
               >
-                <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-[#22334A]/[0.03] px-4 py-3">
+                <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-[#0C2A4B]/[0.03] px-4 py-3">
                   <div className="min-w-0">
-                    <h3 className="text-[13px] font-black text-[#22334A]">{groupLabel}</h3>
+                    <h3 className="text-[13px] font-black text-[#0C2A4B]">{groupLabel}</h3>
                     <p className="mt-0.5 font-mono text-[10px] text-slate-400">{group.key}</p>
                   </div>
                   {canEdit && (
                     <button
                       type="button"
                       onClick={() => toggleGroup(group, state !== 'all')}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:border-[#2691C2]/40"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-[#0077B6] transition hover:border-[#0077B6]/40"
                     >
                       {state === 'all' ?
                         <CheckSquare className="h-3.5 w-3.5" aria-hidden />
@@ -295,7 +295,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
                         <label
                           className={cn(
                             'flex cursor-pointer items-start gap-3 px-4 py-3 transition',
-                            checked ? 'bg-[#2691C2]/[0.04]' : 'hover:bg-slate-50/80',
+                            checked ? 'bg-[#0077B6]/[0.04]' : 'hover:bg-slate-50/80',
                             !canEdit && 'cursor-default',
                           )}
                         >
@@ -304,11 +304,11 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
                             checked={checked}
                             disabled={!canEdit}
                             onChange={() => togglePermission(perm.key)}
-                            className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-[#2691C2] focus:ring-[#2691C2]/40 disabled:opacity-60"
+                            className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-[#0077B6] focus:ring-[#0077B6]/40 disabled:opacity-60"
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-[13px] font-black text-[#22334A]">{label}</span>
+                              <span className="text-[13px] font-black text-[#0C2A4B]">{label}</span>
                               <code className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">
                                 {perm.key}
                               </code>
@@ -334,7 +334,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
             type="button"
             disabled={!dirty || saving}
             onClick={() => void saveChanges()}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#0C2A4B] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
             حفظ الصلاحيات
@@ -343,7 +343,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
             type="button"
             disabled={!dirty || saving}
             onClick={resetChanges}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-slate-600 transition hover:border-[#22334A]/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-slate-600 transition hover:border-[#0C2A4B]/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RotateCcw className="h-4 w-4" aria-hidden />
             تراجع

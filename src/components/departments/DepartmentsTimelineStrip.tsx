@@ -23,7 +23,7 @@ export default function DepartmentsTimelineStrip() {
             مسار التطور
           </span>
           <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">خط زمني للنضج المؤسسي</h2>
-          <span className="mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange to-customBlue" />
+          <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
           <p className="mt-5 text-base font-medium leading-8 text-white/75 sm:text-lg sm:leading-9">
             صورة تخطيطية لكيفية نضج المنظومة — دون تواريخ ثابتة في الواجهة حتى تتوفر بيانات رسمية من الإدارة.
           </p>
@@ -37,7 +37,7 @@ export default function DepartmentsTimelineStrip() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.12 }}
         >
-          <div className="pointer-events-none absolute right-[-6px] top-2 bottom-8 w-[3px] rounded-full bg-gradient-to-b from-customBlue/50 via-customOrange/40 to-customBlue/30 blur-[2px]" />
+          <div className="pointer-events-none absolute right-[-6px] top-2 bottom-8 w-[3px] rounded-full bg-gradient-to-b from-customBlue/50 via-customBlue/40 to-customBlue/30 blur-[2px]" />
           {milestones.map((m) => (
             <motion.div key={m.title} role="listitem" variants={staggerItem} className="relative pb-12 last:pb-2">
               <span className="absolute -right-[22px] top-1 flex h-5 w-5 items-center justify-center rounded-full border-4 border-deepBlue bg-customOrange shadow-[0_0_14px_rgba(247,148,29,0.65)]" />

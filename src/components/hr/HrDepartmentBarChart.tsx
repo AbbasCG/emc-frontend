@@ -35,11 +35,11 @@ export default function HrDepartmentBarChart({
           <BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 24 }}>
             <defs>
               <linearGradient id="hrBarGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2691C2" stopOpacity={0.9} />
-                <stop offset="100%" stopColor="#22334A" stopOpacity={0.65} />
+                <stop offset="0%" stopColor="#0077B6" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="#0C2A4B" stopOpacity={0.65} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 8" stroke="rgba(34,51,74,0.06)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 8" stroke="rgba(12, 42, 75,0.06)" vertical={false} />
             <XAxis
               dataKey="name"
               tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'Tajawal' }}
@@ -50,7 +50,7 @@ export default function HrDepartmentBarChart({
             <Tooltip
               contentStyle={{
                 borderRadius: 14,
-                border: '1px solid rgba(34,51,74,0.08)',
+                border: '1px solid rgba(12, 42, 75,0.08)',
                 fontFamily: 'Tajawal',
               }}
               formatter={(v) =>

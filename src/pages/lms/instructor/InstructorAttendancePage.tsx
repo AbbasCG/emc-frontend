@@ -69,8 +69,8 @@ function SelectField({
 }) {
   return (
     <label className="grid min-w-0 gap-1">
-      <span className="flex items-center gap-1.5 text-[10px] font-black text-[#22334A]/70">
-        <Icon className="h-3.5 w-3.5 text-[#2691C2]" />
+      <span className="flex items-center gap-1.5 text-[10px] font-black text-[#0C2A4B]/70">
+        <Icon className="h-3.5 w-3.5 text-[#0077B6]" />
         {label}
       </span>
       <select
@@ -78,7 +78,7 @@ function SelectField({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         dir="rtl"
-        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-50"
+        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-50"
       >
         {children}
       </select>
@@ -330,7 +330,7 @@ export default function InstructorAttendancePage() {
               type="button"
               disabled={sessionId === '' || saving || loadingRows || rows.length === 0}
               onClick={() => void save()}
-              className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-50"
+              className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#F28C00] px-5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-50"
             >
               {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {saving ? 'جارٍ الحفظ…' : 'حفظ الحضور'}
@@ -343,13 +343,13 @@ export default function InstructorAttendancePage() {
           <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
               {selectedSession.course_name && (
-                <span className="flex items-center gap-1 font-semibold text-[#2691C2]">
+                <span className="flex items-center gap-1 font-semibold text-[#0077B6]">
                   <BookOpen className="h-3 w-3" />
                   {selectedSession.course_name}
                 </span>
               )}
               {selectedSession.title && selectedSession.title !== selectedSession.course_name && (
-                <span className="font-black text-[#22334A]">{selectedSession.title}</span>
+                <span className="font-black text-[#0C2A4B]">{selectedSession.title}</span>
               )}
               {selectedSession.starts_at && (
                 <span className="text-slate-400">{fmtDate(selectedSession.starts_at)}</span>
@@ -361,11 +361,11 @@ export default function InstructorAttendancePage() {
         {/* Attendance stats bar */}
         {sessionId !== '' && rows.length > 0 && !loadingRows && (
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-            <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-[#22334A]/70">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-[#0C2A4B]/70">
               <Users className="h-3.5 w-3.5" />
               {fmt(rows.length)} طالب
             </span>
-            <span className="rounded-lg bg-[#2691C2]/10 px-2.5 py-1 text-[11px] font-semibold text-[#2691C2]">
+            <span className="rounded-lg bg-[#0077B6]/10 px-2.5 py-1 text-[11px] font-semibold text-[#0077B6]">
               {fmt(markedCount)} محدّد
             </span>
             {lockInfo.is_locked ? (
@@ -400,7 +400,7 @@ export default function InstructorAttendancePage() {
         courseId === '' && sessions.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
             <UserCheck className="mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-base font-black text-[#22334A]">لا توجد جلسات</p>
+            <p className="text-base font-black text-[#0C2A4B]">لا توجد جلسات</p>
             <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
               لم يتم إنشاء جلسات لدوراتك بعد
             </p>
@@ -408,7 +408,7 @@ export default function InstructorAttendancePage() {
         ) : courseId !== '' && filteredSessions.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
             <BookOpen className="mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-base font-black text-[#22334A]">لا توجد جلسات لهذه الدورة</p>
+            <p className="text-base font-black text-[#0C2A4B]">لا توجد جلسات لهذه الدورة</p>
             <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
               أنشئ جلسة للدورة أولاً
             </p>
@@ -416,7 +416,7 @@ export default function InstructorAttendancePage() {
         ) : (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
             <UserCheck className="mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-base font-black text-[#22334A]">اختر جلسة للبدء</p>
+            <p className="text-base font-black text-[#0C2A4B]">اختر جلسة للبدء</p>
             <p className="mx-auto mt-2 max-w-xs text-[13px] text-slate-400">
               يمكنك تصفية الجلسات حسب الدورة أولاً، ثم اختيار الجلسة
             </p>
@@ -431,7 +431,7 @@ export default function InstructorAttendancePage() {
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-14 text-center">
           <Users className="mb-3 h-10 w-10 text-slate-200" />
-          <p className="font-black text-[#22334A]">لا يوجد طلاب مسجّلون في هذه الدورة</p>
+          <p className="font-black text-[#0C2A4B]">لا يوجد طلاب مسجّلون في هذه الدورة</p>
         </div>
       ) : (
         <AttendanceTable
@@ -451,7 +451,7 @@ export default function InstructorAttendancePage() {
             type="button"
             disabled={saving}
             onClick={() => void save()}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#EC943C] py-3 text-[13px] font-black text-white disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F28C00] py-3 text-[13px] font-black text-white disabled:opacity-50"
           >
             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {hasUnsavedChanges ? 'حفظ التغييرات' : 'حفظ الحضور'}
@@ -468,7 +468,7 @@ export default function InstructorAttendancePage() {
               type="button"
               disabled={saving}
               onClick={() => void save()}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white disabled:opacity-50"
             >
               {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               حفظ الحضور

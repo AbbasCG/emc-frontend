@@ -127,7 +127,7 @@ export default function StudentMyCoursesPage() {
       <motion.section
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-deepBlue via-[#1f3046] to-customBlue px-6 py-7 shadow-[0_20px_50px_-20px_rgba(34,51,74,0.5)] sm:px-10"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-deepBlue via-[#1f3046] to-customBlue px-6 py-7 shadow-[0_20px_50px_-20px_rgba(12, 42, 75,0.5)] sm:px-10"
       >
         <div aria-hidden className="pointer-events-none absolute -left-20 top-0 h-48 w-48 rounded-full bg-customOrange/20 blur-[90px]" />
         <div aria-hidden className="pointer-events-none absolute -bottom-20 -right-12 h-52 w-52 rounded-full bg-white/10 blur-[80px]" />
@@ -345,9 +345,9 @@ export default function StudentMyCoursesPage() {
                 {hasPath && (
                   <div>
                     <div className="mb-4 flex items-center gap-2">
-                      <Route className="h-4 w-4 text-[#EC943C]" aria-hidden />
+                      <Route className="h-4 w-4 text-[#F28C00]" aria-hidden />
                       <h3 className="text-[13px] font-black text-deepBlue">دورات ضمن المسارات التعليمية</h3>
-                      <span className="rounded-full bg-[#EC943C]/10 px-2 py-0.5 text-[10px] font-black text-[#EC943C]">
+                      <span className="rounded-full bg-[#F28C00]/10 px-2 py-0.5 text-[10px] font-black text-[#F28C00]">
                         {pathEnrollments.length}
                       </span>
                       <Link

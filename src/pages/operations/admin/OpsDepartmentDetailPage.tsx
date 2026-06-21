@@ -73,8 +73,8 @@ function MetricCard({
   linkLabel?: string
 }) {
   const colorMap = {
-    blue: 'text-[#2691C2] bg-[#2691C2]/10 ring-[#2691C2]/20',
-    orange: 'text-[#EC943C] bg-[#EC943C]/10 ring-[#EC943C]/20',
+    blue: 'text-[#0077B6] bg-[#0077B6]/10 ring-[#0077B6]/20',
+    orange: 'text-[#F28C00] bg-[#F28C00]/10 ring-[#F28C00]/20',
     emerald: 'text-emerald-700 bg-emerald-50 ring-emerald-200',
     amber: 'text-amber-700 bg-amber-50 ring-amber-200',
     sky: 'text-sky-700 bg-sky-50 ring-sky-200',
@@ -86,13 +86,13 @@ function MetricCard({
         <span className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${colorMap[accent]}`}>
           <Icon className="h-5 w-5" aria-hidden />
         </span>
-        <p className="text-2xl font-black text-[#22334A] tabular-nums">{value}</p>
+        <p className="text-2xl font-black text-[#0C2A4B] tabular-nums">{value}</p>
       </div>
       <p className="text-[12px] font-black text-slate-500">{label}</p>
       {linkTo && linkLabel ? (
         <Link
           to={linkTo}
-          className="inline-flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline"
+          className="inline-flex items-center gap-1 text-[11px] font-black text-[#0077B6] hover:underline"
         >
           {linkLabel}
           <ChevronLeft className="h-3 w-3" aria-hidden />
@@ -108,10 +108,10 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-4">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#22334A]/[0.06] text-[#22334A]">
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#0C2A4B]/[0.06] text-[#0C2A4B]">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
-        <h2 className="font-black text-[#22334A]">{title}</h2>
+        <h2 className="font-black text-[#0C2A4B]">{title}</h2>
       </div>
       {children}
     </div>
@@ -175,7 +175,7 @@ export default function OpsDepartmentDetailPage() {
         <button
           type="button"
           onClick={() => void load()}
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#22334A] px-6 py-2.5 text-sm font-black text-white"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0C2A4B] px-6 py-2.5 text-sm font-black text-white"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           إعادة المحاولة
@@ -186,7 +186,7 @@ export default function OpsDepartmentDetailPage() {
 
   if (!dept) {
     return (
-      <div dir="rtl" className="rounded-2xl bg-white p-10 text-center font-black text-[#22334A] ring-1 ring-[#22334A]/[0.06]">
+      <div dir="rtl" className="rounded-2xl bg-white p-10 text-center font-black text-[#0C2A4B] ring-1 ring-[#0C2A4B]/[0.06]">
         لم يتم العثور على الإدارة.
       </div>
     )
@@ -200,7 +200,7 @@ export default function OpsDepartmentDetailPage() {
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1 text-[12px] font-black text-[#2691C2] transition hover:text-[#22334A]"
+        className="inline-flex items-center gap-1 text-[12px] font-black text-[#0077B6] transition hover:text-[#0C2A4B]"
       >
         <ChevronLeft className="h-4 w-4 rotate-180" aria-hidden />
         الإدارات
@@ -210,9 +210,9 @@ export default function OpsDepartmentDetailPage() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] to-[#1a2840] px-8 py-8 shadow-xl"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] to-[#1a2840] px-8 py-8 shadow-xl"
       >
-        <div className="pointer-events-none absolute -end-20 -top-20 h-60 w-60 rounded-full bg-[#2691C2]/20 blur-[70px]" aria-hidden />
+        <div className="pointer-events-none absolute -end-20 -top-20 h-60 w-60 rounded-full bg-[#0077B6]/20 blur-[70px]" aria-hidden />
         <div className="relative flex flex-wrap items-start justify-between gap-5">
           <div className="flex items-start gap-4">
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/10 text-2xl font-black text-white ring-2 ring-white/20">
@@ -301,7 +301,7 @@ export default function OpsDepartmentDetailPage() {
               {dept.leader_name.charAt(0)}
             </span>
             <div>
-              <p className="font-black text-[#22334A]">{dept.leader_name}</p>
+              <p className="font-black text-[#0C2A4B]">{dept.leader_name}</p>
               <p className="text-[11px] text-slate-500">قائد الإدارة</p>
             </div>
           </div>
@@ -315,12 +315,12 @@ export default function OpsDepartmentDetailPage() {
         {dept.members_count > 0 ? (
           <div className="space-y-3">
             <p className="text-[13px] font-semibold text-slate-600">
-              يضم هذا القسم <span className="font-black text-[#22334A]">{dept.members_count}</span> عضو، منهم{' '}
-              <span className="font-black text-[#22334A]">{dept.leaders_count}</span> قائد.
+              يضم هذا القسم <span className="font-black text-[#0C2A4B]">{dept.members_count}</span> عضو، منهم{' '}
+              <span className="font-black text-[#0C2A4B]">{dept.leaders_count}</span> قائد.
             </p>
             <Link
               to={`/dashboard/super-admin/crud/team?department=${dept.id}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0C2A4B] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
             >
               <Users className="h-4 w-4" aria-hidden />
               عرض أعضاء الإدارة
@@ -336,11 +336,11 @@ export default function OpsDepartmentDetailPage() {
         {dept.volunteer_requests_count > 0 ? (
           <div className="space-y-3">
             <p className="text-[13px] font-semibold text-slate-600">
-              يوجد <span className="font-black text-[#22334A]">{dept.volunteer_requests_count}</span> طلب تطوع مرتبط بهذه الإدارة.
+              يوجد <span className="font-black text-[#0C2A4B]">{dept.volunteer_requests_count}</span> طلب تطوع مرتبط بهذه الإدارة.
             </p>
             <Link
               to={`/dashboard/super-admin/volunteer-requests?department=${encodeURIComponent(dept.name_ar)}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#F28C00] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
             >
               <HeartHandshake className="h-4 w-4" aria-hidden />
               عرض الطلبات
@@ -356,11 +356,11 @@ export default function OpsDepartmentDetailPage() {
         {dept.courses_count > 0 ? (
           <div className="space-y-3">
             <p className="text-[13px] font-semibold text-slate-600">
-              يوجد <span className="font-black text-[#22334A]">{dept.courses_count}</span> برنامج أو دورة مرتبطة بهذه الإدارة.
+              يوجد <span className="font-black text-[#0C2A4B]">{dept.courses_count}</span> برنامج أو دورة مرتبطة بهذه الإدارة.
             </p>
             <Link
               to={`/dashboard/super-admin/crud/programs?department=${dept.id}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0077B6] px-4 py-2.5 text-[12px] font-black text-white shadow transition hover:opacity-90"
             >
               <BookOpen className="h-4 w-4" aria-hidden />
               عرض البرامج

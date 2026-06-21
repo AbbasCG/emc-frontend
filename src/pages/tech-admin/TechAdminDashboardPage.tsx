@@ -228,7 +228,7 @@ export default function TechAdminDashboardPage() {
     <div dir="rtl" className="space-y-7 text-right">
 
       {/* ── Hero ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-[#0F2744] to-[#1A3A5C] p-6 shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-[#0F2744] to-[#0E5A8A] p-6 shadow-lg">
         <div aria-hidden className="pointer-events-none absolute -top-10 -left-10 h-48 w-48 rounded-full bg-customBlue/20 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-32 w-32 rounded-full bg-customOrange/10 blur-2xl" />
         <div className="relative">

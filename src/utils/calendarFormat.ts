@@ -127,23 +127,23 @@ export function translateEventStatus(status: string): string {
 }
 
 export const TYPE_COLORS: Record<string, string> = {
-  session: 'bg-[#2691C2]/10 text-[#2691C2] ring-[#2691C2]/25',
+  session: 'bg-[#0077B6]/10 text-[#0077B6] ring-[#0077B6]/25',
   workshop: 'bg-purple-50 text-purple-700 ring-purple-200',
   meeting: 'bg-amber-50 text-amber-700 ring-amber-200',
   task: 'bg-red-50 text-red-700 ring-red-200',
   course: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  program: 'bg-[#22334A]/10 text-[#22334A] ring-[#22334A]/20',
+  program: 'bg-[#0C2A4B]/10 text-[#0C2A4B] ring-[#0C2A4B]/20',
   learning_path: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
   event: 'bg-slate-100 text-slate-600 ring-slate-200',
 }
 
 export const TYPE_ACCENT: Record<string, string> = {
-  session: 'border-s-[#2691C2]',
+  session: 'border-s-[#0077B6]',
   workshop: 'border-s-purple-500',
   meeting: 'border-s-amber-500',
   task: 'border-s-red-500',
   course: 'border-s-emerald-500',
-  program: 'border-s-[#22334A]',
+  program: 'border-s-[#0C2A4B]',
   learning_path: 'border-s-indigo-500',
   event: 'border-s-slate-400',
 }

@@ -49,8 +49,8 @@ function Section({
 }) {
   return (
     <section className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-      <h4 className="mb-3 flex items-center gap-2 text-[12px] font-black text-[#22334A]">
-        <Icon className="h-4 w-4 text-[#2691C2]" />
+      <h4 className="mb-3 flex items-center gap-2 text-[12px] font-black text-[#0C2A4B]">
+        <Icon className="h-4 w-4 text-[#0077B6]" />
         {title}
       </h4>
       {children}
@@ -62,7 +62,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-slate-100 py-2 last:border-0">
       <span className="shrink-0 text-[11px] font-bold text-slate-400">{label}</span>
-      <span className="text-left text-[12px] font-black text-[#22334A]">{value}</span>
+      <span className="text-left text-[12px] font-black text-[#0C2A4B]">{value}</span>
     </div>
   )
 }
@@ -205,7 +205,7 @@ export default function SubmissionReviewPanel({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="shrink-0 border-b border-slate-100 bg-gradient-to-bl from-[#22334A] to-[#2691C2] px-5 py-4">
+            <div className="shrink-0 border-b border-slate-100 bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50">
@@ -232,7 +232,7 @@ export default function SubmissionReviewPanel({
             {/* Body */}
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
               {loading ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-16 text-[#2691C2]">
+                <div className="flex flex-col items-center justify-center gap-3 py-16 text-[#0077B6]">
                   <Loader2 className="h-8 w-8 animate-spin" />
                   <p className="text-[12px] font-bold text-slate-500">جارٍ تحميل التفاصيل...</p>
                 </div>
@@ -247,12 +247,12 @@ export default function SubmissionReviewPanel({
                           className="h-11 w-11 rounded-full object-cover ring-2 ring-white"
                         />
                       ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2691C2]/15 text-[13px] font-black text-[#2691C2]">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0077B6]/15 text-[13px] font-black text-[#0077B6]">
                           {initials(submission.student_name)}
                         </div>
                       )}
                       <div>
-                        <p className="text-[13px] font-black text-[#22334A]">
+                        <p className="text-[13px] font-black text-[#0C2A4B]">
                           {submission.student_name}
                         </p>
                         <p className="text-[11px] font-semibold text-slate-500">
@@ -292,7 +292,7 @@ export default function SubmissionReviewPanel({
                   </Section>
 
                   <Section title="إجابة الطالب" icon={FileText}>
-                    <p className="whitespace-pre-wrap rounded-xl bg-white p-3 text-[12px] font-medium leading-relaxed text-[#22334A]/85 ring-1 ring-slate-100">
+                    <p className="whitespace-pre-wrap rounded-xl bg-white p-3 text-[12px] font-medium leading-relaxed text-[#0C2A4B]/85 ring-1 ring-slate-100">
                       {displayText(submission.body_text ?? submission.body_preview)}
                     </p>
                   </Section>
@@ -304,7 +304,7 @@ export default function SubmissionReviewPanel({
                           type="button"
                           disabled={fileLoading !== null}
                           onClick={() => fetchSubmissionFile(submission.id, false)}
-                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#2691C2] ring-1 ring-[#2691C2]/20 transition hover:bg-[#2691C2]/5 disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#0077B6] ring-1 ring-[#0077B6]/20 transition hover:bg-[#0077B6]/5 disabled:opacity-60"
                         >
                           {fileLoading === 'preview' ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -317,7 +317,7 @@ export default function SubmissionReviewPanel({
                           type="button"
                           disabled={fileLoading !== null}
                           onClick={() => fetchSubmissionFile(submission.id, true)}
-                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#22334A] ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-black text-[#0C2A4B] ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:opacity-60"
                         >
                           {fileLoading === 'download' ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -335,7 +335,7 @@ export default function SubmissionReviewPanel({
                   <Section title="التقييم" icon={Star}>
                     <div className="space-y-3">
                       <label className="grid gap-1.5">
-                        <span className="text-[11px] font-black text-[#22334A]">
+                        <span className="text-[11px] font-black text-[#0C2A4B]">
                           الدرجة {maxScore != null ? `(من ${maxScore})` : ''}
                         </span>
                         <input
@@ -344,28 +344,28 @@ export default function SubmissionReviewPanel({
                           max={maxScore ?? undefined}
                           value={score}
                           onChange={(e) => setScore(e.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-right text-[13px] font-black text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+                          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-right text-[13px] font-black text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-2 focus:ring-[#0077B6]/15"
                           placeholder="0"
                         />
                       </label>
 
                       <label className="grid gap-1.5">
-                        <span className="text-[11px] font-black text-[#22334A]">ملاحظات المدرب</span>
+                        <span className="text-[11px] font-black text-[#0C2A4B]">ملاحظات المدرب</span>
                         <textarea
                           value={feedback}
                           onChange={(e) => setFeedback(e.target.value)}
                           rows={4}
-                          className="resize-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-right text-[12px] font-semibold text-[#22334A] outline-none focus:border-[#2691C2] focus:ring-2 focus:ring-[#2691C2]/15"
+                          className="resize-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-right text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-2 focus:ring-[#0077B6]/15"
                           placeholder="اكتب ملاحظاتك للطالب..."
                         />
                       </label>
 
                       <label className="grid gap-1.5">
-                        <span className="text-[11px] font-black text-[#22334A]">حالة المراجعة</span>
+                        <span className="text-[11px] font-black text-[#0C2A4B]">حالة المراجعة</span>
                         <select
                           value={status}
                           onChange={(e) => setStatus(e.target.value as ReviewPayload['status'])}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#22334A] outline-none focus:border-[#2691C2]"
+                          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-black text-[#0C2A4B] outline-none focus:border-[#0077B6]"
                         >
                           <option value="reviewed">تمت المراجعة ✓</option>
                           <option value="needs_revision">طلب إعادة التسليم ↩</option>
@@ -400,7 +400,7 @@ export default function SubmissionReviewPanel({
                         ?.querySelector('form')
                       form?.requestSubmit()
                     }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow-md transition hover:brightness-105 disabled:opacity-60"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#F28C00] px-4 py-2.5 text-[12px] font-black text-white shadow-md transition hover:brightness-105 disabled:opacity-60"
                   >
                     {busy ? (
                       <>

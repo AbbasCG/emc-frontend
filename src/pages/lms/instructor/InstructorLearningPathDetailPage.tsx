@@ -133,12 +133,12 @@ export default function InstructorLearningPathDetailPage() {
     return (
       <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-10 text-center shadow-sm" dir="rtl">
         <AlertTriangle className="mx-auto h-10 w-10 text-rose-500" />
-        <h1 className="mt-4 text-xl font-black text-[#22334A]">
+        <h1 className="mt-4 text-xl font-black text-[#0C2A4B]">
           {accessMessage ?? 'لا تملك صلاحية عرض هذا المسار.'}
         </h1>
         <Link
           to="/dashboard/instructor/learning-paths"
-          className="mt-6 inline-block rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white"
+          className="mt-6 inline-block rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-[12px] font-black text-white"
         >
           العودة إلى مساراتي
         </Link>
@@ -205,8 +205,8 @@ export default function InstructorLearningPathDetailPage() {
                 onClick={() => setTab(tid)}
                 className={`relative inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] font-black transition-all ${
                   isActive
-                    ? 'bg-[#22334A] text-white shadow-md'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-[#22334A]'
+                    ? 'bg-[#0C2A4B] text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-[#0C2A4B]'
                 }`}
               >
                 {label}
@@ -236,9 +236,9 @@ export default function InstructorLearningPathDetailPage() {
           {/* ── الدورات ─────────────────────────────────────────────────── */}
           {tab === 'courses' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-black text-[#22334A]">
+              <h2 className="text-lg font-black text-[#0C2A4B]">
                 الدورات ضمن المسار
-                <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
+                <span className="mr-2 text-[13px] font-semibold text-[#0C2A4B]/50">
                   ({fmt(path.courses?.length ?? 0)} دورة · للعرض فقط)
                 </span>
               </h2>
@@ -246,7 +246,7 @@ export default function InstructorLearningPathDetailPage() {
               {(path.courses?.length ?? 0) === 0 ? (
                 <div className="rounded-3xl border border-slate-200 bg-white py-12 text-center">
                   <GraduationCap className="mx-auto mb-3 h-10 w-10 text-slate-200" />
-                  <p className="font-black text-[#22334A]">لا توجد دورات مرتبطة بهذا المسار</p>
+                  <p className="font-black text-[#0C2A4B]">لا توجد دورات مرتبطة بهذا المسار</p>
                   <p className="mt-1 text-[12px] text-slate-400">يتم إدارة منهج المسار من قبل الإدارة</p>
                 </div>
               ) : (
@@ -257,7 +257,7 @@ export default function InstructorLearningPathDetailPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="flex gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-[#22334A]/[0.03]"
+                      className="flex gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-[#0C2A4B]/[0.03]"
                     >
                       {/* Thumbnail */}
                       {course.image_url ? (
@@ -267,26 +267,26 @@ export default function InstructorLearningPathDetailPage() {
                           className="h-16 w-20 shrink-0 rounded-2xl object-cover"
                         />
                       ) : (
-                        <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#22334A]/10 to-[#2691C2]/10">
-                          <BookOpen className="h-5 w-5 text-[#2691C2]/50" />
+                        <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0C2A4B]/10 to-[#0077B6]/10">
+                          <BookOpen className="h-5 w-5 text-[#0077B6]/50" />
                         </div>
                       )}
 
                       {/* Info */}
                       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <p className="line-clamp-2 font-black leading-snug text-[#22334A]">{course.title}</p>
+                        <p className="line-clamp-2 font-black leading-snug text-[#0C2A4B]">{course.title}</p>
 
                         {/* Per-course stats */}
                         <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                           {course.sessions_count !== undefined && (
                             <span className="inline-flex items-center gap-1">
-                              <Calendar className="h-3 w-3 text-[#2691C2]" />
+                              <Calendar className="h-3 w-3 text-[#0077B6]" />
                               {fmt(course.sessions_count)} جلسة
                             </span>
                           )}
                           {course.materials_count !== undefined && (
                             <span className="inline-flex items-center gap-1">
-                              <FolderOpen className="h-3 w-3 text-[#EC943C]" />
+                              <FolderOpen className="h-3 w-3 text-[#F28C00]" />
                               {fmt(course.materials_count)} مادة
                             </span>
                           )}
@@ -301,7 +301,7 @@ export default function InstructorLearningPathDetailPage() {
                         {/* CTA */}
                         <Link
                           to={`/dashboard/instructor/courses/${course.id}/content`}
-                          className="mt-auto inline-flex items-center gap-1.5 self-start rounded-xl bg-[#22334A] px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-[#2691C2]"
+                          className="mt-auto inline-flex items-center gap-1.5 self-start rounded-xl bg-[#0C2A4B] px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-[#0077B6]"
                         >
                           <ExternalLink className="h-3 w-3" />
                           إدارة محتوى الدورة
@@ -317,9 +317,9 @@ export default function InstructorLearningPathDetailPage() {
           {/* ── الطلاب ──────────────────────────────────────────────────── */}
           {tab === 'students' && (
             <div className="space-y-4">
-              <h2 className="text-lg font-black text-[#22334A]">
+              <h2 className="text-lg font-black text-[#0C2A4B]">
                 الطلاب المسجّلون
-                <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
+                <span className="mr-2 text-[13px] font-semibold text-[#0C2A4B]/50">
                   ({fmt(students.length)})
                 </span>
               </h2>
@@ -327,7 +327,7 @@ export default function InstructorLearningPathDetailPage() {
               {students.length === 0 ? (
                 <div className="rounded-3xl border border-slate-200 bg-white py-14 text-center">
                   <Users className="mx-auto mb-3 h-10 w-10 text-slate-200" />
-                  <p className="font-black text-[#22334A]">لا طلاب مسجّلين بعد</p>
+                  <p className="font-black text-[#0C2A4B]">لا طلاب مسجّلين بعد</p>
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -346,10 +346,10 @@ export default function InstructorLearningPathDetailPage() {
                         <tr key={s.enrollment_id} className="hover:bg-slate-50/70">
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2.5">
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#22334A]/10 text-[12px] font-black text-[#22334A]">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0C2A4B]/10 text-[12px] font-black text-[#0C2A4B]">
                                 {(s.name ?? '?').charAt(0).toUpperCase()}
                               </div>
-                              <span className="font-semibold text-[#22334A]">{s.name ?? '—'}</span>
+                              <span className="font-semibold text-[#0C2A4B]">{s.name ?? '—'}</span>
                             </div>
                           </td>
                           <td className="hidden px-4 py-3 text-[12px] text-slate-500 sm:table-cell">
@@ -361,7 +361,7 @@ export default function InstructorLearningPathDetailPage() {
                                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                                 : s.status === 'dropped'
                                   ? 'border-rose-200 bg-rose-50 text-rose-700'
-                                  : 'border-[#2691C2]/20 bg-[#2691C2]/10 text-[#2691C2]'
+                                  : 'border-[#0077B6]/20 bg-[#0077B6]/10 text-[#0077B6]'
                             }`}>
                               {s.status === 'completed' ? 'مكتمل' : s.status === 'dropped' ? 'انسحب' : 'جاري'}
                             </span>
@@ -385,15 +385,15 @@ export default function InstructorLearningPathDetailPage() {
           {tab === 'sessions' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-black text-[#22334A]">
+                <h2 className="text-lg font-black text-[#0C2A4B]">
                   جلسات دورات المسار
-                  <span className="mr-2 text-[13px] font-semibold text-[#22334A]/50">
+                  <span className="mr-2 text-[13px] font-semibold text-[#0C2A4B]/50">
                     ({fmt(sessions.length)})
                   </span>
                 </h2>
                 <Link
                   to="/dashboard/instructor/sessions"
-                  className="text-[12px] font-black text-[#2691C2] hover:underline"
+                  className="text-[12px] font-black text-[#0077B6] hover:underline"
                 >
                   عرض كل جلساتي
                 </Link>
@@ -402,7 +402,7 @@ export default function InstructorLearningPathDetailPage() {
               {sessions.length === 0 ? (
                 <div className="rounded-3xl border border-slate-200 bg-white py-14 text-center">
                   <Calendar className="mx-auto mb-3 h-10 w-10 text-slate-200" />
-                  <p className="font-black text-[#22334A]">لا جلسات مرتبطة بدورات هذا المسار</p>
+                  <p className="font-black text-[#0C2A4B]">لا جلسات مرتبطة بدورات هذا المسار</p>
                   <p className="mt-1 text-[12px] text-slate-400">
                     أضف جلسات عبر صفحة محتوى كل دورة
                   </p>
@@ -419,13 +419,13 @@ export default function InstructorLearningPathDetailPage() {
                         transition={{ delay: i * 0.04 }}
                         className="flex flex-wrap items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#22334A]/8 text-[#22334A]">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#0C2A4B]/8 text-[#0C2A4B]">
                           <Calendar className="h-5 w-5" />
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-black text-[#22334A]">
+                            <p className="font-black text-[#0C2A4B]">
                               {s.title ?? `جلسة #${fmt(s.id)}`}
                             </p>
                             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${st.cls}`}>
@@ -434,7 +434,7 @@ export default function InstructorLearningPathDetailPage() {
                           </div>
 
                           {s.course_title && (
-                            <p className="text-[12px] font-semibold text-[#2691C2]">
+                            <p className="text-[12px] font-semibold text-[#0077B6]">
                               <BookOpen className="mb-0.5 ml-1 inline h-3 w-3" />
                               {s.course_title}
                             </p>
@@ -456,7 +456,7 @@ export default function InstructorLearningPathDetailPage() {
                               href={s.meeting_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-[#2691C2]"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-[#0077B6]"
                             >
                               <Video className="h-3.5 w-3.5" />
                               رابط الجلسة
@@ -465,7 +465,7 @@ export default function InstructorLearningPathDetailPage() {
                           {s.course_id && (
                             <Link
                               to={`/dashboard/instructor/courses/${s.course_id}/content`}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-[#22334A] transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/40 hover:text-[#0077B6]"
                             >
                               <ExternalLink className="h-3 w-3" />
                               إدارة الدورة
@@ -484,20 +484,20 @@ export default function InstructorLearningPathDetailPage() {
       </AnimatePresence>
 
       {/* ── Assignments quick-link (always visible at bottom) ────────────── */}
-      <div className="rounded-2xl border border-[#EC943C]/15 bg-orange-50/50 p-4">
+      <div className="rounded-2xl border border-[#F28C00]/15 bg-orange-50/50 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <ClipboardList className="h-5 w-5 text-[#EC943C]" />
+            <ClipboardList className="h-5 w-5 text-[#F28C00]" />
             <div>
-              <p className="font-black text-[#22334A]">الواجبات والتسليمات</p>
-              <p className="text-[12px] font-semibold text-[#22334A]/55">
+              <p className="font-black text-[#0C2A4B]">الواجبات والتسليمات</p>
+              <p className="text-[12px] font-semibold text-[#0C2A4B]/55">
                 راجع تسليمات الطلاب في دورات هذا المسار
               </p>
             </div>
           </div>
           <Link
             to="/dashboard/instructor/submissions"
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#EC943C] px-4 py-2 text-[12px] font-black text-white shadow-sm transition hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-4 py-2 text-[12px] font-black text-white shadow-sm transition hover:opacity-90"
           >
             <ClipboardList className="h-4 w-4" />
             التسليمات

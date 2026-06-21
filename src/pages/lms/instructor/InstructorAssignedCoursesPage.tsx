@@ -139,10 +139,10 @@ export default function InstructorAssignedCoursesPage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#22334A] via-[#1a2d44] to-[#2691C2] shadow-[0_24px_60px_-20px_rgba(34,51,74,0.55)]"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1a2d44] to-[#0077B6] shadow-[0_24px_60px_-20px_rgba(12, 42, 75,0.55)]"
       >
-        <div aria-hidden className="pointer-events-none absolute -left-20 -top-12 h-72 w-72 rounded-full bg-[#EC943C]/15 blur-[100px]" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-20 h-56 w-56 rounded-full bg-[#2691C2]/25 blur-[80px]" />
+        <div aria-hidden className="pointer-events-none absolute -left-20 -top-12 h-72 w-72 rounded-full bg-[#F28C00]/15 blur-[100px]" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-20 h-56 w-56 rounded-full bg-[#0077B6]/25 blur-[80px]" />
 
         <div className="relative px-6 pb-6 pt-7 sm:px-10">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -210,7 +210,7 @@ export default function InstructorAssignedCoursesPage() {
             >
               <Link
                 to={href}
-                className="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2 py-3.5 text-center text-[10px] font-black text-deepBlue/65 shadow-sm transition hover:border-[#2691C2]/30 hover:bg-[#2691C2]/[0.04] hover:text-[#2691C2]"
+                className="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2 py-3.5 text-center text-[10px] font-black text-deepBlue/65 shadow-sm transition hover:border-[#0077B6]/30 hover:bg-[#0077B6]/[0.04] hover:text-[#0077B6]"
               >
                 <Icon className="h-5 w-5" />
                 <span className="leading-tight">{label}</span>
@@ -231,7 +231,7 @@ export default function InstructorAssignedCoursesPage() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="ابحث بعنوان الدورة..."
               dir="rtl"
-              className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-9 pl-3 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+              className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-9 pl-3 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
             />
           </div>
 
@@ -246,7 +246,7 @@ export default function InstructorAssignedCoursesPage() {
                   onClick={() => setTab(key)}
                   className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-black transition ${
                     tab === key
-                      ? 'bg-[#2691C2] text-white shadow-sm'
+                      ? 'bg-[#0077B6] text-white shadow-sm'
                       : 'bg-white border border-slate-200 text-deepBlue/60 hover:bg-slate-50'
                   }`}
                 >
@@ -275,7 +275,7 @@ export default function InstructorAssignedCoursesPage() {
           <button
             type="button"
             onClick={() => void load()}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             إعادة المحاولة
@@ -363,7 +363,7 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       label: 'الطلاب',
       icon:  Users,
       href:  `/dashboard/instructor/courses/${c.id}/students`,
-      cls:   'border-[#2691C2]/20 bg-[#2691C2]/[0.05] text-[#2691C2] hover:bg-[#2691C2]/[0.12]',
+      cls:   'border-[#0077B6]/20 bg-[#0077B6]/[0.05] text-[#0077B6] hover:bg-[#0077B6]/[0.12]',
     },
     {
       label: 'الحضور',
@@ -375,7 +375,7 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       label: 'التسليمات',
       icon:  ClipboardList,
       href:  `/dashboard/instructor/submissions?course_id=${c.id}`,
-      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
+      cls:   'border-[#F28C00]/20 bg-[#F28C00]/[0.05] text-[#F28C00] hover:bg-[#F28C00]/[0.12]',
     },
     {
       label: 'المحتوى',
@@ -398,7 +398,7 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
     >
       {/* Banner */}
       {(c.thumbnail ?? (c as Record<string, unknown>).image) ? (
@@ -416,8 +416,8 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
           )}
         </div>
       ) : (
-        <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2]">
-          <div aria-hidden className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-[#EC943C]/20 blur-2xl" />
+        <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-bl from-[#0C2A4B]/90 to-[#0077B6]">
+          <div aria-hidden className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-[#F28C00]/20 blur-2xl" />
           <BookMarked className="relative h-7 w-7 text-white/20" />
           {c.status && (
             <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-0.5 text-[9px] font-black ${STATUS_COLOR[statusKey] ?? 'bg-white/15 text-white'}`}>
@@ -439,9 +439,9 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
 
         {/* Stat pills */}
         <div className="mt-3 flex flex-wrap gap-1.5">
-          <StatPill value={enrolled} label="طالب" color="text-[#2691C2] bg-sky-50" />
+          <StatPill value={enrolled} label="طالب" color="text-[#0077B6] bg-sky-50" />
           {needsPlacement && written != null && (
-            <StatPill value={written} label="اختبار مكتمل" color="text-[#EC943C] bg-orange-50" />
+            <StatPill value={written} label="اختبار مكتمل" color="text-[#F28C00] bg-orange-50" />
           )}
           {needsPlacement && oralPend != null && oralPend > 0 && (
             <StatPill value={oralPend} label="ينتظر مقابلة" color="text-amber-600 bg-amber-50" />

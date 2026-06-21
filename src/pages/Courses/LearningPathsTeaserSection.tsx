@@ -10,7 +10,7 @@ import {
   formatPathPrice,
 } from '@/pages/LearningPaths/learningPathDisplay'
 
-const PLACEHOLDER = 'bg-gradient-to-br from-[#22334A] to-[#2691C2]'
+const PLACEHOLDER = 'bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]'
 const MAX_PATHS = 3
 
 type Props = {
@@ -31,7 +31,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
   return (
     <Link
       to={`/learning-paths/${path.slug}`}
-      className="group grid overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md transition hover:border-[#2691C2]/35 hover:shadow-lg sm:grid-cols-[140px_1fr_auto]"
+      className="group grid overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md transition hover:border-[#0077B6]/35 hover:shadow-lg sm:grid-cols-[140px_1fr_auto]"
     >
       <div className="relative min-h-[120px] overflow-hidden sm:min-h-full">
         {cover ?

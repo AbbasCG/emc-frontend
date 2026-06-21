@@ -199,7 +199,7 @@ export default function InstructorPlacementStudentsPage() {
   /* ── Stats ─────────────────────────────────────────────────────────────── */
 
   const stats = [
-    { label: 'إجمالي الطلاب',   count: students.length,                                                 color: '#2691C2' },
+    { label: 'إجمالي الطلاب',   count: students.length,                                                 color: '#0077B6' },
     { label: 'اكتمل الاختبار',  count: students.filter((s) => s.status === 'written_submitted').length, color: '#f59e0b' },
     { label: 'المقابلة محجوزة', count: students.filter((s) => s.status === 'oral_booked').length,       color: '#7c3aed' },
     { label: 'مستوى معتمد',     count: students.filter((s) => s.status === 'completed').length,         color: '#10b981' },
@@ -330,8 +330,8 @@ export default function InstructorPlacementStudentsPage() {
               className="relative my-4 w-full max-w-lg rounded-3xl bg-white shadow-[0_32px_80px_-20px_rgba(15,23,42,0.4)]"
             >
               {/* Modal header */}
-              <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-l from-[#22334A] to-[#1a2d44] px-6 py-5 text-white">
-                <div className="pointer-events-none absolute -left-4 top-0 h-20 w-20 rounded-full bg-[#EC943C]/20 blur-[40px]" />
+              <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-l from-[#0C2A4B] to-[#1a2d44] px-6 py-5 text-white">
+                <div className="pointer-events-none absolute -left-4 top-0 h-20 w-20 rounded-full bg-[#F28C00]/20 blur-[40px]" />
                 <div className="relative flex items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function InstructorPlacementStudentsPage() {
                       <span className="mr-1 font-normal text-deepBlue/35">(اختياري — الحقول الفارغة تُحسب صفراً)</span>
                     </p>
                     {totalOralScore != null && (
-                      <span className="font-mono text-[11px] font-black tabular-nums text-[#2691C2]">
+                      <span className="font-mono text-[11px] font-black tabular-nums text-[#0077B6]">
                         المجموع: {totalOralScore}/100
                       </span>
                     )}
@@ -412,7 +412,7 @@ export default function InstructorPlacementStudentsPage() {
                           onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                           dir="ltr"
                           placeholder="—"
-                          className="mt-1 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-2 focus:ring-sky-100"
+                          className="mt-1 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-2 focus:ring-sky-100"
                         />
                       </label>
                     ))}
@@ -428,7 +428,7 @@ export default function InstructorPlacementStudentsPage() {
                     value={form.final_level}
                     onChange={(e) => setForm((f) => ({ ...f, final_level: e.target.value }))}
                     dir="rtl"
-                    className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 pl-8 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                    className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 pl-8 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
                   >
                     <option value="">اختر المستوى النهائي</option>
                     {PLACEMENT_LEVELS.map((lvl) => {
@@ -453,7 +453,7 @@ export default function InstructorPlacementStudentsPage() {
                     onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                     placeholder="ملاحظات حول أداء الطالب في المقابلة..."
                     dir="rtl"
-                    className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
                   />
                 </div>
 
@@ -462,7 +462,7 @@ export default function InstructorPlacementStudentsPage() {
                     type="button"
                     onClick={() => void handleSave()}
                     disabled={!form.final_level || saving || !modalRow.booking_id}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0077B6] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
                   >
                     <CheckCircle className="h-4 w-4" />
                     {saving ? 'جاري الحفظ...' : 'اعتماد المستوى'}

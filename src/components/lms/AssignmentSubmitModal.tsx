@@ -89,7 +89,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#22334A]/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0C2A4B]/50 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="assignment-submit-title"
@@ -109,14 +109,14 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 16, opacity: 0, scale: 0.98 }}
             onClick={(ev) => ev.stopPropagation()}
-            className="relative z-[1] flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_24px_64px_-16px_rgba(34,51,74,0.35)]"
+            className="relative z-[1] flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_24px_64px_-16px_rgba(12, 42, 75,0.35)]"
           >
-            <div className="border-b border-slate-100 bg-gradient-to-l from-[#22334A] to-[#1a2940] px-5 py-4 text-white">
+            <div className="border-b border-slate-100 bg-gradient-to-l from-[#0C2A4B] to-[#1a2940] px-5 py-4 text-white">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 text-right">
-                  <p className="text-[10px] font-black tracking-[0.14em] text-[#2691C2]">{isResubmission ? 'إعادة تسليم الواجب' : 'تسليم الواجب'}</p>
+                  <p className="text-[10px] font-black tracking-[0.14em] text-[#0077B6]">{isResubmission ? 'إعادة تسليم الواجب' : 'تسليم الواجب'}</p>
                   <h2 id="assignment-submit-title" className="mt-0.5 flex items-start justify-start gap-2 text-lg font-black leading-snug">
-                    <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-[#EC943C]" aria-hidden />
+                    <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-[#F28C00]" aria-hidden />
                     {assignment.title}
                   </h2>
                   {assignment.course_name ?
@@ -136,12 +136,12 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
               <div className="mt-3 flex flex-wrap justify-start gap-2">
                 {dueLabel ?
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/90">
-                    <Calendar className="h-3.5 w-3.5 text-[#EC943C]" aria-hidden />
+                    <Calendar className="h-3.5 w-3.5 text-[#F28C00]" aria-hidden />
                     الموعد: {dueLabel}
                   </span>
                 : null}
                 {assignment.max_score != null ?
-                  <span className="rounded-full bg-[#2691C2]/20 px-2.5 py-1 text-[11px] font-black text-[#2691C2]">
+                  <span className="rounded-full bg-[#0077B6]/20 px-2.5 py-1 text-[11px] font-black text-[#0077B6]">
                     الدرجة القصوى: {assignment.max_score}
                   </span>
                 : null}
@@ -167,26 +167,26 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                 : null}
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-black text-[#22334A]">إجابة نصية</span>
+                  <span className="text-xs font-black text-[#0C2A4B]">إجابة نصية</span>
                   <textarea
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     rows={5}
                     disabled={submitting}
                     placeholder="اكتب إجابتك هنا…"
-                    className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
+                    className="resize-none rounded-2xl border border-[#0C2A4B]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/50 focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-60"
                   />
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-black text-[#22334A]">ملاحظات (اختياري)</span>
+                  <span className="text-xs font-black text-[#0C2A4B]">ملاحظات (اختياري)</span>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={2}
                     disabled={submitting}
                     placeholder="ملاحظة للمدرب…"
-                    className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
+                    className="resize-none rounded-2xl border border-[#0C2A4B]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#0C2A4B] outline-none transition focus:border-[#0077B6]/50 focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-60"
                   />
                 </label>
 
@@ -205,14 +205,14 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
                   type="button"
                   disabled={submitting}
                   onClick={onClose}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#0C2A4B] transition hover:bg-slate-50 disabled:opacity-50"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
+                  className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
                 >
                   {submitting ?
                     <>

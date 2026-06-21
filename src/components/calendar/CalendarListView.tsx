@@ -24,7 +24,7 @@ export default function CalendarListView({
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
           <CalendarClock size={28} className="text-slate-300" />
         </div>
-        <p className="text-base font-black text-[#22334A]">لا أحداث</p>
+        <p className="text-base font-black text-[#0C2A4B]">لا أحداث</p>
         <p className="mt-1 max-w-xs text-sm text-slate-400">{emptyMsg}</p>
       </div>
     )
@@ -36,8 +36,8 @@ export default function CalendarListView({
         <section key={group.key}>
           <div className="mb-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-200" />
-            <h2 className="shrink-0 text-sm font-black text-[#22334A]">{group.label}</h2>
-            <span className="rounded-full bg-[#2691C2]/10 px-2.5 py-0.5 text-[11px] font-black text-[#2691C2]">
+            <h2 className="shrink-0 text-sm font-black text-[#0C2A4B]">{group.label}</h2>
+            <span className="rounded-full bg-[#0077B6]/10 px-2.5 py-0.5 text-[11px] font-black text-[#0077B6]">
               {String(group.items.length)}
             </span>
             <div className="h-px flex-1 bg-slate-200" />

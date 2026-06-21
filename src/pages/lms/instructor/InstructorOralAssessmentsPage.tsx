@@ -43,7 +43,7 @@ function ScoreInput({
     <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
       <div className="mb-2 flex items-center justify-between">
         <div>
-          <p className="text-[13px] font-black text-[#22334A]">{label}</p>
+          <p className="text-[13px] font-black text-[#0C2A4B]">{label}</p>
           <p className="text-[10px] font-semibold text-slate-400">{hint}</p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -57,7 +57,7 @@ function ScoreInput({
               const v = e.target.value === '' ? null : Math.min(10, Math.max(0, Number(e.target.value)))
               onChange(v)
             }}
-            className="w-12 rounded-xl border border-slate-200 bg-white px-2 py-1 text-center text-[14px] font-black text-[#22334A] outline-none focus:border-[#2691C2] disabled:opacity-50"
+            className="w-12 rounded-xl border border-slate-200 bg-white px-2 py-1 text-center text-[14px] font-black text-[#0C2A4B] outline-none focus:border-[#0077B6] disabled:opacity-50"
             dir="ltr"
           />
           <span className="text-[10px] font-semibold text-slate-400">/10</span>
@@ -71,7 +71,7 @@ function ScoreInput({
         value={value ?? 0}
         disabled={disabled}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-[#2691C2] disabled:opacity-50"
+        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-[#0077B6] disabled:opacity-50"
       />
     </div>
   )
@@ -334,12 +334,12 @@ export default function InstructorOralAssessmentsPage() {
                   <button
                     type="button"
                     onClick={() => setModal((m) => m ? { ...m, showRubric: !m.showRubric } : null)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-black text-[#22334A] transition hover:border-[#2691C2]/40"
+                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/40"
                   >
                     <span>تقييم المعايير التفصيلية</span>
                     <div className="flex items-center gap-2">
                       {autoTotal !== null && (
-                        <span className="rounded-lg bg-[#2691C2]/10 px-2 py-0.5 text-[11px] font-black text-[#2691C2]">
+                        <span className="rounded-lg bg-[#0077B6]/10 px-2 py-0.5 text-[11px] font-black text-[#0077B6]">
                           إجمالي: {autoTotal}%
                         </span>
                       )}
@@ -370,7 +370,7 @@ export default function InstructorOralAssessmentsPage() {
                   <label className="mb-1.5 block text-[11px] font-black text-deepBlue/55">
                     الدرجة الإجمالية للمقابلة
                     {autoTotal !== null
-                      ? <span className="mr-1 font-normal text-[#2691C2]">(محسوبة من المعايير)</span>
+                      ? <span className="mr-1 font-normal text-[#0077B6]">(محسوبة من المعايير)</span>
                       : <span className="mr-1 font-normal text-deepBlue/35">(0–100، اختياري)</span>}
                   </label>
                   <input
@@ -381,7 +381,7 @@ export default function InstructorOralAssessmentsPage() {
                     onChange={(e) => setModal((m) => m ? { ...m, oral_score: e.target.value } : null)}
                     placeholder="مثال: 85"
                     dir="ltr"
-                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
                   />
                 </div>
 
@@ -394,7 +394,7 @@ export default function InstructorOralAssessmentsPage() {
                     value={modal.final_level}
                     onChange={(e) => setModal((m) => m ? { ...m, final_level: e.target.value } : null)}
                     dir="rtl"
-                    className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                    className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-white pr-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
                   >
                     <option value="">اختر المستوى</option>
                     {PLACEMENT_LEVELS.map((lvl) => (
@@ -414,7 +414,7 @@ export default function InstructorOralAssessmentsPage() {
                     onChange={(e) => setModal((m) => m ? { ...m, notes: e.target.value } : null)}
                     placeholder="ملاحظات حول أداء الطالب..."
                     dir="rtl"
-                    className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+                    className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
                   />
                 </div>
 
@@ -424,7 +424,7 @@ export default function InstructorOralAssessmentsPage() {
                     type="button"
                     onClick={() => void handleSave()}
                     disabled={!modal.final_level || saving}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0077B6] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105 disabled:opacity-50"
                   >
                     <CheckCircle className="h-4 w-4" />
                     {saving ? 'جاري الحفظ...' : 'اعتماد المستوى'}

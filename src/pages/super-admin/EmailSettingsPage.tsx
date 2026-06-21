@@ -26,7 +26,7 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
       type="button"
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? 'bg-[#2691C2]' : 'bg-slate-200'
+        enabled ? 'bg-[#0077B6]' : 'bg-slate-200'
       }`}
       aria-checked={enabled}
     >
@@ -128,11 +128,11 @@ export default function EmailSettingsPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#22334A] flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-[#0C2A4B] flex items-center justify-center">
             <Mail className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-[#22334A]">إعدادات البريد الإلكتروني</h1>
+            <h1 className="text-xl font-black text-[#0C2A4B]">إعدادات البريد الإلكتروني</h1>
             <p className="text-xs text-slate-500 mt-0.5">تحكم في أنواع الرسائل المُرسلة تلقائياً</p>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function EmailSettingsPage() {
           <button
             onClick={handleTest}
             disabled={testing}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[#2691C2] text-[#2691C2] text-sm font-bold hover:bg-[#EFF6FF] disabled:opacity-60 transition"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[#0077B6] text-[#0077B6] text-sm font-bold hover:bg-[#EFF6FF] disabled:opacity-60 transition"
           >
             <Send className="h-4 w-4" />
             {testing ? 'جاري الإرسال...' : 'بريد تجريبي'}
@@ -148,7 +148,7 @@ export default function EmailSettingsPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#22334A] text-white text-sm font-bold hover:bg-[#1a2737] disabled:opacity-60 transition"
+            className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#0C2A4B] text-white text-sm font-bold hover:bg-[#1a2737] disabled:opacity-60 transition"
           >
             <Save className="h-4 w-4" />
             {saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
@@ -162,17 +162,17 @@ export default function EmailSettingsPage() {
         <div className="space-y-6">
           {/* Notification toggles */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <h2 className="text-sm font-black text-[#22334A] mb-4">أنواع الرسائل</h2>
+            <h2 className="text-sm font-black text-[#0C2A4B] mb-4">أنواع الرسائل</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {Object.entries(EMAIL_LABELS).map(([key, label]) => {
                 const item = settings?.settings[key]
                 const enabled = getEnabled(key)
                 return (
                   <div key={key} className={`flex items-center justify-between gap-3 rounded-xl p-4 border transition ${
-                    enabled ? 'border-[#2691C2]/20 bg-[#EFF6FF]' : 'border-slate-100 bg-slate-50'
+                    enabled ? 'border-[#0077B6]/20 bg-[#EFF6FF]' : 'border-slate-100 bg-slate-50'
                   }`}>
                     <div className="min-w-0">
-                      <p className={`text-sm font-bold truncate ${enabled ? 'text-[#22334A]' : 'text-slate-400'}`}>{label}</p>
+                      <p className={`text-sm font-bold truncate ${enabled ? 'text-[#0C2A4B]' : 'text-slate-400'}`}>{label}</p>
                       {item?.description && (
                         <p className="text-[11px] text-slate-400 mt-0.5 leading-tight">{item.description}</p>
                       )}
@@ -186,7 +186,7 @@ export default function EmailSettingsPage() {
 
           {/* Global sender */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <h2 className="text-sm font-black text-[#22334A] mb-4">معلومات المُرسِل</h2>
+            <h2 className="text-sm font-black text-[#0C2A4B] mb-4">معلومات المُرسِل</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="text-[11px] font-bold text-slate-500 mb-1 block">اسم المُرسِل</span>
@@ -195,7 +195,7 @@ export default function EmailSettingsPage() {
                   value={senderName}
                   onChange={e => setSenderName(e.target.value)}
                   placeholder="EMC Platform"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#22334A] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/40"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#0C2A4B] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/40"
                 />
               </label>
               <label className="block">
@@ -205,7 +205,7 @@ export default function EmailSettingsPage() {
                   value={senderEmail}
                   onChange={e => setSenderEmail(e.target.value)}
                   placeholder="no-reply@emc.test"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#22334A] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/40"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#0C2A4B] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/40"
                   dir="ltr"
                 />
               </label>

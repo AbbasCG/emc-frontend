@@ -82,12 +82,12 @@ export default function StudentLearningPathDetailPage() {
   if (forbidden) {
     return (
       <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-10 text-center shadow-sm" dir="rtl">
-        <h1 className="text-xl font-black text-[#22334A]">
+        <h1 className="text-xl font-black text-[#0C2A4B]">
           {accessMessage ?? 'لا يمكنك الوصول إلى هذا المسار التعليمي.'}
         </h1>
         <Link
           to="/dashboard/student/learning-paths"
-          className="mt-6 inline-block rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white"
+          className="mt-6 inline-block rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-[12px] font-black text-white"
         >
           العودة إلى مساراتي
         </Link>
@@ -121,7 +121,7 @@ export default function StudentLearningPathDetailPage() {
     <div className="space-y-6 pb-20 text-right" dir="rtl">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#22334A] via-[#1f3049] to-[#2691c2] p-[1px] shadow-[0_32px_80px_-36px_rgba(34,51,74,0.72)]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#0C2A4B] via-[#1f3049] to-[#0077B6] p-[1px] shadow-[0_32px_80px_-36px_rgba(12, 42, 75,0.72)]">
         <div className="relative overflow-hidden rounded-[calc(2rem-1px)]">
           {/* Background cover image */}
           {path.featured_image && (
@@ -132,8 +132,8 @@ export default function StudentLearningPathDetailPage() {
               className="absolute inset-0 h-full w-full object-cover opacity-15"
             />
           )}
-          <div className="relative bg-gradient-to-tl from-[#22334A]/95 via-[#22334A]/82 to-[#2691C2]/40 px-6 py-9 sm:px-10">
-            <div aria-hidden className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-[#EC943C]/30 blur-[100px]" />
+          <div className="relative bg-gradient-to-tl from-[#0C2A4B]/95 via-[#0C2A4B]/82 to-[#0077B6]/40 px-6 py-9 sm:px-10">
+            <div aria-hidden className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-[#F28C00]/30 blur-[100px]" />
             <div aria-hidden className="pointer-events-none absolute -bottom-28 right-[-8%] h-72 w-72 rounded-full bg-white/10 blur-[90px]" />
 
             <div className="relative space-y-5">
@@ -157,7 +157,7 @@ export default function StudentLearningPathDetailPage() {
               <div className="flex flex-wrap items-center gap-3">
                 {durationLabel && (
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/12 px-3 py-1.5 text-[12px] font-bold text-white backdrop-blur">
-                    <Clock className="h-3.5 w-3.5 text-[#EC943C]" />
+                    <Clock className="h-3.5 w-3.5 text-[#F28C00]" />
                     {durationLabel}
                   </span>
                 )}
@@ -188,7 +188,7 @@ export default function StudentLearningPathDetailPage() {
                   </>
                 ) : (
                   <>
-                    <PlayCircle className="h-4 w-4 text-[#2691C2]" />
+                    <PlayCircle className="h-4 w-4 text-[#0077B6]" />
                     جاري — سُجِّل في {fmtDate(enrollment.enrolled_at)}
                   </>
                 )}
@@ -201,29 +201,29 @@ export default function StudentLearningPathDetailPage() {
       {/* ── Schedule info ────────────────────────────────────────────────── */}
       {hasSchedule && (
         <section>
-          <h2 className="mb-3 text-xl font-black text-[#22334A]">جدول الدراسة</h2>
+          <h2 className="mb-3 text-xl font-black text-[#0C2A4B]">جدول الدراسة</h2>
           <div className="space-y-3 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
             {path.study_days_per_week != null && (
-              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
-                <CalendarDays className="h-4 w-4 shrink-0 text-[#2691C2]" />
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#0C2A4B]/80">
+                <CalendarDays className="h-4 w-4 shrink-0 text-[#0077B6]" />
                 <span>عدد أيام الدراسة في الأسبوع: {path.study_days_per_week}</span>
               </div>
             )}
             {path.study_days && path.study_days.length > 0 && (
-              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
-                <CalendarDays className="h-4 w-4 shrink-0 text-[#2691C2]" />
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#0C2A4B]/80">
+                <CalendarDays className="h-4 w-4 shrink-0 text-[#0077B6]" />
                 <span>أيام الدراسة: {path.study_days.join('، ')}</span>
               </div>
             )}
             {path.study_time && (
-              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
-                <Clock className="h-4 w-4 shrink-0 text-[#2691C2]" />
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#0C2A4B]/80">
+                <Clock className="h-4 w-4 shrink-0 text-[#0077B6]" />
                 <span>وقت الدراسة: {path.study_time}</span>
               </div>
             )}
             {path.schedule_note && (
-              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#22334A]/80">
-                <CircleDot className="h-4 w-4 shrink-0 text-[#2691C2]" />
+              <div className="flex items-center gap-3 text-[13px] font-semibold text-[#0C2A4B]/80">
+                <CircleDot className="h-4 w-4 shrink-0 text-[#0077B6]" />
                 <span>{path.schedule_note}</span>
               </div>
             )}
@@ -234,14 +234,14 @@ export default function StudentLearningPathDetailPage() {
       {/* ── WhatsApp communities ─────────────────────────────────────────── */}
       {whatsappCourses.length > 0 && (
         <section>
-          <h2 className="mb-3 text-xl font-black text-[#22334A]">مجتمعات الواتساب للدورات</h2>
+          <h2 className="mb-3 text-xl font-black text-[#0C2A4B]">مجتمعات الواتساب للدورات</h2>
           <div className="space-y-3">
             {whatsappCourses.map((c) => (
               <div
                 key={c.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm"
               >
-                <span className="text-[13px] font-black text-[#22334A]">{c.title}</span>
+                <span className="text-[13px] font-black text-[#0C2A4B]">{c.title}</span>
                 <button
                   type="button"
                   onClick={() => window.open(c.whatsapp_community_url!, '_blank', 'noopener,noreferrer')}
@@ -261,19 +261,19 @@ export default function StudentLearningPathDetailPage() {
         <section>
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-black text-[#22334A]">مسار الدراسة</h2>
-              <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]/50">
+              <h2 className="text-xl font-black text-[#0C2A4B]">مسار الدراسة</h2>
+              <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]/50">
                 {fmt(path.courses!.length)} دورة في هذا المسار
               </p>
             </div>
-            <GraduationCap className="h-6 w-6 text-[#2691C2]/50" />
+            <GraduationCap className="h-6 w-6 text-[#0077B6]/50" />
           </div>
 
           <div className="relative space-y-0">
             {/* Vertical connector — aligned to step circles */}
             <div
               aria-hidden
-              className="absolute right-[1.15rem] top-9 w-0.5 bg-gradient-to-b from-[#2691C2]/60 via-slate-200 to-transparent"
+              className="absolute right-[1.15rem] top-9 w-0.5 bg-gradient-to-b from-[#0077B6]/60 via-slate-200 to-transparent"
               style={{ bottom: '2rem' }}
             />
 
@@ -286,12 +286,12 @@ export default function StudentLearningPathDetailPage() {
                 className="relative flex items-start gap-4 pb-4"
               >
                 {/* Step circle */}
-                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[12px] font-black text-white shadow-md shadow-[#2691C2]/25">
+                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[12px] font-black text-white shadow-md shadow-[#0077B6]/25">
                   {fmt(i + 1)}
                 </div>
 
                 {/* Card */}
-                <div className="group flex flex-1 flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm ring-1 ring-[#22334A]/[0.03] transition hover:border-[#2691C2]/35 hover:shadow-md">
+                <div className="group flex flex-1 flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm ring-1 ring-[#0C2A4B]/[0.03] transition hover:border-[#0077B6]/35 hover:shadow-md">
                   {/* Thumbnail */}
                   {course.image_url ? (
                     <img
@@ -300,14 +300,14 @@ export default function StudentLearningPathDetailPage() {
                       className="h-14 w-[4.5rem] shrink-0 rounded-xl object-cover"
                     />
                   ) : (
-                    <div className="flex h-14 w-[4.5rem] shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A]/10 to-[#2691C2]/10">
-                      <BookOpen className="h-5 w-5 text-[#2691C2]/50" />
+                    <div className="flex h-14 w-[4.5rem] shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B]/10 to-[#0077B6]/10">
+                      <BookOpen className="h-5 w-5 text-[#0077B6]/50" />
                     </div>
                   )}
 
                   {/* Info */}
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 font-black leading-snug text-[#22334A] transition group-hover:text-[#2691C2]">
+                    <p className="line-clamp-2 font-black leading-snug text-[#0C2A4B] transition group-hover:text-[#0077B6]">
                       {course.title}
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
@@ -320,7 +320,7 @@ export default function StudentLearningPathDetailPage() {
                         <span className="rounded-lg border border-slate-100 bg-slate-50 px-2 py-0.5">{course.level}</span>
                       )}
                       {(course as { assignments_count?: number }).assignments_count != null && (
-                        <span className="rounded-lg border border-[#EC943C]/20 bg-orange-50 px-2 py-0.5 text-[#EC943C]">
+                        <span className="rounded-lg border border-[#F28C00]/20 bg-orange-50 px-2 py-0.5 text-[#F28C00]">
                           {fmt((course as { assignments_count?: number }).assignments_count!)} واجب
                         </span>
                       )}
@@ -330,7 +330,7 @@ export default function StudentLearningPathDetailPage() {
                   {/* CTA */}
                   <Link
                     to={studentLearnHref(course.id)}
-                    className="shrink-0 rounded-xl bg-[#22334A] px-3.5 py-2 text-[12px] font-black text-white shadow-sm transition hover:bg-[#2691C2]"
+                    className="shrink-0 rounded-xl bg-[#0C2A4B] px-3.5 py-2 text-[12px] font-black text-white shadow-sm transition hover:bg-[#0077B6]"
                   >
                     متابعة التعلم
                   </Link>
@@ -344,15 +344,15 @@ export default function StudentLearningPathDetailPage() {
       {/* ── Learning Outcomes ─────────────────────────────────────────────── */}
       {path.learning_outcomes.length > 0 && (
         <section>
-          <h2 className="mb-4 text-xl font-black text-[#22334A]">ماذا ستتعلم</h2>
+          <h2 className="mb-4 text-xl font-black text-[#0C2A4B]">ماذا ستتعلم</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {path.learning_outcomes.map((o, i) => (
               <div
                 key={i}
-                className="flex items-start gap-2.5 rounded-2xl border border-[#2691C2]/12 bg-blue-50/40 p-3.5 shadow-sm"
+                className="flex items-start gap-2.5 rounded-2xl border border-[#0077B6]/12 bg-blue-50/40 p-3.5 shadow-sm"
               >
-                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#2691C2]" />
-                <span className="text-[13px] font-semibold text-[#22334A]/80">{o}</span>
+                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#0077B6]" />
+                <span className="text-[13px] font-semibold text-[#0C2A4B]/80">{o}</span>
               </div>
             ))}
           </div>
@@ -362,14 +362,14 @@ export default function StudentLearningPathDetailPage() {
       {/* ── Certificate Section ───────────────────────────────────────────── */}
       {path.certificate_name && certInfo && (
         <section>
-          <h2 className="mb-3 text-xl font-black text-[#22334A]">الشهادة</h2>
+          <h2 className="mb-3 text-xl font-black text-[#0C2A4B]">الشهادة</h2>
           <div className={`rounded-3xl border p-6 ${certInfo.bg}`}>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
                 <Award className="h-6 w-6 text-amber-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-black text-[#22334A]">{path.certificate_name}</p>
+                <p className="font-black text-[#0C2A4B]">{path.certificate_name}</p>
                 </div>
               <span className={`rounded-2xl border px-4 py-2 text-[12px] font-black ${certInfo.bg} ${certInfo.color}`}>
                 {certInfo.label}
@@ -377,9 +377,9 @@ export default function StudentLearningPathDetailPage() {
             </div>
 
             {!isCompleted && (
-              <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[#22334A]/10 bg-white/70 p-3.5">
-                <Clock className="h-4 w-4 shrink-0 text-[#22334A]/40" />
-                <p className="text-[12px] font-semibold text-[#22334A]/60">
+              <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[#0C2A4B]/10 bg-white/70 p-3.5">
+                <Clock className="h-4 w-4 shrink-0 text-[#0C2A4B]/40" />
+                <p className="text-[12px] font-semibold text-[#0C2A4B]/60">
                   أكمل جميع دورات المسار للحصول على الشهادة
                 </p>
               </div>
@@ -391,7 +391,7 @@ export default function StudentLearningPathDetailPage() {
       {/* ── Instructor ───────────────────────────────────────────────────── */}
       {path.instructor && (
         <section>
-          <h2 className="mb-3 text-xl font-black text-[#22334A]">المدرب</h2>
+          <h2 className="mb-3 text-xl font-black text-[#0C2A4B]">المدرب</h2>
           <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
             {path.instructor.avatar_url ? (
               <img
@@ -400,12 +400,12 @@ export default function StudentLearningPathDetailPage() {
                 className="h-14 w-14 rounded-full object-cover"
               />
             ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-xl font-black text-white">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-xl font-black text-white">
                 {path.instructor.name.charAt(0)}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-black text-[#22334A]">{path.instructor.name}</p>
+              <p className="font-black text-[#0C2A4B]">{path.instructor.name}</p>
               {path.instructor.title && (
                 <p className="mt-0.5 text-[12px] font-semibold text-slate-500">{path.instructor.title}</p>
               )}
@@ -418,7 +418,7 @@ export default function StudentLearningPathDetailPage() {
       <div className="pt-2">
         <Link
           to="/dashboard/student/learning-paths"
-          className="inline-flex items-center gap-2 text-[13px] font-black text-[#2691C2] hover:underline"
+          className="inline-flex items-center gap-2 text-[13px] font-black text-[#0077B6] hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           العودة إلى مساراتي التعليمية

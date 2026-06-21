@@ -313,9 +313,9 @@ export default function StudentCourseLearnPage() {
 
   if (!validId) {
     return (
-      <div className="rounded-3xl border border-amber-200 bg-amber-50/90 p-8 text-center text-[#22334A]" dir="rtl">
+      <div className="rounded-3xl border border-amber-200 bg-amber-50/90 p-8 text-center text-[#0C2A4B]" dir="rtl">
         <p className="font-black">معرّف الدورة غير صالح.</p>
-        <Link to="/dashboard/student/courses" className="mt-4 inline-block font-bold text-[#2691C2] underline">
+        <Link to="/dashboard/student/courses" className="mt-4 inline-block font-bold text-[#0077B6] underline">
           العودة لدوراتي
         </Link>
       </div>
@@ -338,10 +338,10 @@ export default function StudentCourseLearnPage() {
       : 'لا يمكنك الوصول إلى محتوى هذه الدورة'
 
     return (
-      <div className="rounded-3xl border border-[#22334A]/10 bg-white/90 p-10 text-center shadow-xl" dir="rtl">
-        <BookOpen className="mx-auto h-12 w-12 text-[#2691C2]" aria-hidden />
-        <h1 className="mt-4 text-xl font-black text-[#22334A]">{title}</h1>
-        <p className="mx-auto mt-2 max-w-lg text-[13px] font-semibold text-[#22334A]/60">
+      <div className="rounded-3xl border border-[#0C2A4B]/10 bg-white/90 p-10 text-center shadow-xl" dir="rtl">
+        <BookOpen className="mx-auto h-12 w-12 text-[#0077B6]" aria-hidden />
+        <h1 className="mt-4 text-xl font-black text-[#0C2A4B]">{title}</h1>
+        <p className="mx-auto mt-2 max-w-lg text-[13px] font-semibold text-[#0C2A4B]/60">
           {gateError === 'forbidden'
             ? 'تأكّد من تسجيلك في هذه الدورة عبر مسارك التعليمي أو من صفحة دوراتي.'
             : clientKnowsRegistered
@@ -349,10 +349,10 @@ export default function StudentCourseLearnPage() {
               : 'تحقّق من الرابط أو تواصل مع الإدارة.'}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button type="button" onClick={() => void loadLearn()} className="rounded-2xl border border-[#22334A]/15 px-6 py-2.5 text-[12px] font-black text-[#22334A]">
+          <button type="button" onClick={() => void loadLearn()} className="rounded-2xl border border-[#0C2A4B]/15 px-6 py-2.5 text-[12px] font-black text-[#0C2A4B]">
             إعادة المحاولة
           </button>
-          <Link to="/dashboard/student/courses" className="rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white">
+          <Link to="/dashboard/student/courses" className="rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-[12px] font-black text-white">
             دوراتي
           </Link>
         </div>
@@ -363,8 +363,8 @@ export default function StudentCourseLearnPage() {
   if (learnError && !ctx) {
     return (
       <div className="rounded-3xl border border-rose-100 bg-rose-50/85 p-10 text-center" dir="rtl">
-        <p className="font-black text-[#22334A]">{learnError}</p>
-        <button type="button" onClick={() => void loadLearn()} className="mt-6 rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white">
+        <p className="font-black text-[#0C2A4B]">{learnError}</p>
+        <button type="button" onClick={() => void loadLearn()} className="mt-6 rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-[12px] font-black text-white">
           إعادة المحاولة
         </button>
       </div>
@@ -377,9 +377,9 @@ export default function StudentCourseLearnPage() {
     <div className="space-y-5 pb-20 text-right" dir="rtl">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#22334A] via-[#1f3049] to-[#2691c2] p-[1px] shadow-[0_32px_80px_-36px_rgba(34,51,74,0.75)]">
-        <div className="relative overflow-hidden rounded-[calc(2rem-1px)] bg-gradient-to-tl from-[#22334A]/95 via-[#22334A]/80 to-[#2691C2]/40 px-6 py-9 sm:px-10">
-          <div aria-hidden className="pointer-events-none absolute -left-28 top-0 h-64 w-64 rounded-full bg-[#EC943C]/35 blur-[100px]" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#0C2A4B] via-[#1f3049] to-[#0077B6] p-[1px] shadow-[0_32px_80px_-36px_rgba(12, 42, 75,0.75)]">
+        <div className="relative overflow-hidden rounded-[calc(2rem-1px)] bg-gradient-to-tl from-[#0C2A4B]/95 via-[#0C2A4B]/80 to-[#0077B6]/40 px-6 py-9 sm:px-10">
+          <div aria-hidden className="pointer-events-none absolute -left-28 top-0 h-64 w-64 rounded-full bg-[#F28C00]/35 blur-[100px]" />
           <div aria-hidden className="pointer-events-none absolute -bottom-32 right-[-10%] h-72 w-72 rounded-full bg-white/12 blur-[90px]" />
 
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -428,7 +428,7 @@ export default function StudentCourseLearnPage() {
                       {statusArabic(regLabel)}
                     </span>
                     {classGroup && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#EC943C]/40 bg-[#EC943C]/20 px-3 py-1 text-[11px] font-black text-white">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F28C00]/40 bg-[#F28C00]/20 px-3 py-1 text-[11px] font-black text-white">
                         <Users className="h-3 w-3" />
                         {classGroup.name}{classGroup.level_code ? ` · ${classGroup.level_code}` : ''}
                       </span>
@@ -454,7 +454,7 @@ export default function StudentCourseLearnPage() {
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-white/10 sm:col-span-2">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-l from-[#EC943C] to-white"
+                  className="h-full rounded-full bg-gradient-to-l from-[#F28C00] to-white"
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
                   transition={{ duration: 0.9, ease: 'easeOut' }}
@@ -462,7 +462,7 @@ export default function StudentCourseLearnPage() {
               </div>
 
               {/* Next session mini */}
-              <div className="rounded-2xl border border-white/15 bg-[#22334A]/30 p-3.5 text-white">
+              <div className="rounded-2xl border border-white/15 bg-[#0C2A4B]/30 p-3.5 text-white">
                 <div className="mb-2 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase text-white/55">
                   <Calendar className="h-3 w-3" />
                   الجلسة التالية
@@ -479,9 +479,9 @@ export default function StudentCourseLearnPage() {
                             href={join.href}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white py-2 text-[11px] font-black text-[#22334A] hover:bg-orange-50"
+                            className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white py-2 text-[11px] font-black text-[#0C2A4B] hover:bg-orange-50"
                           >
-                            <Video className="h-3.5 w-3.5 text-[#EC943C]" />
+                            <Video className="h-3.5 w-3.5 text-[#F28C00]" />
                             {join.label}
                           </a>
                         )
@@ -545,8 +545,8 @@ export default function StudentCourseLearnPage() {
                 onClick={() => setActiveTab(id)}
                 className={`relative inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] font-black transition-all ${
                   isActive
-                    ? 'bg-[#22334A] text-white shadow-md'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-[#22334A]'
+                    ? 'bg-[#0C2A4B] text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-[#0C2A4B]'
                 }`}
               >
                 <Icon className="h-4 w-4" aria-hidden />
@@ -579,19 +579,19 @@ export default function StudentCourseLearnPage() {
             <div className="space-y-5">
               {/* Class group */}
               {classGroup && (
-                <div className="rounded-2xl border border-[#EC943C]/20 bg-orange-50/60 p-5">
+                <div className="rounded-2xl border border-[#F28C00]/20 bg-orange-50/60 p-5">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EC943C]/15 text-[#EC943C]">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F28C00]/15 text-[#F28C00]">
                       <Users className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <p className="text-[13px] font-black text-[#22334A]">فصلك الدراسي: {classGroup.name}</p>
+                      <p className="text-[13px] font-black text-[#0C2A4B]">فصلك الدراسي: {classGroup.name}</p>
                       {classGroup.level_code && (
-                        <p className="text-[11px] font-semibold text-[#22334A]/60">{classGroup.level_code}</p>
+                        <p className="text-[11px] font-semibold text-[#0C2A4B]/60">{classGroup.level_code}</p>
                       )}
                     </div>
                     {classGroup.schedule_day && classGroup.schedule_time && (
-                      <span className="mr-auto rounded-xl border border-[#22334A]/10 bg-white px-3 py-1 text-[11px] font-bold text-[#22334A]/70">
+                      <span className="mr-auto rounded-xl border border-[#0C2A4B]/10 bg-white px-3 py-1 text-[11px] font-bold text-[#0C2A4B]/70">
                         {classGroup.schedule_day} · {classGroup.schedule_time}
                       </span>
                     )}
@@ -600,7 +600,7 @@ export default function StudentCourseLearnPage() {
                         href={classGroup.meeting_link}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-4 py-2 text-[11px] font-black text-white transition hover:opacity-90"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[11px] font-black text-white transition hover:opacity-90"
                       >
                         <Video className="h-3.5 w-3.5" />
                         رابط الفصل
@@ -613,8 +613,8 @@ export default function StudentCourseLearnPage() {
               <div>
                 <div className="mb-4 flex items-end justify-between">
                   <div>
-                    <h2 className="text-xl font-black text-[#22334A]">الوحدات والمنهاج</h2>
-                    <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]/50">
+                    <h2 className="text-xl font-black text-[#0C2A4B]">الوحدات والمنهاج</h2>
+                    <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]/50">
                       {ctx.modules.length > 0
                         ? `${ctx.modules.length} وحدة · ${totalLessons} درس`
                         : 'سيظهر المنهاج بعد إضافة الوحدات من الإدارة'}
@@ -624,7 +624,7 @@ export default function StudentCourseLearnPage() {
 
                 {ctx.modules.length === 0 ? (
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-[#22334A]/[0.08] bg-white/70 p-6 text-center text-[13px] font-semibold text-[#22334A]/60">
+                    <div className="rounded-2xl border border-[#0C2A4B]/[0.08] bg-white/70 p-6 text-center text-[13px] font-semibold text-[#0C2A4B]/60">
                       لم تتم إضافة وحدات تعليمية لهذه الدورة بعد
                     </div>
                     {(() => {
@@ -636,18 +636,18 @@ export default function StudentCourseLearnPage() {
                       return (
                         <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
                           <div className="flex items-center gap-3 p-4">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#EC943C]">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#F28C00]">
                               <Layers className="h-4 w-4" />
                             </span>
                             <div>
-                              <h3 className="text-[14px] font-black text-[#22334A]">محتوى عام للدورة</h3>
-                              <p className="text-[11px] font-medium text-[#22334A]/55">جلسات ومواد وواجبات على مستوى الدورة</p>
+                              <h3 className="text-[14px] font-black text-[#0C2A4B]">محتوى عام للدورة</h3>
+                              <p className="text-[11px] font-medium text-[#0C2A4B]/55">جلسات ومواد وواجبات على مستوى الدورة</p>
                             </div>
                           </div>
                           <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
                             {nullSessions.length > 0 && (
                               <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                   <Calendar className="h-3 w-3" /> الجلسات
                                 </h4>
                                 <div className="space-y-2">
@@ -659,7 +659,7 @@ export default function StudentCourseLearnPage() {
                             )}
                             {nullMaterials.length > 0 && (
                               <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                   <FolderOpen className="h-3 w-3" /> المواد
                                 </h4>
                                 <div className="grid gap-2 sm:grid-cols-2">
@@ -671,7 +671,7 @@ export default function StudentCourseLearnPage() {
                             )}
                             {nullAssignments.length > 0 && (
                               <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                   <ClipboardList className="h-3 w-3" /> الواجبات
                                 </h4>
                                 <div className="space-y-2">
@@ -712,60 +712,60 @@ export default function StudentCourseLearnPage() {
                       const modAssignments = mod.assignments ?? []
                       const hasChildren = modLessons.length > 0 || modMaterials.length > 0 || modSessions.length > 0 || modAssignments.length > 0
                       return (
-                        <div key={mod.id} className="overflow-hidden rounded-2xl border border-[#22334A]/[0.08] bg-white/85 shadow-sm">
+                        <div key={mod.id} className="overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.08] bg-white/85 shadow-sm">
                           <button
                             type="button"
                             onClick={() => toggleModule(mod.id)}
                             className="flex w-full items-center gap-3 p-4 text-right transition hover:bg-slate-50/60"
                           >
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[12px] font-black text-white tabular-nums">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[12px] font-black text-white tabular-nums">
                               {idx + 1}
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-1.5">
-                                <h3 className="line-clamp-1 text-[14px] font-black leading-snug text-[#22334A]">{mod.title}</h3>
+                                <h3 className="line-clamp-1 text-[14px] font-black leading-snug text-[#0C2A4B]">{mod.title}</h3>
                                 {mod.is_completed && (
                                   <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-700">✓ مكتملة</span>
                                 )}
                               </div>
                               <div className="mt-1.5 flex items-center gap-2">
                                 <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
-                                  <div className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C] transition-all" style={{ width: `${pct}%` }} />
+                                  <div className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00] transition-all" style={{ width: `${pct}%` }} />
                                 </div>
-                                <span className="shrink-0 text-[10px] font-black tabular-nums text-[#22334A]/60">{pct}%</span>
+                                <span className="shrink-0 text-[10px] font-black tabular-nums text-[#0C2A4B]/60">{pct}%</span>
                               </div>
-                              <p className="mt-0.5 text-[10px] font-semibold text-[#22334A]/45">
+                              <p className="mt-0.5 text-[10px] font-semibold text-[#0C2A4B]/45">
                                 {mod.lessons_count} درس
                                 {(mod.assignments_count ?? 0) > 0 ? ` · ${mod.assignments_count} واجب` : ''}
                                 {modMaterials.length > 0 ? ` · ${modMaterials.length} مادة` : ''}
                               </p>
                             </div>
-                            <ChevronDown className={`h-4 w-4 shrink-0 text-[#22334A]/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`h-4 w-4 shrink-0 text-[#0C2A4B]/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                           </button>
 
                           {isOpen && (
-                            <div className="space-y-4 border-t border-[#22334A]/[0.06] px-4 pb-4 pt-4">
+                            <div className="space-y-4 border-t border-[#0C2A4B]/[0.06] px-4 pb-4 pt-4">
                               {!hasChildren ? (
-                                <p className="py-4 text-center text-[12px] font-semibold text-[#22334A]/45">
+                                <p className="py-4 text-center text-[12px] font-semibold text-[#0C2A4B]/45">
                                   لا يوجد محتوى داخل هذه الوحدة بعد
                                 </p>
                               ) : (
                                 <>
                                   {modLessons.length > 0 && (
                                     <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                         <BookOpen className="h-3 w-3" /> الدروس
                                       </h4>
                                       <div className="space-y-1.5">
                                         {modLessons.map((l) => (
-                                          <div key={l.id} className="flex items-center gap-3 rounded-xl border border-[#22334A]/[0.06] bg-slate-50/60 px-3 py-2.5">
+                                          <div key={l.id} className="flex items-center gap-3 rounded-xl border border-[#0C2A4B]/[0.06] bg-slate-50/60 px-3 py-2.5">
                                             {l.video_url
-                                              ? <Video className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" />
-                                              : <BookOpen className="h-3.5 w-3.5 shrink-0 text-[#22334A]/30" />
+                                              ? <Video className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" />
+                                              : <BookOpen className="h-3.5 w-3.5 shrink-0 text-[#0C2A4B]/30" />
                                             }
-                                            <span className="flex-1 text-[12px] font-semibold text-[#22334A]">{l.title}</span>
+                                            <span className="flex-1 text-[12px] font-semibold text-[#0C2A4B]">{l.title}</span>
                                             {l.duration_minutes != null && (
-                                              <span className="text-[10px] font-bold tabular-nums text-[#22334A]/45">{l.duration_minutes} د</span>
+                                              <span className="text-[10px] font-bold tabular-nums text-[#0C2A4B]/45">{l.duration_minutes} د</span>
                                             )}
                                           </div>
                                         ))}
@@ -775,7 +775,7 @@ export default function StudentCourseLearnPage() {
 
                                   {modSessions.length > 0 && (
                                     <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                         <Calendar className="h-3 w-3" /> الجلسات
                                       </h4>
                                       <div className="space-y-2">
@@ -788,7 +788,7 @@ export default function StudentCourseLearnPage() {
 
                                   {modMaterials.length > 0 && (
                                     <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                         <FolderOpen className="h-3 w-3" /> المواد
                                       </h4>
                                       <div className="grid gap-2 sm:grid-cols-2">
@@ -801,7 +801,7 @@ export default function StudentCourseLearnPage() {
 
                                   {modAssignments.length > 0 && (
                                     <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                         <ClipboardList className="h-3 w-3" /> الواجبات
                                       </h4>
                                       <div className="space-y-2">
@@ -841,15 +841,15 @@ export default function StudentCourseLearnPage() {
                       return (
                         <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
                           <div className="flex items-center gap-3 p-4">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#EC943C]">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#F28C00]">
                               <Layers className="h-4 w-4" />
                             </span>
-                            <h3 className="text-[14px] font-black text-[#22334A]">محتوى عام للدورة</h3>
+                            <h3 className="text-[14px] font-black text-[#0C2A4B]">محتوى عام للدورة</h3>
                           </div>
                           <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
                             {nullSessions.length > 0 && (
                               <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                   <Calendar className="h-3 w-3" /> الجلسات
                                 </h4>
                                 <div className="space-y-2">
@@ -861,7 +861,7 @@ export default function StudentCourseLearnPage() {
                             )}
                             {nullMaterials.length > 0 && (
                               <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                   <FolderOpen className="h-3 w-3" /> المواد
                                 </h4>
                                 <div className="grid gap-2 sm:grid-cols-2">
@@ -873,7 +873,7 @@ export default function StudentCourseLearnPage() {
                             )}
                             {nullAssignments.length > 0 && (
                               <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
+                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
                                   <ClipboardList className="h-3 w-3" /> الواجبات
                                 </h4>
                                 <div className="space-y-2">
@@ -908,20 +908,20 @@ export default function StudentCourseLearnPage() {
           {/* ── الجلسات ─────────────────────────────────────────────────── */}
           {activeTab === 'sessions' && (
             <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#22334A]/[0.06] bg-gradient-to-bl from-white/95 to-orange-50/20 p-6 shadow-sm ring-1 ring-[#22334A]/[0.04]">
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#0C2A4B]/[0.06] bg-gradient-to-bl from-white/95 to-orange-50/20 p-6 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]">
                 <div>
-                  <h2 className="text-xl font-black text-[#22334A]">الجلسات المباشرة</h2>
-                  <p className="mt-1 text-[13px] font-semibold text-[#22334A]/55">
+                  <h2 className="text-xl font-black text-[#0C2A4B]">الجلسات المباشرة</h2>
+                  <p className="mt-1 text-[13px] font-semibold text-[#0C2A4B]/55">
                     {sessionsMapped.length > 0
                       ? `${upcomingSorted.length} قادمة · ${sessionsMapped.length - upcomingSorted.length} مكتملة`
                       : 'سيُضيف الفريق الجلسات وروابط الانضمام هنا'}
                   </p>
                 </div>
-                <Calendar className="h-6 w-6 text-[#EC943C]/70" />
+                <Calendar className="h-6 w-6 text-[#F28C00]/70" />
               </div>
 
               {sessionsMapped.length === 0 ? (
-                <div className="rounded-3xl border border-[#22334A]/[0.06] bg-white/80 p-6">
+                <div className="rounded-3xl border border-[#0C2A4B]/[0.06] bg-white/80 p-6">
                   <LmsEmptyState
                     icon={Calendar}
                     title="لا جلسات حتى الآن"
@@ -942,16 +942,16 @@ export default function StudentCourseLearnPage() {
           {activeTab === 'materials' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-[#22334A]">المقررات والمواد</h2>
+                <h2 className="text-xl font-black text-[#0C2A4B]">المقررات والمواد</h2>
                 {materials.length > 0 && (
-                  <Link to="/dashboard/student/materials" className="text-[12px] font-black text-[#2691C2] hover:underline">
+                  <Link to="/dashboard/student/materials" className="text-[12px] font-black text-[#0077B6] hover:underline">
                     عرض كل المواد
                   </Link>
                 )}
               </div>
 
               {materials.length === 0 ? (
-                <div className="rounded-3xl bg-white/80 p-4 ring-1 ring-[#22334A]/[0.06]">
+                <div className="rounded-3xl bg-white/80 p-4 ring-1 ring-[#0C2A4B]/[0.06]">
                   <LmsEmptyState
                     icon={FolderOpen}
                     title="لا مواد لهذه الدورة بعد"
@@ -972,16 +972,16 @@ export default function StudentCourseLearnPage() {
           {activeTab === 'assignments' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-[#22334A]">الواجبات والتكليفات</h2>
+                <h2 className="text-xl font-black text-[#0C2A4B]">الواجبات والتكليفات</h2>
                 {assignments.length > 0 && (
-                  <span className="text-[12px] font-bold text-[#22334A]/50">
+                  <span className="text-[12px] font-bold text-[#0C2A4B]/50">
                     {doneAssignments} / {assignments.length} مُسلَّمة
                   </span>
                 )}
               </div>
 
               {assignments.length === 0 ? (
-                <div className="rounded-3xl bg-white/80 ring-1 ring-[#22334A]/[0.06]">
+                <div className="rounded-3xl bg-white/80 ring-1 ring-[#0C2A4B]/[0.06]">
                   <LmsEmptyState
                     icon={ClipboardList}
                     title="لا واجبات ظاهرة"
@@ -1003,7 +1003,7 @@ export default function StudentCourseLearnPage() {
                   ))}
                   <Link
                     to="/dashboard/student/assignments"
-                    className="inline-flex items-center gap-2 text-[12px] font-black text-[#2691C2] hover:underline"
+                    className="inline-flex items-center gap-2 text-[12px] font-black text-[#0077B6] hover:underline"
                   >
                     فتح كل الواجبات
                     <ArrowLeft className="h-4 w-4 rotate-180" />
@@ -1015,10 +1015,10 @@ export default function StudentCourseLearnPage() {
 
           {/* ── ملاحظاتي ────────────────────────────────────────────────── */}
           {activeTab === 'notes' && (
-            <div className="rounded-3xl border border-[#22334A]/[0.08] bg-white/85 p-6 shadow-sm">
+            <div className="rounded-3xl border border-[#0C2A4B]/[0.08] bg-white/85 p-6 shadow-sm">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2 text-xl font-black text-[#22334A]">
-                  <StickyNote className="h-5 w-5 text-[#EC943C]" />
+                <h2 className="flex items-center gap-2 text-xl font-black text-[#0C2A4B]">
+                  <StickyNote className="h-5 w-5 text-[#F28C00]" />
                   ملاحظاتي الخاصة
                 </h2>
                 <div className="flex items-center gap-3">
@@ -1035,7 +1035,7 @@ export default function StudentCourseLearnPage() {
                     type="button"
                     disabled={notesSaving || notesLoading}
                     onClick={() => void handleSaveNotes()}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-4 py-2 text-[12px] font-black text-white transition hover:opacity-90 disabled:opacity-55"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[12px] font-black text-white transition hover:opacity-90 disabled:opacity-55"
                   >
                     {notesSaving
                       ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1046,7 +1046,7 @@ export default function StudentCourseLearnPage() {
               </div>
 
               {notesLoading ? (
-                <div className="flex items-center justify-center py-10 text-[13px] font-semibold text-[#22334A]/50">
+                <div className="flex items-center justify-center py-10 text-[13px] font-semibold text-[#0C2A4B]/50">
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   جارٍ تحميل الملاحظات…
                 </div>
@@ -1061,9 +1061,9 @@ export default function StudentCourseLearnPage() {
                     dir="rtl"
                     rows={10}
                     placeholder="دوّن أفكارك، روابط مهمة أو ما تريد متابعته قبل الجلسة القادمة..."
-                    className="w-full resize-y rounded-2xl border border-[#22334A]/12 bg-slate-50/60 px-4 py-3.5 text-[13px] font-semibold text-[#22334A] shadow-inner outline-none ring-1 ring-transparent transition focus:border-[#2691C2]/35 focus:ring-[#2691C2]/20"
+                    className="w-full resize-y rounded-2xl border border-[#0C2A4B]/12 bg-slate-50/60 px-4 py-3.5 text-[13px] font-semibold text-[#0C2A4B] shadow-inner outline-none ring-1 ring-transparent transition focus:border-[#0077B6]/35 focus:ring-[#0077B6]/20"
                   />
-                  <p className="mt-2 text-[11px] font-semibold text-[#22334A]/40">
+                  <p className="mt-2 text-[11px] font-semibold text-[#0C2A4B]/40">
                     ملاحظاتك خاصة ولا تظهر للمدرب أو الإدارة
                   </p>
                 </>
@@ -1076,7 +1076,7 @@ export default function StudentCourseLearnPage() {
             <div className="space-y-6">
               {/* Stats cards */}
               <div>
-                <h2 className="mb-4 text-xl font-black text-[#22334A]">تقدّمك في هذه الدورة</h2>
+                <h2 className="mb-4 text-xl font-black text-[#0C2A4B]">تقدّمك في هذه الدورة</h2>
                 <div className="grid gap-4 md:grid-cols-3">
                   {[
                     {
@@ -1084,14 +1084,14 @@ export default function StudentCourseLearnPage() {
                       Icon: Layers,
                       value: `${progressPct}%`,
                       sub: totalLessons > 0 ? `${doneLessons} / ${totalLessons} درس مكتمل` : 'لا دروس مسجّلة بعد',
-                      color: 'text-[#2691C2]',
+                      color: 'text-[#0077B6]',
                     },
                     {
                       label: 'الواجبات',
                       Icon: ClipboardList,
                       value: `${doneAssignments} / ${assignments.length}`,
                       sub: assignments.length > 0 ? 'واجب تم تسليمه' : 'لا واجبات ظاهرة حتى الآن',
-                      color: 'text-[#EC943C]',
+                      color: 'text-[#F28C00]',
                     },
                     {
                       label: 'الجلسات',
@@ -1106,12 +1106,12 @@ export default function StudentCourseLearnPage() {
                     <motion.div
                       key={label}
                       whileHover={{ y: -2 }}
-                      className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#22334A]/[0.04]"
+                      className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]"
                     >
                       <Icon className={`mb-3 h-5 w-5 ${color}`} />
-                      <p className="text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">{label}</p>
-                      <p className="mt-2 text-2xl font-black tabular-nums text-[#22334A]">{value}</p>
-                      {sub && <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[#22334A]/50">{sub}</p>}
+                      <p className="text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">{label}</p>
+                      <p className="mt-2 text-2xl font-black tabular-nums text-[#0C2A4B]">{value}</p>
+                      {sub && <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[#0C2A4B]/50">{sub}</p>}
                     </motion.div>
                   ))}
                 </div>
@@ -1120,18 +1120,18 @@ export default function StudentCourseLearnPage() {
               {/* Instructor */}
               {instructor && (
                 <div>
-                  <h2 className="mb-3 text-lg font-black text-[#22334A]">المدرب المسؤول</h2>
-                  <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#22334A]/[0.04]">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-lg font-black text-white">
+                  <h2 className="mb-3 text-lg font-black text-[#0C2A4B]">المدرب المسؤول</h2>
+                  <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-lg font-black text-white">
                       {instructor.charAt(0)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-black text-[#22334A]">{instructor}</p>
-                      <p className="mt-0.5 text-[12px] font-semibold text-[#22334A]/50">مدرب الدورة</p>
+                      <p className="font-black text-[#0C2A4B]">{instructor}</p>
+                      <p className="mt-0.5 text-[12px] font-semibold text-[#0C2A4B]/50">مدرب الدورة</p>
                     </div>
                     <Link
                       to="/dashboard/student/sessions"
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[#22334A]/12 px-4 py-2 text-[12px] font-black text-[#22334A] transition hover:border-[#EC943C]/30"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-[#0C2A4B]/12 px-4 py-2 text-[12px] font-black text-[#0C2A4B] transition hover:border-[#F28C00]/30"
                     >
                       <Calendar className="h-4 w-4" />
                       جلساتي مع المدرب
@@ -1145,26 +1145,26 @@ export default function StudentCourseLearnPage() {
                 progressPct >= 100
                   ? 'border-emerald-200/80 bg-gradient-to-bl from-emerald-50 to-teal-50/40'
                   : progressPct > 0
-                    ? 'border-[#2691C2]/15 bg-gradient-to-bl from-blue-50/50 to-white/80'
-                    : 'border-[#22334A]/[0.08] bg-white/80'
+                    ? 'border-[#0077B6]/15 bg-gradient-to-bl from-blue-50/50 to-white/80'
+                    : 'border-[#0C2A4B]/[0.08] bg-white/80'
               }`}>
                 <div className="flex flex-wrap items-center gap-4">
                   <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
                     progressPct >= 100 ? 'bg-emerald-100 text-emerald-600'
-                    : progressPct > 0 ? 'bg-[#2691C2]/10 text-[#2691C2]'
-                    : 'bg-[#22334A]/[0.06] text-[#22334A]/40'
+                    : progressPct > 0 ? 'bg-[#0077B6]/10 text-[#0077B6]'
+                    : 'bg-[#0C2A4B]/[0.06] text-[#0C2A4B]/40'
                   }`}>
                     {progressPct >= 100 ? <Award className="h-6 w-6" />
                     : progressPct > 0 ? <GraduationCap className="h-6 w-6" />
                     : <BookOpen className="h-6 w-6" />}
                   </span>
                   <div className="flex-1">
-                    <h3 className={`font-black ${progressPct >= 100 ? 'text-emerald-700' : 'text-[#22334A]'}`}>
+                    <h3 className={`font-black ${progressPct >= 100 ? 'text-emerald-700' : 'text-[#0C2A4B]'}`}>
                       {progressPct >= 100 ? 'أكملت الدورة بنجاح!'
                       : progressPct > 0 ? `استمر في التعلّم — ${progressPct}% مكتمل`
                       : 'ابدأ رحلة التعلّم'}
                     </h3>
-                    <p className="mt-0.5 text-[12px] font-semibold text-[#22334A]/50">
+                    <p className="mt-0.5 text-[12px] font-semibold text-[#0C2A4B]/50">
                       {progressPct >= 100 ? 'يمكنك طلب شهادة إتمام الدورة من الإدارة.'
                       : progressPct > 0 ? 'أكمل الدروس والواجبات للوصول إلى 100%.'
                       : 'ابدأ بمراجعة الوحدات والدروس المتاحة.'}
@@ -1183,13 +1183,13 @@ export default function StudentCourseLearnPage() {
 
                 {progressPct > 0 && progressPct < 100 && (
                   <div className="mt-4">
-                    <div className="mb-1 flex justify-between text-[11px] font-black text-[#22334A]/50">
+                    <div className="mb-1 flex justify-between text-[11px] font-black text-[#0C2A4B]/50">
                       <span>{progressPct}%</span>
                       <span>100%</span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[#22334A]/[0.06]">
+                    <div className="h-2 overflow-hidden rounded-full bg-[#0C2A4B]/[0.06]">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C]"
+                        className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]"
                         initial={{ width: 0 }}
                         animate={{ width: `${progressPct}%` }}
                         transition={{ duration: 1.1, ease: 'easeOut', delay: 0.2 }}

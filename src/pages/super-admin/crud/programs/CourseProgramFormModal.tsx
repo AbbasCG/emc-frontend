@@ -138,7 +138,7 @@ function isDuplicateCourseValue(courses: Course[], currentId: number | undefined
 const EMC_PLACEHOLDER =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#22334A"/><stop offset=".55" stop-color="#2691C2"/><stop offset="1" stop-color="#EC943C"/></linearGradient></defs><rect width="1200" height="675" fill="url(#g)"/><circle cx="1040" cy="90" r="210" fill="rgba(255,255,255,.16)"/><circle cx="140" cy="620" r="260" fill="rgba(255,255,255,.12)"/><text x="600" y="330" fill="white" font-family="Arial, sans-serif" font-size="96" font-weight="900" text-anchor="middle">EMC</text><text x="600" y="398" fill="rgba(255,255,255,.82)" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Premium Learning Program</text></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0C2A4B"/><stop offset=".55" stop-color="#0077B6"/><stop offset="1" stop-color="#F28C00"/></linearGradient></defs><rect width="1200" height="675" fill="url(#g)"/><circle cx="1040" cy="90" r="210" fill="rgba(255,255,255,.16)"/><circle cx="140" cy="620" r="260" fill="rgba(255,255,255,.12)"/><text x="600" y="330" fill="white" font-family="Arial, sans-serif" font-size="96" font-weight="900" text-anchor="middle">EMC</text><text x="600" y="398" fill="rgba(255,255,255,.82)" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Premium Learning Program</text></svg>',
   )
 
 type DatePickerProps = {
@@ -167,26 +167,26 @@ function ModernDatePicker({ label, value, onChange, error }: DatePickerProps) {
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   const labelText = value || 'اختر التاريخ'
   return (
-    <div className="relative text-[11px] font-black text-[#22334A]">
+    <div className="relative text-[11px] font-black text-[#0C2A4B]">
       <span className="mb-1 block">{label}</span>
       <button
         type="button"
         onClick={() => setOpen((x) => !x)}
         className={`${EMC_WIZARD_INPUT_BASE} flex min-h-[46px] items-center justify-between gap-3 bg-white text-right`}
       >
-        <span className={value ? 'font-mono tabular-nums text-[#22334A]' : 'text-slate-400'}>{labelText}</span>
-        <Calendar className="h-4 w-4 text-[#2691C2]" aria-hidden />
+        <span className={value ? 'font-mono tabular-nums text-[#0C2A4B]' : 'text-slate-400'}>{labelText}</span>
+        <Calendar className="h-4 w-4 text-[#0077B6]" aria-hidden />
       </button>
       {open ? (
         <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-3xl border border-white/80 bg-white/95 p-3 shadow-[0_24px_70px_-18px_rgba(15,23,42,.35)] backdrop-blur-xl">
           <div className="mb-3 flex items-center justify-between">
-            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#22334A]">
+            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#0C2A4B]">
               <ChevronRight className="h-4 w-4" />
             </button>
-            <span className="text-sm font-black text-[#22334A]">
+            <span className="text-sm font-black text-[#0C2A4B]">
               {(['يناير','فبراير','مارس','إبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][cursor.getMonth()])} {cursor.getFullYear()}
             </span>
-            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#22334A]">
+            <button type="button" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-[#0C2A4B]">
               <ChevronLeft className="h-4 w-4" />
             </button>
           </div>
@@ -207,7 +207,7 @@ function ModernDatePicker({ label, value, onChange, error }: DatePickerProps) {
                     setOpen(false)
                   }}
                   className={`aspect-square rounded-xl text-[12px] font-black transition ${
-                    selected ? 'bg-gradient-to-l from-[#2691C2] to-[#22334A] text-white shadow-md' : muted ? 'text-slate-300 hover:bg-slate-50' : 'text-[#22334A] hover:bg-[#2691C2]/10'
+                    selected ? 'bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] text-white shadow-md' : muted ? 'text-slate-300 hover:bg-slate-50' : 'text-[#0C2A4B] hover:bg-[#0077B6]/10'
                   }`}
                 >
                   {d.getDate()}
@@ -240,29 +240,29 @@ function ModernTimePicker({ label, value, onChange, error }: TimePickerProps) {
   const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
   const minutes = ['00', '15', '30', '45']
   return (
-    <div className="relative text-[11px] font-black text-[#22334A]">
+    <div className="relative text-[11px] font-black text-[#0C2A4B]">
       <span className="mb-1 block">{label}</span>
       <button
         type="button"
         onClick={() => setOpen((x) => !x)}
         className={`${EMC_WIZARD_INPUT_BASE} flex min-h-[46px] items-center justify-between gap-3 bg-white text-right`}
       >
-        <span className={value ? 'font-mono tabular-nums text-[#22334A]' : 'text-slate-400'}>{value || 'اختر الوقت'}</span>
-        <Clock className="h-4 w-4 text-[#2691C2]" aria-hidden />
+        <span className={value ? 'font-mono tabular-nums text-[#0C2A4B]' : 'text-slate-400'}>{value || 'اختر الوقت'}</span>
+        <Clock className="h-4 w-4 text-[#0077B6]" aria-hidden />
       </button>
       {open ? (
         <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-3xl border border-white/80 bg-white/95 p-3 shadow-[0_24px_70px_-18px_rgba(15,23,42,.35)] backdrop-blur-xl">
           <div className="grid grid-cols-2 gap-3">
             <div className="grid max-h-48 grid-cols-3 gap-1">
               {hours.map((h) => (
-                <button key={h} type="button" onClick={() => onChange(`${h}:${minute ?? '00'}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${h === hour ? 'bg-[#22334A] text-white' : 'bg-slate-50 text-[#22334A]'}`}>
+                <button key={h} type="button" onClick={() => onChange(`${h}:${minute ?? '00'}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${h === hour ? 'bg-[#0C2A4B] text-white' : 'bg-slate-50 text-[#0C2A4B]'}`}>
                   {h}
                 </button>
               ))}
             </div>
             <div className="grid content-start gap-1">
               {minutes.map((m) => (
-                <button key={m} type="button" onClick={() => onChange(`${hour ?? '09'}:${m}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${m === minute ? 'bg-[#2691C2] text-white' : 'bg-slate-50 text-[#22334A]'}`}>
+                <button key={m} type="button" onClick={() => onChange(`${hour ?? '09'}:${m}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${m === minute ? 'bg-[#0077B6] text-white' : 'bg-slate-50 text-[#0C2A4B]'}`}>
                   :{m}
                 </button>
               ))}
@@ -1145,7 +1145,7 @@ export function CourseProgramFormModal({
               e.preventDefault()
               pickImageFile(e.dataTransfer.files?.[0] ?? null)
             }}
-            className="relative rounded-3xl border-2 border-dashed border-[#2691C2]/35 bg-gradient-to-br from-[#2691C2]/[0.06] to-white px-4 py-6 text-center transition hover:border-[#2691C2]/55"
+            className="relative rounded-3xl border-2 border-dashed border-[#0077B6]/35 bg-gradient-to-br from-[#0077B6]/[0.06] to-white px-4 py-6 text-center transition hover:border-[#0077B6]/55"
           >
             <input
               type="file"
@@ -1164,7 +1164,7 @@ export function CourseProgramFormModal({
                 <div className="absolute start-2 top-2 flex gap-2">
                   <label
                     htmlFor="course-wizard-cover"
-                    className="cursor-pointer rounded-xl bg-white/95 px-3 py-1.5 text-[11px] font-black text-[#22334A] shadow-md ring-1 ring-slate-200"
+                    className="cursor-pointer rounded-xl bg-white/95 px-3 py-1.5 text-[11px] font-black text-[#0C2A4B] shadow-md ring-1 ring-slate-200"
                   >
                     تغيير
                   </label>
@@ -1183,10 +1183,10 @@ export function CourseProgramFormModal({
               </div>
             : (
               <label htmlFor="course-wizard-cover" className="flex cursor-pointer flex-col items-center gap-2">
-                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#2691C2]/15 text-[#2691C2] ring-1 ring-[#2691C2]/25">
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#0077B6]/15 text-[#0077B6] ring-1 ring-[#0077B6]/25">
                   <ImagePlus className="h-7 w-7" aria-hidden />
                 </span>
-                <span className="text-sm font-black text-[#22334A]">اسحب صورة الغلاف أو اضغط للرفع</span>
+                <span className="text-sm font-black text-[#0C2A4B]">اسحب صورة الغلاف أو اضغط للرفع</span>
                 <span className="text-[11px] font-semibold text-slate-500">PNG أو JPG — يُرسل الملف للخادم عند الحفظ</span>
               </label>
             )}
@@ -1195,7 +1195,7 @@ export function CourseProgramFormModal({
             <p className="text-[12px] font-bold text-rose-600">{fieldErrors.course_image}</p>
           : null}
 
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             أو أدخل رابط الصورة (اختياري)
             <input
               value={courseImage}
@@ -1209,7 +1209,7 @@ export function CourseProgramFormModal({
             />
           </label>
 
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             العنوان
             <input
               value={title}
@@ -1223,7 +1223,7 @@ export function CourseProgramFormModal({
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.title}</span>
             : null}
           </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             المختصر (slug)
             <input
               value={slug}
@@ -1238,7 +1238,7 @@ export function CourseProgramFormModal({
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.slug}</span>
             : null}
           </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             الوصف المختصر
             <textarea
               value={shortDescription}
@@ -1253,7 +1253,7 @@ export function CourseProgramFormModal({
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.short_description}</span>
             : null}
           </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             الوصف الكامل
             <textarea
               value={description}
@@ -1269,7 +1269,7 @@ export function CourseProgramFormModal({
             : null}
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               نوع البرنامج
               <select value={kind} onChange={(e) => setKind(e.target.value as ProgramKind)} className={EMC_WIZARD_INPUT_BASE}>
                 {KINDS.map((k) => (
@@ -1279,7 +1279,7 @@ export function CourseProgramFormModal({
                 ))}
               </select>
             </label>
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               حالة النشر / العمل
               <select
                 value={status}
@@ -1299,7 +1299,7 @@ export function CourseProgramFormModal({
                 <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.status}</span>
               : null}
             </label>
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               تنسيق الجلسة (للعرض العام)
               <select value={sessionFormat} onChange={(e) => setSessionFormat(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
                 {SESSION_FORMAT_OPTIONS.map((s) => (
@@ -1309,7 +1309,7 @@ export function CourseProgramFormModal({
                 ))}
               </select>
             </label>
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               الإدارة
               <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
                 <option value="">— اختياري —</option>
@@ -1320,7 +1320,7 @@ export function CourseProgramFormModal({
                 ))}
               </select>
             </label>
-            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+            <label className="block text-[11px] font-black sm:col-span-2 text-[#0C2A4B]">
               المسار
               <select value={trackId} onChange={(e) => setTrackId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
                 <option value="">— اختياري —</option>
@@ -1332,7 +1332,7 @@ export function CourseProgramFormModal({
               </select>
             </label>
             {learningPaths.length > 0 && (
-              <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+              <label className="block text-[11px] font-black sm:col-span-2 text-[#0C2A4B]">
                 المسار التعليمي (Learning Path)
                 <select
                   value={learningPathId}
@@ -1347,7 +1347,7 @@ export function CourseProgramFormModal({
                   ))}
                 </select>
                 {learningPathId && (
-                  <p className="mt-1 text-[10px] font-semibold text-[#2691C2]">
+                  <p className="mt-1 text-[10px] font-semibold text-[#0077B6]">
                     ⚠️ الدورة المرتبطة بمسار نشط لا تظهر في صفحة الدورات العامة، وتكون محمية من الحذف والأرشفة.
                   </p>
                 )}
@@ -1360,7 +1360,7 @@ export function CourseProgramFormModal({
     if (currentStep === 2) {
       return (
         <FormSectionCard title="المدرب والجدولة" eyebrow="الخطوة 2" icon={CalendarDays}>
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             نوع التقديم (للزائر)
             <select
               value={locationType}
@@ -1388,7 +1388,7 @@ export function CourseProgramFormModal({
           </label>
 
           {showLocationField ?
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               الموقع / العنوان <span className="text-rose-600">*</span>
               <input
                 value={locationText}
@@ -1420,12 +1420,12 @@ export function CourseProgramFormModal({
               <p className="text-[12px] font-bold text-rose-600">{fieldErrors.instructor_id}</p>
             : null}
             {selectedInstructor ?
-              <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#2691C2]/25 bg-[#2691C2]/[0.06] p-4">
+              <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#0077B6]/25 bg-[#0077B6]/[0.06] p-4">
                 {selectedInstructor.avatar_url ?
                   <img src={selectedInstructor.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white" />
                 : <UserCircle2 className="h-12 w-12 text-slate-400" aria-hidden />}
                 <div className="min-w-0 flex-1 text-right">
-                  <p className="text-sm font-black text-[#22334A]">{selectedInstructor.name}</p>
+                  <p className="text-sm font-black text-[#0C2A4B]">{selectedInstructor.name}</p>
                   <p className="truncate text-xs font-semibold text-slate-600">{selectedInstructor.email}</p>
                 </div>
                 <button
@@ -1463,7 +1463,7 @@ export function CourseProgramFormModal({
                           <img src={u.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
                         : <UserCircle2 className="h-9 w-9 shrink-0 text-slate-400" />}
                         <div className="min-w-0 flex-1">
-                          <p className="text-[13px] font-black text-[#22334A]">{u.name}</p>
+                          <p className="text-[13px] font-black text-[#0C2A4B]">{u.name}</p>
                           <p className="truncate text-[11px] font-semibold text-slate-500">{u.email}</p>
                         </div>
                       </button>
@@ -1476,7 +1476,7 @@ export function CourseProgramFormModal({
               to="/dashboard/super-admin/crud/instructors"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 text-[12px] font-black text-[#2691C2] hover:underline"
+              className="inline-flex items-center gap-2 text-[12px] font-black text-[#0077B6] hover:underline"
             >
               <Plus className="h-4 w-4" aria-hidden />
               إدارة المدربين
@@ -1521,10 +1521,10 @@ export function CourseProgramFormModal({
               }}
               error={fieldErrors.end_time}
             />
-            <div className="hidden text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#0C2A4B]">
               <span className="mb-1 block">تاريخ البداية (اختياري)</span>
               <div className="relative mt-1">
-                <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#0077B6]" aria-hidden />
                 <input
                   type="text"
                   value={startDate}
@@ -1539,10 +1539,10 @@ export function CourseProgramFormModal({
                 <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.start_date}</span>
               : null}
             </div>
-            <div className="hidden text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#0C2A4B]">
               <span className="mb-1 block">وقت البداية (24 ساعة، اختياري)</span>
               <div className="relative mt-1">
-                <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#0077B6]" aria-hidden />
                 <input
                   type="text"
                   step={60}
@@ -1562,10 +1562,10 @@ export function CourseProgramFormModal({
                 </span>
               : null}
             </div>
-            <div className="hidden text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#0C2A4B]">
               <span className="mb-1 block">تاريخ الانتهاء (اختياري)</span>
               <div className="relative mt-1">
-                <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <Calendar className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#0077B6]" aria-hidden />
                 <input
                   type="text"
                   value={endDate}
@@ -1580,10 +1580,10 @@ export function CourseProgramFormModal({
                 <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.end_date}</span>
               : null}
             </div>
-            <div className="hidden text-[11px] font-black text-[#22334A]">
+            <div className="hidden text-[11px] font-black text-[#0C2A4B]">
               <span className="mb-1 block">وقت الانتهاء (24 ساعة، اختياري)</span>
               <div className="relative mt-1">
-                <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#2691C2]" aria-hidden />
+                <Clock className="pointer-events-none absolute end-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[#0077B6]" aria-hidden />
                 <input
                   type="text"
                   step={60}
@@ -1599,7 +1599,7 @@ export function CourseProgramFormModal({
                 <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrors.end_time}</span>
               : null}
             </div>
-            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
+            <label className="block text-[11px] font-black sm:col-span-2 text-[#0C2A4B]">
               رابط الاجتماع (اختياري)
               <input
                 value={meetingLink}
@@ -1617,8 +1617,8 @@ export function CourseProgramFormModal({
         <FormSectionCard title="التفاصيل التعليمية" eyebrow="الخطوة 3" icon={GraduationCap}>
           <div className="grid gap-4 sm:grid-cols-2">
             {isOneSession && (
-              <div className="sm:col-span-2 rounded-xl border border-[#2691C2]/25 bg-[#2691C2]/8 px-4 py-3">
-                <p className="text-sm font-black text-[#22334A]">مدة الورشة: {ONE_SESSION_WORKSHOP_DURATION_AR}</p>
+              <div className="sm:col-span-2 rounded-xl border border-[#0077B6]/25 bg-[#0077B6]/8 px-4 py-3">
+                <p className="text-sm font-black text-[#0C2A4B]">مدة الورشة: {ONE_SESSION_WORKSHOP_DURATION_AR}</p>
                 <p className="mt-1 text-[11px] font-semibold text-[#4a6278]">
                   سيتم عرض مدة الورشة كيوم واحد تلقائياً
                 </p>
@@ -1627,21 +1627,21 @@ export function CourseProgramFormModal({
 
             {/* Duration & training hours — hidden for one-session workshops */}
             {!isOneSession && (
-              <label className="block text-[11px] font-black text-[#22334A]">
+              <label className="block text-[11px] font-black text-[#0C2A4B]">
                 المدة (نص للزائر)
                 <input value={durationText} onChange={(e) => setDurationText(e.target.value)} className={EMC_WIZARD_INPUT_BASE} placeholder="مثال: 4 أسابيع" />
               </label>
             )}
 
             {!isOneSession && (
-              <label className="block text-[11px] font-black text-[#22334A]">
+              <label className="block text-[11px] font-black text-[#0C2A4B]">
                 عدد الساعات التدريبية
                 <input value={trainingHours} onChange={(e) => setTrainingHours(e.target.value)} inputMode="decimal" className={EMC_WIZARD_INPUT_BASE} />
               </label>
             )}
 
             {/* Language — dropdown */}
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               لغة الدورة
               <select value={language} onChange={(e) => setLanguage(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
                 <option value="">— اختياري —</option>
@@ -1652,7 +1652,7 @@ export function CourseProgramFormModal({
 
             {/* Level — dropdown, hidden for workshops */}
             {!isWorkshop && (
-              <label className="block text-[11px] font-black text-[#22334A]">
+              <label className="block text-[11px] font-black text-[#0C2A4B]">
                 المستوى
                 <select value={level} onChange={(e) => setLevel(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
                   <option value="">— اختياري —</option>
@@ -1664,13 +1664,13 @@ export function CourseProgramFormModal({
             )}
 
             {/* Target audience */}
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               الفئة المستهدفة
               <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
             </label>
 
             {/* Certificate — dropdown */}
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               الشهادة المتاحة
               <select value={certificate} onChange={(e) => setCertificate(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
                 <option value="">— اختياري —</option>
@@ -1683,15 +1683,15 @@ export function CourseProgramFormModal({
 
             {/* Placement test toggle */}
             <div className="sm:col-span-2">
-              <p className="mb-2 text-[11px] font-black text-[#22334A]">هل يتطلب اختبار تحديد مستوى؟</p>
+              <p className="mb-2 text-[11px] font-black text-[#0C2A4B]">هل يتطلب اختبار تحديد مستوى؟</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setRequiresPlacementTest(false)}
                   className={`rounded-xl border py-2.5 text-[12px] font-black transition ${
                     !requiresPlacementTest
-                      ? 'border-[#22334A] bg-[#22334A] text-white shadow-md'
-                      : 'border-slate-200 bg-white text-[#22334A]/50 hover:bg-slate-50'
+                      ? 'border-[#0C2A4B] bg-[#0C2A4B] text-white shadow-md'
+                      : 'border-slate-200 bg-white text-[#0C2A4B]/50 hover:bg-slate-50'
                   }`}
                 >
                   لا
@@ -1701,8 +1701,8 @@ export function CourseProgramFormModal({
                   onClick={() => setRequiresPlacementTest(true)}
                   className={`rounded-xl border py-2.5 text-[12px] font-black transition ${
                     requiresPlacementTest
-                      ? 'border-[#2691C2] bg-[#2691C2] text-white shadow-md'
-                      : 'border-slate-200 bg-white text-[#22334A]/50 hover:bg-slate-50'
+                      ? 'border-[#0077B6] bg-[#0077B6] text-white shadow-md'
+                      : 'border-slate-200 bg-white text-[#0C2A4B]/50 hover:bg-slate-50'
                   }`}
                 >
                   نعم
@@ -1712,7 +1712,7 @@ export function CourseProgramFormModal({
           </div>
 
           {/* What you'll learn — always shown */}
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             ماذا ستتعلم؟ (نقطة قصيرة لكل سطر)
             <textarea
               value={learnText}
@@ -1733,7 +1733,7 @@ export function CourseProgramFormModal({
           {/* Course-only fields: hide for workshops */}
           {!isWorkshop && (
             <>
-              <label className="block text-[11px] font-black text-[#22334A]">
+              <label className="block text-[11px] font-black text-[#0C2A4B]">
                 المتطلبات المسبقة (نقطة قصيرة لكل سطر)
                 <textarea
                   value={prerequisites}
@@ -1750,7 +1750,7 @@ export function CourseProgramFormModal({
                   <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'requirements')}</span>
                 : null}
               </label>
-              <label className="block text-[11px] font-black text-[#22334A]">
+              <label className="block text-[11px] font-black text-[#0C2A4B]">
                 المخرجات التعليمية (نقطة قصيرة لكل سطر)
                 <textarea
                   value={learningOutcomes}
@@ -1770,7 +1770,7 @@ export function CourseProgramFormModal({
                   <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'learning_outcomes')}</span>
                 : null}
               </label>
-              <label className="block text-[11px] font-black text-[#22334A]">
+              <label className="block text-[11px] font-black text-[#0C2A4B]">
                 محاور الدورة (نقطة قصيرة لكل سطر)
                 <textarea
                   value={outline}
@@ -1790,7 +1790,7 @@ export function CourseProgramFormModal({
             </>
           )}
 
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             الكلمات المفتاحية (مفصولة بفواصل)
             <input
               value={keywords}
@@ -1808,22 +1808,22 @@ export function CourseProgramFormModal({
     if (currentStep === 4) {
       return (
         <FormSectionCard title="السعر والتسجيل والإدارة الداخلية" eyebrow="الخطوة 4" icon={CreditCard}>
-          <label className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-slate-50/80 px-4 py-3 text-[13px] font-black text-[#22334A]">
+          <label className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-slate-50/80 px-4 py-3 text-[13px] font-black text-[#0C2A4B]">
             <input type="checkbox" checked={priceFree} onChange={(e) => setPriceFree(e.target.checked)} className="size-4 rounded border-slate-300" />
             البرنامج مجاني
           </label>
           {!priceFree ?
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               السعر
               <input value={price} onChange={(e) => setPrice(e.target.value)} className={`${EMC_WIZARD_INPUT_BASE} font-mono`} />
             </label>
           : null}
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-[11px] font-black text-[#22334A]">
+            <label className="block text-[11px] font-black text-[#0C2A4B]">
               عدد المقاعد
               <input value={capacity} onChange={(e) => setCapacity(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
             </label>
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 py-3 text-[13px] font-black text-[#22334A] sm:mt-6">
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 py-3 text-[13px] font-black text-[#0C2A4B] sm:mt-6">
               <input
                 type="checkbox"
                 checked={registrationOpen}
@@ -1833,7 +1833,7 @@ export function CourseProgramFormModal({
               التسجيل مفتوح
             </label>
           </div>
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             ملاحظات داخلية (لا تُعرض للزائر عادةً)
             <textarea
               value={adminNotes}
@@ -1848,7 +1848,7 @@ export function CourseProgramFormModal({
               <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'notes')}</span>
             : null}
           </label>
-          <label className="block text-[11px] font-black text-[#22334A]">
+          <label className="block text-[11px] font-black text-[#0C2A4B]">
             رابط مجتمع الواتساب (اختياري)
             <input
               value={whatsappCommunityUrl}
@@ -1985,13 +1985,13 @@ export function CourseProgramFormModal({
               </div>
             : null}
             {draftHint && !editing ?
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#2691C2]/30 bg-[#2691C2]/[0.07] px-4 py-3 text-[12px] font-bold text-[#22334A]">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#0077B6]/30 bg-[#0077B6]/[0.07] px-4 py-3 text-[12px] font-bold text-[#0C2A4B]">
                 <span>يوجد مسودة محفوظة محليًا لهذا النموذج.</span>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={restoreDraft}
-                    className="rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-[#2691C2] shadow-sm ring-1 ring-[#2691C2]/25"
+                    className="rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-[#0077B6] shadow-sm ring-1 ring-[#0077B6]/25"
                   >
                     استعادة
                   </button>
@@ -2062,7 +2062,7 @@ export function CourseProgramFormModal({
                   onSaved()
                   onClose()
                 }}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-5 py-3 text-sm font-black text-white shadow-lg"
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] px-5 py-3 text-sm font-black text-white shadow-lg"
               >
                 عرض الدورة
               </a>
@@ -2071,7 +2071,7 @@ export function CourseProgramFormModal({
               <button
                 type="button"
                 onClick={handleCreateAnother}
-                className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#2691C2]/40 bg-white px-5 py-3 text-sm font-black text-[#22334A] transition hover:bg-slate-50"
+                className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#0077B6]/40 bg-white px-5 py-3 text-sm font-black text-[#0C2A4B] transition hover:bg-slate-50"
               >
                 إنشاء دورة جديدة
               </button>

@@ -25,7 +25,7 @@ const PLACEMENT_AR: Record<string, string> = {
 }
 
 const selectCls =
-  'h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[11px] font-semibold text-deepBlue/70 outline-none focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100'
+  'h-9 appearance-none rounded-2xl border border-slate-200 bg-white px-3.5 text-[11px] font-semibold text-deepBlue/70 outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100'
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
@@ -99,7 +99,7 @@ export default function InstructorCourseStudentsPage() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="بحث باسم أو بريد..."
             dir="rtl"
-            className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#2691C2] focus:ring-4 focus:ring-sky-100"
+            className="h-9 w-full rounded-2xl border border-slate-200 bg-white pr-8 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
           />
         </div>
         <select value={filterEnroll} onChange={(e) => setFilterEnroll(e.target.value)} dir="rtl" className={selectCls}>

@@ -126,7 +126,7 @@ function InstructorSelect({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm transition hover:border-[#2691C2] focus:border-[#2691C2] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/20"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm transition hover:border-[#0077B6] focus:border-[#0077B6] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
       >
         <div className="flex min-w-0 items-center gap-2">
           <UserCircle className="h-4 w-4 shrink-0 text-slate-400" />
@@ -168,7 +168,7 @@ function InstructorSelect({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث..."
-              className="w-full rounded-lg border border-slate-100 py-1.5 pr-8 pl-3 text-sm focus:border-[#2691C2] focus:outline-none"
+              className="w-full rounded-lg border border-slate-100 py-1.5 pr-8 pl-3 text-sm focus:border-[#0077B6] focus:outline-none"
             />
           </div>
         </div>
@@ -186,8 +186,8 @@ function InstructorSelect({
                 key={opt.id}
                 type="button"
                 onClick={() => select(opt)}
-                className={`flex w-full items-center gap-3 px-3 py-2.5 text-right text-sm transition hover:bg-[#2691C2]/5 ${
-                  String(opt.id) === value ? 'bg-[#2691C2]/10 font-bold text-[#2691C2]' : 'text-slate-700'
+                className={`flex w-full items-center gap-3 px-3 py-2.5 text-right text-sm transition hover:bg-[#0077B6]/5 ${
+                  String(opt.id) === value ? 'bg-[#0077B6]/10 font-bold text-[#0077B6]' : 'text-slate-700'
                 }`}
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
@@ -455,14 +455,14 @@ function FormModal({
               onClick={() => setStep(s.num as FormStep)}
               className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-bold transition ${
                 step === s.num
-                  ? 'border-[#2691C2] text-[#2691C2]'
+                  ? 'border-[#0077B6] text-[#0077B6]'
                   : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
               <span
                 dir="ltr"
                 className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ${
-                  step === s.num ? 'bg-[#2691C2] text-white' : 'bg-slate-100 text-slate-500'
+                  step === s.num ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-500'
                 }`}
               >
                 {s.num}
@@ -483,7 +483,7 @@ function FormModal({
                   value={form.title}
                   onChange={(e) => set('title', e.target.value)}
                   placeholder="مسار مهندس الذكاء الاصطناعي"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/20"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -494,7 +494,7 @@ function FormModal({
                     onChange={(e) => set('slug', e.target.value)}
                     placeholder="ai-engineer-path"
                     dir="ltr"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#0077B6] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -502,7 +502,7 @@ function FormModal({
                   <select
                     value={form.status}
                     onChange={(e) => set('status', e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                   >
                     <option value="draft">مسودة</option>
                     <option value="published">منشور</option>
@@ -535,7 +535,7 @@ function FormModal({
                   value={form.short_description}
                   onChange={(e) => set('short_description', e.target.value)}
                   placeholder="وصف موجز للمسار يظهر في بطاقة المسار..."
-                  className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                 />
               </div>
               <div>
@@ -545,7 +545,7 @@ function FormModal({
                   value={form.full_description}
                   onChange={(e) => set('full_description', e.target.value)}
                   placeholder="وصف شامل للمسار..."
-                  className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                 />
               </div>
               <div className="flex flex-wrap gap-4">
@@ -554,7 +554,7 @@ function FormModal({
                     type="checkbox"
                     checked={form.is_featured}
                     onChange={(e) => set('is_featured', e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-[#2691C2]"
+                    className="h-4 w-4 rounded border-slate-300 text-[#0077B6]"
                   />
                   <span className="text-sm font-semibold text-slate-700">مسار مميز</span>
                 </label>
@@ -563,7 +563,7 @@ function FormModal({
                     type="checkbox"
                     checked={form.enrollment_open}
                     onChange={(e) => set('enrollment_open', e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-[#2691C2]"
+                    className="h-4 w-4 rounded border-slate-300 text-[#0077B6]"
                   />
                   <span className="text-sm font-semibold text-slate-700">التسجيل مفتوح</span>
                 </label>
@@ -576,7 +576,7 @@ function FormModal({
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-bold text-slate-700">صورة الغلاف</label>
-                <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center transition hover:border-[#2691C2]/50 hover:bg-[#2691C2]/5">
+                <label className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center transition hover:border-[#0077B6]/50 hover:bg-[#0077B6]/5">
                   {form.featured_image_preview ? (
                     <img
                       src={form.featured_image_preview}
@@ -611,7 +611,7 @@ function FormModal({
                     onChange={(e) => set('price', e.target.value)}
                     placeholder="440"
                     dir="ltr"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#0077B6] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -623,7 +623,7 @@ function FormModal({
                     onChange={(e) => set('discount_price', e.target.value)}
                     placeholder="390"
                     dir="ltr"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#0077B6] focus:outline-none"
                   />
                 </div>
               </div>
@@ -644,12 +644,12 @@ function FormModal({
                       onChange={(e) => set('duration', e.target.value)}
                       placeholder="6"
                       dir="ltr"
-                      className="w-20 rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#2691C2] focus:outline-none"
+                      className="w-20 rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#0077B6] focus:outline-none"
                     />
                     <select
                       value={form.duration_unit}
                       onChange={(e) => set('duration_unit', e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-200 p-3 text-sm focus:border-[#2691C2] focus:outline-none"
+                      className="flex-1 rounded-xl border border-slate-200 p-3 text-sm focus:border-[#0077B6] focus:outline-none"
                     >
                       <option value="days">أيام</option>
                       <option value="weeks">أسابيع</option>
@@ -662,7 +662,7 @@ function FormModal({
                   <select
                     value={form.level}
                     onChange={(e) => set('level', e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-[#0077B6] focus:outline-none"
                   >
                     <option value="">اختر المستوى</option>
                     <option value="beginner">مبتدئ</option>
@@ -676,7 +676,7 @@ function FormModal({
                     value={form.language}
                     onChange={(e) => set('language', e.target.value)}
                     placeholder="العربية"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -685,7 +685,7 @@ function FormModal({
                     value={form.certificate_name}
                     onChange={(e) => set('certificate_name', e.target.value)}
                     placeholder="AI Engineering Certificate"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                   />
                 </div>
               </div>
@@ -710,14 +710,14 @@ function FormModal({
                         set('learning_outcomes', arr)
                       }}
                       placeholder={`النقطة ${en(i + 1)}`}
-                      className="flex-1 rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                      className="flex-1 rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                     />
                   </div>
                 ))}
                 <button
                   type="button"
                   onClick={() => set('learning_outcomes', [...form.learning_outcomes, ''])}
-                  className="mt-1 text-xs font-semibold text-[#2691C2] hover:underline"
+                  className="mt-1 text-xs font-semibold text-[#0077B6] hover:underline"
                 >
                   + إضافة نقطة
                 </button>
@@ -743,14 +743,14 @@ function FormModal({
                         set('requirements', arr)
                       }}
                       placeholder={`المتطلب ${en(i + 1)}`}
-                      className="flex-1 rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                      className="flex-1 rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                     />
                   </div>
                 ))}
                 <button
                   type="button"
                   onClick={() => set('requirements', [...form.requirements, ''])}
-                  className="mt-1 text-xs font-semibold text-[#2691C2] hover:underline"
+                  className="mt-1 text-xs font-semibold text-[#0077B6] hover:underline"
                 >
                   + إضافة متطلب
                 </button>
@@ -765,7 +765,7 @@ function FormModal({
                     <select
                       value={form.study_days_per_week}
                       onChange={(e) => set('study_days_per_week', e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                      className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                     >
                       <option value="">— غير محدد —</option>
                       {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -780,7 +780,7 @@ function FormModal({
                       onChange={(e) => set('study_time', e.target.value)}
                       placeholder="19:00 - 20:30"
                       dir="ltr"
-                      className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#2691C2] focus:outline-none"
+                      className="w-full rounded-xl border border-slate-200 p-3 text-left text-sm focus:border-[#0077B6] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -804,8 +804,8 @@ function FormModal({
                           }
                           className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
                             checked
-                              ? 'border-[#2691C2] bg-[#2691C2] text-white'
-                              : 'border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/50'
+                              ? 'border-[#0077B6] bg-[#0077B6] text-white'
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/50'
                           }`}
                         >
                           {day}
@@ -821,7 +821,7 @@ function FormModal({
                     value={form.schedule_note}
                     onChange={(e) => set('schedule_note', e.target.value)}
                     placeholder="مرتين في الأسبوع"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#2691C2] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                   />
                 </div>
               </div>
@@ -866,7 +866,7 @@ function FormModal({
             {step < 4 ? (
               <button
                 onClick={() => setStep((s) => (s + 1) as FormStep)}
-                className="rounded-2xl bg-[#2691C2] px-5 py-2.5 text-sm font-black text-white transition hover:bg-[#1d7aab]"
+                className="rounded-2xl bg-[#0077B6] px-5 py-2.5 text-sm font-black text-white transition hover:bg-[#1d7aab]"
               >
                 التالي
               </button>
@@ -874,7 +874,7 @@ function FormModal({
               <button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-6 py-2.5 text-sm font-black text-white transition hover:bg-[#1d7aab] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-6 py-2.5 text-sm font-black text-white transition hover:bg-[#1d7aab] disabled:opacity-60"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                 {editPath ? 'حفظ التعديلات' : 'إنشاء المسار'}
@@ -990,12 +990,12 @@ export default function LearningPathsManagementPage() {
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black text-[#22334A]">المسارات التعليمية</h1>
+          <h1 className="text-3xl font-black text-[#0C2A4B]">المسارات التعليمية</h1>
           <p className="mt-1 text-sm text-slate-500">إدارة المسارات التعليمية المتكاملة للمنصة</p>
         </div>
         <button
           onClick={() => { setEditPath(null); setShowForm(true) }}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#2691C2] px-5 py-3 font-black text-white shadow-md shadow-[#2691C2]/25 transition hover:bg-[#1d7aab]"
+          className="inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-5 py-3 font-black text-white shadow-md shadow-[#0077B6]/25 transition hover:bg-[#1d7aab]"
         >
           <Plus className="h-5 w-5" />
           إنشاء مسار جديد
@@ -1005,7 +1005,7 @@ export default function LearningPathsManagementPage() {
       {/* Stats strip — English numerals */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'إجمالي المسارات', value: meta.total,                                               icon: GraduationCap, color: 'text-[#2691C2]' },
+          { label: 'إجمالي المسارات', value: meta.total,                                               icon: GraduationCap, color: 'text-[#0077B6]' },
           { label: 'المنشورة',        value: paths.filter((p) => p.status === 'published').length,    icon: Eye,           color: 'text-emerald-500' },
           { label: 'المسودات',        value: paths.filter((p) => p.status === 'draft').length,        icon: EyeOff,        color: 'text-slate-400' },
           { label: 'المميزة',         value: paths.filter((p) => p.is_featured).length,               icon: Star,          color: 'text-amber-500' },
@@ -1013,7 +1013,7 @@ export default function LearningPathsManagementPage() {
           <div key={s.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <s.icon className={`h-6 w-6 ${s.color}`} />
-              <p className="text-2xl font-black text-[#22334A]" dir="ltr">{en(s.value)}</p>
+              <p className="text-2xl font-black text-[#0C2A4B]" dir="ltr">{en(s.value)}</p>
             </div>
             <p className="mt-1 text-xs font-semibold text-slate-500">{s.label}</p>
           </div>
@@ -1028,7 +1028,7 @@ export default function LearningPathsManagementPage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="بحث عن مسار..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-9 pl-4 text-sm text-right focus:border-[#2691C2] focus:outline-none focus:ring-2 focus:ring-[#2691C2]/20"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-9 pl-4 text-sm text-right focus:border-[#0077B6] focus:outline-none focus:ring-2 focus:ring-[#0077B6]/20"
           />
         </div>
         <div className="flex gap-2">
@@ -1038,8 +1038,8 @@ export default function LearningPathsManagementPage() {
               onClick={() => { setStatusFilter(t.value); setPage(1) }}
               className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
                 statusFilter === t.value
-                  ? 'bg-[#2691C2] text-white shadow'
-                  : 'border border-slate-200 bg-white text-slate-600 hover:border-[#2691C2]/40'
+                  ? 'bg-[#0077B6] text-white shadow'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/40'
               }`}
             >
               {t.label}
@@ -1051,7 +1051,7 @@ export default function LearningPathsManagementPage() {
       {/* Result count */}
       {!loading && (
         <p className="mb-3 text-[11px] font-bold text-slate-400" dir="rtl">
-          تم العثور على <span className="font-black text-[#22334A]">{paths.length}</span> نتيجة من أصل <span className="font-black text-[#22334A]">{meta.total}</span> مسار
+          تم العثور على <span className="font-black text-[#0C2A4B]">{paths.length}</span> نتيجة من أصل <span className="font-black text-[#0C2A4B]">{meta.total}</span> مسار
         </p>
       )}
 
@@ -1059,7 +1059,7 @@ export default function LearningPathsManagementPage() {
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-[#2691C2]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#0077B6]" />
           </div>
         ) : paths.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -1067,7 +1067,7 @@ export default function LearningPathsManagementPage() {
             <p className="font-semibold text-slate-400">لا توجد مسارات</p>
             <button
               onClick={() => { setEditPath(null); setShowForm(true) }}
-              className="mt-4 text-sm font-bold text-[#2691C2] hover:underline"
+              className="mt-4 text-sm font-bold text-[#0077B6] hover:underline"
             >
               إنشاء أول مسار
             </button>
@@ -1091,13 +1091,13 @@ export default function LearningPathsManagementPage() {
                   // ── Entire row is clickable → opens edit modal ──
                   <tr
                     key={p.id}
-                    className="group cursor-pointer transition hover:bg-[#2691C2]/[0.03]"
+                    className="group cursor-pointer transition hover:bg-[#0077B6]/[0.03]"
                     onClick={() => void openEdit(p)}
                   >
                     {/* Path */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-[#2691C2] to-[#22334A]">
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-[#0077B6] to-[#0C2A4B]">
                           {p.featured_image ? (
                             <img src={p.featured_image} alt={p.title} className="h-full w-full object-cover" />
                           ) : (
@@ -1105,7 +1105,7 @@ export default function LearningPathsManagementPage() {
                           )}
                         </div>
                         <div>
-                          <p className="line-clamp-1 font-black text-[#22334A] group-hover:text-[#2691C2]">
+                          <p className="line-clamp-1 font-black text-[#0C2A4B] group-hover:text-[#0077B6]">
                             {p.title}
                           </p>
                           <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
@@ -1134,7 +1134,7 @@ export default function LearningPathsManagementPage() {
                     <td className="hidden px-4 py-4 sm:table-cell">
                       {p.instructor?.name ? (
                         <div className="flex items-center gap-2">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2691C2]/10 text-xs font-black text-[#2691C2]">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0077B6]/10 text-xs font-black text-[#0077B6]">
                             {p.instructor.name.charAt(0)}
                           </div>
                           <span className="text-slate-700">{p.instructor.name}</span>
@@ -1146,7 +1146,7 @@ export default function LearningPathsManagementPage() {
 
                     {/* Courses — English number */}
                     <td className="hidden px-4 py-4 lg:table-cell">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#2691C2]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#2691C2]" dir="ltr">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#0077B6]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#0077B6]" dir="ltr">
                         <BookOpen className="h-3 w-3" /> {en(p.courses_count)}
                       </span>
                     </td>
@@ -1156,7 +1156,7 @@ export default function LearningPathsManagementPage() {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); void openDetail(p, 'students') }}
-                        className="inline-flex items-center gap-1 rounded-xl px-2 py-1 text-slate-500 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
+                        className="inline-flex items-center gap-1 rounded-xl px-2 py-1 text-slate-500 transition hover:bg-[#0077B6]/10 hover:text-[#0077B6]"
                         title="عرض الطلاب المسجلين"
                         dir="ltr"
                       >
@@ -1167,7 +1167,7 @@ export default function LearningPathsManagementPage() {
 
                     {/* Price — English number */}
                     <td className="hidden px-4 py-4 md:table-cell">
-                      <span className="font-bold text-[#22334A]" dir="ltr">
+                      <span className="font-bold text-[#0C2A4B]" dir="ltr">
                         {p.price != null ? enPrice(p.price) : '—'}
                       </span>
                     </td>
@@ -1182,14 +1182,14 @@ export default function LearningPathsManagementPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => { e.stopPropagation(); void openDetail(p) }}
-                          className="rounded-xl p-2 text-slate-400 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
+                          className="rounded-xl p-2 text-slate-400 transition hover:bg-[#0077B6]/10 hover:text-[#0077B6]"
                           title="عرض التفاصيل والطلاب"
                         >
                           <Users className="h-4 w-4" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); void openEdit(p) }}
-                          className="rounded-xl p-2 text-slate-400 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
+                          className="rounded-xl p-2 text-slate-400 transition hover:bg-[#0077B6]/10 hover:text-[#0077B6]"
                           title="تعديل"
                         >
                           <Pencil className="h-4 w-4" />
@@ -1220,7 +1220,7 @@ export default function LearningPathsManagementPage() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#2691C2] disabled:opacity-40"
+                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#0077B6] disabled:opacity-40"
               >
                 السابق
               </button>
@@ -1230,7 +1230,7 @@ export default function LearningPathsManagementPage() {
               <button
                 disabled={page === meta.last_page}
                 onClick={() => setPage((p) => p + 1)}
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#2691C2] disabled:opacity-40"
+                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#0077B6] disabled:opacity-40"
               >
                 التالي
               </button>
@@ -1287,7 +1287,7 @@ export default function LearningPathsManagementPage() {
 function enrollmentStatusBadge(status: string) {
   if (status === 'completed') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
   if (status === 'dropped')   return 'bg-rose-50 text-rose-700 border-rose-200'
-  return 'bg-[#2691C2]/10 text-[#2691C2] border-[#2691C2]/20'
+  return 'bg-[#0077B6]/10 text-[#0077B6] border-[#0077B6]/20'
 }
 
 function enrollmentStatusLabel(status: string) {
@@ -1301,7 +1301,7 @@ function ProgressBar({ pct }: { pct: number }) {
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
         <div
-          className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#22334A] transition-all"
+          className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] transition-all"
           style={{ width: `${Math.min(100, pct)}%` }}
         />
       </div>
@@ -1346,7 +1346,7 @@ function LearningPathDetailDrawer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 bg-gradient-to-bl from-[#22334A] to-[#2691C2] px-6 py-5 text-white">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-100 bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] px-6 py-5 text-white">
           <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-widest text-white/60">مسار تعليمي</p>
             <h2 className="mt-1 text-xl font-black leading-snug">{path.title}</h2>
@@ -1370,13 +1370,13 @@ function LearningPathDetailDrawer({
         {/* Count cards */}
         <div className="grid grid-cols-3 border-b border-slate-100 bg-slate-50">
           {[
-            { label: 'إجمالي الطلاب', value: counts.students, icon: Users, color: 'text-[#2691C2]' },
+            { label: 'إجمالي الطلاب', value: counts.students, icon: Users, color: 'text-[#0077B6]' },
             { label: 'طلاب نشطون',    value: counts.active_students, icon: TrendingUp, color: 'text-emerald-600' },
             { label: 'أتموا المسار',  value: counts.completed_students, icon: Award, color: 'text-amber-600' },
           ].map((s) => (
             <div key={s.label} className="border-l border-slate-100 px-4 py-3 text-center first:border-0">
               <s.icon className={`mx-auto h-4 w-4 ${s.color}`} />
-              <p className="mt-1 text-xl font-black text-[#22334A]" dir="ltr">{en(s.value)}</p>
+              <p className="mt-1 text-xl font-black text-[#0C2A4B]" dir="ltr">{en(s.value)}</p>
               <p className="text-[10px] font-semibold text-slate-500">{s.label}</p>
             </div>
           ))}
@@ -1391,13 +1391,13 @@ function LearningPathDetailDrawer({
               onClick={() => onTabChange(t.id)}
               className={`flex items-center gap-2 border-b-2 px-4 py-3 text-[12px] font-black transition ${
                 tab === t.id
-                  ? 'border-[#2691C2] text-[#2691C2]'
+                  ? 'border-[#0077B6] text-[#0077B6]'
                   : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
               {t.label}
               {t.id === 'students' && counts.students > 0 && (
-                <span className="rounded-full bg-[#2691C2]/10 px-1.5 py-0.5 text-[9px] font-black text-[#2691C2]" dir="ltr">
+                <span className="rounded-full bg-[#0077B6]/10 px-1.5 py-0.5 text-[9px] font-black text-[#0077B6]" dir="ltr">
                   {en(counts.students)}
                 </span>
               )}
@@ -1414,7 +1414,7 @@ function LearningPathDetailDrawer({
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-[#2691C2]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#0077B6]" />
             </div>
           ) : tab === 'overview' ? (
             <div className="space-y-5 p-6">
@@ -1454,11 +1454,11 @@ function LearningPathDetailDrawer({
               </div>
               {path.instructor && (
                 <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-4">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#2691C2]/10 text-sm font-black text-[#2691C2]">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#0077B6]/10 text-sm font-black text-[#0077B6]">
                     {path.instructor.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-black text-[#22334A]">{path.instructor.name}</p>
+                    <p className="font-black text-[#0C2A4B]">{path.instructor.name}</p>
                     {path.instructor.title && <p className="text-xs font-semibold text-slate-500">{path.instructor.title}</p>}
                   </div>
                 </div>
@@ -1473,12 +1473,12 @@ function LearningPathDetailDrawer({
               ) : (
                 <div className="space-y-2">
                   {path.courses.map((c, i) => (
-                    <div key={c.id} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 hover:border-[#2691C2]/30 transition">
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#2691C2]/10 text-[11px] font-black text-[#2691C2]" dir="ltr">
+                    <div key={c.id} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 hover:border-[#0077B6]/30 transition">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#0077B6]/10 text-[11px] font-black text-[#0077B6]" dir="ltr">
                         {en(i + 1)}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-black text-[#22334A]">{c.title}</p>
+                        <p className="truncate font-black text-[#0C2A4B]">{c.title}</p>
                         {c.duration && (
                           <p className="text-[11px] font-semibold text-slate-500" dir="ltr">
                             <Clock className="mb-0.5 inline h-3 w-3" /> {c.duration}
@@ -1517,11 +1517,11 @@ function LearningPathDetailDrawer({
                         <tr key={s.user_id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-3 py-3">
                             <div className="flex items-center gap-2.5">
-                              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#2691C2]/10 text-[11px] font-black text-[#2691C2]">
+                              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#0077B6]/10 text-[11px] font-black text-[#0077B6]">
                                 {(s.name ?? '?').charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0">
-                                <p className="truncate font-black text-[#22334A]">{s.name}</p>
+                                <p className="truncate font-black text-[#0C2A4B]">{s.name}</p>
                                 <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500 dir-ltr">
                                   <Mail className="h-3 w-3 shrink-0" /> {s.email}
                                 </p>

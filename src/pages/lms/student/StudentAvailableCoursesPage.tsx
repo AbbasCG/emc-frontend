@@ -38,7 +38,7 @@ function AvailableCourseCard({
     <motion.article
       layout
       whileHover={{ y: -4 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white shadow-[0_18px_50px_-24px_rgba(34,51,74,0.45)] transition-shadow duration-300 hover:shadow-[0_28px_60px_-20px_rgba(38,145,194,0.35)]"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white shadow-[0_18px_50px_-24px_rgba(12, 42, 75,0.45)] transition-shadow duration-300 hover:shadow-[0_28px_60px_-20px_rgba(0, 119, 182,0.35)]"
     >
       {/* Image */}
       <div className="relative h-44 overflow-hidden">
@@ -157,7 +157,7 @@ export default function StudentAvailableCoursesPage() {
       <motion.header
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-[1.65rem] bg-gradient-to-bl from-[#2691C2] to-[#22334A] p-6 text-white shadow-lg sm:p-8"
+        className="relative overflow-hidden rounded-[1.65rem] bg-gradient-to-bl from-[#0077B6] to-[#0C2A4B] p-6 text-white shadow-lg sm:p-8"
       >
         <div
           aria-hidden
@@ -204,7 +204,7 @@ export default function StudentAvailableCoursesPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl border border-deepBlue/[0.08] bg-gradient-to-br from-white via-sky-50/30 to-orange-50/25 px-8 py-16 text-center shadow-[0_28px_60px_-32px_rgba(38,145,194,0.35)] ring-1 ring-deepBlue/[0.04]"
+          className="rounded-3xl border border-deepBlue/[0.08] bg-gradient-to-br from-white via-sky-50/30 to-orange-50/25 px-8 py-16 text-center shadow-[0_28px_60px_-32px_rgba(0, 119, 182,0.35)] ring-1 ring-deepBlue/[0.04]"
         >
           <BookOpen className="mx-auto h-14 w-14 text-customBlue opacity-85" aria-hidden />
           <h2 className="mt-6 text-xl font-black text-deepBlue">

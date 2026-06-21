@@ -45,13 +45,13 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
   return (
     <section className="mt-4" aria-label="دورات ذات صلة">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-base font-black text-[#22334A]">دورات ذات صلة</h2>
+        <h2 className="text-base font-black text-[#0C2A4B]">دورات ذات صلة</h2>
         <div className="flex gap-1">
           <button
             type="button"
             disabled={!canPrev}
             onClick={() => scrollBy(-280)}
-            className="rounded-xl border border-[#22334A]/10 bg-white/90 p-2 shadow-sm transition hover:border-[#2691C2]/30 disabled:opacity-30"
+            className="rounded-xl border border-[#0C2A4B]/10 bg-white/90 p-2 shadow-sm transition hover:border-[#0077B6]/30 disabled:opacity-30"
             aria-label="السابق"
           >
             <ChevronRight className="h-4 w-4" />
@@ -60,7 +60,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
             type="button"
             disabled={!canNext}
             onClick={() => scrollBy(280)}
-            className="rounded-xl border border-[#22334A]/10 bg-white/90 p-2 shadow-sm transition hover:border-[#2691C2]/30 disabled:opacity-30"
+            className="rounded-xl border border-[#0C2A4B]/10 bg-white/90 p-2 shadow-sm transition hover:border-[#0077B6]/30 disabled:opacity-30"
             aria-label="التالي"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -76,7 +76,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
             <Link
               key={course.id}
               to={`/courses/${course.slug}`}
-              className="group w-[min(100%,280px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/90 shadow-[0_8px_30px_-12px_rgba(34,51,74,0.15)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-14px_rgba(34,51,74,0.2)]"
+              className="group w-[min(100%,280px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/90 shadow-[0_8px_30px_-12px_rgba(12, 42, 75,0.15)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-14px_rgba(12, 42, 75,0.2)]"
             >
               <div className="relative h-32 overflow-hidden">
                 <img
@@ -85,13 +85,13 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
                   loading="lazy"
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#22334A]/50 to-transparent" />
-                <span className="absolute right-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black tabular-nums text-[#22334A] shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/50 to-transparent" />
+                <span className="absolute right-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black tabular-nums text-[#0C2A4B] shadow-sm">
                   {isFree ? 'مجانية' : formatPrice(course.price)}
                 </span>
               </div>
               <div className="p-3 text-right">
-                <p className="line-clamp-2 text-sm font-black text-[#22334A] transition group-hover:text-[#2691C2]">
+                <p className="line-clamp-2 text-sm font-black text-[#0C2A4B] transition group-hover:text-[#0077B6]">
                   {course.title}
                 </p>
                 {course.short_description ?

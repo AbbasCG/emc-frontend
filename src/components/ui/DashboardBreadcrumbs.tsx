@@ -74,7 +74,7 @@ export default function DashboardBreadcrumbs({ items }: { items?: BreadcrumbItem
             {crumb.href && !isLast ? (
               <Link
                 to={crumb.href}
-                className="rounded px-1 py-0.5 transition hover:text-[#2691C2]"
+                className="rounded px-1 py-0.5 transition hover:text-[#0077B6]"
               >
                 {crumb.label}
               </Link>

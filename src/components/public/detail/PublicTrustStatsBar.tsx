@@ -24,7 +24,7 @@ export default function PublicTrustStatsBar({ stats }: { stats: TrustStat[] }) {
                 i > 0 ? 'sm:border-s sm:border-slate-100 sm:ps-4' : ''
               }`}
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-customBlue ring-1 ring-[#2691C2]/15">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-customBlue ring-1 ring-[#0077B6]/15">
                 <Icon size={18} aria-hidden />
               </span>
               <div className="min-w-0 text-right">

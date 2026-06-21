@@ -22,7 +22,7 @@ function Expandable({ text }: { text: string }) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="mt-1.5 text-[11px] font-black text-[#2691C2] hover:underline"
+          className="mt-1.5 text-[11px] font-black text-[#0077B6] hover:underline"
         >
           {open ? 'عرض أقل' : 'عرض المزيد'}
         </button>
@@ -46,8 +46,8 @@ export default function PremiumDescription({ derived, shortDescription, requirem
 
   return (
     <section aria-label="وصف الدورة" dir="rtl" className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-[#22334A]">
-        <span className="h-4 w-1 rounded-full bg-[#2691C2]" aria-hidden />
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-[#0C2A4B]">
+        <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
         عن البرنامج
       </h2>
       <div className="space-y-3">
@@ -89,7 +89,7 @@ export default function PremiumDescription({ derived, shortDescription, requirem
         {derived.keywordTags.length > 0 ?
           <div className="flex flex-wrap gap-1">
             {derived.keywordTags.map((tag) => (
-              <span key={tag} className="rounded-full bg-[#2691C2]/8 px-2 py-0.5 text-[10px] font-black text-[#22334A]">
+              <span key={tag} className="rounded-full bg-[#0077B6]/8 px-2 py-0.5 text-[10px] font-black text-[#0C2A4B]">
                 {tag}
               </span>
             ))}

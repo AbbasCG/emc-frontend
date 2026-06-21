@@ -127,7 +127,7 @@ export default function FinancePaymentsActivity({
             initial={{ opacity: 0, x: 8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: Math.min(i * 0.03, 0.36), duration: 0.3 }}
-            whileHover={{ backgroundColor: 'rgba(38,145,194,0.06)' }}
+            whileHover={{ backgroundColor: 'rgba(0, 119, 182,0.06)' }}
             className="group rounded-2xl px-4 py-3.5 transition-colors"
           >
             <div className="flex flex-wrap items-center justify-between gap-4">

@@ -31,7 +31,7 @@ export function EntityActionMenu(props: {
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex min-w-[7rem] flex-1 items-center justify-center rounded-2xl bg-gradient-to-l from-[#2691C2] to-[#22334A] px-4 py-2.5 text-[12px] font-black text-white shadow-md sm:flex-none"
+          className="inline-flex min-w-[7rem] flex-1 items-center justify-center rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] px-4 py-2.5 text-[12px] font-black text-white shadow-md sm:flex-none"
         >
           {editLabel}
         </button>

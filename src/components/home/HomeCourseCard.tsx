@@ -54,12 +54,12 @@ export default function HomeCourseCard({ course, index }: Props) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue via-[#1a3a5c] to-customBlue">
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue via-[#0E5A8A] to-customBlue">
             <BookOpen className="h-14 w-14 text-white/25" aria-hidden />
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1b2a]/70 via-[#0d1b2a]/8 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#06182C]/70 via-[#06182C]/8 to-transparent" />
 
         {/* Badges — top-start (right in RTL) */}
         <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">

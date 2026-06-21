@@ -40,7 +40,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
                 layout
                 className={cn(
                   'grid place-items-center rounded-lg font-black transition',
-                  active && 'h-7 w-7 bg-[#EC943C] text-white shadow-md ring-2 ring-white/30 text-[11px]',
+                  active && 'h-7 w-7 bg-[#F28C00] text-white shadow-md ring-2 ring-white/30 text-[11px]',
                   done && 'h-5 w-5 bg-emerald-400 text-white text-[9px]',
                   !done && !active && 'h-5 w-5 border border-white/25 bg-white/10 text-white/40 text-[9px]',
                   clickable && 'cursor-pointer hover:brightness-110',
@@ -71,7 +71,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
       <div className="hidden lg:block">
         <div className="relative mb-6">
           <div
-            className="absolute end-[8%] start-[8%] top-[22px] z-0 h-[5px] rounded-full bg-gradient-to-l from-slate-200 via-[#2691C2]/25 to-slate-200"
+            className="absolute end-[8%] start-[8%] top-[22px] z-0 h-[5px] rounded-full bg-gradient-to-l from-slate-200 via-[#0077B6]/25 to-slate-200"
             aria-hidden
           />
           <div
@@ -94,7 +94,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
                       done && 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white',
                       active &&
                         !done &&
-                        'bg-gradient-to-br from-[#EC943C] to-amber-600 text-white shadow-[0_12px_28px_rgba(236,148,60,0.35)]',
+                        'bg-gradient-to-br from-[#F28C00] to-amber-600 text-white shadow-[0_12px_28px_rgba(242, 140, 0,0.35)]',
                       !done && !active && 'border border-slate-200 bg-white text-slate-500',
                       clickable && 'cursor-pointer hover:brightness-105',
                     )}
@@ -103,7 +103,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
                       <Check className="h-5 w-5" aria-hidden />
                     : meta.id}
                   </motion.button>
-                  <p className="mt-2 hidden text-[11px] font-black leading-snug text-[#22334A] lg:block">
+                  <p className="mt-2 hidden text-[11px] font-black leading-snug text-[#0C2A4B] lg:block">
                     {meta.title}
                   </p>
                 </div>
@@ -122,7 +122,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
               key={meta.id}
               className={cn(
                 'flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition',
-                active && 'border-[#2691C2]/45 bg-[#2691C2]/[0.06] shadow-sm',
+                active && 'border-[#0077B6]/45 bg-[#0077B6]/[0.06] shadow-sm',
                 done && !active && 'border-emerald-200/80 bg-emerald-50/50',
                 !done && !active && 'border-slate-200/80 bg-white/90',
               )}
@@ -131,7 +131,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
                 className={cn(
                   'grid h-8 w-8 shrink-0 place-items-center rounded-xl text-[11px] font-black',
                   done && 'bg-emerald-600 text-white',
-                  active && !done && 'bg-[#EC943C] text-white',
+                  active && !done && 'bg-[#F28C00] text-white',
                   !done && !active && 'bg-slate-100 text-slate-600',
                 )}
               >
@@ -140,7 +140,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
                 : meta.id}
               </span>
               <div className="min-w-0 flex-1 text-right">
-                <p className="text-[12px] font-black text-[#22334A]">{meta.title}</p>
+                <p className="text-[12px] font-black text-[#0C2A4B]">{meta.title}</p>
                 {meta.hint ?
                   <p className="text-[10px] font-semibold text-slate-500">{meta.hint}</p>
                 : null}

@@ -169,8 +169,8 @@ function DrawerContent({
   return (
     <>
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="relative flex shrink-0 items-center gap-4 overflow-hidden bg-gradient-to-l from-[#22334A] to-[#1a2d44] px-5 py-5 text-white">
-        <div className="pointer-events-none absolute -left-6 top-0 h-28 w-28 rounded-full bg-[#EC943C]/20 blur-[50px]" />
+      <div className="relative flex shrink-0 items-center gap-4 overflow-hidden bg-gradient-to-l from-[#0C2A4B] to-[#1a2d44] px-5 py-5 text-white">
+        <div className="pointer-events-none absolute -left-6 top-0 h-28 w-28 rounded-full bg-[#F28C00]/20 blur-[50px]" />
 
         {/* Avatar */}
         {s.avatar_url ? (
@@ -222,7 +222,7 @@ function DrawerContent({
               {s.course_id && (
                 <Link
                   to={`/dashboard/instructor/courses/${s.course_id}/placement-students`}
-                  className="flex shrink-0 items-center gap-1 rounded-xl bg-[#2691C2]/[0.08] px-2.5 py-1 text-[10px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.15]"
+                  className="flex shrink-0 items-center gap-1 rounded-xl bg-[#0077B6]/[0.08] px-2.5 py-1 text-[10px] font-black text-[#0077B6] transition hover:bg-[#0077B6]/[0.15]"
                   onClick={onClose}
                 >
                   <ExternalLink className="h-3 w-3" />
@@ -474,7 +474,7 @@ function DrawerContent({
           <button
             type="button"
             onClick={onStartAssessment}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0077B6] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105"
           >
             <Mic className="h-4 w-4" />
             {progress.level_approved ? 'تعديل التقييم الشفوي' : 'بدء التقييم الشفوي'}
@@ -485,7 +485,7 @@ function DrawerContent({
           <Link
             to={`/dashboard/instructor/courses/${s.course_id}/placement-students`}
             onClick={onClose}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0077B6] px-4 py-3 text-[13px] font-black text-white transition hover:brightness-105"
           >
             <Mic className="h-4 w-4" />
             {progress.level_approved ? 'تعديل التقييم الشفوي' : 'انتقل إلى التقييم الشفوي'}

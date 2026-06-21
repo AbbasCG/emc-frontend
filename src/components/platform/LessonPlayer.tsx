@@ -36,7 +36,7 @@ export default function LessonPlayer({ lesson, modules }: Props) {
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-l from-customBlue to-customOrange"
+              className="h-full rounded-full bg-gradient-to-l from-brand-400 to-brand-600"
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
               transition={{ duration: 0.6, ease: 'easeOut' }}

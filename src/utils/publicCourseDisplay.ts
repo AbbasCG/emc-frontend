@@ -47,7 +47,7 @@ export const ITEM_LABELS: Record<
 export const EMC_COURSE_COVER_PLACEHOLDER =
   'data:image/svg+xml,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><defs><linearGradient id="e" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#22334A"/><stop offset="100%" stop-color="#2691C2"/></linearGradient></defs><rect fill="url(#e)" width="1200" height="800"/><text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-weight="900" font-size="52">EMC</text><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" fill="#ffffffc0" font-family="system-ui,sans-serif" font-size="22">برامج تدريبية</text></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><defs><linearGradient id="e" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0C2A4B"/><stop offset="100%" stop-color="#0077B6"/></linearGradient></defs><rect fill="url(#e)" width="1200" height="800"/><text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-weight="900" font-size="52">EMC</text><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" fill="#ffffffc0" font-family="system-ui,sans-serif" font-size="22">برامج تدريبية</text></svg>`,
   )
 
 function trimStr(raw: unknown): string | null {

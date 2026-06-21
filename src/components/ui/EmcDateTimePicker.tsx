@@ -127,7 +127,7 @@ function TimeColumn({
   return (
     <div className="min-w-0">
       <p className="mb-1 text-center text-[10px] font-bold text-slate-500">{label}</p>
-      <div className="max-h-36 overflow-y-auto rounded-xl border border-[#22334A]/10 bg-white p-1 scrollbar-thin">
+      <div className="max-h-36 overflow-y-auto rounded-xl border border-[#0C2A4B]/10 bg-white p-1 scrollbar-thin">
         {items.map((item) => {
           const active = item === value
           return (
@@ -137,7 +137,7 @@ function TimeColumn({
               onClick={() => onSelect(item)}
               className={cn(
                 'flex w-full items-center justify-center rounded-lg py-1.5 text-[12px] font-bold tabular-nums transition',
-                active ? 'bg-[#2691C2] text-white' : 'text-[#22334A] hover:bg-slate-100',
+                active ? 'bg-[#0077B6] text-white' : 'text-[#0C2A4B] hover:bg-slate-100',
               )}
             >
               {String(item).padStart(2, '0')}
@@ -250,9 +250,9 @@ export default function EmcDateTimePicker({
 
   return (
     <div className="block text-right font-[Cairo,Tajawal,sans-serif]">
-      <span className="text-[12px] font-black text-[#22334A]/70">
+      <span className="text-[12px] font-black text-[#0C2A4B]/70">
         {label}
-        {required ? <span className="text-[#EC943C]"> *</span> : null}
+        {required ? <span className="text-[#F28C00]"> *</span> : null}
       </span>
 
       <button
@@ -264,16 +264,16 @@ export default function EmcDateTimePicker({
         onClick={() => setOpen((v) => !v)}
         className={cn(
           'mt-1.5 flex w-full items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-right transition',
-          error ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-[#22334A]/12',
-          'bg-white hover:border-[#2691C2]/30 focus:border-[#2691C2]/50 focus:outline-none focus:ring-4 focus:ring-[#2691C2]/10',
+          error ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-100' : 'border-[#0C2A4B]/12',
+          'bg-white hover:border-[#0077B6]/30 focus:border-[#0077B6]/50 focus:outline-none focus:ring-4 focus:ring-[#0077B6]/10',
         )}
       >
-        <Calendar className="h-4 w-4 shrink-0 text-[#2691C2]" aria-hidden />
+        <Calendar className="h-4 w-4 shrink-0 text-[#0077B6]" aria-hidden />
         <span className="min-w-0 flex-1">
           {value.trim() ?
             <>
-              <span className="block truncate text-[13px] font-semibold text-[#22334A]">{selectedDate}</span>
-              <span className="block text-[12px] font-black tabular-nums text-[#2691C2]">{selectedTime}</span>
+              <span className="block truncate text-[13px] font-semibold text-[#0C2A4B]">{selectedDate}</span>
+              <span className="block text-[12px] font-black tabular-nums text-[#0077B6]">{selectedTime}</span>
             </>
           : <span className="block text-[13px] font-semibold text-slate-400">{placeholder}</span>}
         </span>
@@ -295,7 +295,7 @@ export default function EmcDateTimePicker({
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
+          className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12, 42, 75,0.35)]"
           dir="rtl"
         >
           {(showDatePresets || durationFrom) && (
@@ -306,7 +306,7 @@ export default function EmcDateTimePicker({
                     key={p.id}
                     type="button"
                     onClick={() => applyPreset(p.apply(value))}
-                    className="rounded-lg border border-[#22334A]/10 bg-white px-2.5 py-1 text-[11px] font-black text-[#22334A] transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+                    className="rounded-lg border border-[#0C2A4B]/10 bg-white px-2.5 py-1 text-[11px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/30 hover:text-[#0077B6]"
                   >
                     {p.label}
                   </button>
@@ -317,7 +317,7 @@ export default function EmcDateTimePicker({
                     key={p.id}
                     type="button"
                     onClick={() => applyPreset(addMinutesToDatetimeLocal(durationFrom, p.minutes))}
-                    className="rounded-lg border border-[#EC943C]/25 bg-[#EC943C]/10 px-2.5 py-1 text-[11px] font-black text-[#b36a1f] transition hover:bg-[#EC943C]/20"
+                    className="rounded-lg border border-[#F28C00]/25 bg-[#F28C00]/10 px-2.5 py-1 text-[11px] font-black text-[#C97208] transition hover:bg-[#F28C00]/20"
                   >
                     {p.label}
                   </button>
@@ -330,16 +330,16 @@ export default function EmcDateTimePicker({
               <button
                 type="button"
                 onClick={nextMonth}
-                className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100"
+                className="rounded-lg p-1.5 text-[#0C2A4B]/60 transition hover:bg-slate-100"
                 aria-label="الشهر التالي"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <p className="text-[13px] font-black text-[#22334A]">{monthLabel(viewYear, viewMonth)}</p>
+              <p className="text-[13px] font-black text-[#0C2A4B]">{monthLabel(viewYear, viewMonth)}</p>
               <button
                 type="button"
                 onClick={prevMonth}
-                className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100"
+                className="rounded-lg p-1.5 text-[#0C2A4B]/60 transition hover:bg-slate-100"
                 aria-label="الشهر السابق"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -381,10 +381,10 @@ export default function EmcDateTimePicker({
                     className={cn(
                       'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',
                       isSelected
-                        ? 'bg-[#2691C2] text-white shadow-sm'
+                        ? 'bg-[#0077B6] text-white shadow-sm'
                         : isToday
-                          ? 'bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/30'
-                          : 'text-[#22334A] hover:bg-slate-100',
+                          ? 'bg-[#0077B6]/10 text-[#0077B6] ring-1 ring-[#0077B6]/30'
+                          : 'text-[#0C2A4B] hover:bg-slate-100',
                     )}
                   >
                     {day}
@@ -394,8 +394,8 @@ export default function EmcDateTimePicker({
             </div>
 
             <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-3">
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-black text-[#22334A]/70">
-                <Clock className="h-3.5 w-3.5 text-[#2691C2]" aria-hidden />
+              <div className="mb-2 flex items-center gap-2 text-[11px] font-black text-[#0C2A4B]/70">
+                <Clock className="h-3.5 w-3.5 text-[#0077B6]" aria-hidden />
                 الوقت
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -407,20 +407,20 @@ export default function EmcDateTimePicker({
 
           <div className="shrink-0 border-t border-slate-100 bg-white px-3 py-2.5">
             {draftPreview ?
-              <p className="mb-2 text-center text-[11px] font-semibold text-[#2691C2]">{draftPreview}</p>
+              <p className="mb-2 text-center text-[11px] font-semibold text-[#0077B6]">{draftPreview}</p>
             : null}
             <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#22334A]"
+                className="rounded-xl border border-slate-200 px-3 py-2 text-[11px] font-black text-[#0C2A4B]"
               >
                 إلغاء
               </button>
               <button
                 type="button"
                 onClick={confirm}
-                className="rounded-xl bg-[#2691C2] px-4 py-2 text-[11px] font-black text-white"
+                className="rounded-xl bg-[#0077B6] px-4 py-2 text-[11px] font-black text-white"
               >
                 تأكيد
               </button>

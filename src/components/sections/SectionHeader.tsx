@@ -41,7 +41,7 @@ export default function SectionHeader({
         {title}
       </h2>
       <span
-        className={`mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange via-customBlue/60 to-deepBlue/30 ${align === 'center' ? 'mx-auto' : ''}`}
+        className={`mt-4 block h-1 w-20 rounded-full bg-customOrange ${align === 'center' ? 'mx-auto' : ''}`}
       />
       {body && (
         <p className="mt-4 text-base font-medium leading-relaxed text-deepBlue/70 md:text-lg md:leading-relaxed">{body}</p>

@@ -8,7 +8,7 @@ import { safeTrimUnknown } from '@/utils/publicCourseNormalize'
 const AVATAR_PLACEHOLDER =
   'data:image/svg+xml,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><circle cx="80" cy="80" r="80" fill="#2691C2"/><circle cx="80" cy="60" r="26" fill="rgba(255,255,255,0.35)"/><path fill="rgba(255,255,255,0.25)" d="M20 148c14-36 34-52 60-52s46 16 60 52"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><circle cx="80" cy="80" r="80" fill="#0077B6"/><circle cx="80" cy="60" r="26" fill="rgba(255,255,255,0.35)"/><path fill="rgba(255,255,255,0.25)" d="M20 148c14-36 34-52 60-52s46 16 60 52"/></svg>`,
   )
 
 type Props = {
@@ -31,35 +31,35 @@ export default function PremiumInstructor({ instructor, course }: Props) {
 
   return (
     <section aria-label="المدرب" dir="rtl">
-      <h2 className="mb-5 flex items-center gap-2.5 text-sm font-black text-[#22334A]">
-        <span className="h-4 w-1 rounded-full bg-[#EC943C]" aria-hidden />
+      <h2 className="mb-5 flex items-center gap-2.5 text-sm font-black text-[#0C2A4B]">
+        <span className="h-4 w-1 rounded-full bg-[#F28C00]" aria-hidden />
         عن المدرب
       </h2>
 
-      <div className="overflow-hidden rounded-2xl border border-[#22334A]/8 bg-gradient-to-br from-[#2691C2]/5 via-white to-[#EC943C]/4 shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/8 bg-gradient-to-br from-[#0077B6]/5 via-white to-[#F28C00]/4 shadow-sm">
         <div className="flex items-start gap-4 p-5 text-right">
           <img
             src={instructor.avatarUrl ?? AVATAR_PLACEHOLDER}
             alt=""
             loading="lazy"
-            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-md ring-2 ring-[#2691C2]/18"
+            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-md ring-2 ring-[#0077B6]/18"
           />
           <div className="min-w-0 flex-1">
-            <p className="text-base font-black text-[#22334A]">{instructor.name}</p>
+            <p className="text-base font-black text-[#0C2A4B]">{instructor.name}</p>
             {instructor.title && (
-              <p className="mt-0.5 text-xs font-bold text-[#2691C2]">{instructor.title}</p>
+              <p className="mt-0.5 text-xs font-bold text-[#0077B6]">{instructor.title}</p>
             )}
 
             {(coursesCount || studentsCount) && (
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {coursesCount && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-[#22334A]/6 px-2.5 py-1 text-[10px] font-black text-[#22334A]">
+                  <span className="flex items-center gap-1.5 rounded-full bg-[#0C2A4B]/6 px-2.5 py-1 text-[10px] font-black text-[#0C2A4B]">
                     <BookOpen className="h-3 w-3" />
                     {formatPublicText(coursesCount)} دورة
                   </span>
                 )}
                 {studentsCount && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-[#2691C2]/8 px-2.5 py-1 text-[10px] font-black text-[#2691C2]">
+                  <span className="flex items-center gap-1.5 rounded-full bg-[#0077B6]/8 px-2.5 py-1 text-[10px] font-black text-[#0077B6]">
                     <Users className="h-3 w-3" />
                     {formatPublicText(studentsCount)} متدرب
                   </span>
@@ -74,7 +74,7 @@ export default function PremiumInstructor({ instructor, course }: Props) {
                   <button
                     type="button"
                     onClick={() => setBioExpanded((v) => !v)}
-                    className="mt-1 text-[11px] font-black text-[#2691C2] hover:underline"
+                    className="mt-1 text-[11px] font-black text-[#0077B6] hover:underline"
                   >
                     {bioExpanded ? 'عرض أقل' : 'عرض المزيد'}
                   </button>
@@ -85,7 +85,7 @@ export default function PremiumInstructor({ instructor, course }: Props) {
             {instructor.email && (
               <a
                 href={`mailto:${instructor.email}`}
-                className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#2691C2] hover:underline"
+                className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0077B6] hover:underline"
                 dir="ltr"
               >
                 <Mail className="h-3 w-3" />

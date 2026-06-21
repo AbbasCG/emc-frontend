@@ -34,7 +34,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 
 export default function HomeImpactMetrics() {
   return (
-    <section dir="rtl" className="relative overflow-hidden bg-[#0d1b2a] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
+    <section dir="rtl" className="relative overflow-hidden bg-[#06182C] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
       {/* Subtle grid */}
       <div
         aria-hidden
