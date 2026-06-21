@@ -35,7 +35,7 @@ export default function HomeCourseCard({ course, index }: Props) {
     <motion.article
       variants={staggerItem}
       whileHover={{ y: -6 }}
-      className="group flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)]"
+      className="group flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-customBlue/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)]"
     >
       {/* Cover image */}
       <div className="relative aspect-[16/10] shrink-0 overflow-hidden">

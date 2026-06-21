@@ -1,5 +1,6 @@
 import { AlertCircle } from 'lucide-react'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { cn } from '@/lib/utils'
 
 type Props = {
   error: unknown
@@ -18,10 +19,10 @@ export default function ApiErrorAlert({
     <div
       role="alert"
       aria-live="assertive"
-      className={[
+      className={cn(
         'flex items-start gap-3 rounded-xl bg-red-50 p-4 text-red-800 ring-1 ring-red-100',
-        className ?? '',
-      ].join(' ')}
+        className,
+      )}
     >
       <AlertCircle size={22} className="mt-0.5 shrink-0 text-red-500" aria-hidden />
       <div className="min-w-0 text-right">

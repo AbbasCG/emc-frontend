@@ -193,7 +193,7 @@ export default function Login() {
 
               <Link
                 to="/forgot-password"
-                className="text-right text-sm font-black text-customBlue hover:text-customOrange"
+                className="text-right text-sm font-black text-customBlue hover:text-accent-700"
               >
                 نسيت كلمة المرور؟
               </Link>
@@ -222,7 +222,7 @@ export default function Login() {
 
             <p className="mt-7 text-center text-sm font-bold text-slate-500">
               ليس لديك حساب؟{' '}
-              <Link to={signupHref} className="text-customBlue transition hover:text-customOrange">
+              <Link to={signupHref} className="text-customBlue transition hover:text-accent-700">
                 أنشئ حساباً
               </Link>
             </p>

@@ -38,7 +38,7 @@ function AvailableCourseCard({
     <motion.article
       layout
       whileHover={{ y: -4 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white shadow-[0_18px_50px_-24px_rgba(34,51,74,0.45)] ring-1 ring-deepBlue/[0.04] transition-shadow duration-300 hover:shadow-[0_28px_60px_-20px_rgba(38,145,194,0.35)]"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white shadow-[0_18px_50px_-24px_rgba(34,51,74,0.45)] transition-shadow duration-300 hover:shadow-[0_28px_60px_-20px_rgba(38,145,194,0.35)]"
     >
       {/* Image */}
       <div className="relative h-44 overflow-hidden">

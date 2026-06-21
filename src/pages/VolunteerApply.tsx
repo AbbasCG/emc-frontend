@@ -683,7 +683,7 @@ export default function VolunteerApply() {
                       />
                     </Field>
 
-                    <Field label="السيرة الذاتية" required error={fieldErrors.cv_file}>
+                    <Field label="السيرة الذاتية" error={fieldErrors.cv_file}>
                       <div className="flex flex-wrap items-center gap-3">
                         <input
                           ref={fileRef}
@@ -700,9 +700,7 @@ export default function VolunteerApply() {
                           className={`inline-flex items-center gap-2 rounded-xl border border-dashed px-5 py-3 text-sm font-bold transition ${
                             form.cv_file
                               ? 'border-customBlue/50 bg-sky-50 text-customBlue'
-                              : fieldErrors.cv_file
-                                ? 'border-red-400 bg-red-50 text-red-600 hover:border-red-500'
-                                : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-customBlue/50 hover:bg-sky-50 hover:text-customBlue'
+                              : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-customBlue/50 hover:bg-sky-50 hover:text-customBlue'
                           }`}
                         >
                           {form.cv_file ? (

@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils'
+
 type AppBadgeProps = {
   label: string
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error'
@@ -19,5 +21,5 @@ export default function AppBadge({ label, variant = 'primary', size = 'md', clas
     md: 'px-4 py-2 text-sm',
   }
 
-  return <span className={`inline-flex rounded-full font-bold ${variants[variant]} ${sizes[size]} ${className}`}>{label}</span>
+  return <span className={cn('inline-flex rounded-full font-bold', variants[variant], sizes[size], className)}>{label}</span>
 }

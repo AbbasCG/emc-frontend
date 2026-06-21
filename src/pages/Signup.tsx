@@ -315,7 +315,7 @@ export default function Signup() {
                     `/login?next=${encodeURIComponent(redirectTo)}`
                   : '/login'
                 }
-                className="text-customBlue transition hover:text-customOrange"
+                className="text-customBlue transition hover:text-accent-700"
               >
                 تسجيل الدخول
               </Link>

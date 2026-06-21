@@ -216,7 +216,7 @@ export default function Register() {
           <div className="mt-6">
             <Link
               to="/courses"
-              className="inline-flex items-center gap-2 text-sm font-extrabold text-customBlue transition hover:text-customOrange"
+              className="inline-flex items-center gap-2 text-sm font-extrabold text-customBlue transition hover:text-accent-700"
             >
               <ArrowLeft size={17} />
               العودة إلى الدورات

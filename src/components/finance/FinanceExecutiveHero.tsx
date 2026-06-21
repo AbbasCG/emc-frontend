@@ -40,8 +40,8 @@ export default function FinanceExecutiveHero({
       variants={heroMotion}
       className="relative isolate overflow-hidden rounded-[1.75rem] border border-white/10 bg-gradient-to-bl from-deepBlue via-[#1b2f45] to-[#0f1b2b] px-7 py-9 text-right shadow-emc-lg ring-1 ring-white/[0.07]"
     >
-      <div aria-hidden className="pointer-events-none absolute -left-28 top-0 h-64 w-64 rounded-full bg-customBlue/35 blur-[100px]" />
-      <div aria-hidden className="pointer-events-none absolute -right-16 bottom-0 h-52 w-52 rounded-full bg-customOrange/20 blur-[90px]" />
+      <div aria-hidden className="pointer-events-none absolute -left-28 top-0 h-64 w-64 rounded-full bg-customBlue/15 blur-[100px]" />
+      <div aria-hidden className="pointer-events-none absolute -right-16 bottom-0 h-52 w-52 rounded-full bg-customOrange/[0.1] blur-[90px]" />
       <motion.div
         aria-hidden
         animate={{ y: [0, -12, 0], opacity: [0.35, 0.55, 0.35] }}

@@ -1,8 +1,9 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 type CrudDrawerProps = {
   open: boolean
@@ -25,6 +26,9 @@ export function CrudDrawer({
   footerSlot,
   widthClassName = 'max-w-md sm:max-w-lg',
 }: CrudDrawerProps) {
+  const panelRef = useRef<HTMLElement>(null)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -56,6 +60,7 @@ export function CrudDrawer({
             onClick={onClose}
           />
           <motion.aside
+            ref={panelRef}
             role="dialog"
             aria-modal
             aria-labelledby="emc-drawer-title"

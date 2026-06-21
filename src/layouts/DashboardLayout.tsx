@@ -300,11 +300,11 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         {/* Ambient orbs */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 right-0 h-48 w-48 rounded-full bg-customBlue/25 blur-3xl"
+          className="pointer-events-none absolute -top-24 right-0 h-48 w-48 rounded-full bg-customBlue/[0.08] blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-customOrange/10 blur-3xl"
+          className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-customOrange/[0.06] blur-3xl"
         />
         <div
           aria-hidden
@@ -390,6 +390,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                         <NavLink
                           to={item.href}
                           end={exactMatchSidebarRoutes.has(item.href)}
+                          aria-current={active ? 'page' : undefined}
                           className={[
                             'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
                             active

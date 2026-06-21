@@ -308,7 +308,7 @@ export default function CourseEnrollmentCard({
                   {originalPriceLabel}
                 </span>
               : null}
-              <span className={`text-lg font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-[#EC943C]'}`}>
+              <span className={`text-lg font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-accent-700'}`}>
                 {isFree ? 'مجانية' : priceLabel}
               </span>
             </div>
@@ -316,7 +316,7 @@ export default function CourseEnrollmentCard({
           {discountPercent != null && discountPercent > 0 && !isFree ?
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-black text-slate-400">الخصم</span>
-              <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-[#EC943C]">
+              <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-accent-700">
                 {String(discountPercent)}%
               </span>
             </div>
@@ -401,7 +401,7 @@ export default function CourseEnrollmentCard({
               )}
 
               {course.type === 'paid' && (
-                <p className="mb-3 text-center text-xs font-bold text-customOrange">
+                <p className="mb-3 text-center text-xs font-bold text-accent-700">
                   الرسوم: {formatPrice(course.price)}
                 </p>
               )}

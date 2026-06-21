@@ -73,7 +73,7 @@ export default function HomeFeaturedInstructors() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-customOrange">
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-accent-700">
                         مدرب معتمد
                       </p>
                       <h3 className="mt-1 line-clamp-2 text-base font-black text-deepBlue group-hover:text-customBlue">

@@ -238,7 +238,7 @@ a {
     font-family: "Inter", "Tajawal", ui-sans-serif, system-ui, sans-serif;
   }
   .emc-eyebrow-accent {
-    @apply inline-flex items-center gap-2 rounded-full border border-customOrange/25 bg-customOrange/[0.08] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-customOrange;
+    @apply inline-flex items-center gap-2 rounded-full border border-customOrange/25 bg-customOrange/[0.08] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-accent-700;
     font-family: "Inter", "Tajawal", ui-sans-serif, system-ui, sans-serif;
   }
   .emc-eyebrow-ink {
@@ -254,7 +254,7 @@ a {
     @apply inline-flex items-center gap-1.5 rounded-full border border-deepBlue/10 bg-white px-2.5 py-1 text-xs font-bold text-deepBlue/75;
   }
   .emc-chip-brand   { @apply inline-flex items-center gap-1.5 rounded-full border border-customBlue/25 bg-customBlue/[0.08] px-2.5 py-1 text-xs font-black text-customBlue; }
-  .emc-chip-accent  { @apply inline-flex items-center gap-1.5 rounded-full border border-customOrange/25 bg-customOrange/[0.08] px-2.5 py-1 text-xs font-black text-customOrange; }
+  .emc-chip-accent  { @apply inline-flex items-center gap-1.5 rounded-full border border-customOrange/25 bg-customOrange/[0.08] px-2.5 py-1 text-xs font-black text-accent-700; }
   .emc-chip-success { @apply inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700; }
   .emc-chip-warn    { @apply inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700; }
   .emc-chip-danger  { @apply inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-black text-rose-700; }

@@ -39,8 +39,8 @@ export default function WorkshopCard({ workshop, index = 0, layout = 'grid' }: W
       whileHover={{ y: -4 }}
       className={
         layout === 'list' ?
-          'group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-100 transition hover:border-[#2691C2]/35 hover:shadow-lg sm:flex-row'
-        : 'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-100 transition hover:border-[#2691C2]/35 hover:shadow-lg'
+          'group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-[#2691C2]/35 hover:shadow-lg sm:flex-row'
+        : 'group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-[#2691C2]/35 hover:shadow-lg'
       }
     >
       <Link

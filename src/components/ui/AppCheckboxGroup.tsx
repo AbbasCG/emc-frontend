@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
 import { useId } from 'react'
+import { cn } from '@/lib/utils'
 import AppFormError from './AppFormError'
 
 type CheckboxOption = {
@@ -52,7 +53,7 @@ export default function AppCheckboxGroup({
         {hint && <span className="text-xs font-medium text-slate-500">{hint}</span>}
       </div>
 
-      <div className={`grid gap-3 ${gridClass[columns]}`}>
+      <div className={cn('grid gap-3', gridClass[columns])}>
         {options.map((option) => {
           const checked = selected.includes(option.value)
           const id = `${name}-${option.value}-${generatedId}`
@@ -61,18 +62,18 @@ export default function AppCheckboxGroup({
             <label
               key={option.value}
               htmlFor={id}
-              className={[
+              className={cn(
                 'flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-right transition',
                 checked
                   ? 'border-[#D67C28] bg-amber-50 text-deepBlue shadow-sm shadow-amber-100'
                   : 'border-amber-100 bg-white text-deepBlue hover:border-amber-300 hover:bg-amber-50/60',
-              ].join(' ')}
+              )}
             >
               <span
-                className={[
+                className={cn(
                   'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition',
                   checked ? 'border-[#D67C28] bg-[#D67C28]' : 'border-slate-300 bg-white',
-                ].join(' ')}
+                )}
                 aria-hidden="true"
               >
                 {checked && <Check size={15} className="text-white" />}

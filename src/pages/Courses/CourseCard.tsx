@@ -79,7 +79,7 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
       transition={{ duration: 0.45, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -6 }}
-      className={`group flex overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-emc-md ring-1 ring-slate-100/90 transition-all duration-300 hover:border-brand-300/50 hover:shadow-emc-lg ${
+      className={`group flex overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-emc-md transition-all duration-300 hover:border-brand-300/50 hover:shadow-emc-lg ${
         viewMode === 'list' ? 'flex-row-reverse' : 'flex-col'
       }`}
     >

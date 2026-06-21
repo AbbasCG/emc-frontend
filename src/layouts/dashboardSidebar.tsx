@@ -118,6 +118,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
     {
       title: 'نظام التعلّم LMS',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'الجلسات', href: '/dashboard/admin/lms/sessions', icon: Calendar },
         { label: 'الحضور', href: '/dashboard/admin/lms/attendance', icon: Users },
@@ -129,6 +131,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'مركز العمليات',
+      collapsible: true,
+      defaultOpen: true,
       items: [
         { label: 'لوحة العمليات', href: '/dashboard/admin/operations', icon: Sparkles },
         { label: 'البرامج والدورات', href: '/dashboard/admin/programs', icon: BookMarked },
@@ -147,6 +151,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'الإيرادات والذكاء',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'لوحة المالية', href: '/dashboard/admin/finance', icon: Wallet },
         { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
@@ -159,6 +165,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'منظومة EMC المتقدمة',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'قاعدة المعرفة', href: '/dashboard/admin/knowledge', icon: BookMarked },
         { label: 'فئات المعرفة', href: '/dashboard/admin/knowledge/categories', icon: Layers },
@@ -173,6 +181,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'التكامل والمنظومة المفتوحة',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'مركز التكاملات', href: '/dashboard/admin/integrations', icon: Plug2 },
         { label: 'الويبهوكس', href: '/dashboard/admin/webhooks', icon: WebhookIcon },
@@ -183,6 +193,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'طبقة الذكاء الاصطناعي',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'AI Command Center', href: '/dashboard/admin/ai', icon: Bot },
         { label: 'AI Automations', href: '/dashboard/admin/ai/automations', icon: Cpu },
@@ -192,6 +204,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'الإدارة الأكاديمية',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'الدورات', href: '/dashboard/courses', icon: BookOpen },
         { label: 'البرامج', href: '/dashboard/programs', icon: GraduationCap },
@@ -199,6 +213,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'الطلاب',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'قائمة الطلاب', href: '/dashboard/students', icon: Users },
         { label: 'التسجيلات', href: '/dashboard/registrations', icon: ClipboardList },
@@ -206,10 +222,14 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
     },
     {
       title: 'الجدولة',
+      collapsible: true,
+      defaultOpen: false,
       items: [{ label: 'الجدول الزمني', href: '/dashboard/schedule', icon: Calendar }],
     },
     {
       title: 'الإدارة',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'المستخدمون', href: '/dashboard/users', icon: UserCog },
         { label: 'التقارير العامة', href: '/dashboard/reports', icon: BarChart3 },

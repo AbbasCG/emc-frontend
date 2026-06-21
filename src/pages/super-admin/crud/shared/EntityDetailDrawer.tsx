@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export type EntityDetailTab = {
   id: string
@@ -85,6 +86,9 @@ export function EntityDetailDrawer({
   widthClassName = 'max-w-full sm:max-w-4xl lg:max-w-5xl',
   defaultTabId,
 }: EntityDetailDrawerProps) {
+  const panelRef = useRef<HTMLElement>(null)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
   const orderedTabs = tabs ?? []
   const [active, setActive] = useState(() => defaultTabId ?? orderedTabs[0]?.id ?? '')
 
@@ -130,6 +134,7 @@ export function EntityDetailDrawer({
             onClick={onClose}
           />
           <motion.aside
+            ref={panelRef}
             role="dialog"
             aria-modal
             aria-labelledby="emc-entity-drawer-title"

@@ -41,7 +41,7 @@ export default function HomeImpactMetrics() {
         className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.05]"
       />
       {/* Glows */}
-      <div aria-hidden className="pointer-events-none absolute -right-40 -top-20 h-[28rem] w-[28rem] rounded-full bg-customBlue/20 blur-[100px]" />
+      <div aria-hidden className="pointer-events-none absolute -right-40 -top-20 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
       <div aria-hidden className="pointer-events-none absolute -bottom-20 left-0 h-80 w-80 rounded-full bg-customOrange/10 blur-[80px]" />
 
       <div className="relative mx-auto max-w-[1540px]">

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import type { MouseEventHandler, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 type AppButtonProps = {
   children: ReactNode
@@ -27,12 +28,12 @@ export default function AppButton({
 }: AppButtonProps) {
   const variants = {
     primary:
-      'bg-[#D67C28] text-white shadow-lg shadow-amber-200/60 hover:bg-[#B16221] focus-visible:ring-amber-300',
+      'bg-[#D67C28] text-white shadow-lg shadow-amber-200/60 hover:bg-[#B16221]',
     secondary:
-      'bg-deepBlue text-white shadow-lg shadow-slate-300/60 hover:bg-[#172536] focus-visible:ring-slate-300',
+      'bg-deepBlue text-white shadow-lg shadow-slate-300/60 hover:bg-[#172536]',
     outline:
-      'border border-amber-300 bg-white text-deepBlue shadow-sm shadow-amber-100/70 hover:border-[#D67C28] hover:bg-amber-50 focus-visible:ring-amber-200',
-    ghost: 'bg-transparent text-deepBlue hover:bg-amber-50 focus-visible:ring-amber-200',
+      'border border-amber-300 bg-white text-deepBlue shadow-sm shadow-amber-100/70 hover:border-[#D67C28] hover:bg-amber-50',
+    ghost: 'bg-transparent text-deepBlue hover:bg-amber-50',
   }
 
   const sizes = {
@@ -47,14 +48,14 @@ export default function AppButton({
       disabled={disabled || isLoading}
       whileHover={!disabled && !isLoading ? { y: -1 } : undefined}
       whileTap={!disabled && !isLoading ? { scale: 0.98 } : undefined}
-      className={[
-        'inline-flex items-center justify-center gap-2 rounded-xl font-bold transition outline-none focus-visible:ring-4',
+      className={cn(
+        'inline-flex items-center justify-center gap-2 rounded-xl font-bold transition outline-none emc-focus-ring',
         variants[variant],
         sizes[size],
-        fullWidth ? 'w-full' : '',
-        disabled || isLoading ? 'cursor-not-allowed opacity-60' : '',
+        fullWidth && 'w-full',
+        (disabled || isLoading) && 'cursor-not-allowed opacity-60',
         className,
-      ].join(' ')}
+      )}
       {...props}
     >
       {isLoading && (

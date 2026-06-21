@@ -38,7 +38,7 @@ const optionCards = [
     title: 'طلب برنامج أو ورشة',
     body: 'للمؤسسات والأفراد الذين يريدون اقتراح برنامج أو ورشة عمل منظمة.',
     hint: (
-      <Link to="/submit-workshop" className="font-bold text-customOrange hover:underline">
+      <Link to="/submit-workshop" className="font-bold text-accent-700 hover:underline">
         انتقل إلى نموذج تقديم الورشة
       </Link>
     ),
@@ -285,7 +285,7 @@ export default function Contact() {
                 <li className="flex items-start gap-3">
                   <Mail size={18} className="mt-0.5 shrink-0 text-customOrange" />
                   <div>
-                    <a href={`mailto:${siteContact.supportEmail}`} className="block font-semibold hover:text-customOrange">
+                    <a href={`mailto:${siteContact.supportEmail}`} className="block font-semibold hover:text-accent-700">
                       {siteContact.supportEmail}
                     </a>
                     <span className="text-xs text-slate-400">دعم فني · تذاكر</span>

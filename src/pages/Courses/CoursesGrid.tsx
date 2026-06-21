@@ -272,7 +272,7 @@ export default function CoursesGrid({
     <section id={sectionId} className="scroll-mt-28 bg-white py-8 md:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-7">
-          <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-500">
+          <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-700">
             جميع الدورات
           </span>
           <h2 className="text-2xl font-black text-deepBlue md:text-3xl">الدورات المتاحة</h2>

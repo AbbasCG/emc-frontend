@@ -1,6 +1,7 @@
 import { Check, FileText, ImagePlus, Loader2, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
+import { cn } from '@/lib/utils'
 import AppFormError from './AppFormError'
 import {
   compressImage,
@@ -242,14 +243,14 @@ export default function AppFileUpload({
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={[
-            'flex min-h-32 items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center outline-none transition focus-visible:ring-4',
+          className={cn(
+            'flex min-h-32 items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center outline-none transition',
             error
-              ? 'border-red-300 bg-red-50 focus-visible:ring-red-100'
+              ? 'border-red-300 bg-red-50 focus-visible:ring-4 focus-visible:ring-red-100'
               : isDragging
-                ? 'border-[#D67C28] bg-amber-50 focus-visible:ring-amber-100'
-                : 'border-amber-200 bg-white hover:border-[#D67C28] hover:bg-amber-50 focus-visible:ring-amber-100',
-          ].join(' ')}
+                ? 'border-[#D67C28] bg-amber-50 emc-focus-ring'
+                : 'border-amber-200 bg-white hover:border-[#D67C28] hover:bg-amber-50 emc-focus-ring',
+          )}
           aria-describedby={
             [hint ? hintId : '', error ? errorId : ''].filter(Boolean).join(' ') || undefined
           }

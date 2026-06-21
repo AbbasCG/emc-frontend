@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { useId } from 'react'
+import { cn } from '@/lib/utils'
 import AppFormError from './AppFormError'
 
 type Option = {
@@ -61,13 +62,13 @@ export default function AppSelect({
           required={required}
           aria-invalid={Boolean(error)}
           aria-describedby={[hint ? hintId : '', error ? errorId : ''].filter(Boolean).join(' ') || undefined}
-          className={[
+          className={cn(
             'w-full appearance-none rounded-xl border bg-white px-4 py-3 pl-10 text-right font-semibold text-deepBlue outline-none transition',
+            disabled && 'cursor-not-allowed bg-slate-100 text-slate-500',
             error
               ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-              : 'border-amber-100 focus:border-[#D67C28] focus:ring-4 focus:ring-amber-100',
-            disabled ? 'cursor-not-allowed bg-slate-100 text-slate-500' : '',
-          ].join(' ')}
+              : 'border-amber-100 focus:border-[#D67C28] emc-focus-ring',
+          )}
         >
           {placeholder && <option value="">{placeholder}</option>}
           {options.map((option) => (

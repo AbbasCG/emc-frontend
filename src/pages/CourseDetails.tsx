@@ -378,7 +378,7 @@ export default function CourseDetails() {
                 {originalPriceLabel}
               </span>
             )}
-            <span className={`text-xl font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-[#EC943C]'}`}>
+            <span className={`text-xl font-black tabular-nums ${isFree ? 'text-[#2691C2]' : 'text-accent-700'}`}>
               {isFree ? 'مجانية' : priceLabel}
             </span>
           </div>
@@ -386,7 +386,7 @@ export default function CourseDetails() {
         {discountPercent != null && discountPercent > 0 && !isFree && (
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[11px] font-black text-slate-400">الخصم</span>
-            <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-[#EC943C]">
+            <span className="rounded-full bg-[#EC943C]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-accent-700">
               {String(discountPercent)}%
             </span>
           </div>

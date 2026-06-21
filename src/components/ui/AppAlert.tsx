@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 type AppAlertProps = {
   type: 'error' | 'success' | 'info'
@@ -49,12 +50,12 @@ export default function AppAlert({ type, title, message, dismissible = false, on
   const Icon = style.Icon
 
   return (
-    <div className={`${style.bg} ${style.border} rounded-2xl border p-4 shadow-sm`} role={style.role}>
+    <div className={cn(style.bg, style.border, 'rounded-2xl border p-4 shadow-sm')} role={style.role}>
       <div className="flex items-start gap-4">
-        <Icon size={22} className={`${style.icon} mt-0.5 shrink-0`} aria-hidden="true" />
+        <Icon size={22} className={cn(style.icon, 'mt-0.5 shrink-0')} aria-hidden="true" />
         <div className="flex-1 text-right">
-          <h3 className={`font-bold ${style.title}`}>{title}</h3>
-          {message && <p className={`${style.text} mt-1 text-sm font-medium leading-6`}>{message}</p>}
+          <h3 className={cn('font-bold', style.title)}>{title}</h3>
+          {message && <p className={cn(style.text, 'mt-1 text-sm font-medium leading-6')}>{message}</p>}
         </div>
         {dismissible && (
           <button
@@ -63,7 +64,7 @@ export default function AppAlert({ type, title, message, dismissible = false, on
               setIsVisible(false)
               onDismiss?.()
             }}
-            className={`${style.title} rounded-lg p-1 transition hover:bg-white/70`}
+            className={cn(style.title, 'rounded-lg p-1 transition hover:bg-white/70')}
             aria-label="إغلاق التنبيه"
           >
             <X size={20} aria-hidden="true" />

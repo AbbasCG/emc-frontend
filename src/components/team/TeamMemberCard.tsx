@@ -32,8 +32,8 @@ export default function TeamMemberCard({ member, departmentBadge, featured }: Pr
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.38, ease: [0.22, 0.61, 0.36, 1] }}
       whileHover={{ y: -4, transition: { duration: 0.22, ease: 'easeOut' } }}
-      className={`group flex h-full max-h-[20rem] min-h-[10.75rem] flex-row items-center gap-3 overflow-hidden rounded-3xl border border-deepBlue/[0.08] bg-white p-3.5 text-right shadow-emc-md shadow-deepBlue/[0.06] ring-1 ring-white transition-shadow hover:border-customBlue/[0.28] hover:shadow-emc-lg sm:gap-4 sm:p-4 ${
-        featured ? 'ring-customOrange/[0.32]' : ''
+      className={`group flex h-full max-h-[20rem] min-h-[10.75rem] flex-row items-center gap-3 overflow-hidden rounded-3xl border border-deepBlue/[0.08] bg-white p-3.5 text-right shadow-emc-md shadow-deepBlue/[0.06] transition-shadow hover:border-customBlue/[0.28] hover:shadow-emc-lg sm:gap-4 sm:p-4 ${
+        featured ? 'ring-1 ring-customOrange/[0.32]' : ''
       }`}
     >
       <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-gradient-to-br from-customBlue/[0.09] to-deepBlue/[0.04] shadow-inner sm:h-[5rem] sm:w-[5rem]">

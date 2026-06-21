@@ -63,7 +63,7 @@ export default function MegaDropdown({
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        aria-haspopup="true"
+        aria-haspopup="menu"
         className={[
           'flex min-h-[2.625rem] items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-all duration-200 ease-out',
           isOpen || isActive

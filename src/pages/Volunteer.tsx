@@ -133,7 +133,7 @@ export default function Volunteer() {
       {/* ── Departments / Roles ── */}
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customOrange/10 px-4 py-1.5 text-xs font-black text-customOrange">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customOrange/10 px-4 py-1.5 text-xs font-black text-accent-700">
             <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
             المجالات المتاحة
           </div>
@@ -292,7 +292,7 @@ export default function Volunteer() {
       {/* ── Skills ── */}
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customOrange/10 px-4 py-1.5 text-xs font-black text-customOrange">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customOrange/10 px-4 py-1.5 text-xs font-black text-accent-700">
             <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
             ما نبحث عنه
           </div>

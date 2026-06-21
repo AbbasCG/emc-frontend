@@ -60,7 +60,7 @@ export default function WhyChooseSection() {
         className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.06] [mask-image:radial-gradient(ellipse_at_center,white_30%,transparent_70%)]"
       />
       {/* Ambient glows */}
-      <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[28rem] w-[28rem] rounded-full bg-customBlue/20 blur-[100px]" />
+      <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
       <div aria-hidden className="pointer-events-none absolute -bottom-32 left-0 h-72 w-72 rounded-full bg-customOrange/10 blur-[80px]" />
 
       <div className="relative mx-auto max-w-[1540px]">

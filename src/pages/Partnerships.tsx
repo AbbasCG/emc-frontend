@@ -144,7 +144,7 @@ export default function Partnerships() {
                 variants={staggerItem}
                 className="rounded-3xl bg-white p-6 text-right shadow-md ring-1 ring-slate-100"
               >
-                <span className="text-xs font-black text-customOrange">المرحلة {i + 1}</span>
+                <span className="text-xs font-black text-accent-700">المرحلة {i + 1}</span>
                 <p className="mt-2 text-lg font-black text-deepBlue">{step.t}</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">{step.d}</p>
               </motion.li>

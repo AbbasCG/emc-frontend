@@ -262,11 +262,11 @@ export default function AdminDashboard() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-customBlue/30 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-customBlue/[0.08] blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-customOrange/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-customOrange/[0.08] blur-3xl"
         />
         <div
           aria-hidden
