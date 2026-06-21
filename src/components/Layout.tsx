@@ -10,7 +10,7 @@ export default function Layout() {
       dir="rtl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.55 }}
+      transition={{ duration: 0.25 }}
     >
       {/* Ambient brand atmosphere — subtle, fixed; sits beneath all content */}
       <div

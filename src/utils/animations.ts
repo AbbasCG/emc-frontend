@@ -1,14 +1,18 @@
 import type { Variants } from 'framer-motion'
 
+// UX-0 (calm motion): reveal travel, durations and stagger are intentionally kept small so
+// content reads fast and animation guides rather than distracts.
+// See docs/02-planning/ux-simplification-plan.md §2.
+
 /** Default viewport for scroll reveals — premium feel, no repeat flicker */
 export const viewportOnce = { once: true, amount: 0.25 as const }
 
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 }
 
@@ -16,25 +20,25 @@ export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.03, delayChildren: 0 },
   },
 }
 
 export const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.42, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 }
 
 export const cardHover = {
   rest: { y: 0, boxShadow: '0 14px 40px -14px rgba(34, 51, 74, 0.14)' },
   hover: {
-    y: -3,
-    boxShadow: '0 22px 50px -18px rgba(34, 51, 74, 0.2)',
-    transition: { duration: 0.22, ease: 'easeOut' as const },
+    y: -2,
+    boxShadow: '0 18px 44px -18px rgba(34, 51, 74, 0.16)',
+    transition: { duration: 0.18, ease: 'easeOut' as const },
   },
 }
 
