@@ -370,7 +370,7 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
         (o.my_submission as Record<string, unknown>)
       : null
 
-    let sub =
+    const sub =
       typeof o.submission_type === 'string'
         ? o.submission_type
         : o.submission_required_type != null ?

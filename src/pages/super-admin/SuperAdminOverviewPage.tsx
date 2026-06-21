@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { useNow } from '@/hooks/useNow'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -467,7 +468,7 @@ export default function SuperAdminOverviewPage() {
     (v) => v.status === 'withdrawn' || v.status === 'inactive',
   )
   const coursesNoInstr = courses.filter((c) => !c.instructor_name).length
-  const nowMs = Date.now()
+  const nowMs = useNow()
   const soonCourses = courses.filter((c) => {
     const t = c.start_date ? Date.parse(c.start_date) : NaN
     return Number.isFinite(t) && t >= nowMs && t <= nowMs + 14 * 86_400_000

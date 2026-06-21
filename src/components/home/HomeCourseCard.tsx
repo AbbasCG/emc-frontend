@@ -116,7 +116,6 @@ export default function HomeCourseCard({ course, index }: Props) {
         )}
 
         {/* Metadata rows */}
-        {(startDate || hours != null || true) && (
           <div className="mt-3.5 space-y-1.5 border-t border-slate-100 pt-3.5 text-[11px] font-semibold text-slate-500">
             {startDate && (
               <p className="flex items-center gap-2">
@@ -139,7 +138,6 @@ export default function HomeCourseCard({ course, index }: Props) {
               {isOnline ? 'عن بُعد' : course.location || 'حضوري في المركز'}
             </p>
           </div>
-        )}
 
         {/* CTA — full-width button */}
         <div className="mt-auto pt-5">

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNow } from '@/hooks/useNow'
 import axios, { type AxiosError } from 'axios'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -186,10 +187,10 @@ export default function StudentCourseLearnPage() {
         setNotes(content)
         setNotesSavedAt(updated_at)
         notesDirtyRef.current = false
-        try { window.localStorage.setItem(NOTES_KEY(courseId), content) } catch {}
+        try { window.localStorage.setItem(NOTES_KEY(courseId), content) } catch { /* ignore */ }
       })
       .catch(() => {
-        try { setNotes(window.localStorage.getItem(NOTES_KEY(courseId)) ?? '') } catch {}
+        try { setNotes(window.localStorage.getItem(NOTES_KEY(courseId)) ?? '') } catch { /* ignore */ }
       })
       .finally(() => setNotesLoading(false))
   }, [courseId, validId])
@@ -197,7 +198,7 @@ export default function StudentCourseLearnPage() {
   // Keep localStorage in sync as fallback cache
   useEffect(() => {
     if (!validId || notesLoading) return
-    try { window.localStorage.setItem(NOTES_KEY(courseId), notes) } catch {}
+    try { window.localStorage.setItem(NOTES_KEY(courseId), notes) } catch { /* ignore */ }
   }, [notes, courseId, validId, notesLoading])
 
   // Expand all modules on first data load
@@ -239,10 +240,12 @@ export default function StudentCourseLearnPage() {
   const courseDescription = ctx?.course?.description?.trim() || null
   const classGroup = ctx?.class_group ?? null
   const coverUrl = useMemo(() => resolvePublicAssetUrl(ctx?.course?.course_image ?? null), [ctx?.course?.course_image])
+  const nowMs = useNow()
 
+  const ctxModules = ctx?.modules
   const modulesLms = useMemo((): LmsModule[] => {
-    if (!ctx?.modules?.length) return []
-    return ctx.modules.map((m) => ({
+    if (!ctxModules?.length) return []
+    return ctxModules.map((m) => ({
       id: m.id,
       course_id: m.course_id ?? courseId,
       title: m.title,
@@ -254,7 +257,7 @@ export default function StudentCourseLearnPage() {
       progress_percentage: m.progress_percentage,
       is_completed: m.is_completed,
     }))
-  }, [ctx?.modules, courseId])
+  }, [ctxModules, courseId])
 
   const sessionsMapped = useMemo(() => {
     const list = ctx?.sessions ?? []
@@ -469,7 +472,7 @@ export default function StudentCourseLearnPage() {
                     <p className="text-[12px] font-black leading-snug line-clamp-2">{nextSession.title ?? nextSession.course_name}</p>
                     <p className="text-[10px] font-bold text-white/70">{formatSessionSchedule(nextSession)}</p>
                     {(() => {
-                      const join = getSessionJoinState(nextSession, Date.now(), 'انضم للجلسة')
+                      const join = getSessionJoinState(nextSession, nowMs, 'انضم للجلسة')
                       if (join.kind === 'join') {
                         return (
                           <a

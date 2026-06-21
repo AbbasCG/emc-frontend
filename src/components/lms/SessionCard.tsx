@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { ExternalLink, PlayCircle, Video } from 'lucide-react'
 import type { LmsSession } from '@/types/lms'
 import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
+import { useNow } from '@/hooks/useNow'
 
 type Props = {
   session: LmsSession
@@ -44,7 +45,8 @@ function StatusBadgeFromJoinState({ kind }: { kind: string }) {
 
 export default function SessionCard({ session, showRecording = true, joinMeetingLabel, compact = false }: Props) {
   const scheduleLine = formatSessionSchedule(session)
-  const joinState = getSessionJoinState(session, Date.now(), joinMeetingLabel ?? 'انضم للجلسة')
+  const nowMs = useNow()
+  const joinState = getSessionJoinState(session, nowMs, joinMeetingLabel ?? 'انضم للجلسة')
 
   return (
     <motion.article

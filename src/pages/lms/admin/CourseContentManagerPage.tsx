@@ -1141,9 +1141,11 @@ function ModuleModalBody({
         sort_order: Number(d.sort_order ?? 1) || 1,
       }
 
-      modal.editingId ?
+      if (modal.editingId) {
         await adminUpdateCourseModule(courseId, modal.editingId, body, cmsScope)
-      : await adminCreateCourseModule(courseId, body, cmsScope)
+      } else {
+        await adminCreateCourseModule(courseId, body, cmsScope)
+      }
       toast.success('تم حفظ الوحدة')
       onSaved()
     } catch (e: unknown) {
@@ -1245,9 +1247,11 @@ function SessionModalBody({
         body.location = d.location.trim()
       }
 
-      modal.editingId ?
+      if (modal.editingId) {
         await adminUpdateCourseSession(courseId, modal.editingId, body, cmsScope)
-      : await adminCreateCourseSession(courseId, body, cmsScope)
+      } else {
+        await adminCreateCourseSession(courseId, body, cmsScope)
+      }
 
       toast.success('تم حفظ الجلسة')
       onSaved()
@@ -1417,9 +1421,11 @@ function MaterialModalBody({
       if (file) {
         const fd = buildMaterialFormData()
         fd.append('file', file)
-        modal.editingId ?
+        if (modal.editingId) {
           await adminUpdateCourseMaterial(courseId, modal.editingId, fd, cmsScope)
-        : await adminCreateCourseMaterial(courseId, fd, cmsScope)
+        } else {
+          await adminCreateCourseMaterial(courseId, fd, cmsScope)
+        }
       } else {
         const body: Record<string, unknown> = {
           title: d.title.trim(),
@@ -1430,9 +1436,11 @@ function MaterialModalBody({
         }
         if (modal.moduleId) body.module_id = modal.moduleId
 
-        modal.editingId ?
+        if (modal.editingId) {
           await adminUpdateCourseMaterial(courseId, modal.editingId, body as Record<string, unknown>, cmsScope)
-        : await adminCreateCourseMaterial(courseId, body, cmsScope)
+        } else {
+          await adminCreateCourseMaterial(courseId, body, cmsScope)
+        }
       }
 
       toast.success('تم حفظ المادة')
@@ -1581,9 +1589,11 @@ function AssignmentModalBody({
       }
       if (modal.moduleId) body.module_id = modal.moduleId
 
-      modal.editingId ?
+      if (modal.editingId) {
         await adminUpdateCourseAssignment(courseId, modal.editingId, body, cmsScope)
-      : await adminCreateCourseAssignment(courseId, body, cmsScope)
+      } else {
+        await adminCreateCourseAssignment(courseId, body, cmsScope)
+      }
 
       toast.success('تم حفظ الواجب')
       onSaved()

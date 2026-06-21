@@ -179,9 +179,8 @@ export async function fetchHrDashboardSnapshot(): Promise<HrDashboardSnapshot> {
     linked.departments = false
   }
 
-  let vols: OpsVolunteer[] = []
   try {
-    vols = await silentVolunteers()
+    const vols: OpsVolunteer[] = await silentVolunteers()
     linked.volunteers = true
     if (activeVolunteers == null)
       activeVolunteers = vols.filter((v) => v.status === 'active' || v.status === 'partial').length

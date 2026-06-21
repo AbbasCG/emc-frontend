@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNow } from '@/hooks/useNow'
 import { Link } from 'react-router-dom'
 import { CalendarDays, RefreshCw } from 'lucide-react'
 import type { CatalogWorkshopRow } from '@/api/superAdminCatalogApi'
@@ -64,6 +65,8 @@ export default function WorkshopsManagementPage() {
     void load()
   }, [load])
 
+  const nowMs = useNow()
+
   const filteredBase = useMemo(() => {
     const t = q.trim().toLowerCase()
     const base = [...rows]
@@ -78,21 +81,19 @@ export default function WorkshopsManagementPage() {
   }, [rows, q, mode])
 
   const filtered = useMemo(() => {
-    const tsNow = Date.now()
     return filteredBase.filter((w) => {
       const ts = workshopTs(w)
-      if (tab === 'upcoming') return ts == null || ts >= tsNow
-      return ts != null && ts < tsNow
+      if (tab === 'upcoming') return ts == null || ts >= nowMs
+      return ts != null && ts < nowMs
     })
-  }, [filteredBase, tab])
+  }, [filteredBase, tab, nowMs])
 
   const upcomingCount = useMemo(() => {
-    const tsNow = Date.now()
     return rows.filter((w) => {
       const ts = workshopTs(w)
-      return ts == null || ts >= tsNow
+      return ts == null || ts >= nowMs
     }).length
-  }, [rows])
+  }, [rows, nowMs])
   const pastCount = rows.length - upcomingCount
 
   const monthlySeries = useMemo(() => {

@@ -22,6 +22,14 @@ export default defineConfig([
       // Recommended preset flags many legitimate “reset UI on navigation” / “fetch on mount”
       // patterns. Warn-only keeps CI usable until refactors adopt useEffectEvent / alternatives.
       'react-hooks/set-state-in-effect': 'warn',
+      // Honour the `_`-prefix convention for intentionally-unused bindings.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+      // Fast-Refresh boundary hint — a dev-only DX rule with no runtime impact. Kept as a warning
+      // so mixed component+constant files don't block CI; proper file-splitting is tracked in the backlog.
+      'react-refresh/only-export-components': 'warn',
     },
   },
 ])

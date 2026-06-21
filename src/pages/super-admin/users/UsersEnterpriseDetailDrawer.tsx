@@ -64,7 +64,8 @@ export function UsersEnterpriseDetailDrawer({
 }) {
   const [tab, setTab] = useState<TabId>('general')
 
-  const slug = useMemo(() => (user?.role ? normalizeRole(user.role) : '') || '', [user?.role])
+  const role = user?.role
+  const slug = useMemo(() => (role ? normalizeRole(role) : '') || '', [role])
 
   const permissionChips = useMemo(() => {
     if (!slug) return []

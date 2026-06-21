@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { motion } from 'framer-motion'
 import type { Department, TeamMember } from '@/services/teamApi'
 import { resolveDepartmentIcon } from '@/components/team/teamIcons'
@@ -19,7 +20,6 @@ function partitionMembers(members: TeamMember[]) {
 export default function DepartmentSection({ department }: Props) {
   if (department.slug === EXEC_SLUG) return null
 
-  const Icon = resolveDepartmentIcon(department.icon)
   const { leaders, others } = partitionMembers([...department.members])
   const ordered = [...leaders, ...others]
 
@@ -36,7 +36,7 @@ export default function DepartmentSection({ department }: Props) {
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-3 rounded-xl border border-white/80 bg-white/90 px-3 py-2 shadow-emc-xs backdrop-blur-sm">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-deepBlue/[0.04] text-customBlue ring-1 ring-deepBlue/[0.06]">
-                <Icon size={24} strokeWidth={2.1} aria-hidden />
+                {createElement(resolveDepartmentIcon(department.icon), { size: 24, strokeWidth: 2.1, 'aria-hidden': true })}
               </span>
               <h2 className="text-xl font-black text-deepBlue sm:text-2xl">{department.name_ar}</h2>
             </div>
