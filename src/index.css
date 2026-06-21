@@ -8,37 +8,39 @@
 @tailwind utilities;
 
 :root {
-  /* ── Legacy brand vars (do not remove — used across components) ── */
-  --customBlue: #2691c2;
-  --customOrange: #ec943c;
-  --deepBlue: #22334a;
-  --emcBg: #f8fbfe;
+  /* ── Brand vars → V2.2 (do not remove — used across components) ── */
+  --customBlue: #0077b6;   /* sea · blue (primary) */
+  --customOrange: #f28c00; /* fire · orange (solid only) */
+  --deepBlue: #0c2a4b;     /* sea · navy */
+  --emcBg: #fbfaf7;        /* paper */
+  --paper: #fbfaf7;
+  --body: #27384b;         /* body text */
 
-  --background: 210 40% 98%;
-  --foreground: 213 37% 21%;
-  --muted-foreground: 215 16% 47%;
-  --primary: 30 81% 57%;
+  --background: 40 33% 98%;
+  --foreground: 213 31% 22%;
+  --muted-foreground: 213 16% 43%;
+  --primary: 33 100% 47%;
 
   /* ── EMC semantic design tokens (new) ──
      Use via `var(--emc-…)` from utilities below; safe to consume in inline styles. */
-  --emc-ink:           #22334a;
-  --emc-ink-soft:      #43526a;
-  --emc-ink-mute:      #6a778b;
-  --emc-line:          rgba(34, 51, 74, 0.08);
-  --emc-line-strong:   rgba(34, 51, 74, 0.14);
+  --emc-ink:           #0c2a4b;
+  --emc-ink-soft:      #27384b;
+  --emc-ink-mute:      #5e6c7d;
+  --emc-line:          rgba(12, 42, 75, 0.08);
+  --emc-line-strong:   rgba(12, 42, 75, 0.14);
   --emc-surface:       #ffffff;
-  --emc-surface-soft:  #f8fbfe;
-  --emc-surface-sunk:  #f3f6fb;
-  --emc-surface-dark:  #0f2233;
-  --emc-brand:         #2691c2;
-  --emc-brand-soft:    rgba(38, 145, 194, 0.08);
-  --emc-brand-strong:  #1b6489;
-  --emc-accent:        #ec943c;
-  --emc-accent-soft:   rgba(236, 148, 60, 0.10);
+  --emc-surface-soft:  #fbfaf7;
+  --emc-surface-sunk:  #f3f1ea;
+  --emc-surface-dark:  #06182c;
+  --emc-brand:         #0077b6;
+  --emc-brand-soft:    rgba(0, 119, 182, 0.08);
+  --emc-brand-strong:  #0e5a8a;
+  --emc-accent:        #f28c00;
+  --emc-accent-soft:   rgba(242, 140, 0, 0.10);
   --emc-success:       #16a36a;
-  --emc-warning:       #d97706;
+  --emc-warning:       #c97208;
   --emc-danger:        #dc2626;
-  --emc-ring:          rgba(38, 145, 194, 0.30);
+  --emc-ring:          rgba(0, 119, 182, 0.30);
   --emc-radius-card:   1.25rem;  /* 20px */
   --emc-radius-pill:   999px;
   --emc-shadow-card:   0 14px 40px -22px rgba(15, 42, 67, 0.18), 0 1px 2px rgba(15, 42, 67, 0.04);
@@ -66,10 +68,10 @@ html {
 
 /* Project font + smoother rendering. Numerals use tabular (kerning/lining stays default). */
 body {
-  font-family: "Tajawal", sans-serif;
+  font-family: "IBM Plex Sans Arabic", "Tajawal", sans-serif;
   direction: rtl;
-  background-color: #ffffff;
-  color: var(--deepBlue);
+  background-color: var(--paper);
+  color: var(--body);
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -83,13 +85,14 @@ body {
 kbd,
 code,
 .tabular-nums {
-  font-family: "Inter", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "cv11" 1, "ss01" 1;
 }
 
-/* Headings get a touch more letter-spacing control. */
+/* Headings — Tajawal display family (brand V2.2). */
 h1, h2, h3, h4, h5, h6 {
+  font-family: "Tajawal", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.012em;
 }
 
@@ -235,15 +238,15 @@ a {
   /* Small typographic primitives */
   .emc-eyebrow {
     @apply inline-flex items-center gap-2 rounded-full border border-customBlue/20 bg-customBlue/[0.07] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-customBlue;
-    font-family: "Inter", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+    font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   }
   .emc-eyebrow-accent {
     @apply inline-flex items-center gap-2 rounded-full border border-customOrange/25 bg-customOrange/[0.08] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-accent-700;
-    font-family: "Inter", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+    font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   }
   .emc-eyebrow-ink {
     @apply inline-flex items-center gap-2 rounded-full border border-deepBlue/[0.12] bg-deepBlue/[0.04] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-deepBlue/70;
-    font-family: "Inter", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+    font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   }
   .emc-divider {
     @apply h-px w-full bg-gradient-to-l from-transparent via-deepBlue/10 to-transparent;
@@ -291,7 +294,7 @@ a {
     inset: -1px;
     pointer-events: none;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(38,145,194,0.18), rgba(236,148,60,0.10) 60%, transparent 100%);
+    background: linear-gradient(135deg, rgba(0,119,182,0.18), rgba(0,119,182,0.06) 60%, transparent 100%);
     mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;

@@ -1,9 +1,13 @@
 /**
- * EMC design tokens (Tailwind extension).
+ * EMC — Educational Mastar Central · Design tokens (Tailwind extension) · Brand V2.2 (June 2026).
  *
- * Backward-compatible: all legacy aliases (customBlue/customOrange/deepBlue/emcBg)
- * are kept. New tokens add a calibrated brand scale, premium shadow/radius/motion
- * primitives, premium gradients, and an Inter font alias for Latin numerals.
+ * Two families: "Sea of Knowledge" (blue) + "Fire of Passion" (orange). Brand law:
+ *   • The orange family is NEVER gradiented with the sea family — orange stays solid.
+ *   • Sky (#089FE0) and orange (#F28C00) are NOT used for small text on light;
+ *     use navy (#0C2A4B) / blue (#0077B6) / ember (#C97208) instead.
+ *
+ * Legacy aliases (customBlue / customOrange / deepBlue / emcBg) are remapped to V2.2 values
+ * so the whole app re-skins through tokens. Governing reference: docs/04-references/brand/.
  */
 export default {
   content: [
@@ -13,115 +17,129 @@ export default {
   theme: {
     extend: {
       colors: {
-        /** Body text — marketing pages */
-        foreground: "#0F172A",
-        customBlue: "#2691C2",
-        customOrange: "#EC943C",
-        deepBlue: "#22334A",
-        emcBg: "#F8FBFE",
+        /* ── Neutral ── */
+        paper:  "#FBFAF7",
+        paper2: "#F3F1EA",
+        foreground: "#27384B", // body text
+        line:   "#E7E3DA",
 
-        /** EMC brand scale (primary). 500 = #2691C2 */
+        /* ── Legacy aliases → V2.2 (kept; consumed across components) ── */
+        customBlue:   "#0077B6", // sea · blue (primary, AA on light)
+        customOrange: "#F28C00", // fire · orange (solid only — not text on light)
+        deepBlue:     "#0C2A4B", // sea · navy (dark surfaces / headings on light)
+        emcBg:        "#FBFAF7", // paper
+
+        /* ── Sea of Knowledge — primary scale. 500 = #0077B6 ── */
         brand: {
-          50: "#EEF7FC",
-          100: "#D7EDF7",
-          200: "#B1DCEE",
-          300: "#7CC4E2",
-          400: "#4AA9D2",
-          500: "#2691C2", // primary
-          600: "#1E7AA8",
-          700: "#1B6489",
-          800: "#1A5470",
-          900: "#1A455D",
-          950: "#0F2D3E",
+          50:  "#EAF6FD",
+          100: "#CFE9FA",
+          200: "#A6D6F2", // ice
+          300: "#6EC1EC",
+          400: "#089FE0", // sky
+          500: "#0077B6", // blue (primary)
+          600: "#0E5A8A", // ocean
+          700: "#0C3E63",
+          800: "#0C2A4B", // navy
+          900: "#06182C", // night
+          950: "#06182C",
         },
-        /** Secondary accent. 500 = #EC943C */
+        sky:   "#089FE0",
+        ocean: "#0E5A8A",
+        navy:  "#0C2A4B",
+        night: "#06182C",
+        ice:   "#A6D6F2",
+
+        /* ── Fire of Passion — accent scale. 500 = #F28C00 ── */
         accent: {
-          50: "#FEF6EC",
-          100: "#FCE6CB",
-          200: "#F9CF96",
-          300: "#F5B561",
-          400: "#F0A04A",
-          500: "#EC943C", // secondary
-          600: "#D67C28",
-          700: "#B16221",
-          800: "#8C4E1F",
-          900: "#73411E",
-          950: "#3F2210",
+          50:  "#FEF7EE",
+          100: "#FCE9D2", // sand
+          200: "#FBD9AE",
+          300: "#FFA733", // amber
+          400: "#F89A1A",
+          500: "#F28C00", // orange (primary)
+          600: "#DD7C02",
+          700: "#C97208", // ember (AA headlines on light)
+          800: "#A85E06",
+          900: "#874B07",
         },
-        /** Institutional dark ink. 500 = #22334A */
+        amber: "#FFA733",
+        ember: "#C97208",
+        sand:  "#FCE9D2",
+
+        /* ── Institutional ink (dark neutral / body). 500 = #27384B ── */
         ink: {
-          50: "#F4F6F9",
-          100: "#E6EBF1",
-          200: "#C7D1DE",
-          300: "#9CADC1",
-          400: "#6B7F98",
-          500: "#22334A", // dark
-          600: "#1C2B3E",
-          700: "#162232",
-          800: "#111A26",
-          900: "#0B121C",
+          50:  "#EEF1F5",
+          100: "#D8DEE7",
+          200: "#B5C0CE",
+          300: "#8493A6",
+          400: "#51647C",
+          500: "#27384B", // body
+          600: "#1C2A3B",
+          700: "#142133",
+          800: "#0C2A4B", // navy
+          900: "#06182C", // night
         },
-        /** Neutral utility, anchored on #737778 */
+
+        /* ── Neutral utility, anchored on #5E6C7D ── */
         muted: {
-          50: "#F7F8F9",
-          100: "#EEF0F2",
-          200: "#D8DCDF",
-          300: "#B6BCC1",
-          400: "#909598",
-          500: "#737778", // neutral
-          600: "#5A5D5F",
-          700: "#454749",
-          800: "#2F3032",
-          900: "#1B1C1D",
+          50: "#F7F8F9", 100: "#EEF0F2", 200: "#D8DCDF", 300: "#B6BCC1", 400: "#909598",
+          500: "#5E6C7D", 600: "#4A5667", 700: "#3A4453", 800: "#2A323D", 900: "#1B2027",
         },
       },
 
       fontFamily: {
-        /** Project default stays Tajawal — Arabic first. */
-        sans: ['"Tajawal"', "ui-sans-serif", "system-ui", "sans-serif"],
-        /** Opt-in Latin/Inter family for numerals, kbd, code, English/Dutch text. */
-        latin: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ['"Tajawal"', '"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        /* Body/UI text — IBM Plex Sans Arabic (Arabic-first), Tajawal fallback. */
+        sans: ['"IBM Plex Sans Arabic"', '"Tajawal"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* Display/headings — Tajawal. */
+        display: ['"Tajawal"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* Latin numerals / English-Dutch — IBM Plex Sans. */
+        latin: ['"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
 
-      borderRadius: {
-        "4xl": "2rem",
-        "5xl": "2.5rem",
-      },
+      borderRadius: { "4xl": "2rem", "5xl": "2.5rem" },
 
-      /** Premium calibrated elevation system. */
+      /* Calibrated elevation (navy-tinted, brand glows in sea/fire). */
       boxShadow: {
-        "emc-xs":  "0 1px 2px rgba(15,42,67,0.06)",
-        "emc-sm":  "0 2px 6px -1px rgba(15,42,67,0.08)",
-        "emc":     "0 14px 40px -22px rgba(15,42,67,0.18), 0 1px 2px rgba(15,42,67,0.04)",
-        "emc-md":  "0 22px 50px -24px rgba(15,42,67,0.22), 0 2px 6px -1px rgba(15,42,67,0.05)",
-        "emc-lg":  "0 28px 70px -28px rgba(15,42,67,0.28), 0 4px 12px -3px rgba(15,42,67,0.06)",
-        "emc-xl":  "0 40px 90px -32px rgba(15,42,67,0.32), 0 6px 16px -4px rgba(15,42,67,0.07)",
-        "emc-glow": "0 0 0 1px rgba(38,145,194,0.18), 0 16px 48px -16px rgba(38,145,194,0.35)",
-        "emc-glow-accent": "0 0 0 1px rgba(236,148,60,0.22), 0 16px 44px -14px rgba(236,148,60,0.38)",
-        "emc-inset": "inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(15,42,67,0.04)",
-        "emc-ring": "0 0 0 1px rgba(34,51,74,0.06), 0 0 0 4px rgba(38,145,194,0.10)",
-        "kpi":     "0 16px 44px -24px rgba(15,42,67,0.18), inset 0 1px 0 rgba(255,255,255,0.65)",
+        "emc-xs":  "0 1px 2px rgba(6,24,44,0.06)",
+        "emc-sm":  "0 2px 6px -1px rgba(6,24,44,0.08)",
+        "emc":     "0 14px 40px -22px rgba(6,24,44,0.18), 0 1px 2px rgba(6,24,44,0.04)",
+        "emc-md":  "0 22px 50px -24px rgba(6,24,44,0.22), 0 2px 6px -1px rgba(6,24,44,0.05)",
+        "emc-lg":  "0 28px 70px -28px rgba(6,24,44,0.28), 0 4px 12px -3px rgba(6,24,44,0.06)",
+        "emc-xl":  "0 40px 90px -32px rgba(6,24,44,0.32), 0 6px 16px -4px rgba(6,24,44,0.07)",
+        "emc-glow": "0 0 0 1px rgba(0,119,182,0.18), 0 16px 48px -16px rgba(0,119,182,0.35)",
+        "emc-glow-accent": "0 0 0 1px rgba(242,140,0,0.22), 0 16px 44px -14px rgba(242,140,0,0.38)",
+        "emc-inset": "inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(6,24,44,0.04)",
+        "emc-ring": "0 0 0 1px rgba(12,42,75,0.06), 0 0 0 4px rgba(0,119,182,0.10)",
+        "kpi":     "0 16px 44px -24px rgba(6,24,44,0.18), inset 0 1px 0 rgba(255,255,255,0.65)",
       },
 
       backgroundImage: {
+        /* Sea-only textures */
         "emc-grid":
-          "linear-gradient(rgba(34,51,74,0.06) 1px, transparent 1px), linear-gradient(to right, rgba(34,51,74,0.06) 1px, transparent 1px)",
+          "linear-gradient(rgba(12,42,75,0.06) 1px, transparent 1px), linear-gradient(to right, rgba(12,42,75,0.06) 1px, transparent 1px)",
         "emc-dots":
-          "radial-gradient(rgba(34,51,74,0.10) 1px, transparent 1px)",
+          "radial-gradient(rgba(12,42,75,0.10) 1px, transparent 1px)",
         "emc-radial":
-          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(38,145,194,0.18), transparent 60%)",
+          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(8,159,224,0.18), transparent 60%)",
+        /* Dawn signature — LAYERED radials (depth base + sky glow + orange horizon), not a blend. */
         "emc-hero":
-          "radial-gradient(ellipse 60% 60% at 80% 0%, rgba(38,145,194,0.10), transparent 60%), radial-gradient(ellipse 50% 50% at 0% 90%, rgba(236,148,60,0.10), transparent 60%)",
+          "radial-gradient(ellipse 60% 60% at 80% 0%, rgba(8,159,224,0.16), transparent 60%), radial-gradient(ellipse 130% 72% at 50% 122%, rgba(242,140,0,0.18), transparent 62%)",
         "emc-shimmer":
           "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%)",
+        /* Depth — dividers & hero fields (sea family only). */
         "brand-gradient":
-          "linear-gradient(135deg, #2691C2 0%, #1B6489 60%, #22334A 100%)",
+          "linear-gradient(135deg, #06182C 0%, #0C2A4B 55%, #0E5A8A 100%)",
+        "depth-gradient":
+          "linear-gradient(135deg, #06182C 0%, #0C2A4B 55%, #0E5A8A 100%)",
+        /* Fire — solid family only (never blended with sea). */
         "accent-gradient":
-          "linear-gradient(135deg, #F0A04A 0%, #EC943C 55%, #D67C28 100%)",
+          "linear-gradient(135deg, #FFA733 0%, #F28C00 55%, #C97208 100%)",
         "ink-gradient":
-          "linear-gradient(135deg, #22334A 0%, #1A455D 60%, #0F2D3E 100%)",
+          "linear-gradient(135deg, #0C2A4B 0%, #0E5A8A 60%, #06182C 100%)",
+        /* Daylight — charts/bars/indicators on light (sea only). */
+        "daylight-gradient":
+          "linear-gradient(to left, #089FE0 0%, #A6D6F2 100%)",
       },
 
       backgroundSize: {
@@ -131,17 +149,14 @@ export default {
         "dots-22": "22px 22px",
       },
 
+      /* Brand motion easing — calm ease-out, no bounce/elastic. */
       transitionTimingFunction: {
-        "emc": "cubic-bezier(0.22, 0.61, 0.36, 1)",
-        "emc-spring": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "emc": "cubic-bezier(0.2, 0.8, 0.2, 1)",
         "emc-out": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "emc-spring": "cubic-bezier(0.2, 0.8, 0.2, 1)",
       },
 
-      transitionDuration: {
-        250: "250ms",
-        350: "350ms",
-        450: "450ms",
-      },
+      transitionDuration: { 250: "250ms", 350: "350ms", 450: "450ms" },
 
       keyframes: {
         "fade-in-up": {
@@ -160,20 +175,20 @@ export default {
           "0%,100%": { transform: "translateY(0)" },
           "50%":     { transform: "translateY(-4px)" },
         },
-        "glow-pulse": {
-          "0%,100%": { boxShadow: "0 0 0 0 rgba(38,145,194,0.35)" },
-          "50%":     { boxShadow: "0 0 0 10px rgba(38,145,194,0)" },
+        "dawn-breath": {
+          "0%,100%": { opacity: "0.85" },
+          "50%":     { opacity: "1" },
         },
       },
       animation: {
-        "fade-in-up": "fade-in-up 0.45s cubic-bezier(0.22,0.61,0.36,1) both",
+        "fade-in-up": "fade-in-up 0.45s cubic-bezier(0.2,0.8,0.2,1) both",
         "shimmer":    "shimmer 2.4s linear infinite",
         "slow-pulse": "slow-pulse 3.4s ease-in-out infinite",
         "soft-float": "soft-float 5.5s ease-in-out infinite",
-        "glow-pulse": "glow-pulse 2.2s ease-out infinite",
+        "dawn-breath": "dawn-breath 8s ease-in-out infinite",
       },
 
-      /** Global stacking scale — keep in sync with :root tokens in index.css */
+      /* Global stacking scale — keep in sync with :root tokens in index.css */
       zIndex: {
         content: "0",
         sidebar: "40",
