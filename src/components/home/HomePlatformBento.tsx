@@ -85,7 +85,7 @@ export default function HomePlatformBento() {
                 </div>
                 <Link
                   to={b.href}
-                  className="relative mt-6 inline-flex items-center gap-2 text-sm font-black text-customBlue transition hover:text-customOrange"
+                  className="relative mt-6 inline-flex items-center gap-2 text-sm font-black text-customBlue transition hover:text-accent-700"
                 >
                   استكشاف
                   <ArrowLeft size={16} strokeWidth={2.5} />

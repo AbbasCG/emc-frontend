@@ -46,7 +46,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}
-      className="group overflow-hidden rounded-3xl border border-[#22334A]/10 bg-white shadow-lg ring-1 ring-slate-100/80 transition-all duration-300 hover:border-[#2691C2]/30 hover:shadow-xl"
+      className="group overflow-hidden rounded-3xl border border-[#22334A]/10 bg-white shadow-lg transition-all duration-300 hover:border-[#2691C2]/30 hover:shadow-xl"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,260px)_1fr_minmax(0,220px)]">
         {/* Cover */}
@@ -204,7 +204,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
                 {price.original && (
                   <p className="text-[11px] font-semibold text-slate-400 line-through">{price.original}</p>
                 )}
-                <p className={`text-xl font-black ${price.isFree ? 'text-customBlue' : 'text-customOrange'}`}>
+                <p className={`text-xl font-black ${price.isFree ? 'text-customBlue' : 'text-accent-700'}`}>
                   {price.label}
                 </p>
               </div>
@@ -225,7 +225,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
             </Link>
             <Link
               to={href}
-              className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#EC943C]/40 px-4 py-2.5 text-xs font-black text-[#EC943C] transition hover:border-[#EC943C] hover:bg-[#EC943C]/5"
+              className="inline-flex w-full items-center justify-center rounded-2xl border-2 border-[#EC943C]/40 px-4 py-2.5 text-xs font-black text-accent-700 transition hover:border-[#EC943C] hover:bg-[#EC943C]/5"
             >
               استكشف المسار
             </Link>

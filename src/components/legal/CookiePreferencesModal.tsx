@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Cookie, Shield, BarChart3, Megaphone, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCookieConsent, DEFAULT_PREFS } from '@/contexts/CookieConsentContext'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { cn } from '@/lib/utils'
 
 export default function CookiePreferencesModal() {
@@ -18,6 +19,9 @@ export default function CookiePreferencesModal() {
 
   const [analytics, setAnalytics] = useState(DEFAULT_PREFS.analytics)
   const [marketing, setMarketing] = useState(DEFAULT_PREFS.marketing)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(panelRef, { active: preferencesOpen, onEscape: closePreferences })
 
   useEffect(() => {
     if (preferencesOpen) {
@@ -40,6 +44,7 @@ export default function CookiePreferencesModal() {
             onClick={closePreferences}
           />
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="cookie-prefs-title"

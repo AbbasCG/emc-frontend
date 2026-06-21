@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import {
   Briefcase,
   Calendar,
@@ -245,6 +246,9 @@ export default function VolunteerRequestDetailModal({
   const [converting, setConverting] = useState(false)
   const [localConverted, setLocalConverted] = useState(() => isAlreadyConverted(req))
   const [dirty, setDirty] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(panelRef, { active: true, onEscape: onClose })
 
   useEffect(() => {
     setAdminNotes(req.admin_notes ?? '')
@@ -360,6 +364,7 @@ export default function VolunteerRequestDetailModal({
       />
 
       <motion.div
+        ref={panelRef}
         initial={{ opacity: 0, scale: 0.97, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 24 }}

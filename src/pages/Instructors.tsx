@@ -34,7 +34,7 @@ function InstructorCard({ ins }: { ins: InstructorPublic }) {
   return (
     <motion.article
       variants={staggerItem}
-      className="group relative flex flex-col overflow-hidden rounded-[1.4rem] border border-[#22334A]/[0.08] bg-white text-right shadow-[0_20px_48px_-20px_rgba(15,42,67,0.22)] ring-1 ring-white/90 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_56px_-20px_rgba(15,42,67,0.30)]"
+      className="group relative flex flex-col overflow-hidden rounded-[1.4rem] border border-[#22334A]/[0.08] bg-white text-right shadow-[0_20px_48px_-20px_rgba(15,42,67,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_56px_-20px_rgba(15,42,67,0.30)]"
     >
       {/* Decorative glow */}
       <div className="pointer-events-none absolute -left-12 -top-8 h-40 w-40 rounded-full bg-[#2691C2]/[0.06] blur-3xl transition duration-500 group-hover:bg-[#EC943C]/[0.08]" />

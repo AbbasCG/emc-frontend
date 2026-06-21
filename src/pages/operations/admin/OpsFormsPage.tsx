@@ -65,7 +65,7 @@ export default function OpsFormsPage() {
                 to={`/dashboard/admin/forms/${f.id}`}
                 className="block rounded-2xl bg-white p-6 text-right shadow-md ring-1 ring-deepBlue/[0.06] transition hover:-translate-y-0.5 hover:ring-customBlue/25"
               >
-                <p className="text-[10px] font-black uppercase tracking-wide text-customOrange">
+                <p className="text-[10px] font-black uppercase tracking-wide text-accent-700">
                   {FORM_TYPE_AR[f.form_type] ?? f.form_type}
                 </p>
                 <h2 className="mt-2 text-lg font-black text-deepBlue">{f.title}</h2>

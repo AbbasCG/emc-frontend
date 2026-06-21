@@ -53,7 +53,7 @@ export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotli
           className="flex items-end justify-between mb-10"
         >
           <div>
-            <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
+            <span className="text-xs font-bold text-accent-700 uppercase tracking-widest mb-2 block">
               ورش العمل المجانية
             </span>
             <h2 className="text-2xl md:text-3xl font-black text-deepBlue">

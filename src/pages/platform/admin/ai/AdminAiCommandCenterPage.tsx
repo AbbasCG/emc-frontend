@@ -50,7 +50,7 @@ export default function AdminAiCommandCenterPage() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">AI Command Center</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Command Center</p>
             <h1 className="mt-1 text-3xl font-black text-deepBlue">مركز قيادة الذكاء المؤسسي</h1>
             <p className="mt-2 text-sm font-medium text-slate-600">مراقبة النشاط، التوليدات، الأتمتة، الاستهلاك، وتوصيات القرار في لوحة موحدة.</p>
           </div>

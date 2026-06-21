@@ -49,7 +49,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
           className="mb-8 flex flex-col gap-4 text-right md:mb-10 md:flex-row md:items-end md:justify-between"
         >
           <div className="max-w-2xl">
-            <span className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[#EC943C]">
+            <span className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-accent-700">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               رحلة تعليمية متكاملة
             </span>

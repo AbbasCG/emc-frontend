@@ -27,7 +27,7 @@ export default function AdminAiAutomationsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <header>
-        <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Phase 8</p>
+        <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">Phase 8</p>
         <h1 className="text-3xl font-black text-deepBlue">AI Automations</h1>
         <p className="mt-2 text-sm font-medium text-slate-600">عرض التدفقات الذكية، المحفزات، الإجراءات، وسجل التنفيذ الزمني.</p>
       </header>

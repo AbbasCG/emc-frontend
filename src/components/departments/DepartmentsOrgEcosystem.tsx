@@ -73,7 +73,7 @@ function DeptNode({
         onClick={onSelect}
         onMouseEnter={() => onHover(true)}
         onMouseLeave={() => onHover(false)}
-        whileHover={{ scale: 1.04, y: -3 }}
+        whileHover={{ scale: 1.02, y: -3 }}
         whileTap={{ scale: 0.98 }}
         className={[
           'group relative flex max-w-[11.5rem] flex-col items-center rounded-[1.35rem] border border-white/10 bg-gradient-to-b from-deepBlue to-[#0a1f32] px-5 py-5 text-center text-white shadow-[0_28px_56px_-18px_rgba(15,42,67,0.62)] backdrop-blur-sm transition-shadow duration-300',
@@ -107,7 +107,7 @@ function DeptNode({
       onClick={onSelect}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
-      whileHover={{ scale: 1.05, y: -4 }}
+      whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       className={[
         'group relative flex max-w-[9rem] flex-col items-center text-center transition-[box-shadow,transform] duration-300',

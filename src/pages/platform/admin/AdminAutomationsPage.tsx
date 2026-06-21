@@ -77,7 +77,7 @@ export default function AdminAutomationsPage() {
     <div className="mx-auto max-w-6xl">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Automations</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">Automations</p>
           <h1 className="text-3xl font-black text-deepBlue">مُنشئ الأتمتة الموسّع</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-500">
             محرّك Zapier-like داخل EMC: محفّزات تشغيل حقيقية، قنوات متعددة، شروط JSON متقدمة، ومعاينة الإجراءات قبل الإرسال إلى الخادم.

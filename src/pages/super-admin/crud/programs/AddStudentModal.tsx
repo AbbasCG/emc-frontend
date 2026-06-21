@@ -4,6 +4,7 @@ import toast from '@/lib/toast'
 import { addStudentToCourse, type AddStudentPayload } from '@/api/adminCoursesApi'
 import { searchAdminUsers, type UserSearchHit } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface Props {
   courseId: number
@@ -38,6 +39,9 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
   const [selected, setSelected]       = useState<UserSearchHit | null>(null)
   const debouncedQ                    = useDebounce(searchQ, 300)
   const searchRef                     = useRef<HTMLInputElement>(null)
+  const panelRef                      = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(panelRef, { active: true, onEscape: onClose })
 
   useEffect(() => {
     if (!debouncedQ.trim()) { setResults([]); return }
@@ -100,6 +104,10 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-student-modal-title"
         className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -109,7 +117,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
             <UserPlus className="size-5 text-[#2691C2]" aria-hidden />
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-widest text-white/50">إضافة طالب</p>
-              <p className="truncate text-sm font-black">{courseTitle}</p>
+              <p id="add-student-modal-title" className="truncate text-sm font-black">{courseTitle}</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="rounded-xl p-1.5 hover:bg-white/10 transition">

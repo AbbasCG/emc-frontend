@@ -24,7 +24,7 @@ export default function AdminAiUsagePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <header>
-        <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">AI Usage Analytics</p>
+        <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Usage Analytics</p>
         <h1 className="text-3xl font-black text-deepBlue">تحليلات استخدام الذكاء</h1>
       </header>
 

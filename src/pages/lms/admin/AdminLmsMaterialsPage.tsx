@@ -47,7 +47,7 @@ function MaterialCard({ m }: { m: MaterialRow }) {
   const href = m.external_url ?? m.url ?? (m.file_path ? `/storage/${m.file_path}` : undefined)
 
   return (
-    <div className="group flex items-start gap-4 rounded-2xl border border-deepBlue/[0.07] bg-white p-4 shadow-sm ring-1 ring-deepBlue/[0.02] transition hover:shadow-md">
+    <div className="group flex items-start gap-4 rounded-2xl border border-deepBlue/[0.07] bg-white p-4 shadow-sm transition hover:shadow-md">
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.bg} ring-1 ring-deepBlue/[0.06]`}>
         <TypeIcon size={18} className={t.text} aria-hidden />
       </span>

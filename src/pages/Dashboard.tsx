@@ -62,7 +62,7 @@ type KpiProps = {
 
 const KPI_COLOR: Record<KpiProps['color'], string> = {
   blue:   'bg-customBlue/[0.08] text-customBlue ring-customBlue/15',
-  orange: 'bg-customOrange/[0.08] text-customOrange ring-customOrange/15',
+  orange: 'bg-customOrange/[0.08] text-accent-700 ring-customOrange/15',
   green:  'bg-emerald-500/[0.08] text-emerald-600 ring-emerald-200/60',
   purple: 'bg-violet-500/[0.08] text-violet-600 ring-violet-200/60',
   slate:  'bg-slate-100 text-slate-500 ring-slate-200/60',
@@ -152,7 +152,7 @@ function CourseCard({ course }: { course: DashCourse }) {
     <motion.article
       layout
       whileHover={{ y: -3 }}
-      className="flex flex-col overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm ring-1 ring-deepBlue/[0.03] transition-shadow hover:shadow-md"
+      className="flex flex-col overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm transition-shadow hover:shadow-md"
     >
       {/* Image */}
       <div className="relative h-36 overflow-hidden bg-gradient-to-br from-deepBlue to-customBlue">
@@ -461,7 +461,7 @@ export default function Dashboard() {
           {loading ? (
             <DashboardListSkeleton count={4} />
           ) : dashboardNotifications.length > 0 ? (
-            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-deepBlue/[0.05] bg-white shadow-sm ring-1 ring-white">
+            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-deepBlue/[0.05] bg-white shadow-sm">
               {dashboardNotifications.slice(0, 5).map((n, i) => (
                 <NotificationItem key={String(n.id ?? i)} notification={n} />
               ))}

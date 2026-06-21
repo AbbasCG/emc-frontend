@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { ReportTypeSlug } from '@/types/intelligence'
 
 const TYPES: { id: ReportTypeSlug; label: string }[] = [
@@ -25,6 +26,9 @@ export default function ReportGeneratorModal({
   onGenerate: (payload: { report_type: ReportTypeSlug; related_label?: string; title?: string }) => Promise<void>
 }) {
   const [busy, setBusy] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -56,6 +60,10 @@ export default function ReportGeneratorModal({
             onClick={onClose}
           />
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-generator-title"
             dir="rtl"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -66,7 +74,7 @@ export default function ReportGeneratorModal({
               <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100">
                 <X size={18} />
               </button>
-              <h2 className="text-lg font-black text-deepBlue">إنشاء تقرير</h2>
+              <h2 id="report-generator-title" className="text-lg font-black text-deepBlue">إنشاء تقرير</h2>
             </div>
             <form onSubmit={submit} className="space-y-4 text-right">
               <label className="grid gap-2 text-xs font-black text-deepBlue">

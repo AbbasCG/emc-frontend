@@ -46,7 +46,7 @@ export default function NotificationPreferencesPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8 space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Phase 7</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">Phase 7</p>
             <h1 className="text-2xl font-black text-deepBlue">تفضيلات الإشعارات</h1>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-slate-500">
               حدد كيف تصلك الرسائل الحساسة للوقت عبر المنصّة والبريد وواتساب — بدون كشف أي أسرار اتصال.

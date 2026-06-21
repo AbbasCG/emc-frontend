@@ -31,7 +31,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
   return (
     <Link
       to={`/learning-paths/${path.slug}`}
-      className="group grid overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md ring-1 ring-slate-100 transition hover:border-[#2691C2]/35 hover:shadow-lg sm:grid-cols-[140px_1fr_auto]"
+      className="group grid overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md transition hover:border-[#2691C2]/35 hover:shadow-lg sm:grid-cols-[140px_1fr_auto]"
     >
       <div className="relative min-h-[120px] overflow-hidden sm:min-h-full">
         {cover ?
@@ -71,7 +71,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
 
       <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 sm:flex-col sm:justify-center sm:border-t-0 sm:border-s sm:px-4">
         {price.hasPrice && (
-          <p className={`text-sm font-black ${price.isFree ? 'text-customBlue' : 'text-customOrange'}`}>
+          <p className={`text-sm font-black ${price.isFree ? 'text-customBlue' : 'text-accent-700'}`}>
             {price.label}
           </p>
         )}
@@ -107,7 +107,7 @@ export default function LearningPathsTeaserSection({ paths, loading }: Props) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-4 flex flex-col gap-3 text-right sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-[#EC943C]">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-accent-700">
               المسارات الاحترافية
             </span>
             <h2 className="text-xl font-black text-deepBlue sm:text-2xl">رحلة تعليمية متكاملة</h2>

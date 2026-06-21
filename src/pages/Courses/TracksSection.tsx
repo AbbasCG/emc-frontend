@@ -48,7 +48,7 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
           transition={{ duration: 0.55, ease: 'easeOut' }}
           className="mb-10"
         >
-          <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
+          <span className="text-xs font-bold text-accent-700 uppercase tracking-widest mb-2 block">
             المسارات المهنية
           </span>
           <h2 className="text-2xl md:text-3xl font-black text-deepBlue">

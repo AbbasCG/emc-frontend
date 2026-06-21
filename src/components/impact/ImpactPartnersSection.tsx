@@ -27,7 +27,7 @@ export default function ImpactPartnersSection() {
               key={label}
               whileHover={{ y: -3 }}
               transition={{ duration: 0.2 }}
-              className="flex aspect-[5/3] items-center justify-center rounded-3xl border border-deepBlue/[0.08] bg-white/[0.75] px-4 text-center text-xs font-black text-deepBlue/65 shadow-emc-sm backdrop-blur-sm ring-1 ring-white hover:border-customBlue/[0.22] lg:text-sm lg:leading-snug"
+              className="flex aspect-[5/3] items-center justify-center rounded-3xl border border-deepBlue/[0.08] bg-white/[0.75] px-4 text-center text-xs font-black text-deepBlue/65 shadow-emc-sm backdrop-blur-sm hover:border-customBlue/[0.22] lg:text-sm lg:leading-snug"
             >
               {label}
             </motion.div>
@@ -39,7 +39,7 @@ export default function ImpactPartnersSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
-          className="mt-12 rounded-3xl border border-deepBlue/[0.07] bg-white/[0.9] p-8 text-right text-[15px] font-semibold leading-[1.9] text-foreground/74 shadow-inner ring-1 ring-white backdrop-blur-sm sm:p-10"
+          className="mt-12 rounded-3xl border border-deepBlue/[0.07] bg-white/[0.9] p-8 text-right text-[15px] font-semibold leading-[1.9] text-foreground/74 shadow-inner backdrop-blur-sm sm:p-10"
         >
           الشراكة عند EMC ليست شعاراً فقط؛ نربط كل تعاون بأهداف أثر متفقاً عليها، تقاسم أدوار واضحة، ومخرجات يمكن تنظيم تقاريرها بشكل دوري لمتابعة القيمة المضافة.
         </motion.p>

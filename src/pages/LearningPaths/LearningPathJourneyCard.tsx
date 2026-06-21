@@ -73,7 +73,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
           navigate(href)
         }
       }}
-      className="group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-md ring-1 ring-slate-100 transition-all duration-300 hover:border-[#2691C2]/35 hover:shadow-xl"
+      className="group cursor-pointer overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-md transition-all duration-300 hover:border-[#2691C2]/35 hover:shadow-xl"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,240px)_1fr_minmax(0,200px)]">
           {/* Cover + journey spine */}
@@ -226,7 +226,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
                   {price.original && (
                     <p className="text-[11px] font-semibold text-slate-400 line-through">{price.original}</p>
                   )}
-                  <p className={`text-2xl font-black ${price.isFree ? 'text-customBlue' : 'text-customOrange'}`}>
+                  <p className={`text-2xl font-black ${price.isFree ? 'text-customBlue' : 'text-accent-700'}`}>
                     {price.label}
                   </p>
                 </div>

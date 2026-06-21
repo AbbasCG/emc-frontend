@@ -45,7 +45,7 @@ function accentForIndex(i: number) {
         badge: 'text-customBlue/35',
       }
     : {
-        chip: 'bg-accent-50/90 text-customOrange ring-1 ring-customOrange/25',
+        chip: 'bg-accent-50/90 text-accent-700 ring-1 ring-customOrange/25',
         line: 'from-customOrange/20',
         badge: 'text-customOrange/30',
       }
@@ -77,7 +77,7 @@ export default function Tracks() {
             transition={{ duration: 0.45 }}
             className="mb-12 max-w-3xl space-y-3 text-right"
           >
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-customOrange">المحاور</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-accent-700">المحاور</p>
             <p className="text-[1.05rem] font-medium leading-8 text-foreground/73">
               تجربة محاور حديثة ومنظمة: نفس المنظومة الاثني عشر، وبطاقات مصمّمة لتسهيل القراءة والانتقال السريع إلى
               البرامج. اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون

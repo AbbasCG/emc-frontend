@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /** Ring length for r=54 in viewBox 0 0 120 120 */
 const RING_LEN = 2 * Math.PI * 54
@@ -16,6 +17,10 @@ type Props = {
 }
 
 export function FormSuccessState({ open, title, description, continueLabel = 'تم', onContinue, actions }: Props) {
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(panelRef, { active: open, onEscape: onContinue })
+
   const particles = Array.from({ length: 14 }, (_, i) => ({
     id: i,
     left: `${12 + (i * 41) % 76}%`,
@@ -32,6 +37,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
           key="form-success"
           role="dialog"
           aria-modal="true"
+          aria-labelledby="emc-form-success-title"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -39,6 +45,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
           className="fixed inset-0 z-[210] flex items-center justify-center bg-[#0F172A]/55 px-4 backdrop-blur-md"
         >
           <motion.div
+            ref={panelRef}
             initial={{ opacity: 0, scale: 0.9, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 10 }}

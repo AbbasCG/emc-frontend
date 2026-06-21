@@ -89,7 +89,7 @@ export default function PlatformScaleDashboardPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8" dir="rtl">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-[11px] font-black uppercase tracking-[0.25em] text-customOrange">Scale</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.25em] text-accent-700">Scale</p>
         <h1 className="mt-2 text-3xl font-black text-deepBlue">لوحة نمو المنصة</h1>
         <p className="mt-2 text-sm font-medium text-deepBlue/50">
           إحصاءات تشغيلية شاملة لمنصة EMC

@@ -11,7 +11,7 @@ type ProgressCardProps = {
 
 const colorMap = {
   blue:   { bar: 'bg-customBlue',   text: 'text-customBlue'   },
-  orange: { bar: 'bg-customOrange', text: 'text-customOrange' },
+  orange: { bar: 'bg-customOrange', text: 'text-accent-700' },
   green:  { bar: 'bg-emerald-500',  text: 'text-emerald-500'  },
 }
 

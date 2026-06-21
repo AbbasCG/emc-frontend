@@ -75,7 +75,7 @@ export default function AiWorkspacePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(38,145,194,0.14),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(236,148,60,0.14),transparent_40%)]" />
         <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">AI Operating System</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Operating System</p>
             <h1 className="mt-1 text-3xl font-black text-deepBlue">مساحة الذكاء المؤسسي</h1>
             <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-600">
               مساعد متعدد الأدوار، بحث دلالي، توصيات ذكية، وتوليد محتوى تشغيلي — ضمن واجهة موحدة.

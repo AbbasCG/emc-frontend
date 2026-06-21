@@ -146,7 +146,7 @@ export default function FakePayment() {
             )}
 
             {message && !done && (
-              <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm font-bold text-customOrange ring-1 ring-orange-100">
+              <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm font-bold text-accent-700 ring-1 ring-orange-100">
                 {message}
               </div>
             )}

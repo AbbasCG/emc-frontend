@@ -89,7 +89,7 @@ export default function TrackCard({ track, index = 0 }: TrackCardProps) {
           </div>
           <div className="w-px h-8 bg-slate-200" />
           <div className="text-center">
-            <p className="text-lg font-black text-customOrange">{track.workshops_count}</p>
+            <p className="text-lg font-black text-accent-700">{track.workshops_count}</p>
             <p className="text-xs text-[#73777B] -mt-0.5">ورشة</p>
           </div>
           {discount > 0 && (
