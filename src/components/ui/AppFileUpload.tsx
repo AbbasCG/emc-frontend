@@ -203,7 +203,7 @@ export default function AppFileUpload({
             <div className="flex min-w-0 items-center gap-2 text-right">
               {isPdf
                 ? <FileText size={18} className="shrink-0 text-customBlue" aria-hidden="true" />
-                : <ImagePlus size={18} className="shrink-0 text-[#b9872f]" aria-hidden="true" />
+                : <ImagePlus size={18} className="shrink-0 text-[#D67C28]" aria-hidden="true" />
               }
               <div className="min-w-0">
                 <p className="truncate font-bold text-deepBlue">{file.name}</p>
@@ -247,14 +247,14 @@ export default function AppFileUpload({
             error
               ? 'border-red-300 bg-red-50 focus-visible:ring-red-100'
               : isDragging
-                ? 'border-[#b9872f] bg-amber-50 focus-visible:ring-amber-100'
-                : 'border-amber-200 bg-white hover:border-[#b9872f] hover:bg-amber-50 focus-visible:ring-amber-100',
+                ? 'border-[#D67C28] bg-amber-50 focus-visible:ring-amber-100'
+                : 'border-amber-200 bg-white hover:border-[#D67C28] hover:bg-amber-50 focus-visible:ring-amber-100',
           ].join(' ')}
           aria-describedby={
             [hint ? hintId : '', error ? errorId : ''].filter(Boolean).join(' ') || undefined
           }
         >
-          <ImagePlus size={26} className={error ? 'text-red-600' : 'text-[#b9872f]'} aria-hidden="true" />
+          <ImagePlus size={26} className={error ? 'text-red-600' : 'text-[#D67C28]'} aria-hidden="true" />
           <span className="text-right">
             <span className={`block font-bold ${error ? 'text-red-700' : 'text-deepBlue'}`}>
               اضغط لتحميل الملف

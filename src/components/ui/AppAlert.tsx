@@ -37,7 +37,7 @@ export default function AppAlert({ type, title, message, dismissible = false, on
     info: {
       bg: 'bg-amber-50',
       border: 'border-amber-100',
-      icon: 'text-[#b9872f]',
+      icon: 'text-[#D67C28]',
       title: 'text-deepBlue',
       text: 'text-slate-700',
       Icon: Info,

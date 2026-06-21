@@ -59,7 +59,7 @@ export default function AppRadioGroup({
               className={[
                 'flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-right transition',
                 checked
-                  ? 'border-[#b9872f] bg-amber-50 shadow-sm shadow-amber-100'
+                  ? 'border-[#D67C28] bg-amber-50 shadow-sm shadow-amber-100'
                   : 'border-amber-100 bg-white hover:border-amber-300 hover:bg-amber-50/60',
               ].join(' ')}
             >
@@ -71,7 +71,7 @@ export default function AppRadioGroup({
                 checked={checked}
                 onChange={() => onChange(option.value)}
                 required={required}
-                className="h-5 w-5 accent-[#b9872f]"
+                className="h-5 w-5 accent-[#D67C28]"
               />
               <span className="font-semibold text-deepBlue">{option.label}</span>
             </label>

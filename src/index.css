@@ -1,8 +1,7 @@
 /* EMC global stylesheet — premium design system foundation.
-   Arabic-first (Tajawal), Latin/numeric opt-in (Inter), RTL by default. */
-@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+   Arabic-first (Tajawal), Latin/numeric opt-in (Inter), RTL by default.
+   Fonts load via <link rel="preconnect"> + a single <link rel="stylesheet"> in index.html
+   (off the CSS critical path → faster first text paint than @import). */
 
 @tailwind base;
 @tailwind components;

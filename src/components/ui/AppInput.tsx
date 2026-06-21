@@ -98,7 +98,7 @@ export default function AppInput({
               ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
               : variant === 'emc'
                 ? 'border-slate-200/90 shadow-sm focus:border-[#2691C2] focus:ring-4 focus:ring-[#2691C2]/22'
-                : 'border-amber-100 focus:border-[#b9872f] focus:ring-4 focus:ring-amber-100',
+                : 'border-amber-100 focus:border-[#D67C28] focus:ring-4 focus:ring-amber-100',
             disabled && 'cursor-not-allowed bg-slate-100 text-slate-500',
             inputClassName,
           )}
