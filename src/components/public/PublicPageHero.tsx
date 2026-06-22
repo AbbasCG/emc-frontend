@@ -89,7 +89,7 @@ export default function PublicPageHero({
             key={s.label}
             className="rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 text-right shadow-lg backdrop-blur-md"
           >
-            <p className="text-lg font-black text-customOrange sm:text-xl">{s.value}</p>
+            <p className="text-lg font-black text-amber sm:text-xl">{s.value}</p>
             <p className="mt-1 text-xs font-bold leading-relaxed text-white/70">{s.label}</p>
           </div>
         ))}
@@ -108,7 +108,7 @@ export default function PublicPageHero({
         </motion.span>
       ) : (
         eyebrow && (
-          <motion.p variants={fadeUp} className="mb-3 text-sm font-bold text-customBlue/95">
+          <motion.p variants={fadeUp} className="mb-3 text-sm font-bold text-sky">
             {eyebrow}
           </motion.p>
         )
@@ -186,7 +186,7 @@ export default function PublicPageHero({
                   {badge}
                 </motion.span>
               ) : (
-                eyebrow && <p className="mb-3 text-sm font-bold text-customBlue/95">{eyebrow}</p>
+                eyebrow && <p className="mb-3 text-sm font-bold text-sky">{eyebrow}</p>
               )}
               <div className="mb-5 flex flex-wrap items-center justify-center gap-2 text-sm font-bold text-white/80">
                 {breadcrumbs.map((item, index) => (
