@@ -77,10 +77,10 @@ function FooterAccordion({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between py-3 text-right md:hidden"
       >
-        <span className="text-[11px] font-black tracking-[0.12em] text-[#F28C00]">{title}</span>
+        <span className="text-[11px] font-black tracking-[0.12em] text-amber">{title}</span>
         <ChevronDown className={cn('h-4 w-4 text-white/50 transition', open && 'rotate-180')} aria-hidden />
       </button>
-      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-[#F28C00] md:block">{title}</h3>
+      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-amber md:block">{title}</h3>
       <div className={cn(open ? 'block pb-3' : 'hidden', 'md:block md:pb-0')}>{children}</div>
     </div>
   )
@@ -130,9 +130,12 @@ export default function Footer() {
             <p className="mt-2 max-w-xs text-[12px] font-medium leading-6 text-white/50">
               منصة تعليمية عربية—هولندية: برامج، ورش، شراكات، وتعلم رقمي بمعايير احترافية.
             </p>
+            <p className="emc-tridot mt-3 inline-flex items-center text-[12.5px] font-bold tracking-wide text-white/75">
+              نُرشد العقول، ونبني المستقبل.
+            </p>
             <Link
               to="/contact"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-[#1e7dab]"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-brand-600"
             >
               تواصل معنا
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />

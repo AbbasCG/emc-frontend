@@ -311,9 +311,58 @@ a {
     @apply mt-4 inline-block h-1 w-16 rounded-full bg-customBlue;
   }
 
-  /* Number display (matches Inter via .emc-num) */
+  /* Number display (matches IBM Plex Sans via .emc-num) */
   .emc-display-num {
     @apply font-latin font-black tabular-nums tracking-tight;
+  }
+
+  /* ── Brand V2.2 premium signatures (additive utilities) ── */
+  /* Dawn field — the signature hero treatment: depth base + sky glow (top) + orange horizon
+     (bottom), as LAYERED radials (never a sea↔fire blend). */
+  .emc-dawn {
+    background-color: #06182c;
+    background-image:
+      radial-gradient(ellipse 72% 56% at 80% -10%, rgba(8, 159, 224, 0.30), transparent 60%),
+      radial-gradient(ellipse 150% 80% at 50% 122%, rgba(242, 140, 0, 0.20), transparent 62%),
+      linear-gradient(180deg, #06182c 0%, #0c2a4b 62%, #0c2a4b 100%);
+  }
+  /* Depth field — sea-only premium dark surface (dividers, hero fields). */
+  .emc-depth {
+    background-image: linear-gradient(135deg, #06182c 0%, #0c2a4b 55%, #0e5a8a 100%);
+  }
+  /* Daylight bar — sea-only progress/indicator on light. */
+  .emc-daylight {
+    background-image: linear-gradient(to left, #089fe0 0%, #a6d6f2 100%);
+  }
+  /* Layered arc under a section title — a solid orange rule (brand signature). */
+  .emc-title-arc::after {
+    content: "";
+    display: block;
+    height: 4px;
+    width: 4.5rem;
+    margin-top: 0.9rem;
+    border-radius: 999px;
+    background: #f28c00;
+  }
+  .emc-title-arc.is-center::after { margin-inline: auto; }
+  /* Premium glass surface — refined depth + saturation. */
+  .emc-glass-premium {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 26px 64px -30px rgba(6, 24, 44, 0.30);
+    -webkit-backdrop-filter: blur(18px) saturate(1.25);
+    backdrop-filter: blur(18px) saturate(1.25);
+  }
+  /* Tri-segment signature (sky · amber · navy) — precedes the footer slogan. */
+  .emc-tridot::before {
+    content: "";
+    display: inline-block;
+    width: 2.75rem;
+    height: 0.38rem;
+    margin-inline-end: 0.6rem;
+    vertical-align: middle;
+    border-radius: 999px;
+    background: linear-gradient(to left, #089fe0 0 33%, #ffa733 33% 66%, #0c2a4b 66% 100%);
   }
 }
 

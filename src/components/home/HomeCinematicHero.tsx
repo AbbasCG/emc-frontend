@@ -213,7 +213,7 @@ export default function HomeCinematicHero() {
             <br />
             <span
               className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(135deg, #0077B6 0%, #5bb8e8 40%, #F28C00 100%)' }}
+              style={{ backgroundImage: 'linear-gradient(135deg, #FFFFFF 0%, #A6D6F2 45%, #089FE0 100%)' }}
             >
               بمنهج يقود للعمق
             </span>
@@ -237,7 +237,7 @@ export default function HomeCinematicHero() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(0, 119, 182,0.6)] transition-all duration-300 hover:bg-[#1e7dab] hover:shadow-[0_24px_50px_-14px_rgba(0, 119, 182,0.7)]"
+                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(0,119,182,0.6)] transition-all duration-300 hover:bg-brand-600 hover:shadow-[0_24px_50px_-14px_rgba(0,119,182,0.7)]"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 استكشف البرامج والمسارات
