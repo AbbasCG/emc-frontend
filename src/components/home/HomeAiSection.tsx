@@ -62,7 +62,7 @@ export default function HomeAiSection() {
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 119, 182,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 119, 182,0.6) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(0,119,182,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(0,119,182,0.6) 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
         }}
       />
@@ -77,27 +77,27 @@ export default function HomeAiSection() {
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >
           <div className="text-right">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-customBlue/25 bg-customBlue/10 px-4 py-2 backdrop-blur-sm">
-              <Sparkles size={13} className="text-customBlue" aria-hidden />
-              <span className="text-xs font-black text-customBlue">الذكاء الاصطناعي في EMC</span>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-sky/25 bg-sky/10 px-4 py-2 backdrop-blur-sm">
+              <Sparkles size={13} className="text-sky" aria-hidden />
+              <span className="text-xs font-black text-sky">الذكاء الاصطناعي في EMC</span>
             </div>
-            <h2 className="font-display text-3xl font-black leading-tight text-white sm:text-4xl xl:text-[2.8rem]">
+            <h2 className="font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl xl:text-[2.8rem]">
               نُدمج الذكاء الاصطناعي في{' '}
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(90deg, #0077B6, #F28C00)' }}
+                style={{ backgroundImage: 'linear-gradient(90deg, #089FE0, #A6D6F2)' }}
               >
                 قلب مسيرتك التعليمية
               </span>
             </h2>
-            <p className="mt-5 max-w-xl text-base font-semibold leading-8 text-white/50">
+            <p className="mt-5 max-w-xl text-base font-semibold leading-8 text-white/55">
               لسنا منصة تشرح الذكاء الاصطناعي من بُعد — نحن بيئة تعلّم تجعلك تبنيه وتطبّقه وتُدمجه في عملك اليومي.
             </p>
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
             <Link
               to="/courses"
-              className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-customBlue/30 bg-customBlue/10 px-7 py-3.5 text-sm font-black text-customBlue backdrop-blur-md transition-all hover:border-customBlue/60 hover:bg-customBlue/20"
+              className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-sky/30 bg-sky/10 px-7 py-3.5 text-sm font-black text-sky backdrop-blur-md transition-all hover:border-sky/60 hover:bg-sky/20"
             >
               استكشف برامج AI
               <ArrowLeft size={16} aria-hidden />
@@ -139,7 +139,7 @@ export default function HomeAiSection() {
                 </div>
 
                 <h3 className="relative text-xl font-black leading-tight text-white">{cap.title}</h3>
-                <p className="relative mt-4 text-sm font-semibold leading-7 text-white/50">{cap.desc}</p>
+                <p className="relative mt-4 text-sm font-semibold leading-7 text-white/55">{cap.desc}</p>
 
                 {/* Bottom gradient line */}
                 <div
@@ -165,7 +165,7 @@ export default function HomeAiSection() {
           </p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white shadow-[0_8px_24px_rgba(0, 119, 182,0.35)] transition-all hover:bg-[#1e7dab]"
+            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white shadow-emc-glow transition-all hover:bg-[#1e7dab]"
           >
             انضم الآن
             <ArrowLeft size={15} aria-hidden />

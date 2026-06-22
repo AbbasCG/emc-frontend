@@ -20,7 +20,7 @@ export default function CookieBanner() {
       className="fixed inset-x-0 bottom-0 z-[190] px-4 pb-4 sm:px-6 lg:px-10"
     >
       <div className="mx-auto max-w-[1540px] overflow-hidden rounded-2xl border border-white/10 bg-[#0C2A4B]/97 text-white shadow-[0_-8px_48px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_100%_0%,rgba(0, 119, 182,0.22),transparent_55%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_100%_0%,rgba(0,119,182,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
           <div className="flex min-w-0 items-start gap-4 text-right">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/20 text-[#0077B6] ring-1 ring-[#0077B6]/30">
@@ -66,7 +66,7 @@ export default function CookieBanner() {
             <button
               type="button"
               onClick={acceptAll}
-              className="rounded-xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(242, 140, 0,0.55)] transition hover:brightness-105"
+              className="rounded-xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(242,140,0,0.55)] transition hover:brightness-105"
             >
               قبول الكل
             </button>

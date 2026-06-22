@@ -18,17 +18,17 @@ export default function DashboardSection({
 }: DashboardSectionProps) {
   return (
     <section className={className}>
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-deepBlue">{title}</h2>
+          <h2 className="emc-title-arc text-xl font-black tracking-tight text-deepBlue font-display">{title}</h2>
           {subtitle && (
-            <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>
+            <p className="mt-2 text-sm leading-relaxed text-deepBlue/55">{subtitle}</p>
           )}
         </div>
         {action && (
           <Link
             to={action.href}
-            className="shrink-0 rounded-lg px-4 py-2 text-sm font-bold text-customBlue transition hover:bg-sky-50"
+            className="shrink-0 rounded-xl px-4 py-2 text-sm font-black text-customBlue transition-colors duration-200 hover:bg-customBlue/[0.06]"
           >
             {action.label}
           </Link>

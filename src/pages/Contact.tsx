@@ -118,7 +118,7 @@ export default function Contact() {
   }
 
   return (
-    <main className="bg-[#f4f7fb] pt-20">
+    <main className="bg-paper pt-20">
       <PublicPageHero
         eyebrow="نحن هنا لمساعدتك"
         title="تواصل معنا"
@@ -130,15 +130,15 @@ export default function Contact() {
         secondaryAction={{ label: 'الأسئلة الشائعة', href: '#faq' }}
       />
 
-      <section id="trainer" className="scroll-mt-28 border-b border-slate-200/80 bg-white px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-start gap-4 rounded-2xl bg-[#f4f7fb] p-6 text-right ring-1 ring-slate-200/60 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+      <section id="trainer" className="scroll-mt-28 border-b border-line bg-white px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-start gap-4 rounded-2xl bg-paper2 p-6 text-right ring-1 ring-line sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-customBlue">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-customBlue ring-1 ring-brand-100">
               <GraduationCap size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-deepBlue">كن مدرباً مع EMC</h2>
-              <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-slate-600">
+              <h2 className="font-display text-lg font-black tracking-tight text-deepBlue">كن مدرباً مع EMC</h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-foreground/70">
                 إذا كنت تمتلك خبرة تدريبية وتتوافق مع معايير الجودة لدينا، أرسل لنا عبر النموذج
                 أدناه مع اختيار الموضوع المناسب، وسيتم التواصل معك.
               </p>
@@ -166,14 +166,14 @@ export default function Contact() {
                 <motion.article
                   key={card.title}
                   variants={staggerItem}
-                  className="rounded-3xl bg-white p-6 text-right shadow-lg ring-1 ring-slate-100"
+                  className="rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition duration-250 ease-emc hover:shadow-emc-md"
                 >
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-customBlue">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-customBlue ring-1 ring-brand-100">
                     <Icon size={22} />
                   </div>
-                  <h2 className="text-lg font-black text-deepBlue">{card.title}</h2>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">{card.body}</p>
-                  <div className="mt-4 text-sm text-slate-500">{card.hint}</div>
+                  <h2 className="font-display text-lg font-black tracking-tight text-deepBlue">{card.title}</h2>
+                  <p className="mt-2 text-sm leading-7 text-foreground/70">{card.body}</p>
+                  <div className="mt-4 text-sm text-muted-500">{card.hint}</div>
                 </motion.article>
               )
             })}
@@ -184,27 +184,26 @@ export default function Contact() {
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.9fr]">
           <motion.article
-            className="rounded-3xl bg-white p-6 text-right shadow-xl ring-1 ring-slate-100 sm:p-8"
+            className="rounded-3xl bg-white p-7 text-right shadow-emc-lg ring-1 ring-line sm:p-10"
             initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-2xl font-black text-deepBlue">نموذج التواصل العام</h2>
-            <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-            <p className="mt-4 text-sm leading-7 text-slate-500">
+            <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">نموذج التواصل العام</h2>
+            <p className="mt-5 text-sm leading-7 text-muted-500">
               أرسل رسالتك مباشرة لفريق EMC. للطلبات الرسمية للورش استخدم صفحة التقديم المخصصة.
             </p>
 
             {submitError && (
-              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-red-50 p-4 text-right text-red-700 ring-1 ring-red-100">
+              <div className="mt-7 flex items-start gap-3 rounded-2xl bg-red-50 p-4 text-right text-red-700 ring-1 ring-red-100">
                 <AlertCircle size={22} className="mt-1 shrink-0" />
                 <p className="font-bold leading-7">{submitError}</p>
               </div>
             )}
 
             {isSubmitted && (
-              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-sky-50 p-4 text-right text-customBlue ring-1 ring-sky-100">
+              <div className="mt-7 flex items-start gap-3 rounded-2xl bg-brand-50 p-4 text-right text-customBlue ring-1 ring-brand-100">
                 <CheckCircle2 size={22} className="mt-1 shrink-0" />
                 <p className="font-bold leading-7">
                   تم إرسال رسالتك بنجاح. سيتواصل الفريق معك عند الحاجة.
@@ -212,18 +211,18 @@ export default function Contact() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-7 grid gap-5">
-              <div className="grid gap-5 sm:grid-cols-2">
+            <form onSubmit={handleSubmit} className="mt-8 grid gap-6">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <FormField label="الاسم الكامل" name="name" required />
                 <FormField label="البريد الإلكتروني" name="email" type="email" required />
               </div>
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <FormField label="رقم الجوال" name="phone" type="tel" />
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   نوع الطلب
                   <select
                     name="topic"
-                    className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                    className="h-12 rounded-xl border border-line bg-paper2 px-4 py-2 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100"
                     defaultValue="general"
                   >
                     <option value="general">استفسار عام</option>
@@ -240,14 +239,14 @@ export default function Contact() {
                   name="message"
                   required
                   rows={6}
-                  className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  className="resize-none rounded-xl border border-line bg-paper2 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100"
                 />
               </label>
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
                 whileHover={isSubmitting ? undefined : { scale: 1.02 }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
               >
                 <Send size={20} />
                 {isSubmitting ? 'جارٍ الإرسال...' : 'إرسال الرسالة'}
@@ -257,16 +256,15 @@ export default function Contact() {
 
           <div className="grid gap-6">
             <motion.article
-              className="rounded-3xl bg-white p-6 text-right shadow-xl ring-1 ring-slate-100 sm:p-8"
+              className="rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line sm:p-8"
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-xl font-black text-deepBlue">بيانات التواصل</h2>
-              <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
-              <ul className="mt-6 grid gap-4 text-slate-600">
+              <h2 className="emc-title-arc font-display text-xl font-black tracking-tight text-deepBlue">بيانات التواصل</h2>
+              <ul className="mt-7 grid gap-4 text-foreground/70">
                 <li className="flex items-start gap-3">
                   <Phone size={18} className="mt-0.5 shrink-0 text-customBlue" />
                   <a href={`tel:${siteContact.phone.replace(/\s/g, '')}`} className="font-semibold hover:text-customBlue">
@@ -303,25 +301,25 @@ export default function Contact() {
             </motion.article>
 
             <motion.article
-              className="rounded-3xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-7 text-right text-white shadow-2xl"
+              className="emc-dawn rounded-3xl p-8 text-right text-white shadow-emc-lg"
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5, delay: 0.06 }}
             >
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-ice ring-1 ring-white/15">
                 <Headphones size={24} />
               </div>
-              <h2 className="text-2xl font-black">طلب ورشة أو برنامج</h2>
-              <p className="mt-3 leading-8 text-slate-200">
+              <h2 className="font-display text-2xl font-black tracking-tight">طلب ورشة أو برنامج</h2>
+              <p className="mt-4 leading-8 text-ice/90">
                 لضمان استلام كامل التفاصيل (الفئة، الوقت، المكان، السعر…) استخدم نموذج التقديم
                 المخصص — دون كسر تكامل الـ API.
               </p>
-              <motion.div whileHover={{ scale: 1.03 }} className="mt-6">
+              <motion.div whileHover={{ scale: 1.03 }} className="mt-7">
                 <Link
                   to="/submit-workshop"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
                 >
                   الانتقال إلى نموذج الورشة
                 </Link>
@@ -340,9 +338,9 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-white p-8 text-right shadow-md ring-1 ring-slate-100"
+            className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
           >
-            <p className="text-slate-600 leading-8">
+            <p className="text-foreground/70 leading-8">
               لمزيد من الأمان، تفضّل التواصل عبر البريد المعتمد{' '}
               <a href={`mailto:${siteContact.email}`} className="font-bold text-customBlue hover:underline">
                 {siteContact.email}
@@ -365,12 +363,12 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
-            className="grid min-h-64 place-items-center rounded-3xl bg-white text-center shadow-inner ring-1 ring-slate-200"
+            className="grid min-h-64 place-items-center rounded-3xl bg-white text-center shadow-emc-inset ring-1 ring-line"
           >
             <div className="px-6 py-10">
               <MapPin size={40} className="mx-auto text-customBlue" />
-              <p className="mt-4 text-lg font-black text-deepBlue">نطاق الخدمة</p>
-              <p className="mt-2 max-w-lg text-sm font-semibold leading-7 text-slate-500">
+              <p className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">نطاق الخدمة</p>
+              <p className="mt-2 max-w-lg text-sm font-semibold leading-7 text-muted-500">
                 برامج أونلاين مع مجتمعات عربية وهولندية، وفعاليات حضورية عند الإعلان عنها في
                 الصفحات الرسمية.
               </p>
@@ -390,9 +388,9 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+            className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
           >
-            <ul className="space-y-4 text-sm font-semibold leading-8 text-slate-700">
+            <ul className="space-y-4 text-sm font-semibold leading-8 text-foreground/80">
               <li className="flex gap-3">
                 <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-customOrange" />
                 إن لم تكن متأكداً من نوع الطلب، اختر «استفسار عام» ووضّح تفاصيلك وسنعيد التوجيه.
@@ -431,7 +429,7 @@ function FormField({
         name={name}
         type={type}
         required={required}
-        className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+        className="h-12 rounded-xl border border-line bg-paper2 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100"
       />
     </label>
   )

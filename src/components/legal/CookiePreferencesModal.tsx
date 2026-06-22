@@ -49,7 +49,7 @@ export default function CookiePreferencesModal() {
             aria-modal="true"
             aria-labelledby="cookie-prefs-title"
             dir="rtl"
-            className="fixed inset-x-4 top-[8vh] z-[201] mx-auto max-h-[84vh] max-w-lg overflow-y-auto rounded-3xl border border-slate-200/80 bg-white shadow-[0_32px_80px_-20px_rgba(12, 42, 75,0.35)] sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2"
+            className="fixed inset-x-4 top-[8vh] z-[201] mx-auto max-h-[84vh] max-w-lg overflow-y-auto rounded-3xl border border-slate-200/80 bg-white shadow-[0_32px_80px_-20px_rgba(12,42,75,0.35)] sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}

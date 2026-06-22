@@ -49,7 +49,7 @@ export function UsersFilterPanel({
       searchValue={query}
       onSearchChange={onQueryChange}
       searchPlaceholder="بحث بالاسم، البريد، الجوال، المعرّف، الدور، الإدارة…"
-      innerClassName="rounded-3xl border-slate-200/90 shadow-[0_8px_32px_-12px_rgba(12, 42, 75,0.12)]"
+      innerClassName="rounded-3xl border-slate-200/90 shadow-[0_8px_32px_-12px_rgba(12,42,75,0.12)]"
     >
       <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 text-[11px] font-black text-[#0C2A4B]/70">

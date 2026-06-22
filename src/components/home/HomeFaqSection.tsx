@@ -49,8 +49,8 @@ export default function HomeFaqSection() {
             transition={{ duration: 0.55 }}
             className="text-right lg:sticky lg:top-28 lg:self-start"
           >
-            <p className="text-xs font-black tracking-widest text-customBlue uppercase">أسئلة شائعة</p>
-            <h2 className="mt-4 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.5rem]">
+            <span className="emc-eyebrow">أسئلة شائعة</span>
+            <h2 className="emc-title-arc mt-4 font-display text-3xl font-black leading-tight tracking-tight text-deepBlue sm:text-4xl xl:text-[2.5rem]">
               كل ما تحتاج<br className="hidden sm:block" />
               معرفته قبل البدء
             </h2>

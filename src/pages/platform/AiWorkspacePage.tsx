@@ -72,7 +72,7 @@ export default function AiWorkspacePage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(0, 119, 182,0.14),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(242, 140, 0,0.14),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(0,119,182,0.14),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(242,140,0,0.14),transparent_40%)]" />
         <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Operating System</p>

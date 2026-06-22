@@ -87,7 +87,7 @@ export default function LegalDocumentLayout({ doc }: Props) {
                 key={section.id}
                 id={section.id}
                 variants={staggerItem}
-                className="scroll-mt-32 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_-20px_rgba(12, 42, 75,0.12)] ring-1 ring-slate-100 sm:p-8"
+                className="scroll-mt-32 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_40px_-20px_rgba(12,42,75,0.12)] ring-1 ring-slate-100 sm:p-8"
               >
                 <h2 className="flex items-start gap-3 text-right text-xl font-black text-[#0C2A4B] sm:text-2xl">
                   <span className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">

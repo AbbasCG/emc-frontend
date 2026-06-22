@@ -122,10 +122,10 @@ export function UsersEnterpriseDetailDrawer({
           <aside className="space-y-3 rounded-[22px] border border-white/80 bg-white/85 p-4 shadow-inner ring-1 ring-ink-100/70">
             <div className="flex flex-col items-center gap-3 text-center">
               {user.avatar_url ?
-                <span className="relative grid h-[4.75rem] w-[4.75rem] place-items-center overflow-hidden rounded-[22px] ring-4 ring-white/80 shadow-[0_12px_32px_-8px_rgba(0, 119, 182,0.55)]">
+                <span className="relative grid h-[4.75rem] w-[4.75rem] place-items-center overflow-hidden rounded-[22px] ring-4 ring-white/80 shadow-[0_12px_32px_-8px_rgba(0,119,182,0.55)]">
                   <img src={user.avatar_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                 </span>
-              : <span className="grid h-[4.75rem] w-[4.75rem] place-items-center rounded-[22px] bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-lg font-black text-white shadow-[0_12px_32px_-8px_rgba(0, 119, 182,0.55)] ring-4 ring-white/80">
+              : <span className="grid h-[4.75rem] w-[4.75rem] place-items-center rounded-[22px] bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-lg font-black text-white shadow-[0_12px_32px_-8px_rgba(0,119,182,0.55)] ring-4 ring-white/80">
                   {initialsFromName(user.name)}
                 </span>
               }

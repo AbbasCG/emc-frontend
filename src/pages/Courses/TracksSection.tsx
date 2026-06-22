@@ -11,7 +11,7 @@ type TracksSectionProps = {
 
 function TrackSkeleton() {
   return (
-    <div className="min-w-[290px] md:min-w-0 bg-white rounded-xl border-2 border-slate-100 p-5 animate-pulse">
+    <div className="min-w-[290px] md:min-w-0 bg-white rounded-2xl border border-line p-5 animate-pulse">
       <div className="flex justify-between mb-4">
         <div className="w-12 h-12 bg-slate-200 rounded-xl" />
         <div className="flex flex-col items-end gap-2">
@@ -51,11 +51,10 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
           <span className="text-xs font-bold text-accent-700 uppercase tracking-widest mb-2 block">
             المسارات المهنية
           </span>
-          <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
+          <h2 className="emc-title-arc font-display text-2xl md:text-3xl font-black tracking-tight text-deepBlue">
             المسارات الاحترافية
           </h2>
-          <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
-          <p className="text-[#73777B] mt-3 text-sm md:text-base max-w-lg">
+          <p className="text-muted-500 mt-5 text-sm md:text-base max-w-lg">
             كل مسار مجموعة متكاملة من الدورات والورش تأخذك من المبتدئ إلى المحترف بشهادة معتمدة.
           </p>
         </motion.div>

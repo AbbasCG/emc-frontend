@@ -27,7 +27,7 @@ function Inner({ label, value, icon: Icon, variant = 'brand', hint, trend, loadi
   const v = variantMap[variant]
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-deepBlue/[0.07] bg-gradient-to-br ${v.gradientFrom} to-white p-5 shadow-sm ring-1 ring-deepBlue/[0.03]`}
+      className={`relative overflow-hidden rounded-2xl border border-deepBlue/[0.07] bg-gradient-to-br ${v.gradientFrom} to-white p-5 shadow-emc ring-1 ring-deepBlue/[0.03] transition-shadow duration-300 ease-emc-out hover:shadow-emc-md`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -53,7 +53,7 @@ function Inner({ label, value, icon: Icon, variant = 'brand', hint, trend, loadi
         {loading ? (
           <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-100" />
         ) : (
-          <div className="emc-display-num text-[2rem] leading-none text-deepBlue">{value}</div>
+          <div className="emc-display-num text-[2rem] leading-none tracking-tight text-deepBlue">{value}</div>
         )}
         {trend && !loading && (
           <span

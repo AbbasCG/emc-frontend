@@ -104,7 +104,7 @@ type ProposedDates = {
   date3: string | null; time3: string | null
 }
 
-const sectionCard = 'rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(12, 42, 75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
+const sectionCard = 'rounded-3xl border border-white/70 bg-white/80 p-6 shadow-[0_20px_60px_-18px_rgba(12,42,75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
 
 // ── Info row ──────────────────────────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ function AnnouncementCard({ text }: { text: string }) {
       </div>
 
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8fafc] to-white p-5 ring-1 ring-slate-200/70 shadow-inner">
-        <div className="pointer-events-none absolute end-0 top-0 h-20 w-20 bg-[radial-gradient(ellipse_at_100%_0%,rgba(0, 119, 182,0.08),transparent_70%)]" aria-hidden />
+        <div className="pointer-events-none absolute end-0 top-0 h-20 w-20 bg-[radial-gradient(ellipse_at_100%_0%,rgba(0,119,182,0.08),transparent_70%)]" aria-hidden />
         <p className="relative whitespace-pre-wrap text-[14px] font-[500] leading-[1.9] text-[#0C2A4B]/88 tracking-[0.01em]">
           {displayText}
         </p>
@@ -239,7 +239,7 @@ function ActionModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-            className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-slate-200/60"
+            className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(12,42,75,0.35)] ring-1 ring-slate-200/60"
           >
             <div className={cn('px-6 py-4', isApprove ? 'bg-emerald-50' : 'bg-red-50')}>
               <div className="flex items-center gap-3">
@@ -568,7 +568,7 @@ export default function WorkshopRequestDetailPage() {
                             'relative z-10 mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-[12px] font-black ring-2 ring-white',
                             isDone && 'bg-emerald-500 text-white',
                             isRejected && 'bg-red-500 text-white',
-                            isCurrent && !isDone && !isRejected && 'bg-[#F28C00] text-white shadow-[0_8px_20px_rgba(242, 140, 0,0.38)]',
+                            isCurrent && !isDone && !isRejected && 'bg-[#F28C00] text-white shadow-[0_8px_20px_rgba(242,140,0,0.38)]',
                             !isDone && !isRejected && !isCurrent && 'bg-slate-100 text-slate-500',
                           )}
                         >

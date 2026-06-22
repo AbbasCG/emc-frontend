@@ -188,7 +188,7 @@ export function UserEditDrawer({
               type="submit"
               form="user-edit-form"
               disabled={saving || loading}
-              className="inline-flex min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(12, 42, 75,0.45)] transition hover:opacity-90 disabled:opacity-50"
+              className="inline-flex min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(12,42,75,0.45)] transition hover:opacity-90 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               {saving ? 'جارٍ الحفظ…' : 'حفظ التغييرات'}
@@ -394,7 +394,7 @@ function AvatarUploadBlock({
 
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof Shield; children: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_8px_32px_-16px_rgba(12, 42, 75,0.12)] ring-1 ring-black/[0.03]">
+    <section className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_8px_32px_-16px_rgba(12,42,75,0.12)] ring-1 ring-black/[0.03]">
       <div className="flex items-center gap-2.5 border-b border-slate-100 bg-gradient-to-l from-[#0C2A4B]/[0.05] to-transparent px-5 py-3.5">
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0077B6]/10 text-[#0077B6]">
           <Icon className="h-4 w-4" aria-hidden />

@@ -103,7 +103,7 @@ export function FormWizardShell({
               <FormStepper steps={stepsMeta} currentStep={currentStep} onStepSelect={onStepSelect} compact />
               <div className="h-0.5 overflow-hidden rounded-full bg-white/15">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]"
+                  className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#089FE0]"
                   initial={false}
                   animate={{ width: `${progressPercent}%` }}
                   transition={{ type: 'spring', stiffness: 320, damping: 34 }}

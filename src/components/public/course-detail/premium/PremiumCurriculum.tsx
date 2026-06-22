@@ -75,7 +75,7 @@ export default function PremiumCurriculum({ groups }: Props) {
 
   return (
     <section aria-label="المنهاج" dir="rtl">
-      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-black text-[#0C2A4B]">
+      <h2 className="mb-3 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
         <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
         المنهاج
       </h2>

@@ -52,16 +52,16 @@ export default function WhyChooseSection() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden bg-deepBlue px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      className="emc-depth relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-32"
     >
       {/* Background texture */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.06] [mask-image:radial-gradient(ellipse_at_center,white_30%,transparent_70%)]"
       />
-      {/* Ambient glows */}
+      {/* Ambient glows — sea-only on the depth field */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-32 left-0 h-72 w-72 rounded-full bg-customOrange/10 blur-[80px]" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-32 left-0 h-72 w-72 rounded-full bg-sky/[0.07] blur-[80px]" />
 
       <div className="relative mx-auto max-w-[1540px]">
         {/* Header — split layout */}
@@ -73,13 +73,13 @@ export default function WhyChooseSection() {
             transition={{ duration: 0.55 }}
             className="text-right"
           >
-            <p className="text-xs font-black tracking-widest text-customOrange uppercase">لماذا EMC</p>
-            <h2 className="mt-4 font-display text-3xl font-black leading-tight text-white sm:text-4xl xl:text-[2.8rem]">
+            <span className="emc-eyebrow border-amber/25 bg-amber/10 text-amber">لماذا EMC</span>
+            <h2 className="mt-4 font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl xl:text-[2.8rem]">
               ليس مجرّد منصة —<br /> تجربة تعليمية كاملة
             </h2>
             <div
               aria-hidden
-              className="mt-6 h-[2px] w-16 rounded-full bg-customOrange"
+              className="mt-6 h-1 w-16 rounded-full bg-customOrange"
             />
           </motion.div>
           <motion.p
@@ -117,11 +117,11 @@ export default function WhyChooseSection() {
                   {f.num}
                 </span>
                 <div className="relative">
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-customBlue transition-colors group-hover:bg-customBlue/20">
+                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-sky transition-colors group-hover:bg-customBlue/20">
                     <Icon size={22} aria-hidden />
                   </div>
                   <h3 className="text-lg font-black text-white">{f.title}</h3>
-                  <p className="mt-2.5 text-sm font-semibold leading-7 text-white/50">{f.desc}</p>
+                  <p className="mt-2.5 text-sm font-semibold leading-7 text-white/55">{f.desc}</p>
                 </div>
                 {/* Bottom accent */}
                 <div

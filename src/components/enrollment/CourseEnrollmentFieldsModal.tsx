@@ -33,7 +33,7 @@ type Props = {
 }
 
 const inputCls = (err?: string) =>
-  `h-12 w-full rounded-xl border bg-slate-50 px-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-sky-100 ${err ? 'border-red-400' : 'border-slate-200 focus:border-customBlue'}`
+  `h-12 w-full rounded-xl border bg-paper2 px-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${err ? 'border-red-400' : 'border-line focus:border-customBlue'}`
 
 export default function CourseEnrollmentFieldsModal({
   open,
@@ -124,19 +124,19 @@ export default function CourseEnrollmentFieldsModal({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 24, opacity: 0 }}
             onClick={(ev) => ev.stopPropagation()}
-            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-200"
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-7 shadow-emc-xl ring-1 ring-line"
             dir="rtl"
           >
-            <div className="mb-5 flex items-start justify-between gap-3 text-right">
+            <div className="mb-6 flex items-start justify-between gap-3 text-right">
               <div>
-                <h2 id="enrollment-fields-title" className="text-lg font-black text-deepBlue">إكمال بيانات الالتحاق</h2>
-                <p className="mt-1 text-sm font-semibold text-slate-500">نحتاج بعض الحقول قبل تأكيد التسجيل.</p>
+                <h2 id="enrollment-fields-title" className="font-display text-lg font-black tracking-tight text-deepBlue">إكمال بيانات الالتحاق</h2>
+                <p className="mt-1.5 text-sm font-semibold text-muted-500">نحتاج بعض الحقول قبل تأكيد التسجيل.</p>
               </div>
               <button
                 type="button"
                 disabled={submitting}
                 onClick={onClose}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-lg p-1 text-muted-400 transition hover:bg-paper2 hover:text-foreground"
                 aria-label="إغلاق"
               >
                 <X className="h-5 w-5" />
@@ -162,15 +162,15 @@ export default function CourseEnrollmentFieldsModal({
                     رقم الجوال
                     <div
                       dir="ltr"
-                      className={`flex h-12 w-full overflow-hidden rounded-xl border bg-slate-50 ${fieldErrors.phone ? 'border-red-400' : 'border-slate-200'}`}
+                      className={`flex h-12 w-full overflow-hidden rounded-xl border bg-paper2 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-100 ${fieldErrors.phone ? 'border-red-400' : 'border-line focus-within:border-customBlue'}`}
                     >
-                      <div className="flex shrink-0 items-center gap-1.5 border-r border-slate-200 bg-slate-100 px-3 text-sm font-bold text-deepBlue">
+                      <div className="flex shrink-0 items-center gap-1.5 border-r border-line bg-paper2 px-3 text-sm font-bold text-deepBlue">
                         {selectedCountry ?
                           <>
                             <span>{selectedCountry.flag}</span>
-                            <span>{selectedCountry.dialCode}</span>
+                            <span className="font-latin tabular-nums">{selectedCountry.dialCode}</span>
                           </>
-                        : <Phone size={16} className="text-slate-400" />}
+                        : <Phone size={16} className="text-muted-400" />}
                       </div>
                       <input
                         type="tel"
@@ -187,7 +187,7 @@ export default function CourseEnrollmentFieldsModal({
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   المدينة
                   <span className="relative block">
-                    <MapPin size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <MapPin size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-400" />
                     <input value={city} onChange={(e) => setCity(e.target.value)} className={inputCls(fieldErrors.city)} />
                   </span>
                 </label>
@@ -197,7 +197,7 @@ export default function CourseEnrollmentFieldsModal({
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   الجنس
                   <span className="relative block">
-                    <ChevronDown size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <ChevronDown size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-400" />
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
@@ -212,18 +212,18 @@ export default function CourseEnrollmentFieldsModal({
               )}
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                ملاحظات <span className="font-semibold text-slate-400">(اختياري)</span>
+                ملاحظات <span className="font-semibold text-muted-400">(اختياري)</span>
                 <textarea
                   value={notes}
                   rows={3}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-deepBlue outline-none focus:border-customBlue"
+                  className="resize-none rounded-xl border border-line bg-paper2 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100"
                 />
               </label>
 
               {isPaid && (
                 <div>
-                  <p className="mb-2 text-sm font-black text-deepBlue">طريقة الدفع · {formatPrice(course.price)}</p>
+                  <p className="mb-2 text-sm font-black text-deepBlue">طريقة الدفع · <span className="font-latin tabular-nums text-accent-700" dir="ltr">{formatPrice(course.price)}</span></p>
                   <PaymentProviderSelector
                     value={paymentProvider}
                     onChange={(v) => setPaymentProvider(v as 'stripe' | 'paypal' | 'fake')}
@@ -235,7 +235,7 @@ export default function CourseEnrollmentFieldsModal({
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-md disabled:opacity-60"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:opacity-60"
               >
                 {submitting ?
                   <>

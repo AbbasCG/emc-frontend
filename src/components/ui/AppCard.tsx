@@ -12,8 +12,8 @@ export default function AppCard({ children, className = '', hoverable = false }:
   return (
     <motion.div
       className={cn(
-        'rounded-2xl border border-amber-100/80 bg-white shadow-xl shadow-amber-100/50',
-        hoverable && 'transition-shadow hover:shadow-2xl hover:shadow-amber-100/70',
+        'rounded-2xl border border-deepBlue/[0.07] bg-white shadow-emc',
+        hoverable && 'transition-shadow duration-250 ease-emc-out hover:shadow-emc-md',
         className,
       )}
       initial={{ opacity: 0, y: 12 }}

@@ -29,13 +29,12 @@ type CourseCardProps = {
 function accentFromKey(label: string) {
   let h = 0
   for (let i = 0; i < label.length; i++) h = (h + label.charCodeAt(i) * (i + 1)) % 1000000
+  // Calm, on-brand chip palette — sea (blue/navy) + a single warm ember tone,
+  // never the rainbow. Keeps category chips quiet and consistent.
   const palettes = [
-    { chip: 'bg-brand-50 text-brand-700 border-brand-200/60' },
-    { chip: 'bg-emerald-50 text-emerald-800 border-emerald-200/60' },
-    { chip: 'bg-accent-50 text-accent-800 border-accent-200/60' },
-    { chip: 'bg-violet-50 text-violet-800 border-violet-200/60' },
-    { chip: 'bg-rose-50 text-rose-800 border-rose-200/60' },
-    { chip: 'bg-amber-50 text-amber-800 border-amber-200/60' },
+    { chip: 'bg-brand-50 text-brand-700 border-brand-100' },
+    { chip: 'bg-brand-100/70 text-navy border-brand-200/70' },
+    { chip: 'bg-accent-50 text-accent-700 border-accent-100' },
   ]
   return palettes[h % palettes.length]
 }
@@ -79,7 +78,7 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
       transition={{ duration: 0.45, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -6 }}
-      className={`group flex overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-emc-md transition-all duration-300 hover:border-brand-300/50 hover:shadow-emc-lg ${
+      className={`group flex overflow-hidden rounded-3xl border border-line bg-white shadow-emc transition-all duration-300 ease-emc-out hover:border-brand-200 hover:shadow-emc-lg ${
         viewMode === 'list' ? 'flex-row-reverse' : 'flex-col'
       }`}
     >
@@ -102,23 +101,23 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
             className="h-full w-full object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-900/55 via-transparent to-transparent opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/65 via-navy/10 to-transparent" />
 
         <div className="absolute right-3 top-3 flex flex-wrap items-center justify-end gap-1.5">
           {statusBadge && (
-            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue shadow-sm backdrop-blur">
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue shadow-emc-xs backdrop-blur">
               {statusBadge}
             </span>
           )}
-          <span className="rounded-full border border-white/30 bg-ink-900/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+          <span className="rounded-full bg-navy/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
             {course.catalog_type_label_ar ?? (course.catalog_type === 'workshop' ? 'ورشة' : 'دورة')}
           </span>
         </div>
 
         <div className="absolute bottom-3 right-3 left-3 flex flex-wrap items-end justify-between gap-2">
           <span
-            className={`rounded-full px-3 py-1 text-xs font-black shadow-sm ${
-              course.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 text-brand-700'
+            className={`rounded-full px-3 py-1 text-xs font-black shadow-emc-xs ${
+              course.is_free ? 'bg-customBlue text-white' : 'bg-white/95 text-accent-700'
             }`}
           >
             {course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))}
@@ -139,18 +138,18 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
           )}
         </div>
 
-        <h3 className="mb-2 line-clamp-2 text-lg font-black leading-snug text-ink-900 transition group-hover:text-brand-600 md:text-xl">
+        <h3 className="mb-2 line-clamp-2 font-display text-lg font-black leading-snug tracking-tight text-ink-900 transition group-hover:text-brand-600 md:text-xl">
           {course.title}
         </h3>
 
         <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-600">{course.short_description}</p>
 
         <div className="mb-4 flex flex-wrap gap-2 text-[11px] text-muted-600">
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 font-semibold text-deepBlue">
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50/70 px-2 py-1 font-semibold text-deepBlue">
             <GraduationCap className="h-3.5 w-3.5 text-brand-500" />
             {course.trainer.name}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 font-medium">
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50/70 px-2 py-1 font-medium">
             {course.delivery_key === 'online' ? (
               <Monitor className="h-3.5 w-3.5 text-brand-500" />
             ) : (
@@ -158,8 +157,8 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
             )}
             {course.delivery_label_ar}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 font-medium">
-            <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50/70 px-2 py-1 font-medium">
+            <Sparkles className="h-3.5 w-3.5 text-brand-400" />
             {course.duration_label}
           </span>
         </div>
@@ -175,17 +174,17 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
           </span>
         </div>
 
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
           <div>
             <p className="text-[10px] font-bold text-muted-400">الاستثمار</p>
-            <p className={`text-lg font-black ${course.is_free ? 'text-emerald-600' : 'text-ink-900'}`}>
+            <p className={`font-latin text-lg font-black tabular-nums ${course.is_free ? 'text-customBlue' : 'text-accent-700'}`} dir="ltr">
               {course.is_free ? 'مجاناً بالكامل' : toLatinDigits(formatEuroInteger(course.price, 'ar'))}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/courses/${course.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-deepBlue transition hover:border-brand-300 hover:bg-brand-50"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-line bg-white px-4 py-2.5 text-xs font-black text-deepBlue transition hover:border-brand-300 hover:bg-brand-50"
             >
               تفاصيل
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -201,7 +200,7 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
                   onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
                 })
               }}
-              className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-500 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-brand-500/25 transition hover:bg-brand-600"
+              className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-500 px-4 py-2.5 text-xs font-black text-white shadow-emc transition hover:bg-brand-600"
             >
               <BookOpen className="h-3.5 w-3.5" />
               سجل الآن

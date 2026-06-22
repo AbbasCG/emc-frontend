@@ -169,7 +169,7 @@ export default function NotificationDrawer({
                                 className={[
                                   'overflow-hidden rounded-xl border transition',
                                   unread ?
-                                    'border-customBlue/25 bg-gradient-to-l from-sky-50/90 to-white shadow-[0_0_0_1px_rgba(0, 119, 182,0.12)]'
+                                    'border-customBlue/25 bg-gradient-to-l from-sky-50/90 to-white shadow-[0_0_0_1px_rgba(0,119,182,0.12)]'
                                   : 'border-slate-100 bg-[#F6F8FB] hover:border-slate-200 hover:bg-white',
                                 ].join(' ')}
                               >

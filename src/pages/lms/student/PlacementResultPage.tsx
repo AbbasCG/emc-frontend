@@ -325,7 +325,7 @@ export default function PlacementResultPage() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.12 }}
-        className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_4px_24px_-8px_rgba(12, 42, 75,0.12)]"
+        className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_4px_24px_-8px_rgba(12,42,75,0.12)]"
       >
         <p className="mb-5 text-[10px] font-black uppercase tracking-widest text-deepBlue/40">
           مستوى اللغة التقديري
@@ -341,7 +341,7 @@ export default function PlacementResultPage() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.18 }}
-        className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_4px_24px_-8px_rgba(12, 42, 75,0.12)]"
+        className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_4px_24px_-8px_rgba(12,42,75,0.12)]"
       >
         <p className="mb-4 text-[10px] font-black uppercase tracking-widest text-deepBlue/40">
           مراحل التقييم

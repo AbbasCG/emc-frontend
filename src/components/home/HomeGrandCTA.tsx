@@ -72,16 +72,15 @@ export default function HomeGrandCTA() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4 }}
-              className="text-xs font-black tracking-widest text-white/50 uppercase"
             >
-              ابدأ رحلتك
+              <span className="emc-eyebrow border-white/15 bg-white/10 text-ice">ابدأ رحلتك</span>
             </motion.p>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 0.61, 0.36, 1] }}
-              className="mt-5 font-display text-[2.4rem] font-black leading-tight sm:text-5xl lg:text-[3.2rem]"
+              className="mt-5 font-display text-[2.4rem] font-black leading-tight tracking-tight sm:text-5xl lg:text-[3.2rem]"
             >
               جاهز لتحويل{' '}
               <span className="text-customOrange">طموحك</span>
@@ -110,7 +109,7 @@ export default function HomeGrandCTA() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white shadow-[0_20px_50px_-12px_rgba(242, 140, 0,0.6)] transition-all hover:brightness-105"
+                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white shadow-emc-glow-accent transition-all hover:brightness-105"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/15 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 استعرض البرامج والدورات

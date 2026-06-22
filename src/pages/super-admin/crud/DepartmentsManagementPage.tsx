@@ -95,7 +95,7 @@ function DeptCard({ dept }: { dept: WorkspaceDepartment }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="group flex flex-col rounded-3xl border border-white/60 bg-white shadow-[0_8px_40px_rgba(12, 42, 75,0.07)] transition hover:shadow-[0_12px_48px_rgba(12, 42, 75,0.12)]"
+      className="group flex flex-col rounded-3xl border border-white/60 bg-white shadow-[0_8px_40px_rgba(12,42,75,0.07)] transition hover:shadow-[0_12px_48px_rgba(12,42,75,0.12)]"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 rounded-t-3xl bg-gradient-to-bl from-[#0C2A4B]/[0.03] to-transparent px-5 pt-5 pb-4">

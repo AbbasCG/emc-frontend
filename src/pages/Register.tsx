@@ -98,8 +98,8 @@ export default function Register() {
 
   if (isLoading) {
     return (
-      <main className="bg-slate-50 px-4 pb-20 pt-32 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-100">
+      <main className="bg-paper px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-emc ring-1 ring-line">
           <div className="h-8 w-64 animate-pulse rounded bg-slate-200" />
           <div className="mt-8 grid gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -113,14 +113,14 @@ export default function Register() {
 
   if (slug && !course && apiError) {
     return (
-      <main className="bg-slate-50 px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+      <main className="bg-paper px-4 pb-20 pt-32 sm:px-6 lg:px-8">
         <StateMessage type="error" title="حدث خطأ" message={apiError} />
       </main>
     )
   }
 
   return (
-    <main className="bg-slate-50 pt-20">
+    <main className="bg-paper pt-20">
       <PageHeader
         title="سجل الآن"
         breadcrumbs={[
@@ -129,33 +129,32 @@ export default function Register() {
         ]}
       />
 
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
+      <section className="px-4 py-24 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto max-w-4xl rounded-2xl bg-white p-6 text-right shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100 sm:p-8"
+          className="mx-auto max-w-4xl rounded-3xl bg-white p-7 text-right shadow-emc-lg ring-1 ring-line sm:p-10"
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
           {/* Header */}
-          <div className="flex flex-col justify-between gap-5 border-b border-slate-100 pb-6 lg:flex-row lg:items-center">
+          <div className="flex flex-col justify-between gap-6 border-b border-line pb-7 lg:flex-row lg:items-center">
             <div>
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-customBlue">
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-2 text-sm font-black text-customBlue ring-1 ring-brand-100">
                 <UserPlus size={17} />
                 نموذج التسجيل
               </span>
-              <h1 className="text-3xl font-black text-deepBlue">
+              <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">
                 {course?.title || 'التسجيل في الدورة'}
               </h1>
-              <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
               {course?.short_description && (
-                <p className="mt-4 max-w-2xl leading-8 text-slate-600">{course.short_description}</p>
+                <p className="mt-5 max-w-2xl leading-8 text-foreground/70">{course.short_description}</p>
               )}
             </div>
 
             {course && (
-              <div className="rounded-2xl bg-slate-50 px-6 py-4 ring-1 ring-slate-100">
-                <span className="block text-xs font-black text-slate-400">السعر</span>
-                <strong className={`mt-1 block text-2xl font-black ${isPaid ? 'text-customOrange' : 'text-customBlue'}`}>
+              <div className="rounded-2xl bg-paper2 px-6 py-4 ring-1 ring-line">
+                <span className="block text-xs font-black text-muted-500">السعر</span>
+                <strong className={`mt-1 block font-latin text-2xl font-black tabular-nums ${isPaid ? 'text-accent-700' : 'text-customBlue'}`} dir="ltr">
                   {isPaid ? formatPrice(course.price) : 'مجانية'}
                 </strong>
               </div>
@@ -164,17 +163,17 @@ export default function Register() {
 
           {/* Course picker when no slug */}
           {!slug && (
-            <div className="mt-8 grid gap-2 text-sm font-black text-deepBlue">
+            <div className="mt-9 grid gap-2.5 text-sm font-black text-deepBlue">
               اختر الدورة
               <span className="relative block">
-                <BookOpen size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <BookOpen size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                 <select
                   value={selectedCourseId}
                   onChange={(e) => {
                     setSelectedCourseId(e.target.value)
                     setCourse(courses.find((c) => String(c.id) === e.target.value) ?? null)
                   }}
-                  className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  className="h-14 w-full rounded-xl border border-line bg-paper2 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100"
                 >
                   <option value="">اختر الدورة</option>
                   {courses.map((c) => (
@@ -187,14 +186,14 @@ export default function Register() {
 
           {/* Locked course display when slug is present */}
           {slug && course && (
-            <div className="mt-8 grid gap-2 text-sm font-black text-deepBlue">
+            <div className="mt-9 grid gap-2.5 text-sm font-black text-deepBlue">
               {itemType === 'workshop' ? 'الورشة المختارة' : itemType === 'program' ? 'البرنامج المختار' : 'الدورة المختارة'}
               <span className="relative block">
-                <BookOpen size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <BookOpen size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                 <input
                   value={course.title}
                   disabled
-                  className="h-14 w-full rounded-xl border border-slate-200 bg-slate-100 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none"
+                  className="h-14 w-full rounded-xl border border-line bg-paper2 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none"
                 />
               </span>
             </div>
@@ -202,7 +201,7 @@ export default function Register() {
 
           {/* Form — only when a course is selected */}
           {course ? (
-            <div className="mt-8">
+            <div className="mt-9">
               <EnrollmentForm
                 course={course}
                 itemType={itemType}
@@ -210,10 +209,10 @@ export default function Register() {
               />
             </div>
           ) : !slug ? (
-            <p className="mt-8 text-sm font-bold text-slate-500">اختر الدورة أعلاه لعرض نموذج التسجيل.</p>
+            <p className="mt-9 text-sm font-bold text-muted-500">اختر الدورة أعلاه لعرض نموذج التسجيل.</p>
           ) : null}
 
-          <div className="mt-6">
+          <div className="mt-7">
             <Link
               to="/courses"
               className="inline-flex items-center gap-2 text-sm font-extrabold text-customBlue transition hover:text-accent-700"

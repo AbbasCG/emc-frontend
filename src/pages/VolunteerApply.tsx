@@ -131,8 +131,8 @@ function Input({
       onBlur={onBlur}
       placeholder={placeholder}
       dir={dir}
-      className={`h-14 w-full rounded-xl border bg-slate-50 px-4 text-right font-semibold text-deepBlue outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-sky-100 ${
-        hasError ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'
+      className={`h-14 w-full rounded-xl border bg-paper2 px-4 text-right font-semibold text-deepBlue outline-none transition placeholder:text-muted-400 focus:bg-white focus:ring-4 focus:ring-brand-100 ${
+        hasError ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'
       }`}
     />
   )
@@ -158,8 +158,8 @@ function Textarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       dir="rtl"
-      className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-sky-100 ${
-        hasError ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'
+      className={`w-full rounded-xl border bg-paper2 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition placeholder:text-muted-400 focus:bg-white focus:ring-4 focus:ring-brand-100 ${
+        hasError ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'
       }`}
     />
   )
@@ -184,9 +184,9 @@ function SelectInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         dir="rtl"
-        className={`h-14 w-full appearance-none rounded-xl border bg-slate-50 px-4 pr-10 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-sky-100 ${
-          hasError ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'
-        } ${!value ? 'text-slate-400' : ''}`}
+        className={`h-14 w-full appearance-none rounded-xl border bg-paper2 px-4 pr-10 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${
+          hasError ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'
+        } ${!value ? 'text-muted-400' : ''}`}
       >
         {placeholder && (
           <option value="" disabled>
@@ -201,7 +201,7 @@ function SelectInput({
       </select>
       <ChevronDown
         size={18}
-        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-400"
       />
     </div>
   )
@@ -222,10 +222,10 @@ function Stepper({ step }: { step: number }) {
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-300 sm:h-12 sm:w-12 ${
                   done
-                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
+                    ? 'bg-emerald-500 text-white shadow-emc-sm'
                     : active
-                      ? 'bg-deepBlue text-white shadow-md shadow-deepBlue/30'
-                      : 'border-2 border-slate-200 bg-white text-slate-400'
+                      ? 'bg-deepBlue text-white shadow-emc-md'
+                      : 'border-2 border-line bg-white text-muted-400'
                 }`}
               >
                 {done ? (
@@ -236,7 +236,7 @@ function Stepper({ step }: { step: number }) {
               </div>
               <span
                 className={`hidden text-center text-[11px] font-black leading-tight sm:block sm:max-w-[80px] ${
-                  active ? 'text-deepBlue' : done ? 'text-emerald-600' : 'text-slate-400'
+                  active ? 'text-deepBlue' : done ? 'text-emerald-600' : 'text-muted-400'
                 }`}
               >
                 {s.label}
@@ -437,13 +437,13 @@ export default function VolunteerApply() {
 
   if (submitted) {
     return (
-      <div className="bg-[#f4f7fb] pt-20">
+      <div className="bg-paper pt-20">
         <div className="flex min-h-[60vh] items-center justify-center px-4 py-20">
           <motion.div
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
-            className="mx-auto w-full max-w-xl rounded-3xl bg-white p-10 text-center shadow-2xl shadow-deepBlue/10 ring-1 ring-deepBlue/[0.06]"
+            className="mx-auto w-full max-w-xl rounded-3xl bg-white p-12 text-center shadow-emc-lg ring-1 ring-line"
             dir="rtl"
           >
             <motion.div
@@ -454,20 +454,20 @@ export default function VolunteerApply() {
             >
               <CheckCircle2 className="h-10 w-10 text-white" strokeWidth={2.5} />
             </motion.div>
-            <h2 className="text-2xl font-black text-deepBlue">تم إرسال طلب التطوع بنجاح</h2>
-            <p className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-deepBlue/65">
+            <h2 className="font-display text-2xl font-black tracking-tight text-deepBlue">تم إرسال طلب التطوع بنجاح</h2>
+            <p className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-foreground/65">
               شكرًا لرغبتك في الانضمام إلى فريق EMC. سنراجع طلبك ونتواصل معك قريبًا.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-7 py-3 text-[13px] font-black text-white shadow-md transition hover:brightness-105"
+                className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-7 py-3 text-[13px] font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-105"
               >
                 الرئيسية
               </Link>
               <Link
                 to="/team"
-                className="inline-flex items-center gap-2 rounded-2xl border border-deepBlue/15 bg-white px-7 py-3 text-[13px] font-black text-deepBlue transition hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-2xl border border-line bg-white px-7 py-3 text-[13px] font-black text-deepBlue transition duration-250 ease-emc hover:bg-paper2"
               >
                 تعرف على الفريق
               </Link>
@@ -485,7 +485,7 @@ export default function VolunteerApply() {
   }
 
   return (
-    <div className="bg-[#f4f7fb] pt-20" dir="rtl">
+    <div className="bg-paper pt-20" dir="rtl">
       <PageHeader
         title="طلب التطوع مع EMC"
         breadcrumbs={[
@@ -499,11 +499,11 @@ export default function VolunteerApply() {
         <div className="mx-auto max-w-2xl">
 
           {/* Progress bar */}
-          <div className="mb-2 flex items-center justify-between text-[11px] font-black text-deepBlue/50">
+          <div className="mb-2 flex items-center justify-between text-[11px] font-black text-foreground/50">
             <span>الخطوة {step} من {STEPS.length}</span>
-            <span>{Math.round((step / STEPS.length) * 100)}%</span>
+            <span className="font-latin tabular-nums" dir="ltr">{Math.round((step / STEPS.length) * 100)}%</span>
           </div>
-          <div className="mb-8 h-2 overflow-hidden rounded-full bg-slate-200">
+          <div className="mb-10 h-2 overflow-hidden rounded-full bg-slate-200">
             <motion.div
               className="h-full rounded-full bg-gradient-to-l from-customBlue to-deepBlue"
               animate={{ width: `${(step / STEPS.length) * 100}%` }}
@@ -513,12 +513,12 @@ export default function VolunteerApply() {
 
           <Stepper step={step} />
 
-          <div className="overflow-hidden rounded-3xl bg-white shadow-xl shadow-deepBlue/[0.08] ring-1 ring-deepBlue/[0.05]">
-            <div className="border-b border-slate-100 px-8 py-6">
-              <h1 className="text-xl font-black text-deepBlue">
+          <div className="overflow-hidden rounded-3xl bg-white shadow-emc-lg ring-1 ring-line">
+            <div className="border-b border-line px-8 py-7">
+              <h1 className="font-display text-xl font-black tracking-tight text-deepBlue">
                 {STEPS[step - 1]?.label}
               </h1>
-              <p className="mt-1 text-[13px] font-semibold text-deepBlue/55">
+              <p className="mt-1.5 text-[13px] font-semibold text-foreground/55">
                 {step === 1 && 'أدخل بياناتك الشخصية بدقة حتى نتمكن من التواصل معك.'}
                 {step === 2 && 'اختر القسم الذي تودّ التطوع فيه داخل EMC.'}
                 {step === 3 && 'أخبرنا عن خبرتك ومهاراتك ووقتك المتاح.'}
@@ -534,7 +534,7 @@ export default function VolunteerApply() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.28, ease: 'easeOut' }}
-                className="space-y-6 px-8 py-8"
+                className="space-y-7 px-8 py-9"
               >
 
                 {/* ── Step 1: البيانات الشخصية ── */}
@@ -596,12 +596,12 @@ export default function VolunteerApply() {
                             key={g.value}
                             type="button"
                             onClick={() => set('gender', g.value)}
-                            className={`flex-1 rounded-xl border py-3.5 text-sm font-black transition ${
+                            className={`flex-1 rounded-xl border py-3.5 text-sm font-black transition duration-250 ease-emc ${
                               form.gender === g.value
-                                ? 'border-customBlue bg-customBlue/[0.08] text-customBlue'
+                                ? 'border-customBlue bg-brand-50 text-customBlue'
                                 : fieldErrors.gender
-                                  ? 'border-red-300 bg-slate-50 text-slate-500'
-                                  : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                                  ? 'border-red-300 bg-paper2 text-muted-500'
+                                  : 'border-line bg-paper2 text-muted-500 hover:border-muted-300'
                             }`}
                           >
                             {g.label}
@@ -621,12 +621,12 @@ export default function VolunteerApply() {
                           key={dept}
                           type="button"
                           onClick={() => set('desired_department', dept)}
-                          className={`rounded-2xl border px-5 py-4 text-right text-[13px] font-bold transition ${
+                          className={`rounded-2xl border px-5 py-4 text-right text-[13px] font-bold transition duration-250 ease-emc ${
                             form.desired_department === dept
-                              ? 'border-customBlue bg-customBlue/[0.08] text-customBlue shadow-sm'
+                              ? 'border-customBlue bg-brand-50 text-customBlue shadow-emc-sm'
                               : fieldErrors.desired_department
-                                ? 'border-red-200 bg-slate-50 text-slate-600'
-                                : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-customBlue/30 hover:bg-sky-50/60'
+                                ? 'border-red-200 bg-paper2 text-foreground/70'
+                                : 'border-line bg-paper2 text-foreground/80 hover:border-customBlue/30 hover:bg-brand-50/60'
                           }`}
                         >
                           {dept}
@@ -651,10 +651,10 @@ export default function VolunteerApply() {
                             key={lvl}
                             type="button"
                             onClick={() => set('experience_level', lvl)}
-                            className={`rounded-xl border px-5 py-2.5 text-sm font-bold transition ${
+                            className={`rounded-xl border px-5 py-2.5 text-sm font-bold transition duration-250 ease-emc ${
                               form.experience_level === lvl
-                                ? 'border-customBlue bg-customBlue text-white shadow-sm'
-                                : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-customBlue/30'
+                                ? 'border-customBlue bg-customBlue text-white shadow-emc-sm'
+                                : 'border-line bg-paper2 text-foreground/70 hover:border-customBlue/30'
                             }`}
                           >
                             {lvl}
@@ -715,10 +715,10 @@ export default function VolunteerApply() {
                         <button
                           type="button"
                           onClick={() => fileRef.current?.click()}
-                          className={`inline-flex items-center gap-2 rounded-xl border border-dashed px-5 py-3 text-sm font-bold transition ${
+                          className={`inline-flex items-center gap-2 rounded-xl border border-dashed px-5 py-3 text-sm font-bold transition duration-250 ease-emc ${
                             form.cv_file
-                              ? 'border-customBlue/50 bg-sky-50 text-customBlue'
-                              : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-customBlue/50 hover:bg-sky-50 hover:text-customBlue'
+                              ? 'border-customBlue/50 bg-brand-50 text-customBlue'
+                              : 'border-muted-300 bg-paper2 text-foreground/70 hover:border-customBlue/50 hover:bg-brand-50 hover:text-customBlue'
                           }`}
                         >
                           {form.cv_file ? (
@@ -759,7 +759,7 @@ export default function VolunteerApply() {
                 {/* ── Step 4: المراجعة والإرسال ── */}
                 {step === 4 && (
                   <>
-                    <div className="space-y-1 divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/60 px-6 py-2">
+                    <div className="space-y-1 divide-y divide-line rounded-2xl border border-line bg-paper2/60 px-6 py-2">
                       <ReviewRow label="الاسم" value={form.full_name} />
                       <ReviewRow label="البريد" value={form.email} />
                       <ReviewRow label="الجوال" value={form.phone} />
@@ -802,13 +802,13 @@ export default function VolunteerApply() {
             </AnimatePresence>
 
             {/* ── Navigation buttons ── */}
-            <div className="flex items-center justify-between border-t border-slate-100 px-8 py-5">
+            <div className="flex items-center justify-between border-t border-line px-8 py-6">
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={prev}
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-black text-deepBlue transition hover:bg-slate-50 disabled:opacity-55"
+                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-5 py-2.5 text-[13px] font-black text-deepBlue transition duration-250 ease-emc hover:bg-paper2 disabled:opacity-55"
                 >
                   <ArrowRight size={16} />
                   السابق
@@ -816,7 +816,7 @@ export default function VolunteerApply() {
               ) : (
                 <Link
                   to="/volunteer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-black text-deepBlue transition hover:bg-slate-50"
+                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-5 py-2.5 text-[13px] font-black text-deepBlue transition duration-250 ease-emc hover:bg-paper2"
                 >
                   <ArrowRight size={16} />
                   رجوع
@@ -827,7 +827,7 @@ export default function VolunteerApply() {
                 <button
                   type="button"
                   onClick={next}
-                  className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-2.5 text-[13px] font-black text-white shadow-md shadow-orange-900/15 transition hover:brightness-105"
+                  className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-2.5 text-[13px] font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-105"
                 >
                   التالي
                   <ArrowLeft size={16} />
@@ -837,7 +837,7 @@ export default function VolunteerApply() {
                   type="button"
                   onClick={() => void handleSubmit()}
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-7 py-2.5 text-[13px] font-black text-white shadow-md shadow-deepBlue/25 transition hover:brightness-105 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-7 py-2.5 text-[13px] font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-105 disabled:opacity-60"
                 >
                   {submitting ? (
                     <>

@@ -277,7 +277,7 @@ export default function ProfilePage() {
       <div className="grid gap-6 lg:grid-cols-[280px_1fr] xl:grid-cols-[300px_1fr]">
         {/* ── Sidebar: Avatar card ── */}
         <aside>
-          <div className="sticky top-6 overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_8px_32px_-8px_rgba(12, 42, 75,0.12)]">
+          <div className="sticky top-6 overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_8px_32px_-8px_rgba(12,42,75,0.12)]">
             {/* Header strip */}
             <div className="h-20 bg-gradient-to-l from-[#0C2A4B] to-[#0077B6]" />
 
@@ -351,7 +351,7 @@ export default function ProfilePage() {
           {/* البيانات الأساسية */}
           <motion.section
             layout
-            className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.10)]"
+            className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12,42,75,0.10)]"
           >
             <div className="flex items-center gap-3 border-b border-[#0C2A4B]/[0.06] px-6 py-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0077B6]/10">
@@ -424,7 +424,7 @@ export default function ProfilePage() {
           {isInstructorUser ?
             <motion.section
               layout
-              className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.10)]"
+              className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12,42,75,0.10)]"
             >
               <div className="flex items-center gap-3 border-b border-[#0C2A4B]/[0.06] px-6 py-4">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F28C00]/10">
@@ -464,7 +464,7 @@ export default function ProfilePage() {
           {/* حالة الحساب والأمان */}
           <motion.section
             layout
-            className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.10)]"
+            className="rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-[0_4px_24px_-6px_rgba(12,42,75,0.10)]"
           >
             <div className="flex items-center gap-3 border-b border-[#0C2A4B]/[0.06] px-6 py-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0C2A4B]/[0.06]">
@@ -490,7 +490,7 @@ export default function ProfilePage() {
           {/* حذف الحساب */}
           <motion.section
             layout
-            className="rounded-2xl border border-red-200/60 bg-white shadow-[0_4px_24px_-6px_rgba(12, 42, 75,0.08)]"
+            className="rounded-2xl border border-red-200/60 bg-white shadow-[0_4px_24px_-6px_rgba(12,42,75,0.08)]"
           >
             <div className="flex items-center gap-3 border-b border-red-100/80 px-6 py-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50">

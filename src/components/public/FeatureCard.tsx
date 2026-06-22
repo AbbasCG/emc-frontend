@@ -34,7 +34,7 @@ export default function FeatureCard({
           }
         : {})}
       whileHover={{ y: -4 }}
-      className="flex min-h-[220px] flex-col rounded-3xl border-x border-b border-deepBlue/[0.06] border-t-[3px] border-t-customBlue/35 bg-white p-7 text-right shadow-[0_16px_40px_-24px_rgba(12, 42, 75,0.14)] transition-all duration-300 hover:-translate-y-1 hover:border-t-customOrange/55 hover:shadow-[0_22px_48px_-22px_rgba(0, 119, 182,0.18)]"
+      className="flex min-h-[220px] flex-col rounded-3xl border-x border-b border-deepBlue/[0.06] border-t-[3px] border-t-customBlue/35 bg-white p-7 text-right shadow-[0_16px_40px_-24px_rgba(12,42,75,0.14)] transition-all duration-300 hover:-translate-y-1 hover:border-t-customOrange/55 hover:shadow-[0_22px_48px_-22px_rgba(0,119,182,0.18)]"
     >
       <div
         className={`mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl ${iconClassName}`}

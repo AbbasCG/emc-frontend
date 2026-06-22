@@ -56,7 +56,7 @@ export default function CourseDetailCompactHero({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="relative max-h-[400px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-bl from-[#0C2A4B] via-[#1a3550] to-[#162334] text-white shadow-[0_20px_50px_-18px_rgba(12, 42, 75,0.45)]"
+      className="emc-dawn relative max-h-[400px] overflow-hidden rounded-[1.5rem] border border-white/10 text-white shadow-emc-lg"
     >
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -end-12 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
@@ -123,7 +123,7 @@ export default function CourseDetailCompactHero({
             : null}
           </div>
 
-          <h1 className="line-clamp-2 text-lg font-black leading-tight sm:text-xl lg:text-[1.45rem]">{course.title}</h1>
+          <h1 className="line-clamp-2 font-display text-lg font-black leading-tight tracking-tight sm:text-xl lg:text-[1.45rem]">{course.title}</h1>
 
           {course.short_description ?
             <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-white/65 sm:text-xs">{course.short_description}</p>

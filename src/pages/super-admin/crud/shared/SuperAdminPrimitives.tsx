@@ -66,15 +66,15 @@ export function SaGlassCard({
 }) {
   const glowCls =
     glow === 'blue' ?
-      'before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(ellipse_at_100%_0%,rgba(0, 119, 182,0.14),transparent_55%)]'
+      'before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(ellipse_at_100%_0%,rgba(0,119,182,0.14),transparent_55%)]'
     : glow === 'orange' ?
-      'before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(ellipse_at_100%_0%,rgba(242, 140, 0,0.16),transparent_55%)]'
+      'before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(ellipse_at_100%_0%,rgba(242,140,0,0.16),transparent_55%)]'
     : ''
 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-white/60 bg-white/75 shadow-[0_8px_40px_rgba(12, 42, 75,0.07)] backdrop-blur-md',
+        'relative overflow-hidden rounded-2xl border border-white/60 bg-white/75 shadow-[0_8px_40px_rgba(12,42,75,0.07)] backdrop-blur-md',
         glowCls,
         className,
       )}

@@ -65,7 +65,7 @@ function registrationLooksDuplicate(
 }
 
 const inputCls = (err?: string) =>
-  `h-14 w-full rounded-xl border bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-sky-100 ${err ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'}`
+  `h-14 w-full rounded-xl border bg-paper2 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${err ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'}`
 
 type Props = {
   course: Course
@@ -298,9 +298,9 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
 
   if (showWhatsappSuccess) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-10 text-center" dir="rtl">
+      <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-6 py-12 text-center shadow-emc" dir="rtl">
         <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" aria-hidden />
-        <h3 className="mt-4 text-xl font-black text-emerald-900">تم تسجيلك بنجاح</h3>
+        <h3 className="mt-5 font-display text-xl font-black tracking-tight text-emerald-900">تم تسجيلك بنجاح</h3>
         <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-7 text-emerald-800">
           انضم إلى مجتمع الواتساب الخاص بالدورة لتبقى على اطلاع بجميع التحديثات والمعلومات.
         </p>
@@ -332,7 +332,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
     <div>
       {/* Logged-out hint */}
       {!isAuthenticated && (
-        <div className="mb-5 flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sm font-bold text-customBlue ring-1 ring-sky-100">
+        <div className="mb-6 flex items-start gap-3 rounded-2xl bg-brand-50 p-4 text-sm font-bold text-customBlue ring-1 ring-brand-100">
           <Lock size={18} className="mt-0.5 shrink-0" />
           <span>سجّل الدخول لإكمال التسجيل — تُعبَّأ بياناتك تلقائياً بعد الدخول.</span>
         </div>
@@ -340,26 +340,26 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
 
       {/* Price badge for paid */}
       {isPaid && (
-        <div className="mb-5 rounded-xl bg-orange-50 px-4 py-3 ring-1 ring-orange-100">
-          <span className="text-xs font-black text-slate-400">السعر</span>
-          <strong className="mt-0.5 block text-xl font-black text-customOrange">{formatPrice(course.price)}</strong>
+        <div className="mb-6 rounded-2xl bg-accent-50 px-4 py-3 ring-1 ring-accent-100">
+          <span className="text-xs font-black text-muted-500">السعر</span>
+          <strong className="mt-0.5 block font-latin text-xl font-black tabular-nums text-accent-700" dir="ltr">{formatPrice(course.price)}</strong>
         </div>
       )}
 
       {apiError && (
-        <div className="mb-5 flex items-start gap-3 rounded-xl bg-orange-50 p-4 text-customOrange ring-1 ring-orange-100">
+        <div className="mb-6 flex items-start gap-3 rounded-2xl bg-accent-50 p-4 text-accent-700 ring-1 ring-accent-100">
           <AlertCircle size={20} className="mt-0.5 shrink-0" />
           <p className="whitespace-pre-line text-sm font-bold leading-7">{apiError}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid gap-5">
+      <form onSubmit={handleSubmit} className="grid gap-6">
         {/* الاسم الكامل + البريد */}
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-black text-deepBlue">
             الاسم الكامل
             <span className="relative block">
-              <User size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <User size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
               <input
                 value={fullName}
                 required
@@ -373,7 +373,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           <label className="grid gap-2 text-sm font-black text-deepBlue">
             البريد الإلكتروني
             <span className="relative block">
-              <Mail size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
               <input
                 type="email"
                 value={email}
@@ -402,16 +402,16 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           رقم الجوال
           <div
             dir="ltr"
-            className={`flex h-14 w-full overflow-hidden rounded-xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-sky-100 ${fieldErrors.phone ? 'border-red-400' : 'border-slate-200 focus-within:border-customBlue'}`}
+            className={`flex h-14 w-full overflow-hidden rounded-xl border bg-paper2 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-100 ${fieldErrors.phone ? 'border-red-400' : 'border-line focus-within:border-customBlue'}`}
           >
-            <div className="flex shrink-0 items-center gap-1.5 border-r border-slate-200 bg-slate-100 px-3 text-sm font-bold text-deepBlue">
+            <div className="flex shrink-0 items-center gap-1.5 border-r border-line bg-paper2 px-3 text-sm font-bold text-deepBlue">
               {selectedCountry ? (
                 <>
                   <span className="text-base leading-none">{selectedCountry.flag}</span>
-                  <span>{selectedCountry.dialCode}</span>
+                  <span className="font-latin tabular-nums">{selectedCountry.dialCode}</span>
                 </>
               ) : (
-                <Phone size={18} className="text-slate-400" />
+                <Phone size={18} className="text-muted-400" />
               )}
             </div>
             <input
@@ -421,18 +421,18 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
               onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
               onBlur={autofillCountryFromPhone}
               placeholder="000 000 0000"
-              className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-muted-400"
             />
           </div>
           {fieldErrors.phone && <span className="text-xs text-red-600">{fieldErrors.phone}</span>}
         </div>
 
         {/* المدينة + الجنس */}
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-black text-deepBlue">
             المدينة
             <span className="relative block">
-              <MapPin size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <MapPin size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
               <input
                 value={city}
                 required
@@ -446,12 +446,12 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           <label className="grid gap-2 text-sm font-black text-deepBlue">
             الجنس
             <span className="relative block">
-              <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-400" />
               <select
                 value={gender}
                 required
                 onChange={(e) => { setGender(e.target.value); clearField('gender') }}
-                className={`h-14 w-full cursor-pointer appearance-none rounded-xl border bg-slate-50 px-4 pl-10 text-right font-semibold outline-none transition focus:bg-white focus:ring-4 focus:ring-sky-100 ${fieldErrors.gender ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'} ${gender ? 'text-deepBlue' : 'text-slate-400'}`}
+                className={`h-14 w-full cursor-pointer appearance-none rounded-xl border bg-paper2 px-4 pl-10 text-right font-semibold outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${fieldErrors.gender ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'} ${gender ? 'text-deepBlue' : 'text-muted-400'}`}
               >
                 <option value="" disabled>اختر الجنس</option>
                 <option value="male" className="text-deepBlue">ذكر</option>
@@ -464,12 +464,12 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
 
         {/* ملاحظات */}
         <label className="grid gap-2 text-sm font-black text-deepBlue">
-          ملاحظات إضافية <span className="font-semibold text-slate-400">(اختياري)</span>
+          ملاحظات إضافية <span className="font-semibold text-muted-400">(اختياري)</span>
           <textarea
             value={notes}
             rows={4}
             onChange={(e) => setNotes(e.target.value)}
-            className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+            className="resize-none rounded-xl border border-line bg-paper2 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100"
           />
         </label>
 
@@ -494,7 +494,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           type="submit"
           whileHover={!isSubmitting ? { scale: 1.02 } : undefined}
           disabled={isSubmitting}
-          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-customOrange font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-customOrange font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
           {isSubmitting ? 'جاري الإرسال...' : 'إكمال التسجيل'}

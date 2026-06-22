@@ -21,7 +21,7 @@ export const EMC_CHART_PALETTE = ['#0077B6', '#F28C00', '#0C2A4B', '#10B981', '#
 
 export const emcTooltipStyle: CSSProperties = {
   borderRadius: 14,
-  border: '1px solid rgba(12, 42, 75,0.08)',
+  border: '1px solid rgba(12,42,75,0.08)',
   boxShadow: '0 22px 50px -24px rgba(15,42,67,0.22)',
 }
 
@@ -58,7 +58,7 @@ export function EnterpriseBarChartRtl({
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(15,23,42,0.06)" />
           <XAxis hide type="number" />
           <YAxis type="category" dataKey={nameKey} tick={{ fill: '#64748B', fontSize: 11, fontWeight: 700 }} width={118} />
-          <Tooltip cursor={{ fill: 'rgba(0, 119, 182,0.06)' }} contentStyle={emcTooltipStyle} labelStyle={emcTooltipLabelStyle} itemStyle={emcTooltipItemStyle} />
+          <Tooltip cursor={{ fill: 'rgba(0,119,182,0.06)' }} contentStyle={emcTooltipStyle} labelStyle={emcTooltipLabelStyle} itemStyle={emcTooltipItemStyle} />
           <Bar dataKey={dataKey} fill={`url(#${gradientId})`} radius={[0, 12, 12, 0]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>

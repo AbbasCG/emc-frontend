@@ -29,7 +29,7 @@ function useItemsPerPage() {
 
 function CourseSkeleton() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc-md">
+    <div className="animate-pulse overflow-hidden rounded-3xl border border-line bg-white shadow-emc">
       <div className="h-52 bg-gradient-to-br from-slate-200 to-slate-100" />
       <div className="space-y-4 p-6">
         <div className="flex gap-2">
@@ -269,14 +269,13 @@ export default function CoursesGrid({
   }
 
   return (
-    <section id={sectionId} className="scroll-mt-28 bg-white py-8 md:py-10">
+    <section id={sectionId} className="scroll-mt-28 bg-white py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mb-7">
+        <div className="mb-8">
           <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-700">
             جميع الدورات
           </span>
-          <h2 className="text-2xl font-black text-deepBlue md:text-3xl">الدورات المتاحة</h2>
-          <div className="mt-2 h-1 w-12 rounded-full bg-brand-500" />
+          <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">الدورات المتاحة</h2>
         </div>
 
         {gridBody}

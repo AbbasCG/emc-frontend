@@ -148,7 +148,7 @@ export default function Tracks() {
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-8 pt-5">
                       <Link
                         to="/courses"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1c6f98] py-3.5 text-sm font-black text-white shadow-[0_12px_32px_-12px_rgba(0, 119, 182,0.55)] ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1c6f98] py-3.5 text-sm font-black text-white shadow-[0_12px_32px_-12px_rgba(0,119,182,0.55)] ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
                       >
                         استكشف البرامج
                         <ArrowLeft size={17} aria-hidden />

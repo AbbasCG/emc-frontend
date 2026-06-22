@@ -45,7 +45,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
   return (
     <section className="mt-4" aria-label="دورات ذات صلة">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-base font-black text-[#0C2A4B]">دورات ذات صلة</h2>
+        <h2 className="font-display text-base font-black tracking-tight text-[#0C2A4B]">دورات ذات صلة</h2>
         <div className="flex gap-1">
           <button
             type="button"
@@ -76,7 +76,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
             <Link
               key={course.id}
               to={`/courses/${course.slug}`}
-              className="group w-[min(100%,280px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/90 shadow-[0_8px_30px_-12px_rgba(12, 42, 75,0.15)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-14px_rgba(12, 42, 75,0.2)]"
+              className="group w-[min(100%,280px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-emc backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-emc-md"
             >
               <div className="relative h-32 overflow-hidden">
                 <img

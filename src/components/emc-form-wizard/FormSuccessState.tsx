@@ -50,10 +50,10 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 10 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-[#0077B6]/15 backdrop-blur-xl"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(12,42,75,0.35)] ring-1 ring-[#0077B6]/15 backdrop-blur-xl"
             dir="rtl"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(0, 119, 182,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(242, 140, 0,0.12),transparent_48%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(0,119,182,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(242,140,0,0.12),transparent_48%)]" />
 
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               {particles.map((p) => (
@@ -132,7 +132,7 @@ export function FormSuccessState({ open, title, description, continueLabel = 'ت
                 <button
                   type="button"
                   onClick={onContinue}
-                  className="mt-8 w-full rounded-2xl bg-gradient-to-l from-[#F28C00] to-[#0077B6] px-6 py-3 text-sm font-black text-white shadow-[0_16px_40px_-14px_rgba(242, 140, 0,0.55)] transition hover:brightness-[1.03]"
+                  className="mt-8 w-full rounded-2xl bg-customOrange px-6 py-3 text-sm font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
                 >
                   {continueLabel}
                 </button>

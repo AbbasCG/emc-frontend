@@ -139,7 +139,7 @@ export default function InstructorAssignedCoursesPage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1a2d44] to-[#0077B6] shadow-[0_24px_60px_-20px_rgba(12, 42, 75,0.55)]"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1a2d44] to-[#0077B6] shadow-[0_24px_60px_-20px_rgba(12,42,75,0.55)]"
       >
         <div aria-hidden className="pointer-events-none absolute -left-20 -top-12 h-72 w-72 rounded-full bg-[#F28C00]/15 blur-[100px]" />
         <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-20 h-56 w-56 rounded-full bg-[#0077B6]/25 blur-[80px]" />

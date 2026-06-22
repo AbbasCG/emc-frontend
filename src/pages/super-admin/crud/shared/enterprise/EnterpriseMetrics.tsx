@@ -35,7 +35,7 @@ export function EnterpriseMetricTile({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: [0.22, 0.61, 0.36, 1] }}
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_10px_40px_-12px_rgba(12, 42, 75,0.12)] ring-1 ring-ink-100/50 backdrop-blur-md',
+        'relative overflow-hidden rounded-2xl border border-white/80 bg-white/80 p-4 shadow-[0_10px_40px_-12px_rgba(12,42,75,0.12)] ring-1 ring-ink-100/50 backdrop-blur-md',
       )}
     >
       <div

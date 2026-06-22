@@ -45,8 +45,8 @@ export default function PremiumDescription({ derived, shortDescription, requirem
   if (!mainText && !hasExtra) return null
 
   return (
-    <section aria-label="وصف الدورة" dir="rtl" className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-[#0C2A4B]">
+    <section aria-label="وصف الدورة" dir="rtl" className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
+      <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
         <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
         عن البرنامج
       </h2>

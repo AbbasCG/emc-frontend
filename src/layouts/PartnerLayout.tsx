@@ -27,7 +27,7 @@ export default function PartnerLayout() {
   const sidebarInitials = getUserInitials(user)
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#0f172a]">
+    <div dir="rtl" className="min-h-screen bg-night">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -42,12 +42,16 @@ export default function PartnerLayout() {
 
       <aside
         className={[
-          'fixed inset-y-0 right-0 z-40 flex w-64 flex-col border-l border-white/10 bg-gradient-to-b from-deepBlue to-[#152238]',
-          'transition-transform duration-300 lg:translate-x-0',
+          'fixed inset-y-0 right-0 z-40 flex w-64 flex-col overflow-hidden border-l border-white/[0.08] bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
+          'transition-transform duration-300 ease-emc-out lg:translate-x-0',
           open ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
         ].join(' ')}
       >
-        <div className="flex h-16 items-center justify-between px-5">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 right-0 h-48 w-48 rounded-full bg-customBlue/[0.08] blur-3xl"
+        />
+        <div className="relative flex h-16 items-center justify-between border-b border-white/[0.08] px-5">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="EMC" className="h-9 w-auto brightness-0 invert" width={160} height={36} loading="eager" />
           </Link>
@@ -60,7 +64,7 @@ export default function PartnerLayout() {
             <X size={18} />
           </button>
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="relative flex-1 space-y-1 px-3 py-4">
           {items.map((it) => {
             const active = location.pathname.startsWith(it.href)
             return (
@@ -68,18 +72,23 @@ export default function PartnerLayout() {
                 key={it.href}
                 to={it.href}
                 className={[
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-black transition',
-                  active ? 'bg-customOrange text-deepBlue shadow-lg' : 'text-white/70 hover:bg-white/10 hover:text-white',
+                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-black transition-all duration-200 ease-emc-out',
+                  active
+                    ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(0,119,182,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
+                    : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
                 ].join(' ')}
               >
-                <it.icon size={18} />
+                {active ? (
+                  <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(242,140,0,0.7)]" />
+                ) : null}
+                <it.icon size={18} className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'} />
                 {it.label}
               </NavLink>
             )
           })}
         </nav>
-        <div className="border-t border-white/10 p-4">
-          <div className="flex items-center gap-3 rounded-xl bg-white/8 px-3 py-2">
+        <div className="relative border-t border-white/[0.08] p-4">
+          <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.06] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-customOrange text-[11px] font-black leading-none text-deepBlue font-latin">
               {sidebarInitials}
             </span>
@@ -101,7 +110,7 @@ export default function PartnerLayout() {
       </aside>
 
       <div className="lg:mr-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-white/10 bg-[#0f172a]/85 px-4 backdrop-blur">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-white/[0.08] bg-night/85 px-4 backdrop-blur-xl">
           <button
             type="button"
             className="rounded-lg p-2 text-white/70 hover:bg-white/10 lg:hidden"
@@ -111,8 +120,8 @@ export default function PartnerLayout() {
             <Menu size={20} />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Partner Workspace</p>
-            <h1 className="truncate text-lg font-black text-white">بوابة الشركاء EMC</h1>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber font-latin">Partner Workspace</p>
+            <h1 className="truncate text-lg font-black tracking-tight text-white font-display">بوابة الشركاء EMC</h1>
           </div>
           <Link
             to="/dashboard"

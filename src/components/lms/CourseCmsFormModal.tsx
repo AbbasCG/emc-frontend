@@ -56,7 +56,7 @@ export function CmsFormModal({
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-        className="relative z-[210] flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_24px_64px_-16px_rgba(12, 42, 75,0.35)]"
+        className="relative z-[210] flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_24px_64px_-16px_rgba(12,42,75,0.35)]"
       >
         <div className="border-b border-slate-100 bg-gradient-to-l from-[#0C2A4B] to-[#1a2940] px-5 py-4 text-white sm:px-6">
           <div className="flex items-start justify-between gap-3">

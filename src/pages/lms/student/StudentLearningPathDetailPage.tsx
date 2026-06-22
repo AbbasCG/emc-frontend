@@ -121,7 +121,7 @@ export default function StudentLearningPathDetailPage() {
     <div className="space-y-6 pb-20 text-right" dir="rtl">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#0C2A4B] via-[#1f3049] to-[#0077B6] p-[1px] shadow-[0_32px_80px_-36px_rgba(12, 42, 75,0.72)]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#0C2A4B] via-[#1f3049] to-[#0077B6] p-[1px] shadow-[0_32px_80px_-36px_rgba(12,42,75,0.72)]">
         <div className="relative overflow-hidden rounded-[calc(2rem-1px)]">
           {/* Background cover image */}
           {path.featured_image && (

@@ -98,9 +98,9 @@ const TYPE_COLORS: Record<MemberType, { bg: string; text: string; border: string
 }
 
 const STAT_COLORS: Record<MemberType, { accent: string; bg: string }> = {
-  volunteer: { accent: '#0077B6', bg: 'rgba(0, 119, 182,0.08)' },
-  staff: { accent: '#0C2A4B', bg: 'rgba(12, 42, 75,0.06)' },
-  partner: { accent: '#F28C00', bg: 'rgba(242, 140, 0,0.08)' },
+  volunteer: { accent: '#0077B6', bg: 'rgba(0,119,182,0.08)' },
+  staff: { accent: '#0C2A4B', bg: 'rgba(12,42,75,0.06)' },
+  partner: { accent: '#F28C00', bg: 'rgba(242,140,0,0.08)' },
 }
 
 const AVATAR_GRADIENTS = [
@@ -876,7 +876,7 @@ function MemberCard({ member, idx, onUpdated, canManage }: { member: InternalMem
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: Math.min(idx * 0.04, 0.4) }}
         whileHover={{ y: -2, transition: { duration: 0.15 } }}
-        className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_0_rgba(15,23,42,0.06)] transition-shadow hover:border-[#0077B6]/30 hover:shadow-[0_8px_24px_0_rgba(0, 119, 182,0.12)]"
+        className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_0_rgba(15,23,42,0.06)] transition-shadow hover:border-[#0077B6]/30 hover:shadow-[0_8px_24px_0_rgba(0,119,182,0.12)]"
       >
         {/* Color accent bar */}
         <div className={`h-[3px] w-full bg-gradient-to-l ${avatarGradient(member.id)}`} aria-hidden />

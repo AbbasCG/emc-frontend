@@ -68,7 +68,7 @@ export default function PremiumJourney({ course, derived }: Props) {
 
   return (
     <section aria-label="رحلة التعلم" dir="rtl">
-      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-black text-[#0C2A4B]">
+      <h2 className="mb-3 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
         <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
         رحلة التعلم
       </h2>
@@ -96,8 +96,8 @@ export default function PremiumJourney({ course, derived }: Props) {
               className={cn(
                 'relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2',
                 step.isOrange
-                  ? 'border-[#F28C00]/25 bg-gradient-to-br from-[#F28C00]/12 to-[#F28C00]/5 text-[#F28C00] shadow-[0_4px_16px_-4px_rgba(242, 140, 0,0.22)]'
-                  : 'border-[#0077B6]/25 bg-gradient-to-br from-[#0077B6]/12 to-[#0077B6]/5 text-[#0077B6] shadow-[0_4px_16px_-4px_rgba(0, 119, 182,0.22)]',
+                  ? 'border-[#F28C00]/25 bg-gradient-to-br from-[#F28C00]/12 to-[#F28C00]/5 text-[#F28C00] shadow-[0_4px_16px_-4px_rgba(242,140,0,0.22)]'
+                  : 'border-[#0077B6]/25 bg-gradient-to-br from-[#0077B6]/12 to-[#0077B6]/5 text-[#0077B6] shadow-[0_4px_16px_-4px_rgba(0,119,182,0.22)]',
               )}
             >
               <step.icon className="h-5 w-5" />

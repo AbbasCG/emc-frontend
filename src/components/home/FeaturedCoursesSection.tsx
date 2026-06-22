@@ -35,7 +35,7 @@ function sortByPopularity(courses: Course[]): Course[] {
 
 function CardSkeleton() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-[1.375rem] border border-slate-100 bg-white shadow-sm">
+    <div className="animate-pulse overflow-hidden rounded-[1.375rem] border border-deepBlue/[0.06] bg-white shadow-emc">
       <div className="aspect-[16/10] bg-gradient-to-br from-slate-200 to-slate-100" />
       <div className="space-y-3 p-5">
         <div className="h-4 w-4/5 rounded-lg bg-slate-200" />
@@ -89,7 +89,7 @@ export default function FeaturedCoursesSection() {
     <section
       ref={sectionRef}
       dir="rtl"
-      className="border-y border-deepBlue/[0.05] bg-white px-4 py-10 sm:px-6 lg:px-10 lg:py-14"
+      className="border-y border-deepBlue/[0.05] bg-white px-4 py-12 sm:px-6 lg:px-10 lg:py-16"
     >
       <div className="mx-auto max-w-[1540px]">
         {/* Header */}
@@ -97,21 +97,18 @@ export default function FeaturedCoursesSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="mb-8 flex items-end justify-between gap-4"
+          className="mb-10 flex items-end justify-between gap-4"
         >
           <div className="text-right">
-            <p className="text-xs font-black uppercase tracking-wider text-customBlue">
-              الدورات المتاحة
-            </p>
-            <h2 className="mt-2 text-2xl font-black text-deepBlue sm:text-3xl">
+            <span className="emc-eyebrow">الدورات المتاحة</span>
+            <h2 className="emc-title-arc mt-4 font-display text-2xl font-black tracking-tight text-deepBlue sm:text-3xl">
               برامجنا المميّزة
             </h2>
-            <span className="mt-3 block h-1 w-12 rounded-full bg-customOrange" />
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="shrink-0">
             <Link
               to="/courses"
-              className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-5 py-2.5 text-sm font-black text-white shadow transition hover:brightness-105"
+              className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-5 py-2.5 text-sm font-black text-white shadow-emc transition hover:brightness-105"
             >
               عرض جميع الدورات
               <ArrowLeft size={15} aria-hidden />

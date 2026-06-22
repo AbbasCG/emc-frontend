@@ -215,11 +215,10 @@ export default function HomeEcosystemBento() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden bg-[#06182C] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      className="emc-dawn relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-32"
     >
       {/* Ambient glows */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-customOrange/[0.08] blur-[80px]" />
 
       {/* Subtle grid overlay */}
       <div
@@ -241,17 +240,17 @@ export default function HomeEcosystemBento() {
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >
           <div className="text-right">
-            <p className="text-xs font-black tracking-widest text-customBlue uppercase">قدرات المنصة</p>
-            <h2 className="mt-4 font-display text-3xl font-black leading-tight text-white sm:text-4xl xl:text-[2.8rem]">
+            <span className="emc-eyebrow border-sky/25 bg-sky/10 text-sky">قدرات المنصة</span>
+            <h2 className="mt-4 font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl xl:text-[2.8rem]">
               كل أداة تحتاجها —{' '}
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(90deg, #0077B6 30%, #F28C00 100%)' }}
+                style={{ backgroundImage: 'linear-gradient(90deg, #A6D6F2 0%, #089FE0 100%)' }}
               >
                 في منظومة واحدة
               </span>
             </h2>
-            <p className="mt-4 max-w-xl text-base font-medium leading-8 text-white/45">
+            <p className="mt-5 max-w-xl text-base font-medium leading-8 text-white/55">
               وحدات متكاملة تعمل كمنصة SaaS تعليمية — هوية واحدة، جودة موحّدة، وتكامل تقني بلا احتكاك.
             </p>
           </div>

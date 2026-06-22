@@ -42,12 +42,12 @@ const toneIconChip: Record<StatTone, string> = {
 }
 
 const toneGlow: Record<StatTone, string> = {
-  brand:   'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(0, 119, 182,0.18),transparent)]',
-  accent:  'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(242, 140, 0,0.16),transparent)]',
-  ink:     'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(12, 42, 75,0.10),transparent)]',
+  brand:   'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(0,119,182,0.16),transparent)]',
+  accent:  'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(242,140,0,0.14),transparent)]',
+  ink:     'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(12,42,75,0.10),transparent)]',
   success: 'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(16,185,129,0.14),transparent)]',
   danger:  'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(244,63,94,0.14),transparent)]',
-  neutral: 'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(12, 42, 75,0.06),transparent)]',
+  neutral: 'before:bg-[radial-gradient(70%_60%_at_85%_0%,rgba(12,42,75,0.06),transparent)]',
 }
 
 function trendClasses(trend?: StatTrend) {
@@ -74,7 +74,7 @@ export default function StatTile({
   return (
     <article
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-deepBlue/[0.07] bg-white p-5 shadow-kpi ring-1 ring-deepBlue/[0.03]',
+        'relative overflow-hidden rounded-2xl border border-deepBlue/[0.07] bg-white p-5 shadow-kpi transition duration-250 ease-emc-out',
         'before:pointer-events-none before:absolute before:inset-0 before:opacity-90',
         toneGlow[tone],
         className,

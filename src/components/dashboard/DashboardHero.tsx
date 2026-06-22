@@ -21,10 +21,8 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 0.61, 0.36, 1] }}
-      className="relative overflow-hidden rounded-[1.75rem] border border-deepBlue/[0.08] bg-gradient-to-bl from-deepBlue via-[#1c2f45] to-[#101c2e] shadow-emc-lg ring-1 ring-white/10"
+      className="emc-dawn relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-emc-lg ring-1 ring-white/10"
     >
-      <div aria-hidden className="pointer-events-none absolute -left-24 top-0 h-56 w-56 rounded-full bg-customBlue/30 blur-[100px]" />
-      <div aria-hidden className="pointer-events-none absolute bottom-0 right-[10%] h-44 w-44 rounded-full bg-customOrange/20 blur-[80px]" />
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-emc-dots bg-dots-22 opacity-[0.06]" />
 
       <div className="relative px-7 py-8">
@@ -32,7 +30,7 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
           <div className="flex items-start gap-4 text-right">
             {(avatarUrl || avatarInitials) && (
               <div className="relative shrink-0">
-                <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-white/15 ring-2 ring-white/25 shadow-lg">
+                <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-white/15 ring-2 ring-white/25 shadow-emc-md">
                   {avatarUrl ?
                     <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                   : <span className="text-lg font-black text-white">{avatarInitials}</span>}
@@ -41,12 +39,12 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
             )}
             <div className="min-w-0 flex-1">
             {role && (
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45 mb-1">{role}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-ice/70 mb-1">{role}</p>
             )}
             <p className="text-[11px] font-bold text-white/55">{greeting}،</p>
-            <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{name}</h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-white font-display sm:text-3xl">{name}</h1>
             {subtitle && (
-              <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-white/72">{subtitle}</p>
+              <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-white/75">{subtitle}</p>
             )}
             {actions && <div className="mt-5 flex flex-wrap gap-2">{actions}</div>}
             </div>
@@ -57,10 +55,10 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
               {quickStats.map((s) => (
                 <div
                   key={s.label}
-                  className="rounded-xl border border-white/10 bg-white/[0.07] px-3 py-3 text-right backdrop-blur-sm"
+                  className="rounded-xl border border-white/[0.12] bg-white/[0.07] px-3 py-3 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm"
                 >
-                  <div className="emc-display-num text-2xl leading-none text-white">{s.value}</div>
-                  <p className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-white/50">
+                  <div className="emc-display-num text-2xl leading-none tracking-tight text-white">{s.value}</div>
+                  <p className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-ice/60">
                     {s.label}
                   </p>
                 </div>

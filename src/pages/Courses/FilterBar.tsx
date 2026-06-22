@@ -61,7 +61,7 @@ export default function FilterBar({
   loadError,
 }: FilterBarProps) {
   return (
-    <div className="sticky top-[4.5rem] z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
+    <div className="sticky top-[4.5rem] z-30 border-b border-line bg-white/90 shadow-emc-sm backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
         {loadError && (
           <div className="mb-4 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -100,7 +100,7 @@ export default function FilterBar({
               <select
                 value={activeDelivery}
                 onChange={(e) => onDeliveryChange(e.target.value)}
-                className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
+                className="cursor-pointer rounded-xl border border-line bg-paper2/70 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none transition focus:border-brand-400"
               >
                 {deliveryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -115,7 +115,7 @@ export default function FilterBar({
               <select
                 value={activeLevel}
                 onChange={(e) => onLevelChange(e.target.value)}
-                className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
+                className="cursor-pointer rounded-xl border border-line bg-paper2/70 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none transition focus:border-brand-400"
               >
                 {levelOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -130,7 +130,7 @@ export default function FilterBar({
               <select
                 value={activeProgramType}
                 onChange={(e) => onProgramTypeChange(e.target.value)}
-                className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
+                className="cursor-pointer rounded-xl border border-line bg-paper2/70 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none transition focus:border-brand-400"
               >
                 {programTypeOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -144,7 +144,7 @@ export default function FilterBar({
               <select
                 value={sortBy}
                 onChange={(e) => onSortChange(e.target.value)}
-                className="w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pr-3 pl-9 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
+                className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-white py-2.5 pr-3 pl-9 text-xs font-semibold text-deepBlue outline-none transition focus:border-brand-400"
               >
                 {sortOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -155,7 +155,7 @@ export default function FilterBar({
               <ChevronDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-500" />
             </div>
 
-            <div className="flex items-center overflow-hidden rounded-xl border border-slate-200">
+            <div className="flex items-center overflow-hidden rounded-xl border border-line">
               <button
                 type="button"
                 onClick={() => onViewModeChange('grid')}

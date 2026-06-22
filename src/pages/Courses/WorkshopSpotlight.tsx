@@ -26,7 +26,7 @@ function spotsColor(remaining: number, total: number): string {
 
 function WorkshopSkeleton() {
   return (
-    <div className="min-w-[300px] bg-white rounded-xl border border-slate-100 p-5 animate-pulse">
+    <div className="min-w-[300px] bg-white rounded-2xl border border-line p-5 animate-pulse">
       <div className="h-5 bg-slate-200 rounded mb-3 w-3/4" />
       <div className="h-4 bg-slate-100 rounded mb-5 w-1/2" />
       <div className="flex gap-3 mb-4">
@@ -56,10 +56,9 @@ export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotli
             <span className="text-xs font-bold text-accent-700 uppercase tracking-widest mb-2 block">
               ورش العمل المجانية
             </span>
-            <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
+            <h2 className="emc-title-arc font-display text-2xl md:text-3xl font-black tracking-tight text-deepBlue">
               ورش قادمة — سجّل مجاناً
             </h2>
-            <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
           </div>
 
           <Link
@@ -113,8 +112,8 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       initial={{ opacity: 0, y: 24 }}
       animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.09, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(12, 42, 75,0.10)' }}
-      className="min-w-[300px] max-w-[300px] bg-white rounded-xl border border-slate-200 p-5 flex flex-col transition-shadow duration-300"
+      whileHover={{ y: -4, boxShadow: '0 22px 50px -24px rgba(6,24,44,0.22)' }}
+      className="min-w-[300px] max-w-[300px] bg-white rounded-2xl border border-line p-5 flex flex-col shadow-emc transition-shadow duration-300"
     >
       <Link to={`/workshops/${workshop.slug}`} className="flex flex-col flex-1">
       {/* Mode badge */}
@@ -136,17 +135,17 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       </div>
 
       {/* Title */}
-      <h3 className="font-bold text-deepBlue text-base leading-snug mb-3 line-clamp-2">
+      <h3 className="font-display font-bold tracking-tight text-deepBlue text-base leading-snug mb-3 line-clamp-2">
         {workshop.title}
       </h3>
 
       {/* Meta */}
       <div className="flex flex-col gap-1.5 mb-4">
-        <div className="flex items-center gap-2 text-xs text-[#73777B]">
+        <div className="flex items-center gap-2 text-xs text-muted-500">
           <Calendar className="w-3.5 h-3.5 text-customBlue shrink-0" />
           <span>{formatDate(workshop.date)} · {workshop.time}</span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-[#73777B]">
+        <div className="flex items-center gap-2 text-xs text-muted-500">
           <Clock className="w-3.5 h-3.5 text-customOrange shrink-0" />
           <span>{workshop.duration_hours} ساعات · {workshop.trainer_name}</span>
         </div>
@@ -155,7 +154,7 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       {/* Spots progress */}
       <div className="mb-4">
         <div className="flex justify-between text-xs mb-1">
-          <span className="text-[#73777B]">المقاعد المتاحة</span>
+          <span className="text-muted-500">المقاعد المتاحة</span>
           <span className="font-bold text-deepBlue">{spotsPercent}%</span>
         </div>
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">

@@ -11,7 +11,7 @@ export function BackButton({ to, label = 'العودة', className }: Props) {
   const navigate = useNavigate()
 
   const base =
-    'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[12px] font-black text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-customBlue/5 hover:text-customBlue'
+    'inline-flex items-center gap-2 rounded-xl border border-deepBlue/[0.08] bg-white px-3.5 py-2 text-[12px] font-black text-deepBlue shadow-emc-xs transition duration-250 ease-emc-out hover:border-customBlue/40 hover:bg-customBlue/5 hover:text-customBlue hover:shadow-emc-sm'
 
   if (to) {
     return (

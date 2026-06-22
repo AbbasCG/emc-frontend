@@ -66,7 +66,7 @@ const BADGE_THEME = {
 }
 const RAIL_ACCENT: Record<BadgeTheme, string> = {
   create:   'bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.42)]',
-  update:   'bg-[#0077B6] shadow-[0_0_18px_rgba(0, 119, 182,0.38)]',
+  update:   'bg-[#0077B6] shadow-[0_0_18px_rgba(0,119,182,0.38)]',
   delete:   'bg-red-600 shadow-[0_0_18px_rgba(220,38,38,0.35)]',
   status:   'bg-amber-500 shadow-[0_0_18px_rgba(245,158,11,0.4)]',
   role:     'bg-violet-500 shadow-[0_0_18px_rgba(139,92,246,0.4)]',

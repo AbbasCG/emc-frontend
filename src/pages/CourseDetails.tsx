@@ -357,9 +357,9 @@ export default function CourseDetails() {
 
   const enrollSidebar = (
     <div className="overflow-hidden text-right">
-      <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-[#0077B6]/8 via-white to-[#F28C00]/5 px-5 py-4">
+      <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-brand-50 to-white px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-black text-[#0C2A4B]">الالتحاق بالبرنامج</h3>
+          <h3 className="font-display text-base font-black tracking-tight text-[#0C2A4B]">الالتحاق بالبرنامج</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
             registration.open && !seatsFull
               ? 'bg-emerald-50 text-emerald-800 ring-emerald-100'
@@ -465,12 +465,12 @@ export default function CourseDetails() {
                 requirementsItems={requirementsItems}
               />
 
-              <div className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4">
+              <div className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
                 <PremiumJourney course={course} derived={derived} />
               </div>
 
               {curriculumGroups.some((g) => g.items.some((x) => x.trim())) && (
-                <div className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4">
+                <div className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
                   <PremiumCurriculum groups={curriculumGroups} />
                 </div>
               )}
@@ -478,7 +478,7 @@ export default function CourseDetails() {
               <PremiumSchedule course={course} derived={derived} />
 
               {learningItems.length > 0 && (
-                <div className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4">
+                <div className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
                   <PremiumLearnGrid items={learningItems} />
                 </div>
               )}

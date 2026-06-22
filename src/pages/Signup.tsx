@@ -128,10 +128,10 @@ export default function Signup() {
   }
 
   const inputCls = (field: string) =>
-    `h-14 w-full rounded-xl border bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-sky-100 ${fieldErrors[field] ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'}`
+    `h-14 w-full rounded-xl border bg-paper2 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${fieldErrors[field] ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'}`
 
   return (
-    <div className="bg-slate-50 pt-20">
+    <div className="bg-paper pt-20">
       <PageHeader
         title="إنشاء حساب"
         breadcrumbs={[
@@ -140,41 +140,39 @@ export default function Signup() {
         ]}
       />
 
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      <section className="px-4 py-20 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto grid max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100 lg:grid-cols-[1fr_0.95fr]"
+          className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-emc-lg ring-1 ring-line lg:grid-cols-[1fr_0.95fr]"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="relative hidden min-h-[420px] bg-deepBlue lg:block">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0, 119, 182,0.35),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(242, 140, 0,0.25),transparent_40%)]" />
+          <div className="emc-dawn relative hidden min-h-[420px] lg:block">
             <div className="relative flex h-full flex-col justify-end p-10 text-white">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-customOrange">EMC OS</p>
-              <h2 className="mt-3 text-3xl font-black leading-tight">انضم إلى منظومة EMC الرقمية</h2>
-              <p className="mt-4 max-w-md text-sm leading-8 text-white/75">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-amber">EMC OS</p>
+              <h2 className="mt-3 font-display text-3xl font-black leading-tight tracking-tight">انضم إلى منظومة EMC الرقمية</h2>
+              <p className="mt-5 max-w-md text-sm leading-8 text-ice/90">
                 حساب واحد للوصول إلى لوحة الطالب، التسجيل في البرامج، ومتابعة نشاطك التعليمي.
               </p>
             </div>
           </div>
 
           <div className="p-6 text-right sm:p-10">
-            <h1 className="text-3xl font-black text-deepBlue">إنشاء حساب جديد</h1>
-            <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
+            <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">إنشاء حساب جديد</h1>
 
             {error && (
-              <div className="mt-6 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
+              <div className="mt-7 flex items-start gap-3 rounded-2xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
                 <AlertCircle size={20} className="mt-0.5 shrink-0" />
                 <p className="text-sm font-bold">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
+            <form onSubmit={handleSubmit} className="mt-9 grid gap-6">
               {/* الاسم الكامل */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 الاسم الكامل
                 <span className="relative block">
-                  <UserRound size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <UserRound size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
                     value={name}
                     onChange={(e) => { setName(e.target.value); clearField('name') }}
@@ -188,7 +186,7 @@ export default function Signup() {
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 البريد الإلكتروني
                 <span className="relative block">
-                  <Mail size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Mail size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
                     type="email"
                     autoComplete="email"
@@ -205,7 +203,7 @@ export default function Signup() {
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 كلمة المرور
                 <span className="relative block">
-                  <LockKeyhole size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
                     type="password"
                     minLength={8}
@@ -223,7 +221,7 @@ export default function Signup() {
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 تأكيد كلمة المرور
                 <span className="relative block">
-                  <LockKeyhole size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
                     type="password"
                     minLength={8}
@@ -253,16 +251,16 @@ export default function Signup() {
                 رقم الجوال
                 <div
                   dir="ltr"
-                  className={`flex h-14 w-full overflow-hidden rounded-xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-sky-100 ${fieldErrors.phone ? 'border-red-400' : 'border-slate-200 focus-within:border-customBlue'}`}
+                  className={`flex h-14 w-full overflow-hidden rounded-xl border bg-paper2 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-100 ${fieldErrors.phone ? 'border-red-400' : 'border-line focus-within:border-customBlue'}`}
                 >
-                  <div className="flex shrink-0 items-center gap-1.5 border-r border-slate-200 bg-slate-100 px-3 text-sm font-bold text-deepBlue">
+                  <div className="flex shrink-0 items-center gap-1.5 border-r border-line bg-paper2 px-3 text-sm font-bold text-deepBlue">
                     {selectedCountry ? (
                       <>
                         <span className="text-base leading-none">{selectedCountry.flag}</span>
-                        <span>{selectedCountry.dialCode}</span>
+                        <span className="font-latin tabular-nums">{selectedCountry.dialCode}</span>
                       </>
                     ) : (
-                      <Phone size={18} className="text-slate-400" />
+                      <Phone size={18} className="text-muted-400" />
                     )}
                   </div>
                   <input
@@ -272,18 +270,18 @@ export default function Signup() {
                     onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
                     onBlur={autofillCountryFromPhone}
                     placeholder="000 000 0000"
-                    className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-slate-400"
+                    className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-muted-400"
                   />
                 </div>
                 {fieldErrors.phone && <p className="text-xs font-semibold text-red-600">{fieldErrors.phone}</p>}
               </div>
 
               {/* المدينة + الجنس */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   المدينة
                   <span className="relative block">
-                    <MapPin size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <MapPin size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                     <input
                       value={city}
                       onChange={(e) => { setCity(e.target.value); clearField('city') }}
@@ -296,11 +294,11 @@ export default function Signup() {
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   الجنس
                   <span className="relative block">
-                    <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-400" />
                     <select
                       value={gender}
                       onChange={(e) => { setGender(e.target.value); clearField('gender') }}
-                      className={`h-14 w-full cursor-pointer appearance-none rounded-xl border bg-slate-50 px-4 pl-10 text-right font-semibold outline-none transition focus:bg-white focus:ring-4 focus:ring-sky-100 ${fieldErrors.gender ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-customBlue'} ${gender ? 'text-deepBlue' : 'text-slate-400'}`}
+                      className={`h-14 w-full cursor-pointer appearance-none rounded-xl border bg-paper2 px-4 pl-10 text-right font-semibold outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${fieldErrors.gender ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'} ${gender ? 'text-deepBlue' : 'text-muted-400'}`}
                     >
                       <option value="" disabled>اختر الجنس</option>
                       <option value="male" className="text-deepBlue">ذكر</option>
@@ -313,13 +311,13 @@ export default function Signup() {
 
               {/* كيف عرفت عنا؟ */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                كيف عرفت عنا؟ <span className="font-semibold text-slate-400">(اختياري)</span>
+                كيف عرفت عنا؟ <span className="font-semibold text-muted-400">(اختياري)</span>
                 <span className="relative block">
-                  <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <select
                     value={howHeard}
                     onChange={(e) => setHowHeard(e.target.value)}
-                    className={`h-14 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 pl-10 text-right font-semibold outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100 ${howHeard ? 'text-deepBlue' : 'text-slate-400'}`}
+                    className={`h-14 w-full cursor-pointer appearance-none rounded-xl border border-line bg-paper2 px-4 pl-10 text-right font-semibold outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100 ${howHeard ? 'text-deepBlue' : 'text-muted-400'}`}
                   >
                     <option value="">اختر...</option>
                     <option value="صديق أو قريب">صديق أو قريب</option>
@@ -338,7 +336,7 @@ export default function Signup() {
                 type="submit"
                 disabled={isLoading}
                 whileHover={!isLoading ? { scale: 1.02 } : undefined}
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-customOrange px-7 font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange px-7 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoading ? (
                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -349,7 +347,7 @@ export default function Signup() {
               </motion.button>
             </form>
 
-            <p className="mt-8 text-center text-sm font-bold text-slate-500">
+            <p className="mt-9 text-center text-sm font-bold text-muted-500">
               لديك حساب بالفعل؟{' '}
               <Link
                 to={

@@ -62,7 +62,7 @@ export function FormActions({
             type="button"
             onClick={onNext}
             disabled={busy || disableNext}
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_14px_34px_-12px_rgba(12, 42, 75,0.45)] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#0C2A4B] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_14px_34px_-12px_rgba(12,42,75,0.45)] disabled:opacity-50"
           >
             {nextLabel}
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -73,7 +73,7 @@ export function FormActions({
             type="button"
             onClick={onSubmit}
             disabled={busy || disableSubmit}
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-[#F28C00] to-[#0077B6] px-6 py-2.5 text-[13px] font-black text-white shadow-[0_16px_40px_-14px_rgba(242, 140, 0,0.55)] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-2.5 text-[13px] font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:opacity-50"
           >
             {busy ?
               <>

@@ -84,7 +84,7 @@ export default function EnrolledCourseCard({
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100"
+      className="overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-emc ring-1 ring-deepBlue/[0.03] transition-shadow duration-300 ease-emc-out hover:shadow-emc-md"
     >
       {/* Course image */}
       <div className="relative h-32 overflow-hidden">

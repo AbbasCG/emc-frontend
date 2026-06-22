@@ -37,7 +37,7 @@ export default function ImpactHero() {
     <section className="relative isolate overflow-hidden bg-deepBlue pt-[4.75rem] text-white lg:pt-[5rem]" dir="rtl">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(125deg,#0C2A4B_0%,#1a2838_42%,#0f1c2b_78%),radial-gradient(ellipse_85%_60%_at_100%_-10%,rgba(0, 119, 182,0.45),transparent_55%),radial-gradient(ellipse_70%_50%_at_0%_100%,rgba(242, 140, 0,0.18),transparent_50%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(125deg,#0C2A4B_0%,#1a2838_42%,#0f1c2b_78%),radial-gradient(ellipse_85%_60%_at_100%_-10%,rgba(0,119,182,0.45),transparent_55%),radial-gradient(ellipse_70%_50%_at_0%_100%,rgba(242,140,0,0.18),transparent_50%)]"
       />
       <div aria-hidden className="absolute -left-24 bottom-0 h-[22rem] w-[22rem] rounded-full bg-customBlue/10 blur-[100px]" />
       <div aria-hidden className="absolute right-[-10%] top-1/4 h-64 w-64 rounded-full bg-customOrange/[0.12] blur-3xl" />
@@ -92,7 +92,7 @@ export default function ImpactHero() {
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(0, 119, 182,0.15),transparent_45%)]"
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(0,119,182,0.15),transparent_45%)]"
             />
             <p className="relative text-sm font-semibold leading-8 text-slate-100/88">
               نربط بين التعليم والمهنية والمجتمع — بأدوات تقييم داخلية وشفافية في الطريق نحو أثر أكبر كل

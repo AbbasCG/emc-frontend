@@ -53,9 +53,8 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               رحلة تعليمية متكاملة
             </span>
-            <h2 className="text-2xl font-black text-deepBlue md:text-3xl">المسارات الاحترافية</h2>
-            <div className="mt-2 h-1 w-14 rounded-full bg-customBlue" />
-            <p className="mt-3 text-sm leading-7 text-slate-600 md:text-base">
+            <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">المسارات الاحترافية</h2>
+            <p className="mt-5 text-sm leading-7 text-slate-600 md:text-base">
               الدورة = تدريب واحد · المسار = رحلة مهنية كاملة — دورات مترابطة، شهادة معتمدة، ومسار واضح من
               البداية إلى الاحتراف.
             </p>
@@ -97,7 +96,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
           >
             <Link
               to="/learning-paths"
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-[#F28C00]/25 transition hover:bg-[#d9832e]"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-8 py-3.5 text-sm font-black text-white shadow-emc-glow-accent transition hover:bg-accent-600"
             >
               ابدأ رحلتك التعليمية
               <ChevronLeft className="h-4 w-4" aria-hidden />

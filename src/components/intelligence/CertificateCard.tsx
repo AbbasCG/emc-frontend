@@ -14,7 +14,7 @@ export default function CertificateCard({
     <motion.article
       layout
       whileHover={{ y: -4 }}
-      className="relative overflow-hidden rounded-2xl border border-white/90 bg-gradient-to-bl from-white via-sky-50/25 to-white p-6 text-right shadow-[0_20px_50px_-24px_rgba(12, 42, 75,0.35)] ring-1 ring-deepBlue/[0.06]"
+      className="relative overflow-hidden rounded-2xl border border-white/90 bg-gradient-to-bl from-white via-sky-50/25 to-white p-6 text-right shadow-[0_20px_50px_-24px_rgba(12,42,75,0.35)] ring-1 ring-deepBlue/[0.06]"
     >
       <div className="pointer-events-none absolute -left-16 top-0 h-40 w-40 rounded-full bg-customOrange/10 blur-3xl" />
       <div className="relative flex items-start justify-between gap-3">

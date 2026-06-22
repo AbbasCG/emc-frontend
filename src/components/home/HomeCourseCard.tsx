@@ -35,7 +35,7 @@ export default function HomeCourseCard({ course, index }: Props) {
     <motion.article
       variants={staggerItem}
       whileHover={{ y: -6 }}
-      className="group flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-customBlue/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)]"
+      className="group flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-deepBlue/[0.07] bg-white shadow-emc ring-1 ring-deepBlue/[0.03] transition-all duration-300 hover:border-customBlue/25 hover:shadow-emc-md"
     >
       {/* Cover image */}
       <div className="relative aspect-[16/10] shrink-0 overflow-hidden">
@@ -116,7 +116,7 @@ export default function HomeCourseCard({ course, index }: Props) {
         )}
 
         {/* Metadata rows */}
-          <div className="mt-3.5 space-y-1.5 border-t border-slate-100 pt-3.5 text-[11px] font-semibold text-slate-500">
+          <div className="mt-3.5 space-y-1.5 border-t border-deepBlue/[0.06] pt-3.5 text-[11px] font-semibold text-foreground/55">
             {startDate && (
               <p className="flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5 shrink-0 text-customBlue" aria-hidden />
@@ -125,7 +125,7 @@ export default function HomeCourseCard({ course, index }: Props) {
             )}
             {hours != null && (
               <p className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 shrink-0 text-customOrange" aria-hidden />
+                <Clock className="h-3.5 w-3.5 shrink-0 text-accent-700" aria-hidden />
                 {String(hours)} ساعة تدريبية
               </p>
             )}
@@ -133,7 +133,7 @@ export default function HomeCourseCard({ course, index }: Props) {
               {isOnline ? (
                 <Monitor className="h-3.5 w-3.5 shrink-0 text-customBlue" aria-hidden />
               ) : (
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-customOrange" aria-hidden />
+                <MapPin className="h-3.5 w-3.5 shrink-0 text-accent-700" aria-hidden />
               )}
               {isOnline ? 'عن بُعد' : course.location || 'حضوري في المركز'}
             </p>
@@ -143,7 +143,7 @@ export default function HomeCourseCard({ course, index }: Props) {
         <div className="mt-auto pt-5">
           <Link
             to={`/courses/${course.slug}`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue px-5 py-3.5 text-sm font-black text-white shadow-sm transition-all duration-200 hover:bg-customBlue"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue px-5 py-3.5 text-sm font-black text-white shadow-emc transition-all duration-200 hover:bg-customBlue"
           >
             تفاصيل الدورة
             <ArrowLeft size={14} aria-hidden />

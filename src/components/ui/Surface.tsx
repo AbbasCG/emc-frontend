@@ -55,12 +55,12 @@ export default function Surface({
   return (
     <div
       className={cn(
-        'relative rounded-2xl ring-1 ring-deepBlue/[0.03] transition',
+        'relative rounded-2xl transition duration-250 ease-emc-out',
         variantClass[variant],
         elevationClass[elevation],
         paddingClass[padding],
         interactive &&
-          'cursor-pointer duration-300 ease-emc-out hover:-translate-y-[2px] hover:shadow-emc-md hover:border-customBlue/30',
+          'cursor-pointer hover:-translate-y-[2px] hover:shadow-emc-md hover:border-customBlue/30',
         className,
       )}
       {...rest}

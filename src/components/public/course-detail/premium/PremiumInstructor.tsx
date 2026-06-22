@@ -31,12 +31,12 @@ export default function PremiumInstructor({ instructor, course }: Props) {
 
   return (
     <section aria-label="المدرب" dir="rtl">
-      <h2 className="mb-5 flex items-center gap-2.5 text-sm font-black text-[#0C2A4B]">
+      <h2 className="mb-5 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
         <span className="h-4 w-1 rounded-full bg-[#F28C00]" aria-hidden />
         عن المدرب
       </h2>
 
-      <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/8 bg-gradient-to-br from-[#0077B6]/5 via-white to-[#F28C00]/4 shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-[#0077B6]/6 to-white shadow-emc">
         <div className="flex items-start gap-4 p-5 text-right">
           <img
             src={instructor.avatarUrl ?? AVATAR_PLACEHOLDER}

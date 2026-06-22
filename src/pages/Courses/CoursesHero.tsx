@@ -97,7 +97,7 @@ export default function CoursesHero({
   ]
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-gradient-to-b from-ink-900 via-deepBlue to-[#1a2a3f] pt-28 pb-16">
+    <section ref={sectionRef} className="emc-dawn relative overflow-hidden pt-28 pb-16">
       <div className="absolute inset-0 pointer-events-none select-none">
         <svg className="absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -108,11 +108,10 @@ export default function CoursesHero({
           <rect width="100%" height="100%" fill="url(#hero-dots-courses)" />
         </svg>
 
-        <div className="absolute top-0 right-0 h-[600px] w-[600px] -translate-y-1/3 translate-x-1/4 rounded-full bg-brand-500/15 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[400px] w-[400px] translate-y-1/2 rounded-full bg-accent-500/10 blur-3xl" />
+        <div className="absolute top-0 right-0 h-[600px] w-[600px] -translate-y-1/3 translate-x-1/4 rounded-full bg-brand-500/10 blur-3xl" />
 
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage:
               'repeating-linear-gradient(-45deg, #0077B6, #0077B6 1px, transparent 1px, transparent 40px)',
@@ -130,11 +129,11 @@ export default function CoursesHero({
 
         <motion.h1
           {...fadeUp(0.1)}
-          className="mb-4 text-center text-4xl font-black leading-tight text-white md:text-6xl"
+          className="mb-4 text-center font-display text-4xl font-black leading-[1.1] tracking-tight text-white md:text-6xl"
         >
           استكشف برامجنا
         </motion.h1>
-        <motion.p {...fadeUp(0.18)} className="mb-10 text-center text-lg leading-relaxed text-white/65 md:text-xl">
+        <motion.p {...fadeUp(0.18)} className="mb-10 text-center text-lg leading-relaxed text-ice/80 md:text-xl">
           ورش عمل · دورات · مسارات — مصممة لتأخذك من الصفر إلى الشهادة الاحترافية
         </motion.p>
 

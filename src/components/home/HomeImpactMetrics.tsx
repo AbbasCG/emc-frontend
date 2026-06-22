@@ -26,7 +26,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   }, [inView, target])
 
   return (
-    <span ref={ref} className="font-latin">
+    <span ref={ref} className="font-latin tabular-nums" dir="ltr">
       {suffix}{val}
     </span>
   )
@@ -34,7 +34,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 
 export default function HomeImpactMetrics() {
   return (
-    <section dir="rtl" className="relative overflow-hidden bg-[#06182C] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
+    <section dir="rtl" className="emc-dawn relative overflow-hidden px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
       {/* Subtle grid */}
       <div
         aria-hidden
@@ -42,7 +42,6 @@ export default function HomeImpactMetrics() {
       />
       {/* Glows */}
       <div aria-hidden className="pointer-events-none absolute -right-40 -top-20 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-20 left-0 h-80 w-80 rounded-full bg-customOrange/10 blur-[80px]" />
 
       <div className="relative mx-auto max-w-[1540px]">
         <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
@@ -53,16 +52,16 @@ export default function HomeImpactMetrics() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-6 text-right backdrop-blur-sm transition-colors hover:border-customBlue/30 hover:bg-white/[0.07] sm:p-8"
+              className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-6 text-right backdrop-blur-sm transition-colors hover:border-sky/30 hover:bg-white/[0.07] sm:p-8"
             >
               <div aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-customBlue/15 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
               {/* Big number */}
-              <p className="text-[2.6rem] font-black tabular-nums leading-none text-white sm:text-[3.2rem] lg:text-[3.6rem]">
+              <p className="text-[2.6rem] font-black tabular-nums leading-none tracking-tight text-white sm:text-[3.2rem] lg:text-[3.6rem]">
                 <Counter target={m.raw} suffix={m.suffix} />
               </p>
               {/* Label */}
-              <p className="mt-4 text-base font-black text-white/80 sm:text-lg">{m.label}</p>
-              <p className="mt-1 text-xs font-semibold text-white/40">{m.sub}</p>
+              <p className="mt-4 text-base font-black text-ice sm:text-lg">{m.label}</p>
+              <p className="mt-1 text-xs font-semibold text-white/45">{m.sub}</p>
               {/* Bottom accent line */}
               <div
                 aria-hidden

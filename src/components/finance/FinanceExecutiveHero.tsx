@@ -70,7 +70,7 @@ export default function FinanceExecutiveHero({
           <div className="mt-7 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/[0.1] bg-white/[0.07] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm">
               <p className="text-[10px] font-black uppercase tracking-wide text-white/45">إجمالي التحصيل</p>
-              <p className="mt-1 text-xl font-black text-white drop-shadow-[0_0_24px_rgba(0, 119, 182,0.35)]">
+              <p className="mt-1 text-xl font-black text-white drop-shadow-[0_0_24px_rgba(0,119,182,0.35)]">
                 <FinanceAnimatedNumber value={totalRevenue} format={formatCurrency} />
               </p>
             </div>
@@ -108,7 +108,7 @@ export default function FinanceExecutiveHero({
           </div>
         </div>
 
-        <div className="relative rounded-[1.35rem] border border-customBlue/25 bg-gradient-to-br from-customBlue/20 via-transparent to-transparent p-[1px] shadow-[0_28px_60px_-30px_rgba(0, 119, 182,0.85)] backdrop-blur-md">
+        <div className="relative rounded-[1.35rem] border border-customBlue/25 bg-gradient-to-br from-customBlue/20 via-transparent to-transparent p-[1px] shadow-[0_28px_60px_-30px_rgba(0,119,182,0.85)] backdrop-blur-md">
           <div className="rounded-[1.3rem] bg-deepBlue/40 p-6 ring-1 ring-white/10">
             <p className="text-xs font-black text-white/70">لقطة تنفيذية</p>
             <p className="mt-3 text-3xl font-black leading-none text-white tabular-nums font-latin">

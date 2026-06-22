@@ -578,7 +578,7 @@ export default function UsersManagementPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_16px_40px_-12px_rgba(242, 140, 0,0.55)] transition hover:brightness-[1.04]"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_16px_40px_-12px_rgba(242,140,0,0.55)] transition hover:brightness-[1.04]"
               >
                 <UserSquare2 className="h-4 w-4" aria-hidden />
                 مستخدم جديد
@@ -636,14 +636,14 @@ export default function UsersManagementPage() {
           {loading ?
             <motion.div
               layout
-              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(12, 42, 75,0.08)]"
+              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(12,42,75,0.08)]"
             >
               <EnterpriseTableSkeleton cols={10} rows={perPage > 8 ? 8 : perPage} />
             </motion.div>
           : (
             <motion.div
               layout
-              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(12, 42, 75,0.08)] ring-1 ring-[#0C2A4B]/[0.04]"
+              className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_10px_42px_rgba(12,42,75,0.08)] ring-1 ring-[#0C2A4B]/[0.04]"
             >
               <div className="max-h-[min(70vh,720px)] overflow-auto">
                 <UsersDataTable

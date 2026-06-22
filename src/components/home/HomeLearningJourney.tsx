@@ -119,7 +119,7 @@ export default function HomeLearningJourney() {
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f7f9fb] px-4 py-12 sm:px-6 lg:px-10 lg:py-16"
+      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f7f9fb] px-4 py-16 sm:px-6 lg:px-10 lg:py-24"
     >
       {/* Decorative background shape */}
       <div
@@ -134,10 +134,10 @@ export default function HomeLearningJourney() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
-          className="mb-10 text-right"
+          className="mb-12 text-right"
         >
-          <p className="text-xs font-black tracking-widest text-customBlue uppercase">مسيرة التعلّم</p>
-          <h2 className="mt-3 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.75rem]">
+          <span className="emc-eyebrow">مسيرة التعلّم</span>
+          <h2 className="emc-title-arc mt-4 font-display text-3xl font-black leading-tight tracking-tight text-deepBlue sm:text-4xl xl:text-[2.75rem]">
             من الورشة الأولى<br className="hidden sm:block" /> إلى المخرج الاحترافي
           </h2>
           <p className="mt-4 max-w-xl text-base font-semibold leading-8 text-foreground/60">

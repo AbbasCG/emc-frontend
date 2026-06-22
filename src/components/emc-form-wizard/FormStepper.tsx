@@ -94,7 +94,7 @@ export function FormStepper({ steps, currentStep, onStepSelect, compact }: Props
                       done && 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white',
                       active &&
                         !done &&
-                        'bg-gradient-to-br from-[#F28C00] to-amber-600 text-white shadow-[0_12px_28px_rgba(242, 140, 0,0.35)]',
+                        'bg-gradient-to-br from-[#F28C00] to-amber-600 text-white shadow-[0_12px_28px_rgba(242,140,0,0.35)]',
                       !done && !active && 'border border-slate-200 bg-white text-slate-500',
                       clickable && 'cursor-pointer hover:brightness-105',
                     )}

@@ -28,7 +28,7 @@ export default function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(12, 42, 75,0.08)"
+          stroke="rgba(12,42,75,0.08)"
           strokeWidth={stroke}
         />
         <motion.circle

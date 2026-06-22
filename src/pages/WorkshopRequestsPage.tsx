@@ -104,7 +104,7 @@ function QuickRejectModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-slate-200/60"
+        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_28px_80px_-16px_rgba(12,42,75,0.35)] ring-1 ring-slate-200/60"
         dir="rtl"
       >
         <div className="flex items-center gap-3 bg-red-50 px-6 py-4">
@@ -323,7 +323,7 @@ export default function WorkshopRequestsPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.06 }}
-          className="mt-5 overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_20px_60px_-18px_rgba(12, 42, 75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
+          className="mt-5 overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_20px_60px_-18px_rgba(12,42,75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45"
         >
           {loading && (
             <div className="flex items-center justify-center py-24">

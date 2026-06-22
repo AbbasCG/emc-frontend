@@ -25,7 +25,7 @@ export default function PublicDetailSection({
       className={`rounded-2xl bg-white text-right ring-1 ring-slate-100 ${
         compact ?
           'p-4 shadow-sm sm:p-5'
-        : 'rounded-3xl p-5 shadow-[0_10px_40px_-12px_rgba(12, 42, 75,0.12)] sm:p-7'
+        : 'rounded-3xl p-5 shadow-[0_10px_40px_-12px_rgba(12,42,75,0.12)] sm:p-7'
       } ${className}`}
       variants={fadeUp}
       initial="hidden"

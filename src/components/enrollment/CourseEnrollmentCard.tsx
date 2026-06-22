@@ -280,10 +280,10 @@ export default function CourseEnrollmentCard({
 
   return (
     <>
-      <div className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 shadow-[0_20px_50px_-18px_rgba(12, 42, 75,0.18)] backdrop-blur-md ring-1 ring-[#0C2A4B]/5">
-        <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-[#0077B6]/8 via-white to-[#F28C00]/5 px-5 py-3.5 text-right sm:px-6">
+      <div className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 shadow-emc-md backdrop-blur-md ring-1 ring-deepBlue/5">
+        <div className="border-b border-deepBlue/[0.06] bg-gradient-to-l from-brand-50 via-white to-brand-50/40 px-5 py-4 text-right sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base font-black text-[#0C2A4B]">الالتحاق</h3>
+            <h3 className="font-display text-base font-black tracking-tight text-deepBlue">الالتحاق</h3>
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
                 registrationOpen && !seatsFull ?
@@ -362,7 +362,7 @@ export default function CourseEnrollmentCard({
               </p>
               <Link
                 to={loginHref}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-md"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
               >
                 سجّل الدخول لإكمال التسجيل
               </Link>
@@ -411,7 +411,7 @@ export default function CourseEnrollmentCard({
                 whileHover={!submitting ? { scale: 1.02 } : undefined}
                 disabled={submitting}
                 onClick={handlePrimaryClick}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#F28C00] to-[#d97d28] text-sm font-black text-white shadow-[0_8px_20px_-8px_rgba(242, 140, 0,0.5)] disabled:opacity-60"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:opacity-60"
               >
                 {submitting ?
                   <>

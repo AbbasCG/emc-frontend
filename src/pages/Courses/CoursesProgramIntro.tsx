@@ -10,13 +10,11 @@ type Props = {
   loading: boolean
 }
 
+// Calm, two-family rotation — sea tints + a single ember tint, never the rainbow.
 const palette = [
-  'from-brand-500/12 to-brand-600/5 border-brand-200/60',
-  'from-accent-500/12 to-accent-600/5 border-accent-200/50',
-  'from-emerald-500/10 to-emerald-600/5 border-emerald-200/50',
-  'from-violet-500/10 to-violet-600/5 border-violet-200/50',
-  'from-rose-500/10 to-rose-600/5 border-rose-200/50',
-  'from-amber-500/10 to-amber-600/5 border-amber-200/50',
+  'from-brand-500/10 to-brand-600/4 border-brand-200/60',
+  'from-accent-500/10 to-accent-600/4 border-accent-200/50',
+  'from-ocean/10 to-ocean/4 border-brand-200/50',
 ]
 
 export default function CoursesProgramIntro({ derivedCategories, loading }: Props) {
@@ -36,23 +34,23 @@ export default function CoursesProgramIntro({ derivedCategories, loading }: Prop
           transition={{ duration: 0.5 }}
           className="mb-8 grid gap-4 lg:grid-cols-3"
         >
-          <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
+          <div className="rounded-3xl border border-line bg-white p-7 text-right shadow-emc-md">
             <Layers className="text-brand-500" size={28} />
-            <h3 className="mt-4 text-lg font-black text-deepBlue">دورات وورش ومسارات</h3>
+            <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">دورات وورش ومسارات</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
               تجمع الصفحة بين ورش قصيرة ودورات أطول ومسارات تعلم مترابطة — حسب توفرها في الكتالوج الحالي من الخادم.
             </p>
           </div>
-          <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
+          <div className="rounded-3xl border border-line bg-white p-7 text-right shadow-emc-md">
             <BookOpen className="text-accent-500" size={28} />
-            <h3 className="mt-4 text-lg font-black text-deepBlue">محاذاة مع مجالات EMC</h3>
+            <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">محاذاة مع مجالات EMC</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
               اطلع على صفحة المجالات الاثنا عشر لفهم كيف تتكامل البرامج مع منظومة EMC الأوسع.
             </p>
           </div>
-          <div className="rounded-3xl border border-white/80 bg-white p-7 text-right shadow-emc-md ring-1 ring-slate-100/80">
+          <div className="rounded-3xl border border-line bg-white p-7 text-right shadow-emc-md">
             <Sparkles className="text-brand-500" size={28} />
-            <h3 className="mt-4 text-lg font-black text-deepBlue">تصفية ذكية</h3>
+            <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">تصفية ذكية</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
               استخدم الشريط اللاصق أعلاه للمزج بين السعر، نمط التقديم، المستوى، ونوع البرنامج — كلها مبنية على بياناتك
               الفعلية.

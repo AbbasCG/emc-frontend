@@ -45,17 +45,15 @@ export default function SectionHeading({
             <Eyebrow tone={eyebrowTone}>{eyebrow}</Eyebrow>
           </div>
         )}
-        <h2 className="text-3xl font-black leading-tight text-deepBlue sm:text-4xl">
+        <h2
+          className={cn(
+            'font-display text-3xl font-black leading-[1.15] tracking-tight text-deepBlue sm:text-4xl',
+            rule && 'emc-title-arc',
+            rule && centered && 'is-center',
+          )}
+        >
           {title}
         </h2>
-        {rule && (
-          <span
-            className={cn(
-              'mt-4 block h-1 w-16 rounded-full bg-customOrange',
-              centered && 'mx-auto',
-            )}
-          />
-        )}
         {subtitle && (
           <p className="mt-5 text-base font-medium leading-8 text-deepBlue/65 sm:text-lg sm:leading-9">
             {subtitle}

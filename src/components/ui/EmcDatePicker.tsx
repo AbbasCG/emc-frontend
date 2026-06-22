@@ -180,7 +180,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className="overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12, 42, 75,0.35)]"
+          className="overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12,42,75,0.35)]"
           dir="rtl"
         >
           <div className="flex flex-wrap gap-1.5 border-b border-slate-100 bg-slate-50/80 p-2.5">

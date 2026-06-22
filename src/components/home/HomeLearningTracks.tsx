@@ -72,9 +72,9 @@ export default function HomeLearningTracks() {
       <div className="mx-auto max-w-[1540px]">
         {/* Header */}
         <div className="mb-14 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-xs font-black tracking-widest text-customBlue uppercase">مسارات التعلّم</p>
-            <h2 className="font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.8rem]">
+          <div className="max-w-2xl space-y-4">
+            <span className="emc-eyebrow">مسارات التعلّم</span>
+            <h2 className="emc-title-arc font-display text-3xl font-black leading-tight tracking-tight text-deepBlue sm:text-4xl xl:text-[2.8rem]">
               خمسة مسارات تُحوّل<br className="hidden sm:block" /> الطموح إلى مهارة قابلة للسوق
             </h2>
             <p className="text-base font-semibold leading-8 text-foreground/65">

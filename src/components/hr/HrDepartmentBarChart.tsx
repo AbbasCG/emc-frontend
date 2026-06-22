@@ -39,7 +39,7 @@ export default function HrDepartmentBarChart({
                 <stop offset="100%" stopColor="#0C2A4B" stopOpacity={0.65} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 8" stroke="rgba(12, 42, 75,0.06)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 8" stroke="rgba(12,42,75,0.06)" vertical={false} />
             <XAxis
               dataKey="name"
               tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'Tajawal' }}
@@ -50,7 +50,7 @@ export default function HrDepartmentBarChart({
             <Tooltip
               contentStyle={{
                 borderRadius: 14,
-                border: '1px solid rgba(12, 42, 75,0.08)',
+                border: '1px solid rgba(12,42,75,0.08)',
                 fontFamily: 'Tajawal',
               }}
               formatter={(v) =>

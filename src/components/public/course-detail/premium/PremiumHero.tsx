@@ -56,16 +56,10 @@ export default function PremiumHero({
   const showCert = courseHasCertificate(course)
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#2a4568] via-[#256a9a] to-[#2fa0d4]">
+    <section className="emc-dawn relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 right-1/4 h-[420px] w-[420px] rounded-full bg-[#3db4e8]/28 blur-[100px]" />
-        <div className="absolute -bottom-16 left-0 h-[320px] w-[320px] rounded-full bg-[#F28C00]/16 blur-[80px]" />
+        <div className="absolute -top-32 right-1/4 h-[420px] w-[420px] rounded-full bg-sky/15 blur-[100px]" />
       </div>
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.06)_42%,rgba(255,255,255,0.1)_100%)]"
-      />
 
       <div className="relative mx-auto flex max-w-[88rem] flex-col items-center gap-6 px-4 py-7 sm:px-6 lg:flex-row lg:items-center lg:gap-10 lg:px-10 lg:py-8 xl:px-12">
 
@@ -110,12 +104,12 @@ export default function PremiumHero({
             )}
           </div>
 
-          <h1 className="text-2xl font-black leading-[1.2] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:text-3xl lg:text-[2.25rem]">
+          <h1 className="font-display text-2xl font-black leading-[1.15] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:text-3xl lg:text-[2.4rem]">
             {course.title}
           </h1>
 
           {course.short_description && (
-            <p className="max-w-[520px] text-[14px] leading-[1.75] text-white/95 sm:text-[15px]">
+            <p className="max-w-[520px] text-[14px] leading-[1.75] text-ice/90 sm:text-[15px]">
               {course.short_description}
             </p>
           )}
@@ -197,7 +191,7 @@ export default function PremiumHero({
               loading="eager"
               className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#2a4568]/45 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/50 via-transparent to-transparent" />
 
             {videoUrl && (
               <button
@@ -223,7 +217,7 @@ export default function PremiumHero({
                   className={cn(
                     'h-12 flex-1 overflow-hidden rounded-lg border-2 transition-all duration-200',
                     activeImg === item.url
-                      ? 'border-[#F28C00] shadow-[0_0_0_2px_rgba(242, 140, 0,0.2)]'
+                      ? 'border-[#F28C00] shadow-[0_0_0_2px_rgba(242,140,0,0.2)]'
                       : 'border-white/20 hover:border-white/40',
                   )}
                 >

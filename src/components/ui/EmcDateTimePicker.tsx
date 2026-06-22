@@ -295,7 +295,7 @@ export default function EmcDateTimePicker({
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12, 42, 75,0.35)]"
+          className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12,42,75,0.35)]"
           dir="rtl"
         >
           {(showDatePresets || durationFrom) && (

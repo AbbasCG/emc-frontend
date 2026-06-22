@@ -192,7 +192,7 @@ export default function AdminDashboard() {
               <ShieldX size={22} />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-black text-deepBlue">لا تملك صلاحية الوصول</h2>
+              <h2 className="text-lg font-black tracking-tight text-deepBlue font-display">لا تملك صلاحية الوصول</h2>
               <p className="mt-1 text-sm leading-7 text-deepBlue/65">
                 هذه اللوحة مخصّصة لمستخدمي الإدارة. يُرجى تسجيل الدخول بحساب إدارة أو التواصل مع مدير المنصة.
               </p>
@@ -258,24 +258,16 @@ export default function AdminDashboard() {
         variant="inverse"
         elevation={4}
         padding="lg"
-        className="relative overflow-hidden bg-gradient-to-l from-deepBlue via-[#1B3247] to-[#0F2233]"
+        className="emc-dawn relative overflow-hidden"
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-customBlue/[0.08] blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-customOrange/[0.08] blur-3xl"
-        />
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-emc-dots bg-dots-22 opacity-[0.06]"
         />
         <div className="relative grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-center">
           <div className="text-right">
-            <p className="text-sm font-bold text-white/60 font-latin tracking-wide">{greeting}،</p>
-            <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">
+            <p className="text-sm font-bold text-ice/70 font-latin tracking-wide">{greeting}،</p>
+            <h2 className="mt-1 text-2xl font-black tracking-tight text-white font-display sm:text-3xl">
               {user?.name ?? 'مرحباً'}
               <span className="ms-2 inline-block animate-soft-float">👋</span>
             </h2>
@@ -291,10 +283,10 @@ export default function AdminDashboard() {
             ].map((s) => (
               <div
                 key={s.k}
-                className="rounded-xl border border-white/10 bg-white/[0.07] px-3 py-3 text-right backdrop-blur-sm"
+                className="rounded-xl border border-white/[0.12] bg-white/[0.07] px-3 py-3 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm"
               >
-                <div className="emc-display-num text-2xl text-white">{s.v}</div>
-                <p className="mt-1 text-[11px] font-black uppercase tracking-wider text-white/55 font-latin">{s.k}</p>
+                <div className="emc-display-num text-2xl tracking-tight text-white">{s.v}</div>
+                <p className="mt-1 text-[11px] font-black uppercase tracking-wider text-ice/60 font-latin">{s.k}</p>
               </div>
             ))}
           </div>
@@ -382,7 +374,7 @@ export default function AdminDashboard() {
             />
           ) : (
             <div className="rounded-xl border border-dashed border-deepBlue/15 bg-emcBg/60 px-6 py-12 text-center">
-              <p className="text-sm font-black text-deepBlue">لا توجد تسجيلات حديثة</p>
+              <p className="text-sm font-black tracking-tight text-deepBlue font-display">لا توجد تسجيلات حديثة</p>
               <p className="mt-2 text-xs font-medium text-deepBlue/55">
                 ستظهر هنا أحدث تسجيلات الطلاب فور إضافتها من خلال المنصة.
               </p>

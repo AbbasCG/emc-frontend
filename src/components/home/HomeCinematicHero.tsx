@@ -42,7 +42,7 @@ function OrbitalVisual() {
         initial={{ opacity: 0, scale: 0.7 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.3 }}
-        className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_40px_rgba(0, 119, 182,0.35)] backdrop-blur-xl"
+        className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_40px_rgba(0,119,182,0.35)] backdrop-blur-xl"
       >
         <span className="font-latin text-lg font-black tracking-widest text-white">EMC</span>
         <span className="mt-0.5 text-[9px] font-black tracking-widest text-white/50">PLATFORM</span>
@@ -85,7 +85,7 @@ function OrbitalVisual() {
         <div
           className="h-full w-full rounded-full"
           style={{
-            background: 'conic-gradient(from 0deg, transparent 80%, rgba(0, 119, 182,0.4) 90%, transparent 100%)',
+            background: 'conic-gradient(from 0deg, transparent 80%, rgba(0,119,182,0.4) 90%, transparent 100%)',
           }}
         />
       </motion.div>

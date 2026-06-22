@@ -377,7 +377,7 @@ export default function StudentCourseLearnPage() {
     <div className="space-y-5 pb-20 text-right" dir="rtl">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#0C2A4B] via-[#1f3049] to-[#0077B6] p-[1px] shadow-[0_32px_80px_-36px_rgba(12, 42, 75,0.75)]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-bl from-[#0C2A4B] via-[#1f3049] to-[#0077B6] p-[1px] shadow-[0_32px_80px_-36px_rgba(12,42,75,0.75)]">
         <div className="relative overflow-hidden rounded-[calc(2rem-1px)] bg-gradient-to-tl from-[#0C2A4B]/95 via-[#0C2A4B]/80 to-[#0077B6]/40 px-6 py-9 sm:px-10">
           <div aria-hidden className="pointer-events-none absolute -left-28 top-0 h-64 w-64 rounded-full bg-[#F28C00]/35 blur-[100px]" />
           <div aria-hidden className="pointer-events-none absolute -bottom-32 right-[-10%] h-72 w-72 rounded-full bg-white/12 blur-[90px]" />

@@ -7,17 +7,12 @@ export default function CoursesCTA() {
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section ref={ref} className="relative bg-deepBlue overflow-hidden py-24 px-4">
+    <section ref={ref} className="emc-dawn relative overflow-hidden py-24 px-4">
       {/* Animated geometric orbs */}
       <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.14, 0.08] }}
+        animate={{ scale: [1, 1.12, 1], opacity: [0.06, 0.1, 0.06] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-0 right-0 w-[500px] h-[500px] bg-customBlue rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"
-      />
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.06, 0.12, 0.06] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-customOrange rounded-full blur-3xl translate-y-1/2"
       />
 
       {/* Dot grid */}
@@ -45,11 +40,11 @@ export default function CoursesCTA() {
             <span className="w-8 h-px bg-customOrange/60" />
           </span>
 
-          <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-5">
+          <h2 className="font-display text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1] mb-5">
             مش عارف من أين تبدأ؟
           </h2>
 
-          <p className="text-lg text-white/70 leading-relaxed mb-10 max-w-xl mx-auto">
+          <p className="text-lg text-ice/80 leading-relaxed mb-10 max-w-xl mx-auto">
             احجز استشارة مجانية لمدة 15 دقيقة ونساعدك نرسم المسار الصح
             وفقاً لأهدافك ومستواك الحالي.
           </p>
@@ -58,7 +53,7 @@ export default function CoursesCTA() {
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2.5 bg-customBlue text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-customBlue/30 hover:bg-customBlue/90 transition-all duration-200"
+              className="flex items-center gap-2.5 bg-customBlue text-white font-bold px-8 py-4 rounded-xl shadow-emc-glow hover:bg-brand-600 transition-all duration-200"
             >
               <Calendar className="w-5 h-5" />
               احجز استشارتك المجانية

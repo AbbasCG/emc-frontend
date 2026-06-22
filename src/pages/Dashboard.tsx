@@ -152,7 +152,7 @@ function CourseCard({ course }: { course: DashCourse }) {
     <motion.article
       layout
       whileHover={{ y: -3 }}
-      className="flex flex-col overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="flex flex-col overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-emc transition-shadow duration-300 ease-emc-out hover:shadow-emc-md"
     >
       {/* Image */}
       <div className="relative h-36 overflow-hidden bg-gradient-to-br from-deepBlue to-customBlue">
@@ -461,7 +461,7 @@ export default function Dashboard() {
           {loading ? (
             <DashboardListSkeleton count={4} />
           ) : dashboardNotifications.length > 0 ? (
-            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-deepBlue/[0.05] bg-white shadow-sm">
+            <div className="divide-y divide-deepBlue/[0.05] overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-emc">
               {dashboardNotifications.slice(0, 5).map((n, i) => (
                 <NotificationItem key={String(n.id ?? i)} notification={n} />
               ))}
@@ -572,11 +572,11 @@ export default function Dashboard() {
       {/* ── Evaluation CTA ──────────────────────────────────────────────────── */}
       <motion.section
         layout
-        className="rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-6 py-5 shadow-inner ring-1 ring-customOrange/20"
+        className="rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-6 py-5 shadow-emc-sm"
       >
         <div className="flex flex-wrap items-center justify-between gap-4 rtl:flex-row-reverse">
           <div className="min-w-[12rem] text-right">
-            <h3 className="text-sm font-black text-deepBlue">قيِّم تجربتك التعليمية</h3>
+            <h3 className="text-sm font-black tracking-tight text-deepBlue font-display">قيِّم تجربتك التعليمية</h3>
             <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-600">
               {counts.completed_courses_count > 0 ? (
                 <>
@@ -600,7 +600,7 @@ export default function Dashboard() {
             </button>
             <Link
               to="/dashboard/student/evaluation"
-              className="flex items-center gap-1.5 rounded-xl bg-customOrange px-4 py-2.5 text-[11px] font-black text-white shadow-md transition hover:brightness-105"
+              className="flex items-center gap-1.5 rounded-xl bg-customOrange px-4 py-2.5 text-[11px] font-black text-white shadow-emc-sm transition hover:shadow-emc hover:brightness-105"
             >
               الانتقال للتقييم
               <ChevronLeft size={13} />

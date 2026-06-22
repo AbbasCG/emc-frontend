@@ -60,24 +60,24 @@ function sessionPlatform(p: string | undefined): 'zoom' | 'meet' | 'teams' | und
 
 const statusConfig = {
   active:    { label: 'جارية',  cls: 'bg-customBlue/10 text-customBlue ring-customBlue/20'     },
-  upcoming:  { label: 'قادمة',  cls: 'bg-customOrange/10 text-customOrange ring-customOrange/20' },
+  upcoming:  { label: 'قادمة',  cls: 'bg-customOrange/10 text-accent-700 ring-customOrange/20' },
   completed: { label: 'مكتملة', cls: 'bg-slate-100 text-slate-500 ring-slate-200'               },
 }
 
 function TeachingCourseCard({ course }: { course: TeachingCourse }) {
   const cfg = statusConfig[course.status] ?? statusConfig.active
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-deepBlue/[0.07] bg-white p-5 shadow-sm transition hover:shadow-md">
+    <div className="flex flex-col gap-4 rounded-2xl border border-deepBlue/[0.07] bg-white p-5 shadow-emc transition-shadow duration-300 ease-emc-out hover:shadow-emc-md">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="line-clamp-2 text-sm font-black leading-6 text-deepBlue">{course.title}</h3>
+        <h3 className="line-clamp-2 text-sm font-black leading-6 tracking-tight text-deepBlue">{course.title}</h3>
         <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${cfg.cls}`}>
           {cfg.label}
         </span>
       </div>
-      <div className="flex items-center gap-5 text-xs font-bold text-slate-500">
+      <div className="flex items-center gap-5 text-xs font-bold text-deepBlue/60">
         <span className="flex items-center gap-1.5">
           <Users size={13} className="text-customBlue" />
-          {course.student_count} طالب
+          <span className="tabular-nums">{course.student_count}</span> طالب
         </span>
       </div>
       <Link
@@ -256,16 +256,16 @@ export default function TeacherDashboard() {
 
       {/* ── Pending submissions alert ── */}
       {!isLoading && (dashStats?.submissionsPending ?? insLms?.submissions_pending_count ?? 0) > 0 && (
-        <div className="flex items-center gap-3 rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-5 py-3.5 ring-1 ring-customOrange/15">
+        <div className="flex items-center gap-3 rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-5 py-3.5 shadow-emc-sm">
           <ClipboardList size={18} className="shrink-0 text-customOrange" aria-hidden />
           <p className="flex-1 text-sm font-black text-deepBlue">
             لديك{' '}
-            <span className="text-customOrange">{dashStats?.submissionsPending ?? insLms?.submissions_pending_count}</span>{' '}
+            <span className="tabular-nums text-accent-700">{dashStats?.submissionsPending ?? insLms?.submissions_pending_count}</span>{' '}
             تسليمات بانتظار المراجعة
           </p>
           <Link
             to="/dashboard/instructor/submissions"
-            className="shrink-0 rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white shadow-sm hover:brightness-105"
+            className="shrink-0 rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white shadow-emc-sm transition hover:shadow-emc hover:brightness-105"
           >
             مراجعة الآن
           </Link>
@@ -351,7 +351,7 @@ export default function TeacherDashboard() {
               <Link
                 key={a.href}
                 to={a.href}
-                className="flex items-center gap-4 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm transition hover:border-customBlue/30 hover:shadow-md"
+                className="flex items-center gap-4 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-emc transition-all duration-300 ease-emc-out hover:border-customBlue/25 hover:shadow-emc-md"
               >
                 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ${iconBgCls}`}>
                   <Icon size={19} className={iconColorCls} aria-hidden />
@@ -359,7 +359,7 @@ export default function TeacherDashboard() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black text-deepBlue">{a.label}</p>
                   {a.description && (
-                    <p className="mt-0.5 truncate text-xs text-slate-400">{a.description}</p>
+                    <p className="mt-0.5 truncate text-xs text-deepBlue/45">{a.description}</p>
                   )}
                 </div>
               </Link>
@@ -370,8 +370,8 @@ export default function TeacherDashboard() {
 
       {/* ── Admin notes (if available) ── */}
       {!isLoading && insLms?.admin_notes_placeholder && (
-        <div className="rounded-2xl border border-deepBlue/[0.08] bg-deepBlue/[0.03] px-5 py-4 ring-1 ring-deepBlue/[0.05]">
-          <p className="text-xs font-black uppercase tracking-wide text-deepBlue/50">ملاحظات الإدارة</p>
+        <div className="rounded-2xl border border-deepBlue/[0.08] bg-deepBlue/[0.03] px-5 py-4 shadow-emc-sm">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-deepBlue/50 font-latin">ملاحظات الإدارة</p>
           <p className="mt-2 text-sm font-semibold text-deepBlue">{insLms.admin_notes_placeholder}</p>
         </div>
       )}

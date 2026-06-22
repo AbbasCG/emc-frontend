@@ -58,13 +58,14 @@ export default function SectionHeader({
           </span>
         </div>
       )}
-      <h2 className="text-3xl font-black leading-tight text-deepBlue sm:text-4xl">{title}</h2>
-      <span
+      <h2
         className={cn(
-          'mt-4 block h-1 w-20 rounded-full bg-customOrange',
-          centered && 'mx-auto',
+          'emc-title-arc font-display text-3xl font-black leading-[1.15] tracking-tight text-deepBlue sm:text-4xl',
+          centered && 'is-center',
         )}
-      />
+      >
+        {title}
+      </h2>
       <p className="mt-5 text-base font-medium leading-8 text-deepBlue/65 sm:text-lg sm:leading-9">
         {subtitle}
       </p>

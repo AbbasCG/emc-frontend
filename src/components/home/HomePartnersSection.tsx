@@ -25,11 +25,11 @@ export default function HomePartnersSection() {
           transition={{ duration: 0.5 }}
           className="mb-12 text-right"
         >
-          <p className="text-xs font-black tracking-widest text-customBlue uppercase">الشراكات</p>
-          <h2 className="mt-3 font-display text-2xl font-black text-deepBlue sm:text-3xl">
+          <span className="emc-eyebrow">الشراكات</span>
+          <h2 className="emc-title-arc mt-4 font-display text-2xl font-black tracking-tight text-deepBlue sm:text-3xl">
             شبكة شركاء تُعزّز كل خطوة في مسيرتك
           </h2>
-          <p className="mt-4 max-w-xl text-sm font-semibold leading-7 text-foreground/60">
+          <p className="mt-5 max-w-xl text-sm font-semibold leading-7 text-foreground/60">
             من جامعات معتمدة إلى شركات تقنية رائدة — نبني علاقات مؤسسية تُضيف قيمة حقيقية للمتعلّم.
           </p>
         </motion.div>

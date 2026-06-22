@@ -28,7 +28,7 @@ export function FormSummaryPanel({ title = 'ملخص مباشر', rows, footer, 
         {rows.map((r, i) => (
           <li
             key={`${r.label}-${i}`}
-            className="flex flex-col gap-0.5 rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2.5 shadow-[0_8px_22px_-14px_rgba(12, 42, 75,0.2)]"
+            className="flex flex-col gap-0.5 rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2.5 shadow-[0_8px_22px_-14px_rgba(12,42,75,0.2)]"
           >
             <span className="text-[10px] font-black text-slate-500">{r.label}</span>
             <span className="text-[13px] font-bold leading-snug text-[#0F172A]">{r.value}</span>

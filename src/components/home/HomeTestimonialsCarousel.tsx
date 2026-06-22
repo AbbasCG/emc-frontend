@@ -79,8 +79,8 @@ export default function HomeTestimonialsCarousel() {
         {/* Header */}
         <div className="mb-12 flex flex-col items-end gap-6 text-right lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-black tracking-widest text-customBlue uppercase">آراء المجتمع</p>
-            <h2 className="mt-3 font-display text-3xl font-black text-deepBlue sm:text-4xl">
+            <span className="emc-eyebrow">آراء المجتمع</span>
+            <h2 className="emc-title-arc mt-4 font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">
               شهادات من الميدان
             </h2>
           </div>
@@ -117,7 +117,7 @@ export default function HomeTestimonialsCarousel() {
                   initial={{ opacity: 0, x: posIdx === 0 ? 20 : -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.45, ease: [0.22, 0.61, 0.36, 1] }}
-                  className="relative flex flex-col rounded-[1.75rem] border border-deepBlue/[0.07] bg-white p-8 shadow-emc-sm ring-1 ring-deepBlue/[0.03]"
+                  className="relative flex flex-col rounded-[1.75rem] border border-deepBlue/[0.07] bg-white p-8 shadow-emc ring-1 ring-deepBlue/[0.03]"
                 >
                   {/* Colored top bar */}
                   <div

@@ -30,8 +30,8 @@ function Metric({
 }) {
   const glow =
     accent === 'orange'
-      ? 'shadow-[0_22px_48px_-20px_rgba(242, 140, 0,0.35)]'
-      : 'shadow-[0_22px_48px_-20px_rgba(0, 119, 182,0.35)]'
+      ? 'shadow-[0_22px_48px_-20px_rgba(242,140,0,0.35)]'
+      : 'shadow-[0_22px_48px_-20px_rgba(0,119,182,0.35)]'
 
   return (
     <Link to={to}>

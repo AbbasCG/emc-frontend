@@ -44,7 +44,7 @@ export default function ImpactDashboardHero() {
     <section className="relative isolate overflow-hidden bg-deepBlue pt-[4.5rem] text-white lg:pt-[4.75rem]" dir="rtl">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,#0C2A4B_0%,#1a2839_38%,#0f1c28_92%),radial-gradient(ellipse_82%_55%_at_92%_-8%,rgba(0, 119, 182,0.42),transparent_52%),radial-gradient(ellipse_55%_45%_at_4%_88%,rgba(242, 140, 0,0.16),transparent_48%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,#0C2A4B_0%,#1a2839_38%,#0f1c28_92%),radial-gradient(ellipse_82%_55%_at_92%_-8%,rgba(0,119,182,0.42),transparent_52%),radial-gradient(ellipse_55%_45%_at_4%_88%,rgba(242,140,0,0.16),transparent_48%)]"
       />
       <div aria-hidden className="absolute -left-28 top-24 h-48 w-48 rounded-full bg-customBlue/14 blur-[80px] sm:h-56 sm:w-56" />
       <div className="relative mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:pb-14">
@@ -84,7 +84,7 @@ export default function ImpactDashboardHero() {
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-3xl bg-[linear-gradient(165deg,rgba(0, 119, 182,0.18),transparent_48%)]"
+              className="pointer-events-none absolute inset-0 rounded-3xl bg-[linear-gradient(165deg,rgba(0,119,182,0.18),transparent_48%)]"
             />
             <ul className="relative grid grid-cols-4 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-2.5">
               {iconStrip.map(([Icon, grad], i) => (

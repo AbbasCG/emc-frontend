@@ -36,13 +36,13 @@ export default function UpcomingSessionCard({
   platform = 'zoom',
 }: UpcomingSessionCardProps) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+    <div className="rounded-2xl border border-deepBlue/[0.06] bg-white p-5 shadow-emc ring-1 ring-deepBlue/[0.03] transition-shadow duration-300 ease-emc-out hover:shadow-emc-md">
       {/* Header */}
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-deepBlue">{courseName}</p>
           {instructor && (
-            <p className="mt-0.5 truncate text-xs text-slate-400">{instructor}</p>
+            <p className="mt-0.5 truncate text-xs text-deepBlue/45">{instructor}</p>
           )}
         </div>
         <span
@@ -65,14 +65,14 @@ export default function UpcomingSessionCard({
         </div>
 
         {type === 'offline' && location && (
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-bold text-deepBlue/60">
             <MapPin size={14} className="shrink-0 text-customOrange" />
             <span>{location}</span>
           </div>
         )}
 
         {type === 'online' && (
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-bold text-deepBlue/60">
             <Video size={14} className="shrink-0 text-emerald-500" />
             <span
               className={[

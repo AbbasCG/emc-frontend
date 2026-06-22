@@ -51,7 +51,7 @@ export default function StudentLearningPathsPage() {
       <motion.section
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1f3046] to-[#0077B6] px-6 py-8 shadow-[0_20px_50px_-20px_rgba(12, 42, 75,0.5)] sm:px-10"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-bl from-[#0C2A4B] via-[#1f3046] to-[#0077B6] px-6 py-8 shadow-[0_20px_50px_-20px_rgba(12,42,75,0.5)] sm:px-10"
       >
         <div aria-hidden className="pointer-events-none absolute -left-20 top-0 h-48 w-48 rounded-full bg-[#F28C00]/20 blur-[90px]" />
         <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 h-48 w-48 rounded-full bg-white/10 blur-[80px]" />

@@ -45,11 +45,11 @@ export default function ImpactGeographicSection() {
             >
               <svg className="absolute inset-3 max-h-[90%] w-auto opacity-[0.14]" viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet" aria-hidden>
                 <path
-                  fill="rgba(0, 119, 182,0.35)"
+                  fill="rgba(0,119,182,0.35)"
                   d="M205 72c35 8 55 42 92 62 28 15 72 26 71 74-3 92-134 218-258 246-76 18-86-132-72-216 14-93 167-171 167-166Z"
                   className=""
                 />
-                <path fill="rgba(12, 42, 75,0.12)" d="m120 300 140-40 50 140-260 55z" />
+                <path fill="rgba(12,42,75,0.12)" d="m120 300 140-40 50 140-260 55z" />
               </svg>
               <span className="absolute left-[10%] top-[8%] rounded-full bg-white/95 px-3 py-1 text-[11px] font-black text-deepBlue shadow-emc-sm ring-1 ring-customBlue/25">
                 هولندا · نشاط حضوري

@@ -37,12 +37,12 @@ export default function StatCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100"
+      className="rounded-2xl border border-deepBlue/[0.06] bg-white p-5 shadow-emc ring-1 ring-deepBlue/[0.03] transition-shadow duration-300 ease-emc-out hover:shadow-emc-md"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-bold text-slate-500">{title}</p>
-          <p className="mt-2 text-3xl font-black text-deepBlue">{value}</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-deepBlue/55 font-latin">{title}</p>
+          <p className="mt-2 text-3xl font-black tabular-nums tracking-tight text-deepBlue font-display">{value}</p>
           {trend && (
             <div className="mt-3 flex items-center gap-1.5">
               {trend.direction === 'up' ? (

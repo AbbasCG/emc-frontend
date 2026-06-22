@@ -46,7 +46,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}
-      className="group overflow-hidden rounded-3xl border border-[#0C2A4B]/10 bg-white shadow-lg transition-all duration-300 hover:border-[#0077B6]/30 hover:shadow-xl"
+      className="group overflow-hidden rounded-3xl border border-line bg-white shadow-emc transition-all duration-300 ease-emc-out hover:border-brand-200 hover:shadow-emc-lg"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,260px)_1fr_minmax(0,220px)]">
         {/* Cover */}
@@ -111,7 +111,7 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
             )}
           </div>
 
-          <h3 className="text-xl font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:text-2xl">
+          <h3 className="font-display text-xl font-black leading-snug tracking-tight text-deepBlue transition group-hover:text-customBlue sm:text-2xl">
             {path.title}
           </h3>
 
@@ -189,11 +189,11 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
               </div>
             )}
             {path.certificate_name && (
-              <div className="flex items-center justify-start gap-2 rounded-xl bg-violet-50/80 px-3 py-2.5 ring-1 ring-violet-100">
-                <Award className="h-4 w-4 shrink-0 text-violet-600" aria-hidden />
+              <div className="flex items-center justify-start gap-2 rounded-xl bg-accent-50/80 px-3 py-2.5 ring-1 ring-accent-100">
+                <Award className="h-4 w-4 shrink-0 text-accent-700" aria-hidden />
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-violet-500">الشهادة</p>
-                  <p className="line-clamp-2 text-xs font-black leading-5 text-violet-900">
+                  <p className="text-[10px] font-bold text-accent-700">الشهادة</p>
+                  <p className="line-clamp-2 text-xs font-black leading-5 text-deepBlue">
                     {path.certificate_name}
                   </p>
                 </div>
@@ -214,10 +214,10 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
           <div className="mt-5 space-y-2.5">
             <Link
               to={primaryHref}
-              className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-black text-white shadow-md transition ${
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-black text-white shadow-emc transition ${
                 enrolled ?
-                  'bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700'
-                : 'bg-customBlue shadow-customBlue/25 hover:bg-[#1d7aab]'
+                  'bg-emerald-600 hover:bg-emerald-700'
+                : 'bg-customBlue hover:bg-brand-600'
               }`}
             >
               {primaryLabel}

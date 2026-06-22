@@ -39,7 +39,7 @@ export default function PublicDetailHero({
   onShare,
 }: Props) {
   return (
-    <section className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-bl from-[#0C2A4B] via-[#1a3550] to-[#162334] text-white shadow-[0_20px_60px_-20px_rgba(12, 42, 75,0.45)] ring-1 ring-white/10">
+    <section className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-bl from-[#0C2A4B] via-[#1a3550] to-[#162334] text-white shadow-[0_20px_60px_-20px_rgba(12,42,75,0.45)] ring-1 ring-white/10">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -end-20 top-0 h-72 w-72 rounded-full bg-[#0077B6]/20 blur-3xl" />
         <div className="absolute -bottom-16 start-10 h-56 w-56 rounded-full bg-[#F28C00]/15 blur-3xl" />

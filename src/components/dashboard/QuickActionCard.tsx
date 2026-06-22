@@ -31,7 +31,7 @@ export default function QuickActionCard({
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
       <Link
         to={href}
-        className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:shadow-md hover:ring-customBlue/20"
+        className="flex items-center gap-4 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-emc transition-all duration-300 ease-emc-out hover:border-customBlue/25 hover:shadow-emc-md"
       >
         <div
           className={[
@@ -44,10 +44,10 @@ export default function QuickActionCard({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-deepBlue">{label}</p>
           {description && (
-            <p className="mt-0.5 truncate text-xs text-slate-400">{description}</p>
+            <p className="mt-0.5 truncate text-xs text-deepBlue/45">{description}</p>
           )}
         </div>
-        <ChevronLeft size={16} className="shrink-0 text-slate-300" />
+        <ChevronLeft size={16} className="shrink-0 text-deepBlue/25" />
       </Link>
     </motion.div>
   )

@@ -63,7 +63,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
 
   const tooltipStyle = {
     borderRadius: 14,
-    border: `1px solid rgba(12, 42, 75,0.08)`,
+    border: `1px solid rgba(12,42,75,0.08)`,
     boxShadow: '0 22px 50px -24px rgba(15,42,67,0.22)',
     fontFamily: '"Tajawal",sans-serif',
   }
@@ -96,7 +96,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
                     <stop offset="100%" stopColor={brand} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 8" stroke="rgba(12, 42, 75,0.06)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 8" stroke="rgba(12,42,75,0.06)" vertical={false} />
                 <XAxis
                   dataKey="label"
                   tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Tajawal' }}
@@ -159,7 +159,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
                       <stop offset="100%" stopColor={ink} stopOpacity={0.55} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 8" stroke="rgba(12, 42, 75,0.06)" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 8" stroke="rgba(12,42,75,0.06)" horizontal={false} />
                   <XAxis
                     type="number"
                     tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Inter' }}

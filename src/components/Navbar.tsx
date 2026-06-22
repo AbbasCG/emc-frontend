@@ -84,14 +84,14 @@ function pathActive(pathname: string, mega: MegaId): boolean {
 const navLinkBase =
   'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight text-deepBlue transition-all duration-200 hover:bg-customBlue/[0.08] hover:text-customBlue hover:shadow-emc-xs'
 const navLinkActive =
-  'bg-customBlue/[0.11] text-customBlue shadow-[inset_0_0_0_1px_rgba(0, 119, 182,0.35)] backdrop-blur-sm'
+  'bg-customBlue/[0.11] text-customBlue shadow-[inset_0_0_0_1px_rgba(0,119,182,0.35)] backdrop-blur-sm'
 
 /** Lightweight secondary actions — center nav stays visually primary */
 const loginBtnClass =
-  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-customBlue px-5 text-[13px] font-bold tracking-tight text-white shadow-[0_4px_18px_-4px_rgba(0, 119, 182,0.5)] transition-all duration-200 hover:bg-[#1a78a8] hover:shadow-[0_8px_28px_-6px_rgba(0, 119, 182,0.65)] active:scale-[0.98]'
+  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-customBlue px-5 text-[13px] font-bold tracking-tight text-white shadow-[0_4px_18px_-4px_rgba(0,119,182,0.5)] transition-all duration-200 hover:bg-[#1a78a8] hover:shadow-[0_8px_28px_-6px_rgba(0,119,182,0.65)] active:scale-[0.98]'
 
 const dashboardBtnClass =
-  'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-customBlue/[0.18] bg-gradient-to-br from-customBlue/[0.08] via-white to-deepBlue/[0.04] px-5 text-[13px] font-semibold tracking-tight text-deepBlue shadow-[0_1px_2px_rgba(12, 42, 75,0.05)] backdrop-blur-sm transition-colors duration-200 hover:border-customBlue/35 hover:from-customBlue/[0.12] hover:to-customBlue/[0.06] hover:text-deepBlue hover:shadow-[0_8px_22px_-14px_rgba(0, 119, 182,0.22)]'
+  'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-customBlue/[0.18] bg-gradient-to-br from-customBlue/[0.08] via-white to-deepBlue/[0.04] px-5 text-[13px] font-semibold tracking-tight text-deepBlue shadow-[0_1px_2px_rgba(12,42,75,0.05)] backdrop-blur-sm transition-colors duration-200 hover:border-customBlue/35 hover:from-customBlue/[0.12] hover:to-customBlue/[0.06] hover:text-deepBlue hover:shadow-[0_8px_22px_-14px_rgba(0,119,182,0.22)]'
 
 const dashboardIconClass =
   'relative size-[15px] shrink-0 text-customBlue opacity-95 transition-colors duration-200 group-hover/nav:text-customBlue'

@@ -67,7 +67,7 @@ export default function MegaDropdown({
         className={[
           'flex min-h-[2.625rem] items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-all duration-200 ease-out',
           isOpen || isActive
-            ? 'bg-customBlue/[0.1] text-customBlue shadow-[inset_0_0_0_1px_rgba(0, 119, 182,0.28)] backdrop-blur-sm'
+            ? 'bg-customBlue/[0.1] text-customBlue shadow-[inset_0_0_0_1px_rgba(0,119,182,0.28)] backdrop-blur-sm'
             : 'text-deepBlue hover:bg-white/80 hover:text-customBlue hover:shadow-emc-xs',
         ].join(' ')}
       >

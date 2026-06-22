@@ -107,8 +107,7 @@ const stepAnimation = {
   transition: { duration: 0.26, ease: [0.22, 0.61, 0.36, 1] as const },
 }
 
-const glassCard =
-  'rounded-3xl border border-white/70 bg-white/75 shadow-[0_20px_60px_-18px_rgba(12, 42, 75,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
+const glassCard = 'emc-glass-premium rounded-3xl'
 
 const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
 const SUCCESS_DESCRIPTION =
@@ -153,9 +152,9 @@ function WorkshopSuccessCelebration({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 10 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(12, 42, 75,0.35)] ring-1 ring-[#0077B6]/15 backdrop-blur-xl"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white/95 shadow-[0_28px_80px_-16px_rgba(12,42,75,0.35)] ring-1 ring-[#0077B6]/15 backdrop-blur-xl"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(0, 119, 182,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(242, 140, 0,0.12),transparent_48%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_0%,rgba(0,119,182,0.14),transparent_50%),radial-gradient(ellipse_at_10%_90%,rgba(242,140,0,0.12),transparent_48%)]" />
 
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               {particles.map((p) => (
@@ -252,7 +251,7 @@ function WorkshopSuccessCelebration({
                   <button
                     type="button"
                     onClick={onReset}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(0, 119, 182,0.38)] transition hover:brightness-[1.05] sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(0,119,182,0.38)] transition hover:brightness-[1.05] sm:w-auto"
                   >
                     <RotateCcw className="h-4 w-4" aria-hidden />
                     تقديم طلب جديد
@@ -479,27 +478,25 @@ export default function SubmitWorkshop() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-[#f1f5f9] via-white to-[#0077B6]/[0.06] pb-20 pt-[5.25rem]"
+      className="min-h-screen bg-paper pb-24 pt-[5.25rem]"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-l from-[#0C2A4B] via-[#1a2940] to-[#0F172A] px-5 py-7 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.35)] sm:px-8 sm:py-8"
+          className="emc-dawn relative overflow-hidden rounded-3xl border border-white/10 px-6 py-8 text-white shadow-emc-lg sm:px-9 sm:py-9"
         >
-          <div className="pointer-events-none absolute -left-24 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 end-10 h-40 w-40 rounded-full bg-[#F28C00]/20 blur-3xl" />
           <div className="relative text-right">
-            <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-white/85">
+            <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-ice/85">
               <Link to="/" className="transition hover:text-white">
                 الرئيسية
               </Link>
-              <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-[#F28C00]" aria-hidden />
+              <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-amber" aria-hidden />
               <span className="text-white">تقديم ورشة عمل</span>
             </nav>
-            <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">تقديم ورشة عمل</h1>
-            <p className="mt-3 max-w-2xl text-[14px] font-semibold leading-relaxed text-white/80">
+            <h1 className="mt-4 font-display text-2xl font-black leading-tight tracking-tight sm:text-3xl">تقديم ورشة عمل</h1>
+            <p className="mt-4 max-w-2xl text-[14px] font-semibold leading-relaxed text-ice/85">
               شارك خبرتك مع مجتمع EMC عبر طلب واضح ومنظم يصل مباشرة إلى الفريق المختص.
             </p>
           </div>
@@ -542,7 +539,7 @@ export default function SubmitWorkshop() {
                                 done && 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white',
                                 active &&
                                   !done &&
-                                  'bg-gradient-to-br from-[#F28C00] to-amber-600 text-white shadow-[0_12px_28px_rgba(242, 140, 0,0.35)]',
+                                  'bg-gradient-to-br from-[#F28C00] to-amber-600 text-white shadow-[0_12px_28px_rgba(242,140,0,0.35)]',
                                 !done && !active && 'border border-slate-200 bg-white text-slate-500',
                               )}
                             >
@@ -562,7 +559,7 @@ export default function SubmitWorkshop() {
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200/90">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]"
+                      className="emc-daylight h-full rounded-full"
                       initial={false}
                       animate={{ width: `${progressPct}%` }}
                       transition={{ type: 'spring', stiffness: 320, damping: 34 }}
@@ -928,7 +925,7 @@ export default function SubmitWorkshop() {
                           variant="secondary"
                           onClick={goToNextStep}
                           fullWidth
-                          className="rounded-2xl border-0 bg-gradient-to-l from-[#0077B6] to-[#1e7aad] font-black shadow-[0_14px_32px_rgba(0, 119, 182,0.35)] hover:brightness-[1.05]"
+                          className="rounded-2xl border-0 bg-gradient-to-l from-[#0077B6] to-[#1e7aad] font-black shadow-[0_14px_32px_rgba(0,119,182,0.35)] hover:brightness-[1.05]"
                         >
                           التالي
                           <ArrowLeft size={18} aria-hidden />
@@ -941,7 +938,7 @@ export default function SubmitWorkshop() {
                         whileHover={!isSubmitting ? { y: -2 } : undefined}
                         whileTap={!isSubmitting ? { scale: 0.99 } : undefined}
                         className={cn(
-                          'inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-6 py-3 text-[14px] font-black text-white shadow-[0_14px_36px_rgba(242, 140, 0,0.38)] transition disabled:cursor-not-allowed disabled:opacity-55 sm:flex-none sm:px-10',
+                          'inline-flex flex-1 items-center justify-center gap-2 rounded-2xl px-6 py-3 text-[14px] font-black text-white shadow-[0_14px_36px_rgba(242,140,0,0.38)] transition disabled:cursor-not-allowed disabled:opacity-55 sm:flex-none sm:px-10',
                           'bg-gradient-to-l from-[#F28C00] to-amber-600 hover:brightness-[1.03]',
                         )}
                       >
@@ -1033,7 +1030,7 @@ export default function SubmitWorkshop() {
                         className={cn(
                           'grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[12px] font-black shadow-sm ring-2 ring-white',
                           done && 'bg-emerald-500 text-white',
-                          active && !done && 'bg-[#0077B6] text-white shadow-[0_8px_20px_rgba(0, 119, 182,0.35)]',
+                          active && !done && 'bg-[#0077B6] text-white shadow-[0_8px_20px_rgba(0,119,182,0.35)]',
                           !done && !active && 'border border-slate-200 bg-slate-50 text-slate-500',
                         )}
                       >

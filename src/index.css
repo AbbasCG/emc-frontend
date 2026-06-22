@@ -26,21 +26,21 @@
   --emc-ink:           #0c2a4b;
   --emc-ink-soft:      #27384b;
   --emc-ink-mute:      #5e6c7d;
-  --emc-line:          rgba(12, 42, 75, 0.08);
-  --emc-line-strong:   rgba(12, 42, 75, 0.14);
+  --emc-line:          rgba(12,42,75,0.08);
+  --emc-line-strong:   rgba(12,42,75,0.14);
   --emc-surface:       #ffffff;
   --emc-surface-soft:  #fbfaf7;
   --emc-surface-sunk:  #f3f1ea;
   --emc-surface-dark:  #06182c;
   --emc-brand:         #0077b6;
-  --emc-brand-soft:    rgba(0, 119, 182, 0.08);
+  --emc-brand-soft:    rgba(0,119,182,0.08);
   --emc-brand-strong:  #0e5a8a;
   --emc-accent:        #f28c00;
-  --emc-accent-soft:   rgba(242, 140, 0, 0.10);
+  --emc-accent-soft:   rgba(242,140,0,0.10);
   --emc-success:       #16a36a;
   --emc-warning:       #c97208;
   --emc-danger:        #dc2626;
-  --emc-ring:          rgba(0, 119, 182, 0.30);
+  --emc-ring:          rgba(0,119,182,0.30);
   --emc-radius-card:   1.25rem;  /* 20px */
   --emc-radius-pill:   999px;
   --emc-shadow-card:   0 14px 40px -22px rgba(15, 42, 67, 0.18), 0 1px 2px rgba(15, 42, 67, 0.04);
@@ -168,18 +168,18 @@ a {
 }
 .emc-scroll::-webkit-scrollbar-track { background: transparent; }
 .emc-scroll::-webkit-scrollbar-thumb {
-  background: rgba(12, 42, 75, 0.18);
+  background: rgba(12,42,75,0.18);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .emc-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(12, 42, 75, 0.35);
+  background: rgba(12,42,75,0.35);
   background-clip: padding-box;
 }
 
 /* Inertial scroll feel + horizontal fade-out edges helper. */
-.emc-scroll { scrollbar-width: thin; scrollbar-color: rgba(12, 42, 75,0.2) transparent; }
+.emc-scroll { scrollbar-width: thin; scrollbar-color: rgba(12,42,75,0.2) transparent; }
 
 /* ── EMC UI system: consistent rhythm & surfaces (Tailwind-compatible) ── */
 @layer components {
@@ -323,7 +323,7 @@ a {
     background-color: #06182c;
     background-image:
       radial-gradient(ellipse 72% 56% at 80% -10%, rgba(8, 159, 224, 0.30), transparent 60%),
-      radial-gradient(ellipse 150% 80% at 50% 122%, rgba(242, 140, 0, 0.20), transparent 62%),
+      radial-gradient(ellipse 150% 80% at 50% 122%, rgba(242,140,0,0.20), transparent 62%),
       linear-gradient(180deg, #06182c 0%, #0c2a4b 62%, #0c2a4b 100%);
   }
   /* Depth field — sea-only premium dark surface (dividers, hero fields). */
