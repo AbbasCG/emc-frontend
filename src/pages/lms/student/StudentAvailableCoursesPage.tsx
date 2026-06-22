@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 import {
   resolveCourseCoverImageUrl,
   EMC_COURSE_COVER_PLACEHOLDER,
@@ -189,6 +190,8 @@ export default function StudentAvailableCoursesPage() {
           {loadError}
         </p>
       )}
+
+      <StudentBackButton fallback="/dashboard/student/courses" label="العودة إلى دوراتي" />
 
       {/* Course grid */}
       {loading ? (

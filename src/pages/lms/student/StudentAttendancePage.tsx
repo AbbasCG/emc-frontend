@@ -5,6 +5,7 @@ import { LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
 import { fetchStudentAttendance } from '@/api/studentApi'
 import type { StudentAttendanceRecord } from '@/types/lms'
 import { formatDateTime, formatRelativeDate } from '@/utils/dateTime'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 const STATUS_LABELS: Record<string, string> = {
   present: 'حاضر',
@@ -88,6 +89,8 @@ export default function StudentAttendancePage() {
           تحديث
         </button>
       </header>
+
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       <DashboardSection title="سجل الجلسات" subtitle="الدورة، الجلسة، التاريخ، الحالة، والملاحظات.">
         {rows.length === 0 ?

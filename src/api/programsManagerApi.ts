@@ -1,15 +1,16 @@
 import axios from 'axios'
 
-export interface ProgramsManagerDashboardCounts {
+export interface ProgramsManagerSummary {
   courses: number
   published_courses: number
   draft_courses: number
   learning_paths: number
-  active_learning_paths: number
+  published_paths: number
   registrations: number
-  students: number
-  sessions: number
-  assignments: number
+  pending_registrations: number
+  active_students: number
+  upcoming_sessions: number
+  pending_assignments: number
 }
 
 export interface RecentCourse {
@@ -31,6 +32,15 @@ export interface RecentLearningPath {
   featured_image: string | null
 }
 
+export interface PendingRegistration {
+  id: number
+  student: string | null
+  email: string | null
+  course: string | null
+  submitted_at: string | null
+  status: string
+}
+
 export interface UpcomingSession {
   id: number
   course_title: string | null
@@ -42,19 +52,22 @@ export interface UpcomingSession {
   meeting_url: string | null
 }
 
-export interface DashboardWarning {
+export interface ProgramAlert {
   type: string
   message: string
   count: number
+  severity: 'warning' | 'info' | 'action'
 }
 
 export interface ProgramsManagerDashboard {
   success: boolean
-  counts: ProgramsManagerDashboardCounts
-  recent_courses: RecentCourse[]
-  recent_learning_paths: RecentLearningPath[]
+  summary: ProgramsManagerSummary
+  courses: RecentCourse[]
+  learning_paths: RecentLearningPath[]
+  pending_registrations: PendingRegistration[]
   upcoming_sessions: UpcomingSession[]
-  warnings: DashboardWarning[]
+  program_alerts: ProgramAlert[]
+  recent_activity: unknown[]
 }
 
 export async function fetchProgramsManagerDashboard(): Promise<ProgramsManagerDashboard> {

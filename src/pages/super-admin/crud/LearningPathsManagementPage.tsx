@@ -24,6 +24,9 @@ import {
   Mail,
   Phone,
   ChevronRight,
+  Archive,
+  Globe,
+  PauseCircle,
 } from 'lucide-react'
 import {
   fetchAdminLearningPaths,
@@ -32,6 +35,7 @@ import {
   createLearningPath,
   updateLearningPath,
   deleteLearningPath,
+  updateLearningPathStatus,
   fetchInstructorOptions,
   type LearningPath,
   type LearningPathStudent,
@@ -255,6 +259,83 @@ function DeleteModal({
           >
             {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             حذف
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── Status Confirm Modal ─────────────────────────────────────────────────────
+
+type StatusAction = 'published' | 'draft' | 'archived'
+
+function StatusModal({
+  path,
+  action,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  path: LearningPath
+  action: StatusAction
+  onConfirm: () => void
+  onCancel: () => void
+  loading: boolean
+}) {
+  const config: Record<StatusAction, { title: string; desc: string; icon: React.ReactNode; btnCls: string; btnLabel: string }> = {
+    published: {
+      title:    'نشر المسار التعليمي',
+      desc:     `سيصبح المسار "${path.title}" مرئياً للطلاب بعد النشر.`,
+      icon:     <Globe className="h-7 w-7 text-emerald-500" />,
+      btnCls:   'bg-emerald-500 hover:bg-emerald-600',
+      btnLabel: 'نشر',
+    },
+    draft: {
+      title:    'إلغاء نشر المسار',
+      desc:     `سيتم إخفاء المسار "${path.title}" عن الطلاب وتحويله إلى مسودة.`,
+      icon:     <PauseCircle className="h-7 w-7 text-slate-500" />,
+      btnCls:   'bg-slate-600 hover:bg-slate-700',
+      btnLabel: 'إلغاء النشر',
+    },
+    archived: {
+      title:    'أرشفة المسار التعليمي',
+      desc:     `سيتم أرشفة المسار "${path.title}". يمكنك إعادة نشره لاحقاً.`,
+      icon:     <Archive className="h-7 w-7 text-amber-500" />,
+      btnCls:   'bg-amber-500 hover:bg-amber-600',
+      btnLabel: 'أرشفة',
+    },
+  }
+
+  const c = config[action]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl"
+        dir="rtl"
+      >
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">
+          {c.icon}
+        </div>
+        <h3 className="mb-2 text-xl font-black text-slate-800">{c.title}</h3>
+        <p className="mb-6 text-sm text-slate-500">{c.desc}</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          >
+            إلغاء
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-white transition disabled:opacity-60 ${c.btnCls}`}
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {c.btnLabel}
           </button>
         </div>
       </motion.div>
@@ -901,6 +982,8 @@ export default function LearningPathsManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState<LearningPath | null>(null)
   const [deleting, setDeleting]     = useState(false)
   const [toast, setToast]           = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [statusTarget, setStatusTarget] = useState<{ path: LearningPath; action: StatusAction } | null>(null)
+  const [statusLoading, setStatusLoading] = useState(false)
   const [detailPath, setDetailPath] = useState<LearningPath | null>(null)
   const [detailStudents, setDetailStudents] = useState<LearningPathStudent[]>([])
   const [detailCounts, setDetailCounts] = useState({ courses: 0, students: 0, active_students: 0, completed_students: 0 })
@@ -945,6 +1028,26 @@ export default function LearningPathsManagementPage() {
       showToast('فشل حذف المسار', 'error')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleStatusChange = async () => {
+    if (!statusTarget) return
+    setStatusLoading(true)
+    try {
+      await updateLearningPathStatus(statusTarget.path.id, statusTarget.action)
+      const labels: Record<StatusAction, string> = {
+        published: 'تم نشر المسار بنجاح',
+        draft:     'تم إلغاء نشر المسار',
+        archived:  'تم أرشفة المسار',
+      }
+      showToast(labels[statusTarget.action])
+      setStatusTarget(null)
+      load()
+    } catch {
+      showToast('فشل تغيير حالة المسار', 'error')
+    } finally {
+      setStatusLoading(false)
     }
   }
 
@@ -1179,7 +1282,7 @@ export default function LearningPathsManagementPage() {
 
                     {/* Actions — stopPropagation prevents row click */}
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => { e.stopPropagation(); void openDetail(p) }}
                           className="rounded-xl p-2 text-slate-400 transition hover:bg-[#2691C2]/10 hover:text-[#2691C2]"
@@ -1194,6 +1297,33 @@ export default function LearningPathsManagementPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
+                        {p.status !== 'published' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusTarget({ path: p, action: 'published' }) }}
+                            className="rounded-xl p-2 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600"
+                            title="نشر"
+                          >
+                            <Globe className="h-4 w-4" />
+                          </button>
+                        )}
+                        {p.status === 'published' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusTarget({ path: p, action: 'draft' }) }}
+                            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            title="إلغاء النشر"
+                          >
+                            <PauseCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                        {p.status !== 'archived' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusTarget({ path: p, action: 'archived' }) }}
+                            className="rounded-xl p-2 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600"
+                            title="أرشفة"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); setDeleteTarget(p) }}
                           className="rounded-xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
@@ -1259,6 +1389,15 @@ export default function LearningPathsManagementPage() {
             onConfirm={handleDelete}
             onCancel={() => setDeleteTarget(null)}
             deleting={deleting}
+          />
+        )}
+        {statusTarget && (
+          <StatusModal
+            path={statusTarget.path}
+            action={statusTarget.action}
+            onConfirm={() => void handleStatusChange()}
+            onCancel={() => setStatusTarget(null)}
+            loading={statusLoading}
           />
         )}
       </AnimatePresence>

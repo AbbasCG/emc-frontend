@@ -134,6 +134,7 @@ const CertificatesAdminPage   = lazy(() => import('./pages/intelligence/admin/Ce
 const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
 const KpiAdminPage            = lazy(() => import('./pages/intelligence/admin/KpiAdminPage'))
 const ReportsAdminPage        = lazy(() => import('./pages/intelligence/admin/ReportsAdminPage'))
+const AdminRegistrationsPage  = lazy(() => import('./pages/admin/AdminRegistrationsPage'))
 const StudentCertificatesPage = lazy(() => import('./pages/intelligence/student/StudentCertificatesPage'))
 const CertificateVerifyPage   = lazy(() => import('./pages/intelligence/public/CertificateVerifyPage'))
 
@@ -523,6 +524,7 @@ function App() {
                   <Route path="/dashboard/admin/quality" element={<QualityAdminPage />} />
                   <Route path="/dashboard/admin/kpi" element={<KpiAdminPage />} />
                   <Route path="/dashboard/admin/reports" element={<ReportsAdminPage />} />
+                  <Route path="/dashboard/admin/registrations" element={<Suspense fallback={<RouteFallback />}><AdminRegistrationsPage /></Suspense>} />
                   <Route path="/dashboard/admin/knowledge" element={<AdminKnowledgeHubPage />} />
                   <Route path="/dashboard/admin/knowledge/categories" element={<AdminKnowledgeCategoriesPage />} />
                   <Route path="/dashboard/admin/knowledge/articles/create" element={<AdminKnowledgeArticleCreatePage />} />

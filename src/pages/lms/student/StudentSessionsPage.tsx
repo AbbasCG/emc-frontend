@@ -2,6 +2,7 @@ import { CalendarClock, History, RefreshCw } from 'lucide-react'
 import { DashboardSection } from '@/components/dashboard'
 import { LmsEmptyState, LmsPageSkeleton, SessionCard } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentSessionsPage() {
   const { loading, refreshing, loadError, refresh, sessionsUpcoming, sessionsCompleted, registrations } =
@@ -36,6 +37,8 @@ export default function StudentSessionsPage() {
           تحديث
         </button>
       </header>
+
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       <DashboardSection title="الجلسات القادمة" subtitle="روابط الدخول والتفاصيل لكل جلسة مجدولة لدوراتك.">
         {sessionsUpcoming.length === 0 ?

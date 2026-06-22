@@ -123,6 +123,14 @@ export async function fetchAdminRegistrations(
   return rawList.map(normalizeRow).filter((x): x is AdminRegistrationListRow => x !== null)
 }
 
+/** PATCH /admin/registrations/{id}/status */
+export async function updateRegistrationStatus(
+  registrationId: number,
+  status: string,
+): Promise<void> {
+  await apiClient.patch(`/admin/registrations/${registrationId}/status`, { status }, silent)
+}
+
 /** POST /admin/registrations/{id}/create-account */
 export async function createAccountFromRegistration(registrationId: number): Promise<{
   user_id: number

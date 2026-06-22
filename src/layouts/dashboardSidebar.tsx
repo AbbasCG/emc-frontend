@@ -587,33 +587,39 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
 
   if (n === 'programs_manager') {
     return [
-      { items: [{ label: 'لوحة البرامج والمسارات', href: '/dashboard/programs-manager', icon: BookMarked }] },
       {
-        title: 'البرامج والمحتوى',
+        title: 'لوحة البرامج',
         items: [
-          { label: 'البرامج والدورات',    href: '/dashboard/admin/programs',                  icon: GraduationCap },
-          { label: 'المسارات التعليمية', href: '/dashboard/programs-manager/learning-paths', icon: Layers        },
-          { label: 'التسجيلات',           href: '/dashboard/admin/registrations',             icon: UserCheck     },
+          { label: 'لوحة التحكم',     href: '/dashboard/programs-manager', icon: LayoutDashboard },
+          { label: 'مؤشرات البرامج',  href: '/dashboard/admin/kpi',        icon: PieChart        },
+          { label: 'التقارير',         href: '/dashboard/admin/reports',    icon: FileBarChart    },
         ],
       },
       {
-        title: 'نظام التعلّم LMS',
+        title: 'البرامج والمسارات',
+        items: [
+          { label: 'الدورات والبرامج',   href: '/dashboard/admin/programs',                  icon: GraduationCap },
+          { label: 'المسارات التعليمية', href: '/dashboard/programs-manager/learning-paths', icon: Layers        },
+          { label: 'التسجيلات',          href: '/dashboard/admin/registrations',             icon: UserCheck     },
+        ],
+      },
+      {
+        title: 'إدارة التعلم',
         items: [
           { label: 'الجلسات',    href: '/dashboard/admin/lms/sessions',    icon: Calendar      },
           { label: 'الواجبات',   href: '/dashboard/admin/lms/assignments',  icon: ClipboardList },
           { label: 'المواد',     href: '/dashboard/admin/lms/materials',    icon: FolderOpen    },
+          { label: 'التقييمات', href: '/dashboard/admin/lms/evaluations',  icon: FileText      },
           { label: 'التقدّم',    href: '/dashboard/admin/lms/progress',     icon: BarChart3     },
+          { label: 'الحضور',     href: '/dashboard/admin/lms/attendance',   icon: Users         },
         ],
       },
       {
-        title: 'التقارير والمتابعة',
+        title: 'الحساب',
         items: [
-          { label: 'مؤشرات الأداء', href: '/dashboard/admin/kpi',     icon: PieChart     },
-          { label: 'التقارير',       href: '/dashboard/admin/reports', icon: FileBarChart },
-          membersNavItem(),
+          { label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog },
         ],
       },
-      ...communicationsBlock(),
     ]
   }
 

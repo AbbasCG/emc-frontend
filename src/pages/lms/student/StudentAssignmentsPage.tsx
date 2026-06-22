@@ -7,6 +7,7 @@ import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, LmsPageSkeleton }
 import { notifyStudentScopeRefresh } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { isNeedsResubmission } from '@/utils/lmsAssignment'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 const NON_SUBMITTABLE: StudentAssignment['status'][] = ['submitted', 'graded']
 
@@ -95,6 +96,8 @@ export default function StudentAssignmentsPage() {
           تحديث
         </button>
       </header>
+
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       <DashboardSection title="واجبات الدورات المسجّلة">
         {assignmentsScoped.length === 0 ?

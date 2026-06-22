@@ -41,10 +41,27 @@ const typeMap: Record<string, FileTypeDef> = {
   other:    { icon: FolderOpen, label: 'ملف', bg: 'bg-deepBlue/[0.05]', text: 'text-deepBlue/60' },
 }
 
+/**
+ * Resolve the correct URL for a material.
+ * External URLs / non-file links are used as-is.
+ * File-backed materials go through the authenticated API endpoint to avoid
+ * 403 errors on protected /storage/ paths.
+ */
+function resolveMaterialUrl(m: MaterialRow): { href: string; isFile: boolean } | null {
+  if (m.external_url) return { href: m.external_url, isFile: false }
+  if (m.url && !m.file_path) return { href: m.url, isFile: false }
+  if (m.file_path) {
+    // Use authenticated backend endpoint — never expose raw /storage/ path
+    return { href: `/api/admin/lms/materials/${m.id}/file?inline=1`, isFile: true }
+  }
+  return null
+}
+
 function MaterialCard({ m }: { m: MaterialRow }) {
   const t = typeMap[m.type ?? 'other'] ?? typeMap.other
   const TypeIcon = t.icon
-  const href = m.external_url ?? m.url ?? (m.file_path ? `/storage/${m.file_path}` : undefined)
+  const resolved = resolveMaterialUrl(m)
+  const isPreviewable = resolved?.isFile && (m.type === 'pdf' || m.type === 'slide' || m.type === 'document')
 
   return (
     <div className="group flex items-start gap-4 rounded-2xl border border-deepBlue/[0.07] bg-white p-4 shadow-sm ring-1 ring-deepBlue/[0.02] transition hover:shadow-md">
@@ -62,18 +79,34 @@ function MaterialCard({ m }: { m: MaterialRow }) {
         {m.description && (
           <p className="mt-1 text-xs text-deepBlue/40 line-clamp-2">{m.description}</p>
         )}
-        <div className="mt-2 flex items-center justify-between">
+        <div className="mt-2 flex items-center justify-between gap-2">
           <p className="text-[11px] font-medium text-deepBlue/35">{fmtDate(m.created_at ?? m.updated_at)}</p>
-          {href && (
-            <a
-              href={href}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg bg-customBlue/10 px-2.5 py-1 text-[11px] font-black text-customBlue hover:bg-customBlue/20 transition"
-            >
-              عرض
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {resolved ? (
+              <>
+                {isPreviewable && (
+                  <a
+                    href={resolved.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg bg-customBlue/10 px-2.5 py-1 text-[11px] font-black text-customBlue hover:bg-customBlue/20 transition"
+                  >
+                    معاينة
+                  </a>
+                )}
+                <a
+                  href={resolved.isFile ? resolved.href.replace('inline=1', 'inline=0') : resolved.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg bg-deepBlue/[0.06] px-2.5 py-1 text-[11px] font-black text-deepBlue hover:bg-deepBlue/10 transition"
+                >
+                  تحميل
+                </a>
+              </>
+            ) : (
+              <span className="text-[10px] text-deepBlue/30">لا يمكن معاينة الملف مباشرة، يمكنك تحميله.</span>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -263,6 +263,14 @@ export async function deleteLearningPath(id: number): Promise<void> {
   await apiClient.delete(`/admin/learning-paths/${id}`)
 }
 
+export async function updateLearningPathStatus(
+  id: number,
+  status: 'draft' | 'published' | 'archived',
+): Promise<LearningPath> {
+  const res = await apiClient.patch(`/admin/learning-paths/${id}/status`, { status })
+  return unwrapData<LearningPath>(res.data)
+}
+
 export async function updateLearningPathCourses(
   id: number,
   courseIds: number[],

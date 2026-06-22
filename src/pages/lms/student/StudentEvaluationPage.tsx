@@ -6,6 +6,7 @@ import { notifyStudentScopeRefresh, submitStudentEvaluation } from '@/api/studen
 import type { StudentRegistrationRow } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import type { StudentProgressPayload } from '@/types/lms'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 function eligibleForEvaluation(
   r: StudentRegistrationRow,
@@ -93,6 +94,8 @@ export default function StudentEvaluationPage() {
           </button>
         </div>
       </header>
+
+      <StudentBackButton fallback="/dashboard/student/courses" label="العودة إلى دوراتي" />
 
       {courseId != null ?
         formAllowed ?

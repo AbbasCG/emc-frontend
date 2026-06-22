@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { DashboardSection, ProgressCard } from '@/components/dashboard'
 import { LmsEmptyState, LmsPageSkeleton, ProgressRing } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentProgressPage() {
   const { loading, refreshing, loadError, refresh, progressMerged, registrations } = useStudentDashboardData()
@@ -53,6 +54,8 @@ export default function StudentProgressPage() {
           تحديث
         </button>
       </header>
+
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       <div className="flex flex-col items-center justify-between gap-8 rounded-[1.35rem] bg-white p-8 shadow-lg ring-1 ring-deepBlue/[0.05] lg:flex-row-reverse">
         <div className="text-center lg:text-right">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Award, CheckCircle, ClipboardCheck, MessageSquare } from 'lucide-react'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 import {
   fetchPlacementStatus,
   getLevelFromScore,
@@ -97,6 +98,8 @@ export default function StudentExamsPage() {
           </p>
         </div>
       </motion.div>
+
+      <StudentBackButton fallback="/dashboard/student/courses" label="العودة إلى دوراتي" />
 
       {/* Content */}
       {loading ? (
