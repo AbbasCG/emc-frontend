@@ -20,22 +20,22 @@ export default function PremiumSidebarInstructor({ instructor }: Props) {
   const needsClamp = bio.length > 120
 
   return (
-    <div dir="rtl" className="border-t border-[#0C2A4B]/6 bg-gradient-to-br from-[#0077B6]/6 to-white px-4 py-3.5 text-right">
-      <p className="mb-2 text-[10px] font-black text-[#0C2A4B]/45">المدرب</p>
+    <div dir="rtl" className="border-t border-line bg-gradient-to-br from-customBlue/[0.06] to-white px-4 py-3.5 text-right">
+      <p className="mb-2 text-[10px] font-black uppercase tracking-[0.14em] text-deepBlue/45">المدرب</p>
       <div className="flex items-start gap-2.5">
         <img
           src={instructor.avatarUrl ?? AVATAR}
           alt=""
           loading="lazy"
-          className="h-11 w-11 shrink-0 rounded-xl object-cover ring-2 ring-[#0077B6]/15"
+          className="h-11 w-11 shrink-0 rounded-xl object-cover ring-2 ring-customBlue/15"
         />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-black text-[#0C2A4B]">{instructor.name}</p>
+          <p className="text-sm font-black text-deepBlue">{instructor.name}</p>
           {instructor.title ?
-            <p className="text-[10px] font-bold text-[#0077B6]">{instructor.title}</p>
+            <p className="text-[10px] font-bold text-customBlue">{instructor.title}</p>
           : null}
           {bio ?
-            <p className={cn('mt-1 text-[11px] leading-5 text-slate-600', !bioOpen && needsClamp && 'line-clamp-2')}>
+            <p className={cn('mt-1 text-[11px] leading-[1.6] text-foreground/75', !bioOpen && needsClamp && 'line-clamp-2')}>
               {bio}
             </p>
           : null}
@@ -43,13 +43,13 @@ export default function PremiumSidebarInstructor({ instructor }: Props) {
             <button
               type="button"
               onClick={() => setBioOpen((v) => !v)}
-              className="mt-0.5 text-[10px] font-black text-[#0077B6] hover:underline"
+              className="mt-0.5 text-[10px] font-black text-customBlue underline-offset-4 transition-colors hover:text-deepBlue hover:underline"
             >
               {bioOpen ? 'عرض أقل' : 'عرض المزيد'}
             </button>
           : null}
           {instructor.email ?
-            <a href={`mailto:${instructor.email}`} className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-[#0077B6]">
+            <a href={`mailto:${instructor.email}`} className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-customBlue underline-offset-4 transition-colors hover:text-deepBlue hover:underline">
               <Mail className="h-3 w-3 shrink-0" />
               <span className="truncate">{instructor.email}</span>
             </a>

@@ -364,6 +364,49 @@ a {
     border-radius: 999px;
     background: linear-gradient(to left, #089fe0 0 33%, #ffa733 33% 66%, #0c2a4b 66% 100%);
   }
+
+  /* Spine — the signature page-edge bar: Depth descending from sky to night,
+     with a short ember tip at the foot (sea family above, fire tip below — never blended). */
+  .emc-spine {
+    background-image: linear-gradient(
+      to bottom,
+      #089fe0 0%,
+      #0e5a8a 30%,
+      #0c2a4b 58%,
+      #06182c 84%,
+      #06182c 86%,
+      #ffa733 86%,
+      #f28c00 100%
+    );
+  }
+
+  /* Wing — a small two-stroke mark (amber over sky) that precedes a kicker label.
+     Two thin offset bars: a sky stroke with an amber stroke nudged above it. */
+  .emc-wing::before {
+    content: "";
+    display: inline-block;
+    position: relative;
+    width: 1.1rem;
+    height: 0.5rem;
+    margin-inline-end: 0.1rem;
+    vertical-align: middle;
+    background-image:
+      linear-gradient(to left, #ffa733, rgba(255, 167, 51, 0)),
+      linear-gradient(to left, #089fe0, rgba(8, 159, 224, 0));
+    background-repeat: no-repeat;
+    background-size: 100% 2px, 80% 2px;
+    background-position: left 1px, right 5px;
+    opacity: 0.9;
+  }
+
+  /* Dawn field — a subtle concentric-arc texture (low-opacity sky strokes + exactly
+     one amber ring) for layering over dark hero overlays. */
+  .emc-dawn-field {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640' viewBox='0 0 640 640'%3E%3Cg fill='none' stroke-width='1.25'%3E%3Ccircle cx='320' cy='640' r='160' stroke='%23089FE0' stroke-opacity='0.10'/%3E%3Ccircle cx='320' cy='640' r='280' stroke='%23089FE0' stroke-opacity='0.08'/%3E%3Ccircle cx='320' cy='640' r='400' stroke='%23089FE0' stroke-opacity='0.06'/%3E%3Ccircle cx='320' cy='640' r='520' stroke='%23FFA733' stroke-opacity='0.10'/%3E%3Ccircle cx='320' cy='640' r='640' stroke='%23089FE0' stroke-opacity='0.04'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    background-size: 130% auto;
+  }
 }
 
 /* ── RTL polish: nudge a couple of legacy mirrored utilities ── */

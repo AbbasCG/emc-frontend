@@ -39,7 +39,7 @@ export default function Eyebrow({
   ...rest
 }: Props) {
   return (
-    <span className={cn(toneClass[tone], className)} {...rest}>
+    <span className={cn(toneClass[tone], 'emc-wing', className)} {...rest}>
       {dot && <span className={cn('h-1.5 w-1.5 rounded-full', dotClass[tone])} />}
       {children}
     </span>

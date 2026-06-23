@@ -26,6 +26,13 @@ export default function Layout() {
         className="pointer-events-none fixed bottom-[-10rem] left-[-12rem] -z-10 h-[28rem] w-[28rem] rounded-full bg-customOrange/[0.06] blur-[110px]"
       />
 
+      {/* Signature page-edge spine — fixed on the inline-start edge, behind content */}
+      <div
+        aria-hidden
+        className="emc-spine pointer-events-none fixed inset-y-0 -z-10 hidden w-1 md:block"
+        style={{ insetInlineStart: 0 }}
+      />
+
       <a
         href="#main-content"
         className="sr-only sr-only-focusable emc-focus-ring rounded-lg bg-deepBlue px-4 py-2 text-sm font-black text-white ring-2 ring-customOrange"

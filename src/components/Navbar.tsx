@@ -82,7 +82,7 @@ function pathActive(pathname: string, mega: MegaId): boolean {
 }
 
 const navLinkBase =
-  'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight text-deepBlue transition-all duration-200 hover:bg-customBlue/[0.08] hover:text-customBlue hover:shadow-emc-xs'
+  'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight text-deepBlue transition-all duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue hover:shadow-emc-xs'
 const navLinkActive =
   'bg-customBlue/[0.11] text-customBlue shadow-[inset_0_0_0_1px_rgba(0,119,182,0.35)] backdrop-blur-sm'
 
@@ -156,7 +156,7 @@ export default function Navbar() {
       ref={navRef}
       dir="rtl"
       className={[
-        'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-350 ease-emc-out',
+        'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-500 ease-emc-out',
         scrolled
           ? 'border-deepBlue/[0.085] bg-white/[0.9] shadow-emc-lg shadow-deepBlue/[0.06] ring-1 ring-deepBlue/[0.045] backdrop-blur-2xl backdrop-saturate-150'
           : 'border-deepBlue/[0.04] bg-white/[0.78] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/60',
@@ -165,7 +165,8 @@ export default function Navbar() {
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:h-[4.25rem] lg:px-8">
         <Link
           to="/"
-          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1 ring-deepBlue/0 transition hover:bg-emcBg/90 hover:ring-1 hover:ring-customBlue/18"
+          aria-label="EMC — الصفحة الرئيسية"
+          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1.5 ring-1 ring-transparent transition-all duration-200 ease-emc-out hover:bg-emcBg/90 hover:ring-customBlue/18 hover:shadow-emc-xs"
         >
           <img src={logo} alt="EMC" className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
         </Link>
@@ -174,7 +175,7 @@ export default function Navbar() {
           className="absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center lg:flex"
           aria-label="القائمة الرئيسية"
         >
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl backdrop-saturate-150">
             <NavLink to="/" end className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}>
               الرئيسية
             </NavLink>
@@ -259,7 +260,7 @@ export default function Navbar() {
                     <span className="max-w-[6.5rem] truncate">{user.name}</span>
                     <ChevronDown
                       size={14}
-                      className={['opacity-55 transition-transform', userMenuOpen ? '-rotate-180' : ''].join(' ')}
+                      className={['transition-transform duration-300 ease-emc-out', userMenuOpen ? '-rotate-180 opacity-80' : 'opacity-55'].join(' ')}
                     />
                   </button>
                   <AnimatePresence>
@@ -269,19 +270,19 @@ export default function Navbar() {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="absolute left-0 top-full z-50 mt-2.5 w-56 overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-white py-1 shadow-[0_24px_48px_-14px_rgba(15,42,67,0.2)]"
+                        className="absolute left-0 top-full z-50 mt-2.5 w-56 overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-white/[0.97] p-1.5 shadow-emc-lg ring-1 ring-white/80 backdrop-blur-2xl backdrop-saturate-150"
                         role="menu"
                       >
                         <Link
                           to="/dashboard"
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-[#F8FBFE]"
+                          className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-deepBlue transition-all duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue"
                         >
                           <LayoutDashboard size={16} />
                           لوحة التحكم
                         </Link>
                         <Link
                           to="/dashboard/profile"
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-[#F8FBFE]"
+                          className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-deepBlue transition-all duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue"
                         >
                           <User size={16} />
                           الملف الشخصي
@@ -290,7 +291,7 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={logout}
-                          className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold text-customOrange transition hover:bg-customOrange/[0.08]"
+                          className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-customOrange transition-all duration-200 ease-emc-out hover:bg-customOrange/[0.08]"
                         >
                           <LogOut size={16} />
                           تسجيل الخروج
@@ -329,7 +330,7 @@ export default function Navbar() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="max-h-[min(88vh,600px)] overflow-y-auto border-t border-deepBlue/[0.07] bg-white/98 backdrop-blur-xl lg:hidden"
+            className="max-h-[min(88vh,600px)] overflow-y-auto border-t border-deepBlue/[0.07] bg-white/[0.97] backdrop-blur-2xl backdrop-saturate-150 lg:hidden"
           >
             <div className="space-y-1.5 px-4 py-4">
               <NavLink
@@ -354,16 +355,29 @@ export default function Navbar() {
                   ['join', 'انضم إلينا', joinItems],
                 ] as const
               ).map(([id, label, items]) => (
-                <div key={id} className="overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-[#F8FBFE]/80">
+                <div
+                  key={id}
+                  className={[
+                    'overflow-hidden rounded-2xl border bg-[#F8FBFE]/80 transition-all duration-200 ease-emc-out',
+                    mobileGroup === id ? 'border-customBlue/20 shadow-emc-xs' : 'border-deepBlue/[0.08]',
+                  ].join(' ')}
+                >
                   <button
                     type="button"
                     onClick={() => setMobileGroup((g) => (g === id ? null : id))}
-                    className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-black text-deepBlue"
+                    aria-expanded={mobileGroup === id}
+                    className={[
+                      'flex w-full items-center justify-between px-4 py-3.5 text-sm font-black transition-colors duration-200 ease-emc-out',
+                      mobileGroup === id ? 'text-customBlue' : 'text-deepBlue',
+                    ].join(' ')}
                   >
                     {label}
                     <ChevronDown
                       size={16}
-                      className={['text-deepBlue/45 transition-transform', mobileGroup === id ? '-rotate-180' : ''].join(' ')}
+                      className={[
+                        'transition-transform duration-300 ease-emc-out',
+                        mobileGroup === id ? '-rotate-180 text-customBlue' : 'text-deepBlue/45',
+                      ].join(' ')}
                     />
                   </button>
                   <AnimatePresence>
@@ -381,13 +395,13 @@ export default function Navbar() {
                               key={item.href}
                               to={item.href}
                               onClick={() => setMobileOpen(false)}
-                              className="flex gap-3 border-b border-deepBlue/[0.04] px-4 py-3.5 text-right last:border-0 hover:bg-customBlue/[0.05]"
+                              className="group flex gap-3 border-b border-deepBlue/[0.04] px-4 py-3.5 text-right transition-colors duration-200 ease-emc-out last:border-0 hover:bg-customBlue/[0.05]"
                             >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-deepBlue/[0.04] text-customBlue">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-deepBlue/[0.04] text-customBlue transition-all duration-200 ease-emc-out group-hover:bg-customBlue group-hover:text-white group-hover:shadow-emc-xs">
                                 <Icon size={18} />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm font-black text-deepBlue">{item.label}</p>
+                                <p className="text-sm font-black text-deepBlue transition-colors duration-200 ease-emc-out group-hover:text-customBlue">{item.label}</p>
                                 <p className="text-xs leading-relaxed text-deepBlue/55">{item.description}</p>
                               </div>
                             </Link>

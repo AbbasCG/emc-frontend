@@ -15,14 +15,14 @@ function Expandable({ text }: { text: string }) {
   const needs = text.length > CLAMP || text.split(/\r?\n/).length > 5
   return (
     <div>
-      <p className={cn('whitespace-pre-line text-[13px] leading-[1.75] text-slate-700', !open && needs && 'line-clamp-5')}>
+      <p className={cn('whitespace-pre-line text-[13px] leading-[1.8] text-foreground', !open && needs && 'line-clamp-5')}>
         {text}
       </p>
       {needs ?
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="mt-1.5 text-[11px] font-black text-[#0077B6] hover:underline"
+          className="mt-1.5 text-[11px] font-black text-customBlue underline-offset-4 transition-colors hover:text-deepBlue hover:underline"
         >
           {open ? 'عرض أقل' : 'عرض المزيد'}
         </button>
@@ -46,8 +46,8 @@ export default function PremiumDescription({ derived, shortDescription, requirem
 
   return (
     <section aria-label="وصف الدورة" dir="rtl" className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
-      <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
-        <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
+      <h2 className="mb-3.5 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-deepBlue">
+        <span className="h-4 w-1 rounded-full bg-customBlue" aria-hidden />
         عن البرنامج
       </h2>
       <div className="space-y-3">
@@ -56,40 +56,46 @@ export default function PremiumDescription({ derived, shortDescription, requirem
         : null}
         {derived.learningOutcomesBlock?.trim() ?
           <div>
-            <p className="mb-1 text-[10px] font-black text-slate-400">المخرجات التعليمية</p>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.12em] text-muted-400">المخرجات التعليمية</p>
             <Expandable text={derived.learningOutcomesBlock.trim()} />
           </div>
         : null}
         {derived.targetAudience?.trim() ?
           <div>
-            <p className="mb-1 text-[10px] font-black text-slate-400">الفئة المستهدفة</p>
-            <p className="text-[13px] leading-[1.7] text-slate-700">{derived.targetAudience.trim()}</p>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.12em] text-muted-400">الفئة المستهدفة</p>
+            <p className="text-[13px] leading-[1.75] text-foreground">{derived.targetAudience.trim()}</p>
           </div>
         : null}
         {requirementsItems.length > 0 ?
           <div>
-            <p className="mb-1 text-[10px] font-black text-slate-400">المتطلبات</p>
-            <ul className="space-y-0.5">
+            <p className="mb-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-muted-400">المتطلبات</p>
+            <ul className="space-y-1">
               {requirementsItems.map((r) => (
-                <li key={r} className="text-[12px] text-slate-700">• {r}</li>
+                <li key={r} className="flex items-start gap-2 text-[12px] leading-[1.6] text-foreground">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-customOrange" aria-hidden />
+                  {r}
+                </li>
               ))}
             </ul>
           </div>
         : null}
         {derived.methodologyLines.length > 0 ?
           <div>
-            <p className="mb-1 text-[10px] font-black text-slate-400">منهجية التدريب</p>
-            <ul className="space-y-0.5">
+            <p className="mb-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-muted-400">منهجية التدريب</p>
+            <ul className="space-y-1">
               {derived.methodologyLines.map((line) => (
-                <li key={line} className="text-[12px] text-slate-700">{line}</li>
+                <li key={line} className="flex items-start gap-2 text-[12px] leading-[1.6] text-foreground">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-customBlue" aria-hidden />
+                  {line}
+                </li>
               ))}
             </ul>
           </div>
         : null}
         {derived.keywordTags.length > 0 ?
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
             {derived.keywordTags.map((tag) => (
-              <span key={tag} className="rounded-full bg-[#0077B6]/8 px-2 py-0.5 text-[10px] font-black text-[#0C2A4B]">
+              <span key={tag} className="rounded-full border border-customBlue/12 bg-customBlue/[0.07] px-2.5 py-0.5 text-[10px] font-black text-deepBlue">
                 {tag}
               </span>
             ))}

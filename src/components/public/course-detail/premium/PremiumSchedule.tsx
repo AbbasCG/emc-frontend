@@ -35,26 +35,26 @@ export default function PremiumSchedule({ course, derived }: Props) {
 
   return (
     <section aria-label="الجدول" dir="rtl" className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
-      <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
-        <span className="h-4 w-1 rounded-full bg-[#F28C00]" aria-hidden />
+      <h2 className="mb-3.5 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-deepBlue">
+        <span className="h-4 w-1 rounded-full bg-customOrange" aria-hidden />
         الجدول والتفاصيل
       </h2>
-      <ol className="relative space-y-0 border-r-2 border-[#0077B6]/18 pr-3.5">
+      <ol className="relative space-y-0 border-r-2 border-customBlue/18 pr-3.5">
         {rows.map((row, i) => (
-          <li key={row.label} className="relative pb-2 last:pb-0">
+          <li key={row.label} className="relative pb-2.5 last:pb-0">
             <span
-              className="absolute -right-[calc(0.4rem+4px)] top-1.5 h-2 w-2 rounded-full bg-[#0077B6] ring-2 ring-white"
+              className="absolute -right-[calc(0.4rem+4px)] top-1.5 h-2 w-2 rounded-full bg-customBlue ring-2 ring-white"
               aria-hidden
             />
             {i < rows.length - 1 ?
-              <span className="absolute -right-px top-3 h-[calc(100%-0.25rem)] border-r border-dashed border-[#0077B6]/12" aria-hidden />
+              <span className="absolute -right-px top-3 h-[calc(100%-0.25rem)] border-r border-dashed border-customBlue/12" aria-hidden />
             : null}
-            <p className="text-[9px] font-black text-slate-400">{row.label}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-400">{row.label}</p>
             {row.link ?
-              <a href={row.value} className="mt-0.5 block truncate text-[12px] font-bold text-[#0077B6]" dir="ltr" target="_blank" rel="noreferrer">
+              <a href={row.value} className="mt-0.5 block truncate text-[12px] font-bold text-customBlue underline-offset-4 transition-colors hover:text-deepBlue hover:underline" dir="ltr" target="_blank" rel="noreferrer">
                 {row.value}
               </a>
-            : <p className="mt-0.5 text-[12px] font-black tabular-nums text-[#0C2A4B]">{row.value}</p>}
+            : <p className="mt-0.5 text-[12px] font-black tabular-nums text-deepBlue">{row.value}</p>}
           </li>
         ))}
       </ol>

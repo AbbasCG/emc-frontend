@@ -31,37 +31,37 @@ export default function PremiumInstructor({ instructor, course }: Props) {
 
   return (
     <section aria-label="المدرب" dir="rtl">
-      <h2 className="mb-5 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-[#0C2A4B]">
-        <span className="h-4 w-1 rounded-full bg-[#F28C00]" aria-hidden />
+      <h2 className="mb-4 flex items-center gap-2.5 font-display text-sm font-black tracking-tight text-deepBlue">
+        <span className="h-4 w-1 rounded-full bg-customOrange" aria-hidden />
         عن المدرب
       </h2>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-[#0077B6]/6 to-white shadow-emc">
+      <div className="overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-customBlue/[0.06] to-white shadow-emc">
         <div className="flex items-start gap-4 p-5 text-right">
           <img
             src={instructor.avatarUrl ?? AVATAR_PLACEHOLDER}
             alt=""
             loading="lazy"
-            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-md ring-2 ring-[#0077B6]/18"
+            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-emc-sm ring-2 ring-customBlue/18"
           />
           <div className="min-w-0 flex-1">
-            <p className="text-base font-black text-[#0C2A4B]">{instructor.name}</p>
+            <p className="text-base font-black text-deepBlue">{instructor.name}</p>
             {instructor.title && (
-              <p className="mt-0.5 text-xs font-bold text-[#0077B6]">{instructor.title}</p>
+              <p className="mt-0.5 text-xs font-bold text-customBlue">{instructor.title}</p>
             )}
 
             {(coursesCount || studentsCount) && (
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {coursesCount && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-[#0C2A4B]/6 px-2.5 py-1 text-[10px] font-black text-[#0C2A4B]">
+                  <span className="flex items-center gap-1.5 rounded-full bg-deepBlue/[0.06] px-2.5 py-1 text-[10px] font-black text-deepBlue">
                     <BookOpen className="h-3 w-3" />
-                    {formatPublicText(coursesCount)} دورة
+                    <span className="font-latin tabular-nums">{formatPublicText(coursesCount)}</span> دورة
                   </span>
                 )}
                 {studentsCount && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-[#0077B6]/8 px-2.5 py-1 text-[10px] font-black text-[#0077B6]">
+                  <span className="flex items-center gap-1.5 rounded-full bg-customBlue/[0.08] px-2.5 py-1 text-[10px] font-black text-customBlue">
                     <Users className="h-3 w-3" />
-                    {formatPublicText(studentsCount)} متدرب
+                    <span className="font-latin tabular-nums">{formatPublicText(studentsCount)}</span> متدرب
                   </span>
                 )}
               </div>
@@ -69,12 +69,12 @@ export default function PremiumInstructor({ instructor, course }: Props) {
 
             {bioText && (
               <div className="mt-2.5">
-                <p className="text-[12.5px] leading-[1.75] text-slate-600">{bioDisplay}</p>
+                <p className="text-[12.5px] leading-[1.8] text-foreground/80">{bioDisplay}</p>
                 {bioNeedsClamp && (
                   <button
                     type="button"
                     onClick={() => setBioExpanded((v) => !v)}
-                    className="mt-1 text-[11px] font-black text-[#0077B6] hover:underline"
+                    className="mt-1 text-[11px] font-black text-customBlue underline-offset-4 transition-colors hover:text-deepBlue hover:underline"
                   >
                     {bioExpanded ? 'عرض أقل' : 'عرض المزيد'}
                   </button>
@@ -85,7 +85,7 @@ export default function PremiumInstructor({ instructor, course }: Props) {
             {instructor.email && (
               <a
                 href={`mailto:${instructor.email}`}
-                className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0077B6] hover:underline"
+                className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-customBlue underline-offset-4 transition-colors hover:text-deepBlue hover:underline"
                 dir="ltr"
               >
                 <Mail className="h-3 w-3" />

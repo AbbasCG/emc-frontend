@@ -5,19 +5,19 @@ import type { MetricWidget } from '@/components/public/course-detail/CourseDetai
 
 const accentStyles = {
   blue: {
-    card: 'border-[#0077B6]/14 bg-[#0077B6]/5 hover:border-[#0077B6]/28',
-    icon: 'bg-[#0077B6]/10 text-[#0077B6]',
-    value: 'text-[#1e7aaa]',
+    card: 'border-customBlue/14 bg-customBlue/[0.05] hover:border-customBlue/28',
+    icon: 'bg-customBlue/10 text-customBlue',
+    value: 'text-customBlue',
   },
   orange: {
-    card: 'border-[#F28C00]/16 bg-[#F28C00]/5 hover:border-[#F28C00]/32',
-    icon: 'bg-[#F28C00]/10 text-[#F28C00]',
-    value: 'text-[#c07828]',
+    card: 'border-customOrange/16 bg-customOrange/[0.05] hover:border-customOrange/32',
+    icon: 'bg-customOrange/10 text-customOrange',
+    value: 'text-accent-700',
   },
   navy: {
-    card: 'border-[#0C2A4B]/10 bg-[#0C2A4B]/4 hover:border-[#0C2A4B]/20',
-    icon: 'bg-[#0C2A4B]/8 text-[#0C2A4B]',
-    value: 'text-[#0C2A4B]',
+    card: 'border-deepBlue/10 bg-deepBlue/[0.04] hover:border-deepBlue/20',
+    icon: 'bg-deepBlue/[0.08] text-deepBlue',
+    value: 'text-deepBlue',
   },
   green: {
     card: 'border-emerald-200/50 bg-emerald-50/60 hover:border-emerald-300/60',
@@ -35,7 +35,7 @@ export default function PremiumSnapshot({ items }: Props) {
     <section
       aria-label="ملخص الدورة"
       dir="rtl"
-      className="border-b border-[#0C2A4B]/8 bg-white/95 px-4 py-4 shadow-sm backdrop-blur-sm sm:px-6 lg:px-10"
+      className="border-b border-line bg-white/95 px-4 py-4 shadow-emc-sm backdrop-blur-sm sm:px-6 lg:px-10"
     >
       <div className="mx-auto max-w-[88rem]">
         <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide sm:gap-2.5 lg:flex-wrap lg:overflow-visible">
@@ -47,9 +47,9 @@ export default function PremiumSnapshot({ items }: Props) {
                 key={item.id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03, duration: 0.28 }}
+                transition={{ delay: i * 0.03, duration: 0.32, ease: [0.2, 0.8, 0.2, 1] }}
                 className={cn(
-                  'flex shrink-0 cursor-default items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-right transition-all',
+                  'flex shrink-0 cursor-default items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-right transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
                   a.card,
                 )}
               >
@@ -57,10 +57,10 @@ export default function PremiumSnapshot({ items }: Props) {
                   <Icon className="h-3.5 w-3.5" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <p className={cn('text-[12px] font-black tabular-nums leading-tight', a.value)}>
+                  <p className={cn('font-latin text-[12px] font-black tabular-nums leading-tight', a.value)}>
                     {formatPublicText(item.value)}
                   </p>
-                  <p className="truncate text-[9.5px] font-semibold text-slate-500">{item.label}</p>
+                  <p className="truncate text-[9.5px] font-semibold text-muted-500">{item.label}</p>
                 </div>
               </motion.div>
             )

@@ -59,6 +59,7 @@ export default function PremiumHero({
     <section className="emc-dawn relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 right-1/4 h-[420px] w-[420px] rounded-full bg-sky/15 blur-[100px]" />
+        <div className="absolute -bottom-24 left-[12%] h-[300px] w-[300px] rounded-full bg-customOrange/10 blur-[110px]" />
       </div>
 
       <div className="relative mx-auto flex max-w-[88rem] flex-col items-center gap-6 px-4 py-7 sm:px-6 lg:flex-row lg:items-center lg:gap-10 lg:px-10 lg:py-8 xl:px-12">
@@ -69,47 +70,47 @@ export default function PremiumHero({
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-1 flex-col gap-3.5 text-right"
         >
-          <nav className="flex items-center gap-1.5 text-[11px] font-semibold text-white/85">
+          <nav className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.02em] text-ice/80">
             <Link to="/" className="transition-colors hover:text-white">الرئيسية</Link>
-            <span className="text-white/50">/</span>
+            <span className="text-white/35">/</span>
             <Link to="/courses" className="transition-colors hover:text-white">الدورات</Link>
             {category && (
               <>
-                <span className="text-white/50">/</span>
-                <span className="max-w-[140px] truncate text-white/90">{category}</span>
+                <span className="text-white/35">/</span>
+                <span className="max-w-[140px] truncate text-white">{category}</span>
               </>
             )}
           </nav>
 
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center rounded-full border border-white/35 bg-white/20 px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-sm">
+            <span className="inline-flex items-center rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[11px] font-black text-white backdrop-blur-sm">
               {derived.L.badge}
             </span>
             {level && (
-              <span className="rounded-full border border-[#F28C00]/50 bg-[#F28C00]/25 px-3 py-1 text-[11px] font-black text-[#fff4e8]">
+              <span className="inline-flex items-center rounded-full border border-customOrange/45 bg-customOrange/20 px-3 py-1 text-[11px] font-black text-sand backdrop-blur-sm">
                 {level}
               </span>
             )}
             {showCert && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/45 bg-emerald-300/22 px-3 py-1 text-[11px] font-black text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-ice/35 bg-sky/15 px-3 py-1 text-[11px] font-black text-ice backdrop-blur-sm">
                 <BadgeCheck className="h-3 w-3" />
                 شهادة معتمدة
               </span>
             )}
             {derived.registration.open && !derived.seatsFull && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/45 bg-emerald-300/22 px-3 py-1 text-[11px] font-black text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/40 bg-emerald-300/20 px-3 py-1 text-[11px] font-black text-white backdrop-blur-sm">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-100" />
                 التسجيل مفتوح
               </span>
             )}
           </div>
 
-          <h1 className="font-display text-2xl font-black leading-[1.15] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:text-3xl lg:text-[2.4rem]">
+          <h1 className="font-display text-[1.75rem] font-black leading-[1.12] tracking-tight text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.38)] sm:text-[2rem] lg:text-[2.5rem]">
             {course.title}
           </h1>
 
           {course.short_description && (
-            <p className="max-w-[520px] text-[14px] leading-[1.75] text-ice/90 sm:text-[15px]">
+            <p className="max-w-[540px] text-[14px] leading-[1.8] text-ice/85 sm:text-[15px]">
               {course.short_description}
             </p>
           )}
@@ -122,42 +123,42 @@ export default function PremiumHero({
                     key={i}
                     className={cn(
                       'h-3.5 w-3.5',
-                      i < Math.round(rating) ? 'fill-[#F28C00] text-[#F28C00]' : 'fill-white/15 text-white/20',
+                      i < Math.round(rating) ? 'fill-amber text-amber' : 'fill-white/12 text-white/20',
                     )}
                   />
                 ))}
               </div>
-              <span className="text-sm font-black tabular-nums text-white">{formatPublicText(rating)}</span>
+              <span className="font-latin text-sm font-black tabular-nums text-white">{formatPublicText(rating)}</span>
               {reviewCount > 0 && (
-                <span className="text-xs tabular-nums text-white/85">({formatPublicText(reviewCount)} تقييم)</span>
+                <span className="font-latin text-xs tabular-nums text-ice/80">({formatPublicText(reviewCount)} تقييم)</span>
               )}
             </div>
           )}
 
           {derived.instructor.name && (
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/28 bg-white/16 px-3 py-2 backdrop-blur-md">
+            <div className="flex items-center gap-2.5 rounded-2xl border border-white/22 bg-white/[0.12] px-3.5 py-2.5 backdrop-blur-md">
               <img
                 src={derived.instructor.avatarUrl ?? AVATAR_PLACEHOLDER}
                 alt=""
                 loading="eager"
-                className="h-9 w-9 shrink-0 rounded-full border border-white/35 object-cover"
+                className="h-10 w-10 shrink-0 rounded-full border border-white/30 object-cover ring-2 ring-sky/25"
               />
               <div className="text-right">
-                <p className="text-[10px] font-semibold text-white/80">المدرب</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-ice/70">المدرب</p>
                 <p className="text-sm font-black text-white">{derived.instructor.name}</p>
                 {derived.instructor.title && (
-                  <p className="text-[11px] text-white/90">{derived.instructor.title}</p>
+                  <p className="text-[11px] text-ice/85">{derived.instructor.title}</p>
                 )}
               </div>
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          <div className="flex flex-wrap items-center gap-2 pt-1">
             {cta}
             <button
               type="button"
               onClick={onShare}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-white/18 px-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/28"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/25 bg-white/[0.14] px-3.5 text-sm font-bold text-white backdrop-blur-sm transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-white/40 hover:bg-white/25"
             >
               <Share2 className="h-4 w-4" />
               مشاركة
@@ -167,10 +168,10 @@ export default function PremiumHero({
               onClick={onToggleWishlist}
               aria-label={wishlisted ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
               className={cn(
-                'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border backdrop-blur-sm transition',
+                'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border backdrop-blur-sm transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
                 wishlisted
                   ? 'border-rose-300/35 bg-rose-400/18 text-rose-100'
-                  : 'border-white/30 bg-white/18 text-white hover:bg-white/28',
+                  : 'border-white/25 bg-white/[0.14] text-white hover:border-white/40 hover:bg-white/25',
               )}
             >
               <Heart className={cn('h-4 w-4', wishlisted && 'fill-current')} />
@@ -184,24 +185,24 @@ export default function PremiumHero({
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
           className="hidden shrink-0 flex-col gap-2 lg:flex lg:w-[400px] xl:w-[460px]"
         >
-          <div className="group relative overflow-hidden rounded-2xl border border-white/15 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.35)]">
+          <div className="group relative overflow-hidden rounded-2xl border border-white/12 ring-1 ring-white/5 shadow-[0_28px_70px_-20px_rgba(6,24,44,0.6)]">
             <img
               src={activeImg}
               alt=""
               loading="eager"
-              className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              className="aspect-[16/10] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-[1.02]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy/50 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-night/55 via-transparent to-transparent" />
 
             {videoUrl && (
               <button
                 type="button"
                 onClick={onVideoPreview}
                 aria-label="معاينة الفيديو"
-                className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                className="absolute inset-0 flex items-center justify-center bg-night/0 opacity-0 transition-opacity duration-200 group-hover:bg-night/10 group-hover:opacity-100"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 shadow-2xl ring-4 ring-white/25 transition-transform hover:scale-105">
-                  <Play className="ms-0.5 h-5 w-5 fill-[#0077B6] text-[#0077B6]" />
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-2xl ring-4 ring-white/25 transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:scale-105">
+                  <Play className="ms-0.5 h-5 w-5 fill-customBlue text-customBlue" />
                 </span>
               </button>
             )}
@@ -215,9 +216,9 @@ export default function PremiumHero({
                   type="button"
                   onClick={() => setActiveImg(item.url)}
                   className={cn(
-                    'h-12 flex-1 overflow-hidden rounded-lg border-2 transition-all duration-200',
+                    'h-12 flex-1 overflow-hidden rounded-lg border-2 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
                     activeImg === item.url
-                      ? 'border-[#F28C00] shadow-[0_0_0_2px_rgba(242,140,0,0.2)]'
+                      ? 'border-customOrange shadow-[0_0_0_2px_rgba(242,140,0,0.2)]'
                       : 'border-white/20 hover:border-white/40',
                   )}
                 >
