@@ -90,7 +90,7 @@ export default function Login() {
   }
 
   return (
-    <div className="bg-slate-50 pt-20">
+    <div className="bg-paper pt-20">
       <PageHeader
         title="تسجيل الدخول"
         breadcrumbs={[
@@ -101,7 +101,7 @@ export default function Login() {
 
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto grid max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100 lg:grid-cols-[0.9fr_1fr]"
+          className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-emc-lg ring-1 ring-line lg:grid-cols-[0.9fr_1fr]"
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
@@ -111,16 +111,17 @@ export default function Login() {
             <img
               src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"
               alt=""
-              className="h-full w-full object-cover opacity-85"
+              className="h-full w-full object-cover opacity-80"
             />
-            <div className="absolute inset-0 bg-deepBlue/45" />
+            <div className="emc-dawn absolute inset-0 opacity-90 mix-blend-multiply" />
+            <div className="emc-dawn-field absolute inset-0 opacity-70" />
             <div className="absolute bottom-8 right-8 max-w-sm text-right text-white">
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold">
-                <LogIn size={17} />
+              <span className="emc-wing emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
+                <LogIn size={15} />
                 EMC للاستشارات والتدريب
               </span>
-              <h2 className="text-3xl font-black leading-tight">مرحباً بعودتك</h2>
-              <p className="mt-3 leading-8 text-slate-100">
+              <h2 className="font-display text-3xl font-black leading-tight tracking-tight">مرحباً بعودتك</h2>
+              <p className="mt-3 leading-8 text-ice/90">
                 تابع رحلتك التعليمية وادخل إلى حسابك للوصول إلى دوراتك وطلبات التسجيل.
               </p>
             </div>
@@ -128,8 +129,7 @@ export default function Login() {
 
           {/* ── Right panel — form ── */}
           <div className="p-6 text-right sm:p-10">
-            <h1 className="text-3xl font-black text-deepBlue">تسجيل الدخول</h1>
-            <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
+            <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">تسجيل الدخول</h1>
 
             {/* Error alert */}
             {error && (
