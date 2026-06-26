@@ -99,6 +99,7 @@ export function mapCourseStatusArabic(status: unknown, isPublished: unknown): st
   const map: Record<string, string> = {
     published: 'منشورة',
     active: 'منشورة',
+    ended: 'انتهت',
     draft: 'مسودة',
     archived: 'مؤرشفة',
     inactive: 'غير نشطة',

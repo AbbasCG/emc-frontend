@@ -1,7 +1,9 @@
-const arDate = new Intl.DateTimeFormat('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })
-const arDateTime = new Intl.DateTimeFormat('ar-EG', {
+// ar-EG-u-nu-latn → Arabic month names with Latin (English) digits, Europe/Amsterdam timezone
+const TZ = 'Europe/Amsterdam'
+const arDate = new Intl.DateTimeFormat('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric', timeZone: TZ })
+const arDateTime = new Intl.DateTimeFormat('ar-EG-u-nu-latn', {
   year: 'numeric', month: 'long', day: 'numeric',
-  hour: '2-digit', minute: '2-digit',
+  hour: '2-digit', minute: '2-digit', timeZone: TZ,
 })
 
 export function fmtDate(raw: string | null | undefined): string {
@@ -12,6 +14,11 @@ export function fmtDate(raw: string | null | undefined): string {
 export function fmtDateTime(raw: string | null | undefined): string {
   if (!raw) return '—'
   try { return arDateTime.format(new Date(raw)) } catch { return raw }
+}
+
+export function fmtNum(value: number | null | undefined): string {
+  if (value == null) return '—'
+  return new Intl.NumberFormat('en-US').format(value)
 }
 
 export function normCourseTitle(raw: string | null | undefined): string {

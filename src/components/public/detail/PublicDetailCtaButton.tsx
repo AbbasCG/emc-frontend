@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, GraduationCap } from 'lucide-react'
+import { ArrowLeft, GraduationCap, Loader2, Lock } from 'lucide-react'
 import type { PublicEnrollCta } from '@/utils/publicCourseDetailCta'
 import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import toast from '@/lib/toast'
+import { initiateCheckout } from '@/api/checkoutApi'
 
 type Props = {
   cta: PublicEnrollCta
@@ -29,10 +31,59 @@ export default function PublicDetailCtaButton({
   size = 'md',
   className = '',
 }: Props) {
+  const [checkingOut, setCheckingOut] = useState(false)
   const cls = `inline-flex w-full items-center justify-center gap-2 font-black transition sm:w-auto ${sizeCls[size]} ${variantCls[cta.variant]} ${className}`
 
   if (cta.disabled) {
     return <span className={cls}>{cta.label}</span>
+  }
+
+  if (cta.checkout && cta.checkoutCourseId) {
+    const handleCheckout = async () => {
+      setCheckingOut(true)
+      try {
+        const { checkout_url } = await initiateCheckout(cta.checkoutCourseId!)
+        window.location.href = checkout_url
+      } catch {
+        toast.error('تعذر بدء عملية الدفع. حاول مرة أخرى.')
+        setCheckingOut(false)
+      }
+    }
+
+    return (
+      <div className="flex flex-col items-center gap-2">
+        {cta.price != null && (
+          <div className="flex items-center gap-2 text-sm text-deepBlue/60">
+            <Lock size={13} className="text-emerald-600" />
+            <span className="font-black text-deepBlue">
+              {new Intl.NumberFormat('ar-SA', { style: 'currency', currency: cta.currency ?? 'EUR' }).format(cta.price)}
+            </span>
+            <span className="text-[10px] text-emerald-600 font-semibold">دفع آمن</span>
+          </div>
+        )}
+        <motion.button
+          type="button"
+          whileHover={{ scale: checkingOut ? 1 : 1.02 }}
+          whileTap={{ scale: checkingOut ? 1 : 0.98 }}
+          disabled={checkingOut}
+          onClick={handleCheckout}
+          className={`${cls} ${checkingOut ? 'opacity-70 cursor-wait' : ''}`}
+        >
+          {checkingOut ? (
+            <>
+              <Loader2 size={size === 'lg' ? 18 : 16} className="animate-spin" aria-hidden />
+              جاري تحويلك إلى صفحة الدفع…
+            </>
+          ) : (
+            <>
+              <Lock size={size === 'lg' ? 18 : 16} aria-hidden />
+              {cta.label}
+              <ArrowLeft size={size === 'lg' ? 18 : 16} aria-hidden />
+            </>
+          )}
+        </motion.button>
+      </div>
+    )
   }
 
   if (cta.href) {

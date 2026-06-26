@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Bot,
   ChevronDown,
   ChevronLeft,
   LogOut,
@@ -707,22 +706,6 @@ export default function DashboardLayout() {
         onMarkRead={(id) => void handleMarkRead(id)}
         onMarkAll={() => void handleMarkAll()}
       />
-
-      <Link
-        to="/ai"
-        aria-label="المساعد الذكي"
-        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(15,42,67,0.55),0_0_0_1px_rgba(38,145,194,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(38,145,194,0.6),0_0_0_1px_rgba(38,145,194,0.35)]"
-      >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-customBlue/20 to-transparent opacity-0 transition group-hover:opacity-100"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -inset-1 rounded-2xl bg-customBlue/30 blur-xl opacity-0 transition group-hover:opacity-60"
-        />
-        <Bot size={26} className="relative" />
-      </Link>
 
       <main
         className={`relative z-content isolate ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}

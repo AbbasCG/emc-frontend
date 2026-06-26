@@ -58,6 +58,10 @@ export type Course = {
   cover_image?: string | null
   /** Some APIs expose explicit free flag */
   is_free?: boolean | number | null
+  /** True when this course requires payment before enrollment */
+  is_paid?: boolean | null
+  /** ISO 4217 currency code, e.g. 'EUR' */
+  currency?: string | null
   seats_count?: number | null
   delivery_type?: string | null
 
@@ -122,6 +126,16 @@ export type Course = {
 
   /** Optional WhatsApp community link for the course (must start with https://chat.whatsapp.com/) */
   whatsapp_community_url?: string | null
+
+  /** When true, student must supply registration_code at enroll time (code itself is never public) */
+  requires_registration_code?: boolean
+  /** Admin-only — never exposed on public course APIs */
+  registration_code?: string | null
+
+  /** Computed ended fields — returned by CourseResource, never stored in DB */
+  is_ended?: boolean | null
+  computed_status?: 'draft' | 'published' | 'archived' | 'ended' | string | null
+  status_label_ar?: string | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'

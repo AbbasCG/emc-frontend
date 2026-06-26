@@ -1,7 +1,7 @@
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
 
-export type VolunteerRequestStatus = 'pending' | 'reviewed' | 'accepted' | 'rejected' | 'contacted'
+export type VolunteerRequestStatus = 'pending' | 'reviewing' | 'reviewed' | 'accepted' | 'rejected' | 'contacted' | 'converted_to_member'
 
 export type VolunteerRequest = {
   id: number
@@ -24,6 +24,10 @@ export type VolunteerRequest = {
   cv_download_url?: string | null
   status: VolunteerRequestStatus
   created_at?: string | null
+  reviewed_at?: string | null
+  accepted_at?: string | null
+  accepted_by?: { id: number; name: string } | null
+  accepted_by_name?: string | null
 
   /** True when the volunteer has been converted to an internal member */
   is_converted?: boolean | null
@@ -35,6 +39,13 @@ export type VolunteerRequest = {
   converted_member?: { id: number; name: string } | null
   /** Backend flag: false means already converted or not eligible */
   can_convert_to_member?: boolean | null
+}
+
+export type AcceptedVolunteersMeta = {
+  total_accepted: number
+  total_converted: number
+  accepted_this_month: number
+  top_department: string | null
 }
 
 export type VolunteerApplicationInput = {
@@ -161,6 +172,18 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     cv_download_url: parseStr(raw.cv_download_url ?? raw.cv_file_url ?? raw.cv_url),
     status,
     created_at: parseStr(raw.created_at),
+    reviewed_at: parseStr(raw.reviewed_at),
+    accepted_at: parseStr(raw.accepted_at),
+    accepted_by_name: parseStr(raw.accepted_by_name),
+    accepted_by: (() => {
+      const ab = raw.accepted_by
+      if (ab && typeof ab === 'object' && !Array.isArray(ab)) {
+        const o = ab as Record<string, unknown>
+        const mid = parseId(o.id); const mname = parseStr(o.name)
+        if (mid && mname) return { id: mid, name: mname }
+      }
+      return null
+    })(),
     is_converted: isConverted,
     converted_to_member_at: convertedAt,
     converted_member_id: convertedMemberId,
@@ -179,6 +202,36 @@ function unwrapList(res: unknown): unknown[] {
     if (Array.isArray(o.items)) return o.items
   }
   return []
+}
+
+export async function fetchAcceptedVolunteers(params?: Record<string, string>): Promise<{
+  data: VolunteerRequest[]
+  meta: AcceptedVolunteersMeta
+  pagination: { total: number; current_page: number; last_page: number; per_page: number }
+}> {
+  const qs = params ? '?' + new URLSearchParams(params).toString() : ''
+  const res = await apiClient.get<unknown>(`/admin/volunteers/accepted${qs}`, { skipErrorToast: true } as Record<string, unknown>)
+  const body = unwrapData<unknown>(res.data) as Record<string, unknown>
+
+  const rawData = Array.isArray(body?.data) ? body.data as unknown[] : []
+  const paginationMeta = (body?.meta ?? {}) as Record<string, unknown>
+  const appMeta = (res.data as Record<string, unknown>)?.meta as AcceptedVolunteersMeta ?? {
+    total_accepted: 0, total_converted: 0, accepted_this_month: 0, top_department: null,
+  }
+
+  return {
+    data: rawData
+      .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
+      .map(normalizeRequest)
+      .filter((r) => r.id > 0),
+    meta: appMeta,
+    pagination: {
+      total: Number(paginationMeta.total ?? 0),
+      current_page: Number(paginationMeta.current_page ?? 1),
+      last_page: Number(paginationMeta.last_page ?? 1),
+      per_page: Number(paginationMeta.per_page ?? 50),
+    },
+  }
 }
 
 export async function fetchVolunteerRequests(): Promise<VolunteerRequest[]> {

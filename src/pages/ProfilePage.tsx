@@ -164,8 +164,9 @@ export default function ProfilePage() {
       }
       const next = await updateProfile(payload)
       setProfile(next)
-      await refreshUser()
       successToast('تم حفظ الملف الشخصي', tid)
+      // Sync auth context but don't let a transient refresh failure mask a successful save
+      void refreshUser().catch(() => undefined)
       if (emailTouched) {
         toast.message('سيتم طلب تأكيد البريد الإلكتروني الجديد إذا لزم الأمر')
       }

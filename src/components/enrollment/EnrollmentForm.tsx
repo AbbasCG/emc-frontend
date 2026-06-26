@@ -34,7 +34,7 @@ import {
 type PaymentProvider = 'stripe' | 'paypal' | 'fake'
 
 type FieldErrors = Partial<
-  Record<'full_name' | 'email' | 'phone' | 'city' | 'gender' | 'notes' | 'payment_provider' | 'country_code', string>
+  Record<'full_name' | 'email' | 'phone' | 'city' | 'gender' | 'notes' | 'payment_provider' | 'country_code' | 'registration_code', string>
 >
 
 function normalizeLaravelErrors(raw: unknown): Record<string, string[]> {
@@ -85,13 +85,16 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
   const [city, setCity] = useState('')
   const [gender, setGender] = useState('')
   const [notes, setNotes] = useState('')
+  const [registrationCode, setRegistrationCode] = useState('')
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('stripe')
+
+  const requiresRegistrationCode = Boolean(course.requires_registration_code)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
-  const isPaid = course.type === 'paid'
+  const isPaid = course.is_paid === true || course.type === 'paid'
 
   function clearField(key: keyof FieldErrors) {
     setFieldErrors((p) => ({ ...p, [key]: undefined }))
@@ -172,6 +175,9 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
     if (!localPhone.trim()) newErrors.phone = 'رقم الجوال مطلوب'
     if (!city.trim()) newErrors.city = 'المدينة مطلوبة'
     if (!gender) newErrors.gender = 'يرجى تحديد الجنس'
+    if (requiresRegistrationCode && !registrationCode.trim()) {
+      newErrors.registration_code = 'رمز التسجيل مطلوب لهذه الدورة'
+    }
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors)
       setApiError('يرجى إكمال الحقول الإلزامية قبل الإرسال.')
@@ -194,6 +200,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
         country: selectedCountry!.name,
         country_code: selectedCountry!.code,
         phone_country_code: selectedCountry!.dialCode,
+        ...(requiresRegistrationCode ? { registration_code: registrationCode.trim() } : {}),
         ...(isPaid ? { payment_provider: paymentProvider } : {}),
       })
 
@@ -445,6 +452,23 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
         </div>
 
         {/* ملاحظات */}
+        {requiresRegistrationCode ?
+          <label className="grid gap-2 text-sm font-black text-deepBlue">
+            رمز التسجيل
+            <input
+              value={registrationCode}
+              required
+              onChange={(e) => { setRegistrationCode(e.target.value); clearField('registration_code') }}
+              className={inputCls(fieldErrors.registration_code)}
+              placeholder="أدخل رمز التسجيل للدورة"
+              autoComplete="off"
+            />
+            {fieldErrors.registration_code ?
+              <span className="text-xs text-red-600">{fieldErrors.registration_code}</span>
+            : null}
+          </label>
+        : null}
+
         <label className="grid gap-2 text-sm font-black text-deepBlue">
           ملاحظات إضافية <span className="font-semibold text-slate-400">(اختياري)</span>
           <textarea

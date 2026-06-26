@@ -902,6 +902,19 @@ function normalizeLmsSessionRow(raw: unknown): LmsSession | null {
   }
 }
 
+/** POST /student/sessions/{id}/open-link — records and returns meeting URL */
+export async function openStudentSessionLink(sessionId: number): Promise<string> {
+  const res = await apiClient.post<unknown>(
+    `/student/sessions/${sessionId}/open-link`,
+    {},
+    { skipErrorToast: true } as Record<string, unknown>,
+  )
+  const data = (res.data as Record<string, unknown>)
+  const url = data?.meeting_url ?? (data?.data as Record<string, unknown>)?.meeting_url
+  if (typeof url === 'string' && url) return url
+  throw new Error('لم يتم إرجاع رابط الاجتماع')
+}
+
 export async function fetchStudentSessions(): Promise<{
   upcoming: LmsSession[]
   completed: LmsSession[]

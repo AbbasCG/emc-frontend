@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog'
 import { motion } from 'framer-motion'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -12,23 +13,17 @@ import {
   Filter,
   Layers3,
   RefreshCw,
-  UserPlus,
-  Users,
   UserX,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
   countRegistrationsByCourse,
   deleteCourse,
-  fetchAdminCourseDetail,
   fetchAdminRegistrationsIndex,
-  fetchCourseStudents,
   fetchDepartmentOptions,
   patchCoursePublishState,
   patchCourseStatus,
-  removeStudentFromCourse,
   type AdminRegistrationRow,
-  type CourseParticipant,
 } from '@/api/adminCoursesApi'
 import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
@@ -43,12 +38,7 @@ import { CrudCardTable, CrudTable, Th, Tr, Td } from '@/pages/super-admin/crud/s
 import { EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
-import {
-  EntityDetailDrawer,
-  EntityDetailField,
-  EntityDetailSection,
-} from '@/pages/super-admin/crud/shared/EntityDetailDrawer'
-import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
+import { CourseManagementDrawer, type CourseDrawerMode } from '@/components/programs/CourseManagementDrawer'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 import { AnimatedTabular } from '@/pages/super-admin/crud/shared/enterprise/EnterpriseMetrics'
 import {
@@ -57,6 +47,7 @@ import {
   inferProgramKind,
   isArchivedCourse,
   isDraftCourse,
+  isEndedCourse,
   isPublishedCourse,
   isScheduledCourse,
   missingCourseDate,
@@ -79,9 +70,6 @@ const AssignInstructorModal = lazy(() =>
 const ScheduleCourseModal = lazy(() =>
   import('./ScheduleCourseModal').then((m) => ({ default: m.ScheduleCourseModal })),
 )
-const AddStudentModal = lazy(() =>
-  import('./AddStudentModal').then((m) => ({ default: m.AddStudentModal })),
-)
 
 /* ── Types ───────────────────────────────────────────────────────────── */
 
@@ -96,7 +84,7 @@ type CourseVM = Course & {
   _hasDate:        boolean                          // avoids missingCourseDate in filter
 }
 
-type FilterMode = 'all' | 'published' | 'draft' | 'archived' | 'scheduled' | 'no_instructor' | 'no_date'
+type FilterMode = 'all' | 'published' | 'draft' | 'archived' | 'ended' | 'scheduled' | 'no_instructor' | 'no_date'
 
 /* ── View-model factory ─ all heavy computations happen once per reload ─ */
 
@@ -199,10 +187,14 @@ export default function ProgramsConsolePage() {
   const [departments,    setDepartments]    = useState<{ id: number; name: string }[]>([])
   const [learningPaths,  setLearningPaths]  = useState<{ id: number; title: string; status: string }[]>([])
 
-  const [q,    setQ]    = useState('')
-  const [mode, setMode] = useState<FilterMode>('all')
+  const [q,              setQ]              = useState('')
+  const [mode,           setMode]           = useState<FilterMode>('all')
+  const [filterKind,     setFilterKind]     = useState('')
+  const [filterInstructor, setFilterInstructor] = useState('')
+  const [filterDelivery, setFilterDelivery] = useState('')
+  const [filterHasDate,  setFilterHasDate]  = useState('')
 
-  const [preview,             setPreview]             = useState<CourseVM | null>(null)
+  const [drawer,              setDrawer]              = useState<{ course: CourseVM; mode: CourseDrawerMode } | null>(null)
   const [formOpen,            setFormOpen]            = useState(false)
   const [formCourse,          setFormCourse]          = useState<Course | null>(null)
   const [assignCourse,        setAssignCourse]        = useState<Course | null>(null)
@@ -262,6 +254,7 @@ export default function ProgramsConsolePage() {
     published: rows.filter(isPublishedCourse).length,
     draft:     rows.filter(isDraftCourse).length,
     archived:  rows.filter(isArchivedCourse).length,
+    ended:     rows.filter(isEndedCourse).length,
     scheduled: rows.filter(isScheduledCourse).length,
     noDate:    rows.filter(missingCourseDate).length,
   }), [rows])
@@ -275,29 +268,43 @@ export default function ProgramsConsolePage() {
         const tr   = c.track?.title ?? c.track_title ?? ''
         if (!`${c.title} ${c.slug} ${c._instructorLabel} ${dept} ${tr}`.toLowerCase().includes(t)) return false
       }
-      if (mode === 'published'    && c._status !== 'published') return false
-      if (mode === 'draft'        && c._status !== 'draft')     return false
-      if (mode === 'archived'     && c._status !== 'archived')  return false
-      if (mode === 'scheduled'    && !c._hasDate)               return false
-      if (mode === 'no_instructor' && hasInstructor(c))         return false
-      if (mode === 'no_date'      && c._hasDate)                return false
+      if (mode === 'published'     && c._status !== 'published') return false
+      if (mode === 'draft'         && c._status !== 'draft')     return false
+      if (mode === 'archived'      && c._status !== 'archived')  return false
+      if (mode === 'ended'         && !isEndedCourse(c))         return false
+      if (mode === 'scheduled'     && !c._hasDate)               return false
+      if (mode === 'no_instructor' && hasInstructor(c))          return false
+      if (mode === 'no_date'       && c._hasDate)                return false
+      // Extra filters
+      if (filterKind && c._kind !== filterKind) return false
+      if (filterInstructor && c._instructorLabel !== filterInstructor) return false
+      if (filterDelivery) {
+        const lt = (c as Record<string, unknown>).location_type as string | null | undefined
+        if ((lt ?? 'online') !== filterDelivery) return false
+      }
+      if (filterHasDate === 'yes' && !c._hasDate) return false
+      if (filterHasDate === 'no'  && c._hasDate)  return false
       return true
     })
-  }, [viewModels, debouncedQ, mode])
+  }, [viewModels, debouncedQ, mode, filterKind, filterInstructor, filterDelivery, filterHasDate])
 
   useEffect(() => {
     if (!Number.isFinite(deepLinkId) || deepLinkId <= 0 || loading || viewModels.length === 0) return
     const match = viewModels.find((c) => c.id === deepLinkId)
     if (!match) return
-    setPreview(match)
+    setDrawer({ course: match, mode: 'details' })
     setSearchParams({}, { replace: true })
   }, [deepLinkId, loading, viewModels, setSearchParams])
 
   function openCreate() { setFormCourse(null); setFormOpen(true) }
 
-  async function openEdit(c: Course) {
-    setFormCourse(c); setFormOpen(true)
-    try { setFormCourse(await fetchAdminCourseDetail(c.id)) } catch { /* keep c */ }
+  function openDetails(c: CourseVM) {
+    setDrawer({ course: c, mode: 'details' })
+  }
+
+  function openEdit(c: Course) {
+    const vm = viewModels.find((row) => row.id === c.id) ?? vmFromCourse(c, regMap, instructorLookup)
+    setDrawer({ course: vm, mode: 'edit' })
   }
 
   async function togglePublish(c: Course) {
@@ -327,19 +334,8 @@ export default function ProgramsConsolePage() {
     try {
       await deleteCourse(c.id)
       toast.success('تم حذف الدورة')
-      void load(); setPreview(null)
+      void load(); setDrawer(null)
     } catch (e) { toast.error(getApiErrorMessage(e)) }
-  }
-
-  function instructorDrawerField(course: Course) {
-    const pin = getCourseInstructor(course, { lookupByInstructorId: instructorLookup })
-    if (!hasInstructor(course)) return <span className="font-bold text-amber-700">بدون مدرب</span>
-    return (
-      <div className="space-y-0.5 text-right">
-        <div className="font-bold text-deepBlue">{pin.displayName}</div>
-        {pin.email && <div className="text-[11px] font-semibold text-slate-500 dir-ltr">{pin.email}</div>}
-      </div>
-    )
   }
 
   return (
@@ -396,6 +392,7 @@ export default function ProgramsConsolePage() {
                 <KpiMini icon={BookMarked}   label="منشورة"            value={<AnimatedTabular value={kpis.published} />} tone="mint" />
                 <KpiMini icon={FilePen}      label="مسودة"             value={<AnimatedTabular value={kpis.draft} />}     tone="amber" />
                 <KpiMini icon={Archive}      label="مؤرشفة"            value={<AnimatedTabular value={kpis.archived} />}  tone="rose" />
+                <KpiMini icon={CalendarClock} label="انتهت"             value={<AnimatedTabular value={kpis.ended} />}    tone="neutral" />
                 <KpiMini icon={CalendarCheck} label="مجدولة (لها موعد)" value={<AnimatedTabular value={kpis.scheduled} />} tone="violet" />
                 <KpiMini icon={CalendarX}    label="بدون موعد"         value={<AnimatedTabular value={kpis.noDate} />}    tone="orange" />
               </>
@@ -411,19 +408,73 @@ export default function ProgramsConsolePage() {
         searchPlaceholder="بحث: عنوان، slug، إدارة، مسار، مدرب…"
       >
         <MiniSelect
-          label="تصفية سريعة"
+          label="الحالة"
           value={mode}
-          onChange={(v) => setMode(v as FilterMode)}
+          onChange={(v) => { setMode(v as FilterMode) }}
           options={[
             { value: 'all',           labelAr: 'الكل' },
             { value: 'published',     labelAr: 'منشورة' },
             { value: 'draft',         labelAr: 'مسودة' },
             { value: 'archived',      labelAr: 'مؤرشفة' },
+            { value: 'ended',         labelAr: 'انتهت' },
             { value: 'scheduled',     labelAr: 'مجدولة' },
             { value: 'no_instructor', labelAr: 'بدون مدرب' },
             { value: 'no_date',       labelAr: 'بدون موعد' },
           ]}
         />
+        <MiniSelect
+          label="النوع"
+          value={filterKind}
+          onChange={setFilterKind}
+          options={[
+            { value: '',         labelAr: 'كل الأنواع' },
+            { value: 'course',   labelAr: 'دورة' },
+            { value: 'workshop', labelAr: 'ورشة' },
+            { value: 'program',  labelAr: 'برنامج' },
+            { value: 'track',    labelAr: 'مسار' },
+          ]}
+        />
+        <MiniSelect
+          label="نوع التنفيذ"
+          value={filterDelivery}
+          onChange={setFilterDelivery}
+          options={[
+            { value: '',        labelAr: 'كل الأنماط' },
+            { value: 'online',  labelAr: 'عن بعد' },
+            { value: 'offline', labelAr: 'حضوري' },
+            { value: 'hybrid',  labelAr: 'مختلط' },
+          ]}
+        />
+        <MiniSelect
+          label="الجدولة"
+          value={filterHasDate}
+          onChange={setFilterHasDate}
+          options={[
+            { value: '',    labelAr: 'كل البرامج' },
+            { value: 'yes', labelAr: 'لها موعد' },
+            { value: 'no',  labelAr: 'بدون موعد' },
+          ]}
+        />
+        {instructorRows.length > 0 && (
+          <MiniSelect
+            label="المدرب"
+            value={filterInstructor}
+            onChange={setFilterInstructor}
+            options={[
+              { value: '', labelAr: 'كل المدربين' },
+              ...instructorRows.map((r) => ({ value: r.name, labelAr: r.name })),
+            ]}
+          />
+        )}
+        {(mode !== 'all' || filterKind || filterDelivery || filterHasDate || filterInstructor) && (
+          <button
+            type="button"
+            onClick={() => { setMode('all'); setFilterKind(''); setFilterDelivery(''); setFilterHasDate(''); setFilterInstructor('') }}
+            className="h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 text-[12px] font-black text-rose-600 transition hover:bg-rose-100"
+          >
+            إعادة ضبط
+          </button>
+        )}
       </CrudToolbar>
 
       {!loading && !failed && (
@@ -446,7 +497,7 @@ export default function ProgramsConsolePage() {
                 key={c.id}
                 c={c}
                 index={i}
-                onPreview={() => setPreview(c)}
+                onPreview={() => openDetails(c)}
                 onEdit={() => openEdit(c)}
                 onAssign={() => setAssignCourse(c)}
                 onSchedule={() => setScheduleCourse(c)}
@@ -502,9 +553,12 @@ export default function ProgramsConsolePage() {
                           </div>
                         </Td>
                         <Td>
-                          {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
-                          : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
-                          : <CrudBadge variant="default">مسودة</CrudBadge>}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
+                            : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
+                            : <CrudBadge variant="default">مسودة</CrudBadge>}
+                            {isEndedCourse(c) ? <CourseStatusBadge isEnded placement="inline" className="!text-[10px]" /> : null}
+                          </div>
                         </Td>
                         <Td className="text-[12px] font-bold">
                           <CourseInstructorTableCell course={c} lookup={instructorLookup} />
@@ -538,7 +592,7 @@ export default function ProgramsConsolePage() {
                           <RowActionsMenu
                             ariaLabel={c.title}
                             actions={[
-                              { key: 'd',       label: 'عرض التفاصيل',       onClick: () => setPreview(c) },
+                              { key: 'd',       label: 'عرض التفاصيل',       onClick: () => openDetails(c) },
                               { key: 'e',       label: 'تعديل',              onClick: () => openEdit(c) },
                               { key: 'a',       label: 'تعيين مدرب',         onClick: () => setAssignCourse(c) },
                               { key: 's',       label: 'تحديد موعد',         onClick: () => setScheduleCourse(c) },
@@ -566,92 +620,27 @@ export default function ProgramsConsolePage() {
         </>
       )}
 
-      <EntityDetailDrawer
-        open={preview !== null}
-        onClose={() => setPreview(null)}
-        title={preview?.title ?? ''}
-        subtitle={
-          preview
-            ? !preview._hasDate ? 'انضم إلى الدورة القادمة' : String(preview.start_date ?? '').slice(0, 10)
-            : ''
+      <CourseManagementDrawer
+        open={drawer !== null}
+        course={drawer?.course ?? null}
+        mode={drawer?.mode ?? 'details'}
+        onClose={() => setDrawer(null)}
+        onModeChange={(mode) => {
+          setDrawer((prev) => (prev ? { ...prev, mode } : null))
+        }}
+        onSaved={() => void load()}
+        onAssignInstructor={
+          drawer ? () => {
+            setAssignCourse(drawer.course)
+          } : undefined
         }
-        avatar={
-          preview
-            ? <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#2691C2]/15 text-sm font-black text-deepBlue ring-2 ring-white">
-                {initialsFromName(preview.title)}
-              </span>
-            : null
-        }
-        badges={
-          preview
-            ? <div className="flex flex-wrap gap-2">
-                <CrudBadge variant="brand">{PROGRAM_KIND_LABEL[inferProgramKind(preview)]}</CrudBadge>
-                {preview._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
-                : preview._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
-                : <CrudBadge variant="default">مسودة</CrudBadge>}
-              </div>
-            : null
-        }
-        footerSlot={
-          <EntityActionMenu
-            onClose={() => setPreview(null)}
-            onEdit={preview ? () => openEdit(preview) : undefined}
-            editLabel="تعديل"
-            extraStart={
-              preview
-                ? <div className="flex flex-wrap gap-2">
-                    <button type="button" onClick={() => window.open(`/courses/${preview.slug}`, '_blank')}
-                      className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black text-deepBlue hover:bg-slate-50">
-                      صفحة الزائر
-                    </button>
-                    <button type="button" onClick={() => navigate(`/dashboard/super-admin/crud/programs/${preview.id}/content`)}
-                      className="rounded-xl border border-customBlue/30 bg-customBlue/[0.08] px-4 py-2 text-xs font-black text-deepBlue hover:bg-customBlue/[0.12]">
-                      محتوى الدورة LMS
-                    </button>
-                  </div>
-                : null
-            }
-          />
-        }
-        tabs={
-          preview
-            ? [
-                {
-                  id: 'o', labelAr: 'نظرة عامة',
-                  content: (
-                    <EntityDetailSection title="وصف" icon={<BookMarked className="size-4" aria-hidden />}>
-                      <p className="text-[13px] font-semibold leading-relaxed text-slate-600">
-                        {preview.short_description ?? preview.description ?? 'لا وصف.'}
-                      </p>
-                    </EntityDetailSection>
-                  ),
-                },
-                {
-                  id: 'x', labelAr: 'تشغيل',
-                  content: (
-                    <EntityDetailSection title="بيانات" icon={<Layers3 className="size-4" aria-hidden />}>
-                      <dl className="grid gap-3 sm:grid-cols-2">
-                        <EntityDetailField label="معرّف"    value={<span className="font-mono">#{preview.id}</span>} />
-                        <EntityDetailField label="تسجيلات"  value={<span className="font-mono">{String(preview._regs)}</span>} />
-                        <EntityDetailField label="موعد"     value={!preview._hasDate ? <span className="font-black text-[#EC943C]">انضم إلى الدورة القادمة</span> : String(preview.start_date ?? '')} />
-                        <EntityDetailField label="رابط اجتماع" value={preview.meeting_link ?? '—'} />
-                        <EntityDetailField label="المدرب"   value={instructorDrawerField(preview)} />
-                      </dl>
-                    </EntityDetailSection>
-                  ),
-                },
-                {
-                  id: 'p', labelAr: 'المشتركون',
-                  content: (
-                    <ParticipantsTabContent courseId={preview.id} courseTitle={preview.title} />
-                  ),
-                },
-              ]
-            : undefined
-        }
+        tracks={tracks}
+        departments={departments}
+        learningPaths={learningPaths}
+        existingCourses={rows}
       />
 
-      {/* Lazy modals — Suspense null fallback: modal handles its own skeleton */}
+      {/* إنشاء دورة جديدة — modal منفصل (لا يتراكب مع لوحة التفاصيل) */}
       <Suspense fallback={null}>
         <CourseProgramFormModal
           open={formOpen}
@@ -676,9 +665,9 @@ export default function ProgramsConsolePage() {
             if (!target) return
             const merged = applyAssignedInstructorToCourse(target, ins)
             setRows((prev) => prev.map((row) => (row.id === target.id ? merged : row)))
-            setPreview((p) => {
-              if (!p || p.id !== target.id) return p
-              return vmFromCourse(merged, regMap, instructorLookup)
+            setDrawer((d) => {
+              if (!d || d.course.id !== target.id) return d
+              return { ...d, course: vmFromCourse(merged, regMap, instructorLookup) }
             })
             setFormCourse((fc) => (fc?.id === target.id ? merged : fc))
           }}
@@ -712,11 +701,12 @@ export default function ProgramsConsolePage() {
 
 function KpiMini({ icon: Icon, label, value, tone }: {
   icon: ElementType; label: string; value: ReactNode
-  tone: 'sky' | 'mint' | 'amber' | 'rose' | 'violet' | 'orange'
+  tone: 'sky' | 'mint' | 'amber' | 'rose' | 'violet' | 'orange' | 'neutral'
 }) {
   const ring: Record<typeof tone, string> = {
     sky: 'ring-sky-400/30', mint: 'ring-emerald-400/30', amber: 'ring-amber-400/35',
     rose: 'ring-rose-400/35', violet: 'ring-violet-400/35', orange: 'ring-[#EC943C]/40',
+    neutral: 'ring-white/25',
   }
   return (
     <div className={`rounded-2xl border border-white/10 bg-white/10 px-4 py-3 shadow-inner shadow-black/10 ring-1 ${ring[tone]} backdrop-blur-md`}>
@@ -779,6 +769,7 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
           {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
           : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
           : <CrudBadge variant="default">مسودة</CrudBadge>}
+          {isEndedCourse(c) ? <CourseStatusBadge isEnded placement="inline" className="!text-[10px]" /> : null}
         </div>
         <h3 className="mt-4 line-clamp-2 min-h-[2.75rem] text-lg font-black leading-snug">{c.title}</h3>
         {/* Learning path membership badge */}
@@ -860,154 +851,6 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
     </motion.article>
   )
 })
-
-/* ── ParticipantsTabContent ──────────────────────────────────────────── */
-
-function participantStatusClass(status: string): string {
-  if (status === 'registered' || status === 'payment_confirmed' || status === 'confirmed') return 'bg-emerald-100 text-emerald-700'
-  if (status === 'attended') return 'bg-blue-100 text-blue-700'
-  if (status === 'cancelled') return 'bg-rose-100 text-rose-700'
-  return 'bg-slate-100 text-slate-600'
-}
-
-function ParticipantsTabContent({ courseId, courseTitle }: { courseId: number; courseTitle: string }) {
-  const [participants, setParticipants] = useState<CourseParticipant[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [total,        setTotal]        = useState(0)
-  const [addOpen,      setAddOpen]      = useState(false)
-  const [confirmRemove, setConfirmRemove] = useState<{ userId: number; name: string } | null>(null)
-  const [removeLoading, setRemoveLoading] = useState(false)
-
-  const loadParticipants = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetchCourseStudents(courseId, { per_page: 100 })
-      setParticipants(res.data)
-      setTotal(res.meta.total)
-    } catch {
-      setParticipants([])
-    } finally {
-      setLoading(false)
-    }
-  }, [courseId])
-
-  useEffect(() => { void loadParticipants() }, [loadParticipants])
-
-  function handleRemove(userId: number, name: string) {
-    setConfirmRemove({ userId, name })
-  }
-
-  async function doRemove() {
-    if (!confirmRemove) return
-    setRemoveLoading(true)
-    try {
-      await removeStudentFromCourse(courseId, confirmRemove.userId)
-      toast.success('تم إلغاء التسجيل')
-      setConfirmRemove(null)
-      void loadParticipants()
-    } catch (e) {
-      toast.error(getApiErrorMessage(e))
-    } finally {
-      setRemoveLoading(false)
-    }
-  }
-
-  return (
-    <>
-      <EntityDetailSection title="المشتركون" icon={<Users className="size-4" aria-hidden />}>
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-black text-slate-500">{total} مشترك</span>
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-deepBlue px-3 py-1.5 text-[11px] font-black text-white transition hover:bg-customBlue"
-          >
-            <UserPlus className="size-3.5" aria-hidden />
-            إضافة طالب
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 animate-pulse rounded-xl bg-slate-100" />
-            ))}
-          </div>
-        ) : participants.length === 0 ? (
-          <div className="rounded-xl bg-slate-50 py-8 text-center text-sm font-semibold text-slate-400">
-            لا يوجد مشتركون حتى الآن
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-100">
-            <table className="w-full text-right text-xs">
-              <thead>
-                <tr className="bg-slate-50">
-                  <th className="px-3 py-2 font-black text-slate-600">الاسم</th>
-                  <th className="px-3 py-2 font-black text-slate-600">البريد</th>
-                  <th className="px-3 py-2 font-black text-slate-600">الحالة</th>
-                  <th className="px-3 py-2 font-black text-slate-600">التقدم</th>
-                  <th className="px-3 py-2" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {participants.map((p) => (
-                  <tr key={p.registration_id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`size-1.5 shrink-0 rounded-full ${p.has_account ? 'bg-emerald-400' : 'bg-amber-400'}`} title={p.has_account ? 'لديه حساب' : 'بدون حساب'} />
-                        <span className="font-bold text-deepBlue">{p.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 font-mono text-[10px] text-slate-500 dir-ltr">{p.email}</td>
-                    <td className="px-3 py-2">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${participantStatusClass(p.status)}`}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 font-bold text-slate-600">{p.progress_pct}%</td>
-                    <td className="px-3 py-2 text-end">
-                      {p.user_id != null && (
-                        <button
-                          type="button"
-                          onClick={() => void handleRemove(p.user_id!, p.name)}
-                          className="rounded-lg border border-rose-200 px-2 py-0.5 text-[10px] font-black text-rose-600 transition hover:bg-rose-50"
-                        >
-                          إلغاء
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </EntityDetailSection>
-
-      <Suspense fallback={null}>
-        {addOpen && (
-          <AddStudentModal
-            courseId={courseId}
-            courseTitle={courseTitle}
-            onClose={() => setAddOpen(false)}
-            onAdded={() => void loadParticipants()}
-          />
-        )}
-      </Suspense>
-
-      <ConfirmDialog
-        open={confirmRemove !== null}
-        title="تأكيد إلغاء التسجيل"
-        description={confirmRemove ? `هل أنت متأكد أنك تريد إلغاء تسجيل الطالب «${confirmRemove.name}» من هذه الدورة؟` : undefined}
-        confirmLabel={removeLoading ? 'جار الإلغاء…' : 'تأكيد إلغاء التسجيل'}
-        cancelLabel="إلغاء"
-        variant="danger"
-        onConfirm={() => void doRemove()}
-        onCancel={() => setConfirmRemove(null)}
-      />
-    </>
-  )
-}
 
 /* ── CourseInstructorTableCell ───────────────────────────────────────── */
 

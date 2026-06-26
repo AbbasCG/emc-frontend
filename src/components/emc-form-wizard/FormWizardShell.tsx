@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -50,6 +50,8 @@ export function FormWizardShell({
   lockBodyScroll = true,
   maxWidthClassName = 'max-w-6xl',
 }: Props) {
+  const scrollBodyRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (!lockBodyScroll || variant !== 'overlay') return
     if (!open) return
@@ -59,6 +61,12 @@ export function FormWizardShell({
       document.body.style.overflow = prev
     }
   }, [open, lockBodyScroll, variant])
+
+  useEffect(() => {
+    if (scrollBodyRef.current) {
+      scrollBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentStep])
 
   const inner = (
     <div
@@ -120,6 +128,7 @@ export function FormWizardShell({
       </div>
 
       <div
+        ref={scrollBodyRef}
         className={cn(
           'grid grid-cols-1 gap-8 lg:grid-cols-12',
           variant === 'overlay' ? 'min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-6' : '',

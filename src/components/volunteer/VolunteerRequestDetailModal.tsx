@@ -16,15 +16,13 @@ import {
   Sparkles,
   User,
   UserCheck,
-  UserPlus,
+
   Video,
   X,
   XCircle,
 } from 'lucide-react'
 import { promiseToast } from '@/lib/toast'
-import toast from '@/lib/toast'
 import {
-  convertVolunteerToMember,
   updateVolunteerRequestStatus,
   type VolunteerRequest,
   type VolunteerRequestStatus,
@@ -67,14 +65,26 @@ export const STATUS_CFG: Record<
     badge: 'bg-violet-50 text-violet-800 ring-1 ring-violet-200/80',
     dot: 'bg-violet-500',
   },
+  reviewing: {
+    label: 'قيد المراجعة',
+    badge: 'bg-orange-50 text-orange-800 ring-1 ring-orange-200/80',
+    dot: 'bg-orange-500',
+  },
+  converted_to_member: {
+    label: 'تم التحويل لعضو',
+    badge: 'bg-teal-50 text-teal-800 ring-1 ring-teal-200/80',
+    dot: 'bg-teal-500',
+  },
 }
 
 const ALL_STATUSES: VolunteerRequestStatus[] = [
   'pending',
+  'reviewing',
   'reviewed',
   'accepted',
   'rejected',
   'contacted',
+  'converted_to_member',
 ]
 
 function StatusBadge({ status }: { status: VolunteerRequestStatus }) {
@@ -87,10 +97,6 @@ function StatusBadge({ status }: { status: VolunteerRequestStatus }) {
       {cfg.label}
     </span>
   )
-}
-
-function isAlreadyConverted(r: VolunteerRequest): boolean {
-  return r.can_convert_to_member !== true || r.converted_member_id !== null
 }
 
 function parseSkills(raw?: string | null): string[] {
@@ -237,20 +243,16 @@ export default function VolunteerRequestDetailModal({
   req,
   onClose,
   onUpdated,
-  onOpenConvert,
 }: VolunteerRequestDetailModalProps) {
   const [adminNotes, setAdminNotes] = useState(req.admin_notes ?? '')
   const [selectedStatus, setSelectedStatus] = useState<VolunteerRequestStatus>(req.status)
   const [saving, setSaving] = useState(false)
-  const [converting, setConverting] = useState(false)
-  const [localConverted, setLocalConverted] = useState(() => isAlreadyConverted(req))
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
     setAdminNotes(req.admin_notes ?? '')
     setSelectedStatus(req.status)
     setDirty(false)
-    setLocalConverted(isAlreadyConverted(req))
   }, [req])
 
   const skills = useMemo(() => parseSkills(req.skills), [req.skills])
@@ -310,30 +312,6 @@ export default function VolunteerRequestDetailModal({
       /* toast */
     } finally {
       setSaving(false)
-    }
-  }
-
-  async function handleConvert() {
-    if (localConverted) {
-      toast.warning('هذا المتطوع مضاف بالفعل إلى الأعضاء')
-      return
-    }
-    setConverting(true)
-    try {
-      const updated = await convertVolunteerToMember(req.id)
-      toast.success('تمت إضافة المتطوع إلى الأعضاء')
-      setLocalConverted(true)
-      onUpdated(updated)
-    } catch (err: unknown) {
-      const e = err as { response?: { status?: number; data?: { message?: string } } }
-      if (e?.response?.status === 409 || e?.response?.status === 422) {
-        toast.warning(e.response?.data?.message ?? 'هذا المتطوع مضاف بالفعل')
-        setLocalConverted(true)
-      } else {
-        toast.error('تعذّر تحويل المتطوع.')
-      }
-    } finally {
-      setConverting(false)
     }
   }
 
@@ -537,58 +515,21 @@ export default function VolunteerRequestDetailModal({
               )}
             </SectionCard>
 
-            {/* Convert to member */}
+            {/* Accepted status notice — link to accepted volunteers page */}
             {req.status === 'accepted' && (
-              <div
-                className={`md:col-span-2 rounded-2xl border px-4 py-3 ${
-                  localConverted
-                    ? 'border-emerald-200/80 bg-emerald-50/60'
-                    : 'border-[#22334A]/10 bg-white'
-                }`}
-              >
-                {localConverted ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                    <p className="flex-1 text-[12px] font-bold text-emerald-800">
-                      تمت إضافته إلى الأعضاء
-                    </p>
-                    <Link
-                      to="/dashboard/members"
-                      onClick={onClose}
-                      className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-50"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      عرض الأعضاء
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <UserPlus className="h-4 w-4 shrink-0 text-[#22334A]/60" />
-                    <p className="min-w-0 flex-1 text-[12px] font-medium text-[#22334A]">
-                      إضافة هذا المتطوع إلى صفحة الأعضاء؟
-                    </p>
-                    <button
-                      type="button"
-                      onClick={
-                        onOpenConvert
-                          ? () => {
-                              onClose()
-                              onOpenConvert(req)
-                            }
-                          : () => void handleConvert()
-                      }
-                      disabled={converting}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#22334A] bg-[#22334A] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#2691C2] disabled:opacity-50"
-                    >
-                      {converting ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <UserPlus className="h-3.5 w-3.5" />
-                      )}
-                      إضافة إلى الأعضاء
-                    </button>
-                  </div>
-                )}
+              <div className="md:col-span-2 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-3">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                <p className="flex-1 text-[12px] font-bold text-emerald-800">
+                  تم قبول الطلب — يمكن تحويل المتطوع إلى عضو من قائمة المتطوعين المقبولين.
+                </p>
+                <Link
+                  to="/dashboard/volunteer"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-50"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  عرض المتطوعين المقبولين
+                </Link>
               </div>
             )}
 

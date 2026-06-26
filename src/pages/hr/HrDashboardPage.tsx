@@ -1,246 +1,413 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  AlertCircle,
+  ArrowLeft,
+  Award,
+  BookOpen,
   Building2,
-  CalendarClock,
-  ClipboardList,
-  FolderUp,
+  CheckCircle2,
+  ClipboardCheck,
+  FolderLock,
   GraduationCap,
   HeartHandshake,
-  ListChecks,
+  Loader2,
+  RefreshCw,
+  Rocket,
+  TrendingUp,
+  UserCheck,
   UserPlus,
   Users,
 } from 'lucide-react'
-import { fetchHrDashboardSnapshot } from '@/api/hrDashboardApi'
-import HrDepartmentBarChart from '@/components/hr/HrDepartmentBarChart'
-import {
-  DashboardHero,
-  DashboardKpiCard,
-  DashboardKpiSkeleton,
-  DashboardListSkeleton,
-  DashboardErrorWidget,
-} from '@/components/dashboard'
-import type { HrDashboardSnapshot } from '@/types/hr'
+import { fetchHrDashboard, type HrDashboardData } from '@/api/hrDashboardApi'
+import { formatDate } from '@/utils/dateTime'
 
-function fmtInt(n: number | null) {
-  return n == null ? '—' : new Intl.NumberFormat('ar-SA').format(n)
+// ── English-only number formatter ──────────────────────────────────────────
+function n(v: number | null | undefined): string {
+  if (v == null) return '—'
+  return new Intl.NumberFormat('en-US').format(v)
 }
 
-function fmtPct(n: number | null) {
-  return n == null ? '—' : `${Math.min(100, Math.max(0, n))}%`
+// ── KPI Card ───────────────────────────────────────────────────────────────
+function KpiCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  accent,
+  href,
+  alert,
+}: {
+  label: string
+  value: string | number
+  sub?: string
+  icon: React.ElementType
+  accent: string
+  href?: string
+  alert?: boolean
+}) {
+  const inner = (
+    <div
+      className={`relative flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md ${
+        alert ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-100'
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${accent}`}>
+          <Icon size={18} />
+        </span>
+        {alert && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400">
+            <AlertCircle size={12} className="text-white" />
+          </span>
+        )}
+      </div>
+      <div className="text-right">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+        <p className="mt-0.5 text-3xl font-black text-[#22334A]">{value}</p>
+        {sub && <p className="mt-0.5 text-[11px] text-slate-400">{sub}</p>}
+      </div>
+    </div>
+  )
+  if (href) return <Link to={href}>{inner}</Link>
+  return inner
 }
 
-function fmtWhen(iso: string) {
-  if (!iso?.trim()) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('ar-SA', {
-    weekday: 'short',
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(d)
-}
-
-function hourGreeting(): string {
-  const h = new Date().getHours()
-  if (h < 12) return 'صباح الخير'
-  if (h < 18) return 'مساء الخير'
-  return 'مساء النور'
-}
-
-function HeroChip({ href, label }: { href: string; label: string }) {
+// ── Quick Action Button ────────────────────────────────────────────────────
+function QuickAction({ label, href, icon: Icon, accent }: { label: string; href: string; icon: React.ElementType; accent: string }) {
   return (
     <Link
       to={href}
-      className="rounded-2xl border border-white/[0.14] bg-white/[0.10] px-4 py-2 text-[11px] font-black text-white backdrop-blur-sm transition hover:border-white/[0.3] hover:bg-white/[0.18]"
+      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-[#22334A] shadow-sm transition hover:border-[#2691C2]/40 hover:bg-sky-50/50 hover:shadow-md"
     >
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accent}`}>
+        <Icon size={16} />
+      </span>
       {label}
     </Link>
   )
 }
 
-const QUICK_ACTIONS = [
-  { label: 'إضافة عضو جديد',        href: '/dashboard/hr/team',         icon: UserPlus    },
-  { label: 'مراجعة طلبات الانضمام', href: '/dashboard/hr/applications', icon: ClipboardList },
-  { label: 'إنشاء مهمة HR',         href: '/dashboard/hr/tasks',        icon: ListChecks  },
-  { label: 'إدارة الإدارات',         href: '/dashboard/hr/departments',  icon: Building2   },
-  { label: 'رفع ملف',               href: '/documents',                  icon: FolderUp    },
-]
+// ── Status badge ───────────────────────────────────────────────────────────
+const STATUS_MAP: Record<string, { label: string; cls: string }> = {
+  pending:              { label: 'قيد الانتظار', cls: 'bg-amber-100 text-amber-700' },
+  reviewing:            { label: 'تحت المراجعة', cls: 'bg-blue-100 text-blue-700' },
+  accepted:             { label: 'مقبول',         cls: 'bg-emerald-100 text-emerald-700' },
+  rejected:             { label: 'مرفوض',         cls: 'bg-red-100 text-red-600' },
+  converted_to_member:  { label: 'عضو',           cls: 'bg-slate-100 text-slate-600' },
+}
 
+function StatusBadge({ status }: { status: string }) {
+  const s = STATUS_MAP[status] ?? { label: status, cls: 'bg-slate-100 text-slate-600' }
+  return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-black ${s.cls}`}>{s.label}</span>
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────
 export default function HrDashboardPage() {
-  const [data, setData] = useState<HrDashboardSnapshot | null>(null)
+  const [data, setData] = useState<HrDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const greeting = hourGreeting()
 
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      try {
-        const snap = await fetchHrDashboardSnapshot()
-        if (!cancelled) setData(snap)
-      } catch {
-        if (!cancelled) setError('تعذر تحميل مؤشرات الموارد البشرية.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [])
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      setData(await fetchHrDashboard())
+    } catch {
+      setError('تعذّر تحميل بيانات الموارد البشرية.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const heroStats = loading
-    ? undefined
-    : [
-        { label: 'الفريق',      value: fmtInt(data?.totalTeamMembers ?? null)   },
-        { label: 'متطوعون',     value: fmtInt(data?.activeVolunteers ?? null)    },
-        { label: 'طلبات معلقة', value: fmtInt(data?.pendingApplications ?? null) },
-      ]
+  useEffect(() => { void load() }, [])
+
+  const s = data?.stats
 
   return (
-    <div dir="rtl" className="space-y-8 text-right">
-      {/* Hero — always visible */}
-      <DashboardHero
-        greeting={greeting}
-        name="قطاع الموارد البشرية"
-        role="EMC — HR"
-        subtitle="قراءة شاملة للفريق، المتطوعين، والمدربين، والالتزامات الأسبوعية."
-        quickStats={heroStats}
-        actions={
-          <>
-            <HeroChip href="/dashboard/hr/team"         label="الفريق"    />
-            <HeroChip href="/dashboard/hr/applications" label="الطلبات"   />
-            <HeroChip href="/dashboard/hr/tasks"        label="المهام"    />
-            <HeroChip href="/dashboard/hr/departments"  label="الإدارات"  />
-          </>
-        }
-      />
-
-      {/* KPI grid — skeleton while loading */}
-      {loading ? (
-        <DashboardKpiSkeleton count={8} />
-      ) : error ? (
-        <DashboardErrorWidget title="تعذر تحميل مؤشرات الموارد البشرية" description={error} />
-      ) : data ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <DashboardKpiCard icon={Users}         label="أعضاء الفريق"           value={fmtInt(data.totalTeamMembers)}               variant="brand"  hint="من دليل EMC العام أو الـ HR API" />
-          <DashboardKpiCard icon={HeartHandshake} label="متطوعون نشطون"         value={fmtInt(data.activeVolunteers)}                variant="accent" />
-          <DashboardKpiCard icon={GraduationCap}  label="مدربون فعالون"          value={fmtInt(data.activeInstructors)}               variant="brand"  hint="كتالوج المدربين العام" />
-          <DashboardKpiCard icon={ClipboardList}  label="طلبات معلّقة"           value={fmtInt(data.pendingApplications)}             variant="accent" hint="متطوعون (تقديم/مراجعة)" />
-          <DashboardKpiCard icon={Building2}      label="عدد الإدارات"           value={fmtInt(data.departmentsCount)}                variant="brand"  />
-          <DashboardKpiCard icon={CalendarClock}  label="تقدم التأهيل"           value={fmtPct(data.onboardingProgressPct)}           variant="accent" hint="تقدير من حالات المتطوعين" />
-          <DashboardKpiCard icon={CalendarClock}  label="مقابلات / اجتماعات قادمة" value={fmtInt(data.interviewsUpcoming.length)}  variant="brand"  hint="من اجتماعات العمليات" />
-          <DashboardKpiCard icon={ListChecks}     label="مهام الأسبوع"           value={fmtInt(data.tasksDueThisWeek.length)}         variant="accent" hint="مهام العمليات المستحقّة هذا الأسبوع" />
+    <div dir="rtl" className="min-h-screen bg-slate-50/60">
+      {/* ── Hero ───────────────────────────────────────────────────────── */}
+      <div className="border-b border-slate-200 bg-white px-6 py-8 shadow-sm">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-[#2691C2]">EMC — الموارد البشرية</p>
+              <h1 className="mt-1 text-2xl font-black text-[#22334A]">قطاع الموارد البشرية</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500">
+                إدارة الأعضاء، المدربين، المتطوعين، والطلبات الداخلية
+              </p>
+            </div>
+            <button
+              onClick={() => void load()}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              تحديث
+            </button>
+          </div>
         </div>
-      ) : null}
+      </div>
 
-      {/* Quick Actions */}
-      <section className="rounded-2xl border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.03]">
-        <h2 className="mb-4 text-sm font-black text-deepBlue">الإجراءات السريعة</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {QUICK_ACTIONS.map((q) => {
-            const Icon = q.icon
-            return (
-              <Link
-                key={q.href}
-                to={q.href}
-                className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.07] bg-deepBlue/[0.02] px-4 py-3 text-[12px] font-black text-deepBlue shadow-sm transition hover:border-customBlue/35 hover:bg-customBlue/[0.05] hover:shadow-md"
-              >
-                <Icon size={16} className="shrink-0 text-customBlue" aria-hidden />
-                {q.label}
-              </Link>
-            )
-          })}
-        </div>
-      </section>
+      <div className="mx-auto max-w-7xl px-6 py-6 space-y-8">
+        {/* ── Error ─────────────────────────────────────────────────────── */}
+        {error && (
+          <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <AlertCircle size={16} className="shrink-0 text-red-500" />
+            <p className="text-sm font-bold text-red-600">{error}</p>
+            <button onClick={() => void load()} className="ms-auto text-xs font-black text-red-600 underline">إعادة المحاولة</button>
+          </div>
+        )}
 
-      {/* Chart + Tables */}
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="space-y-6 xl:col-span-2">
+        {/* ── KPI Section 1: الأعضاء والفريق ──────────────────────────── */}
+        <section>
+          <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
+            1 — الأعضاء والفريق
+          </h2>
           {loading ? (
-            <div className="h-64 animate-pulse rounded-2xl bg-slate-100 ring-1 ring-slate-200/70" />
-          ) : data ? (
-            <HrDepartmentBarChart rows={data.departmentHeadcount} />
-          ) : null}
-
-          {/* Snapshot table */}
-          {!loading && data && (
-            <div className="rounded-2xl border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.03]">
-              <h3 className="mb-4 text-sm font-black text-deepBlue">جدول لمحات</h3>
-              <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-100">
-                <table className="w-full min-w-[520px] text-right text-sm">
-                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-black uppercase text-slate-400">
-                    <tr>
-                      <th className="px-4 py-3">المؤشر</th>
-                      <th className="px-4 py-3">القيمة</th>
-                      <th className="px-4 py-3">مصدر البيانات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 font-semibold text-deepBlue">
-                    {[
-                      ['أعضاء الفريق', fmtInt(data.totalTeamMembers), data.linked.team ? 'دليل الفريق العام / HR' : '—'],
-                      ['متطوعون', fmtInt(data.activeVolunteers), data.linked.volunteers ? 'عمليات — متطوعون' : '—'],
-                      ['مدربون', fmtInt(data.activeInstructors), data.linked.instructors ? 'كتالوج المدربين' : '—'],
-                      ['طلبات معلّقة', fmtInt(data.pendingApplications), data.linked.volunteers ? 'حالات المتطوعين' : '—'],
-                    ].map(([k, v, src]) => (
-                      <tr key={String(k)}>
-                        <td className="px-4 py-3">{k}</td>
-                        <td className="px-4 py-3 font-latin tabular-nums">{v}</td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{src}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[...Array(4)].map((_, i) => <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-100" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <KpiCard label="إجمالي الأعضاء"    value={n(s?.total_members)}   icon={Users}      accent="bg-[#22334A]/10 text-[#22334A]"  />
+              <KpiCard label="الأعضاء النشطون"   value={n(s?.active_members)}  icon={UserCheck}  accent="bg-emerald-100 text-emerald-700" />
+              <KpiCard label="أعضاء الفريق"      value={n(s?.team_members)}    icon={Award}      accent="bg-violet-100 text-violet-700"   />
+              <KpiCard label="الإدارات"           value={n(s?.departments_count)} icon={Building2} accent="bg-sky-100 text-sky-700"        href="/dashboard/hr/departments" />
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="grid gap-6 content-start">
-          {/* Upcoming interviews */}
-          <div className="rounded-2xl border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.03]">
-            <h3 className="mb-4 text-sm font-black text-deepBlue">مقابلات واجتماعات قادمة</h3>
-            {loading ? (
-              <DashboardListSkeleton count={3} />
-            ) : !data || data.interviewsUpcoming.length === 0 ? (
-              <div className="rounded-xl bg-slate-50 px-4 py-6 text-center text-xs font-semibold text-slate-500">
-                {data?.linked.meetings ? 'لا توجد عناصر مجدولة في النطاق الحالي.' : 'لم يتم ربط هذا القسم بالبيانات بعد'}
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {data.interviewsUpcoming.map((m) => (
-                  <li key={m.id} className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3">
-                    <p className="text-sm font-black text-deepBlue">{m.title}</p>
-                    <p className="mt-1 text-[11px] font-bold text-slate-500">{fmtWhen(m.when)}</p>
-                    {m.subtitle && <p className="mt-0.5 text-[11px] text-slate-400">{m.subtitle}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        {/* ── KPI Section 2: المتطوعون ──────────────────────────────────── */}
+        <section>
+          <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
+            2 — المتطوعون والطلبات
+          </h2>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[...Array(4)].map((_, i) => <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-100" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <KpiCard
+                label="طلبات جديدة"
+                value={n(s?.pending_volunteer_requests)}
+                icon={HeartHandshake}
+                accent="bg-amber-100 text-amber-700"
+                href="/dashboard/hr/volunteer-requests"
+                alert={(s?.pending_volunteer_requests ?? 0) > 0}
+              />
+              <KpiCard
+                label="مقبولون"
+                value={n(s?.accepted_volunteers)}
+                icon={CheckCircle2}
+                accent="bg-emerald-100 text-emerald-700"
+                href="/dashboard/volunteer"
+              />
+              <KpiCard
+                label="بانتظار التحويل"
+                value={n(s?.volunteers_waiting_conversion)}
+                icon={TrendingUp}
+                accent="bg-orange-100 text-orange-700"
+                href="/dashboard/volunteer"
+                alert={(s?.volunteers_waiting_conversion ?? 0) > 0}
+              />
+              <KpiCard
+                label="تم التحويل"
+                value={n(s?.converted_volunteers)}
+                icon={UserPlus}
+                accent="bg-teal-100 text-teal-700"
+              />
+            </div>
+          )}
+        </section>
 
-          {/* Tasks due this week */}
-          <div className="rounded-2xl border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.03]">
-            <h3 className="mb-4 text-sm font-black text-deepBlue">مهام مستحقة هذا الأسبوع</h3>
-            {loading ? (
-              <DashboardListSkeleton count={3} />
-            ) : !data || data.tasksDueThisWeek.length === 0 ? (
-              <div className="rounded-xl bg-slate-50 px-4 py-6 text-center text-xs font-semibold text-slate-500">
-                {data?.linked.tasks ? 'لا توجد مهام مستحقة ضمن الأسبوع الحالي.' : 'لم يتم ربط هذا القسم بالبيانات بعد'}
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {data.tasksDueThisWeek.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3">
-                    <span className="text-[11px] font-bold text-slate-500 font-latin">{t.due_at ? fmtWhen(t.due_at) : '—'}</span>
-                    <span className="min-w-0 flex-1 text-sm font-bold text-deepBlue">{t.title}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Link to="/dashboard/hr/tasks" className="mt-4 block text-center text-[11px] font-black text-customBlue hover:underline">
-              كافة مهام الموارد البشرية
-            </Link>
+        {/* ── KPI Section 3: المدربون والمهام ────────────────────────────── */}
+        <section>
+          <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
+            3 — المدربون والمهام
+          </h2>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+              {[...Array(2)].map((_, i) => <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-100" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard
+                label="المدربون"
+                value={n(s?.instructors)}
+                icon={GraduationCap}
+                accent="bg-indigo-100 text-indigo-700"
+                href="/dashboard/hr/instructors"
+              />
+              <KpiCard
+                label="مهام HR المفتوحة"
+                value={n(s?.open_hr_tasks)}
+                icon={ClipboardCheck}
+                accent="bg-rose-100 text-rose-700"
+                href="/dashboard/hr/tasks"
+                alert={(s?.open_hr_tasks ?? 0) > 5}
+              />
+            </div>
+          )}
+        </section>
+
+        {/* ── Quick Actions ─────────────────────────────────────────────── */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-sm font-black text-[#22334A]">الإجراءات السريعة</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <QuickAction label="مراجعة طلبات التطوع"     href="/dashboard/hr/volunteer-requests" icon={HeartHandshake}  accent="bg-amber-100 text-amber-700"   />
+            <QuickAction label="عرض المتطوعين المقبولين"  href="/dashboard/volunteer"             icon={CheckCircle2}    accent="bg-emerald-100 text-emerald-700" />
+            <QuickAction label="إدارة المدربين"           href="/dashboard/hr/instructors"        icon={GraduationCap}   accent="bg-indigo-100 text-indigo-700"  />
+            <QuickAction label="الإدارات والأدوار"        href="/dashboard/hr/departments"        icon={Building2}       accent="bg-sky-100 text-sky-700"        />
+            <QuickAction label="مهام الموارد البشرية"     href="/dashboard/hr/tasks"              icon={ClipboardCheck}  accent="bg-rose-100 text-rose-700"      />
+            <QuickAction label="ملفات الموارد البشرية"    href="/dashboard/hr/documents"          icon={FolderLock}      accent="bg-slate-100 text-slate-600"    />
           </div>
+        </section>
+
+        {/* ── Content Grid ──────────────────────────────────────────────── */}
+        {!loading && data && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Recent Volunteer Requests */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <Link to="/dashboard/hr/volunteer-requests" className="flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline">
+                  عرض الكل <ArrowLeft size={12} />
+                </Link>
+                <h3 className="text-sm font-black text-[#22334A]">آخر طلبات التطوع</h3>
+              </div>
+              {data.recent_volunteer_requests.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">لا توجد طلبات حتى الآن</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.recent_volunteer_requests.map((r) => (
+                    <li key={r.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                      <StatusBadge status={r.status} />
+                      <div className="min-w-0 flex-1 text-right">
+                        <p className="truncate text-sm font-black text-[#22334A]">{r.full_name}</p>
+                        <p className="text-[11px] text-slate-400">{r.desired_department ?? r.email}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Accepted volunteers pending conversion */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <Link to="/dashboard/volunteer" className="flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline">
+                  عرض الكل <ArrowLeft size={12} />
+                </Link>
+                <h3 className="text-sm font-black text-[#22334A]">مقبولون بانتظار التحويل</h3>
+              </div>
+              {data.accepted_volunteers.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">لا يوجد متطوعون مقبولون في انتظار التحويل</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.accepted_volunteers.map((r) => (
+                    <li key={r.id} className="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-3 py-2.5">
+                      <p className="text-[11px] text-slate-400">{r.accepted_at ? formatDate(r.accepted_at) : '—'}</p>
+                      <div className="min-w-0 flex-1 text-right">
+                        <p className="truncate text-sm font-black text-[#22334A]">{r.full_name}</p>
+                        <p className="text-[11px] text-slate-400">{r.desired_department ?? r.email}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Recent Instructors */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <Link to="/dashboard/hr/instructors" className="flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline">
+                  عرض الكل <ArrowLeft size={12} />
+                </Link>
+                <h3 className="text-sm font-black text-[#22334A]">آخر المدربين</h3>
+              </div>
+              {data.recent_instructors.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">لا يوجد مدربون مسجلون</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.recent_instructors.map((i) => (
+                    <li key={i.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                      <span className="flex items-center gap-1 text-[11px] text-slate-500">
+                        <BookOpen size={11} />
+                        {n(i.courses_count)}
+                      </span>
+                      <div className="min-w-0 flex-1 text-right">
+                        <p className="truncate text-sm font-black text-[#22334A]">{i.name}</p>
+                        <p className="text-[11px] text-slate-400">{i.title ?? i.email ?? '—'}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Department breakdown */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <Link to="/dashboard/hr/departments" className="flex items-center gap-1 text-[11px] font-black text-[#2691C2] hover:underline">
+                  عرض الكل <ArrowLeft size={12} />
+                </Link>
+                <h3 className="text-sm font-black text-[#22334A]">توزيع الأعضاء بالإدارات</h3>
+              </div>
+              {data.department_breakdown.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">لا توجد إدارات نشطة</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.department_breakdown.slice(0, 6).map((d) => {
+                    const max = Math.max(...data.department_breakdown.map((x) => x.members_count), 1)
+                    const pct = Math.round((d.members_count / max) * 100)
+                    return (
+                      <li key={d.name} className="grid gap-1 text-right">
+                        <div className="flex items-center justify-between text-[12px]">
+                          <span className="font-black text-[#22334A]">{n(d.members_count)}</span>
+                          <span className="font-semibold text-slate-600">{d.name}</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-[#2691C2] transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 size={28} className="animate-spin text-[#2691C2]" />
+          </div>
+        )}
+
+        {/* Onboarding / Tasks shortcuts */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Link to="/dashboard/hr/onboarding" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-700"><Rocket size={18} /></span>
+            <div className="text-right">
+              <p className="text-sm font-black text-[#22334A]">التأهيل والانضمام</p>
+              <p className="text-[11px] text-slate-400">متابعة عمليات الانضمام</p>
+            </div>
+          </Link>
+          <Link to="/dashboard/hr/tasks" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700"><ClipboardCheck size={18} /></span>
+            <div className="text-right">
+              <p className="text-sm font-black text-[#22334A]">مهام الموارد البشرية</p>
+              <p className="text-[11px] text-slate-400">{n(s?.open_hr_tasks)} مهمة مفتوحة</p>
+            </div>
+          </Link>
+          <Link to="/dashboard/hr/documents" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><FolderLock size={18} /></span>
+            <div className="text-right">
+              <p className="text-sm font-black text-[#22334A]">ملفات الموارد البشرية</p>
+              <p className="text-[11px] text-slate-400">الوثائق والملفات الداخلية</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

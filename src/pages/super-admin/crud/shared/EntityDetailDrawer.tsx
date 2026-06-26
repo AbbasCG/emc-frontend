@@ -67,6 +67,8 @@ type EntityDetailDrawerProps = {
   footerSlot?: ReactNode
   widthClassName?: string
   defaultTabId?: string
+  /** When false, body does not scroll — child handles layout (e.g. embedded form with sticky footer) */
+  scrollBody?: boolean
 }
 
 /**
@@ -84,6 +86,7 @@ export function EntityDetailDrawer({
   footerSlot,
   widthClassName = 'max-w-full sm:max-w-4xl lg:max-w-5xl',
   defaultTabId,
+  scrollBody = true,
 }: EntityDetailDrawerProps) {
   const orderedTabs = tabs ?? []
   const [active, setActive] = useState(() => defaultTabId ?? orderedTabs[0]?.id ?? '')
@@ -194,7 +197,14 @@ export function EntityDetailDrawer({
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-5 py-5 text-right rtl:text-right">{activeContent}</div>
+              <div
+                className={cn(
+                  'flex-1 text-right rtl:text-right',
+                  scrollBody ? 'overflow-y-auto px-5 py-5' : 'flex min-h-0 flex-col overflow-hidden px-5 py-3',
+                )}
+              >
+                {activeContent}
+              </div>
             </div>
 
             {footerSlot ?

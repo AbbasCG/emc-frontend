@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Building2, Clock3, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../types'
 import { courseImages, fadeUp, formatPrice } from '../utils/course'
+import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
+import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { formatPublicCount } from '@/utils/publicDetailFormat'
 
 type CourseCardProps = {
@@ -14,6 +16,7 @@ export default function CourseCard({ course, index }: CourseCardProps) {
   const isOnline = Boolean(course.is_online)
   const image = courseImages[index % courseImages.length]
   const isFree = course.type === 'free'
+  const isEnded = resolveCourseIsEnded(course)
 
   return (
     <motion.article
@@ -31,6 +34,12 @@ export default function CourseCard({ course, index }: CourseCardProps) {
           className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/60 via-transparent to-transparent" />
+
+        {isEnded ?
+          <div className="absolute left-4 top-4 z-10">
+            <CourseStatusBadge isEnded placement="overlay" />
+          </div>
+        : null}
 
         <span
           className={`absolute right-4 top-4 rounded-full px-4 py-1.5 text-xs font-black text-white backdrop-blur-sm ${

@@ -8,14 +8,12 @@ import {
   ChevronLeft,
   Clock,
   HeartHandshake,
-  Loader2,
   RefreshCw,
   Search,
   Users,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
-  convertVolunteerToMember,
   fetchVolunteerRequests,
   type VolunteerRequest,
   type VolunteerRequestStatus,
@@ -25,7 +23,7 @@ import { formatDate } from '@/utils/dateTime'
 
 /* ── Status config (table badges) ──────────────────────────────────── */
 
-const ALL_STATUSES: VolunteerRequestStatus[] = ['pending', 'reviewed', 'accepted', 'rejected', 'contacted']
+const ALL_STATUSES: VolunteerRequestStatus[] = ['pending', 'reviewing', 'reviewed', 'accepted', 'rejected', 'contacted', 'converted_to_member']
 
 const DEPARTMENTS = [
   'البرامج والمسارات',
@@ -49,87 +47,6 @@ function StatusBadge({ status }: { status: VolunteerRequestStatus }) {
   )
 }
 
-function isAlreadyConverted(r: VolunteerRequest): boolean {
-  return r.can_convert_to_member !== true || r.converted_member_id !== null
-}
-
-/* ── Convert-to-member confirmation modal ─────────────────────────── */
-
-type ConvertModalProps = {
-  req: VolunteerRequest
-  onClose: () => void
-  onConverted: (updated: VolunteerRequest) => void
-}
-
-function ConvertToMemberModal({ req, onClose, onConverted }: ConvertModalProps) {
-  const [loading, setLoading] = useState(false)
-
-  async function handleConfirm() {
-    setLoading(true)
-    try {
-      const updated = await convertVolunteerToMember(req.id)
-      toast.success('تمت إضافة المتطوع إلى الأعضاء بنجاح')
-      onConverted(updated)
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 409 || status === 422) {
-        toast.warning('هذا المتطوع مضاف بالفعل إلى الأعضاء')
-        onClose()
-      } else {
-        toast.error('تعذّر تحويل المتطوع. تحقق من الاتصال وأعد المحاولة.')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 backdrop-blur-[2px]"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        dir="rtl"
-      >
-        <div className="h-1 bg-gradient-to-l from-emerald-500 to-teal-400" />
-        <div className="px-7 py-6 text-right">
-          <h2 className="text-[18px] font-black text-[#22334A]">تحويل المتطوع إلى عضو</h2>
-          <p className="mt-3 text-[14px] font-semibold leading-relaxed text-slate-600">
-            <span className="font-black text-[#22334A]">{req.full_name}</span> — هل تريد نقل بياناته إلى صفحة الأعضاء؟
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => void handleConfirm()}
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-[14px] font-black text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              نعم، إضافة إلى الأعضاء
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="w-full rounded-2xl border border-slate-200 py-3 text-[13px] font-black text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
-            >
-              لا، لاحقًا
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
 /* ── Main page ─────────────────────────────────────────────────────── */
 
 export default function VolunteerRequestsPage() {
@@ -144,7 +61,6 @@ export default function VolunteerRequestsPage() {
   const [filterStatus, setFilterStatus] = useState<VolunteerRequestStatus | 'all'>('all')
   const [filterDept, setFilterDept] = useState<string>(() => searchParams.get('department') ?? 'all')
   const [selected, setSelected] = useState<VolunteerRequest | null>(null)
-  const [convertTarget, setConvertTarget] = useState<VolunteerRequest | null>(null)
 
   async function load() {
     setLoadError(null)
@@ -170,14 +86,9 @@ export default function VolunteerRequestsPage() {
   function handleUpdated(updated: VolunteerRequest) {
     setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
     setSelected((prev) => (prev?.id === updated.id ? updated : prev))
-    if (updated.status === 'accepted' && !isAlreadyConverted(updated)) {
-      setConvertTarget(updated)
+    if (updated.status === 'accepted') {
+      toast.success('تم قبول طلب التطوع ونقله إلى قائمة المتطوعين المقبولين.')
     }
-  }
-
-  function handleConverted(updated: VolunteerRequest) {
-    setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-    setConvertTarget(null)
   }
 
   function handleClose() {
@@ -210,12 +121,14 @@ export default function VolunteerRequestsPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n)
 
-  const kpiIcons: Record<VolunteerRequestStatus, React.ReactNode> = {
+  const kpiIcons: Partial<Record<VolunteerRequestStatus, React.ReactNode>> = {
     pending: <Clock className="h-4 w-4 text-amber-500" />,
+    reviewing: <Clock className="h-4 w-4 text-orange-500" />,
     reviewed: <Clock className="h-4 w-4 text-sky-500" />,
     accepted: <Users className="h-4 w-4 text-emerald-500" />,
     rejected: <Clock className="h-4 w-4 text-red-500" />,
     contacted: <Clock className="h-4 w-4 text-violet-500" />,
+    converted_to_member: <Users className="h-4 w-4 text-teal-500" />,
   }
 
   return (
@@ -448,20 +361,11 @@ export default function VolunteerRequestsPage() {
             req={selected}
             onClose={handleClose}
             onUpdated={handleUpdated}
-            onOpenConvert={(req) => setConvertTarget(req)}
+            onOpenConvert={() => {}}
           />
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {convertTarget && (
-          <ConvertToMemberModal
-            req={convertTarget}
-            onClose={() => setConvertTarget(null)}
-            onConverted={handleConverted}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }

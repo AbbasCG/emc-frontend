@@ -2,6 +2,7 @@ import type { Course } from '@/types'
 import type { PublicInfoCard } from '@/components/public/detail/PublicDetailInfoCards'
 import type { CurriculumGroup } from '@/components/public/detail/PublicCurriculumSection'
 import { resolvePublicCourseInstructor } from '@/utils/courseInstructor'
+import { ENDED_COURSE_DETAIL_MESSAGE, resolveCourseIsEnded } from '@/utils/courseEnded'
 import { formatDuration, formatPrice } from '@/utils/course'
 import {
   ITEM_LABELS,
@@ -80,6 +81,8 @@ export type CourseDetailDerived = {
   meetingLink: string | null
   targetAudience: string | null
   fullDescription: string | null
+  isEnded: boolean
+  endedMessage: string | null
   prerequisitesBlock: string | null
   learningOutcomesBlock: string | null
   methodologyLines: string[]
@@ -131,6 +134,7 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
   const itemType = resolveItemType(course)
   const L = ITEM_LABELS[itemType]
   const isFree = course.type === 'free'
+  const isEnded = resolveCourseIsEnded(course)
   const registration = mapRegistrationOpen(course)
   const coverUrl = resolveCourseCoverImageUrl(course) ?? EMC_COURSE_COVER_PLACEHOLDER
   const instructor = resolvePublicCourseInstructor(course)
@@ -351,6 +355,8 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
     meetingLink,
     targetAudience,
     fullDescription,
+    isEnded,
+    endedMessage: isEnded ? ENDED_COURSE_DETAIL_MESSAGE : null,
     prerequisitesBlock: prerequisitesCombined,
     learningOutcomesBlock,
     methodologyLines,

@@ -7,7 +7,7 @@ type Props = {
   greeting: string
   name: string
   role?: string
-  subtitle?: string
+  subtitle?: ReactNode
   quickStats?: QuickStat[]
   /** Quick action chips rendered below the subtitle */
   actions?: ReactNode

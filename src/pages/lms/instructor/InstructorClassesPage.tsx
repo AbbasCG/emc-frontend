@@ -31,6 +31,7 @@ import { InstructorHero } from '@/components/instructor'
 import { InstructorClassDrawer } from '@/components/instructor/InstructorClassDrawer'
 import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
 import { formatDate } from '@/utils/dateTime'
+import GoogleStyleTimePicker from '@/components/shared/GoogleStyleTimePicker'
 
 /* ── CEFR level options ───────────────────────────────────────────────────── */
 
@@ -504,12 +505,11 @@ export default function InstructorClassesPage() {
 
                   {/* Schedule time */}
                   <div>
-                    <label className="mb-1 block text-[11px] font-black text-deepBlue/55">وقت الحصة</label>
-                    <input
-                      type="time"
-                      value={groupForm.schedule_time}
-                      onChange={(e) => setGroupForm((f) => ({ ...f, schedule_time: e.target.value }))}
-                      className="h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#2691C2]"
+                    <GoogleStyleTimePicker
+                      label="وقت الحصة"
+                      value={groupForm.schedule_time || null}
+                      onChange={(v) => setGroupForm((f) => ({ ...f, schedule_time: v }))}
+                      minuteStep={15}
                     />
                   </div>
 

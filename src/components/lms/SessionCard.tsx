@@ -1,17 +1,18 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ExternalLink, PlayCircle, Video } from 'lucide-react'
+import { ExternalLink, Loader2, PlayCircle, Video } from 'lucide-react'
 import type { LmsSession } from '@/types/lms'
 import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
+import { openStudentSessionLink } from '@/api/studentApi'
+import toast from '@/lib/toast'
 
 type Props = {
   session: LmsSession
   showRecording?: boolean
-  /** Optional label for joining online meeting link */
   joinMeetingLabel?: string
   compact?: boolean
 }
 
-/** Derive a consistent status badge from the join state so badge + CTA never conflict. */
 function StatusBadgeFromJoinState({ kind }: { kind: string }) {
   if (kind === 'join') {
     return (
@@ -34,7 +35,6 @@ function StatusBadgeFromJoinState({ kind }: { kind: string }) {
       </span>
     )
   }
-  // waiting / offline / no_link → upcoming
   return (
     <span className="inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-black text-customBlue ring-1 ring-sky-100">
       قادمة
@@ -45,6 +45,35 @@ function StatusBadgeFromJoinState({ kind }: { kind: string }) {
 export default function SessionCard({ session, showRecording = true, joinMeetingLabel, compact = false }: Props) {
   const scheduleLine = formatSessionSchedule(session)
   const joinState = getSessionJoinState(session, Date.now(), joinMeetingLabel ?? 'انضم للجلسة')
+  const [joining, setJoining] = useState(false)
+
+  async function handleJoin() {
+    if (joining) return
+    setJoining(true)
+    try {
+      const url = await openStudentSessionLink(Number(session.id))
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 409) {
+        toast.warning('انتهت الجلسة أو تم إلغاؤها.')
+      } else if (status === 403) {
+        toast.error('غير مسجّل في هذه الدورة.')
+      } else if (status === 422) {
+        toast.warning('لا يوجد رابط اجتماع لهذه الجلسة.')
+      } else {
+        // Fallback: open direct link if tracking fails
+        const fallbackUrl = joinState.kind === 'join' ? joinState.href : null
+        if (fallbackUrl && fallbackUrl !== '#') {
+          window.open(fallbackUrl, '_blank', 'noopener,noreferrer')
+        } else {
+          toast.error('تعذّر فتح الجلسة. حاول مرة أخرى.')
+        }
+      }
+    } finally {
+      setJoining(false)
+    }
+  }
 
   return (
     <motion.article
@@ -85,15 +114,15 @@ export default function SessionCard({ session, showRecording = true, joinMeeting
 
         <div className={`flex shrink-0 flex-col gap-2 ${compact ? '' : 'sm:items-end'}`}>
           {joinState.kind === 'join' && (
-            <a
-              href={joinState.href}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-500/25 transition hover:bg-emerald-700"
+            <button
+              type="button"
+              onClick={() => void handleJoin()}
+              disabled={joining}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-500/25 transition hover:bg-emerald-700 disabled:opacity-60"
             >
-              <PlayCircle size={16} />
+              {joining ? <Loader2 size={16} className="animate-spin" /> : <PlayCircle size={16} />}
               {joinState.label}
-            </a>
+            </button>
           )}
           {joinState.kind === 'waiting' && (
             <span className="inline-flex items-center justify-center rounded-xl bg-amber-50 px-4 py-2.5 text-xs font-black text-amber-800 ring-1 ring-amber-100">

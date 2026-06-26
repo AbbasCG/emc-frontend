@@ -19,6 +19,7 @@ export type LmsSession = {
   instructor_name?: string | null
   location?: string | null
   meeting_link?: string | null
+  meeting_url?: string | null
   recording_link?: string | null
   platform?: string | null
 }

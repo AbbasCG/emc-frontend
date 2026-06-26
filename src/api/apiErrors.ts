@@ -105,8 +105,22 @@ export function getApiErrorMessage(error: unknown): string {
     return STATUS_MESSAGES[422] ?? FALLBACK
   }
 
+  const requestUrl = axios.isAxiosError(error) ? String(error.config?.url ?? '') : ''
+  if (status === 404) {
+    if (requestUrl.includes('/admin/certificates/templates')) {
+      return 'تعذر تحميل بيانات الشهادات. تحقق من الاتصال وأعد المحاولة.'
+    }
+    if (requestUrl.includes('/admin/certificates/eligibility')) {
+      return 'تعذر تحميل بيانات الأهلية. تحقق من الاتصال وأعد المحاولة.'
+    }
+  }
+
   if (data && typeof data.message === 'string' && data.message.trim()) {
-    return data.message
+    const msg = data.message.trim()
+    if (msg === 'The requested endpoint does not exist.') {
+      return STATUS_MESSAGES[404] ?? FALLBACK
+    }
+    return msg
   }
 
   if (status && STATUS_MESSAGES[status]) {

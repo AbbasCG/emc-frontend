@@ -12,7 +12,7 @@ import {
   Loader2,
   RotateCcw,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -269,6 +269,7 @@ function WorkshopSuccessCelebration({
 
 export default function SubmitWorkshop() {
   const [step, setStep] = useState(1)
+  const formTopRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState<WorkshopFormValues>(initialForm)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
@@ -277,6 +278,10 @@ export default function SubmitWorkshop() {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [apiError, setApiError] = useState('')
   const [submissionSuccess, setSubmissionSuccess] = useState(false)
+
+  useEffect(() => {
+    formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [step])
 
   useEffect(() => {
     if (!submissionSuccess) return
@@ -523,6 +528,7 @@ export default function SubmitWorkshop() {
 
         <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="lg:col-span-8">
+            <div ref={formTopRef} />
             <motion.div
               layout
               initial={{ opacity: 0, y: 14 }}

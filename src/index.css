@@ -52,6 +52,9 @@
   --z-popover: 100;
   --z-modal-overlay: 200;
   --z-modal-content: 210;
+  /* Nested modals above drawers (AddStudentModal, etc.) */
+  --z-nested-modal-backdrop: 9998;
+  --z-nested-modal: 9999;
   --z-datetime-popover: 300;
   --z-toast: 400;
   --dashboard-header-height: 4rem;
@@ -145,6 +148,8 @@ h1, h2, h3, h4, h5, h6 {
 .z-modal-overlay { z-index: var(--z-modal-overlay); }
 .z-modal-content { z-index: var(--z-modal-content); }
 .z-datetime-popover { z-index: var(--z-datetime-popover); }
+.z-nested-modal-backdrop { z-index: var(--z-nested-modal-backdrop); }
+.z-nested-modal { z-index: var(--z-nested-modal); }
 .z-toast { z-index: var(--z-toast); }
 
 a {

@@ -338,6 +338,7 @@ export default function CourseDetails() {
   const learningPathSlug =
     (courseX.learning_path as { slug?: string } | null | undefined)?.slug ?? null
 
+  const courseX2 = course as Record<string, unknown>
   const enrollCta = resolveCourseEnrollCta({
     registrationOpen: registration.open,
     seatsFull,
@@ -346,8 +347,13 @@ export default function CourseDetails() {
     userRole: user?.role,
     courseSlug: course.slug,
     courseId: course.id,
+    isEnded: derived.isEnded,
+    allowEndedEnrollment: derived.isEnded && registration.open,
     isPartOfLearningPath,
     learningPathSlug,
+    isPaid: Boolean(courseX2.is_paid),
+    price: typeof courseX2.price === 'number' ? courseX2.price : undefined,
+    currency: typeof courseX2.currency === 'string' ? courseX2.currency : 'EUR',
   })
 
   const gallery = extractCourseGallery(course, coverUrl)
@@ -361,14 +367,20 @@ export default function CourseDetails() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-base font-black text-[#22334A]">الالتحاق بالبرنامج</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
-            registration.open && !seatsFull
+            derived.isEnded ? 'bg-slate-100 text-slate-700 ring-slate-200'
+            : registration.open && !seatsFull
               ? 'bg-emerald-50 text-emerald-800 ring-emerald-100'
               : 'bg-orange-50 text-orange-800 ring-orange-100'
           }`}>
-            {registration.open && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
+            {derived.isEnded ? 'انتهت' : registration.open && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
           </span>
         </div>
       </div>
+      {derived.endedMessage ?
+        <div className="border-b border-[#22334A]/6 bg-slate-50 px-5 py-3">
+          <p className="text-[12px] font-semibold leading-relaxed text-[#22334A]/70">{derived.endedMessage}</p>
+        </div>
+      : null}
       <div className="border-b border-[#22334A]/6 px-5 py-4">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-black text-slate-400">الرسوم</span>

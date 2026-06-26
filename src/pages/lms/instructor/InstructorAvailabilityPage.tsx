@@ -19,6 +19,7 @@ import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import toast from '@/lib/toast'
 import { BackButton } from '@/components/shared/BackButton'
+import GoogleStyleTimePicker from '@/components/shared/GoogleStyleTimePicker'
 
 /* ── Constants ───────────────────────────────────────────────────────────── */
 
@@ -733,20 +734,20 @@ function AvailabilityModal({ form, errors, courses, saving, previews, onPatch, o
 
               {isCustom && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="mb-1 text-[10px] font-black text-deepBlue/40">من</p>
-                    <input type="time" value={form.customStart} dir="ltr"
-                      className={fieldCls(!!errors.startTime)}
-                      onChange={(e) => onPatch({ customStart: e.target.value })} />
-                    {errors.startTime && <FieldError msg={errors.startTime} />}
-                  </div>
-                  <div>
-                    <p className="mb-1 text-[10px] font-black text-deepBlue/40">إلى</p>
-                    <input type="time" value={form.customEnd} dir="ltr"
-                      className={fieldCls(!!errors.endTime)}
-                      onChange={(e) => onPatch({ customEnd: e.target.value })} />
-                    {errors.endTime && <FieldError msg={errors.endTime} />}
-                  </div>
+                  <GoogleStyleTimePicker
+                    label="من"
+                    value={form.customStart || null}
+                    onChange={(v) => onPatch({ customStart: v })}
+                    error={errors.startTime}
+                    minuteStep={15}
+                  />
+                  <GoogleStyleTimePicker
+                    label="إلى"
+                    value={form.customEnd || null}
+                    onChange={(v) => onPatch({ customEnd: v })}
+                    error={errors.endTime}
+                    minuteStep={15}
+                  />
                 </div>
               )}
               {!isCustom && errors.endTime && <FieldError msg={errors.endTime} />}

@@ -84,6 +84,17 @@ const InstructorCourseStudentsPage    = lazy(() => import('./pages/lms/instructo
 const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructor/InstructorPlacementTestsPage'))
 const InstructorClassesPage           = lazy(() => import('./pages/lms/instructor/InstructorClassesPage'))
 
+// ── Lazy: Certificate Management (LMS-style) ─────────────────────────────────
+const AdminCertificatesLmsPage      = lazy(() => import('./pages/lms/admin/AdminCertificatesPage'))
+const AdminCertificateIssuePage     = lazy(() => import('./pages/lms/admin/AdminCertificateIssuePage'))
+const AdminCertificateTemplatesPage = lazy(() => import('./pages/lms/admin/AdminCertificateTemplatesPage'))
+const AdminCertificateBatchesPage   = lazy(() => import('./pages/lms/admin/AdminCertificateBatchesPage'))
+const AdminCertificateDetailPage    = lazy(() => import('./pages/lms/admin/AdminCertificateDetailPage'))
+const StudentCertificatesLmsPage    = lazy(() => import('./pages/lms/student/StudentCertificatesPage'))
+const PaymentSuccessPage            = lazy(() => import('./pages/student/PaymentSuccessPage'))
+const StudentOrdersPage             = lazy(() => import('./pages/student/StudentOrdersPage'))
+const FinanceOrdersPage             = lazy(() => import('./pages/finance/FinanceOrdersPage'))
+
 // ── Lazy: dashboard pages — admin LMS ────────────────────────────────────────
 const AdminDashboard             = lazy(() => import('./pages/AdminDashboard'))
 const AdminLmsSessionsPage       = lazy(() => import('./pages/lms/admin/AdminLmsSessionsPage'))
@@ -114,6 +125,7 @@ const OpsFormsPage                  = lazy(() => import('./pages/operations/admi
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
 const OpsFormDetailPage             = lazy(() => import('./pages/operations/admin/OpsFormDetailPage'))
 const OpsVolunteersPage             = lazy(() => import('./pages/operations/admin/OpsVolunteersPage'))
+const AcceptedVolunteersPage        = lazy(() => import('./pages/admin/AcceptedVolunteersPage'))
 const OpsVolunteerDetailPage        = lazy(() => import('./pages/operations/admin/OpsVolunteerDetailPage'))
 const OpsPartnersPage               = lazy(() => import('./pages/operations/admin/OpsPartnersPage'))
 const OpsPartnershipRequestsPage    = lazy(() => import('./pages/operations/admin/OpsPartnershipRequestsPage'))
@@ -130,12 +142,10 @@ const FinancePaymentsPage     = lazy(() => import('./pages/intelligence/admin/Fi
 const FinanceTransactionsPage = lazy(() => import('./pages/intelligence/admin/FinanceTransactionsPage'))
 const CouponsAdminPage        = lazy(() => import('./pages/intelligence/admin/CouponsAdminPage'))
 const ScholarshipsAdminPage   = lazy(() => import('./pages/intelligence/admin/ScholarshipsAdminPage'))
-const CertificatesAdminPage   = lazy(() => import('./pages/intelligence/admin/CertificatesAdminPage'))
 const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
 const KpiAdminPage            = lazy(() => import('./pages/intelligence/admin/KpiAdminPage'))
 const ReportsAdminPage        = lazy(() => import('./pages/intelligence/admin/ReportsAdminPage'))
 const AdminRegistrationsPage  = lazy(() => import('./pages/admin/AdminRegistrationsPage'))
-const StudentCertificatesPage = lazy(() => import('./pages/intelligence/student/StudentCertificatesPage'))
 const CertificateVerifyPage   = lazy(() => import('./pages/intelligence/public/CertificateVerifyPage'))
 
 // ── Lazy: dashboard pages — platform / knowledge / AI ────────────────────────
@@ -187,7 +197,6 @@ const HrDashboardPage   = lazy(() => import('./pages/hr/HrDashboardPage'))
 const HrTeamPage        = lazy(() => import('./pages/hr/HrTeamPage'))
 const HrVolunteersPage  = lazy(() => import('./pages/hr/HrVolunteersPage'))
 const HrInstructorsPage = lazy(() => import('./pages/hr/HrInstructorsPage'))
-const HrApplicationsPage = lazy(() => import('./pages/hr/HrApplicationsPage'))
 const HrDepartmentsPage = lazy(() => import('./pages/hr/HrDepartmentsPage'))
 const HrOnboardingPage  = lazy(() => import('./pages/hr/HrOnboardingPage'))
 const HrTasksPage       = lazy(() => import('./pages/hr/HrTasksPage'))
@@ -353,6 +362,8 @@ function App() {
                   <Route path="/dashboard/super-admin" element={<SuperAdminOverviewPage />} />
                   <Route path="/dashboard/super-admin/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
                   <Route
                     path="/dashboard/super-admin/crud/partnerships"
@@ -403,6 +414,8 @@ function App() {
                   <Route path="/dashboard/student/assistant" element={<Navigate to="/ai" replace />} />
                   <Route path="/dashboard/student/profile" element={<Navigate to="/dashboard/profile" replace />} />
                   <Route path="/dashboard/student/course-rating" element={<Navigate to="/dashboard/student/evaluation" replace />} />
+                  <Route path="/dashboard/student/orders" element={<Suspense fallback={<RouteFallback />}><StudentOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/student/payment-success" element={<Suspense fallback={<RouteFallback />}><PaymentSuccessPage /></Suspense>} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
                   <Route path="/dashboard/instructor/learning-paths" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathsPage /></Suspense>} />
                   <Route path="/dashboard/instructor/learning-paths/:id" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathDetailPage /></Suspense>} />
@@ -431,12 +444,13 @@ function App() {
                   <Route path="/dashboard/finance" element={<FinanceDashboardPage />} />
                   <Route path="/dashboard/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/finance/transactions" element={<FinanceTransactionsPage />} />
+                  <Route path="/dashboard/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
                   <Route path="/dashboard/quality" element={<QualityAdminPage />} />
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
                   <Route path="/dashboard/hr/instructors" element={<HrInstructorsPage />} />
-                  <Route path="/dashboard/hr/applications" element={<HrApplicationsPage />} />
                   <Route path="/dashboard/hr/departments" element={<HrDepartmentsPage />} />
                   <Route path="/dashboard/hr/onboarding" element={<HrOnboardingPage />} />
                   <Route path="/dashboard/hr/tasks" element={<HrTasksPage />} />
@@ -444,7 +458,8 @@ function App() {
                   <Route path="/dashboard/marketing" element={<OpsMarketingPage />} />
                   <Route path="/dashboard/support" element={<OpsSupportTicketsPage />} />
                   <Route path="/dashboard/support/:id" element={<OpsSupportTicketDetailPage />} />
-                  <Route path="/dashboard/volunteer" element={<OpsVolunteersPage />} />
+                  <Route path="/dashboard/volunteer" element={<Suspense fallback={<RouteFallback />}><AcceptedVolunteersPage /></Suspense>} />
+                  <Route path="/dashboard/ops/volunteers" element={<OpsVolunteersPage />} />
                   <Route path="/dashboard/volunteer/:id" element={<OpsVolunteerDetailPage />} />
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
@@ -478,7 +493,8 @@ function App() {
                   <Route path="/dashboard/student/assignments/:submissionId?" element={<StudentAssignmentsPage />} />
                   <Route path="/dashboard/student/progress" element={<StudentProgressPage />} />
                   <Route path="/dashboard/student/evaluation" element={<StudentEvaluationPage />} />
-                  <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
+                  <Route path="/dashboard/certificates" element={<Suspense fallback={<RouteFallback />}><StudentCertificatesLmsPage /></Suspense>} />
+                  <Route path="/dashboard/student/my-certificates" element={<Suspense fallback={<RouteFallback />}><StudentCertificatesLmsPage /></Suspense>} />
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
                   <Route path="/dashboard/courses/:courseId/content" element={<CourseContentManagerPage />} />
@@ -520,7 +536,15 @@ function App() {
                   <Route path="/dashboard/admin/finance/transactions" element={<FinanceTransactionsPage />} />
                   <Route path="/dashboard/admin/coupons" element={<CouponsAdminPage />} />
                   <Route path="/dashboard/admin/scholarships" element={<ScholarshipsAdminPage />} />
-                  <Route path="/dashboard/admin/certificates" element={<CertificatesAdminPage />} />
+                  <Route path="/dashboard/admin/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/issue" element={<Suspense fallback={<RouteFallback />}><AdminCertificateIssuePage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/templates" element={<Suspense fallback={<RouteFallback />}><AdminCertificateTemplatesPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/batches" element={<Suspense fallback={<RouteFallback />}><AdminCertificateBatchesPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/batches/:batchId" element={<Suspense fallback={<RouteFallback />}><AdminCertificateBatchesPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/overview" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/:id" element={<Suspense fallback={<RouteFallback />}><AdminCertificateDetailPage /></Suspense>} />
+                  <Route path="/dashboard/programs-manager/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
+                  <Route path="/dashboard/programs-manager/certificates/issue" element={<Suspense fallback={<RouteFallback />}><AdminCertificateIssuePage /></Suspense>} />
                   <Route path="/dashboard/admin/quality" element={<QualityAdminPage />} />
                   <Route path="/dashboard/admin/kpi" element={<KpiAdminPage />} />
                   <Route path="/dashboard/admin/reports" element={<ReportsAdminPage />} />

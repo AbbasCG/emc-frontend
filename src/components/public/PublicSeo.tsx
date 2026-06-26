@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 
-const SITE_NAME = 'EMC — Educational Mastars Central'
+const SITE_NAME = 'EMC — مركز ماستر التعليمي'
 const DEFAULT_DESC =
   'منصة EMC التعليمية: دورات، ورش، ومسارات تعلم بالعربية من هولندا — تعليم احترافي وتطوير مهارات.'
 
@@ -28,7 +28,7 @@ export default function PublicSeo({
   type = 'website',
   noIndex = false,
 }: PublicSeoProps) {
-  const fullTitle = title.includes('EMC') ? title : `${title} | EMC`
+  const fullTitle = `${title} | ${SITE_NAME}`
   const url = absoluteUrl(path)
   const ogImage = image && image.startsWith('http') ? image : image ? absoluteUrl(image) : absoluteUrl('/favicon.svg')
 

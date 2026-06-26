@@ -51,6 +51,8 @@ export type CourseItem = {
   start_time: string | null
   language: string | null
   program_kind_raw: string | null
+  /** True when course is published but its end_date has passed */
+  is_ended: boolean
   progress?: number
 }
 
@@ -127,6 +129,7 @@ const MOCK_CATALOG_ITEMS: CourseItem[] = [
     start_time: null,
     language: 'العربية',
     program_kind_raw: 'course',
+    is_ended: false,
   },
 ]
 

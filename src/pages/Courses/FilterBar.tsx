@@ -14,6 +14,8 @@ type FilterBarProps = {
   activeProgramType: string
   onProgramTypeChange: (v: string) => void
   programTypeOptions: SelectOption[]
+  activeAvailability: string
+  onAvailabilityChange: (v: string) => void
   sortBy: string
   onSortChange: (sort: string) => void
   viewMode: 'grid' | 'list'
@@ -28,6 +30,12 @@ const priceFilters = [
   { value: 'all', label: 'السعر: الكل' },
   { value: 'free', label: 'مجاني' },
   { value: 'paid', label: 'مدفوع' },
+]
+
+const availabilityFilters = [
+  { value: 'all', label: 'الكل' },
+  { value: 'active', label: 'متاحة' },
+  { value: 'ended', label: 'انتهت' },
 ]
 
 const sortOptions = [
@@ -51,6 +59,8 @@ export default function FilterBar({
   activeProgramType,
   onProgramTypeChange,
   programTypeOptions,
+  activeAvailability,
+  onAvailabilityChange,
   sortBy,
   onSortChange,
   viewMode,
@@ -76,6 +86,24 @@ export default function FilterBar({
         )}
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-muted-500">الحالة</span>
+            {availabilityFilters.map((tag) => (
+              <button
+                key={tag.value}
+                type="button"
+                onClick={() => onAvailabilityChange(tag.value)}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                  activeAvailability === tag.value
+                    ? 'bg-deepBlue text-white shadow-sm'
+                    : 'bg-slate-100 text-muted-600 hover:bg-slate-200 hover:text-deepBlue'
+                }`}
+              >
+                {tag.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wide text-muted-500">السعر</span>
             {priceFilters.map((tag) => (

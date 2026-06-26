@@ -1,5 +1,6 @@
 import type { Course } from '../types'
 import type { CourseItem, CourseLevel, CourseStatus } from '@/services/coursesApi'
+import { ENDED_COURSE_LABEL_AR } from '@/utils/courseEnded'
 import {
   EMC_COURSE_COVER_PLACEHOLDER,
   mapCourseStatusArabic,
@@ -56,11 +57,27 @@ function mapLevel(level?: string | null): CourseLevel {
   return 'beginner'
 }
 
-function mapStatusEnum(c: Course): CourseStatus {
+function mapStatusEnum(c: Course, extra: Record<string, unknown>): CourseStatus {
+  // Backend computed_status takes precedence
+  const computed = String(extra.computed_status ?? c.computed_status ?? '').toLowerCase()
+  if (computed === 'ended') return 'archived' // map to 'archived' for legacy enum compat
   const s = (c.status ?? '').toLowerCase()
   if (s.includes('upcoming') || s.includes('scheduled')) return 'upcoming'
   if (s.includes('archiv') || s.includes('cancel')) return 'archived'
   return 'active'
+}
+
+function resolveIsEnded(c: Course, extra: Record<string, unknown>): boolean {
+  // Backend-computed field is authoritative
+  const be = extra.is_ended ?? c.is_ended
+  if (be === true || be === 1) return true
+  if (be === false || be === 0) return false
+  // Client-side fallback: check end_date
+  const computed = String(extra.computed_status ?? c.computed_status ?? '').toLowerCase()
+  if (computed === 'ended') return true
+  const endDate = String(extra.end_date ?? c.end_date ?? '').slice(0, 10)
+  if (!endDate) return false
+  return new Date(endDate + 'T23:59:59') < new Date()
 }
 
 function estimateWeeks(start?: string | null, end?: string | null): number {
@@ -267,8 +284,9 @@ export function mapApiCourseToCourseItem(rawInput: Course | Record<string, unkno
   const programLabelAr = mapProgramTypeArabic(c, extra)
   const catalog = catalogTypeFromCourse(c, programLabelAr, extra)
 
-  const statusEnum = mapStatusEnum(c)
-  const statusLabelAr = mapCourseStatusArabic(c.status, c.is_published)
+  const isEnded = resolveIsEnded(c, extra)
+  const statusEnum = mapStatusEnum(c, extra)
+  const statusLabelAr = isEnded ? ENDED_COURSE_LABEL_AR : mapCourseStatusArabic(c.status, c.is_published)
 
   const description = String(
     c.short_description ?? c.description ?? extra.short_description ?? extra.description ?? '',
@@ -338,5 +356,6 @@ export function mapApiCourseToCourseItem(rawInput: Course | Record<string, unkno
     start_time: startTime,
     language,
     program_kind_raw: programKindRaw,
+    is_ended: isEnded,
   }
 }

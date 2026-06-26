@@ -334,9 +334,7 @@ export function ScheduleTabPanel({ course, derived }: { course: Course; derived:
   }
   if (derived.deliveryAr) rows.push({ label: 'طريقة التقديم', value: derived.deliveryAr })
   if (derived.locationLabel) rows.push({ label: 'المدينة / المكان', value: derived.locationLabel })
-  if (derived.meetingLink) {
-    rows.push({ label: 'رابط الاجتماع', value: derived.meetingLink })
-  }
+  // meeting links are only visible to enrolled students/staff — not shown on public detail page
 
   if (rows.length === 0) {
     return <p className="text-[13px] font-semibold text-slate-500">لم تُحدّد جدولة بعد.</p>

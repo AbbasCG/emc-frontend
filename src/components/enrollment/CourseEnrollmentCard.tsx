@@ -16,6 +16,7 @@ import type { Course } from '@/types'
 import type { PublicItemType } from '@/utils/publicCourseDisplay'
 import { enrollActionLabel } from '@/utils/enrollmentRedirect'
 import { buildPublicLoginHref, isStudentUser, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import { endedCourseBlocksEnrollment, ENDED_COURSE_DETAIL_MESSAGE, resolveCourseIsEnded } from '@/utils/courseEnded'
 import { formatPrice } from '@/utils/course'
 import { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
 
@@ -100,13 +101,15 @@ export default function CourseEnrollmentCard({
   const [submitting, setSubmitting] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [apiError, setApiError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'phone' | 'city' | 'gender' | 'notes', string>>>({})
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'phone' | 'city' | 'gender' | 'notes' | 'registration_code', string>>>({})
   const [success, setSuccess] = useState(false)
 
   const enrollLabel = enrollActionLabel(itemType)
   const loginHref = buildPublicLoginHref(`/courses/${course.slug}`)
   const isStudent = isStudentUser(user?.role)
-  const canEnroll = registrationOpen && !seatsFull && !alreadyEnrolled && !success
+  const isEnded = resolveCourseIsEnded(course)
+  const enrollmentBlockedByEnd = endedCourseBlocksEnrollment(course)
+  const canEnroll = registrationOpen && !seatsFull && !alreadyEnrolled && !success && !enrollmentBlockedByEnd
   const whatsappUrl =
     course.whatsapp_community_url?.trim() ||
     (import.meta.env.VITE_WHATSAPP_COMMUNITY_URL as string | undefined)?.trim() ||
@@ -185,6 +188,10 @@ export default function CourseEnrollmentCard({
       setModalOpen(true)
       return
     }
+    if (course.requires_registration_code && !extra?.registration_code?.trim()) {
+      setModalOpen(true)
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -199,7 +206,10 @@ export default function CourseEnrollmentCard({
         country: extra?.country ?? profile.country?.name,
         country_code: extra?.country_code ?? profile.country?.code,
         phone_country_code: extra?.phone_country_code ?? profile.country?.dialCode,
-        ...(course.type === 'paid' && extra?.payment_provider ?
+        ...(course.requires_registration_code && extra?.registration_code ?
+          { registration_code: extra.registration_code.trim() }
+        : {}),
+        ...(course.is_paid && extra?.payment_provider ?
           { payment_provider: extra.payment_provider }
         : {}),
       })
@@ -238,6 +248,20 @@ export default function CourseEnrollmentCard({
           return
         }
 
+        // 402: backend says this course requires the /checkout endpoint
+        if (st === 402) {
+          const checkoutData = err.response?.data as { checkout_endpoint?: string } | undefined
+          const endpoint = checkoutData?.checkout_endpoint
+          if (endpoint) {
+            import('@/api/checkoutApi').then(({ initiateCheckout }) => {
+              initiateCheckout(course.id)
+                .then(({ checkout_url }) => { window.location.assign(checkout_url) })
+                .catch(() => { toast.error('تعذّر بدء الدفع. حاول مرة أخرى.') })
+            })
+            return
+          }
+        }
+
         if (st === 422 && typeof raw?.message_ar === 'string' && raw.message_ar.trim() !== '') {
           setApiError(raw.message_ar)
           toast.error(raw.message_ar)
@@ -248,7 +272,7 @@ export default function CourseEnrollmentCard({
           const normalized = normalizeLaravelErrors(raw.errors)
           const fe: typeof fieldErrors = {}
           for (const [k, msgs] of Object.entries(normalized)) {
-            if (k === 'phone' || k === 'city' || k === 'gender' || k === 'notes') fe[k] = msgs[0]
+            if (k === 'phone' || k === 'city' || k === 'gender' || k === 'notes' || k === 'registration_code') fe[k] = msgs[0]
           }
           setFieldErrors(fe)
           setApiError(typeof raw.message === 'string' ? raw.message : 'يرجى تصحيح الحقول.')
@@ -271,7 +295,7 @@ export default function CourseEnrollmentCard({
       toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
       return
     }
-    if (missing.length === 0 && course.type !== 'paid') {
+    if (missing.length === 0 && !course.is_paid && !course.requires_registration_code) {
       void submitEnrollment()
       return
     }
@@ -286,12 +310,14 @@ export default function CourseEnrollmentCard({
             <h3 className="text-base font-black text-[#22334A]">الالتحاق</h3>
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
-                registrationOpen && !seatsFull ?
+                isEnded ?
+                  'bg-[#22334A]/10 text-[#22334A] ring-[#22334A]/15'
+                : registrationOpen && !seatsFull ?
                   'bg-emerald-50 text-emerald-800 ring-emerald-100'
                 : 'bg-orange-50 text-orange-800 ring-orange-100'
               }`}
             >
-              {registrationOpen && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
+              {isEnded ? 'انتهت' : registrationOpen && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
             </span>
           </div>
           {!compact && (
@@ -324,7 +350,11 @@ export default function CourseEnrollmentCard({
         </div>
 
         <div className="p-4 sm:p-5">
-          {!registrationOpen || seatsFull ?
+          {isEnded && enrollmentBlockedByEnd ?
+            <div className="rounded-xl border border-[#22334A]/10 bg-slate-50 px-4 py-5 text-center text-sm font-bold leading-7 text-[#22334A]/80">
+              {ENDED_COURSE_DETAIL_MESSAGE}
+            </div>
+          : !registrationOpen || seatsFull ?
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm font-black text-deepBlue">
               {!registrationOpen ? 'التسجيل مغلق حالياً' : 'المقاعد مكتملة'}
             </div>

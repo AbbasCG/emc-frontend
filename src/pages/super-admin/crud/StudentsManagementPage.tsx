@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
-import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsers, fetchStudentCourses, type AdminManagedUser, type StudentCourseRow } from '@/api/adminUsersApi'
+import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsersPage, fetchStudentCourses, type AdminManagedUser, type StudentCourseRow } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
@@ -653,21 +653,35 @@ function SkeletonCards() {
 /* ─── Page ────────────────────────────────────────────────────────────── */
 
 export default function StudentsManagementPage() {
-  const [loading,   setLoading]   = useState(true)
-  const [users,     setUsers]     = useState<AdminManagedUser[]>([])
-  const [error,     setError]     = useState<string | null>(null)
-  const [forbidden, setForbidden] = useState(false)
-  const [q,         setQ]         = useState('')
-  const [status,    setStatus]    = useState<'all' | 'active' | 'inactive'>('all')
-  const [selected,  setSelected]  = useState<AdminManagedUser | null>(null)
+  const [loading,    setLoading]    = useState(true)
+  const [users,      setUsers]      = useState<AdminManagedUser[]>([])
+  const [serverTotal, setServerTotal] = useState<number | null>(null)
+  const [error,      setError]      = useState<string | null>(null)
+  const [forbidden,  setForbidden]  = useState(false)
+  const [q,          setQ]          = useState('')
+  const [status,     setStatus]     = useState<'all' | 'active' | 'inactive'>('all')
+  const [selected,   setSelected]   = useState<AdminManagedUser | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true); setError(null); setForbidden(false)
     try {
-      const rows = await fetchAdminUsers()
-      setUsers(rows.filter((u) => normalizeRole(u.role) === 'student'))
+      // Fetch all students server-side (role filter + all pages)
+      const first = await fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: 1 })
+      let allUsers = [...first.users]
+      if (first.serverPaginated && first.lastPage > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: first.lastPage - 1 }, (_, i) =>
+            fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: i + 2 })
+          )
+        )
+        for (const p of rest) allUsers = allUsers.concat(p.users)
+      }
+      // Use server total for KPI accuracy; fall back to loaded count
+      setServerTotal(first.serverPaginated ? first.total : null)
+      setUsers(allUsers.filter((u) => normalizeRole(u.role) === 'student'))
     } catch (e) {
       setUsers([])
+      setServerTotal(null)
       if (axios.isAxiosError(e) && e.response?.status === 403) { setForbidden(true); toast.warning(ADMIN_USER_FORBIDDEN_AR) }
       else setError(getApiErrorMessage(e))
     } finally { setLoading(false) }
@@ -684,7 +698,8 @@ export default function StudentsManagementPage() {
     })
   }, [users, q, status])
 
-  const total       = users.length
+  // Use server-reported total for KPI tiles (accurate even when client-side filters are applied)
+  const total       = serverTotal ?? users.length
   const activeCount = users.filter((u) => u.is_active !== false).length
   const inactiveCount = users.filter((u) => u.is_active === false).length
   const thisMonth   = useMemo(() => {

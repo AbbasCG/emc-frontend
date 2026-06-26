@@ -5,6 +5,7 @@ import { patchCourseSchedule } from '@/api/adminCoursesApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import type { Course } from '@/types'
 import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
+import GoogleStyleTimePicker from '@/components/shared/GoogleStyleTimePicker'
 
 type Props = {
   open: boolean
@@ -55,10 +56,12 @@ export function ScheduleCourseModal({ open, course, onClose, onSaved }: Props) {
           تاريخ البداية
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2 font-mono text-sm" />
         </label>
-        <label className="block text-xs font-black text-deepBlue">
-          وقت البداية
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2 font-mono text-sm" />
-        </label>
+        <GoogleStyleTimePicker
+          label="وقت البداية"
+          value={startTime || null}
+          onChange={setStartTime}
+          minuteStep={15}
+        />
         <label className="block text-xs font-black text-deepBlue">
           تاريخ الانتهاء
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2 font-mono text-sm" />

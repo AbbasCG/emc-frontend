@@ -88,7 +88,7 @@ const ASSIGN_FILTER = [
   { value: 'unassigned', labelAr: 'بدون دورات' },
 ]
 
-export default function InstructorsManagementPage() {
+export default function InstructorsManagementPage({ isHrPage = false }: { isHrPage?: boolean } = {}) {
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState<AdminInstructorDirectoryRow[]>([])
   const [q, setQ] = useState('')
@@ -207,12 +207,14 @@ export default function InstructorsManagementPage() {
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
-            <Link
-              to="/dashboard/super-admin/crud/programs"
-              className="rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-[#0f172a] shadow-lg transition hover:brightness-105"
-            >
-              إسناد دورات
-            </Link>
+            {!isHrPage && (
+              <Link
+                to="/dashboard/super-admin/crud/programs"
+                className="rounded-2xl bg-[#EC943C] px-5 py-2.5 text-[12px] font-black text-[#0f172a] shadow-lg transition hover:brightness-105"
+              >
+                إسناد دورات
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -360,7 +362,7 @@ export default function InstructorsManagementPage() {
                   >
                     عرض الملف
                   </button>
-                  {row.user_id ?
+                  {!isHrPage && row.user_id ?
                     <Link
                       to={`/dashboard/super-admin/crud/users/${row.user_id}/edit`}
                       className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue shadow-sm transition hover:border-[#2691C2]/40"
@@ -368,12 +370,14 @@ export default function InstructorsManagementPage() {
                       تعديل
                     </Link>
                   : null}
-                  <Link
-                    to="/dashboard/super-admin/crud/programs"
-                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black text-emerald-900 shadow-sm transition hover:bg-emerald-100"
-                  >
-                    إسناد دورة
-                  </Link>
+                  {!isHrPage && (
+                    <Link
+                      to="/dashboard/super-admin/crud/programs"
+                      className="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black text-emerald-900 shadow-sm transition hover:bg-emerald-100"
+                    >
+                      إسناد دورة
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={() => toast.message('سيتم ربط إرسال الإشعارات عبر مركز الإشعارات قريبًا')}
@@ -381,15 +385,17 @@ export default function InstructorsManagementPage() {
                   >
                     إشعار
                   </button>
-                  <button
-                    type="button"
-                    disabled={!row.user_id || togglingId === row.user_id}
-                    title={row.user_id ? undefined : 'لا يوجد مستخدم للحساب — أضِف أو اربِط user_id في الخلفية'}
-                    onClick={() => void toggleActive(row)}
-                    className="rounded-xl border border-slate-800/10 bg-slate-900 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm disabled:opacity-50"
-                  >
-                    {row.user_id && togglingId === row.user_id ? '…' : row.is_active ? 'تعطيل' : 'تفعيل'}
-                  </button>
+                  {!isHrPage && (
+                    <button
+                      type="button"
+                      disabled={!row.user_id || togglingId === row.user_id}
+                      title={row.user_id ? undefined : 'لا يوجد مستخدم للحساب — أضِف أو اربِط user_id في الخلفية'}
+                      onClick={() => void toggleActive(row)}
+                      className="rounded-xl border border-slate-800/10 bg-slate-900 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm disabled:opacity-50"
+                    >
+                      {row.user_id && togglingId === row.user_id ? '…' : row.is_active ? 'تعطيل' : 'تفعيل'}
+                    </button>
+                  )}
                 </div>
               </motion.article>
             ))}
@@ -422,7 +428,7 @@ export default function InstructorsManagementPage() {
         footerSlot={
           view ?
             <div className="flex flex-wrap justify-end gap-2">
-              {view.user_id ?
+              {!isHrPage && view.user_id ?
                 <Link
                   to={`/dashboard/super-admin/crud/users/${view.user_id}/edit`}
                   className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[12px] font-black text-deepBlue shadow-sm"
@@ -430,15 +436,17 @@ export default function InstructorsManagementPage() {
                   تعديل المستخدم
                 </Link>
               : null}
-              <button
-                type="button"
-                disabled={!view.user_id}
-                title={view.user_id ? undefined : 'لا يوجد حساب مستخدم مرتبط'}
-                onClick={() => view.user_id && void toggleActive(view)}
-                className="rounded-2xl bg-slate-900 px-4 py-2.5 text-[12px] font-black text-white shadow-sm disabled:opacity-50"
-              >
-                {view.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'}
-              </button>
+              {!isHrPage && (
+                <button
+                  type="button"
+                  disabled={!view.user_id}
+                  title={view.user_id ? undefined : 'لا يوجد حساب مستخدم مرتبط'}
+                  onClick={() => view.user_id && void toggleActive(view)}
+                  className="rounded-2xl bg-slate-900 px-4 py-2.5 text-[12px] font-black text-white shadow-sm disabled:opacity-50"
+                >
+                  {view.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'}
+                </button>
+              )}
             </div>
           : null
         }
@@ -499,12 +507,14 @@ export default function InstructorsManagementPage() {
                       <strong className="text-deepBlue">{view.assigned_courses_count}</strong>. لقائمة العناوين الكاملة، اربط
                       نقطة تفاصيل المدرب لاحقًا أو افتح لوحة البرامج.
                     </p>
-                    <Link
-                      to="/dashboard/super-admin/crud/programs"
-                      className="mt-4 inline-flex rounded-xl bg-[#2691C2] px-4 py-2 text-[12px] font-black text-white shadow-md"
-                    >
-                      فتح إدارة البرامج
-                    </Link>
+                    {!isHrPage && (
+                      <Link
+                        to="/dashboard/super-admin/crud/programs"
+                        className="mt-4 inline-flex rounded-xl bg-[#2691C2] px-4 py-2 text-[12px] font-black text-white shadow-md"
+                      >
+                        فتح إدارة البرامج
+                      </Link>
+                    )}
                   </EntityDetailSection>
                 ),
               },

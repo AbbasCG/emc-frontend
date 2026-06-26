@@ -1,7 +1,7 @@
 const sessionLabels: Record<string, string> = {
-  scheduled: 'قادمة',
-  live: 'مباشرة الآن',
-  completed: 'انتهت',
+  scheduled: 'مجدولة',
+  live: 'متاحة الآن',
+  completed: 'منتهية',
   cancelled: 'ملغاة',
 }
 
