@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, LockKeyhole } from 'lucide-react'
+import { AlertCircle, ArrowRight, LockKeyhole } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { resetPassword } from '@/api/authApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
@@ -39,22 +39,27 @@ export default function ResetPassword() {
 
   if (!token || !email) {
     return (
-      <div className="bg-slate-50 pt-20">
-        <section className="px-4 py-32 text-center">
-          <p className="text-lg font-black text-deepBlue">رابط إعادة التعيين غير صالح أو منتهي الصلاحية.</p>
-          <Link
-            to="/forgot-password"
-            className="mt-5 block font-black text-customBlue hover:text-customOrange"
-          >
-            طلب رابط جديد
-          </Link>
+      <div className="bg-paper pt-20">
+        <section className="px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-md rounded-3xl bg-white p-10 text-center shadow-emc-lg ring-1 ring-line">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-50 text-red-500 ring-1 ring-red-100">
+              <AlertCircle size={34} />
+            </span>
+            <p className="mt-6 text-lg font-black text-deepBlue">رابط إعادة التعيين غير صالح أو منتهي الصلاحية.</p>
+            <Link
+              to="/forgot-password"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
+            >
+              طلب رابط جديد
+            </Link>
+          </div>
         </section>
       </div>
     )
   }
 
   return (
-    <div className="bg-slate-50 pt-20">
+    <div className="bg-paper pt-20">
       <PageHeader
         title="إعادة تعيين كلمة المرور"
         breadcrumbs={[
@@ -66,21 +71,25 @@ export default function ResetPassword() {
 
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto max-w-md rounded-2xl bg-white p-8 text-right shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100"
+          className="mx-auto max-w-md rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line sm:p-10"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <h1 className="text-2xl font-black text-deepBlue">إعادة تعيين كلمة المرور</h1>
-          <span className="mt-3 block h-1 w-16 rounded-full bg-customOrange" />
+          <span className="emc-wing emc-eyebrow-accent mb-4">
+            <LockKeyhole size={15} />
+            أمان الحساب
+          </span>
+          <h1 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">إعادة تعيين كلمة المرور</h1>
 
           {error && (
-            <div className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700 ring-1 ring-red-100">
-              {error}
+            <div className="mt-5 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
+              <AlertCircle size={20} className="mt-0.5 shrink-0" />
+              <p className="text-sm font-bold">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 grid gap-5" noValidate>
+          <form onSubmit={handleSubmit} className="mt-7 grid gap-5" noValidate>
             <label className="grid gap-2 text-sm font-black text-deepBlue">
               كلمة المرور الجديدة
               <span className="relative block">
@@ -94,7 +103,7 @@ export default function ResetPassword() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                 />
               </span>
             </label>
@@ -112,7 +121,7 @@ export default function ResetPassword() {
                   autoComplete="new-password"
                   value={passwordConfirmation}
                   onChange={(e) => setPasswordConfirmation(e.target.value)}
-                  className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                  className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                 />
               </span>
             </label>
@@ -120,8 +129,9 @@ export default function ResetPassword() {
             <motion.button
               type="submit"
               disabled={isLoading}
+              aria-busy={isLoading}
               whileHover={!isLoading ? { scale: 1.02 } : undefined}
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:opacity-70"
+              className="emc-focus-ring inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isLoading ? (
                 <>
@@ -135,7 +145,7 @@ export default function ResetPassword() {
 
             <Link
               to="/login"
-              className="flex items-center justify-center gap-1 text-sm font-black text-slate-500 hover:text-customBlue"
+              className="flex items-center justify-center gap-1 text-sm font-black text-slate-500 transition hover:text-customBlue"
             >
               <ArrowRight size={14} />
               العودة لتسجيل الدخول

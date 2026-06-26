@@ -70,7 +70,7 @@ export default function DepartmentsBentoMetrics() {
                 variants={staggerItem}
                 whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
                 className={[
-                  'relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br p-6 text-right shadow-[0_20px_50px_-28px_rgba(15,42,67,0.2)] ring-1 backdrop-blur-sm',
+                  'relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br p-6 text-right shadow-emc-md ring-1 backdrop-blur-sm',
                   t.span,
                   t.bg,
                   t.ring,
@@ -79,7 +79,7 @@ export default function DepartmentsBentoMetrics() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-widest text-deepBlue/45">{t.label}</p>
-                    <p className="mt-2 text-3xl font-black text-deepBlue sm:text-4xl">{t.value}</p>
+                    <p className="mt-2 font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">{t.value}</p>
                     <p className="mt-2 text-sm font-semibold text-deepBlue/60">{t.hint}</p>
                   </div>
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/80 text-customBlue shadow-inner ring-1 ring-deepBlue/[0.06]">

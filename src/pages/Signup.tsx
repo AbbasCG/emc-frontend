@@ -128,7 +128,7 @@ export default function Signup() {
   }
 
   const inputCls = (field: string) =>
-    `h-14 w-full rounded-xl border bg-paper2 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${fieldErrors[field] ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'}`
+    `emc-focus-ring h-14 w-full rounded-xl border bg-paper2 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${fieldErrors[field] ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'}`
 
   return (
     <div className="bg-paper pt-20">
@@ -147,10 +147,14 @@ export default function Signup() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="emc-dawn relative hidden min-h-[420px] lg:block">
+          <div className="emc-dawn relative hidden min-h-[420px] overflow-hidden lg:block">
+            <div className="emc-dawn-field absolute inset-0 opacity-70" />
             <div className="relative flex h-full flex-col justify-end p-10 text-white">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-amber">EMC OS</p>
-              <h2 className="mt-3 font-display text-3xl font-black leading-tight tracking-tight">انضم إلى منظومة EMC الرقمية</h2>
+              <span className="emc-wing emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
+                <UserPlus size={15} />
+                EMC OS
+              </span>
+              <h2 className="font-display text-3xl font-black leading-tight tracking-tight">انضم إلى منظومة EMC الرقمية</h2>
               <p className="mt-5 max-w-md text-sm leading-8 text-ice/90">
                 حساب واحد للوصول إلى لوحة الطالب، التسجيل في البرامج، ومتابعة نشاطك التعليمي.
               </p>
@@ -335,8 +339,9 @@ export default function Signup() {
               <motion.button
                 type="submit"
                 disabled={isLoading}
+                aria-busy={isLoading}
                 whileHover={!isLoading ? { scale: 1.02 } : undefined}
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange px-7 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
+                className="emc-focus-ring inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange px-7 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoading ? (
                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />

@@ -54,7 +54,7 @@ export default function Departments() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-white p-8 text-right shadow-[0_20px_50px_-24px_rgba(15,42,67,0.2)] sm:p-10 lg:p-12"
+            className="relative overflow-hidden rounded-3xl bg-white p-8 text-right shadow-emc-md ring-1 ring-line sm:p-10 lg:p-12"
           >
             <div className="pointer-events-none absolute -left-24 top-0 h-56 w-56 rounded-full bg-customBlue/[0.07] blur-3xl" />
             <div className="pointer-events-none absolute -right-16 bottom-0 h-48 w-48 rounded-full bg-customOrange/[0.08] blur-3xl" />
@@ -105,7 +105,7 @@ export default function Departments() {
                   key={b.title}
                   variants={staggerItem}
                   className={[
-                    'relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-emcBg p-7 text-right shadow-sm',
+                    'relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-emcBg p-7 text-right shadow-emc transition-shadow hover:shadow-emc-md',
                     border,
                   ].join(' ')}
                 >
@@ -137,7 +137,7 @@ export default function Departments() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-3xl bg-deepBlue p-8 text-right text-white shadow-[0_28px_64px_-20px_rgba(15,42,67,0.45)] lg:p-10"
+            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-lg ring-1 ring-white/10 lg:p-10"
           >
             <div className="pointer-events-none absolute left-0 top-0 h-40 w-40 rounded-full bg-customBlue/15 blur-3xl" />
             <div className="pointer-events-none absolute bottom-0 right-0 h-36 w-36 rounded-full bg-customOrange/10 blur-3xl" />

@@ -35,7 +35,7 @@ export default function ThankYou() {
   ]
 
   return (
-    <main className="bg-white pt-20">
+    <main className="bg-paper pt-20">
       <PageHeader
         title="صفحة الشكر"
         breadcrumbs={[
@@ -47,13 +47,13 @@ export default function ThankYou() {
 
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto max-w-[480px] rounded-2xl bg-white p-7 text-center shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100 sm:p-9"
+          className="mx-auto max-w-[480px] rounded-3xl bg-white p-7 text-center shadow-emc-lg ring-1 ring-line sm:p-10"
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
           <motion.div
-            className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-emerald-50 text-emerald-500"
+            className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-emerald-50 text-emerald-500 ring-1 ring-emerald-100"
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.45, delay: 0.2, type: 'spring', stiffness: 180 }}
@@ -61,7 +61,8 @@ export default function ThankYou() {
             <CheckCircle size={54} />
           </motion.div>
 
-          <h1 className="mt-7 text-3xl font-black leading-tight text-deepBlue">
+          <span className="emc-eyebrow-accent mt-6">تم بنجاح</span>
+          <h1 className="emc-title-arc mt-3 inline-block font-display text-3xl font-black leading-tight tracking-tight text-deepBlue">
             تم استلام تسجيلك بنجاح!
           </h1>
           <p className="mt-4 leading-8 text-slate-600">
@@ -69,12 +70,12 @@ export default function ThankYou() {
             24-48 ساعة.
           </p>
 
-          <div className="mt-8 rounded-2xl bg-slate-50 p-5 text-right ring-1 ring-slate-100">
-            <h2 className="text-xl font-black text-deepBlue">تفاصيل طلبك</h2>
+          <div className="mt-8 rounded-2xl bg-paper2 p-5 text-right ring-1 ring-line">
+            <h2 className="font-display text-xl font-black tracking-tight text-deepBlue">تفاصيل طلبك</h2>
             <span className="mt-3 block h-1 w-16 rounded-full bg-customOrange" />
             <div className="mt-5 grid gap-4">
               {orderDetails.map((item) => (
-                <div key={item.label} className="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+                <div key={item.label} className="flex items-center justify-between gap-4 border-b border-line pb-3 last:border-b-0 last:pb-0">
                   <span className="text-sm font-black text-slate-500">{item.label}</span>
                   <strong className="text-sm font-black text-deepBlue">{item.value}</strong>
                 </div>
@@ -85,7 +86,7 @@ export default function ThankYou() {
           <motion.div whileHover={{ scale: 1.04 }} className="mt-8">
             <Link
               to="/"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white shadow-lg shadow-orange-100"
+              className="emc-focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
             >
               العودة للرئيسية
               <ArrowLeft size={20} />

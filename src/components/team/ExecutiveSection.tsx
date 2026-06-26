@@ -27,7 +27,7 @@ export default function ExecutiveSection({ department }: Props) {
             هيئة EMC V3 الإدارية
           </span>
         </div>
-        <h2 id="exec-heading" className="font-display text-3xl font-black text-deepBlue sm:text-4xl xl:text-[2.6rem]">
+        <h2 id="exec-heading" className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl xl:text-[2.6rem]">
           القيادة التنفيذية
         </h2>
         <p className="mt-4 max-w-3xl text-[1.02rem] font-medium leading-8 text-foreground/73">{department.description_ar}</p>

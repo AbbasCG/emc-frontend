@@ -78,7 +78,7 @@ const skills = [
 
 export default function Volunteer() {
   return (
-    <main className="bg-[#f4f7fb] pt-20">
+    <main className="bg-paper pt-20">
       <PublicPageHero
         eyebrow="انضم إلى الأثر"
         title="التطوع والانضمام لفريق EMC"
@@ -137,7 +137,7 @@ export default function Volunteer() {
             <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
             المجالات المتاحة
           </div>
-          <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">
             أدوار ومجالات يمكن المساهمة فيها
           </h2>
           <p className="mb-10 max-w-2xl text-sm leading-8 text-slate-600">
@@ -155,11 +155,11 @@ export default function Volunteer() {
               <motion.article
                 key={dept.id}
                 variants={staggerItem}
-                className="group relative overflow-hidden rounded-2xl bg-white p-6 text-right shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-[0_8px_32px_-6px_rgba(12,42,75,0.12)] hover:ring-customBlue/20"
+                className="group relative overflow-hidden rounded-2xl bg-white p-6 text-right shadow-emc ring-1 ring-line transition-all duration-300 hover:shadow-emc-md hover:ring-customBlue/20"
               >
                 <div className="absolute inset-y-0 right-0 w-[3px] rounded-r-2xl bg-gradient-to-b from-customBlue/60 to-customBlue/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="flex items-start gap-4">
-                  <span className="emc-num mt-0.5 shrink-0 text-xs font-black text-slate-300">
+                  <span className="emc-num mt-0.5 shrink-0 text-xs font-black tabular-nums text-slate-300">
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -186,7 +186,7 @@ export default function Volunteer() {
             <span className="h-1.5 w-1.5 rounded-full bg-deepBlue" />
             رحلتك معنا
           </div>
-          <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">رحلة المتطوع</h2>
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">رحلة المتطوع</h2>
           <p className="mb-12 max-w-2xl text-sm leading-8 text-slate-600">
             خطوات واضحة تقلل الالتباس وتبني التزاماً صحيحاً من الطرفين.
           </p>
@@ -207,11 +207,11 @@ export default function Volunteer() {
                   className="flex items-start gap-5 sm:gap-6"
                 >
                   <div className="relative shrink-0">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-deepBlue text-white shadow-lg shadow-deepBlue/25 sm:h-12 sm:w-12">
-                      <span className="emc-num text-sm font-black">{step.step}</span>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-deepBlue text-white shadow-emc-md shadow-deepBlue/25 sm:h-12 sm:w-12">
+                      <span className="emc-num text-sm font-black tabular-nums">{step.step}</span>
                     </div>
                   </div>
-                  <div className="flex-1 rounded-2xl bg-white p-5 text-right shadow-sm ring-1 ring-slate-100 sm:p-6">
+                  <div className="flex-1 rounded-2xl bg-white p-5 text-right shadow-emc ring-1 ring-line sm:p-6">
                     <h3 className="text-base font-black text-deepBlue">{step.title}</h3>
                     <p className="mt-2 text-sm leading-7 text-slate-600">{step.description}</p>
                   </div>
@@ -229,7 +229,7 @@ export default function Volunteer() {
             <span className="h-1.5 w-1.5 rounded-full bg-customBlue" />
             توقعاتنا منك
           </div>
-          <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">التزام متوقع</h2>
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">التزام متوقع</h2>
           <p className="mb-10 max-w-2xl text-sm leading-8 text-slate-600">
             نحترم وقتك؛ لذلك نطلب توقعات واقعية يمكن الالتزام بها.
           </p>
@@ -266,7 +266,7 @@ export default function Volunteer() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.45 }}
-                  className="rounded-3xl bg-white p-8 text-right shadow-md ring-1 ring-slate-100"
+                  className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
                 >
                   <div
                     className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${block.accentBg}`}
@@ -296,7 +296,7 @@ export default function Volunteer() {
             <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
             ما نبحث عنه
           </div>
-          <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">مهارات نبحث عنها</h2>
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">مهارات نبحث عنها</h2>
           <p className="mb-8 max-w-2xl text-sm leading-8 text-slate-600">
             تختلف حسب الدور، لكن هذه أساسيات شائعة تساعدنا على العمل بسلاسة.
           </p>
@@ -312,7 +312,7 @@ export default function Volunteer() {
               <motion.li
                 key={skill}
                 variants={staggerItem}
-                className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-100"
+                className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-emc-sm ring-1 ring-line"
               >
                 <Check className="h-4 w-4 shrink-0 text-customBlue" />
                 {skill}

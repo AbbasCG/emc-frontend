@@ -38,7 +38,7 @@ export default function DepartmentSection({ department }: Props) {
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-deepBlue/[0.04] text-customBlue ring-1 ring-deepBlue/[0.06]">
                 {createElement(resolveDepartmentIcon(department.icon), { size: 24, strokeWidth: 2.1, 'aria-hidden': true })}
               </span>
-              <h2 className="text-xl font-black text-deepBlue sm:text-2xl">{department.name_ar}</h2>
+              <h2 className="font-display text-xl font-black tracking-tight text-deepBlue sm:text-2xl">{department.name_ar}</h2>
             </div>
             <p className="mt-6 text-[1.03rem] font-medium leading-8 text-foreground/73">{department.description_ar}</p>
           </div>

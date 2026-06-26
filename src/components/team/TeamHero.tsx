@@ -28,13 +28,13 @@ export default function TeamHero() {
 
         <motion.div variants={fadeUp} initial="hidden" animate="visible">
           <div className="mb-8 flex justify-end">
-            <span className="inline-flex items-center gap-2 rounded-full border border-deepBlue/[0.08] bg-white/92 px-4 py-2 text-[11px] font-black tracking-wide text-deepBlue shadow-emc-xs backdrop-blur-md ring-1 ring-white">
+            <span className="emc-wing emc-eyebrow-ink shadow-emc-xs backdrop-blur-md">
               <Shield size={13} className="text-customOrange" aria-hidden />
               EMC V3 · 2026
             </span>
           </div>
 
-          <h1 className="font-display text-[2.05rem] font-black leading-[1.1] text-deepBlue sm:text-5xl lg:text-[3.25rem] xl:text-[3.55rem]">
+          <h1 className="emc-title-arc font-display text-[2.05rem] font-black leading-[1.1] tracking-tight text-deepBlue sm:text-5xl lg:text-[3.25rem] xl:text-[3.55rem]">
             فريق EMC V3
           </h1>
           <p className="mt-5 max-w-3xl text-lg font-semibold leading-9 text-foreground/72 sm:text-xl sm:leading-[2.05rem]">

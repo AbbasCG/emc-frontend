@@ -42,7 +42,12 @@ export default function DepartmentsFaqAccordion() {
             return (
               <div
                 key={item.q}
-                className="overflow-hidden rounded-2xl border border-deepBlue/10 bg-white/90 shadow-sm backdrop-blur-sm"
+                className={[
+                  'overflow-hidden rounded-2xl border bg-white/90 backdrop-blur-sm transition-shadow',
+                  isOpen
+                    ? 'border-customBlue/20 shadow-emc'
+                    : 'border-deepBlue/10 shadow-emc-sm',
+                ].join(' ')}
               >
                 <button
                   type="button"

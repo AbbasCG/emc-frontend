@@ -87,8 +87,8 @@ export default function TracksPageContinued() {
           />
           <div className="relative flex flex-col items-stretch gap-10 text-right lg:flex-row-reverse lg:items-center lg:justify-between">
             <div className="max-w-xl">
-              <p className="text-xs font-black text-customOrange">الخطوة التالية</p>
-              <h2 className="mt-3 font-display text-2xl font-black sm:text-4xl">ابدأ من المحور الذي يناسبك</h2>
+              <span className="emc-wing emc-eyebrow mb-3 border-white/25 bg-white/10 text-amber">الخطوة التالية</span>
+              <h2 className="mt-3 font-display text-2xl font-black tracking-tight sm:text-4xl">ابدأ من المحور الذي يناسبك</h2>
               <p className="mt-4 text-base font-semibold leading-8 text-white/78">
                 تصفّح البرامج المتاحة أو تواصل معنا لتصميم تجربة مؤسسية ضمن هذه المحاور.
               </p>

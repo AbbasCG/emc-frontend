@@ -10,7 +10,7 @@ const milestones = [
 
 export default function DepartmentsTimelineStrip() {
   return (
-    <section className="border-y border-deepBlue/[0.08] bg-deepBlue px-4 py-16 text-white sm:px-6 lg:px-8 lg:py-20">
+    <section className="emc-depth border-y border-deepBlue/[0.08] px-4 py-16 text-white sm:px-6 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <motion.div
           className="mb-12 max-w-3xl text-right"
@@ -19,10 +19,10 @@ export default function DepartmentsTimelineStrip() {
           viewport={{ once: true }}
           transition={{ duration: 0.45 }}
         >
-          <span className="mb-3 inline-block rounded-full border border-customOrange/35 bg-customOrange/15 px-3 py-1 text-xs font-black text-customOrange">
+          <span className="emc-wing emc-eyebrow mb-3 border-white/25 bg-white/10 text-amber">
             مسار التطور
           </span>
-          <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">خط زمني للنضج المؤسسي</h2>
+          <h2 className="font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">خط زمني للنضج المؤسسي</h2>
           <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
           <p className="mt-5 text-base font-medium leading-8 text-white/75 sm:text-lg sm:leading-9">
             صورة تخطيطية لكيفية نضج المنظومة — دون تواريخ ثابتة في الواجهة حتى تتوفر بيانات رسمية من الإدارة.
@@ -41,7 +41,7 @@ export default function DepartmentsTimelineStrip() {
           {milestones.map((m) => (
             <motion.div key={m.title} role="listitem" variants={staggerItem} className="relative pb-12 last:pb-2">
               <span className="absolute -right-[22px] top-1 flex h-5 w-5 items-center justify-center rounded-full border-4 border-deepBlue bg-customOrange shadow-[0_0_14px_rgba(247,148,29,0.65)]" />
-              <span className="text-xs font-black text-customBlue">{m.phase}</span>
+              <span className="text-xs font-black text-sky">{m.phase}</span>
               <h3 className="mt-2 text-lg font-black text-white">{m.title}</h3>
               <p className="mt-2 max-w-xl text-sm leading-8 text-white/75">{m.desc}</p>
             </motion.div>

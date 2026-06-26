@@ -52,7 +52,7 @@ export default function TeamMemberCard({ member, departmentBadge, featured }: Pr
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-0.5">
-        <h3 className="line-clamp-2 text-[0.95rem] font-black leading-snug text-deepBlue sm:text-base">{member.name_ar}</h3>
+        <h3 className="line-clamp-2 font-display text-[0.95rem] font-black leading-snug tracking-tight text-deepBlue sm:text-base">{member.name_ar}</h3>
 
         <p className="line-clamp-2 text-[12px] font-semibold leading-relaxed text-deepBlue/72 sm:text-[13px]">
           {member.position_ar}

@@ -105,15 +105,14 @@ export default function ProgramsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-4 text-right sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-brand-500">
+              <span className="emc-wing emc-eyebrow mb-3">
                 الدورات المتاحة
               </span>
-              <h2 className="text-2xl font-black text-deepBlue md:text-3xl">دورات من الكتالوج</h2>
-              <div className="mt-2 h-1 w-12 rounded-full bg-customOrange" />
+              <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">دورات من الكتالوج</h2>
             </div>
             <Link
               to="/courses"
-              className="inline-flex items-center gap-2 self-start rounded-xl border-2 border-deepBlue px-5 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue hover:text-white sm:self-auto"
+              className="inline-flex items-center gap-2 self-start rounded-xl border-2 border-deepBlue px-5 py-2.5 text-sm font-bold text-deepBlue shadow-emc transition duration-300 ease-emc hover:bg-deepBlue hover:text-white hover:shadow-emc-md sm:self-auto"
             >
               كتالوج الدورات الكامل
               <ChevronLeft className="h-4 w-4" aria-hidden />

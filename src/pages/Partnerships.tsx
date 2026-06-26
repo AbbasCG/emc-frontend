@@ -29,7 +29,7 @@ function TypeIcon({ name }: { name: string }) {
 
 export default function Partnerships() {
   return (
-    <main className="bg-[#f4f7fb] pt-20">
+    <main className="bg-paper pt-20">
       <PublicPageHero
         eyebrow="نموذج تعاون مسؤول"
         title="الشراكات"
@@ -53,7 +53,7 @@ export default function Partnerships() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-white p-8 text-right shadow-lg ring-1 ring-slate-100 lg:p-10"
+            className="rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line lg:p-10"
           >
             <p className="text-lg leading-9 text-slate-600">
               نؤمن بأن الشراكة الناجحة تُبنى على أهداف محددة، أدوار واضحة، ومخرجات قابلة للقياس.
@@ -77,9 +77,12 @@ export default function Partnerships() {
               <motion.article
                 key={p.title.ar}
                 variants={staggerItem}
-                className="rounded-3xl bg-white p-7 text-right shadow-lg ring-1 ring-slate-100"
+                whileHover={{ y: -3 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                className="group relative overflow-hidden rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition-shadow hover:shadow-emc-md"
               >
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-customBlue">
+                <span aria-hidden className="emc-daylight pointer-events-none absolute inset-x-0 top-0 h-[3px] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-customBlue ring-1 ring-customBlue/15">
                   <TypeIcon name={p.icon} />
                 </div>
                 <h3 className="text-lg font-black text-deepBlue">{p.title.ar}</h3>
@@ -110,7 +113,7 @@ export default function Partnerships() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45, delay: i * 0.05 }}
-                className="flex gap-3 rounded-3xl bg-white p-6 text-right shadow-md ring-1 ring-slate-100"
+                className="flex gap-3 rounded-3xl bg-white p-6 text-right shadow-emc ring-1 ring-line"
               >
                 <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-customBlue" />
                 <p className="font-semibold leading-8 text-slate-700">{line}</p>
@@ -142,9 +145,9 @@ export default function Partnerships() {
               <motion.li
                 key={step.t}
                 variants={staggerItem}
-                className="rounded-3xl bg-white p-6 text-right shadow-md ring-1 ring-slate-100"
+                className="rounded-3xl bg-white p-6 text-right shadow-emc ring-1 ring-line"
               >
-                <span className="text-xs font-black text-accent-700">المرحلة {i + 1}</span>
+                <span className="emc-num text-xs font-black tabular-nums text-accent-700">المرحلة {i + 1}</span>
                 <p className="mt-2 text-lg font-black text-deepBlue">{step.t}</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">{step.d}</p>
               </motion.li>
@@ -172,7 +175,7 @@ export default function Partnerships() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45 }}
-                className="rounded-3xl border border-dashed border-customBlue/25 bg-white/80 p-6 text-right leading-8 text-slate-700 shadow-sm"
+                className="rounded-3xl border border-dashed border-customBlue/25 bg-white/80 p-6 text-right leading-8 text-slate-700 shadow-emc-sm"
               >
                 {ex}
               </motion.div>
@@ -188,9 +191,9 @@ export default function Partnerships() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto max-w-7xl rounded-3xl bg-white p-8 text-right shadow-xl ring-1 ring-slate-100 lg:p-10"
+          className="mx-auto max-w-7xl rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line lg:p-10"
         >
-          <h2 className="text-2xl font-black text-deepBlue">كتلة التواصل والشراكة</h2>
+          <h2 className="emc-title-arc text-2xl font-black text-deepBlue">كتلة التواصل والشراكة</h2>
           <p className="mt-4 max-w-3xl text-lg leading-9 text-slate-600">
             أرسل لنا فكرة الشراكة، نوع المؤسسة، والفئة المستهدفة. سنرد برسالة توضح إمكانية
             التعاون والخطوة التالية — دون التزام قبل الاتفاق المتبادل.

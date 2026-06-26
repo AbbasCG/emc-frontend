@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, CheckCircle2, Mail } from 'lucide-react'
+import { AlertCircle, ArrowRight, CheckCircle2, Mail } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { forgotPassword } from '@/api/authApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
@@ -28,7 +28,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="bg-slate-50 pt-20">
+    <div className="bg-paper pt-20">
       <PageHeader
         title="نسيت كلمة المرور"
         breadcrumbs={[
@@ -40,21 +40,23 @@ export default function ForgotPassword() {
 
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <motion.div
-          className="mx-auto max-w-md rounded-2xl bg-white p-8 text-right shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100"
+          className="mx-auto max-w-md rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line sm:p-10"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
           {sent ? (
             <div className="py-4 text-center">
-              <CheckCircle2 className="mx-auto text-emerald-500" size={52} />
-              <h2 className="mt-5 text-xl font-black text-deepBlue">تم إرسال الرابط</h2>
-              <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
+              <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-50 text-emerald-500 ring-1 ring-emerald-100">
+                <CheckCircle2 size={46} />
+              </span>
+              <h2 className="emc-title-arc mt-6 inline-block font-display text-2xl font-black tracking-tight text-deepBlue">تم إرسال الرابط</h2>
+              <p className="mt-4 text-sm font-semibold leading-8 text-slate-600">
                 إذا كان البريد مرتبطاً بحساب، ستصلك رسالة تحتوي رابط إعادة التعيين خلال دقائق.
               </p>
               <Link
                 to="/login"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-black text-customBlue hover:text-customOrange"
+                className="mt-7 inline-flex items-center gap-2 text-sm font-black text-customBlue transition hover:text-accent-700"
               >
                 <ArrowRight size={15} />
                 العودة لتسجيل الدخول
@@ -62,19 +64,23 @@ export default function ForgotPassword() {
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-black text-deepBlue">نسيت كلمة المرور؟</h1>
-              <span className="mt-3 block h-1 w-16 rounded-full bg-customOrange" />
-              <p className="mt-4 text-sm font-semibold leading-relaxed text-slate-500">
+              <span className="emc-wing emc-eyebrow-accent mb-4">
+                <Mail size={15} />
+                استعادة الوصول
+              </span>
+              <h1 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">نسيت كلمة المرور؟</h1>
+              <p className="mt-4 text-sm font-semibold leading-8 text-slate-500">
                 أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.
               </p>
 
               {error && (
-                <div className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700 ring-1 ring-red-100">
-                  {error}
+                <div className="mt-5 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
+                  <AlertCircle size={20} className="mt-0.5 shrink-0" />
+                  <p className="text-sm font-bold">{error}</p>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="mt-6 grid gap-5" noValidate>
+              <form onSubmit={handleSubmit} className="mt-7 grid gap-5" noValidate>
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   البريد الإلكتروني
                   <span className="relative block">
@@ -88,7 +94,7 @@ export default function ForgotPassword() {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+                      className="emc-focus-ring h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pr-12 pl-4 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                     />
                   </span>
                 </label>
@@ -96,8 +102,9 @@ export default function ForgotPassword() {
                 <motion.button
                   type="submit"
                   disabled={isLoading}
+                  aria-busy={isLoading}
                   whileHover={!isLoading ? { scale: 1.02 } : undefined}
-                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange font-extrabold text-white shadow-lg shadow-orange-100 transition disabled:opacity-70"
+                  className="emc-focus-ring inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-customOrange font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {isLoading ? (
                     <>
@@ -111,7 +118,7 @@ export default function ForgotPassword() {
 
                 <Link
                   to="/login"
-                  className="flex items-center justify-center gap-1 text-sm font-black text-slate-500 hover:text-customBlue"
+                  className="flex items-center justify-center gap-1 text-sm font-black text-slate-500 transition hover:text-customBlue"
                 >
                   <ArrowRight size={14} />
                   العودة لتسجيل الدخول

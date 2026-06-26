@@ -127,12 +127,11 @@ export default function About() {
               transition={{ duration: 0.55 }}
               className="text-right"
             >
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-customBlue shadow-sm ring-1 ring-slate-200/80">
-                <Sparkles size={17} />
+              <span className="emc-wing emc-eyebrow mb-4">
+                <Sparkles size={15} />
                 من نحن
               </span>
-              <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">منصة تمكين عبر التعليم</h2>
-              <span className="mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange to-customOrange/40" />
+              <h2 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">منصة تمكين عبر التعليم</h2>
               <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{aboutPlatformLead.ar}</p>
               <p className="mt-5 text-base font-medium leading-8 text-slate-600">
                 نعمل على دعم الأفراد في مراحل الانتقال — دراسة، عمل، هجرة، أو إعادة ترتيب أولويات
@@ -141,7 +140,7 @@ export default function About() {
             </motion.div>
 
             <motion.div
-              className="rounded-3xl bg-white p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100"
+              className="rounded-3xl bg-white p-2 shadow-emc-lg ring-1 ring-line"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -201,7 +200,7 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-sky-100/50 blur-2xl" />
               <h3 className="relative text-xl font-black text-deepBlue">الرؤية</h3>
@@ -216,7 +215,7 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5, delay: 0.06 }}
-              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-orange-100/40 blur-2xl" />
               <h3 className="relative text-xl font-black text-deepBlue">الرسالة</h3>
@@ -259,16 +258,16 @@ export default function About() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.55 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-8 text-right text-white shadow-2xl sm:p-10 lg:p-12"
+            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-lg ring-1 ring-white/10 sm:p-10 lg:p-12"
           >
             <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-customOrange/15 blur-3xl" />
             <Quote className="relative text-customOrange" size={36} aria-hidden />
-            <blockquote className="relative mt-6 text-lg font-medium leading-10 text-slate-100 sm:text-xl sm:leading-[2.15rem]">
+            <blockquote className="relative mt-6 text-lg font-medium leading-10 text-ice/95 sm:text-xl sm:leading-[2.15rem]">
               نؤمن أن التعليم الجيد يبدأ من احترام المتعلم: وضوح في التوقعات، محتوى يُحدَّث، وفريق
               يتحمّل المسؤولية أمام المجتمع. هدفنا ليس «الأكبر بأسرع وقت» — بل بناء مرجعية عربية
               مهنية تدوم.
             </blockquote>
-            <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-slate-300">
+            <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-sky/90">
               الإدارة العليا — Educational Master Central (EMC)
             </footer>
           </motion.div>
@@ -382,7 +381,7 @@ export default function About() {
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45, delay: i * 0.05 }}
                 whileHover={{ y: -3 }}
-                className="min-h-[160px] rounded-3xl border border-slate-100 bg-white p-7 text-right shadow-md ring-1 ring-slate-100/90"
+                className="min-h-[160px] rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition-shadow hover:shadow-emc-md"
               >
                 <h3 className="text-lg font-black text-deepBlue">{card.title}</h3>
                 <p className="mt-3 leading-8 text-slate-600">{card.body}</p>
@@ -396,7 +395,7 @@ export default function About() {
       <section className="pb-16 sm:pb-20">
         <PageShell>
           <motion.div
-            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right shadow-lg ring-1 ring-slate-200/80 sm:flex-row sm:items-center sm:p-10"
+            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right shadow-emc-md ring-1 ring-line sm:flex-row sm:items-center sm:p-10"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"

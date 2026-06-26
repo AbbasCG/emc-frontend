@@ -20,9 +20,9 @@ export default function ProgramsHero({ coursesCount, pathsCount, workshopsCount 
         <motion.span
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-brand-200"
+          className="emc-wing emc-eyebrow mb-4 border-white/15 bg-white/10 text-ice"
         >
-          <Sparkles className="h-3.5 w-3.5 text-accent-400" aria-hidden />
+          <Sparkles className="h-3.5 w-3.5 text-amber" aria-hidden />
           EMC · منظومة البرامج التدريبية
         </motion.span>
 
@@ -30,7 +30,7 @@ export default function ProgramsHero({ coursesCount, pathsCount, workshopsCount 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="text-4xl font-black leading-tight text-white md:text-5xl"
+          className="emc-title-arc is-center font-display text-4xl font-black leading-tight tracking-tight text-white md:text-5xl"
         >
           استكشف جميع برامج EMC
         </motion.h1>
@@ -50,20 +50,20 @@ export default function ProgramsHero({ coursesCount, pathsCount, workshopsCount 
           transition={{ delay: 0.15 }}
           className="mt-8 grid grid-cols-3 gap-3 sm:mx-auto sm:max-w-lg"
         >
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm">
-            <BookOpen className="mx-auto mb-2 h-5 w-5 text-brand-300" aria-hidden />
-            <p className="text-xl font-black tabular-nums text-white">{coursesCount.toLocaleString('ar-EG')}</p>
-            <p className="text-[11px] font-bold text-white/60">دورة</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 shadow-emc backdrop-blur-sm transition duration-300 ease-emc hover:border-white/20 hover:bg-white/10">
+            <BookOpen className="mx-auto mb-2 h-5 w-5 text-sky" aria-hidden />
+            <p className="font-latin text-xl font-black tabular-nums text-white">{coursesCount.toLocaleString('ar-EG')}</p>
+            <p className="text-[11px] font-bold text-ice/70">دورة</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm">
-            <Route className="mx-auto mb-2 h-5 w-5 text-accent-300" aria-hidden />
-            <p className="text-xl font-black tabular-nums text-white">{pathsCount.toLocaleString('ar-EG')}</p>
-            <p className="text-[11px] font-bold text-white/60">مسار</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 shadow-emc backdrop-blur-sm transition duration-300 ease-emc hover:border-white/20 hover:bg-white/10">
+            <Route className="mx-auto mb-2 h-5 w-5 text-amber" aria-hidden />
+            <p className="font-latin text-xl font-black tabular-nums text-white">{pathsCount.toLocaleString('ar-EG')}</p>
+            <p className="text-[11px] font-bold text-ice/70">مسار</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 shadow-emc backdrop-blur-sm transition duration-300 ease-emc hover:border-white/20 hover:bg-white/10">
             <GraduationCap className="mx-auto mb-2 h-5 w-5 text-emerald-300" aria-hidden />
-            <p className="text-xl font-black tabular-nums text-white">{workshopsCount.toLocaleString('ar-EG')}</p>
-            <p className="text-[11px] font-bold text-white/60">ورشة</p>
+            <p className="font-latin text-xl font-black tabular-nums text-white">{workshopsCount.toLocaleString('ar-EG')}</p>
+            <p className="text-[11px] font-bold text-ice/70">ورشة</p>
           </div>
         </motion.div>
 

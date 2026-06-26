@@ -301,7 +301,7 @@ export default function DepartmentsOrgEcosystem() {
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="rounded-2xl border border-white/20 bg-gradient-to-br from-deepBlue to-[#0a1f32] p-5 text-right text-white shadow-2xl backdrop-blur-md"
+            className="rounded-2xl border border-white/20 bg-gradient-to-br from-deepBlue to-[#0a1f32] p-5 text-right text-white shadow-emc-lg backdrop-blur-md"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -322,7 +322,7 @@ export default function DepartmentsOrgEcosystem() {
                   key={dept.id}
                   layout
                   className={[
-                    'overflow-hidden rounded-2xl border bg-white/95 text-right shadow-lg backdrop-blur-sm transition-colors',
+                    'overflow-hidden rounded-2xl border bg-white/95 text-right shadow-emc backdrop-blur-sm transition-colors',
                     open ? 'border-customOrange/45 ring-2 ring-customOrange/25' : 'border-deepBlue/10 hover:border-customBlue/30',
                   ].join(' ')}
                 >
@@ -379,7 +379,7 @@ function SpotlightPanel({
   onClose: () => void
 }) {
   return (
-    <div className="relative min-h-[300px] overflow-hidden rounded-[1.35rem] border border-deepBlue/10 bg-white/90 shadow-[0_28px_70px_-24px_rgba(15,42,67,0.22)] backdrop-blur-xl">
+    <div className="relative min-h-[300px] overflow-hidden rounded-[1.35rem] border border-deepBlue/10 bg-white/90 shadow-emc-lg backdrop-blur-xl">
       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-customBlue via-ocean to-deepBlue" />
       <div className="pointer-events-none absolute -right-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-customBlue/[0.07] blur-3xl" />
       <AnimatePresence mode="wait">

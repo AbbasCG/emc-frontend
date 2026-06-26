@@ -75,10 +75,10 @@ export default function Tracks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45 }}
-            className="mb-12 max-w-3xl space-y-3 text-right"
+            className="mb-12 max-w-3xl text-right"
           >
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-accent-700">المحاور</p>
-            <p className="text-[1.05rem] font-medium leading-8 text-foreground/73">
+            <span className="emc-wing emc-eyebrow mb-4">المحاور</span>
+            <p className="mt-3 text-[1.05rem] font-medium leading-8 text-foreground/73">
               تجربة محاور حديثة ومنظمة: نفس المنظومة الاثني عشر، وبطاقات مصمّمة لتسهيل القراءة والانتقال السريع إلى
               البرامج. اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون
               مغادرة أسلوب EMC المؤسسي.
