@@ -36,12 +36,29 @@ function hasScheduledDate(course: Course): boolean {
   return s !== '' && s !== '—'
 }
 
+function formatArabicDate(dateStr: string): string {
+  try {
+    return new Intl.DateTimeFormat('ar', {
+      day: 'numeric', month: 'long', year: 'numeric',
+      timeZone: 'Europe/Amsterdam',
+    }).format(new Date(dateStr + 'T00:00:00'))
+  } catch { return dateStr }
+}
+
+function stripSeconds(t: string): string {
+  return String(t).slice(0, 5)
+}
+
 function formatScheduleLine(course: Course): string | null {
   if (!hasScheduledDate(course)) return null
-  const d = String(course.start_date).slice(0, 10)
+  const dateStr = String(course.start_date).slice(0, 10)
+  const formattedDate = formatArabicDate(dateStr)
   const cx = course as Record<string, unknown>
-  if (cx.start_time) return `${d} — ${String(cx.start_time)}`
-  return d
+  const startTime = cx.start_time ? stripSeconds(String(cx.start_time)) : null
+  const endTime   = cx.end_time   ? stripSeconds(String(cx.end_time))   : null
+  if (startTime && endTime) return `${formattedDate} • ${startTime} - ${endTime}`
+  if (startTime)             return `${formattedDate} • ${startTime}`
+  return formattedDate
 }
 
 function statusArabic(enrollment: Enrollment): string {

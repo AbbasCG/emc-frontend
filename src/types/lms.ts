@@ -206,6 +206,14 @@ export type TeachingCourseLms = {
   status?: string
   start_date?: string | null
   end_date?: string | null
+  start_time?: string | null
+  end_time?: string | null
+  is_ended?: boolean | null
+  computed_status?: string | null
+  status_label_ar?: string | null
+  track?: { id: number; title: string; name?: string } | null
+  description?: string | null
+  sessions_count?: number | null
   meeting_link?: string | null
   thumbnail?: string | null
   image?: string | null

@@ -44,6 +44,9 @@ type CoursesTabId = 'active' | 'upcoming' | 'completed' | 'pending'
 function tabForEnrollment(e: Enrollment): CoursesTabId {
   if (e.status === 'completed') return 'completed'
 
+  // Course whose end date/time is past → treat as completed regardless of enrollment status
+  if (e.course.is_ended === true || e.course.computed_status === 'ended') return 'completed'
+
   // Placement approved or explicit can_start flag → student may enter course
   const canLearn = e.can_start_learning || e.placement_status === 'completed'
   if (canLearn) {

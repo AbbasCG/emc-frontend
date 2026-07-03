@@ -6,6 +6,7 @@ import {
   BookOpen,
   CalendarCheck,
   CalendarDays,
+  Clock,
   ClipboardCheck,
   ClipboardList,
   GraduationCap,
@@ -21,16 +22,6 @@ import type { TeachingCourseLms } from '@/types/lms'
 import { useAuth } from '@/contexts/AuthContext'
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
-
-const STATUS_COLOR: Record<string, string> = {
-  active:    'bg-emerald-100 text-emerald-700',
-  draft:     'bg-slate-100 text-slate-500',
-  inactive:  'bg-red-100 text-red-600',
-  published: 'bg-emerald-100 text-emerald-700',
-  upcoming:  'bg-sky-100 text-sky-700',
-  completed: 'bg-blue-100 text-blue-700',
-  archived:  'bg-slate-200 text-slate-500',
-}
 
 const STATUS_AR: Record<string, string> = {
   active:    'نشط',
@@ -55,10 +46,12 @@ const TABS: { key: TabKey; label: string }[] = [
 function groupCourse(c: TeachingCourseLms, today: string): 'active' | 'upcoming' | 'completed' | 'draft' {
   const st = (c.status ?? '').toLowerCase()
   if (st === 'draft') return 'draft'
-  const startDate = (c as Record<string, unknown>).start_date as string | null | undefined
-  const endDate   = (c as Record<string, unknown>).end_date   as string | null | undefined
-  if (st === 'archived' || st === 'inactive' || (endDate && endDate < today)) return 'completed'
-  if (startDate && startDate > today) return 'upcoming'
+  // Prefer backend computed flag (handles timezone correctly)
+  if (c.is_ended === true || c.computed_status === 'ended') return 'completed'
+  if (st === 'archived' || st === 'inactive') return 'completed'
+  // Fallback: string date comparison
+  if (c.end_date && c.end_date < today) return 'completed'
+  if (c.start_date && c.start_date > today) return 'upcoming'
   return 'active'
 }
 
@@ -338,6 +331,23 @@ export default function InstructorAssignedCoursesPage() {
   )
 }
 
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
+
+function fmtDateAr(d: string | null | undefined): string | null {
+  if (!d) return null
+  try {
+    return new Intl.DateTimeFormat('ar', {
+      day: 'numeric', month: 'long', year: 'numeric',
+      timeZone: 'Europe/Amsterdam',
+    }).format(new Date(d + 'T00:00:00'))
+  } catch { return d }
+}
+
+function stripSec(t: string | null | undefined): string | null {
+  if (!t) return null
+  return String(t).slice(0, 5)
+}
+
 /* ── CourseCard ───────────────────────────────────────────────────────────── */
 
 function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: number }) {
@@ -345,50 +355,66 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
   const written        = c.written_tests_count ?? c.written_completed_count ?? c.placement_completed_count ?? null
   const oralPend       = c.oral_pending_count ?? c.waiting_oral_count ?? null
   const finalLvl       = c.final_level_count ?? c.oral_completed_count ?? null
-  const statusKey      = (c.status ?? '').toLowerCase()
   const needsPlacement = !!c.requires_placement_test
 
-  const startDate = (c as Record<string, unknown>).start_date as string | null | undefined
-  const endDate   = (c as Record<string, unknown>).end_date   as string | null | undefined
+  // Status badge — prefer backend Arabic label, fallback to STATUS_AR map
+  const statusKey  = (c.status ?? '').toLowerCase()
+  const computedSt = c.computed_status ?? statusKey
+  const statusAr   = c.status_label_ar ?? STATUS_AR[statusKey] ?? c.status ?? ''
+  const badgeCls =
+    computedSt === 'ended'    ? 'bg-slate-100 text-slate-500'
+    : computedSt === 'archived' ? 'bg-slate-200 text-slate-500'
+    : statusKey === 'upcoming'  ? 'bg-sky-100 text-sky-700'
+    : statusKey === 'draft'     ? 'bg-slate-100 text-slate-500'
+    : 'bg-emerald-100 text-emerald-700'
 
-  function fmtDate(d: string | null | undefined) {
-    if (!d) return null
-    try { return new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(d)) }
-    catch { return d }
-  }
+  // Date / time
+  const dateStart = fmtDateAr(c.start_date)
+  const dateEnd   = fmtDateAr(c.end_date)
+  const timeStart = stripSec(c.start_time)
+  const timeEnd   = stripSec(c.end_time)
 
-  // Action shortcuts specific to this course
+  let dateLabel: string | null = null
+  if (dateStart && dateEnd)  dateLabel = `${dateStart} – ${dateEnd}`
+  else if (dateStart)        dateLabel = dateStart
+
+  let timeLabel: string | null = null
+  if (timeStart && timeEnd)  timeLabel = `${timeStart} - ${timeEnd}`
+  else if (timeStart)        timeLabel = timeStart
+
+  const imageUrl = c.thumbnail ?? (c as Record<string, unknown>).image as string | null | undefined ?? null
+
   const actions = [
     {
       label: 'الطلاب',
       icon:  Users,
       href:  `/dashboard/instructor/courses/${c.id}/students`,
-      cls:   'border-[#2691C2]/20 bg-[#2691C2]/[0.05] text-[#2691C2] hover:bg-[#2691C2]/[0.12]',
+      cls:   'text-[#2691C2] hover:bg-[#2691C2]/[0.08]',
     },
     {
       label: 'الحضور',
       icon:  UserCheck,
       href:  `/dashboard/instructor/attendance?course_id=${c.id}`,
-      cls:   'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+      cls:   'text-emerald-600 hover:bg-emerald-50',
     },
     {
       label: 'التسليمات',
       icon:  ClipboardList,
       href:  `/dashboard/instructor/submissions?course_id=${c.id}`,
-      cls:   'border-[#EC943C]/20 bg-[#EC943C]/[0.05] text-[#EC943C] hover:bg-[#EC943C]/[0.12]',
+      cls:   'text-[#EC943C] hover:bg-orange-50',
     },
     {
       label: 'المحتوى',
       icon:  Layers,
       href:  `/dashboard/instructor/courses/${c.id}/content`,
-      cls:   'border-slate-200 bg-slate-50 text-deepBlue/55 hover:bg-slate-100',
+      cls:   'text-deepBlue/55 hover:bg-slate-100',
     },
     ...(needsPlacement ? [
       {
         label: 'تحديد المستوى',
         icon:  ClipboardCheck,
         href:  `/dashboard/instructor/courses/${c.id}/placement-students`,
-        cls:   'border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100',
+        cls:   'text-violet-600 hover:bg-violet-50',
       },
     ] : []),
   ]
@@ -398,82 +424,106 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-[#2691C2]/30 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      {/* Banner */}
-      {(c.thumbnail ?? (c as Record<string, unknown>).image) ? (
-        <div className="relative h-32 overflow-hidden">
+      {/* ── Banner ──────────────────────────────────────────────────────── */}
+      <div className="relative h-40 overflow-hidden">
+        {imageUrl ? (
           <img
-            src={(c.thumbnail ?? (c as Record<string, unknown>).image) as string}
+            src={imageUrl}
             alt={c.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/60 via-transparent to-transparent" />
-          {c.status && (
-            <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-0.5 text-[9px] font-black shadow-sm ${STATUS_COLOR[statusKey] ?? 'bg-slate-100 text-slate-500'}`}>
-              {STATUS_AR[statusKey] ?? c.status}
-            </span>
-          )}
-        </div>
-      ) : (
-        <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-bl from-[#22334A]/90 to-[#2691C2]">
-          <div aria-hidden className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-[#EC943C]/20 blur-2xl" />
-          <BookMarked className="relative h-7 w-7 text-white/20" />
-          {c.status && (
-            <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-0.5 text-[9px] font-black ${STATUS_COLOR[statusKey] ?? 'bg-white/15 text-white'}`}>
-              {STATUS_AR[statusKey] ?? c.status}
-            </span>
-          )}
-        </div>
-      )}
-
-      <div className="flex flex-1 flex-col p-4">
-        <h2 className="line-clamp-2 text-[14px] font-black leading-snug text-deepBlue">{c.title}</h2>
-
-        {/* Date range */}
-        {(startDate || endDate) && (
-          <p className="mt-1.5 text-[10px] font-semibold text-deepBlue/40">
-            {fmtDate(startDate)}{startDate && endDate ? ' — ' : ''}{fmtDate(endDate)}
-          </p>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-bl from-[#22334A] via-[#1e3350] to-[#2691C2]">
+            <div aria-hidden className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#EC943C]/15 blur-3xl" />
+            <div aria-hidden className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
+          </div>
         )}
 
-        {/* Stat pills */}
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          <StatPill value={enrolled} label="طالب" color="text-[#2691C2] bg-sky-50" />
-          {needsPlacement && written != null && (
-            <StatPill value={written} label="اختبار مكتمل" color="text-[#EC943C] bg-orange-50" />
-          )}
-          {needsPlacement && oralPend != null && oralPend > 0 && (
-            <StatPill value={oralPend} label="ينتظر مقابلة" color="text-amber-600 bg-amber-50" />
-          )}
-          {needsPlacement && finalLvl != null && (
-            <StatPill value={finalLvl} label="نتيجة معتمدة" color="text-emerald-600 bg-emerald-50" />
-          )}
-        </div>
+        {/* Overlay gradient */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deepBlue/80 via-deepBlue/20 to-transparent" />
 
-        {/* Action buttons */}
-        <div className="mt-auto flex flex-wrap gap-1.5 pt-4">
-          {actions.map(({ label, icon: Icon, href, cls }) => (
-            <Link
-              key={label}
-              to={href}
-              className={`flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[10px] font-black transition ${cls}`}
-            >
-              <Icon className="h-3 w-3 shrink-0" />
-              {label}
-            </Link>
-          ))}
+        {/* Status badge */}
+        {statusAr && (
+          <span className={`absolute right-3 top-3 rounded-xl px-2.5 py-1 text-[9px] font-black shadow-sm ${badgeCls}`}>
+            {statusAr}
+          </span>
+        )}
+
+        {/* Title overlaid at bottom */}
+        <div className="absolute bottom-0 right-0 left-0 px-4 pb-3.5 pt-6">
+          <h2 className="line-clamp-2 text-right text-[14px] font-black leading-snug text-white drop-shadow-sm">
+            {c.title}
+          </h2>
+          {c.track?.title && (
+            <p className="mt-0.5 text-right text-[10px] font-semibold text-white/55">{c.track.title}</p>
+          )}
         </div>
       </div>
-    </motion.article>
-  )
-}
 
-function StatPill({ value, label, color }: { value: number; label: string; color: string }) {
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-xl px-2 py-1 text-[10px] font-black ${color}`}>
-      <span className="font-mono tabular-nums">{value}</span>
-      <span className="font-semibold opacity-70">{label}</span>
-    </span>
+      {/* ── Body ────────────────────────────────────────────────────────── */}
+      <div className="flex flex-1 flex-col gap-3 p-4 text-right" dir="rtl">
+
+        {/* Date + time row */}
+        {(dateLabel || timeLabel) && (
+          <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-deepBlue/55">
+            {dateLabel && (
+              <span className="flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5 text-[#2691C2]/70 shrink-0" />
+                {dateLabel}
+              </span>
+            )}
+            {timeLabel && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 text-[#2691C2]/70 shrink-0" />
+                {timeLabel}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Student + placement stats */}
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-xl bg-sky-50 px-2.5 py-1 text-[10px] font-black text-[#2691C2]">
+            <Users className="h-3 w-3 shrink-0" />
+            <span className="font-mono tabular-nums">{enrolled}</span>
+            <span className="font-semibold opacity-70">طالب</span>
+          </span>
+          {needsPlacement && written != null && (
+            <span className="inline-flex items-center gap-1 rounded-xl bg-orange-50 px-2.5 py-1 text-[10px] font-black text-[#EC943C]">
+              <span className="font-mono tabular-nums">{written}</span>
+              <span className="font-semibold opacity-70">اختبار مكتمل</span>
+            </span>
+          )}
+          {needsPlacement && oralPend != null && oralPend > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 px-2.5 py-1 text-[10px] font-black text-amber-600">
+              <span className="font-mono tabular-nums">{oralPend}</span>
+              <span className="font-semibold opacity-70">ينتظر مقابلة</span>
+            </span>
+          )}
+          {needsPlacement && finalLvl != null && (
+            <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-600">
+              <span className="font-mono tabular-nums">{finalLvl}</span>
+              <span className="font-semibold opacity-70">نتيجة معتمدة</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Footer actions ──────────────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
+        {actions.map(({ label, icon: Icon, href, cls }) => (
+          <Link
+            key={label}
+            to={href}
+            className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black transition ${cls}`}
+          >
+            <Icon className="h-3 w-3 shrink-0" />
+            {label}
+          </Link>
+        ))}
+      </div>
+    </motion.article>
   )
 }
