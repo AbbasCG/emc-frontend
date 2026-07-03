@@ -5,7 +5,7 @@
  * - Instructor: `/instructor/courses/{courseId}/…`
  */
 
-import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type ElementType, type SetStateAction } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -14,11 +14,16 @@ import {
   ChevronDown,
   ClipboardList,
   Clock,
+  ExternalLink,
   Eye,
   EyeOff,
+  FileText,
   FolderOpen,
   Layers,
+  Link2,
+  Link2Off,
   Loader2,
+  MapPin,
   Pencil,
   Plus,
   RefreshCw,
@@ -364,155 +369,149 @@ export default function CourseContentManagerPage() {
       : null}
 
       {!loading && tab === 'modules' ?
-        <section className="space-y-4 rounded-3xl border border-deepBlue/[0.06] bg-white/92 p-6 shadow-emc backdrop-blur">
+        <section className="space-y-6 rounded-3xl border border-deepBlue/[0.06] bg-white/92 p-6 shadow-emc backdrop-blur">
+          {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-black text-deepBlue">الوحدات</h2>
+            <div>
+              <h2 className="text-xl font-black text-deepBlue">الوحدات</h2>
+              <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">{mods.length} وحدة</p>
+            </div>
             <button
               type="button"
-              onClick={() =>
-                setModal({
-                  kind: 'module',
-                  draft: { title: '', sort_order: String(mods.length + 1) },
-                })
-              }
-              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-[11px] font-black text-white"
+              onClick={() => setModal({ kind: 'module', draft: { title: '', sort_order: String(mods.length + 1) } })}
+              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2.5 text-[11px] font-black text-white shadow-sm transition hover:brightness-105"
             >
               <Plus className="h-4 w-4" aria-hidden />
               وحدة جديدة
             </button>
           </div>
+
+          {/* Empty state */}
           {mods.length === 0 ?
-            <p className="rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-10 text-center text-[13px] font-semibold text-deepBlue/58">
-              لا توجد وحدات — أنشئ أول وحدة لتظهر على محتوى التعلّم.
-            </p>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
+              <Layers className="h-10 w-10 text-deepBlue/15" aria-hidden />
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد وحدات — أنشئ أول وحدة لتظهر على محتوى التعلّم.</p>
+            </div>
           : (
-            <div className="space-y-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sortedModuleIds.map((mid) => {
                 const m = mods.find((x) => x.id === mid)!
                 const ix = sortedModuleIds.indexOf(mid)
                 const isOpen = openModuleIds.has(mid)
-                const modLessons = m.lessons ?? []
-                const modMaterials = m.materials ?? []
-                const modSessions = m.sessions ?? []
+                const modLessons    = m.lessons     ?? []
+                const modMaterials  = m.materials   ?? []
+                const modSessions   = m.sessions    ?? []
                 const modAssignments = m.assignments ?? []
                 const hasChildren = modLessons.length > 0 || modMaterials.length > 0 || modSessions.length > 0 || modAssignments.length > 0
+
                 return (
-                  <div key={mid} className="overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm">
-                    {/* Module header */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                      <div className="flex min-w-0 items-center gap-2">
+                  <div key={mid} className="flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:shadow-md border-t-[3px] border-t-[#2691C2]">
+
+                    {/* ── Card body ─────────────────────────────────────── */}
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      {/* Top row: order badge + expand toggle */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-xl bg-[#2691C2]/10 px-2 text-[11px] font-black text-[#2691C2]">
+                          {ix + 1}
+                        </span>
                         <button
                           type="button"
                           onClick={() => toggleModuleExpand(mid)}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-deepBlue/10 text-deepBlue/50 transition hover:bg-slate-50"
-                          aria-label={isOpen ? 'طي' : 'توسيع'}
+                          aria-label={isOpen ? 'طي الوحدة' : 'توسيع الوحدة'}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-[#2691C2]/30 hover:bg-slate-50 hover:text-[#2691C2]"
                         >
-                          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
                         </button>
-                        <div className="min-w-0">
-                          <p className="font-black text-deepBlue">{m.title}</p>
-                          <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">
-                            {[
-                              modLessons.length > 0 ? `${modLessons.length} درس` : null,
-                              modMaterials.length > 0 ? `${modMaterials.length} مادة` : null,
-                              modSessions.length > 0 ? `${modSessions.length} جلسة` : null,
-                              modAssignments.length > 0 ? `${modAssignments.length} واجب` : null,
-                            ].filter(Boolean).join(' · ') || 'وحدة فارغة — انقر للتوسيع وإضافة محتوى'}
-                          </p>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-deepBlue">{m.title}</h3>
+
+                      {/* Count badges */}
+                      {hasChildren ?
+                        <div className="flex flex-wrap gap-1.5">
+                          {modSessions.length > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#2691C2]/10 px-2.5 py-1 text-[10px] font-black text-[#2691C2]">
+                              <Calendar className="h-2.5 w-2.5" /> {modSessions.length} جلسة
+                            </span>
+                          )}
+                          {modMaterials.length > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#EC943C]/10 px-2.5 py-1 text-[10px] font-black text-[#EC943C]">
+                              <FolderOpen className="h-2.5 w-2.5" /> {modMaterials.length} مادة
+                            </span>
+                          )}
+                          {modAssignments.length > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-200">
+                              <ClipboardList className="h-2.5 w-2.5" /> {modAssignments.length} واجب
+                            </span>
+                          )}
+                          {modLessons.length > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-600">
+                              <BookOpen className="h-2.5 w-2.5" /> {modLessons.length} درس
+                            </span>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        <button
-                          type="button"
-                          aria-label="أعلى"
-                          disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === 0}
-                          title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
-                          onClick={() => moveModule(mid, -1)}
-                          className="rounded-xl border border-deepBlue/10 px-2.5 py-1 text-[11px] font-black disabled:opacity-35"
-                        >↑</button>
-                        <button
-                          type="button"
-                          aria-label="أسفل"
-                          disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === sortedModuleIds.length - 1}
-                          title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
-                          onClick={() => moveModule(mid, 1)}
-                          className="rounded-xl border border-deepBlue/10 px-2.5 py-1 text-[11px] font-black disabled:opacity-35"
-                        >↓</button>
-                        <button
-                          type="button"
-                          onClick={() => setModal({ kind: 'module', editingId: m.id, draft: { title: m.title, sort_order: String(m.sort_order) } })}
-                          className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-2.5 py-1 text-[11px] font-black text-deepBlue"
-                        >
-                          <Pencil className="h-3 w-3" aria-hidden /> تعديل
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget({ kind: 'module', id: m.id, label: m.title })}
-                          className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-800"
-                        >
-                          <Trash2 className="h-3 w-3" aria-hidden /> حذف
-                        </button>
-                      </div>
+                      : (
+                        <p className="text-[11px] font-semibold text-slate-400">وحدة فارغة — اضغط + لإضافة محتوى</p>
+                      )}
                     </div>
 
-                    {/* Expanded module content */}
+                    {/* ── Expanded inner content ─────────────────────────── */}
                     {isOpen && (
-                      <div className="space-y-4 border-t border-deepBlue/[0.06] bg-slate-50/60 px-4 pb-4 pt-3">
-                        {/* Add content row */}
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
+                      <div className="space-y-4 border-t border-slate-100 bg-slate-50/50 px-4 pb-5 pt-4">
+                        {/* Quick-add buttons */}
+                        <div className="flex flex-wrap gap-1.5">
+                          <button type="button"
                             onClick={() => setModal({ kind: 'lesson', moduleId: mid, draft: { title: '', description: '', video_url: '', duration_minutes: '' } })}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#22334A] hover:text-white"
-                          >
-                            <BookOpen className="h-3.5 w-3.5" aria-hidden /> إضافة درس
+                            className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#22334A] hover:text-white">
+                            <BookOpen className="h-3 w-3" /> درس
                           </button>
-                          <button
-                            type="button"
+                          <button type="button"
                             onClick={() => setModal({ kind: 'material', moduleId: mid, file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white"
-                          >
-                            <FolderOpen className="h-3.5 w-3.5" aria-hidden /> إضافة مادة
+                            className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white">
+                            <FolderOpen className="h-3 w-3" /> مادة
                           </button>
-                          <button
-                            type="button"
+                          <button type="button"
                             onClick={() => setModal({ kind: 'session', moduleId: mid, draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#2691C2] hover:text-white"
-                          >
-                            <Calendar className="h-3.5 w-3.5" aria-hidden /> إضافة جلسة
+                            className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#2691C2] hover:text-white">
+                            <Calendar className="h-3 w-3" /> جلسة
                           </button>
-                          <button
-                            type="button"
+                          <button type="button"
                             onClick={() => setModal({ kind: 'assignment', moduleId: mid, draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-emerald-600 hover:text-white"
-                          >
-                            <ClipboardList className="h-3.5 w-3.5" aria-hidden /> إضافة واجب
+                            className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-emerald-600 hover:text-white">
+                            <ClipboardList className="h-3 w-3" /> واجب
                           </button>
                         </div>
 
+                        {/* Empty module message */}
                         {!hasChildren && (
-                          <p className="py-3 text-center text-[12px] font-semibold text-deepBlue/40">
-                            لا يوجد محتوى داخل هذه الوحدة بعد
-                          </p>
+                          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-200 py-6 text-center">
+                            <Layers className="h-6 w-6 text-slate-200" />
+                            <p className="text-[11px] font-semibold text-slate-400">لا يوجد محتوى داخل هذه الوحدة بعد</p>
+                          </div>
                         )}
 
                         {/* Lessons */}
                         {modLessons.length > 0 && (
                           <div>
-                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-slate-400">
                               <BookOpen className="h-3 w-3" /> الدروس ({modLessons.length})
-                            </h4>
+                            </p>
                             <div className="space-y-1.5">
                               {modLessons.map((l) => (
-                                <div key={l.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
-                                  {l.video_url ? <Video className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" /> : <BookOpen className="h-3.5 w-3.5 shrink-0 text-deepBlue/30" />}
-                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{l.title}</span>
-                                  {l.duration_minutes != null && <span className="text-[10px] font-bold tabular-nums text-deepBlue/45">{l.duration_minutes} د</span>}
-                                  <button
-                                    type="button"
+                                <div key={l.id} className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2">
+                                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                                    {l.video_url ? <Video className="h-3 w-3 text-[#2691C2]" /> : <BookOpen className="h-3 w-3 text-slate-400" />}
+                                  </div>
+                                  <span className="flex-1 truncate text-[11px] font-semibold text-deepBlue">{l.title}</span>
+                                  {l.duration_minutes != null && (
+                                    <span className="shrink-0 text-[10px] font-bold tabular-nums text-slate-400">{l.duration_minutes}د</span>
+                                  )}
+                                  <button type="button"
                                     onClick={() => setDeleteTarget({ kind: 'lesson', id: l.id, label: l.title })}
-                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
-                                  >حذف</button>
+                                    className="shrink-0 rounded-lg border border-rose-100 bg-rose-50 px-2 py-0.5 text-[10px] font-black text-rose-600 transition hover:bg-rose-100">
+                                    حذف
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -522,22 +521,34 @@ export default function CourseContentManagerPage() {
                         {/* Sessions */}
                         {modSessions.length > 0 && (
                           <div>
-                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-[#2691C2]/60">
                               <Calendar className="h-3 w-3" /> الجلسات ({modSessions.length})
-                            </h4>
+                            </p>
                             <div className="space-y-1.5">
-                              {modSessions.map((s) => (
-                                <div key={s.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
-                                  <Calendar className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" />
-                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{s.title ?? `جلسة #${s.id}`}</span>
-                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{String(s.status ?? 'scheduled')}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
-                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
-                                  >حذف</button>
-                                </div>
-                              ))}
+                              {modSessions.map((s) => {
+                                const sSt = String(s.status ?? 'scheduled')
+                                const sBadge =
+                                  sSt === 'live'      ? 'bg-emerald-100 text-emerald-700' :
+                                  sSt === 'completed' ? 'bg-slate-100 text-slate-500' :
+                                  sSt === 'cancelled' ? 'bg-red-50 text-red-600' :
+                                                        'bg-[#2691C2]/10 text-[#2691C2]'
+                                const sLabel =
+                                  sSt === 'live' ? 'مباشرة' : sSt === 'completed' ? 'منتهية' : sSt === 'cancelled' ? 'ملغاة' : 'مجدولة'
+                                return (
+                                  <div key={s.id} className="flex items-center gap-2.5 rounded-xl border border-[#2691C2]/8 bg-white px-3 py-2">
+                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#2691C2]/10">
+                                      <Calendar className="h-3 w-3 text-[#2691C2]" />
+                                    </div>
+                                    <span className="flex-1 truncate text-[11px] font-semibold text-deepBlue">{s.title ?? `جلسة #${s.id}`}</span>
+                                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black ${sBadge}`}>{sLabel}</span>
+                                    <button type="button"
+                                      onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
+                                      className="shrink-0 rounded-lg border border-rose-100 bg-rose-50 px-2 py-0.5 text-[10px] font-black text-rose-600 transition hover:bg-rose-100">
+                                      حذف
+                                    </button>
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
                         )}
@@ -545,22 +556,28 @@ export default function CourseContentManagerPage() {
                         {/* Materials */}
                         {modMaterials.length > 0 && (
                           <div>
-                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-[#EC943C]/70">
                               <FolderOpen className="h-3 w-3" /> المواد ({modMaterials.length})
-                            </h4>
+                            </p>
                             <div className="space-y-1.5">
-                              {modMaterials.map((mat) => (
-                                <div key={mat.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
-                                  <FolderOpen className="h-3.5 w-3.5 shrink-0 text-[#EC943C]" />
-                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{mat.title}</span>
-                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{String(mat.kind ?? 'file')}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setDeleteTarget({ kind: 'material', id: mat.id, label: mat.title })}
-                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
-                                  >حذف</button>
-                                </div>
-                              ))}
+                              {modMaterials.map((mat) => {
+                                const matKind = String(mat.kind ?? 'file')
+                                const kindLabel: Record<string, string> = { pdf: 'PDF', video: 'فيديو', link: 'رابط', file: 'ملف', image: 'صورة', audio: 'صوت', slides: 'شرائح', document: 'مستند' }
+                                return (
+                                  <div key={mat.id} className="flex items-center gap-2.5 rounded-xl border border-[#EC943C]/10 bg-white px-3 py-2">
+                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#EC943C]/10">
+                                      <FolderOpen className="h-3 w-3 text-[#EC943C]" />
+                                    </div>
+                                    <span className="flex-1 truncate text-[11px] font-semibold text-deepBlue">{mat.title}</span>
+                                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">{kindLabel[matKind] ?? matKind}</span>
+                                    <button type="button"
+                                      onClick={() => setDeleteTarget({ kind: 'material', id: mat.id, label: mat.title })}
+                                      className="shrink-0 rounded-lg border border-rose-100 bg-rose-50 px-2 py-0.5 text-[10px] font-black text-rose-600 transition hover:bg-rose-100">
+                                      حذف
+                                    </button>
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
                         )}
@@ -568,20 +585,26 @@ export default function CourseContentManagerPage() {
                         {/* Assignments */}
                         {modAssignments.length > 0 && (
                           <div>
-                            <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-deepBlue/50">
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-700/60">
                               <ClipboardList className="h-3 w-3" /> الواجبات ({modAssignments.length})
-                            </h4>
+                            </p>
                             <div className="space-y-1.5">
                               {modAssignments.map((a) => (
-                                <div key={a.id} className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.06] bg-white px-3 py-2.5">
-                                  <ClipboardList className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                                  <span className="flex-1 text-[12px] font-semibold text-deepBlue">{a.title}</span>
-                                  {a.due_at && <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-deepBlue/45"><Clock className="h-3 w-3" />{formatDateTime(String(a.due_at))}</span>}
-                                  <button
-                                    type="button"
+                                <div key={a.id} className="flex items-center gap-2.5 rounded-xl border border-emerald-100 bg-white px-3 py-2">
+                                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                                    <ClipboardList className="h-3 w-3 text-emerald-600" />
+                                  </div>
+                                  <span className="flex-1 truncate text-[11px] font-semibold text-deepBlue">{a.title}</span>
+                                  {a.due_at && (
+                                    <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-400">
+                                      <Clock className="h-2.5 w-2.5" />{formatDateTime(String(a.due_at))}
+                                    </span>
+                                  )}
+                                  <button type="button"
                                     onClick={() => setDeleteTarget({ kind: 'assignment', id: a.assignment_id ?? a.id, label: a.title })}
-                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black text-rose-700 transition hover:bg-rose-100"
-                                  >حذف</button>
+                                    className="shrink-0 rounded-lg border border-rose-100 bg-rose-50 px-2 py-0.5 text-[10px] font-black text-rose-600 transition hover:bg-rose-100">
+                                    حذف
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -589,60 +612,91 @@ export default function CourseContentManagerPage() {
                         )}
                       </div>
                     )}
+
+                    {/* ── Card footer: reorder + edit + delete ──────────── */}
+                    <div className="flex items-center gap-1.5 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
+                      <button type="button" aria-label="أعلى"
+                        disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === 0}
+                        title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
+                        onClick={() => moveModule(mid, -1)}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-[#2691C2]/30 hover:text-[#2691C2] disabled:opacity-30">
+                        ↑
+                      </button>
+                      <button type="button" aria-label="أسفل"
+                        disabled={!LMS_SUPPORTS_MODULE_REORDER || ix === sortedModuleIds.length - 1}
+                        title={!LMS_SUPPORTS_MODULE_REORDER ? 'ترتيب الوحدات غير مفعّل في الخادم' : undefined}
+                        onClick={() => moveModule(mid, 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-[#2691C2]/30 hover:text-[#2691C2] disabled:opacity-30">
+                        ↓
+                      </button>
+                      <span className="flex-1" />
+                      <button type="button"
+                        onClick={() => setModal({ kind: 'module', editingId: m.id, draft: { title: m.title, sort_order: String(m.sort_order) } })}
+                        className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-600 transition hover:border-[#2691C2]/30 hover:text-[#2691C2]">
+                        <Pencil className="h-3 w-3" /> تعديل
+                      </button>
+                      <button type="button"
+                        onClick={() => setDeleteTarget({ kind: 'module', id: m.id, label: m.title })}
+                        className="flex items-center gap-1 rounded-xl border border-rose-100 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-600 transition hover:bg-rose-100">
+                        <Trash2 className="h-3 w-3" /> حذف
+                      </button>
+                    </div>
                   </div>
                 )
               })}
             </div>
           )}
 
-          {/* Course-level content section (module_id = null) */}
+          {/* Course-level unmodule'd content */}
           {(generalSess.length > 0 || generalMats.length > 0 || generalAsgn.length > 0) && (
-            <div className="mt-6 space-y-3 rounded-2xl border border-amber-200/50 bg-amber-50/40 p-4">
+            <div className="space-y-3 rounded-2xl border border-amber-200/50 bg-amber-50/40 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="flex items-center gap-2 text-[13px] font-black text-deepBlue">
                   <Layers className="h-4 w-4 text-[#EC943C]" /> محتوى عام للدورة
                   <span className="text-[11px] font-semibold text-deepBlue/50">(بدون وحدة)</span>
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
-                  <button type="button" onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
-                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#EC943C] hover:text-white transition">
+                  <button type="button"
+                    onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white">
                     <FolderOpen className="h-3 w-3" /> مادة
                   </button>
-                  <button type="button" onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
-                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#2691C2] hover:text-white transition">
+                  <button type="button"
+                    onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
+                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#2691C2] hover:text-white">
                     <Calendar className="h-3 w-3" /> جلسة
                   </button>
-                  <button type="button" onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
-                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-emerald-600 hover:text-white transition">
+                  <button type="button"
+                    onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
+                    className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-emerald-600 hover:text-white">
                     <ClipboardList className="h-3 w-3" /> واجب
                   </button>
                 </div>
               </div>
               <p className="text-[11px] font-semibold text-deepBlue/55">
-                {[
-                  generalSess.length > 0 ? `${generalSess.length} جلسة` : null,
-                  generalMats.length > 0 ? `${generalMats.length} مادة` : null,
-                  generalAsgn.length > 0 ? `${generalAsgn.length} واجب` : null,
-                ].filter(Boolean).join(' · ')}
+                {[generalSess.length > 0 ? `${generalSess.length} جلسة` : null, generalMats.length > 0 ? `${generalMats.length} مادة` : null, generalAsgn.length > 0 ? `${generalAsgn.length} واجب` : null].filter(Boolean).join(' · ')}
               </p>
             </div>
           )}
           {mods.length > 0 && generalSess.length === 0 && generalMats.length === 0 && generalAsgn.length === 0 && (
-            <div className="mt-4 rounded-2xl border border-dashed border-deepBlue/10 bg-slate-50/60 p-4 text-center">
+            <div className="rounded-2xl border border-dashed border-deepBlue/10 bg-slate-50/60 p-4 text-center">
               <p className="text-[11px] font-semibold text-deepBlue/40">
                 لا يوجد محتوى عام للدورة — كل المحتوى منظّم داخل الوحدات
               </p>
               <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                <button type="button" onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
-                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#EC943C] hover:text-white transition">
+                <button type="button"
+                  onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white">
                   <FolderOpen className="h-3 w-3" /> إضافة مادة عامة
                 </button>
-                <button type="button" onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
-                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-[#2691C2] hover:text-white transition">
+                <button type="button"
+                  onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
+                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#2691C2] hover:text-white">
                   <Calendar className="h-3 w-3" /> إضافة جلسة عامة
                 </button>
-                <button type="button" onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
-                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 hover:bg-emerald-600 hover:text-white transition">
+                <button type="button"
+                  onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
+                  className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-emerald-600 hover:text-white">
                   <ClipboardList className="h-3 w-3" /> إضافة واجب عام
                 </button>
               </div>
@@ -654,117 +708,112 @@ export default function CourseContentManagerPage() {
       {!loading && tab === 'sessions' ?
         <section className="space-y-4 rounded-3xl border border-deepBlue/[0.06] bg-white/92 p-6 shadow-emc backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-black text-deepBlue">الجلسات</h2>
+            <div>
+              <h2 className="text-xl font-black text-deepBlue">الجلسات</h2>
+              <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">{sess.length} جلسة</p>
+            </div>
             <button
               type="button"
-              onClick={() =>
-                setModal({
-                  kind: 'session',
-                  draft: {
-                    title: '',
-                    description: '',
-                    start_at: '',
-                    end_at: '',
-                    meeting_url: '',
-                    location_type: 'online',
-                    location: '',
-                    status: 'scheduled',
-                  },
-                })
-              }
-              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-[11px] font-black text-white"
+              onClick={() => setModal({ kind: 'session', draft: { title: '', description: '', start_at: '', end_at: '', meeting_url: '', location_type: 'online', location: '', status: 'scheduled' } })}
+              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2.5 text-[11px] font-black text-white shadow-sm transition hover:brightness-105"
             >
               <Plus className="h-4 w-4" aria-hidden />
               جلسة جديدة
             </button>
           </div>
           {sess.length === 0 ?
-            <p className="rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-10 text-center text-[13px] font-semibold text-deepBlue/58">
-              لا توجد جلسات — سيظهر تنبيه نظيف على صفحة الطالب.
-            </p>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
+              <Calendar className="h-10 w-10 text-deepBlue/15" aria-hidden />
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد جلسات — سيظهر تنبيه نظيف على صفحة الطالب.</p>
+            </div>
           : (
-            <div className="grid gap-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sess.map((s) => {
                 const st = String(s.status ?? 'scheduled')
-                const sessionStatusCls =
-                  st === 'live'      ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200' :
-                  st === 'completed' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' :
-                  st === 'cancelled' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' :
-                                       'bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/25'
-                const sessionStatusLabel =
-                  st === 'live' ? 'مباشرة' : st === 'completed' ? 'منتهية' : st === 'cancelled' ? 'ملغاة' : 'مجدولة'
+                const statusConfig =
+                  st === 'live'      ? { label: 'مباشرة الآن', cls: 'bg-emerald-500 text-white',         dot: 'bg-emerald-300 animate-pulse' } :
+                  st === 'completed' ? { label: 'منتهية',       cls: 'bg-slate-100 text-slate-600',        dot: 'bg-slate-400' } :
+                  st === 'cancelled' ? { label: 'ملغاة',        cls: 'bg-red-100 text-red-700',            dot: 'bg-red-400' } :
+                  st === 'published' ? { label: 'منشورة',       cls: 'bg-sky-100 text-sky-800',            dot: 'bg-sky-500' } :
+                                       { label: 'مجدولة',       cls: 'bg-[#2691C2]/10 text-[#2691C2]',    dot: 'bg-[#2691C2]' }
                 const borderAccent =
-                  st === 'live' ? 'bg-rose-400' : st === 'completed' ? 'bg-emerald-400' : st === 'cancelled' ? 'bg-amber-400' : 'bg-[#2691C2]'
+                  st === 'live'      ? 'border-t-emerald-500' :
+                  st === 'completed' ? 'border-t-slate-300' :
+                  st === 'cancelled' ? 'border-t-red-500' :
+                                       'border-t-[#2691C2]'
+                const modName = s.module_id != null ? mods.find((m) => m.id === s.module_id)?.title : null
+                const when = formatSessionListWhen(s)
+                const hasLink = Boolean(s.meeting_url)
+                const locLabel = s.location_type === 'online' ? 'عن بعد' : s.location_type === 'offline' ? 'حضوري' : s.location_type === 'hybrid' ? 'مختلط' : null
 
                 return (
-                  <div
-                    key={s.id}
-                    className="relative flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm transition hover:shadow-md"
-                  >
-                    <div className={`absolute inset-y-0 right-0 w-1 rounded-r-2xl ${borderAccent}`} />
-
-                    <div className="min-w-0 flex-1 space-y-2 pr-3 text-right">
+                  <div key={s.id} className={`relative flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md border-t-[3px] ${borderAccent}`}>
+                    {st === 'live' && (
+                      <span className="absolute left-4 top-4 flex h-2.5 w-2.5" aria-hidden>
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      </span>
+                    )}
+                    <div className="flex flex-1 flex-col gap-3 p-5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-black text-deepBlue">{s.title ?? `جلسة #${s.id}`}</p>
-                        <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${sessionStatusCls}`}>
-                          {sessionStatusLabel}
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black ${statusConfig.cls}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${statusConfig.dot}`} />
+                          {statusConfig.label}
                         </span>
-                      </div>
-
-                      {s.description && (
-                        <p className="text-[12px] font-semibold leading-relaxed text-deepBlue/60">{s.description}</p>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-deepBlue/50">
-                        {formatSessionListWhen(s) !== '—' && (
-                          <span className="inline-flex items-center gap-1 font-semibold">
-                            <Calendar className="h-3 w-3 text-[#2691C2]" />
-                            {formatSessionListWhen(s)}
+                        {locLabel && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-600">
+                            <MapPin className="h-2.5 w-2.5" /> {locLabel}
                           </span>
                         )}
-                        {s.meeting_url && (
-                          <a
-                            href={s.meeting_url}
-                            className="inline-flex items-center gap-1 font-black text-[#2691C2] hover:underline"
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <Video className="h-3 w-3" />
-                            رابط الاجتماع
-                          </a>
+                        {!hasLink && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black text-amber-700 ring-1 ring-amber-200">
+                            <Link2Off className="h-2.5 w-2.5" /> بدون رابط
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="line-clamp-2 text-[15px] font-black leading-snug text-deepBlue">{s.title ?? `جلسة #${s.id}`}</h3>
+                        {modName && (
+                          <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#2691C2]/70">
+                            <Layers className="h-3 w-3" /> {modName}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5 text-[12px] font-semibold text-slate-500">
+                        {when !== '—' && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3 shrink-0 text-slate-400" />
+                            <span dir="ltr">{when}</span>
+                          </div>
+                        )}
+                        {s.location && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
+                            <span className="truncate">{s.location}</span>
+                          </div>
                         )}
                       </div>
                     </div>
-
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setModal({
-                            kind: 'session',
-                            editingId: s.id,
-                            draft: {
-                              title: String(s.title ?? ''),
-                              description: String(s.description ?? ''),
-                              start_at: isoOrDateToDatetimeLocal(s.start_at ?? s.starts_at ?? ''),
-                              end_at: isoOrDateToDatetimeLocal(s.end_at ?? s.ends_at ?? ''),
-                              meeting_url: String(s.meeting_url ?? ''),
-                              location_type: String(s.location_type ?? 'online'),
-                              location: String(s.location ?? ''),
-                              status: String(s.status ?? 'scheduled'),
-                            },
-                          })
-                        }
-                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+                    <div className="flex gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
+                      {hasLink ?
+                        <a href={s.meeting_url ?? '#'} target="_blank" rel="noreferrer"
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#2691C2] py-2 text-[11px] font-black text-white transition hover:bg-[#2691C2]/90">
+                          <Link2 className="h-3 w-3" /> فتح الرابط
+                        </a>
+                      : <span className="flex flex-1 items-center justify-center rounded-xl bg-slate-100 py-2 text-[11px] font-black text-slate-400">لا رابط</span>}
+                      <button type="button"
+                        onClick={() => setModal({ kind: 'session', editingId: s.id, draft: { title: String(s.title ?? ''), description: String(s.description ?? ''), start_at: isoOrDateToDatetimeLocal(s.start_at ?? s.starts_at ?? ''), end_at: isoOrDateToDatetimeLocal(s.end_at ?? s.ends_at ?? ''), meeting_url: String(s.meeting_url ?? ''), location_type: String(s.location_type ?? 'online'), location: String(s.location ?? ''), status: String(s.status ?? 'scheduled') } })}
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-500 transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+                        title="تعديل"
                       >
-                        <Pencil className="h-3 w-3" /> تعديل
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => setDeleteTarget({ kind: 'session', id: s.id, label: String(s.title ?? 'جلسة') })}
-                        className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 transition hover:bg-rose-100"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-500 transition hover:border-red-200 hover:text-red-600"
+                        title="حذف"
                       >
-                        حذف
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
@@ -778,94 +827,87 @@ export default function CourseContentManagerPage() {
       {!loading && tab === 'materials' ?
         <section className="space-y-4 rounded-3xl border border-deepBlue/[0.06] bg-white/92 p-6 shadow-emc backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-black text-deepBlue">المواد</h2>
+            <div>
+              <h2 className="text-xl font-black text-deepBlue">المواد</h2>
+              <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">{mats.length} مادة</p>
+            </div>
             <button
               type="button"
-              onClick={() =>
-                setModal({
-                  kind: 'material',
-                  file: null,
-                  draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' },
-                })
-              }
-              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-[11px] font-black text-white"
+              onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2.5 text-[11px] font-black text-white shadow-sm transition hover:brightness-105"
             >
               <Plus className="h-4 w-4" aria-hidden />
               مادة جديدة
             </button>
           </div>
           {mats.length === 0 ?
-            <p className="rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-10 text-center text-[13px] font-semibold text-deepBlue/58">
-              لا توجد مواد لهذه الدورة.
-            </p>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
+              <FolderOpen className="h-10 w-10 text-deepBlue/15" aria-hidden />
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد مواد لهذه الدورة.</p>
+            </div>
           : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {mats.map((m) => {
                 const kind = String(m.kind ?? 'file')
-                const kindLabel: Record<string, string> = {
-                  pdf: 'PDF', video: 'فيديو', link: 'رابط', file: 'ملف',
-                  image: 'صورة', audio: 'صوت', slides: 'شرائح', document: 'مستند',
+                const kindMeta: Record<string, { label: string; icon: ElementType; cls: string }> = {
+                  pdf:      { label: 'PDF',     icon: FileText,    cls: 'bg-red-50 text-red-700 ring-1 ring-red-200' },
+                  video:    { label: 'فيديو',   icon: Video,       cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200' },
+                  link:     { label: 'رابط',    icon: ExternalLink, cls: 'bg-sky-50 text-sky-700 ring-1 ring-sky-200' },
+                  file:     { label: 'ملف',     icon: FolderOpen,  cls: 'bg-slate-100 text-slate-600' },
+                  image:    { label: 'صورة',    icon: FolderOpen,  cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
+                  audio:    { label: 'صوت',     icon: FolderOpen,  cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
+                  slides:   { label: 'شرائح',   icon: FileText,    cls: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200' },
+                  document: { label: 'مستند',   icon: FileText,    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' },
                 }
+                const meta = kindMeta[kind] ?? { label: kind, icon: FolderOpen, cls: 'bg-slate-100 text-slate-600' }
+                const KindIcon = meta.icon
                 const matUrl = m.external_url ?? m.url ?? m.file_url
+                const modName = m.module_id != null ? mods.find((mod) => mod.id === m.module_id)?.title : null
+                const isVisible = m.visibility !== 'hidden'
+
                 return (
-                  <div key={m.id} className="flex flex-col gap-3 rounded-2xl border border-deepBlue/[0.06] bg-white p-4 shadow-sm transition hover:shadow-md">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EC943C]/10">
-                        <FolderOpen className="h-5 w-5 text-[#EC943C]" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-black leading-snug text-deepBlue">{m.title}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">
-                            {kindLabel[kind] ?? kind}
-                          </span>
-                          {m.visibility && m.visibility !== 'enrolled' && (
-                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 ring-1 ring-amber-200">
-                              {m.visibility}
-                            </span>
+                  <div key={m.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md border-t-[3px] border-t-[#EC943C]">
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EC943C]/10">
+                          <KindIcon className="h-5 w-5 text-[#EC943C]" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-2 font-black leading-snug text-deepBlue">{m.title}</p>
+                          {modName && (
+                            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-[#2691C2]/70">
+                              <Layers className="h-3 w-3" /> {modName}
+                            </p>
                           )}
                         </div>
                       </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black ${meta.cls}`}>
+                          {meta.label}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black ${isVisible ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {isVisible ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
+                          {isVisible ? 'مرئي' : 'مخفي'}
+                        </span>
+                      </div>
+                      {matUrl && (
+                        <a href={String(matUrl)} target="_blank" rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/5 px-3 py-2 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/10">
+                          <ExternalLink className="h-3 w-3" /> فتح / تحميل
+                        </a>
+                      )}
                     </div>
-
-                    {matUrl && (
-                      <a
-                        href={String(matUrl)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/5 px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/10"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        فتح / تحميل
-                      </a>
-                    )}
-
-                    <div className="flex gap-2 border-t border-slate-100 pt-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setModal({
-                            kind: 'material',
-                            editingId: m.id,
-                            file: null,
-                            draft: {
-                              title: m.title,
-                              description: String(m.description ?? ''),
-                              kind: String(m.kind ?? 'pdf'),
-                              external_url: String(m.external_url ?? m.url ?? m.file_url ?? ''),
-                              visibility: String(m.visibility ?? 'enrolled'),
-                            },
-                          })
-                        }
-                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
-                      >
+                    <div className="flex gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
+                      <button type="button"
+                        onClick={() => setModal({ kind: 'material', editingId: m.id, file: null, draft: { title: m.title, description: String(m.description ?? ''), kind: String(m.kind ?? 'pdf'), external_url: String(m.external_url ?? m.url ?? m.file_url ?? ''), visibility: String(m.visibility ?? 'enrolled') } })}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-[11px] font-black text-slate-700 transition hover:border-[#2691C2]/30 hover:text-[#2691C2]">
                         <Pencil className="h-3 w-3" /> تعديل
                       </button>
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => setDeleteTarget({ kind: 'material', id: m.id, label: m.title })}
-                        className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 transition hover:bg-rose-100"
-                      >
-                        حذف
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-500 transition hover:border-red-200 hover:text-red-600"
+                        title="حذف">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
@@ -879,117 +921,77 @@ export default function CourseContentManagerPage() {
       {!loading && tab === 'assignments' ?
         <section className="space-y-4 rounded-3xl border border-deepBlue/[0.06] bg-white/92 p-6 shadow-emc backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-black text-deepBlue">الواجبات</h2>
+            <div>
+              <h2 className="text-xl font-black text-deepBlue">الواجبات</h2>
+              <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">{asgn.length} واجب</p>
+            </div>
             <button
               type="button"
-              onClick={() =>
-                setModal({
-                  kind: 'assignment',
-                  draft: {
-                    title: '',
-                    description: '',
-                    deadline: '',
-                    max_points: '10',
-                    submission_type: 'both',
-                    required: '1',
-                    visible: '1',
-                  },
-                })
-              }
-              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2 text-[11px] font-black text-white"
+              onClick={() => setModal({ kind: 'assignment', draft: { title: '', description: '', deadline: '', max_points: '10', submission_type: 'both', required: '1', visible: '1' } })}
+              className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2.5 text-[11px] font-black text-white shadow-sm transition hover:brightness-105"
             >
               <Plus className="h-4 w-4" aria-hidden />
               واجب جديد
             </button>
           </div>
           {asgn.length === 0 ?
-            <p className="rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-10 text-center text-[13px] font-semibold text-deepBlue/58">
-              لا واجبات — أنشئ واجبات لتظهر لطلاب هذه الدورة.
-            </p>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
+              <ClipboardList className="h-10 w-10 text-deepBlue/15" aria-hidden />
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا واجبات — أنشئ واجبات لتظهر لطلاب هذه الدورة.</p>
+            </div>
           : (
-            <div className="space-y-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {asgn.map((a) => {
                 const isVisible = a.visible !== false
                 const subType = String(a.submission_type ?? 'both')
                 const subLabel = subType === 'file' ? 'ملف' : subType === 'text' ? 'نص' : 'ملف/نص'
+                const modName = a.module_id != null ? mods.find((m) => m.id === a.module_id)?.title : null
+                const borderAccent = isVisible ? 'border-t-emerald-500' : 'border-t-slate-300'
+
                 return (
-                  <div
-                    key={a.id}
-                    className={`relative flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${
-                      isVisible ? 'border-emerald-200/60' : 'border-slate-200 opacity-75'
-                    }`}
-                  >
-                    {/* Accent bar */}
-                    <div className={`absolute inset-y-0 right-0 w-1 rounded-r-2xl ${isVisible ? 'bg-emerald-400' : 'bg-slate-200'}`} />
-
-                    <div className="min-w-0 flex-1 space-y-2 pr-3">
-                      <p className="font-black leading-snug text-deepBlue">{a.title}</p>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Visibility */}
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
-                          isVisible
-                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                            : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200'
-                        }`}>
-                          {isVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                          {isVisible ? 'مرئي للطلاب' : 'مخفي'}
+                  <div key={a.id} className={`flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md border-t-[3px] ${borderAccent} ${!isVisible ? 'opacity-80' : ''}`}>
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isVisible ? 'bg-emerald-50' : 'bg-slate-100'}`}>
+                          <ClipboardList className={`h-5 w-5 ${isVisible ? 'text-emerald-600' : 'text-slate-400'}`} aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-2 font-black leading-snug text-deepBlue">{a.title}</p>
+                          {modName && (
+                            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-[#2691C2]/70">
+                              <Layers className="h-3 w-3" /> {modName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black ${isVisible ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {isVisible ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
+                          {isVisible ? 'مرئي' : 'مخفي'}
                         </span>
-
-                        {/* Submission type */}
-                        <span className="rounded-full bg-[#2691C2]/10 px-2.5 py-0.5 text-[10px] font-black text-[#2691C2]">
-                          {subLabel}
-                        </span>
-
-                        {/* Points */}
+                        <span className="rounded-full bg-[#2691C2]/10 px-2.5 py-1 text-[10px] font-black text-[#2691C2]">{subLabel}</span>
                         {a.max_points != null && (
-                          <span className="rounded-full bg-[#EC943C]/10 px-2.5 py-0.5 text-[10px] font-black text-[#EC943C]">
-                            {a.max_points} نقطة
-                          </span>
-                        )}
-
-                        {/* Due date */}
-                        {a.due_at && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400">
-                            <Clock className="h-3 w-3" />
-                            {formatDateTime(String(a.due_at))}
-                          </span>
+                          <span className="rounded-full bg-[#EC943C]/10 px-2.5 py-1 text-[10px] font-black text-[#EC943C]">{a.max_points} نقطة</span>
                         )}
                       </div>
+                      {a.due_at && (
+                        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-500">
+                          <Clock className="h-3 w-3 text-slate-400" />
+                          <span dir="ltr">{formatDateTime(String(a.due_at))}</span>
+                        </div>
+                      )}
                     </div>
-
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setModal({
-                            kind: 'assignment',
-                            editingId: a.assignment_id ?? a.id,
-                            draft: {
-                              title: a.title,
-                              description: String(a.description ?? ''),
-                              deadline: isoOrDateToDatetimeLocal(a.due_at ?? ''),
-                              max_points: String(a.max_points ?? 10),
-                              submission_type: String(a.submission_type ?? 'both'),
-                              required: a.required === false ? '0' : '1',
-                              visible: a.visible === false ? '0' : '1',
-                            },
-                          })
-                        }
-                        className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/15 px-3 py-1.5 text-[11px] font-black text-deepBlue transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
-                      >
+                    <div className="flex gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
+                      <button type="button"
+                        onClick={() => setModal({ kind: 'assignment', editingId: a.assignment_id ?? a.id, draft: { title: a.title, description: String(a.description ?? ''), deadline: isoOrDateToDatetimeLocal(a.due_at ?? ''), max_points: String(a.max_points ?? 10), submission_type: String(a.submission_type ?? 'both'), required: a.required === false ? '0' : '1', visible: a.visible === false ? '0' : '1' } })}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-[11px] font-black text-slate-700 transition hover:border-[#2691C2]/30 hover:text-[#2691C2]">
                         <Pencil className="h-3 w-3" /> تعديل
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget({
-                          kind: 'assignment',
-                          id: a.assignment_id ?? a.id,
-                          label: a.title,
-                        })}
-                        className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black text-rose-700 transition hover:bg-rose-100"
-                      >
-                        حذف
+                      <button type="button"
+                        onClick={() => setDeleteTarget({ kind: 'assignment', id: a.assignment_id ?? a.id, label: a.title })}
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-500 transition hover:border-red-200 hover:text-red-600"
+                        title="حذف">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
