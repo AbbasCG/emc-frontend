@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, Clock, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
 import {
@@ -102,38 +102,108 @@ type Props = {
   showDatePresets?: boolean
 }
 
-function TimeColumn({
-  label,
-  items,
+const TIME_OPTIONS: string[] = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4)
+  const m = (i % 4) * 15
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+})
+
+function TimeDropdown({
   value,
-  onSelect,
+  onChange,
 }: {
-  label: string
-  items: number[]
-  value: number
-  onSelect: (v: number) => void
+  value: string
+  onChange: (v: string) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const [inputVal, setInputVal] = useState(value)
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setInputVal(value)
+  }, [value])
+
+  useEffect(() => {
+    if (open && listRef.current) {
+      const idx = TIME_OPTIONS.indexOf(value)
+      if (idx >= 0) {
+        const btn = listRef.current.children[idx] as HTMLElement
+        btn?.scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }, [open, value])
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = e.target.value
+    setInputVal(v)
+    if (/^\d{1,2}:\d{2}$/.test(v)) {
+      const [hStr, mStr] = v.split(':')
+      const h = parseInt(hStr, 10)
+      const m = parseInt(mStr, 10)
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+        onChange(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+      }
+    }
+  }
+
+  function handleSelect(opt: string) {
+    onChange(opt)
+    setInputVal(opt)
+    setOpen(false)
+  }
+
   return (
-    <div className="min-w-0">
-      <p className="mb-1 text-center text-[10px] font-bold text-slate-500">{label}</p>
-      <div className="max-h-36 overflow-y-auto rounded-xl border border-[#22334A]/10 bg-white p-1 scrollbar-thin">
-        {items.map((item) => {
-          const active = item === value
-          return (
-            <button
-              key={item}
-              type="button"
-              onClick={() => onSelect(item)}
-              className={cn(
-                'flex w-full items-center justify-center rounded-lg py-1.5 text-[12px] font-bold tabular-nums transition',
-                active ? 'bg-[#2691C2] text-white' : 'text-[#22334A] hover:bg-slate-100',
-              )}
-            >
-              {String(item).padStart(2, '0')}
-            </button>
-          )
-        })}
+    <div ref={anchorRef} className="relative">
+      <div className="flex items-center gap-1 rounded-xl border border-[#22334A]/12 bg-white px-2.5 py-2 focus-within:border-[#2691C2]/50 focus-within:ring-2 focus-within:ring-[#2691C2]/10">
+        <Clock className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" aria-hidden />
+        <input
+          type="text"
+          value={inputVal}
+          onChange={handleInputChange}
+          onFocus={() => setOpen(true)}
+          placeholder="00:00"
+          dir="ltr"
+          className="w-full min-w-0 bg-transparent text-center text-[13px] font-black tabular-nums text-[#22334A] outline-none placeholder:text-slate-300"
+        />
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0 text-[#22334A]/40 hover:text-[#2691C2]"
+          tabIndex={-1}
+        >
+          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
+        </button>
       </div>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[290]" onClick={() => setOpen(false)} />
+          <div
+            ref={listRef}
+            className="absolute bottom-full left-0 right-0 z-[300] mb-1 max-h-48 overflow-y-auto overscroll-contain rounded-xl border border-[#22334A]/10 bg-white py-1 shadow-[0_8px_30px_-6px_rgba(34,51,74,0.25)]"
+            dir="ltr"
+          >
+            {TIME_OPTIONS.map((opt) => {
+              const active = opt === value
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => handleSelect(opt)}
+                  className={cn(
+                    'flex w-full items-center justify-center py-1.5 text-[13px] font-black tabular-nums transition',
+                    active
+                      ? 'bg-[#2691C2] text-white'
+                      : 'text-[#22334A] hover:bg-[#2691C2]/8 hover:text-[#2691C2]',
+                  )}
+                >
+                  {opt}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -216,8 +286,12 @@ export default function EmcDateTimePicker({
     }
   }
 
-  const hours = Array.from({ length: 24 }, (_, i) => i)
-  const minutes = Array.from({ length: 60 }, (_, i) => i)
+  const draftTime = `${String(draft.hour).padStart(2, '0')}:${String(draft.minute).padStart(2, '0')}`
+
+  function handleTimeChange(t: string) {
+    const [hStr, mStr] = t.split(':')
+    patchDraft({ hour: parseInt(hStr, 10), minute: parseInt(mStr, 10) })
+  }
 
   return (
     <div className="block text-right font-[Cairo,Tajawal,sans-serif]">
@@ -356,10 +430,7 @@ export default function EmcDateTimePicker({
                 <Clock className="h-3.5 w-3.5 text-[#2691C2]" aria-hidden />
                 الوقت
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <TimeColumn label="ساعة" items={hours} value={draft.hour} onSelect={(h) => patchDraft({ hour: h })} />
-                <TimeColumn label="دقيقة" items={minutes} value={draft.minute} onSelect={(m) => patchDraft({ minute: m })} />
-              </div>
+              <TimeDropdown value={draftTime} onChange={handleTimeChange} />
             </div>
           </div>
 

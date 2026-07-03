@@ -90,10 +90,11 @@ export default function Contact() {
     const message = String(fd.get('message') ?? '').trim()
     const topic = String(fd.get('topic') ?? 'general')
 
-    if (!name || !email || !message) {
-      setSubmitError('يرجى تعبئة الاسم والبريد والرسالة.')
-      return
-    }
+    if (!name) { setSubmitError('الاسم الكامل مطلوب.'); return }
+    if (!email) { setSubmitError('البريد الإلكتروني مطلوب.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setSubmitError('يرجى إدخال بريد إلكتروني صحيح.'); return }
+    if (!phone) { setSubmitError('رقم الجوال مطلوب.'); return }
+    if (!message) { setSubmitError('الرسالة مطلوبة.'); return }
 
     const tid = loadingToast('جاري إرسال رسالتك...')
     try {
@@ -218,7 +219,7 @@ export default function Contact() {
                 <FormField label="البريد الإلكتروني" name="email" type="email" required />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
-                <FormField label="رقم الجوال" name="phone" type="tel" />
+                <FormField label="رقم الجوال" name="phone" type="tel" required />
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
                   نوع الطلب
                   <select

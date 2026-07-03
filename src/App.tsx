@@ -85,11 +85,13 @@ const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructo
 const InstructorClassesPage           = lazy(() => import('./pages/lms/instructor/InstructorClassesPage'))
 
 // ── Lazy: Certificate Management (LMS-style) ─────────────────────────────────
-const AdminCertificatesLmsPage      = lazy(() => import('./pages/lms/admin/AdminCertificatesPage'))
-const AdminCertificateIssuePage     = lazy(() => import('./pages/lms/admin/AdminCertificateIssuePage'))
-const AdminCertificateTemplatesPage = lazy(() => import('./pages/lms/admin/AdminCertificateTemplatesPage'))
-const AdminCertificateBatchesPage   = lazy(() => import('./pages/lms/admin/AdminCertificateBatchesPage'))
-const AdminCertificateDetailPage    = lazy(() => import('./pages/lms/admin/AdminCertificateDetailPage'))
+const AdminCertificatesLmsPage         = lazy(() => import('./pages/lms/admin/AdminCertificatesPage'))
+const AdminCertificateIssuePage        = lazy(() => import('./pages/lms/admin/AdminCertificateIssuePage'))
+const AdminCertificateTemplatesPage    = lazy(() => import('./pages/lms/admin/AdminCertificateTemplatesPage'))
+const AdminCertificateBatchesPage      = lazy(() => import('./pages/lms/admin/AdminCertificateBatchesPage'))
+const AdminCertificateDetailPage       = lazy(() => import('./pages/lms/admin/AdminCertificateDetailPage'))
+const AdminCertificateDesignerPage     = lazy(() => import('./pages/lms/admin/AdminCertificateDesignerPage'))
+const AdminCertificateAnalyticsPage    = lazy(() => import('./pages/lms/admin/AdminCertificateAnalyticsPage'))
 const StudentCertificatesLmsPage    = lazy(() => import('./pages/lms/student/StudentCertificatesPage'))
 const PaymentSuccessPage            = lazy(() => import('./pages/student/PaymentSuccessPage'))
 const StudentOrdersPage             = lazy(() => import('./pages/student/StudentOrdersPage'))
@@ -143,6 +145,19 @@ const FinanceTransactionsPage = lazy(() => import('./pages/intelligence/admin/Fi
 const CouponsAdminPage        = lazy(() => import('./pages/intelligence/admin/CouponsAdminPage'))
 const ScholarshipsAdminPage   = lazy(() => import('./pages/intelligence/admin/ScholarshipsAdminPage'))
 const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
+
+// ── Lazy: Quality Management System pages ────────────────────────────────────
+const QualityDashboardPage         = lazy(() => import('./pages/quality/QualityDashboardPage'))
+const QualityWorkshopsPage         = lazy(() => import('./pages/quality/QualityWorkshopsPage'))
+const QualityReviewsPage           = lazy(() => import('./pages/quality/QualityReviewsPage'))
+const QualityIncidentsPage         = lazy(() => import('./pages/quality/QualityIncidentsPage'))
+const QualityAuditLogsPage         = lazy(() => import('./pages/quality/QualityAuditLogsPage'))
+const QualityCorrectiveActionsPage = lazy(() => import('./pages/quality/QualityCorrectiveActionsPage'))
+const QualityTeamPage              = lazy(() => import('./pages/quality/QualityTeamPage'))
+const QualityReportsPage           = lazy(() => import('./pages/quality/QualityReportsPage'))
+const QualityCompliancePage        = lazy(() => import('./pages/quality/QualityCompliancePage'))
+const QualityGovernancePage        = lazy(() => import('./pages/quality/QualityGovernancePage'))
+const QualityChecklistsPage        = lazy(() => import('./pages/quality/QualityChecklistsPage'))
 const KpiAdminPage            = lazy(() => import('./pages/intelligence/admin/KpiAdminPage'))
 const ReportsAdminPage        = lazy(() => import('./pages/intelligence/admin/ReportsAdminPage'))
 const AdminRegistrationsPage  = lazy(() => import('./pages/admin/AdminRegistrationsPage'))
@@ -446,7 +461,17 @@ function App() {
                   <Route path="/dashboard/finance/transactions" element={<FinanceTransactionsPage />} />
                   <Route path="/dashboard/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
                   <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
-                  <Route path="/dashboard/quality" element={<QualityAdminPage />} />
+                  <Route path="/dashboard/quality" element={<QualityDashboardPage />} />
+                  <Route path="/dashboard/quality/reviews" element={<QualityReviewsPage />} />
+                  <Route path="/dashboard/quality/workshops" element={<QualityWorkshopsPage />} />
+                  <Route path="/dashboard/quality/incidents" element={<QualityIncidentsPage />} />
+                  <Route path="/dashboard/quality/corrective-actions" element={<QualityCorrectiveActionsPage />} />
+                  <Route path="/dashboard/quality/checklists" element={<QualityChecklistsPage />} />
+                  <Route path="/dashboard/quality/compliance" element={<QualityCompliancePage />} />
+                  <Route path="/dashboard/quality/governance" element={<QualityGovernancePage />} />
+                  <Route path="/dashboard/quality/audit-logs" element={<QualityAuditLogsPage />} />
+                  <Route path="/dashboard/quality/reports" element={<QualityReportsPage />} />
+                  <Route path="/dashboard/quality/team" element={<QualityTeamPage />} />
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
@@ -539,9 +564,11 @@ function App() {
                   <Route path="/dashboard/admin/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
                   <Route path="/dashboard/admin/certificates/issue" element={<Suspense fallback={<RouteFallback />}><AdminCertificateIssuePage /></Suspense>} />
                   <Route path="/dashboard/admin/certificates/templates" element={<Suspense fallback={<RouteFallback />}><AdminCertificateTemplatesPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/templates/:id/designer" element={<Suspense fallback={<RouteFallback />}><AdminCertificateDesignerPage /></Suspense>} />
                   <Route path="/dashboard/admin/certificates/batches" element={<Suspense fallback={<RouteFallback />}><AdminCertificateBatchesPage /></Suspense>} />
                   <Route path="/dashboard/admin/certificates/batches/:batchId" element={<Suspense fallback={<RouteFallback />}><AdminCertificateBatchesPage /></Suspense>} />
                   <Route path="/dashboard/admin/certificates/overview" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/certificates/analytics" element={<Suspense fallback={<RouteFallback />}><AdminCertificateAnalyticsPage /></Suspense>} />
                   <Route path="/dashboard/admin/certificates/:id" element={<Suspense fallback={<RouteFallback />}><AdminCertificateDetailPage /></Suspense>} />
                   <Route path="/dashboard/programs-manager/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
                   <Route path="/dashboard/programs-manager/certificates/issue" element={<Suspense fallback={<RouteFallback />}><AdminCertificateIssuePage /></Suspense>} />

@@ -733,78 +733,87 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
   onStatusChange: (status: 'draft' | 'published' | 'archived') => void
   onDelete: () => void
 }) {
-  const palette =
-    index % 3 === 0 ? 'from-[#22334A] to-[#2691C2]'
-    : index % 3 === 1 ? 'from-[#EC943C] to-[#22334A]'
-    : 'from-[#0F172A] to-[#22334A]'
   const imgUrl = getCourseImage(c)
+
+  const accentColor =
+    index % 3 === 0 ? '#2691C2'
+    : index % 3 === 1 ? '#EC943C'
+    : '#22334A'
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.03, 0.18) }}  // tighter stagger cap
-      className={`relative flex flex-col justify-between overflow-hidden rounded-[1.35rem] border border-white/20 bg-gradient-to-bl ${palette} p-5 text-white shadow-xl ring-1 ring-white/10`}
+      transition={{ delay: Math.min(index * 0.03, 0.18) }}
+      className="flex flex-col overflow-hidden rounded-[1.35rem] border border-deepBlue/[0.08] bg-white shadow-md hover:shadow-lg transition-shadow"
     >
-      {/* Course image — lazy loaded, never blocks initial paint */}
-      {imgUrl && (
-        <div className="pointer-events-none absolute inset-0 rounded-[1.35rem]">
+      {/* Thumbnail strip */}
+      <div className="relative h-32 shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+        {imgUrl ? (
           <img
             src={imgUrl}
             alt=""
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover opacity-25"
+            className="h-full w-full object-cover"
             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-        </div>
-      )}
-
-      <div className="relative">
-        <div className="flex items-start justify-between gap-2">
-          <span className="rounded-full bg-black/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white/90">
+        ) : (
+          <div className={`h-full w-full`} style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}44)` }}>
+            <span className="flex h-full items-center justify-center text-3xl font-black opacity-30" style={{ color: accentColor }}>
+              {c.title?.charAt(0) ?? '؟'}
+            </span>
+          </div>
+        )}
+        {/* Status badges overlay */}
+        <div className="absolute inset-x-0 top-2 flex items-center justify-between px-3">
+          <span className="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-sm" style={{ background: accentColor }}>
             {PROGRAM_KIND_LABEL[c._kind]}
           </span>
-          {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
-          : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
-          : <CrudBadge variant="default">مسودة</CrudBadge>}
-          {isEndedCourse(c) ? <CourseStatusBadge isEnded placement="inline" className="!text-[10px]" /> : null}
+          <div className="flex gap-1">
+            {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
+            : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
+            : <CrudBadge variant="default">مسودة</CrudBadge>}
+            {isEndedCourse(c) ? <CourseStatusBadge isEnded placement="inline" className="!text-[10px]" /> : null}
+          </div>
         </div>
-        <h3 className="mt-4 line-clamp-2 min-h-[2.75rem] text-lg font-black leading-snug">{c.title}</h3>
+      </div>
+
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-black leading-snug text-deepBlue">{c.title}</h3>
         {/* Learning path membership badge */}
         {c.is_part_of_learning_path && c.learning_path && (
-          <div className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+          <div className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
             c.learning_path.status === 'published' || c.learning_path.status === 'active'
-              ? 'bg-[#2691C2]/30 text-white'
-              : 'bg-white/15 text-white/70'
+              ? 'bg-[#2691C2]/10 text-[#2691C2]'
+              : 'bg-slate-100 text-slate-500'
           }`}>
             🎓 ضمن مسار: {c.learning_path.title}
           </div>
         )}
-        <p className="mt-2 text-[11px] font-semibold text-white/75">
+        <p className="mt-2 text-[11px] font-semibold text-slate-500">
           {hasInstructor(c)
             ? <>المدرب: {c._instructorLabel}</>
-            : <span className="inline-flex items-center gap-1 text-amber-200"><UserX size={14} aria-hidden /> بدون مدرب</span>}
+            : <span className="inline-flex items-center gap-1 text-amber-600"><UserX size={12} aria-hidden /> بدون مدرب</span>}
         </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-white/85">
-          <span className="rounded-lg bg-black/15 px-2 py-1">سعة: {c.capacity ?? '—'}</span>
-          <span className="rounded-lg bg-black/15 px-2 py-1">تسجيلات: {c._regs}</span>
-          <span className="rounded-lg bg-black/15 px-2 py-1">
+        <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-bold text-slate-600">
+          <span className="rounded-lg bg-slate-100 px-2 py-0.5">سعة: {c.capacity ?? '—'}</span>
+          <span className="rounded-lg bg-slate-100 px-2 py-0.5">تسجيلات: {c._regs}</span>
+          <span className="rounded-lg bg-slate-100 px-2 py-0.5">
             {c._isPaid && c._priceNum > 0
               ? formatEuro(c._priceNum, { locale: 'nl-NL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
               : 'مجانية'}
           </span>
         </div>
-        <div className="mt-4 rounded-xl border border-white/15 bg-black/10 px-3 py-2 text-[11px] font-bold">
+        <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-1.5 text-[11px] font-bold text-slate-600">
           {!c._hasDate
-            ? <span className="text-amber-100">انضم إلى الدورة القادمة · الموعد لم يحدد بعد</span>
-            : <><CalendarClock className="mb-1 inline size-3.5 opacity-80" aria-hidden /> {String(c.start_date ?? '').slice(0, 10)}</>}
+            ? <span className="text-amber-600">الموعد لم يحدد بعد</span>
+            : <><CalendarClock className="mb-0.5 inline size-3 opacity-70" aria-hidden /> {String(c.start_date ?? '').slice(0, 10)}</>}
         </div>
       </div>
 
-      <div className="relative mt-5 space-y-2.5 border-t border-white/10 pt-4">
-        <div className="flex gap-1.5 rounded-xl bg-black/20 p-1">
+      <div className="mt-auto space-y-2.5 border-t border-slate-100 p-4">
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
           {(['published', 'draft', 'archived'] as const).map((s) => {
             const isLocked = s === 'archived' ? c.can_archive === false : s === 'draft' ? c.can_deactivate === false : false
             return (
@@ -819,8 +828,8 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
                   c._status === s
                     ? s === 'published' ? 'bg-emerald-500 text-white shadow'
                       : s === 'archived' ? 'bg-slate-500 text-white shadow'
-                      : 'bg-white/20 text-white shadow'
-                    : isLocked ? 'cursor-not-allowed text-white/25' : 'text-white/55 hover:text-white/80',
+                      : 'bg-white text-deepBlue shadow'
+                    : isLocked ? 'cursor-not-allowed text-slate-300' : 'text-slate-500 hover:text-slate-700',
                 ].join(' ')}
               >
                 {s === 'published' ? 'منشور' : s === 'draft' ? 'مسودة' : 'مؤرشف'}
@@ -829,10 +838,10 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
           })}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <button type="button" onClick={onPreview}  className="rounded-xl bg-white/15 px-3 py-1.5 text-[11px] font-black hover:bg-white/25">تفاصيل</button>
-          <button type="button" onClick={onEdit}     className="rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black hover:bg-white/20">تعديل</button>
-          <button type="button" onClick={onAssign}   className="rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black hover:bg-white/20">تعيين</button>
-          <button type="button" onClick={onSchedule} className="rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black hover:bg-white/20">موعد</button>
+          <button type="button" onClick={onPreview}  className="rounded-xl bg-deepBlue/[0.07] px-3 py-1.5 text-[11px] font-black text-deepBlue hover:bg-deepBlue/[0.12]">تفاصيل</button>
+          <button type="button" onClick={onEdit}     className="rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-[11px] font-black text-[#2691C2] hover:bg-[#2691C2]/20">تعديل</button>
+          <button type="button" onClick={onAssign}   className="rounded-xl bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 hover:bg-slate-200">تعيين</button>
+          <button type="button" onClick={onSchedule} className="rounded-xl bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 hover:bg-slate-200">موعد</button>
           <button
             type="button"
             onClick={c.can_delete === false ? undefined : onDelete}
@@ -840,8 +849,8 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
             disabled={c.can_delete === false}
             className={`rounded-xl border px-3 py-1.5 text-[11px] font-black transition ${
               c.can_delete === false
-                ? 'cursor-not-allowed border-white/10 text-white/30 opacity-50'
-                : 'border-white/20 text-rose-100 hover:bg-white/10'
+                ? 'cursor-not-allowed border-slate-100 text-slate-300 opacity-50'
+                : 'border-rose-100 text-rose-600 hover:bg-rose-50'
             }`}
           >
             {c.can_delete === false ? '🔒 حذف' : 'حذف'}

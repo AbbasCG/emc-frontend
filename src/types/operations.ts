@@ -248,21 +248,58 @@ export type MarketingItem = {
 
 /** ── Support ───────────────────────────────────────────────────────────── */
 
-export type SupportTicketStatus = 'new' | 'open' | 'waiting' | 'resolved' | 'closed'
+export type SupportTicketStatus = 'new' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed'
+
+export type AssigneeUser = {
+  id: number
+  name: string
+  email?: string | null
+  role?: string | null
+  department?: string | null
+  avatar?: string | null
+  active_tickets?: number
+}
+
+export type TicketActivity = {
+  id: number
+  action: string
+  old_values?: Record<string, unknown> | null
+  new_values?: Record<string, unknown> | null
+  user?: { id: number; name: string; avatar?: string | null; role?: string | null } | null
+  created_at: string
+}
 
 export type SupportTicket = {
   id: number
+  ticket_number?: string | null
   subject: string
   type?: string | null
+  request_type?: string | null
   priority?: string | null
   status: SupportTicketStatus
-  requester_name?: string | null
+  full_name?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  assigned_to?: { id: number; name: string; email?: string; role?: string; department?: string } | null
+  replies_count?: number
+  last_reply_at?: string | null
+  resolved_at?: string | null
+  created_at?: string | null
   updated_at?: string | null
+}
+
+export type SupportTicketReply = {
+  id: number
+  author_name: string
+  body: string
+  internal?: boolean
+  created_at: string
 }
 
 export type SupportTicketDetail = SupportTicket & {
   message?: string | null
-  replies?: { id: number; author_name: string; body: string; internal?: boolean; created_at: string }[]
+  replies?: SupportTicketReply[]
 }
 
 /** ── Operations dashboard ─────────────────────────────────────────────── */

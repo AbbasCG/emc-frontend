@@ -32,6 +32,7 @@ import {
   Rocket,
   ScrollText,
   Settings,
+  ShieldAlert,
   ShieldCheck,
   ShieldQuestion,
   SlidersHorizontal,
@@ -451,9 +452,37 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       {
         items: [
-          { label: 'مراجعة الجودة', href: '/dashboard/quality', icon: ClipboardCheck },
-          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
-          membersNavItem(),
+          { label: 'لوحة الجودة', href: '/dashboard/quality', icon: LayoutDashboard },
+        ],
+      },
+      {
+        title: 'المراجعة والتقييم',
+        items: [
+          { label: 'مراجعات البرامج', href: '/dashboard/quality/reviews', icon: ClipboardCheck },
+          { label: 'طلبات البرامج', href: '/dashboard/quality/workshops', icon: Presentation },
+        ],
+      },
+      {
+        title: 'الإدارة والمتابعة',
+        items: [
+          { label: 'الحوادث', href: '/dashboard/quality/incidents', icon: ShieldAlert },
+          { label: 'إجراءات التحسين', href: '/dashboard/quality/corrective-actions', icon: TrendingUp },
+          { label: 'قوائم التحقق', href: '/dashboard/quality/checklists', icon: ClipboardList },
+        ],
+      },
+      {
+        title: 'الحوكمة والامتثال',
+        items: [
+          { label: 'الامتثال', href: '/dashboard/quality/compliance', icon: ShieldCheck },
+          { label: 'الحوكمة', href: '/dashboard/quality/governance', icon: FolderLock },
+          { label: 'سجلات التدقيق', href: '/dashboard/quality/audit-logs', icon: ScrollText },
+        ],
+      },
+      {
+        title: 'التحليل والفريق',
+        items: [
+          { label: 'التقارير', href: '/dashboard/quality/reports', icon: BarChart3 },
+          { label: 'الفريق', href: '/dashboard/quality/team', icon: Users },
         ],
       },
       ...communicationsBlock(),

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, Layers, CheckCircle2, AlertCircle, Clock, Loader2 } from 'lucide-react'
+import { X, Layers, CheckCircle2, AlertCircle, Clock, Loader2, RefreshCw } from 'lucide-react'
 import AdminLmsShell from '@/components/lms/AdminLmsShell'
 import { LmsDataPanel } from '@/components/lms/management'
 import { fmtDate, fmtNum } from '@/components/lms/lmsFormatters'
@@ -14,17 +14,21 @@ import {
 import { CERT_TYPE_LABELS } from './AdminCertificatesPage'
 
 const BATCH_STATUS_CLS: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-  processing: 'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
-  completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  failed: 'bg-rose-50 text-rose-600 ring-1 ring-rose-200',
+  pending:               'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  processing:            'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
+  completed:             'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+  completed_with_errors: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
+  failed:                'bg-rose-50 text-rose-600 ring-1 ring-rose-200',
+  cancelled:             'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
 }
 
 const BATCH_STATUS_LABELS: Record<string, string> = {
-  pending: 'قيد الانتظار',
-  processing: 'جارٍ المعالجة',
-  completed: 'مكتمل',
-  failed: 'فشل',
+  pending:               'قيد الانتظار',
+  processing:            'جارٍ المعالجة',
+  completed:             'مكتمل',
+  completed_with_errors: 'مكتمل مع أخطاء',
+  failed:                'فشل',
+  cancelled:             'ملغى',
 }
 
 const CERT_STATUS_LABELS: Record<string, string> = {
@@ -59,7 +63,11 @@ export default function AdminCertificateBatchesPage() {
     setLoading(true)
     setError(null)
     fetchCertificateBatches()
-      .then(setBatches)
+      .then(res => {
+        // handle both paginated { data: [...] } and plain array
+        const list = Array.isArray(res) ? res : (res as { data: CertificateBatch[] }).data
+        setBatches(list)
+      })
       .catch(() => setError('تعذّر تحميل الإصدارات الجماعية. تحقق من الاتصال وأعد المحاولة.'))
       .finally(() => setLoading(false))
   }, [])
@@ -95,9 +103,9 @@ export default function AdminCertificateBatchesPage() {
     if (batchId) navigate('/dashboard/admin/certificates/batches')
   }
 
-  const completed = batches.filter((b) => b.status === 'completed').length
-  const pending = batches.filter((b) => b.status === 'pending' || b.status === 'processing').length
-  const failed = batches.filter((b) => b.status === 'failed').length
+  const completed = batches.filter((b) => b.status === 'completed' || b.status === 'completed_with_errors').length
+  const pending   = batches.filter((b) => b.status === 'pending' || b.status === 'processing').length
+  const failed    = batches.filter((b) => b.status === 'failed').length
 
   return (
     <AdminLmsShell
@@ -120,51 +128,71 @@ export default function AdminCertificateBatchesPage() {
           <table className="w-full text-right text-sm">
             <thead>
               <tr className="border-b border-[#0d1b2a]/[0.05] bg-[#0d1b2a]/[0.02]">
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">رمز الإصدار</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">النوع</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">الحالة</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">الإجمالي</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">تم إصداره</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">فشل</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">التاريخ</th>
-                <th className="px-5 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">أُنشئ بواسطة</th>
-                <th className="px-5 py-3.5" />
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">رمز الإصدار</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">النوع</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">القالب</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">الحالة</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">الإجمالي</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">مُصدر / فشل</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">الإنشاء</th>
+                <th className="px-4 py-3.5 text-[11px] font-black uppercase tracking-wide text-[#0d1b2a]/40">الاكتمال</th>
+                <th className="px-4 py-3.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-[#0d1b2a]/[0.04]">
               {batches.map((b) => (
                 <tr key={b.id} className="transition-colors hover:bg-[#0d1b2a]/[0.015]">
-                  <td className="px-5 py-4 font-mono text-[12px] font-bold text-[#0d1b2a]">{b.batch_code}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3.5 font-mono text-[12px] font-bold text-[#0d1b2a]">{b.batch_code}</td>
+                  <td className="px-4 py-3.5">
                     <span className="inline-flex rounded-full bg-[#2691C2]/10 px-2.5 py-1 text-[11px] font-black text-[#2691C2]">
                       {CERT_TYPE_LABELS[b.certificate_type] ?? b.certificate_type}
                     </span>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3.5 max-w-[100px]">
+                    <p className="truncate text-[11px] text-[#0d1b2a]/50">{b.template?.name ?? '—'}</p>
+                  </td>
+                  <td className="px-4 py-3.5">
                     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black ${BATCH_STATUS_CLS[b.status] ?? 'bg-slate-100 text-slate-500'}`}>
                       {b.status === 'processing' && <Loader2 size={10} className="animate-spin" />}
                       {BATCH_STATUS_LABELS[b.status] ?? b.status}
                     </span>
                   </td>
-                  <td className="px-5 py-4 font-bold text-[#0d1b2a]">{fmtNum(b.total_recipients)}</td>
-                  <td className="px-5 py-4 font-bold text-emerald-600">{fmtNum(b.generated_count)}</td>
-                  <td className="px-5 py-4 font-bold text-rose-500">{fmtNum(b.failed_count)}</td>
-                  <td className="px-5 py-4 text-[12px] text-[#0d1b2a]/50">{fmtDate(b.created_at)}</td>
-                  <td className="px-5 py-4 text-[12px] text-[#0d1b2a]/60">{b.created_by?.name ?? '—'}</td>
-                  <td className="px-5 py-4">
-                    <button
-                      type="button"
-                      onClick={() => void openBatchDrawer(b.id)}
-                      className="rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/20"
-                    >
-                      التفاصيل
-                    </button>
+                  <td className="px-4 py-3.5 font-bold text-[#0d1b2a]">{fmtNum(b.total_recipients)}</td>
+                  <td className="px-4 py-3.5 text-[12px] font-bold">
+                    <span className="text-emerald-600">{fmtNum(b.generated_count)}</span>
+                    {' / '}
+                    <span className="text-rose-500">{fmtNum(b.failed_count)}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-[12px] text-[#0d1b2a]/50 whitespace-nowrap">{fmtDate(b.created_at)}</td>
+                  <td className="px-4 py-3.5 text-[12px] text-[#0d1b2a]/50 whitespace-nowrap">
+                    {b.completed_at ? fmtDate(b.completed_at) : '—'}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => void openBatchDrawer(b.id)}
+                        className="rounded-xl bg-[#2691C2]/10 px-3 py-1.5 text-[11px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/20"
+                      >
+                        التفاصيل
+                      </button>
+                      {(b.status === 'failed' || b.status === 'completed_with_errors') && (
+                        <button
+                          type="button"
+                          onClick={() => void openBatchDrawer(b.id)}
+                          title="إعادة المحاولة"
+                          className="flex items-center gap-1 rounded-xl bg-amber-50 px-2.5 py-1.5 text-[11px] font-black text-amber-700 ring-1 ring-amber-200 transition hover:bg-amber-100"
+                        >
+                          <RefreshCw size={10} /> إعادة
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
               {batches.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-sm font-semibold text-[#0d1b2a]/30">
+                  <td colSpan={9} className="py-12 text-center text-sm font-semibold text-[#0d1b2a]/30">
                     لا توجد إصدارات جماعية بعد
                   </td>
                 </tr>

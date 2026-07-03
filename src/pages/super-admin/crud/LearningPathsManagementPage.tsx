@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
@@ -43,6 +43,11 @@ import {
 } from '../../../api/learningPathsApi'
 import CourseSelector from '../../../components/learning-paths/CourseSelector'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import type { Course } from '@/types'
+
+const CourseProgramFormModal = lazy(() =>
+  import('./programs/CourseProgramFormModal').then((m) => ({ default: m.CourseProgramFormModal })),
+)
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -511,16 +516,18 @@ function FormModal({
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-3xl rounded-3xl bg-white shadow-2xl"
+        transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+        className="flex w-full max-w-3xl flex-col rounded-3xl bg-white shadow-2xl"
+        style={{ maxHeight: 'min(90vh, 820px)' }}
         dir="rtl"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 p-6">
-          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100">
+        {/* Header — sticky */}
+        <div className="shrink-0 flex items-center justify-between border-b border-slate-100 px-6 py-5">
+          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="h-5 w-5" />
           </button>
           <h2 className="text-xl font-black text-slate-800">
@@ -528,8 +535,8 @@ function FormModal({
           </h2>
         </div>
 
-        {/* Step tabs */}
-        <div className="flex border-b border-slate-100 px-6">
+        {/* Step tabs — sticky */}
+        <div className="shrink-0 flex border-b border-slate-100 px-6 bg-white">
           {steps.map((s) => (
             <button
               key={s.num}
@@ -553,7 +560,8 @@ function FormModal({
           ))}
         </div>
 
-        {/* Step content */}
+        {/* Step content — scrollable */}
+        <div className="flex-1 overflow-y-auto">
         <div className="space-y-5 p-6">
           {/* Step 1 — Basic info + Instructor */}
           {step === 1 && (
@@ -924,9 +932,10 @@ function FormModal({
             </div>
           )}
         </div>
+        </div>{/* end scrollable content */}
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 p-6">
+        <div className="shrink-0 flex items-center justify-between border-t border-slate-100 p-6">
           <div className="flex gap-3">
             {step > 1 && (
               <button
@@ -989,6 +998,7 @@ export default function LearningPathsManagementPage() {
   const [detailCounts, setDetailCounts] = useState({ courses: 0, students: 0, active_students: 0, completed_students: 0 })
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailTab, setDetailTab]   = useState<'overview' | 'courses' | 'students'>('overview')
+  const [editCourse, setEditCourse] = useState<Course | null>(null)
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type })
@@ -1414,9 +1424,27 @@ export default function LearningPathsManagementPage() {
             onTabChange={setDetailTab}
             onClose={() => { setDetailPath(null); setDetailStudents([]); setDetailCounts({ courses: 0, students: 0, active_students: 0, completed_students: 0 }) }}
             onEdit={() => { setDetailPath(null); void openEdit(detailPath) }}
+            onEditCourse={(course) => setEditCourse(course)}
           />
         )}
       </AnimatePresence>
+
+      <Suspense fallback={null}>
+        <CourseProgramFormModal
+          open={editCourse !== null}
+          initial={editCourse}
+          tracks={[]}
+          departments={[]}
+          learningPaths={[]}
+          existingCourses={[]}
+          onClose={() => setEditCourse(null)}
+          onSaved={() => {
+            setEditCourse(null)
+            if (detailPath) void openDetail(detailPath, detailTab)
+          }}
+          onCreateAnother={() => {}}
+        />
+      </Suspense>
     </div>
   )
 }
@@ -1450,7 +1478,7 @@ function ProgressBar({ pct }: { pct: number }) {
 }
 
 function LearningPathDetailDrawer({
-  path, students, counts, loading, tab, onTabChange, onClose, onEdit,
+  path, students, counts, loading, tab, onTabChange, onClose, onEdit, onEditCourse,
 }: {
   path: LearningPath
   students: LearningPathStudent[]
@@ -1460,6 +1488,7 @@ function LearningPathDetailDrawer({
   onTabChange: (t: 'overview' | 'courses' | 'students') => void
   onClose: () => void
   onEdit: () => void
+  onEditCourse?: (course: Course) => void
 }) {
   const TABS = [
     { id: 'overview' as const,  label: 'نظرة عامة' },
@@ -1628,6 +1657,16 @@ function LearningPathDetailDrawer({
                         <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">
                           {c.level}
                         </span>
+                      )}
+                      {onEditCourse && (
+                        <button
+                          type="button"
+                          onClick={() => onEditCourse(c as unknown as Course)}
+                          className="shrink-0 rounded-lg bg-[#2691C2]/10 p-1.5 text-[#2691C2] hover:bg-[#2691C2]/20 transition"
+                          title="تعديل الدورة"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
                       )}
                     </div>
                   ))}

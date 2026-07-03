@@ -227,6 +227,12 @@ export default function CourseContentManagerPage() {
 
   const sortedModuleIds = useMemo(() => [...mods].sort((a, b) => a.sort_order - b.sort_order).map((x) => x.id), [mods])
 
+  // `sess`/`mats`/`asgn` now include module-nested items too (so the dedicated tabs can
+  // browse everything) — this "course-level, no module" section needs the null-only subset.
+  const generalSess = useMemo(() => sess.filter((s) => s.module_id == null), [sess])
+  const generalMats = useMemo(() => mats.filter((m) => m.module_id == null), [mats])
+  const generalAsgn = useMemo(() => asgn.filter((a) => a.module_id == null), [asgn])
+
   async function reorderModules(ids: number[]) {
     if (!LMS_SUPPORTS_MODULE_REORDER) return
     try {
@@ -590,7 +596,7 @@ export default function CourseContentManagerPage() {
           )}
 
           {/* Course-level content section (module_id = null) */}
-          {(sess.length > 0 || mats.length > 0 || asgn.length > 0) && (
+          {(generalSess.length > 0 || generalMats.length > 0 || generalAsgn.length > 0) && (
             <div className="mt-6 space-y-3 rounded-2xl border border-amber-200/50 bg-amber-50/40 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="flex items-center gap-2 text-[13px] font-black text-deepBlue">
@@ -614,14 +620,14 @@ export default function CourseContentManagerPage() {
               </div>
               <p className="text-[11px] font-semibold text-deepBlue/55">
                 {[
-                  sess.length > 0 ? `${sess.length} جلسة` : null,
-                  mats.length > 0 ? `${mats.length} مادة` : null,
-                  asgn.length > 0 ? `${asgn.length} واجب` : null,
+                  generalSess.length > 0 ? `${generalSess.length} جلسة` : null,
+                  generalMats.length > 0 ? `${generalMats.length} مادة` : null,
+                  generalAsgn.length > 0 ? `${generalAsgn.length} واجب` : null,
                 ].filter(Boolean).join(' · ')}
               </p>
             </div>
           )}
-          {mods.length > 0 && sess.length === 0 && mats.length === 0 && asgn.length === 0 && (
+          {mods.length > 0 && generalSess.length === 0 && generalMats.length === 0 && generalAsgn.length === 0 && (
             <div className="mt-4 rounded-2xl border border-dashed border-deepBlue/10 bg-slate-50/60 p-4 text-center">
               <p className="text-[11px] font-semibold text-deepBlue/40">
                 لا يوجد محتوى عام للدورة — كل المحتوى منظّم داخل الوحدات

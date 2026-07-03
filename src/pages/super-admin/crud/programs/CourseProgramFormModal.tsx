@@ -505,6 +505,7 @@ export function CourseProgramFormModal({
 
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [imageRemoved, setImageRemoved] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [title, setTitle] = useState('')
@@ -596,6 +597,7 @@ export function CourseProgramFormModal({
         if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
         return null
       })
+      setImageRemoved(false)
       setFieldErrors({})
       return
     }
@@ -668,6 +670,7 @@ export function CourseProgramFormModal({
       if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
       return null
     })
+    setImageRemoved(false)
     setInstructorQuery('')
   }, [initial])
 
@@ -947,6 +950,7 @@ export function CourseProgramFormModal({
         return file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null
       })
       setImageFile(file && file.type.startsWith('image/') ? file : null)
+      if (file) setImageRemoved(false)
       clearField('course_image')
     },
     [clearField],
@@ -1103,7 +1107,9 @@ export function CourseProgramFormModal({
         {}
       : courseImage.trim()
         ? { course_image: courseImage.trim() }
-        : {}),
+        : imageRemoved
+          ? { course_image: null }
+          : {}),
       program_type: programTypeForPayload(kind, sessionFormat),
       ...(apiSessionFormat ? { session_format: apiSessionFormat } : {}),
       type: priceFree ? 'free' : 'paid',
@@ -1322,6 +1328,7 @@ export function CourseProgramFormModal({
                     onClick={() => {
                       pickImageFile(null)
                       setCourseImage('')
+                      setImageRemoved(true)
                     }}
                     className="inline-flex items-center gap-1 rounded-xl bg-rose-600 px-3 py-1.5 text-[11px] font-black text-white shadow-md"
                   >
@@ -1350,6 +1357,7 @@ export function CourseProgramFormModal({
               value={courseImage}
               onChange={(e) => {
                 setCourseImage(e.target.value)
+                if (e.target.value.trim()) setImageRemoved(false)
                 clearField('course_image')
               }}
               dir="ltr"
@@ -2124,6 +2132,7 @@ export function CourseProgramFormModal({
     imagePreviewUrl,
     coverPreviewSrc,
     imageFile,
+    imageRemoved,
   ])
 
   const successSlug = savedCourse?.slug

@@ -509,6 +509,30 @@ export type CourseCmsContentBundle = {
   assignments: CourseLearnAssignment[]
 }
 
+/**
+ * The `/content` payload's flat `sessions`/`materials`/`assignments` lists only
+ * contain course-level items (module_id = null) — the CMS tabs are meant to
+ * browse *all* content though, so module-nested items are merged in here
+ * (deduped by id) while staying nested under their module too.
+ */
+function mergeModuleNestedById<T extends { id: number }>(
+  flat: T[],
+  modules: StudentLearnModule[],
+  pick: (m: StudentLearnModule) => T[] | undefined,
+): T[] {
+  const merged = [...flat]
+  const seenIds = new Set(flat.map((item) => item.id))
+  for (const mod of modules) {
+    for (const item of pick(mod) ?? []) {
+      if (!seenIds.has(item.id)) {
+        merged.push(item)
+        seenIds.add(item.id)
+      }
+    }
+  }
+  return merged
+}
+
 function normalizeCourseCmsContentEnvelope(payload: unknown, courseIdFallback: number): CourseCmsContentBundle {
   const wrapped = unwrapData<unknown>(payload)
   let root: Record<string, unknown> =
@@ -538,12 +562,16 @@ function normalizeCourseCmsContentEnvelope(payload: unknown, courseIdFallback: n
     course_id: m.course_id && m.course_id > 0 ? m.course_id : courseIdFallback,
   }))
 
+  const sessions = normalizeLearnSessions(firstArray(root, ['sessions', 'learn_sessions', 'course_sessions']))
+  const materials = normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents']))
+  const assignments = normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework']))
+
   return {
     course: courseOv,
     modules,
-    sessions: normalizeLearnSessions(firstArray(root, ['sessions', 'learn_sessions', 'course_sessions'])),
-    materials: normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents'])),
-    assignments: normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework'])),
+    sessions: mergeModuleNestedById(sessions, modules, (m) => m.sessions),
+    materials: mergeModuleNestedById(materials, modules, (m) => m.materials),
+    assignments: mergeModuleNestedById(assignments, modules, (m) => m.assignments),
   }
 }
 

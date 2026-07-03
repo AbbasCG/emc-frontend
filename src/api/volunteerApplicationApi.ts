@@ -114,7 +114,7 @@ function parseStr(v: unknown): string | null {
 
 export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest {
   const statusRaw = String(raw.status ?? 'pending').toLowerCase()
-  const validStatuses: VolunteerRequestStatus[] = ['pending', 'reviewed', 'accepted', 'rejected', 'contacted']
+  const validStatuses: VolunteerRequestStatus[] = ['pending', 'reviewing', 'reviewed', 'accepted', 'rejected', 'contacted', 'converted_to_member']
   const status: VolunteerRequestStatus = validStatuses.includes(statusRaw as VolunteerRequestStatus)
     ? (statusRaw as VolunteerRequestStatus)
     : 'pending'
@@ -211,19 +211,35 @@ export async function fetchAcceptedVolunteers(params?: Record<string, string>): 
 }> {
   const qs = params ? '?' + new URLSearchParams(params).toString() : ''
   const res = await apiClient.get<unknown>(`/admin/volunteers/accepted${qs}`, { skipErrorToast: true } as Record<string, unknown>)
-  const body = unwrapData<unknown>(res.data) as Record<string, unknown>
 
-  const rawData = Array.isArray(body?.data) ? body.data as unknown[] : []
+  if (import.meta.env.DEV) {
+    console.log('[fetchAcceptedVolunteers] raw API response:', res.data)
+  }
+
+  // res.data = { success, data: { data: [...], meta: {pagination} }, meta: {stats} }
+  const body = unwrapData<unknown>(res.data) as Record<string, unknown>
+  // body = { data: [...volunteers], meta: {pagination}, links: {...} }
+
+  const rawData = Array.isArray(body?.data) ? body.data as unknown[] :
+    // Fallback: if body itself is an array (non-paginated response), use it directly
+    Array.isArray(body) ? body as unknown[] : []
+
   const paginationMeta = (body?.meta ?? {}) as Record<string, unknown>
   const appMeta = (res.data as Record<string, unknown>)?.meta as AcceptedVolunteersMeta ?? {
     total_accepted: 0, total_converted: 0, accepted_this_month: 0, top_department: null,
   }
 
+  const volunteers = rawData
+    .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
+    .map(normalizeRequest)
+    .filter((r) => r.id > 0)
+
+  if (import.meta.env.DEV) {
+    console.log('[fetchAcceptedVolunteers] body:', body, '| rawData length:', rawData.length, '| normalized volunteers:', volunteers, '| meta:', appMeta)
+  }
+
   return {
-    data: rawData
-      .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
-      .map(normalizeRequest)
-      .filter((r) => r.id > 0),
+    data: volunteers,
     meta: appMeta,
     pagination: {
       total: Number(paginationMeta.total ?? 0),
