@@ -24,6 +24,8 @@ export type User = {
   role?: UserRole | string | null
   /** Permission slugs granted to this user — populated from the auth response alongside `user`. */
   permissions?: string[]
+  /** True when user has at least one active TeamProfile with is_leader=true. Populated from /auth/me. */
+  is_department_leader?: boolean
 }
 
 export type Course = {
@@ -136,6 +138,17 @@ export type Course = {
   is_ended?: boolean | null
   computed_status?: 'draft' | 'published' | 'archived' | 'ended' | string | null
   status_label_ar?: string | null
+
+  /** Effective instructor: course's own, or inherited from LP when course has none */
+  instructor_source?: 'course' | 'learning_path' | null
+  effective_instructor?: {
+    id: number
+    user_id?: number | null
+    name: string
+    email?: string | null
+    title?: string | null
+    profile_photo_url?: string | null
+  } | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'

@@ -232,6 +232,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
+        { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
       ],
     },
     {
@@ -423,6 +424,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'التقارير التحليلية', href: '/dashboard/executive/reports', icon: FileBarChart },
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
+          { label: 'الطلبات المالية', href: '/dashboard/executive/financial-requests', icon: Wallet },
           membersNavItem(),
         ],
       },
@@ -440,6 +442,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'الطلبات',      href: '/dashboard/finance/orders',        icon: Receipt       },
           { label: 'الفواتير',     href: '/dashboard/finance/invoices',      icon: FileText      },
           { label: 'المعاملات',    href: '/dashboard/finance/transactions',   icon: BarChart3     },
+          { label: 'الطلبات المالية الداخلية', href: '/dashboard/finance/financial-requests', icon: Wallet },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
@@ -459,7 +462,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         title: 'المراجعة والتقييم',
         items: [
           { label: 'مراجعات البرامج', href: '/dashboard/quality/reviews', icon: ClipboardCheck },
-          { label: 'طلبات البرامج', href: '/dashboard/quality/workshops', icon: Presentation },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
         ],
       },
       {
@@ -564,6 +567,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         title: 'التعلّم والبرامج',
         items: [
           { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
+          { label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
@@ -640,9 +644,10 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         title: 'البرامج والمسارات',
         items: [
-          { label: 'الدورات والبرامج',   href: '/dashboard/admin/programs',                  icon: GraduationCap },
-          { label: 'المسارات التعليمية', href: '/dashboard/programs-manager/learning-paths', icon: Layers        },
-          { label: 'التسجيلات',          href: '/dashboard/admin/registrations',             icon: UserCheck     },
+          { label: 'الدورات والبرامج',       href: '/dashboard/admin/programs',                  icon: GraduationCap },
+          { label: 'المسارات التعليمية',   href: '/dashboard/programs-manager/learning-paths', icon: Layers        },
+          { label: 'التسجيلات',            href: '/dashboard/admin/registrations',             icon: UserCheck     },
+          { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests',      icon: Presentation  },
         ],
       },
       {

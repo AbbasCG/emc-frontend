@@ -84,3 +84,5 @@ export async function fetchQualityCompliance() {
   const res = await apiClient.get<any>('/quality/compliance', silent)
   return res.data?.data ?? null
 }
+
+

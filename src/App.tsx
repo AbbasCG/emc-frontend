@@ -96,6 +96,10 @@ const StudentCertificatesLmsPage    = lazy(() => import('./pages/lms/student/Stu
 const PaymentSuccessPage            = lazy(() => import('./pages/student/PaymentSuccessPage'))
 const StudentOrdersPage             = lazy(() => import('./pages/student/StudentOrdersPage'))
 const FinanceOrdersPage             = lazy(() => import('./pages/finance/FinanceOrdersPage'))
+const FinanceFinancialRequestsPage  = lazy(() => import('./pages/finance/FinanceFinancialRequestsPage'))
+const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
+const ExecutiveFinancialRequestsPage  = lazy(() => import('./pages/executive/ExecutiveFinancialRequestsPage'))
+const SuperAdminFinancialRequestsPage = lazy(() => import('./pages/super-admin/SuperAdminFinancialRequestsPage'))
 
 // ── Lazy: dashboard pages — admin LMS ────────────────────────────────────────
 const AdminDashboard             = lazy(() => import('./pages/AdminDashboard'))
@@ -148,7 +152,6 @@ const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/Qu
 
 // ── Lazy: Quality Management System pages ────────────────────────────────────
 const QualityDashboardPage         = lazy(() => import('./pages/quality/QualityDashboardPage'))
-const QualityWorkshopsPage         = lazy(() => import('./pages/quality/QualityWorkshopsPage'))
 const QualityReviewsPage           = lazy(() => import('./pages/quality/QualityReviewsPage'))
 const QualityIncidentsPage         = lazy(() => import('./pages/quality/QualityIncidentsPage'))
 const QualityAuditLogsPage         = lazy(() => import('./pages/quality/QualityAuditLogsPage'))
@@ -380,6 +383,7 @@ function App() {
                   <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
+                  <Route path="/dashboard/super-admin/financial-requests" element={<Suspense fallback={<RouteFallback />}><SuperAdminFinancialRequestsPage /></Suspense>} />
                   <Route
                     path="/dashboard/super-admin/crud/partnerships"
                     element={<Navigate to="/dashboard/super-admin/crud/partners" replace />}
@@ -456,14 +460,17 @@ function App() {
                   <Route path="/dashboard/executive/kpi" element={<KpiAdminPage />} />
                   <Route path="/dashboard/executive/reports" element={<ReportsAdminPage />} />
                   <Route path="/dashboard/executive/programs" element={<ProgramsManagementPage />} />
+                  <Route path="/dashboard/executive/financial-requests" element={<Suspense fallback={<RouteFallback />}><ExecutiveFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/finance" element={<FinanceDashboardPage />} />
                   <Route path="/dashboard/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/finance/transactions" element={<FinanceTransactionsPage />} />
                   <Route path="/dashboard/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
                   <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/quality" element={<QualityDashboardPage />} />
                   <Route path="/dashboard/quality/reviews" element={<QualityReviewsPage />} />
-                  <Route path="/dashboard/quality/workshops" element={<QualityWorkshopsPage />} />
+                  <Route path="/dashboard/quality/workshops" element={<Navigate to="/dashboard/admin/workshop-requests" replace />} />
+                  <Route path="/dashboard/quality/workshops/:id" element={<Navigate to="/dashboard/admin/workshop-requests" replace />} />
                   <Route path="/dashboard/quality/incidents" element={<QualityIncidentsPage />} />
                   <Route path="/dashboard/quality/corrective-actions" element={<QualityCorrectiveActionsPage />} />
                   <Route path="/dashboard/quality/checklists" element={<QualityChecklistsPage />} />
@@ -488,6 +495,7 @@ function App() {
                   <Route path="/dashboard/volunteer/:id" element={<OpsVolunteerDetailPage />} />
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
+                  <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
 
                   {/* ── Tech Admin dedicated dashboard ── */}

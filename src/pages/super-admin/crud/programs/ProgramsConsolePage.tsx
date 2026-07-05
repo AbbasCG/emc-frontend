@@ -1,7 +1,7 @@
-import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Archive,
@@ -9,25 +9,32 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarX,
+  ChevronLeft,
+  ChevronRight,
   FilePen,
   Filter,
+  LayoutGrid,
   Layers3,
+  List,
   RefreshCw,
   UserX,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
-  countRegistrationsByCourse,
   deleteCourse,
-  fetchAdminRegistrationsIndex,
   fetchDepartmentOptions,
   patchCoursePublishState,
   patchCourseStatus,
-  type AdminRegistrationRow,
 } from '@/api/adminCoursesApi'
 import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
-import { fetchAdminCoursesStrict, fetchTracksStrict, type CatalogTrackRow } from '@/api/superAdminCatalogApi'
+import {
+  fetchAdminCoursesPage,
+  fetchTracksStrict,
+  type CatalogTrackRow,
+  type CourseSummary,
+  type CoursePageMeta,
+} from '@/api/superAdminCatalogApi'
 import { fetchAdminLearningPaths } from '@/api/learningPathsApi'
 import type { Course } from '@/types'
 import { formatEuro } from '@/utils/currency'
@@ -37,7 +44,6 @@ import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
 import { CrudCardTable, CrudTable, Th, Tr, Td } from '@/pages/super-admin/crud/shared/TableChrome'
 import { EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 import { RowActionsMenu } from '@/pages/super-admin/crud/shared/RowActions'
-import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
 import { CourseManagementDrawer, type CourseDrawerMode } from '@/components/programs/CourseManagementDrawer'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 import { AnimatedTabular } from '@/pages/super-admin/crud/shared/enterprise/EnterpriseMetrics'
@@ -46,10 +52,8 @@ import {
   hasInstructor,
   inferProgramKind,
   isArchivedCourse,
-  isDraftCourse,
   isEndedCourse,
   isPublishedCourse,
-  isScheduledCourse,
   missingCourseDate,
 } from '@/pages/super-admin/crud/programs/programConsoleUtils'
 import {
@@ -58,9 +62,10 @@ import {
   instructorLookupMapFromAssignableRows,
   type CourseInstructorLookupRow,
 } from '@/utils/courseInstructor'
+import { CourseMultiChipSearch, type ChipItem } from './CourseMultiChipSearch'
 import type { ElementType, ReactNode } from 'react'
 
-/* ── Lazy-load heavy modals — only parsed on first open ──────────────── */
+/* ── Lazy-load heavy modals ──────────────────────────────────────────── */
 const CourseProgramFormModal = lazy(() =>
   import('./CourseProgramFormModal').then((m) => ({ default: m.CourseProgramFormModal })),
 )
@@ -73,67 +78,86 @@ const ScheduleCourseModal = lazy(() =>
 
 /* ── Types ───────────────────────────────────────────────────────────── */
 
-// Pre-computed fields eliminate redundant calls inside filter/render loops
 type CourseVM = Course & {
-  _regs:           number
-  _kind:           keyof typeof PROGRAM_KIND_LABEL
-  _instructorLabel: string                          // avoids getCourseInstructor in filter
-  _isPaid:         boolean                          // avoids isPaidCourse in table/card
-  _priceNum:       number
-  _status:         'published' | 'archived' | 'draft' // avoids status checks in filter
-  _hasDate:        boolean                          // avoids missingCourseDate in filter
+  _regs:               number
+  _kind:               keyof typeof PROGRAM_KIND_LABEL
+  _instructorLabel:    string
+  _effectiveInstructor: Course['effective_instructor'] | null
+  _instructorSource:   'course' | 'learning_path' | null
+  _isPaid:             boolean
+  _priceNum:           number
+  _status:             'published' | 'archived' | 'draft'
+  _hasDate:            boolean
 }
 
-type FilterMode = 'all' | 'published' | 'draft' | 'archived' | 'ended' | 'scheduled' | 'no_instructor' | 'no_date'
+/** All params sent to the backend — single source of truth for filters + pagination */
+type ServerParams = {
+  page:         number
+  perPage:      number
+  chips:        ChipItem[]
+  status:       string   // published | draft | archived | ended | scheduled | no_instructor | no_date
+  kind:         string   // course | workshop | program | track → program_type
+  instructorId: string   // numeric string → instructor_id
+  departmentId: string   // numeric string → department_id
+  delivery:     string   // online | offline | hybrid → location_type
+  sort:         string   // latest | oldest | title_asc | title_desc | price_asc | price_desc
+}
 
-/* ── View-model factory ─ all heavy computations happen once per reload ─ */
+type ViewMode = 'cards' | 'table'
+
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+
+function getCourseImage(c: Course): string {
+  const m = c as Course & { course_image?: string | null; image_url?: string | null; image?: string | null }
+  return String(m.image_url ?? m.course_image ?? m.image ?? '').trim()
+}
 
 function vmFromCourse(
   c: Course,
-  regMap: Map<number, number>,
   lookup: Map<number, CourseInstructorLookupRow>,
 ): CourseVM {
-  const id = Number(c.id)
-  // Prefer the backend-computed effective_enrollment_count (which uses LP enrollments for
-  // LP-owned courses instead of the direct registrations table that would return 0).
-  // Fall back to regMap (client-side count from registrations index) for legacy rows.
-  const effectiveFromApi = (c as Record<string, unknown>).effective_enrollment_count
-  const count = effectiveFromApi != null
-    ? Number(effectiveFromApi)
-    : ((Number.isFinite(id) ? regMap.get(id) : 0) ?? c.registrations_count ?? 0)
+  const effective = (c as Record<string, unknown>).effective_enrollment_count
+  const count     = effective != null ? Number(effective) : (c.registrations_count ?? 0)
   const ins = getCourseInstructor(c, { lookupByInstructorId: lookup })
   const n   = typeof c.price === 'string' ? parseFloat(String(c.price)) : Number(c.price)
   const pub = isPublishedCourse(c)
   const arc = isArchivedCourse(c)
+  // Resolve the display instructor: course's own, or effective from LP
+  const effectiveIns = c.instructor ? null : (c.effective_instructor ?? null)
+  const displayLabel = ins.displayName || effectiveIns?.name || ''
+
   return {
     ...c,
-    _regs:           typeof count === 'number' ? count : 0,
-    _kind:           inferProgramKind(c),
-    _instructorLabel: ins.displayName,
-    _isPaid:         String(c.type) === 'paid' || (Number.isFinite(n) && n > 0),
-    _priceNum:       Number.isFinite(n) ? n : 0,
-    _status:         pub ? 'published' : arc ? 'archived' : 'draft',
-    _hasDate:        !missingCourseDate(c),
+    _regs:                typeof count === 'number' ? count : 0,
+    _kind:                inferProgramKind(c),
+    _instructorLabel:     displayLabel,
+    _effectiveInstructor: effectiveIns,
+    _instructorSource:    c.instructor_source ?? null,
+    _isPaid:              String(c.type) === 'paid' || (Number.isFinite(n) && n > 0),
+    _priceNum:            Number.isFinite(n) ? n : 0,
+    _status:              pub ? 'published' : arc ? 'archived' : 'draft',
+    _hasDate:             !missingCourseDate(c),
   }
 }
 
-function getCourseImage(c: Course): string {
-  const m = c as Course & { course_image?: string | null; image_url?: string | null; image?: string | null; thumbnail?: string | null }
-  return String(m.image_url ?? m.course_image ?? m.image ?? m.thumbnail ?? '').trim()
+function buildApiParams(p: ServerParams): Record<string, unknown> {
+  const out: Record<string, unknown> = { page: p.page, per_page: p.perPage, sort: p.sort }
+  if (p.chips.length > 0) out.selected = p.chips.map((c) => c.id)
+  if (p.status) {
+    if      (p.status === 'ended')         out.ended          = 1
+    else if (p.status === 'scheduled')     out.has_date       = true
+    else if (p.status === 'no_instructor') out.has_instructor = false
+    else if (p.status === 'no_date')       out.has_date       = false
+    else                                   out.status         = p.status
+  }
+  if (p.kind)         out.program_type  = p.kind
+  if (p.instructorId) out.instructor_id = p.instructorId
+  if (p.departmentId) out.department_id = p.departmentId
+  if (p.delivery)     out.location_type = p.delivery
+  return out
 }
 
-/* ── Debounce hook — prevents filter recompute on every keystroke ────── */
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [deb, setDeb] = useState<T>(value)
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), delay)
-    return () => clearTimeout(id)
-  }, [value, delay])
-  return deb
-}
-
-/* ── Skeleton card — shown while loading, prevents blank screen ──────── */
+/* ── Skeleton ────────────────────────────────────────────────────────── */
 
 function CardSkeleton() {
   return (
@@ -149,7 +173,6 @@ function CardSkeleton() {
         </div>
         <div className="h-3 w-1/3 rounded bg-white/12" />
         <div className="flex gap-2 pt-1">
-          <div className="h-6 w-14 rounded-lg bg-white/12" />
           <div className="h-6 w-14 rounded-lg bg-white/12" />
           <div className="h-6 w-14 rounded-lg bg-white/12" />
         </div>
@@ -172,28 +195,133 @@ function SkeletonGrid({ count = 8 }: { count?: number }) {
   )
 }
 
+/* ── PaginationBar ───────────────────────────────────────────────────── */
+
+function PaginationBar({
+  page, lastPage, total, perPage, onPageChange,
+}: {
+  page: number; lastPage: number; total: number; perPage: number
+  onPageChange: (p: number) => void
+}) {
+  if (lastPage <= 1) return null
+
+  // Build page number array with ellipsis
+  const nums: (number | '…')[] = []
+  if (lastPage <= 7) {
+    for (let i = 1; i <= lastPage; i++) nums.push(i)
+  } else {
+    nums.push(1)
+    if (page > 4)            nums.push('…')
+    for (let i = Math.max(2, page - 2); i <= Math.min(lastPage - 1, page + 2); i++) nums.push(i)
+    if (page < lastPage - 3) nums.push('…')
+    nums.push(lastPage)
+  }
+
+  const from = (page - 1) * perPage + 1
+  const to   = Math.min(page * perPage, total)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center gap-3 py-4"
+      dir="rtl"
+    >
+      <p className="text-[12px] font-bold text-slate-500">
+        عرض{' '}
+        <span className="font-black text-deepBlue">{from}–{to}</span>
+        {' '}من أصل{' '}
+        <span className="font-black text-deepBlue">{total}</span>
+        {' '}برنامج
+      </p>
+
+      <div className="flex items-center gap-1 flex-wrap justify-center">
+        <button
+          type="button"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          aria-label="الصفحة السابقة"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-deepBlue transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          <ChevronRight size={15} />
+        </button>
+
+        {nums.map((n, i) =>
+          n === '…' ? (
+            <span key={`e${i}`} className="flex h-9 w-9 items-center justify-center text-[12px] text-slate-400">
+              …
+            </span>
+          ) : (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onPageChange(n as number)}
+              aria-current={n === page ? 'page' : undefined}
+              className={[
+                'flex h-9 w-9 items-center justify-center rounded-xl text-[12px] font-black transition',
+                n === page
+                  ? 'bg-deepBlue text-white shadow'
+                  : 'border border-slate-200 text-deepBlue hover:bg-slate-50',
+              ].join(' ')}
+            >
+              {n}
+            </button>
+          ),
+        )}
+
+        <button
+          type="button"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === lastPage}
+          aria-label="الصفحة التالية"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-deepBlue transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          <ChevronLeft size={15} />
+        </button>
+      </div>
+    </motion.div>
+  )
+}
+
 /* ── Page ────────────────────────────────────────────────────────────── */
 
 export default function ProgramsConsolePage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const deepLinkId = Number(searchParams.get('id') || '')
-  const [loading,        setLoading]        = useState(true)
-  const [failed,         setFailed]         = useState(false)
-  const [rows,           setRows]           = useState<Course[]>([])
+
+  // ── Server data ──────────────────────────────────────────
+  const [loading, setLoading]     = useState(true)
+  const [failed, setFailed]       = useState(false)
+  const [rows, setRows]           = useState<Course[]>([])
+  const [meta, setMeta]           = useState<CoursePageMeta | null>(null)
+  const [summary, setSummary]     = useState<CourseSummary | null>(null)
+
+  // ── Aux data (loaded once) ───────────────────────────────
   const [instructorRows, setInstructorRows] = useState<AdminInstructorOption[]>([])
-  const [regs,           setRegs]           = useState<AdminRegistrationRow[]>([])
-  const [tracks,         setTracks]         = useState<CatalogTrackRow[]>([])
-  const [departments,    setDepartments]    = useState<{ id: number; name: string }[]>([])
-  const [learningPaths,  setLearningPaths]  = useState<{ id: number; title: string; status: string }[]>([])
+  const [tracks, setTracks]                 = useState<CatalogTrackRow[]>([])
+  const [departments, setDepartments]       = useState<{ id: number; name: string }[]>([])
+  const [learningPaths, setLearningPaths]   = useState<{ id: number; title: string; status: string }[]>([])
 
-  const [q,              setQ]              = useState('')
-  const [mode,           setMode]           = useState<FilterMode>('all')
-  const [filterKind,     setFilterKind]     = useState('')
-  const [filterInstructor, setFilterInstructor] = useState('')
-  const [filterDelivery, setFilterDelivery] = useState('')
-  const [filterHasDate,  setFilterHasDate]  = useState('')
+  // ── UI state ─────────────────────────────────────────────
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    (localStorage.getItem('emc-programs-view') ?? 'cards') as ViewMode,
+  )
 
+  // ── Unified server params ────────────────────────────────
+  const [params, setParams] = useState<ServerParams>(() => ({
+    page:         1,
+    perPage:      Number(localStorage.getItem('emc-programs-per-page') || '24'),
+    chips:        [],
+    status:       '',
+    kind:         '',
+    instructorId: '',
+    departmentId: '',
+    delivery:     '',
+    sort:         'latest',
+  }))
+
+  // ── Modal / drawer state ─────────────────────────────────
   const [drawer,              setDrawer]              = useState<{ course: CourseVM; mode: CourseDrawerMode } | null>(null)
   const [formOpen,            setFormOpen]            = useState(false)
   const [formCourse,          setFormCourse]          = useState<Course | null>(null)
@@ -201,41 +329,7 @@ export default function ProgramsConsolePage() {
   const [scheduleCourse,      setScheduleCourse]      = useState<Course | null>(null)
   const [confirmDeleteCourse, setConfirmDeleteCourse] = useState<Course | null>(null)
 
-  // 300ms debounce — filter only recomputes after typing stops
-  const debouncedQ = useDebounce(q, 300)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setFailed(false)
-    // All 6 requests fire in parallel — eliminates sequential 2-stage pattern
-    const [pack, insRows, rIndex, tr, dep, lpRes] = await Promise.all([
-      fetchAdminCoursesStrict(),
-      fetchAdminInstructors().catch(() => [] as AdminInstructorOption[]),
-      fetchAdminRegistrationsIndex().catch(() => [] as AdminRegistrationRow[]),
-      fetchTracksStrict().catch(() => ({ ok: false as const })),
-      fetchDepartmentOptions().catch(() => [] as { id: number; name: string }[]),
-      fetchAdminLearningPaths({ per_page: 200 }).catch(() => null),
-    ])
-    setInstructorRows(insRows)
-    setLearningPaths(
-      (lpRes?.data ?? []).map((lp) => ({ id: lp.id, title: lp.title, status: lp.status })),
-    )
-    if (!pack.ok) {
-      setFailed(true)
-      setRows([])
-    } else {
-      setRows(pack.rows)
-    }
-    setRegs(rIndex)
-    setTracks(tr.ok ? tr.rows : [])
-    setDepartments(dep)
-    setLoading(false)
-  }, [])
-
-  useEffect(() => { void load() }, [load])
-
-  const regMap = useMemo(() => countRegistrationsByCourse(regs), [regs])
-
+  // ── Instructor lookup map ────────────────────────────────
   const instructorLookup = useMemo(() => {
     const mapped: CourseInstructorLookupRow[] = instructorRows.map((r) => ({
       id: r.id, name: r.name, email: r.email, avatar_url: r.avatar_url ?? null,
@@ -243,67 +337,102 @@ export default function ProgramsConsolePage() {
     return instructorLookupMapFromAssignableRows(mapped)
   }, [instructorRows])
 
-  // viewModels pre-computes all derived fields once — filter/render just reads them
+  // ── View models (current page only, no regMap needed) ───
   const viewModels = useMemo(
-    () => rows.map((c) => vmFromCourse(c, regMap, instructorLookup)),
-    [rows, regMap, instructorLookup],
+    () => rows.map((c) => vmFromCourse(c, instructorLookup)),
+    [rows, instructorLookup],
   )
 
-  const kpis = useMemo(() => ({
-    total:     rows.length,
-    published: rows.filter(isPublishedCourse).length,
-    draft:     rows.filter(isDraftCourse).length,
-    archived:  rows.filter(isArchivedCourse).length,
-    ended:     rows.filter(isEndedCourse).length,
-    scheduled: rows.filter(isScheduledCourse).length,
-    noDate:    rows.filter(missingCourseDate).length,
-  }), [rows])
-
-  // debouncedQ + pre-computed _instructorLabel/_status/_hasDate = instant filter
-  const filtered = useMemo(() => {
-    const t = debouncedQ.trim().toLowerCase()
-    return viewModels.filter((c) => {
-      if (t) {
-        const dept = c.department?.name ?? c.department_name ?? ''
-        const tr   = c.track?.title ?? c.track_title ?? ''
-        if (!`${c.title} ${c.slug} ${c._instructorLabel} ${dept} ${tr}`.toLowerCase().includes(t)) return false
-      }
-      if (mode === 'published'     && c._status !== 'published') return false
-      if (mode === 'draft'         && c._status !== 'draft')     return false
-      if (mode === 'archived'      && c._status !== 'archived')  return false
-      if (mode === 'ended'         && !isEndedCourse(c))         return false
-      if (mode === 'scheduled'     && !c._hasDate)               return false
-      if (mode === 'no_instructor' && hasInstructor(c))          return false
-      if (mode === 'no_date'       && c._hasDate)                return false
-      // Extra filters
-      if (filterKind && c._kind !== filterKind) return false
-      if (filterInstructor && c._instructorLabel !== filterInstructor) return false
-      if (filterDelivery) {
-        const lt = (c as Record<string, unknown>).location_type as string | null | undefined
-        if ((lt ?? 'online') !== filterDelivery) return false
-      }
-      if (filterHasDate === 'yes' && !c._hasDate) return false
-      if (filterHasDate === 'no'  && c._hasDate)  return false
-      return true
-    })
-  }, [viewModels, debouncedQ, mode, filterKind, filterInstructor, filterDelivery, filterHasDate])
-
-  useEffect(() => {
-    if (!Number.isFinite(deepLinkId) || deepLinkId <= 0 || loading || viewModels.length === 0) return
-    const match = viewModels.find((c) => c.id === deepLinkId)
-    if (!match) return
-    setDrawer({ course: match, mode: 'details' })
-    setSearchParams({}, { replace: true })
-  }, [deepLinkId, loading, viewModels, setSearchParams])
-
-  function openCreate() { setFormCourse(null); setFormOpen(true) }
-
-  function openDetails(c: CourseVM) {
-    setDrawer({ course: c, mode: 'details' })
+  // ── KPI counts from server summary ──────────────────────
+  const kpis = summary ?? {
+    total: 0, published: 0, draft: 0, archived: 0,
+    no_date: 0, no_instructor: 0, ended: 0, scheduled: 0,
   }
 
+  // ── Load (called whenever params change) ─────────────────
+  const load = useCallback(async (p: ServerParams) => {
+    setLoading(true)
+    setFailed(false)
+    const result = await fetchAdminCoursesPage(buildApiParams(p))
+    if (result) {
+      setRows(result.rows)
+      setMeta(result.meta)
+      if (result.summary) setSummary(result.summary)
+      setFailed(false)
+    } else {
+      setFailed(true)
+      setRows([])
+      setMeta(null)
+    }
+    setLoading(false)
+  }, [])
+
+  // Re-load whenever params change
+  useEffect(() => { void load(params) }, [params, load])
+
+  // Aux data — one-time on mount
+  useEffect(() => {
+    void Promise.all([
+      fetchAdminInstructors().catch(() => [] as AdminInstructorOption[]),
+      fetchTracksStrict().catch(() => ({ ok: false as const })),
+      fetchDepartmentOptions().catch(() => [] as { id: number; name: string }[]),
+      fetchAdminLearningPaths({ per_page: 200 }).catch(() => null),
+    ]).then(([insRows, tr, dep, lpRes]) => {
+      setInstructorRows(insRows as AdminInstructorOption[])
+      if ((tr as { ok: boolean }).ok) setTracks((tr as { ok: true; rows: CatalogTrackRow[] }).rows)
+      setDepartments(dep as { id: number; name: string }[])
+      setLearningPaths(
+        ((lpRes as { data?: { id: number; title: string; status: string }[] } | null)?.data ?? [])
+          .map((lp) => ({ id: lp.id, title: lp.title, status: lp.status })),
+      )
+    })
+  }, [])
+
+  // Deep link: fetch specific course and open drawer
+  const deepLinkHandled = useRef(false)
+  useEffect(() => {
+    if (!deepLinkId || deepLinkHandled.current) return
+    deepLinkHandled.current = true
+    fetchAdminCoursesPage({ selected: [deepLinkId], per_page: 1 }).then((result) => {
+      const match = result?.rows[0]
+      if (match) setDrawer({ course: vmFromCourse(match, instructorLookup), mode: 'details' })
+      setSearchParams({}, { replace: true })
+    })
+  }, [deepLinkId, instructorLookup, setSearchParams])
+
+  // ── Param helpers ────────────────────────────────────────
+
+  function setFilter(updates: Partial<Omit<ServerParams, 'page'>>) {
+    setParams((prev) => ({ ...prev, ...updates, page: 1 }))
+  }
+
+  function goToPage(newPage: number) {
+    setParams((prev) => ({ ...prev, page: newPage }))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function changePerPage(n: number) {
+    localStorage.setItem('emc-programs-per-page', String(n))
+    setParams((prev) => ({ ...prev, perPage: n, page: 1 }))
+  }
+
+  function toggleView(mode: ViewMode) {
+    setViewMode(mode)
+    localStorage.setItem('emc-programs-view', mode)
+  }
+
+  function resetAllFilters() {
+    setParams((prev) => ({
+      ...prev, page: 1, chips: [], status: '', kind: '', instructorId: '', departmentId: '', delivery: '', sort: 'latest',
+    }))
+  }
+
+  // ── Course actions ───────────────────────────────────────
+
+  function openCreate() { setFormCourse(null); setFormOpen(true) }
+  function openDetails(c: CourseVM) { setDrawer({ course: c, mode: 'details' }) }
   function openEdit(c: Course) {
-    const vm = viewModels.find((row) => row.id === c.id) ?? vmFromCourse(c, regMap, instructorLookup)
+    const vm = viewModels.find((r) => r.id === c.id) ?? vmFromCourse(c, instructorLookup)
     setDrawer({ course: vm, mode: 'edit' })
   }
 
@@ -312,34 +441,43 @@ export default function ProgramsConsolePage() {
     try {
       await patchCoursePublishState(c.id, next)
       toast.success(next ? 'تم نشر الدورة' : 'أُعيدت الدورة كمسودة')
-      void load()
+      void load(params)
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
   async function changeStatus(c: Course, status: 'draft' | 'published' | 'archived') {
-    const labels: Record<string, string> = { published: 'تم نشر الدورة', draft: 'أُعيدت الدورة كمسودة', archived: 'تم أرشفة الدورة' }
+    const labels: Record<string, string> = {
+      published: 'تم نشر الدورة', draft: 'أُعيدت الدورة كمسودة', archived: 'تم أرشفة الدورة',
+    }
     try {
       await patchCourseStatus(c.id, status)
       toast.success(labels[status] ?? 'تم تحديث الحالة')
-      void load()
+      void load(params)
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
-  function removeCourse(c: Course) {
-    setConfirmDeleteCourse(c)
-  }
+  function removeCourse(c: Course) { setConfirmDeleteCourse(c) }
 
   async function doDeleteCourse(c: Course) {
     setConfirmDeleteCourse(null)
     try {
       await deleteCourse(c.id)
       toast.success('تم حذف الدورة')
-      void load(); setDrawer(null)
+      void load(params)
+      setDrawer(null)
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
+  // ── Active filter count ──────────────────────────────────
+  const hasActiveFilters = params.chips.length > 0 || params.status || params.kind ||
+    params.instructorId || params.departmentId || params.delivery || params.sort !== 'latest'
+
+  // ── Render ───────────────────────────────────────────────
+
   return (
-    <SaPageRoot className="space-y-8 pb-16">
+    <SaPageRoot className="space-y-6 pb-16">
+
+      {/* ── Header ── */}
       <motion.header
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -351,14 +489,13 @@ export default function ProgramsConsolePage() {
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/55">EMC · Course OS</p>
               <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-[1.75rem]">إدارة البرامج والدورات</h1>
               <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-white/78">
-                مصدر الكتالوج: GET /courses؛ عدادات التسجيل من فهارس التسجيل عند توفرها. التواريخ اختيارية — الدفعة المفتوحة
-                تظهر للزائر كدعوة للانضمام للقادم.
+                عرض الصفحة الحالية فقط — استخدم البحث والتصفية للتنقل عبر الكتالوج.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => void load()}
+                onClick={() => void load(params)}
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-2.5 text-xs font-black backdrop-blur-md transition hover:bg-white/15"
               >
                 <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
@@ -380,119 +517,233 @@ export default function ProgramsConsolePage() {
             </div>
           </div>
 
-          {/* KPIs — show skeleton chips while loading */}
+          {/* KPI chips */}
           <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-            {loading ? (
+            {loading && !summary ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-[72px] animate-pulse rounded-2xl bg-white/10" />
               ))
-            ) : !failed && (
+            ) : (
               <>
-                <KpiMini icon={Layers3}      label="إجمالي البرامج"    value={<AnimatedTabular value={kpis.total} />}     tone="sky" />
-                <KpiMini icon={BookMarked}   label="منشورة"            value={<AnimatedTabular value={kpis.published} />} tone="mint" />
-                <KpiMini icon={FilePen}      label="مسودة"             value={<AnimatedTabular value={kpis.draft} />}     tone="amber" />
-                <KpiMini icon={Archive}      label="مؤرشفة"            value={<AnimatedTabular value={kpis.archived} />}  tone="rose" />
-                <KpiMini icon={CalendarClock} label="انتهت"             value={<AnimatedTabular value={kpis.ended} />}    tone="neutral" />
-                <KpiMini icon={CalendarCheck} label="مجدولة (لها موعد)" value={<AnimatedTabular value={kpis.scheduled} />} tone="violet" />
-                <KpiMini icon={CalendarX}    label="بدون موعد"         value={<AnimatedTabular value={kpis.noDate} />}    tone="orange" />
+                <KpiMini icon={Layers3}       label="إجمالي البرامج"    value={<AnimatedTabular value={kpis.total} />}        tone="sky" />
+                <KpiMini icon={BookMarked}    label="منشورة"            value={<AnimatedTabular value={kpis.published} />}    tone="mint" />
+                <KpiMini icon={FilePen}       label="مسودة"             value={<AnimatedTabular value={kpis.draft} />}        tone="amber" />
+                <KpiMini icon={Archive}       label="مؤرشفة"            value={<AnimatedTabular value={kpis.archived} />}     tone="rose" />
+                <KpiMini icon={CalendarClock} label="انتهت"             value={<AnimatedTabular value={kpis.ended} />}        tone="neutral" />
+                <KpiMini icon={CalendarCheck} label="مجدولة (لها موعد)" value={<AnimatedTabular value={kpis.scheduled} />}   tone="violet" />
+                <KpiMini icon={CalendarX}     label="بدون موعد"         value={<AnimatedTabular value={kpis.no_date} />}      tone="orange" />
               </>
             )}
           </div>
         </div>
       </motion.header>
 
-      <CrudToolbar
-        sticky
-        searchValue={q}
-        onSearchChange={setQ}
-        searchPlaceholder="بحث: عنوان، slug، إدارة، مسار، مدرب…"
-      >
-        <MiniSelect
-          label="الحالة"
-          value={mode}
-          onChange={(v) => { setMode(v as FilterMode) }}
-          options={[
-            { value: 'all',           labelAr: 'الكل' },
-            { value: 'published',     labelAr: 'منشورة' },
-            { value: 'draft',         labelAr: 'مسودة' },
-            { value: 'archived',      labelAr: 'مؤرشفة' },
-            { value: 'ended',         labelAr: 'انتهت' },
-            { value: 'scheduled',     labelAr: 'مجدولة' },
-            { value: 'no_instructor', labelAr: 'بدون مدرب' },
-            { value: 'no_date',       labelAr: 'بدون موعد' },
-          ]}
-        />
-        <MiniSelect
-          label="النوع"
-          value={filterKind}
-          onChange={setFilterKind}
-          options={[
-            { value: '',         labelAr: 'كل الأنواع' },
-            { value: 'course',   labelAr: 'دورة' },
-            { value: 'workshop', labelAr: 'ورشة' },
-            { value: 'program',  labelAr: 'برنامج' },
-            { value: 'track',    labelAr: 'مسار' },
-          ]}
-        />
-        <MiniSelect
-          label="نوع التنفيذ"
-          value={filterDelivery}
-          onChange={setFilterDelivery}
-          options={[
-            { value: '',        labelAr: 'كل الأنماط' },
-            { value: 'online',  labelAr: 'عن بعد' },
-            { value: 'offline', labelAr: 'حضوري' },
-            { value: 'hybrid',  labelAr: 'مختلط' },
-          ]}
-        />
-        <MiniSelect
-          label="الجدولة"
-          value={filterHasDate}
-          onChange={setFilterHasDate}
-          options={[
-            { value: '',    labelAr: 'كل البرامج' },
-            { value: 'yes', labelAr: 'لها موعد' },
-            { value: 'no',  labelAr: 'بدون موعد' },
-          ]}
-        />
-        {instructorRows.length > 0 && (
+      {/* ── Search + Filters toolbar ── */}
+      <div className="space-y-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm" dir="rtl">
+
+        {/* Row 1: Multi-chip search + view toggle + per-page */}
+        <div className="flex flex-wrap items-center gap-3">
+          <CourseMultiChipSearch
+            chips={params.chips}
+            onAdd={(chip) => setFilter({ chips: [...params.chips, chip] })}
+            onRemove={(id) => setFilter({ chips: params.chips.filter((c) => c.id !== id) })}
+            className="flex-1 min-w-[220px]"
+          />
+
+          {/* View toggle */}
+          <div className="flex rounded-xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleView('cards')}
+              title="عرض البطاقات"
+              className={[
+                'flex h-9 w-9 items-center justify-center transition',
+                viewMode === 'cards'
+                  ? 'bg-deepBlue text-white'
+                  : 'bg-white text-slate-500 hover:bg-slate-50',
+              ].join(' ')}
+            >
+              <LayoutGrid size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleView('table')}
+              title="عرض الجدول"
+              className={[
+                'flex h-9 w-9 items-center justify-center transition',
+                viewMode === 'table'
+                  ? 'bg-deepBlue text-white'
+                  : 'bg-white text-slate-500 hover:bg-slate-50',
+              ].join(' ')}
+            >
+              <List size={15} />
+            </button>
+          </div>
+
+          {/* Per-page selector */}
+          <select
+            value={params.perPage}
+            onChange={(e) => changePerPage(Number(e.target.value))}
+            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-[12px] font-bold text-deepBlue outline-none focus:border-[#2691C2]"
+            aria-label="عدد النتائج في الصفحة"
+          >
+            {[12, 24, 48, 96].map((n) => (
+              <option key={n} value={n}>{n} لكل صفحة</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Row 2: Dropdown filters + sort + reset */}
+        <div className="flex flex-wrap items-center gap-2">
           <MiniSelect
-            label="المدرب"
-            value={filterInstructor}
-            onChange={setFilterInstructor}
+            label="الحالة"
+            value={params.status}
+            onChange={(v) => setFilter({ status: v })}
             options={[
-              { value: '', labelAr: 'كل المدربين' },
-              ...instructorRows.map((r) => ({ value: r.name, labelAr: r.name })),
+              { value: '',             labelAr: 'الكل' },
+              { value: 'published',    labelAr: 'منشورة' },
+              { value: 'draft',        labelAr: 'مسودة' },
+              { value: 'archived',     labelAr: 'مؤرشفة' },
+              { value: 'ended',        labelAr: 'انتهت' },
+              { value: 'scheduled',    labelAr: 'مجدولة' },
+              { value: 'no_instructor',labelAr: 'بدون مدرب' },
+              { value: 'no_date',      labelAr: 'بدون موعد' },
             ]}
           />
-        )}
-        {(mode !== 'all' || filterKind || filterDelivery || filterHasDate || filterInstructor) && (
-          <button
-            type="button"
-            onClick={() => { setMode('all'); setFilterKind(''); setFilterDelivery(''); setFilterHasDate(''); setFilterInstructor('') }}
-            className="h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 text-[12px] font-black text-rose-600 transition hover:bg-rose-100"
-          >
-            إعادة ضبط
-          </button>
-        )}
-      </CrudToolbar>
+          <MiniSelect
+            label="النوع"
+            value={params.kind}
+            onChange={(v) => setFilter({ kind: v })}
+            options={[
+              { value: '',         labelAr: 'كل الأنواع' },
+              { value: 'course',   labelAr: 'دورة' },
+              { value: 'workshop', labelAr: 'ورشة' },
+              { value: 'program',  labelAr: 'برنامج' },
+              { value: 'track',    labelAr: 'مسار' },
+            ]}
+          />
+          <MiniSelect
+            label="التنفيذ"
+            value={params.delivery}
+            onChange={(v) => setFilter({ delivery: v })}
+            options={[
+              { value: '',        labelAr: 'كل الأنماط' },
+              { value: 'online',  labelAr: 'عن بعد' },
+              { value: 'offline', labelAr: 'حضوري' },
+              { value: 'hybrid',  labelAr: 'مختلط' },
+            ]}
+          />
+          {instructorRows.length > 0 && (
+            <MiniSelect
+              label="المدرب"
+              value={params.instructorId}
+              onChange={(v) => setFilter({ instructorId: v })}
+              options={[
+                { value: '', labelAr: 'كل المدربين' },
+                ...instructorRows.map((r) => ({ value: String(r.id), labelAr: r.name })),
+              ]}
+            />
+          )}
+          {departments.length > 0 && (
+            <MiniSelect
+              label="الإدارة"
+              value={params.departmentId}
+              onChange={(v) => setFilter({ departmentId: v })}
+              options={[
+                { value: '', labelAr: 'كل الإدارات' },
+                ...departments.map((d) => ({ value: String(d.id), labelAr: d.name })),
+              ]}
+            />
+          )}
+          <MiniSelect
+            label="الترتيب"
+            value={params.sort}
+            onChange={(v) => setFilter({ sort: v })}
+            options={[
+              { value: 'latest',     labelAr: 'الأحدث' },
+              { value: 'oldest',     labelAr: 'الأقدم' },
+              { value: 'title_asc',  labelAr: 'العنوان أ–ي' },
+              { value: 'title_desc', labelAr: 'العنوان ي–أ' },
+              { value: 'price_asc',  labelAr: 'السعر ↑' },
+              { value: 'price_desc', labelAr: 'السعر ↓' },
+            ]}
+          />
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 text-[12px] font-black text-rose-600 transition hover:bg-rose-100"
+            >
+              إعادة ضبط الكل
+            </button>
+          )}
+        </div>
 
-      {!loading && !failed && (
-        <p className="mb-2 text-[11px] font-bold text-slate-400" dir="rtl">
-          عرض <span className="font-black text-[#22334A]">{filtered.length}</span> من أصل <span className="font-black text-[#22334A]">{rows.length}</span> برنامج
+        {/* Active filter chips summary */}
+        <AnimatePresence>
+          {hasActiveFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex flex-wrap items-center gap-1.5 pt-1"
+            >
+              <span className="text-[11px] font-black text-slate-400 flex items-center gap-1">
+                <Filter size={11} />فلاتر نشطة:
+              </span>
+              {params.chips.map((c) => (
+                <FilterChip key={c.id} label={c.label} onRemove={() => setFilter({ chips: params.chips.filter((x) => x.id !== c.id) })} />
+              ))}
+              {params.status && <FilterChip label={statusLabel(params.status)} onRemove={() => setFilter({ status: '' })} />}
+              {params.kind && <FilterChip label={kindLabel(params.kind)} onRemove={() => setFilter({ kind: '' })} />}
+              {params.delivery && <FilterChip label={deliveryLabel(params.delivery)} onRemove={() => setFilter({ delivery: '' })} />}
+              {params.instructorId && (
+                <FilterChip
+                  label={`مدرب: ${instructorRows.find((r) => String(r.id) === params.instructorId)?.name ?? params.instructorId}`}
+                  onRemove={() => setFilter({ instructorId: '' })}
+                />
+              )}
+              {params.departmentId && (
+                <FilterChip
+                  label={`إدارة: ${departments.find((d) => String(d.id) === params.departmentId)?.name ?? params.departmentId}`}
+                  onRemove={() => setFilter({ departmentId: '' })}
+                />
+              )}
+              {params.sort !== 'latest' && <FilterChip label={`ترتيب: ${sortLabel(params.sort)}`} onRemove={() => setFilter({ sort: 'latest' })} />}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* ── Result counter ── */}
+      {!loading && !failed && meta && (
+        <p className="text-[11px] font-bold text-slate-400" dir="rtl">
+          {meta.total === 0
+            ? 'لا توجد نتائج'
+            : meta.last_page === 1
+              ? <>تم العثور على <span className="font-black text-[#22334A]">{meta.total}</span> برنامج</>
+              : <>صفحة <span className="font-black text-[#22334A]">{meta.current_page}</span> من <span className="font-black text-[#22334A]">{meta.last_page}</span> — إجمالي <span className="font-black text-[#22334A]">{meta.total}</span> برنامج</>
+          }
         </p>
       )}
 
+      {/* ── Main content ── */}
       {failed ? (
-        <ErrorPanel title="تعذّر الاتصال بـ GET /courses" hint="تحقّق من الخادم أو صلاحيات الجلسة." />
+        <ErrorPanel title="تعذّر الاتصال بـ /admin/courses" hint="تحقّق من الخادم أو صلاحيات الجلسة." />
       ) : loading ? (
-        <SkeletonGrid count={8} />
-      ) : filtered.length === 0 ? (
+        viewMode === 'cards' ? <SkeletonGrid count={params.perPage > 24 ? 12 : 8} /> : (
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100" />
+            ))}
+          </div>
+        )
+      ) : viewModels.length === 0 ? (
         <EmptyPanel title="لا توجد برامج بهذا التصنيف حالياً" subtitle="غيّر التصفية أو أضف برنامجًا جديدًا." />
-      ) : (
-        <>
-          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {filtered.map((c, i) => (
+      ) : viewMode === 'cards' ? (
+        <motion.div layout className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <AnimatePresence mode="popLayout">
+            {viewModels.map((c, i) => (
               <ProgramBentoCard
                 key={c.id}
                 c={c}
@@ -505,142 +756,145 @@ export default function ProgramsConsolePage() {
                 onDelete={() => void removeCourse(c)}
               />
             ))}
-          </div>
-
-          <SaGlassCard className="overflow-hidden ring-1 ring-deepBlue/[0.04]" glow="blue">
-            <div className="border-b border-slate-100 bg-white/95 px-5 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-base font-black text-deepBlue">جدول العمليات</h2>
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black text-slate-600">
-                  <Filter size={14} aria-hidden />
-                  {filtered.length} صف
-                </span>
-              </div>
+          </AnimatePresence>
+        </motion.div>
+      ) : (
+        <SaGlassCard className="overflow-hidden ring-1 ring-deepBlue/[0.04]" glow="blue">
+          <div className="border-b border-slate-100 bg-white/95 px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-base font-black text-deepBlue">جدول العمليات</h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black text-slate-600">
+                <Filter size={14} aria-hidden />
+                {meta?.total ?? viewModels.length} برنامج
+              </span>
             </div>
-            <CrudCardTable className="rounded-none border-0 shadow-none ring-0">
-              <CrudTable>
-                <thead>
-                  <tr>
-                    <Th>العنوان والنوع</Th>
-                    <Th>الحالة</Th>
-                    <Th>المدرب</Th>
-                    <Th>الإدارة / المسار</Th>
-                    <Th>السعر</Th>
-                    <Th>سعة / تسجيلات</Th>
-                    <Th>الموعد</Th>
-                    <Th className="text-end">إجراءات</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((c) => {
-                    const dateLabel = !c._hasDate
-                      ? <span className="font-black text-[#EC943C]">الموعد لم يحدد بعد</span>
-                      : String(c.start_date ?? '').slice(0, 10)
-                    return (
-                      <Tr key={c.id}>
-                        <Td>
-                          <div className="flex items-center gap-3">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#2691C2]/25">
-                              {initialsFromName(c.title)}
-                            </span>
-                            <div className="min-w-0 text-right">
-                              <p className="truncate font-black text-deepBlue">{c.title}</p>
-                              <div className="mt-1 flex flex-wrap gap-1.5">
-                                <CrudBadge variant="brand">{PROGRAM_KIND_LABEL[c._kind]}</CrudBadge>
-                                <code className="truncate text-[10px] text-slate-400">{c.slug}</code>
-                              </div>
+          </div>
+          <CrudCardTable className="rounded-none border-0 shadow-none ring-0">
+            <CrudTable>
+              <thead>
+                <tr>
+                  <Th>العنوان والنوع</Th>
+                  <Th>الحالة</Th>
+                  <Th>المدرب</Th>
+                  <Th>الإدارة / المسار</Th>
+                  <Th>السعر</Th>
+                  <Th>سعة / تسجيلات</Th>
+                  <Th>الموعد</Th>
+                  <Th className="text-end">إجراءات</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {viewModels.map((c) => {
+                  const dateLabel = !c._hasDate
+                    ? <span className="font-black text-[#EC943C]">الموعد لم يحدد بعد</span>
+                    : String(c.start_date ?? '').slice(0, 10)
+                  return (
+                    <Tr key={c.id}>
+                      <Td>
+                        <div className="flex items-center gap-3">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#2691C2]/25">
+                            {initialsFromName(c.title)}
+                          </span>
+                          <div className="min-w-0 text-right">
+                            <p className="truncate font-black text-deepBlue">{c.title}</p>
+                            <div className="mt-1 flex flex-wrap gap-1.5">
+                              <CrudBadge variant="brand">{PROGRAM_KIND_LABEL[c._kind]}</CrudBadge>
+                              <code className="truncate text-[10px] text-slate-400">{c.slug}</code>
                             </div>
                           </div>
-                        </Td>
-                        <Td>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
-                            : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
-                            : <CrudBadge variant="default">مسودة</CrudBadge>}
-                            {isEndedCourse(c) ? <CourseStatusBadge isEnded placement="inline" className="!text-[10px]" /> : null}
-                          </div>
-                        </Td>
-                        <Td className="text-[12px] font-bold">
-                          <CourseInstructorTableCell course={c} lookup={instructorLookup} />
-                        </Td>
-                                        <Td className="max-w-[11rem] text-[11px] font-semibold text-slate-600">
-                          {c.is_part_of_learning_path && c.learning_path ? (
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
-                              c.learning_path.status === 'published' || c.learning_path.status === 'active'
-                                ? 'bg-[#2691C2]/10 text-[#2691C2]'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}>
-                              🎓 {c.learning_path.title}
-                            </span>
-                          ) : (
-                            <span className="line-clamp-2">
-                              {(c.department_name ?? c.department?.name ?? '—') as string} ·{' '}
-                              {(c.track_title ?? c.track?.title ?? '—') as string}
-                            </span>
-                          )}
-                        </Td>
-                        <Td className="text-[12px] font-black">
-                          {c._isPaid && c._priceNum > 0
-                            ? formatEuro(c._priceNum, { locale: 'nl-NL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                            : 'مجانية'}
-                        </Td>
-                        <Td className="tabular-nums text-[12px] font-bold">
-                          {c.capacity ?? '—'} / {c._regs}
-                        </Td>
-                        <Td className="text-[11px]">{dateLabel}</Td>
-                        <Td className="text-end">
-                          <RowActionsMenu
-                            ariaLabel={c.title}
-                            actions={[
-                              { key: 'd',       label: 'عرض التفاصيل',       onClick: () => openDetails(c) },
-                              { key: 'e',       label: 'تعديل',              onClick: () => openEdit(c) },
-                              { key: 'a',       label: 'تعيين مدرب',         onClick: () => setAssignCourse(c) },
-                              { key: 's',       label: 'تحديد موعد',         onClick: () => setScheduleCourse(c) },
-                              { key: 'lms-cms', label: 'محتوى الدورة — LMS', onClick: () => navigate(`/dashboard/super-admin/crud/programs/${c.id}/content`) },
-                              ...(c._status === 'archived' ? [
-                                { key: 'restore', label: 'استعادة (تحويل لمسودة)', onClick: () => void changeStatus(c, 'draft') },
-                              ] : c._status === 'published' ? [
-                                { key: 'p',    label: 'إلغاء النشر (تحويل لمسودة)', onClick: () => void togglePublish(c), disabled: c.can_deactivate === false },
-                                { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
-                              ] : [
-                                { key: 'p',    label: 'نشر',   onClick: () => void togglePublish(c) },
-                                { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
-                              ]),
-                              { key: 'x', label: c.can_delete === false ? 'حذف (مقيّد — مرتبط بمسار نشط)' : 'حذف', onClick: () => void removeCourse(c), disabled: c.can_delete === false, destructive: true },
-                            ]}
-                          />
-                        </Td>
-                      </Tr>
-                    )
-                  })}
-                </tbody>
-              </CrudTable>
-            </CrudCardTable>
-          </SaGlassCard>
-        </>
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {c._status === 'published' ? <CrudBadge variant="success">منشور</CrudBadge>
+                          : c._status === 'archived'  ? <CrudBadge variant="danger">مؤرشف</CrudBadge>
+                          : <CrudBadge variant="default">مسودة</CrudBadge>}
+                          {isEndedCourse(c) ? <CourseStatusBadge isEnded placement="inline" className="!text-[10px]" /> : null}
+                        </div>
+                      </Td>
+                      <Td className="text-[12px] font-bold">
+                        <CourseInstructorTableCell course={c} lookup={instructorLookup} />
+                      </Td>
+                      <Td className="max-w-[11rem] text-[11px] font-semibold text-slate-600">
+                        {c.is_part_of_learning_path && c.learning_path ? (
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
+                            c.learning_path.status === 'published' || c.learning_path.status === 'active'
+                              ? 'bg-[#2691C2]/10 text-[#2691C2]'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            🎓 {c.learning_path.title}
+                          </span>
+                        ) : (
+                          <span className="line-clamp-2">
+                            {(c.department_name ?? c.department?.name ?? '—') as string} ·{' '}
+                            {(c.track_title ?? c.track?.title ?? '—') as string}
+                          </span>
+                        )}
+                      </Td>
+                      <Td className="text-[12px] font-black">
+                        {c._isPaid && c._priceNum > 0
+                          ? formatEuro(c._priceNum, { locale: 'nl-NL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                          : 'مجانية'}
+                      </Td>
+                      <Td className="tabular-nums text-[12px] font-bold">{c.capacity ?? '—'} / {c._regs}</Td>
+                      <Td className="text-[11px]">{dateLabel}</Td>
+                      <Td className="text-end">
+                        <RowActionsMenu
+                          ariaLabel={c.title}
+                          actions={[
+                            { key: 'd',       label: 'عرض التفاصيل',       onClick: () => openDetails(c) },
+                            { key: 'e',       label: 'تعديل',              onClick: () => openEdit(c) },
+                            { key: 'a',       label: 'تعيين مدرب',         onClick: () => setAssignCourse(c) },
+                            { key: 's',       label: 'تحديد موعد',         onClick: () => setScheduleCourse(c) },
+                            { key: 'lms-cms', label: 'محتوى الدورة — LMS', onClick: () => navigate(`/dashboard/super-admin/crud/programs/${c.id}/content`) },
+                            ...(c._status === 'archived' ? [
+                              { key: 'restore', label: 'استعادة (تحويل لمسودة)', onClick: () => void changeStatus(c, 'draft') },
+                            ] : c._status === 'published' ? [
+                              { key: 'p',    label: 'إلغاء النشر (تحويل لمسودة)', onClick: () => void togglePublish(c), disabled: c.can_deactivate === false },
+                              { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
+                            ] : [
+                              { key: 'p',    label: 'نشر',   onClick: () => void togglePublish(c) },
+                              { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
+                            ]),
+                            { key: 'x', label: c.can_delete === false ? 'حذف (مقيّد — مرتبط بمسار نشط)' : 'حذف', onClick: () => void removeCourse(c), disabled: c.can_delete === false, destructive: true },
+                          ]}
+                        />
+                      </Td>
+                    </Tr>
+                  )
+                })}
+              </tbody>
+            </CrudTable>
+          </CrudCardTable>
+        </SaGlassCard>
       )}
 
+      {/* ── Pagination bar ── */}
+      {!loading && !failed && meta && meta.last_page > 1 && (
+        <PaginationBar
+          page={meta.current_page}
+          lastPage={meta.last_page}
+          total={meta.total}
+          perPage={meta.per_page}
+          onPageChange={goToPage}
+        />
+      )}
+
+      {/* ── Drawers & modals (unchanged) ── */}
       <CourseManagementDrawer
         open={drawer !== null}
         course={drawer?.course ?? null}
         mode={drawer?.mode ?? 'details'}
         onClose={() => setDrawer(null)}
-        onModeChange={(mode) => {
-          setDrawer((prev) => (prev ? { ...prev, mode } : null))
-        }}
-        onSaved={() => void load()}
-        onAssignInstructor={
-          drawer ? () => {
-            setAssignCourse(drawer.course)
-          } : undefined
-        }
+        onModeChange={(m) => setDrawer((prev) => (prev ? { ...prev, mode: m } : null))}
+        onSaved={() => void load(params)}
+        onAssignInstructor={drawer ? () => { setAssignCourse(drawer.course) } : undefined}
         tracks={tracks}
         departments={departments}
         learningPaths={learningPaths}
         existingCourses={rows}
       />
 
-      {/* إنشاء دورة جديدة — modal منفصل (لا يتراكب مع لوحة التفاصيل) */}
       <Suspense fallback={null}>
         <CourseProgramFormModal
           open={formOpen}
@@ -650,7 +904,7 @@ export default function ProgramsConsolePage() {
           learningPaths={learningPaths}
           existingCourses={rows}
           onClose={() => setFormOpen(false)}
-          onSaved={() => void load()}
+          onSaved={() => void load(params)}
           onCreateAnother={() => setFormCourse(null)}
         />
       </Suspense>
@@ -667,7 +921,7 @@ export default function ProgramsConsolePage() {
             setRows((prev) => prev.map((row) => (row.id === target.id ? merged : row)))
             setDrawer((d) => {
               if (!d || d.course.id !== target.id) return d
-              return { ...d, course: vmFromCourse(merged, regMap, instructorLookup) }
+              return { ...d, course: vmFromCourse(merged, instructorLookup) }
             })
             setFormCourse((fc) => (fc?.id === target.id ? merged : fc))
           }}
@@ -679,7 +933,7 @@ export default function ProgramsConsolePage() {
           open={scheduleCourse !== null}
           course={scheduleCourse}
           onClose={() => setScheduleCourse(null)}
-          onSaved={() => void load()}
+          onSaved={() => void load(params)}
         />
       </Suspense>
 
@@ -694,6 +948,49 @@ export default function ProgramsConsolePage() {
         onCancel={() => setConfirmDeleteCourse(null)}
       />
     </SaPageRoot>
+  )
+}
+
+/* ── Filter chip label helpers ───────────────────────────────────────── */
+
+function statusLabel(v: string) {
+  const m: Record<string, string> = {
+    published: 'منشورة', draft: 'مسودة', archived: 'مؤرشفة',
+    ended: 'انتهت', scheduled: 'مجدولة', no_instructor: 'بدون مدرب', no_date: 'بدون موعد',
+  }
+  return m[v] ?? v
+}
+function kindLabel(v: string) {
+  const m: Record<string, string> = { course: 'دورة', workshop: 'ورشة', program: 'برنامج', track: 'مسار' }
+  return m[v] ?? v
+}
+function deliveryLabel(v: string) {
+  const m: Record<string, string> = { online: 'عن بعد', offline: 'حضوري', hybrid: 'مختلط' }
+  return m[v] ?? v
+}
+function sortLabel(v: string) {
+  const m: Record<string, string> = {
+    latest: 'الأحدث', oldest: 'الأقدم', title_asc: 'العنوان أ–ي',
+    title_desc: 'العنوان ي–أ', price_asc: 'السعر ↑', price_desc: 'السعر ↓',
+  }
+  return m[v] ?? v
+}
+
+/* ── FilterChip ──────────────────────────────────────────────────────── */
+
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <motion.span
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-slate-600"
+    >
+      {label}
+      <button type="button" onClick={onRemove} className="hover:text-rose-600 transition-colors" aria-label={`إزالة ${label}`}>
+        ✕
+      </button>
+    </motion.span>
   )
 }
 
@@ -719,7 +1016,7 @@ function KpiMini({ icon: Icon, label, value, tone }: {
   )
 }
 
-/* ── ProgramBentoCard — memoized, no instructorLookup prop needed ────── */
+/* ── ProgramBentoCard ────────────────────────────────────────────────── */
 
 const ProgramBentoCard = memo(function ProgramBentoCard({
   c, index, onPreview, onEdit, onAssign, onSchedule, onStatusChange, onDelete,
@@ -744,10 +1041,11 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
     <motion.article
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97 }}
       transition={{ delay: Math.min(index * 0.03, 0.18) }}
       className="flex flex-col overflow-hidden rounded-[1.35rem] border border-deepBlue/[0.08] bg-white shadow-md hover:shadow-lg transition-shadow"
     >
-      {/* Thumbnail strip */}
+      {/* Thumbnail */}
       <div className="relative h-32 shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
         {imgUrl ? (
           <img
@@ -759,13 +1057,12 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
           />
         ) : (
-          <div className={`h-full w-full`} style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}44)` }}>
+          <div className="h-full w-full" style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}44)` }}>
             <span className="flex h-full items-center justify-center text-3xl font-black opacity-30" style={{ color: accentColor }}>
               {c.title?.charAt(0) ?? '؟'}
             </span>
           </div>
         )}
-        {/* Status badges overlay */}
         <div className="absolute inset-x-0 top-2 flex items-center justify-between px-3">
           <span className="rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-sm" style={{ background: accentColor }}>
             {PROGRAM_KIND_LABEL[c._kind]}
@@ -781,7 +1078,8 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
 
       <div className="flex flex-1 flex-col p-4">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-black leading-snug text-deepBlue">{c.title}</h3>
-        {/* Learning path membership badge */}
+
+        {/* Learning path badge */}
         {c.is_part_of_learning_path && c.learning_path && (
           <div className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
             c.learning_path.status === 'published' || c.learning_path.status === 'active'
@@ -791,10 +1089,32 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
             🎓 ضمن مسار: {c.learning_path.title}
           </div>
         )}
+
+        {/* Lock badge */}
+        {c.can_delete === false && (
+          <div
+            className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700"
+            title={c.lock_reason ?? 'هذا المحتوى مستخدم داخل مسار تعليمي نشط.'}
+          >
+            🔒 مرتبط بمسار تعليمي
+          </div>
+        )}
+
         <p className="mt-2 text-[11px] font-semibold text-slate-500">
-          {hasInstructor(c)
-            ? <>المدرب: {c._instructorLabel}</>
-            : <span className="inline-flex items-center gap-1 text-amber-600"><UserX size={12} aria-hidden /> بدون مدرب</span>}
+          {hasInstructor(c) ? (
+            <>المدرب: {c._instructorLabel}</>
+          ) : c._effectiveInstructor ? (
+            <span className="inline-flex flex-wrap items-center gap-1">
+              <span>أ. {c._effectiveInstructor.name}</span>
+              <span className="rounded-full bg-[#2691C2]/10 px-1.5 py-px text-[9px] font-black text-[#2691C2]">
+                من المسار التعليمي
+              </span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-amber-600">
+              <UserX size={12} aria-hidden /> بدون مدرب
+            </span>
+          )}
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-bold text-slate-600">
           <span className="rounded-lg bg-slate-100 px-2 py-0.5">سعة: {c.capacity ?? '—'}</span>
@@ -866,29 +1186,44 @@ const ProgramBentoCard = memo(function ProgramBentoCard({
 function CourseInstructorTableCell({
   course, lookup,
 }: {
-  course: Course
+  course: CourseVM
   lookup: Map<number, CourseInstructorLookupRow>
 }) {
   const [imgFailed, setImgFailed] = useState(false)
   const resolved = getCourseInstructor(course, { lookupByInstructorId: lookup })
 
-  useEffect(() => { setImgFailed(false) }, [resolved.avatarUrl])
+  // Fallback to effective_instructor (inherited from LP) when course has no own instructor
+  const effectiveIns = !hasInstructor(course) ? course._effectiveInstructor : null
+  const isInherited  = course._instructorSource === 'learning_path'
 
-  if (!hasInstructor(course)) return <span className="font-bold text-amber-700">بدون مدرب</span>
+  const displayName  = resolved.displayName || effectiveIns?.name || ''
+  const displayEmail = resolved.email || effectiveIns?.email || ''
+  const avatarUrl    = resolved.avatarUrl || effectiveIns?.profile_photo_url || null
 
-  const showImg = Boolean(resolved.avatarUrl && !imgFailed)
+  useEffect(() => { setImgFailed(false) }, [avatarUrl])
+
+  if (!hasInstructor(course) && !effectiveIns) {
+    return <span className="font-bold text-amber-700">بدون مدرب</span>
+  }
+
+  const showImg = Boolean(avatarUrl && !imgFailed)
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#2691C2]/12 text-[11px] font-black text-deepBlue ring-1 ring-[#2691C2]/22">
-        {showImg && resolved.avatarUrl
-          ? <img src={resolved.avatarUrl} alt="" loading="lazy" decoding="async"
+        {showImg && avatarUrl
+          ? <img src={avatarUrl} alt="" loading="lazy" decoding="async"
               className="h-full w-full object-cover" referrerPolicy="no-referrer"
               onError={() => setImgFailed(true)} />
-          : initialsFromName(resolved.displayName)}
+          : initialsFromName(displayName)}
       </span>
       <div className="min-w-0 text-right">
-        <p className="truncate font-bold text-deepBlue">{resolved.displayName}</p>
-        {resolved.email && <p className="truncate text-[10px] font-semibold text-slate-500 dir-ltr">{resolved.email}</p>}
+        <p className="truncate font-bold text-deepBlue">{displayName}</p>
+        {displayEmail && <p className="truncate text-[10px] font-semibold text-slate-500 dir-ltr">{displayEmail}</p>}
+        {isInherited && (
+          <span className="mt-0.5 inline-block rounded-full bg-[#2691C2]/10 px-1.5 py-px text-[9px] font-black text-[#2691C2]">
+            من المسار التعليمي
+          </span>
+        )}
       </div>
     </div>
   )

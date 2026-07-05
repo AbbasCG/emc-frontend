@@ -9,6 +9,7 @@ import {
   Search,
   Settings,
   User,
+  Wallet,
   X,
 } from 'lucide-react'
 import logo from '../assets/logo.png'
@@ -24,7 +25,7 @@ import {
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
 import type { PlatformNotification } from '../types/platform'
-import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
+import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
 import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
@@ -213,9 +214,28 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const showRoleBadge = Boolean(user?.role != null && String(user.role).trim() !== '')
   const [sidebarQuery, setSidebarQuery] = useState('')
 
-  const groups = useMemo(() => {
-    return getSidebarByRole(user?.role)
-  }, [user?.role])
+  const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
+    const base = getSidebarByRole(user?.role)
+
+    // Inject "الطلبات المالية" for any user with is_department_leader=true,
+    // unless their role already provides it (department_manager, finance_manager, executive_admin, super_admin).
+    const role = user?.role ?? ''
+    const rolesWithLink = ['department_manager', 'finance_manager', 'executive_admin', 'super_admin', 'tech_admin', 'admin']
+
+    if (user?.is_department_leader && !rolesWithLink.includes(role)) {
+      const leaderGroup: SidebarNavGroup = {
+        title: 'الإدارة المالية',
+        items: [{ label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet }],
+      }
+      return [
+        ...(base[0] ? [base[0]] : []),
+        leaderGroup,
+        ...base.slice(1),
+      ]
+    }
+
+    return base
+  }, [user?.role, user?.is_department_leader])
 
   const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
 
@@ -718,7 +738,7 @@ export default function DashboardLayout() {
       />
 
       <main
-        className={`relative z-content isolate ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
+        className={`relative z-content ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
         id="dashboard-main-content"
         tabIndex={-1}
       >

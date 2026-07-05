@@ -180,7 +180,7 @@ export default function SubmissionReviewPanel({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-50 overflow-hidden"
+          className="fixed inset-0 z-modal-overlay overflow-hidden"
           dir="rtl"
         >
           <div

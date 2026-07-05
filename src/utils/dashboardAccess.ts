@@ -188,6 +188,15 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return ['instructor']
   }
 
+  /* Financial requests — any authenticated user who is a department leader may access this page.
+     Backend enforces is_leader=true; frontend just needs to not block it. */
+  if (
+    path === '/dashboard/department/financial-requests' ||
+    path.startsWith('/dashboard/department/financial-requests/')
+  ) {
+    return 'authenticated'
+  }
+
   /* Workshop requests — must be checked BEFORE generic namespace rules to override /dashboard/admin prefix */
   if (
     path === '/dashboard/admin/workshop-requests' ||

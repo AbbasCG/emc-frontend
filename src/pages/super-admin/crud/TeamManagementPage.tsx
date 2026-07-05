@@ -380,7 +380,7 @@ function DetailDrawer({ row, onClose }: { row: FlatRow | null; onClose: () => vo
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-modal-overlay bg-black/30 backdrop-blur-[2px]"
             onClick={onClose}
           />
           <motion.aside
@@ -388,7 +388,7 @@ function DetailDrawer({ row, onClose }: { row: FlatRow | null; onClose: () => vo
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-slate-100 bg-white shadow-2xl"
+            className="fixed inset-y-0 right-0 z-modal-content flex w-full max-w-sm flex-col border-l border-slate-100 bg-white shadow-2xl"
             dir="rtl"
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -625,7 +625,7 @@ function UserAccountModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
+        className="fixed inset-0 z-modal-overlay bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <motion.div
@@ -633,7 +633,7 @@ function UserAccountModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-x-4 top-8 z-50 mx-auto max-w-md overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[440px]"
+        className="fixed inset-x-4 top-8 z-modal-content mx-auto max-w-md overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[440px]"
         dir="rtl"
       >
         {/* Header */}
@@ -987,7 +987,7 @@ function ProfileModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
+        className="fixed inset-0 z-modal-overlay bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <motion.div
@@ -995,7 +995,7 @@ function ProfileModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-x-4 top-6 z-50 mx-auto max-w-xl overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[560px]"
+        className="fixed inset-x-4 top-6 z-modal-content mx-auto max-w-xl overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[560px]"
         dir="rtl"
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
@@ -1238,7 +1238,7 @@ function DeleteConfirm({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
+        className="fixed inset-0 z-modal-overlay bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <motion.div
@@ -1246,7 +1246,7 @@ function DeleteConfirm({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.15 }}
-        className="fixed left-1/2 top-1/3 z-50 w-[90vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-slate-100 bg-white p-8 shadow-2xl text-center"
+        className="fixed left-1/2 top-1/3 z-modal-content w-[90vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-slate-100 bg-white p-8 shadow-2xl text-center"
         dir="rtl"
       >
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50">
@@ -1691,7 +1691,7 @@ export default function TeamManagementPage() {
 
       {/* ── Loading profile spinner ────────────────────────────────────────── */}
       {(loadingProfile || accountLoading) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-modal-content flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
           <div className="rounded-2xl bg-white p-6 shadow-xl">
             <Loader2 size={28} className="mx-auto animate-spin text-customBlue" />
             <p className="mt-3 text-sm font-semibold text-slate-600">جارٍ تحميل البيانات...</p>

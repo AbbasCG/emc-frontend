@@ -21,6 +21,7 @@ import {
 import SectionHeader from '@/components/sections/SectionHeader'
 import { PublicPageHero } from '@/components/public'
 import { submitContactMessage } from '@/api/contactApi'
+import type { ContactTicketData } from '@/api/contactApi'
 import { siteContact } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 import { loadingToast, successToast, errorToast } from '@/lib/toast'
@@ -72,47 +73,93 @@ const optionCards = [
 ]
 
 export default function Contact() {
+  const [form, setFormData] = useState({
+    name: '', email: '', phone: '', category: 'general', subject: '', message: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [serverError, setServerError] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [ticketData, setTicketData] = useState<ContactTicketData | null>(null)
+
+  function setField(k: keyof typeof form, v: string) {
+    setFormData(f => ({ ...f, [k]: v }))
+    if (fieldErrors[k]) setFieldErrors(e => ({ ...e, [k]: '' }))
+  }
+
+  function validate(): Record<string, string> {
+    const errs: Record<string, string> = {}
+    const nameOk = /^[؀-ۿa-zA-Z\s'\-]+$/
+
+    const n = form.name.trim()
+    if (!n)                    errs.name = 'الاسم مطلوب.'
+    else if (n.length < 2)    errs.name = 'يجب أن يكون الاسم حرفين على الأقل.'
+    else if (n.length > 100)  errs.name = 'يجب ألا يتجاوز الاسم 100 حرف.'
+    else if (!nameOk.test(n)) errs.name = 'يجب أن يحتوي الاسم على أحرف فقط.'
+
+    const em = form.email.trim()
+    if (!em)                                            errs.email = 'البريد الإلكتروني مطلوب.'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) errs.email = 'يرجى إدخال بريد إلكتروني صحيح.'
+    else if (em.length > 150)                          errs.email = 'البريد الإلكتروني طويل جداً.'
+
+    const ph = form.phone.trim()
+    if (ph) {
+      if (/[a-zA-Z]/.test(ph))                        errs.phone = 'رقم الهاتف يجب أن يحتوي على أرقام فقط.'
+      else if (ph.replace(/[\s+\-]/g, '').length < 7) errs.phone = 'يرجى إدخال رقم هاتف صحيح.'
+      else if (ph.length > 20)                         errs.phone = 'رقم الهاتف طويل جداً.'
+    }
+
+    const sub = form.subject.trim()
+    if (!sub)                   errs.subject = 'الموضوع مطلوب.'
+    else if (sub.length < 3)   errs.subject = 'يجب أن يكون الموضوع 3 أحرف على الأقل.'
+    else if (sub.length > 150) errs.subject = 'يجب ألا يتجاوز الموضوع 150 حرفاً.'
+
+    const msg = form.message.trim()
+    if (!msg)                    errs.message = 'الرسالة مطلوبة.'
+    else if (msg.length < 10)   errs.message = 'يجب ألا تقل الرسالة عن 10 أحرف.'
+    else if (msg.length > 2000) errs.message = 'يجب ألا تتجاوز الرسالة 2000 حرف.'
+
+    return errs
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSubmitError('')
-    setIsSubmitted(false)
+    setServerError('')
 
-    const form = event.currentTarget
-    const fd = new FormData(form)
-    const name = String(fd.get('name') ?? '').trim()
-    const email = String(fd.get('email') ?? '').trim()
-    const phone = String(fd.get('phone') ?? '').trim()
-    const subject = String(fd.get('subject') ?? '').trim()
-    const message = String(fd.get('message') ?? '').trim()
-    const topic = String(fd.get('topic') ?? 'general')
-
-    if (!name) { setSubmitError('الاسم الكامل مطلوب.'); return }
-    if (!email) { setSubmitError('البريد الإلكتروني مطلوب.'); return }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setSubmitError('يرجى إدخال بريد إلكتروني صحيح.'); return }
-    if (!phone) { setSubmitError('رقم الجوال مطلوب.'); return }
-    if (!message) { setSubmitError('الرسالة مطلوبة.'); return }
+    const errs = validate()
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return }
 
     const tid = loadingToast('جاري إرسال رسالتك...')
     try {
       setIsSubmitting(true)
-      await submitContactMessage({
-        name,
-        email,
-        phone: phone || undefined,
-        subject: subject || undefined,
-        category: topic,
-        message,
+      const result = await submitContactMessage({
+        name:     form.name.trim(),
+        email:    form.email.trim().toLowerCase(),
+        phone:    form.phone.trim() || undefined,
+        category: form.category,
+        subject:  form.subject.trim(),
+        message:  form.message.trim(),
       })
+      setTicketData(result)
       setIsSubmitted(true)
-      form.reset()
+      setFormData({ name: '', email: '', phone: '', category: 'general', subject: '', message: '' })
+      setFieldErrors({})
       successToast('تم إرسال رسالتك بنجاح. سيتواصل الفريق معك قريباً.', tid)
-    } catch {
-      setSubmitError('تعذر إرسال الرسالة. تحقق من الاتصال بالخادم أو حاول لاحقاً.')
-      errorToast('تعذر إرسال الرسالة. حاول مرة أخرى.', tid)
+    } catch (err: unknown) {
+      type AxErr = { response?: { status?: number; data?: { errors?: Record<string, string[]>; message?: string } } }
+      const e = err as AxErr
+      if (e.response?.status === 422) {
+        const be: Record<string, string> = {}
+        for (const [k, v] of Object.entries(e.response.data?.errors ?? {})) {
+          be[k] = Array.isArray(v) ? v[0] : String(v)
+        }
+        setFieldErrors(be)
+        setServerError(e.response.data?.message ?? 'يرجى التحقق من البيانات المدخلة.')
+        errorToast('يرجى التحقق من البيانات المدخلة.', tid)
+      } else {
+        setServerError('تعذر إرسال الرسالة. تحقق من الاتصال بالخادم أو حاول لاحقاً.')
+        errorToast('تعذر إرسال الرسالة. حاول مرة أخرى.', tid)
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -197,35 +244,61 @@ export default function Contact() {
               أرسل رسالتك مباشرة لفريق EMC. للطلبات الرسمية للورش استخدم صفحة التقديم المخصصة.
             </p>
 
-            {submitError && (
+            {serverError && (
               <div className="mt-6 flex items-start gap-3 rounded-2xl bg-red-50 p-4 text-right text-red-700 ring-1 ring-red-100">
                 <AlertCircle size={22} className="mt-1 shrink-0" />
-                <p className="font-bold leading-7">{submitError}</p>
+                <p className="font-bold leading-7">{serverError}</p>
               </div>
             )}
 
             {isSubmitted && (
-              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-sky-50 p-4 text-right text-customBlue ring-1 ring-sky-100">
-                <CheckCircle2 size={22} className="mt-1 shrink-0" />
-                <p className="font-bold leading-7">
-                  تم إرسال رسالتك بنجاح. سيتواصل الفريق معك عند الحاجة.
-                </p>
+              <div className="mt-6 rounded-2xl bg-sky-50 p-4 text-right text-customBlue ring-1 ring-sky-100">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={22} className="mt-1 shrink-0" />
+                  <p className="font-bold leading-7">
+                    تم إرسال رسالتك بنجاح. سيتواصل الفريق معك قريباً.
+                  </p>
+                </div>
+                {ticketData?.ticket_number && (
+                  <div className="mt-3 rounded-xl bg-white/70 px-4 py-2.5 text-center">
+                    <p className="text-xs font-semibold text-slate-500">رقم تذكرتك</p>
+                    <p className="mt-0.5 font-extrabold text-deepBlue">{ticketData.ticket_number}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">احتفظ بهذا الرقم للمتابعة</p>
+                  </div>
+                )}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-7 grid gap-5">
+            <form onSubmit={handleSubmit} noValidate className="mt-7 grid gap-5">
+              {/* honeypot — invisible to real users, bots auto-fill it */}
+              <input name="_honey" type="text" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" aria-hidden="true" />
+
               <div className="grid gap-5 sm:grid-cols-2">
-                <FormField label="الاسم الكامل" name="name" required />
-                <FormField label="البريد الإلكتروني" name="email" type="email" required />
+                <FormField label="الاسم الكامل" name="name" value={form.name} onChange={v => setField('name', v)} error={fieldErrors.name} maxLength={100} required />
+                <FormField label="البريد الإلكتروني" name="email" type="email" value={form.email} onChange={v => setField('email', v)} error={fieldErrors.email} maxLength={150} required />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
-                <FormField label="رقم الجوال" name="phone" type="tel" required />
-                <label className="grid gap-2 text-sm font-black text-deepBlue">
+                <label className="grid gap-1.5 text-sm font-black text-deepBlue">
+                  رقم الجوال
+                  <input
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="+31 6 12345678"
+                    value={form.phone}
+                    onChange={e => setField('phone', e.target.value.replace(/[a-zA-Z]/g, ''))}
+                    maxLength={20}
+                    className={`h-12 rounded-xl border bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 ${fieldErrors.phone ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-slate-200 focus:border-customBlue focus:ring-sky-100'}`}
+                  />
+                  {fieldErrors.phone && <FieldError msg={fieldErrors.phone} />}
+                </label>
+                <label className="grid gap-1.5 text-sm font-black text-deepBlue">
                   نوع الطلب
                   <select
-                    name="topic"
+                    name="category"
+                    value={form.category}
+                    onChange={e => setField('category', e.target.value)}
                     className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
-                    defaultValue="general"
                   >
                     <option value="general">استفسار عام</option>
                     <option value="partnership">شراكة</option>
@@ -234,16 +307,8 @@ export default function Contact() {
                   </select>
                 </label>
               </div>
-              <FormField label="الموضوع" name="subject" />
-              <label className="grid gap-2 text-sm font-black text-deepBlue">
-                الرسالة
-                <textarea
-                  name="message"
-                  required
-                  rows={6}
-                  className="resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
-                />
-              </label>
+              <FormField label="الموضوع" name="subject" value={form.subject} onChange={v => setField('subject', v)} error={fieldErrors.subject} maxLength={150} required />
+              <TextareaField label="الرسالة" name="message" value={form.message} onChange={v => setField('message', v)} error={fieldErrors.message} maxLength={2000} rows={6} required />
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
@@ -414,26 +479,84 @@ export default function Contact() {
   )
 }
 
+function FieldError({ msg }: { msg: string }) {
+  return (
+    <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-red-600">
+      <AlertCircle size={11} className="shrink-0" />
+      {msg}
+    </span>
+  )
+}
+
+const INPUT_CLS = (err?: string) =>
+  `h-12 rounded-xl border bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 ${err ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-slate-200 focus:border-customBlue focus:ring-sky-100'}`
+
 function FormField({
-  label,
-  name,
-  type = 'text',
-  required = false,
+  label, name, type = 'text', value, onChange, error, maxLength, required = false,
 }: {
   label: string
   name: string
   type?: string
+  value: string
+  onChange: (v: string) => void
+  error?: string
+  maxLength?: number
   required?: boolean
 }) {
   return (
-    <label className="grid gap-2 text-sm font-black text-deepBlue">
-      {label}
+    <label className="grid gap-1.5 text-sm font-black text-deepBlue">
+      <span>
+        {label}
+        {required && <span className="mr-0.5 text-red-500" aria-hidden="true">*</span>}
+      </span>
       <input
         name={name}
         type={type}
-        required={required}
-        className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        maxLength={maxLength}
+        className={INPUT_CLS(error)}
       />
+      {error && <FieldError msg={error} />}
+    </label>
+  )
+}
+
+function TextareaField({
+  label, name, value, onChange, error, maxLength = 2000, rows = 6, required = false,
+}: {
+  label: string
+  name: string
+  value: string
+  onChange: (v: string) => void
+  error?: string
+  maxLength?: number
+  rows?: number
+  required?: boolean
+}) {
+  const count = value.length
+  const near  = count > maxLength * 0.85
+  const over  = count > maxLength
+  return (
+    <label className="grid gap-1.5 text-sm font-black text-deepBlue">
+      <span className="flex items-center justify-between">
+        <span>
+          {label}
+          {required && <span className="mr-0.5 text-red-500" aria-hidden="true">*</span>}
+        </span>
+        <span className={`text-[11px] font-semibold tabular-nums ${over ? 'text-red-500' : near ? 'text-amber-500' : 'text-slate-400'}`}>
+          {count} / {maxLength}
+        </span>
+      </span>
+      <textarea
+        name={name}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        maxLength={maxLength}
+        rows={rows}
+        className={`resize-none rounded-xl border bg-slate-50 px-4 py-3 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 ${error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-slate-200 focus:border-customBlue focus:ring-sky-100'}`}
+      />
+      {error && <FieldError msg={error} />}
     </label>
   )
 }

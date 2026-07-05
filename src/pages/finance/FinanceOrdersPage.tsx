@@ -182,7 +182,7 @@ export default function FinanceOrdersPage() {
       {/* Detail Drawer */}
       <AnimatePresence>
         {selected && (
-          <div className="fixed inset-0 z-50" onClick={() => setSelected(null)}>
+          <div className="fixed inset-0 z-modal-overlay" onClick={() => setSelected(null)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
             <motion.aside
               initial={{ x: '100%' }}

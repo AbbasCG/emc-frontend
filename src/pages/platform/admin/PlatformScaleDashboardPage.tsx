@@ -75,15 +75,15 @@ export default function PlatformScaleDashboardPage() {
     )
   }
 
-  const ar = new Intl.NumberFormat('ar-SA')
+  const fmt = new Intl.NumberFormat('en-US')
 
   const cards = [
-    { label: 'إجمالي المستخدمين',        value: ar.format(data.total_users),              icon: Users       },
-    { label: 'دورات نشطة',               value: ar.format(data.active_courses),           icon: BookOpen    },
-    { label: 'المسجّلون',                 value: ar.format(data.monthly_active_learners),  icon: Globe2      },
-    { label: 'المدربون',                  value: ar.format(data.instructors),              icon: Activity    },
-    { label: 'التخزين (غيغابايت)',        value: data.storage_used_gb > 0 ? ar.format(data.storage_used_gb) : '—', icon: Database },
-    { label: 'التوفر %',                  value: data.uptime_percent > 0 ? `${data.uptime_percent.toFixed(1)}%` : '—', icon: ShieldCheck },
+    { label: 'إجمالي المستخدمين',        value: fmt.format(data.total_users),              icon: Users       },
+    { label: 'دورات نشطة',               value: fmt.format(data.active_courses),           icon: BookOpen    },
+    { label: 'المسجّلون',                 value: fmt.format(data.monthly_active_learners),  icon: Globe2      },
+    { label: 'المدربون',                  value: fmt.format(data.instructors),              icon: Activity    },
+    { label: 'التخزين (GB)',              value: data.storage_used_gb > 0 ? fmt.format(data.storage_used_gb) : '—', icon: Database },
+    { label: 'Uptime',                    value: data.uptime_percent > 0 ? `${data.uptime_percent.toFixed(1)}%` : '—', icon: ShieldCheck },
   ]
 
   return (

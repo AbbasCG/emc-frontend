@@ -40,25 +40,121 @@ export async function fetchCoursesStrict(): Promise<{ ok: true; rows: Course[] }
   }
 }
 
-/** GET /admin/courses — returns all statuses (draft, published, archived) for super admin management. Falls back to /courses. */
+/**
+ * GET /admin/courses — returns ALL courses (all statuses) for admin management.
+ * Paginates through every page (backend caps per_page at 100) to collect the full
+ * catalogue. Falls back to /courses if the admin endpoint is unavailable.
+ */
 export async function fetchAdminCoursesStrict(): Promise<{ ok: true; rows: Course[] } | { ok: false }> {
-  const attempts = [
-    () => apiClient.get('/admin/courses', silent),
-    () => apiClient.get('/admin/courses', { ...silent, params: { per_page: 500 } }),
-    () => apiClient.get('/courses', { ...silent, params: { per_page: 500 } }),
-    () => apiClient.get('/courses', silent),
-  ]
-  for (const attempt of attempts) {
-    try {
-      const res = await attempt()
-      const body = res.data as unknown
-      const list = Array.isArray(body) ? (body as Course[]) : unwrapData<Course[]>(body)
-      if (Array.isArray(list)) return { ok: true, rows: list }
-    } catch {
-      /* try next */
-    }
+  // Primary path: admin endpoint with full pagination
+  try {
+    const allRows: Course[] = []
+    let page = 1
+    let lastPage = 1
+
+    do {
+      const res = await apiClient.get('/admin/courses', {
+        ...silent,
+        params: { per_page: 100, page },
+      })
+      const body = res.data as Record<string, unknown>
+
+      // Body may be { success, data: [...], meta: {...} }  or  { data: { data: [...], meta: {...} } }
+      let items: unknown[] | null = null
+      let metaLastPage = 1
+
+      if (Array.isArray(body.data)) {
+        // { data: [...], meta: { last_page } }
+        items = body.data as unknown[]
+        const m = body.meta as Record<string, number> | undefined
+        metaLastPage = m?.last_page ?? 1
+      } else if (body.data && typeof body.data === 'object' && !Array.isArray(body.data)) {
+        // Nested paginator: { data: { data: [...], last_page } }
+        const inner = body.data as Record<string, unknown>
+        if (Array.isArray(inner.data)) {
+          items = inner.data as unknown[]
+          metaLastPage = Number(inner.last_page ?? 1)
+        }
+      } else if (Array.isArray(body)) {
+        // Plain array (no pagination)
+        return { ok: true, rows: body as Course[] }
+      }
+
+      if (!items) break
+
+      allRows.push(...(items as Course[]))
+      lastPage = metaLastPage
+      page++
+    } while (page <= lastPage)
+
+    if (allRows.length > 0) return { ok: true, rows: allRows }
+  } catch {
+    /* fall through to /courses fallback */
   }
+
+  // Fallback: public /courses endpoint
+  try {
+    const res = await apiClient.get('/courses', { ...silent, params: { per_page: 100 } })
+    const body = res.data as unknown
+    const list = Array.isArray(body) ? (body as Course[]) : unwrapData<Course[]>(body)
+    if (Array.isArray(list)) return { ok: true, rows: list }
+  } catch { /* */ }
+
   return { ok: false }
+}
+
+// ─── Server-side paginated course list ──────────────────────────────────────
+
+export type CoursePageMeta = {
+  total: number
+  current_page: number
+  last_page: number
+  per_page: number
+}
+
+export type CourseSummary = {
+  total: number
+  published: number
+  draft: number
+  archived: number
+  no_date: number
+  no_instructor: number
+  ended: number
+  scheduled: number
+}
+
+export type CoursePage = {
+  rows: Course[]
+  meta: CoursePageMeta
+  summary?: CourseSummary
+}
+
+/**
+ * GET /admin/courses — returns one page of courses with full meta + global summary.
+ * Pass any combination of: page, per_page, search, selected (array of IDs),
+ * status, program_type, instructor_id, department_id, location_type,
+ * learning_path_id, has_date, has_instructor, ended, sort.
+ */
+export async function fetchAdminCoursesPage(
+  params: Record<string, unknown> = {},
+): Promise<CoursePage | null> {
+  try {
+    const res = await apiClient.get('/admin/courses', { ...silent, params })
+    const body = res.data as Record<string, unknown>
+    if (!Array.isArray(body.data)) return null
+    return {
+      rows: body.data as Course[],
+      meta: (body.meta as CoursePageMeta) ?? {
+        total: (body.data as unknown[]).length,
+        current_page: 1,
+        last_page: 1,
+        per_page: (body.data as unknown[]).length,
+      },
+      summary: body.summary as CourseSummary | undefined,
+    }
+  } catch {
+    return null
+  }
 }
 
 /** GET /tracks */

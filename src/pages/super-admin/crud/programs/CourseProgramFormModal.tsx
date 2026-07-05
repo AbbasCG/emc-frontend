@@ -1001,6 +1001,16 @@ export function CourseProgramFormModal({
         toast.warning('حقل الموقع مطلوب للحضوري أو الهجين')
         return false
       }
+      if (!endDate.trim()) {
+        setFieldErrors((prev) => ({ ...prev, end_date: 'تاريخ الانتهاء مطلوب' }))
+        toast.warning('تاريخ الانتهاء مطلوب')
+        return false
+      }
+      if (startDate.trim() && endDate.trim() && endDate < startDate) {
+        setFieldErrors((prev) => ({ ...prev, end_date: 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية' }))
+        toast.warning('يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية')
+        return false
+      }
       return true
     }
     if (step === 3) {
@@ -1125,7 +1135,7 @@ export function CourseProgramFormModal({
       requires_registration_code: requiresRegistrationCode,
       registration_code: requiresRegistrationCode ? registrationCode.trim() || undefined : null,
       start_date: startDate.trim() || undefined,
-      end_date: endDate.trim() || undefined,
+      end_date: endDate.trim() || null,
       start_time: tStart || undefined,
       end_time: tEnd || undefined,
       study_time: tStart || undefined,
@@ -1477,17 +1487,6 @@ export function CourseProgramFormModal({
                 ))}
               </select>
             </label>
-            <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
-              المسار
-              <select value={trackId} onChange={(e) => setTrackId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
-                <option value="">— اختياري —</option>
-                {tracks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            </label>
             {learningPaths.length > 0 && (
               <label className="block text-[11px] font-black sm:col-span-2 text-[#22334A]">
                 المسار التعليمي (Learning Path)
@@ -1661,7 +1660,7 @@ export function CourseProgramFormModal({
               error={fieldErrors.start_time || fieldErrors.study_time}
             />
             <ModernDatePicker
-              label="تاريخ الانتهاء (اختياري)"
+              label="تاريخ الانتهاء *"
               value={endDate}
               onChange={(v) => {
                 setEndDate(v)
