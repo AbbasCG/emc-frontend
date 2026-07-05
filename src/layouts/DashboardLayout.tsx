@@ -30,6 +30,7 @@ import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
 import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
+import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
 import { infoToast } from '@/lib/toast'
 import { UserAvatar } from '@/components/UserAvatar'
@@ -214,15 +215,20 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const showRoleBadge = Boolean(user?.role != null && String(user.role).trim() !== '')
   const [sidebarQuery, setSidebarQuery] = useState('')
 
+  const { canCreate } = useFinancialRequestContext()
+
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
     const base = getSidebarByRole(user?.role)
 
-    // Inject "الطلبات المالية" for any user with is_department_leader=true,
-    // unless their role already provides it (department_manager, finance_manager, executive_admin, super_admin).
-    const role = user?.role ?? ''
-    const rolesWithLink = ['department_manager', 'finance_manager', 'executive_admin', 'super_admin', 'tech_admin', 'admin']
+    // Backend is the single source of truth for who may submit financial requests.
+    // Inject the department link only when the backend says can_create=true AND
+    // the role's own sidebar doesn't already include that specific route
+    // (department_manager's sidebar already has it at /dashboard/department/financial-requests).
+    const hasDeptFinanceLink = base.some((g) =>
+      g.items.some((i) => i.href === '/dashboard/department/financial-requests'),
+    )
 
-    if (user?.is_department_leader && !rolesWithLink.includes(role)) {
+    if (canCreate && !hasDeptFinanceLink) {
       const leaderGroup: SidebarNavGroup = {
         title: 'الإدارة المالية',
         items: [{ label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet }],
@@ -235,7 +241,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     }
 
     return base
-  }, [user?.role, user?.is_department_leader])
+  }, [user?.role, canCreate])
 
   const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
 
@@ -701,6 +707,7 @@ export default function DashboardLayout() {
   }
 
   return (
+    <FinancialRequestProvider>
     <StudentDashboardProvider>
     <div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]">
       {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
@@ -749,5 +756,6 @@ export default function DashboardLayout() {
       </main>
     </div>
     </StudentDashboardProvider>
+    </FinancialRequestProvider>
   )
 }
