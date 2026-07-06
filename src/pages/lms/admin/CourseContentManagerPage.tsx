@@ -70,7 +70,6 @@ import {
   sessionShowsMeetingUrl,
   SUBMISSION_TYPE_OPTIONS,
   validateSessionDraft,
-  VISIBILITY_OPTIONS,
   YES_NO_OPTIONS,
 } from '@/components/lms/CourseCmsFormModal'
 import { CmsSessionTimingSection } from '@/components/lms/CmsSessionTimingSection'
@@ -467,7 +466,7 @@ export default function CourseContentManagerPage() {
                             <BookOpen className="h-3 w-3" /> درس
                           </button>
                           <button type="button"
-                            onClick={() => setModal({ kind: 'material', moduleId: mid, file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                            onClick={() => setModal({ kind: 'material', moduleId: mid, file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', is_visible: '1' } })}
                             className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white">
                             <FolderOpen className="h-3 w-3" /> مادة
                           </button>
@@ -657,7 +656,7 @@ export default function CourseContentManagerPage() {
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   <button type="button"
-                    onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                    onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', is_visible: '1' } })}
                     className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white">
                     <FolderOpen className="h-3 w-3" /> مادة
                   </button>
@@ -685,7 +684,7 @@ export default function CourseContentManagerPage() {
               </p>
               <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                 <button type="button"
-                  onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+                  onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', is_visible: '1' } })}
                   className="inline-flex items-center gap-1 rounded-xl bg-white px-2.5 py-1 text-[10px] font-black text-deepBlue ring-1 ring-deepBlue/10 transition hover:bg-[#EC943C] hover:text-white">
                   <FolderOpen className="h-3 w-3" /> إضافة مادة عامة
                 </button>
@@ -833,7 +832,7 @@ export default function CourseContentManagerPage() {
             </div>
             <button
               type="button"
-              onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', visibility: 'enrolled' } })}
+              onClick={() => setModal({ kind: 'material', file: null, draft: { title: '', description: '', kind: 'pdf', external_url: '', is_visible: '1' } })}
               className="inline-flex items-center gap-2 rounded-2xl bg-customBlue px-4 py-2.5 text-[11px] font-black text-white shadow-sm transition hover:brightness-105"
             >
               <Plus className="h-4 w-4" aria-hidden />
@@ -863,7 +862,7 @@ export default function CourseContentManagerPage() {
                 const KindIcon = meta.icon
                 const matUrl = m.external_url ?? m.url ?? m.file_url
                 const modName = m.module_id != null ? mods.find((mod) => mod.id === m.module_id)?.title : null
-                const isVisible = m.visibility !== 'hidden'
+                const isVisible = m.is_visible !== false
 
                 return (
                   <div key={m.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md border-t-[3px] border-t-[#EC943C]">
@@ -899,7 +898,7 @@ export default function CourseContentManagerPage() {
                     </div>
                     <div className="flex gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3">
                       <button type="button"
-                        onClick={() => setModal({ kind: 'material', editingId: m.id, file: null, draft: { title: m.title, description: String(m.description ?? ''), kind: String(m.kind ?? 'pdf'), external_url: String(m.external_url ?? m.url ?? m.file_url ?? ''), visibility: String(m.visibility ?? 'enrolled') } })}
+                        onClick={() => setModal({ kind: 'material', editingId: m.id, file: null, draft: { title: m.title, description: String(m.description ?? ''), kind: String(m.kind ?? 'pdf'), external_url: String(m.external_url ?? m.url ?? m.file_url ?? ''), is_visible: String(m.is_visible !== false ? '1' : '0') } })}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-[11px] font-black text-slate-700 transition hover:border-[#2691C2]/30 hover:text-[#2691C2]">
                         <Pencil className="h-3 w-3" /> تعديل
                       </button>
@@ -1408,7 +1407,7 @@ function MaterialModalBody({
     fd.append('title', d.title.trim())
     fd.append('description', d.description)
     fd.append('kind', d.kind)
-    fd.append('visibility', d.visibility)
+    fd.append('is_visible', d.is_visible === '0' ? '0' : '1')
     if (d.external_url.trim()) fd.append('external_url', d.external_url.trim())
     if (modal.moduleId) fd.append('module_id', String(modal.moduleId))
     return fd
@@ -1434,7 +1433,7 @@ function MaterialModalBody({
           description: d.description.trim() || undefined,
           kind: d.kind,
           external_url: d.external_url.trim() || undefined,
-          visibility: d.visibility,
+          is_visible: d.is_visible !== '0',
         }
         if (modal.moduleId) body.module_id = modal.moduleId
 
@@ -1507,16 +1506,22 @@ function MaterialModalBody({
             setD({ ...d, external_url: v })
           }}
         />
-        <CmsSelect
-          label="من يرى هذه المادة؟"
-          value={d.visibility}
-          error={fieldErrors.visibility}
-          options={[...VISIBILITY_OPTIONS]}
-          onChange={(v) => {
-            clearKey('visibility')
-            setD({ ...d, visibility: v })
-          }}
-        />
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#22334A]/[0.06] bg-[#22334A]/[0.015] px-3 py-2.5">
+          <div
+            role="checkbox"
+            tabIndex={0}
+            aria-checked={d.is_visible !== '0'}
+            onClick={() => setD({ ...d, is_visible: d.is_visible === '0' ? '1' : '0' })}
+            onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') setD({ ...d, is_visible: d.is_visible === '0' ? '1' : '0' }) }}
+            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${d.is_visible !== '0' ? 'bg-[#2691C2]' : 'bg-slate-200'}`}
+          >
+            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${d.is_visible !== '0' ? 'left-4' : 'left-0.5'}`} />
+          </div>
+          <div>
+            <p className="text-[12px] font-black text-[#22334A]/80">ظاهرة للطلاب</p>
+            <p className="text-[11px] font-medium text-[#22334A]/45">عند إيقاف هذا الخيار، لن تظهر المادة للطلاب داخل الدورة.</p>
+          </div>
+        </label>
         <label className="block text-right">
           <span className="text-[12px] font-black text-[#22334A]/70">رفع ملف (اختياري)</span>
           <input

@@ -343,6 +343,7 @@ function normalizeLearnMaterials(rawList: unknown[]): CourseLearnMaterial[] {
       external_url: extUrl,
       url: urlLegacy ?? fileUrl ?? extUrl,
       visibility: o.visibility != null ? str(o.visibility) : undefined,
+      is_visible: o.is_visible != null ? Boolean(o.is_visible) : undefined,
       updated_at: str(o.updated_at ?? o.created_at) || undefined,
     })
   }
@@ -811,7 +812,7 @@ export async function adminUpdateCourseMaterial(courseId: number, materialId: nu
   logLmsApiRequest('PUT', url, body)
   const res =
     body instanceof FormData ?
-      await apiClient.put<unknown>(url, body, {
+      await apiClient.post<unknown>(`${url}?_method=PATCH`, body, {
         ...silentLms,
         headers: { 'Content-Type': 'multipart/form-data' },
       })

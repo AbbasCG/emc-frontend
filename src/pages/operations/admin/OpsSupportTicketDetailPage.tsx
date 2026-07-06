@@ -10,7 +10,6 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertTriangle,
-  AlignLeft,
   ArrowLeft,
   AtSign,
   Bold,
@@ -52,6 +51,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   fetchSupportTicket,
   fetchSupportTicketAssignees,
@@ -294,11 +294,32 @@ function PortalDropdown({ open, triggerRef, onClose, children, width }: PortalDr
 
   useEffect(() => {
     if (!open) return
+    function update() {
+      if (triggerRef.current) {
+        const r = triggerRef.current.getBoundingClientRect()
+        setPos({ top: r.bottom + 6, left: r.left, w: width ?? r.width })
+      }
+    }
+    window.addEventListener('scroll', update, true)
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update, true)
+      window.removeEventListener('resize', update)
+    }
+  }, [open, triggerRef, width])
+
+  useEffect(() => {
+    if (!open) return
     const close = (e: MouseEvent) => {
       if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) onClose()
     }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [open, onClose, triggerRef])
 
   if (!open) return null
@@ -473,7 +494,7 @@ function AssignmentCard({
   currentAssignee,
   onAssign,
 }: {
-  currentAssignee?: { id: number; name: string; email?: string; role?: string; department?: string } | null
+  currentAssignee?: { id: number; name: string; email?: string; role?: string; department?: string; avatar?: string | null } | null
   onAssign: (user: AssigneeUser) => Promise<void>
 }) {
   const [open, setOpen] = useState(false)
@@ -531,7 +552,7 @@ function AssignmentCard({
         >
           {currentAssignee ? (
             <>
-              <Avatar name={currentAssignee.name} px={32} />
+              <Avatar name={currentAssignee.name} px={32} src={currentAssignee.avatar} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13px] font-black text-slate-800">{currentAssignee.name}</p>
                 <p className="truncate text-[11px] text-slate-400">
@@ -1028,80 +1049,139 @@ function ActivityLogCard({ ticketId }: { ticketId: number }) {
    Reply card
 ───────────────────────────────────────────────────────────────────────── */
 
-function ReplyCard({ r, idx, submitter }: { r: SupportTicketReply; idx: number; submitter: string }) {
-  const isInternal = Boolean(r.internal)
-  const isCustomer = !isInternal && r.author_name.trim() === submitter.trim()
+/* ─────────────────────────────────────────────────────────────────────────
+   Chat helpers
+───────────────────────────────────────────────────────────────────────── */
 
+function getDayLabel(dateStr: string): string {
+  const d = new Date(dateStr)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  if (d.toDateString() === today.toDateString()) return 'اليوم'
+  if (d.toDateString() === yesterday.toDateString()) return 'أمس'
+  return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function DateSeparator({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 py-4">
+      <div className="h-px flex-1 bg-slate-100" />
+      <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-400">{label}</span>
+      <div className="h-px flex-1 bg-slate-100" />
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Thread card — professional email-reply style
+───────────────────────────────────────────────────────────────────────── */
+
+function ThreadCard({
+  r,
+  isMe,
+  isNew = false,
+  submitterEmail,
+}: {
+  r: SupportTicketReply
+  isMe: boolean
+  isNew?: boolean
+  submitterEmail?: string | null
+}) {
+  const isInternal = Boolean(r.internal)
+
+  /* Internal note — full-width amber card, no left/right alignment */
   if (isInternal) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={isNew ? { opacity: 0, y: 8 } : false}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.26, delay: idx * 0.05 }}
-        className="overflow-hidden rounded-2xl border border-amber-200/60 bg-amber-50"
+        transition={{ duration: 0.22 }}
+        className="flex justify-start"
       >
-        <div className="flex items-center gap-2 border-b border-amber-200/40 bg-amber-100/50 px-5 py-2.5">
-          <Lock size={11} className="text-amber-600" />
-          <span className="text-[11px] font-black text-amber-700">ملاحظة داخلية</span>
-          <span className="ms-auto text-[11px] text-amber-500/60">{timeAgo(r.created_at)}</span>
-        </div>
-        <div className="flex items-start gap-3.5 p-5">
-          <div className="ring-2 ring-amber-200 rounded-full shrink-0">
-            <Avatar name={r.author_name || '؟'} px={36} />
+        <div className="w-full max-w-[82%] overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/70 shadow-sm">
+          <div className="flex items-center gap-2.5 border-b border-amber-200/60 bg-amber-100/50 px-5 py-3">
+            <Lock size={12} className="shrink-0 text-amber-600" />
+            <span className="text-[11px] font-black text-amber-700">ملاحظة داخلية</span>
+            <span className="ms-auto text-[10px] text-amber-500">{fmtDate(r.created_at)}</span>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="mb-2 text-[13px] font-black text-slate-800">{r.author_name}</p>
-            <p className="text-[13px] font-medium leading-relaxed text-slate-700 whitespace-pre-wrap">{r.body}</p>
+          <div className="flex items-start gap-3.5 p-5">
+            <Avatar name={r.author_name || '؟'} px={36} />
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-[12px] font-black text-amber-800">{r.author_name}</p>
+              <p className="text-[13px] leading-relaxed text-amber-900/80 whitespace-pre-wrap">{r.body}</p>
+            </div>
           </div>
         </div>
       </motion.div>
     )
   }
 
-  if (isCustomer) {
+  /* Outgoing (me) — right-aligned, EMC blue accent */
+  if (isMe) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={isNew ? { opacity: 0, y: 8 } : false}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.26, delay: idx * 0.05 }}
-        className="flex items-start gap-3.5"
+        transition={{ duration: 0.22 }}
+        className="flex justify-start"
       >
-        <div className="ring-2 ring-slate-200 rounded-full shrink-0">
-          <Avatar name={r.author_name || '؟'} px={36} />
-        </div>
-        <div className="max-w-[85%]">
-          <div className="mb-1 flex items-center gap-2">
-            <span className="text-[12px] font-black text-slate-800">{r.author_name}</span>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500">مقدم الطلب</span>
-            <span className="text-[10px] text-slate-400">{timeAgo(r.created_at)}</span>
+        <div className="w-full max-w-[75%] overflow-hidden rounded-2xl border border-[#2691C2]/30 bg-white shadow-sm">
+          {/* Blue accent bar */}
+          <div className="h-[3px] bg-[#2691C2]" />
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-3.5">
+            <div className="flex-1">
+              <p className="text-[13px] font-black text-slate-800">أنت</p>
+              <p className="text-[11px] text-slate-400">فريق الدعم · {timeAgo(r.created_at)}</p>
+            </div>
+            <Avatar name={r.author_name || '؟'} px={36} />
           </div>
-          <div className="rounded-2xl rounded-ss-none border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-[13px] font-medium leading-relaxed text-slate-700 whitespace-pre-wrap">{r.body}</p>
+          {/* Body */}
+          <div className="px-5 py-4">
+            <p className="text-[13px] font-medium leading-[1.9] text-slate-700 whitespace-pre-wrap">{r.body}</p>
+          </div>
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-1.5 border-t border-slate-100 px-5 py-2.5">
+            <span className="text-[10px] text-slate-400">{fmtDate(r.created_at)}</span>
+            <CheckCheck size={12} className="text-[#2691C2]/60" />
           </div>
         </div>
       </motion.div>
     )
   }
 
+  /* Incoming (requester / other staff) — left-aligned, neutral */
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={isNew ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.26, delay: idx * 0.05 }}
-      className="flex items-start justify-end gap-3.5"
+      transition={{ duration: 0.22 }}
+      className="flex justify-end"
     >
-      <div className="max-w-[85%]">
-        <div className="mb-1 flex items-center justify-end gap-2">
-          <span className="text-[10px] text-slate-400">{timeAgo(r.created_at)}</span>
-          <span className="rounded-full bg-[#2691C2]/10 px-2 py-0.5 text-[9px] font-bold text-[#2691C2]">فريق الدعم</span>
-          <span className="text-[12px] font-black text-slate-800">{r.author_name}</span>
+      <div className="w-full max-w-[75%] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {/* Neutral accent bar */}
+        <div className="h-[3px] bg-slate-300" />
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-3.5">
+          <Avatar name={r.author_name || '؟'} px={36} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-black text-slate-800">{r.author_name}</p>
+            <p className="truncate text-[11px] text-slate-400">
+              {submitterEmail ? submitterEmail : 'مقدم الطلب'}
+              {' · '}
+              {timeAgo(r.created_at)}
+            </p>
+          </div>
         </div>
-        <div className="rounded-2xl rounded-se-none border border-[#2691C2]/20 bg-[#2691C2]/5 px-4 py-3">
-          <p className="text-[13px] font-medium leading-relaxed text-slate-700 whitespace-pre-wrap">{r.body}</p>
+        {/* Body */}
+        <div className="px-5 py-4">
+          <p className="text-[13px] font-medium leading-[1.9] text-slate-700 whitespace-pre-wrap">{r.body}</p>
         </div>
-      </div>
-      <div className="ring-2 ring-[#2691C2]/20 rounded-full shrink-0">
-        <Avatar name={r.author_name || '؟'} px={36} />
+        {/* Footer */}
+        <div className="flex items-center border-t border-slate-100 px-5 py-2.5">
+          <span className="text-[10px] text-slate-400">{fmtDate(r.created_at)}</span>
+        </div>
       </div>
     </motion.div>
   )
@@ -1115,6 +1195,7 @@ export default function OpsSupportTicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const listPath = location.pathname.startsWith('/dashboard/support')
     ? '/dashboard/support'
     : '/dashboard/admin/support-tickets'
@@ -1130,6 +1211,7 @@ export default function OpsSupportTicketDetailPage() {
   const [resolving, setResolving] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const chatEndRef = useRef<HTMLDivElement>(null)
 
   const loadTicket = useCallback(async () => {
     if (!Number.isFinite(tid)) return
@@ -1141,6 +1223,14 @@ export default function OpsSupportTicketDetailPage() {
   }, [tid])
 
   useEffect(() => { void loadTicket() }, [loadTicket])
+
+  /* Scroll to bottom when replies load or a new one is added */
+  const repliesLength = ticket?.replies?.length ?? 0
+  useEffect(() => {
+    if (!loading && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: repliesLength > 1 ? 'smooth' : 'instant' })
+    }
+  }, [repliesLength, loading])
 
   async function handleRefresh() {
     if (!Number.isFinite(tid) || refreshing) return
@@ -1278,32 +1368,8 @@ export default function OpsSupportTicketDetailPage() {
             <div className="pointer-events-none absolute -top-16 end-12 h-56 w-56 rounded-full bg-[#2691C2]/12 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-8 start-8 h-40 w-40 rounded-full bg-[#EC943C]/8 blur-2xl" />
 
-            {/* Three-column hero layout */}
+            {/* Two-column hero layout */}
             <div className="relative flex flex-wrap items-start justify-between gap-6 lg:flex-nowrap">
-
-              {/* LEFT: Action buttons */}
-              <div className="flex shrink-0 flex-col gap-2">
-                {[
-                  { icon: RefreshCw, label: 'تحديث', spin: refreshing, onClick: () => void handleRefresh(), cls: 'bg-white/10 text-white/80 ring-white/10 hover:bg-white/15' },
-                  !isResolved && { icon: CheckCircle2, label: resolving ? 'جارٍ...' : 'حل التذكرة', onClick: () => void handleResolve(), cls: 'bg-emerald-500/20 text-emerald-300 ring-emerald-400/30 hover:bg-emerald-500/30', loading: resolving },
-                  { icon: Copy, label: 'نسخ الرابط', onClick: async () => { await navigator.clipboard.writeText(window.location.href); toast.success('تم نسخ الرابط') }, cls: 'bg-white/10 text-white/70 ring-white/10 hover:bg-white/15' },
-                  { icon: Printer, label: 'طباعة', onClick: () => window.print(), cls: 'bg-white/10 text-white/70 ring-white/10 hover:bg-white/15' },
-                  { icon: Trash2, label: 'حذف', onClick: () => setShowDeleteModal(true), cls: 'bg-red-500/15 text-red-300 ring-red-400/20 hover:bg-red-500/25' },
-                ].filter(Boolean).map((btn: any) => (
-                  <motion.button
-                    key={btn.label}
-                    type="button"
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={btn.onClick}
-                    disabled={btn.loading || (btn.icon === RefreshCw && refreshing)}
-                    className={`flex h-12 items-center gap-2.5 rounded-xl px-4 text-[13px] font-bold ring-1 transition disabled:opacity-50 ${btn.cls}`}
-                  >
-                    <btn.icon size={13} className={(btn.spin || btn.loading) ? 'animate-spin' : ''} />
-                    {btn.label}
-                  </motion.button>
-                ))}
-              </div>
 
               {/* CENTER: Title + meta */}
               <div className="min-w-0 flex-1">
@@ -1371,8 +1437,70 @@ export default function OpsSupportTicketDetailPage() {
               </div>
             </div>
 
+            {/* Horizontal action bar */}
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4">
+              <motion.button
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => void handleRefresh()}
+                disabled={refreshing}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[12px] font-bold text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 disabled:opacity-50"
+              >
+                <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+                تحديث
+              </motion.button>
+
+              {!isResolved && (
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => void handleResolve()}
+                  disabled={resolving}
+                  className="flex h-8 items-center gap-1.5 rounded-lg bg-emerald-500/20 px-3 text-[12px] font-bold text-emerald-300 ring-1 ring-emerald-400/30 transition hover:bg-emerald-500/30 disabled:opacity-50"
+                >
+                  <CheckCircle2 size={12} className={resolving ? 'animate-spin' : ''} />
+                  {resolving ? 'جارٍ...' : 'حل التذكرة'}
+                </motion.button>
+              )}
+
+              <motion.button
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={async () => { await navigator.clipboard.writeText(window.location.href); toast.success('تم نسخ الرابط') }}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[12px] font-bold text-white/70 ring-1 ring-white/10 transition hover:bg-white/15"
+              >
+                <Copy size={12} />
+                نسخ الرابط
+              </motion.button>
+
+              <motion.button
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => window.print()}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[12px] font-bold text-white/70 ring-1 ring-white/10 transition hover:bg-white/15"
+              >
+                <Printer size={12} />
+                طباعة
+              </motion.button>
+
+              <motion.button
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setShowDeleteModal(true)}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-red-500/15 px-3 text-[12px] font-bold text-red-300 ring-1 ring-red-400/20 transition hover:bg-red-500/25"
+              >
+                <Trash2 size={12} />
+                حذف
+              </motion.button>
+            </div>
+
             {/* Bottom dates strip */}
-            <div className="mt-6 flex flex-wrap items-center gap-5 border-t border-white/[0.06] pt-4 text-[11px] text-white/30">
+            <div className="mt-4 flex flex-wrap items-center gap-5 text-[11px] text-white/30">
               {ticket.created_at && (
                 <span className="flex items-center gap-1.5">
                   <Calendar size={10} className="text-white/20" />
@@ -1395,44 +1523,96 @@ export default function OpsSupportTicketDetailPage() {
           </motion.div>
 
           {/* ══ TWO COLUMN LAYOUT ══════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[340px_1fr]">
 
-            {/* ── LEFT: Main content ──────────────────────────────────── */}
+            {/* ── RIGHT: Sidebar (first in DOM → right column in RTL) ──── */}
+            <div className="space-y-5">
+              <AssignmentCard currentAssignee={ticket.assigned_to} onAssign={handleAssign} />
+              <PriorityCard value={ticket.priority ?? 'medium'} onChange={patchPriority} />
+              <StatusCard value={ticket.status} onChange={patchStatus} />
+              <ApplicantCard name={submitter} email={ticket.email} phone={ticket.phone} />
+              <AttachmentsCard />
+              <TicketDetailsCard ticket={ticket} ticketNum={ticketNum} reqType={reqType} />
+              <ActivityLogCard ticketId={ticket.id} />
+            </div>
+
+            {/* ── LEFT: Main content (second in DOM → left column in RTL) ── */}
             <div className="min-w-0 space-y-5">
 
-              {/* Original Message */}
+              {/* Conversation — original message + all replies, oldest→newest */}
               <MCard delay={0.08}>
-                <MCardHeader icon={MessageSquare} title="الرسالة الأصلية" />
-                <div className="p-6">
-                  <div className="rounded-xl border-s-4 border-[#2691C2] bg-slate-50/70 px-5 py-4">
-                    <p className="text-[14px] font-medium leading-[1.9] text-slate-700 whitespace-pre-wrap">
-                      {ticket.message ?? '—'}
-                    </p>
-                  </div>
-                </div>
-              </MCard>
-
-              {/* Conversation */}
-              <MCard delay={0.13}>
                 <MCardHeader
-                  icon={AlignLeft}
+                  icon={MessageSquare}
                   title="المحادثة"
-                  badge={replies.length > 0 ? `${replies.length} ردود` : undefined}
+                  badge={`${replies.length + (ticket.message ? 1 : 0)} رسائل`}
                 />
-                <div className="p-6">
-                  {replies.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-200 py-12 text-center">
-                      <MessageSquare size={28} className="mx-auto mb-3 text-slate-300" />
-                      <p className="text-[14px] font-bold text-slate-400">لا توجد ردود بعد</p>
-                      <p className="mt-1 text-[12px] text-slate-300">ابدأ المحادثة باستخدام نموذج الرد أدناه</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-5">
-                      {replies.map((r, i) => (
-                        <ReplyCard key={r.id} r={r} idx={i} submitter={submitter} />
-                      ))}
-                    </div>
-                  )}
+                <div
+                  className="flex h-[560px] flex-col gap-4 overflow-y-auto px-5 py-5"
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}
+                >
+                  {(() => {
+                    const currentUserId = user?.id
+                    const currentUserName = (user?.name ?? '').trim()
+                    const nodes: React.ReactNode[] = []
+                    let lastDayLabel = ''
+
+                    /* Build unified message list: original contact message first */
+                    type ThreadEntry = SupportTicketReply & { _synthetic?: boolean }
+                    const allMsgs: ThreadEntry[] = []
+                    if (ticket.message) {
+                      allMsgs.push({
+                        id: -1,
+                        author_name: submitter,
+                        body: ticket.message,
+                        internal: false,
+                        created_at: ticket.created_at ?? new Date().toISOString(),
+                        user_id: null,
+                        _synthetic: true,
+                      })
+                    }
+                    allMsgs.push(...replies)
+
+                    if (allMsgs.length === 0) {
+                      return (
+                        <div className="flex flex-1 flex-col items-center justify-center">
+                          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+                            <MessageSquare size={26} className="text-slate-300" />
+                          </div>
+                          <p className="text-[14px] font-bold text-slate-400">لا توجد رسائل بعد</p>
+                        </div>
+                      )
+                    }
+
+                    for (const msg of allMsgs) {
+                      const dayLabel = getDayLabel(msg.created_at)
+                      if (dayLabel !== lastDayLabel) {
+                        nodes.push(<DateSeparator key={`sep-${msg.id}-${dayLabel}`} label={dayLabel} />)
+                        lastDayLabel = dayLabel
+                      }
+
+                      /* Detect outgoing: ID match takes priority, then name match */
+                      const isMe = !msg._synthetic && (
+                        (currentUserId != null && (
+                          msg.user_id === currentUserId ||
+                          msg.sender_id === currentUserId ||
+                          msg.author_id === currentUserId
+                        )) ||
+                        (currentUserName !== '' && msg.author_name.trim() === currentUserName)
+                      )
+
+                      nodes.push(
+                        <ThreadCard
+                          key={msg.id}
+                          r={msg}
+                          isMe={isMe}
+                          submitterEmail={ticket.email}
+                        />,
+                      )
+                    }
+
+                    nodes.push(<div key="chat-end" ref={chatEndRef} className="h-1 shrink-0" />)
+                    return nodes
+                  })()}
                 </div>
               </MCard>
 
@@ -1522,17 +1702,6 @@ export default function OpsSupportTicketDetailPage() {
                   </form>
                 </div>
               </MCard>
-            </div>
-
-            {/* ── RIGHT: Sidebar ─────────────────────────────────────── */}
-            <div className="space-y-5">
-              <AssignmentCard currentAssignee={ticket.assigned_to} onAssign={handleAssign} />
-              <PriorityCard value={ticket.priority ?? 'medium'} onChange={patchPriority} />
-              <StatusCard value={ticket.status} onChange={patchStatus} />
-              <ApplicantCard name={submitter} email={ticket.email} phone={ticket.phone} />
-              <AttachmentsCard />
-              <TicketDetailsCard ticket={ticket} ticketNum={ticketNum} reqType={reqType} />
-              <ActivityLogCard ticketId={ticket.id} />
             </div>
           </div>
         </div>

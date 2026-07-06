@@ -45,6 +45,7 @@ export type CourseLearnMaterial = {
   external_url?: string | null
   url?: string | null
   visibility?: 'public' | 'enrolled' | string | null
+  is_visible?: boolean | null
   updated_at?: string | null
 }
 

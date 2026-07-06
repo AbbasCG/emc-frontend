@@ -37,7 +37,7 @@ export async function submitSupportTicket(payload: {
   subject: string
   message: string
 }): Promise<void> {
-  await apiClient.post('/support/tickets', payload)
+  await apiClient.post('/support-tickets', payload)
 }
 
 export async function replySupportTicket(

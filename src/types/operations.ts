@@ -281,7 +281,7 @@ export type SupportTicket = {
   name?: string | null
   email?: string | null
   phone?: string | null
-  assigned_to?: { id: number; name: string; email?: string; role?: string; department?: string } | null
+  assigned_to?: { id: number; name: string; email?: string; role?: string; department?: string; avatar?: string | null } | null
   replies_count?: number
   last_reply_at?: string | null
   resolved_at?: string | null
@@ -295,6 +295,9 @@ export type SupportTicketReply = {
   body: string
   internal?: boolean
   created_at: string
+  user_id?: number | null
+  sender_id?: number | null
+  author_id?: number | null
 }
 
 export type SupportTicketDetail = SupportTicket & {
