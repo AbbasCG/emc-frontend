@@ -284,6 +284,7 @@ interface PortalDropdownProps {
 
 function PortalDropdown({ open, triggerRef, onClose, children, width }: PortalDropdownProps) {
   const [pos, setPos] = useState({ top: 0, left: 0, w: 0 })
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
     if (open && triggerRef.current) {
@@ -311,7 +312,10 @@ function PortalDropdown({ open, triggerRef, onClose, children, width }: PortalDr
   useEffect(() => {
     if (!open) return
     const close = (e: MouseEvent) => {
-      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) onClose()
+      const target = e.target as Node
+      const inTrigger = triggerRef.current?.contains(target) ?? false
+      const inContent = contentRef.current?.contains(target) ?? false
+      if (!inTrigger && !inContent) onClose()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('mousedown', close)
@@ -327,6 +331,7 @@ function PortalDropdown({ open, triggerRef, onClose, children, width }: PortalDr
   return createPortal(
     <AnimatePresence>
       <motion.div
+        ref={contentRef}
         key="portal-dropdown"
         initial={{ opacity: 0, y: -6, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

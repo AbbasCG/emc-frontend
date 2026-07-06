@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useInView } from 'framer-motion'
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react'
-import apiClient from '../../api/axios'
 import HomeCourseCard from './HomeCourseCard'
 import type { Course } from '../../types'
-import { extractList } from '../../utils/course'
+import { fetchCoursesFromApi } from '../../api/coursesApi.public'
 import { staggerContainer } from '@/utils/animations'
 
 function useItemsPerPage() {
@@ -58,11 +57,10 @@ export default function FeaturedCoursesSection() {
 
   useEffect(() => {
     let active = true
-    apiClient
-      .get<Course[] | { data?: Course[] }>('/courses')
-      .then((res) => {
+    fetchCoursesFromApi()
+      .then((list) => {
         if (!active) return
-        setCourses(sortByPopularity(extractList(res.data)).slice(0, 6))
+        setCourses(sortByPopularity(list).slice(0, 6))
       })
       .catch(() => {
         if (active) setCourses([])

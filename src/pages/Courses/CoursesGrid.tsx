@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import CourseCard from './CourseCard'
@@ -12,8 +13,6 @@ type CoursesGridProps = {
   embedded?: boolean
   sectionId?: string
 }
-
-const FULL_GRID_PAGE = 9
 
 function useItemsPerPage() {
   const [n, setN] = useState(3)
@@ -171,9 +170,6 @@ export default function CoursesGrid({
   embedded = false,
   sectionId = 'catalog-courses',
 }: CoursesGridProps) {
-  const [showAll, setShowAll] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(FULL_GRID_PAGE)
-
   const gridClass =
     viewMode === 'grid'
       ? 'grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3'
@@ -196,70 +192,40 @@ export default function CoursesGrid({
       )}
 
       {!loading && courses.length > 0 && (
-        <>
-          {showAll ? (
-            <>
-              <div className={gridClass}>
-                <AnimatePresence>
-                  {courses.slice(0, visibleCount).map((course, i) => (
-                    <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
-                  ))}
-                </AnimatePresence>
-              </div>
-
-              <div className="mt-10 flex flex-col items-center gap-3">
-                {visibleCount < courses.length && (
-                  <button
-                    type="button"
-                    onClick={() => setVisibleCount((c) => c + FULL_GRID_PAGE)}
-                    className="rounded-2xl bg-deepBlue px-10 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800"
-                  >
-                    تحميل المزيد
-                  </button>
-                )}
-                {!visibleCount || visibleCount >= courses.length ? (
-                  <p className="text-xs text-muted-500">
-                    تم عرض جميع النتائج ({courses.length.toLocaleString('en-US')})
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-500">
-                    عرض {Math.min(visibleCount, courses.length).toLocaleString('en-US')} من{' '}
-                    {courses.length.toLocaleString('en-US')} دورة
-                  </p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAll(false)
-                    setVisibleCount(FULL_GRID_PAGE)
-                  }}
-                  className="text-xs font-bold text-muted-500 underline underline-offset-4 hover:text-deepBlue"
-                >
-                  العودة للعرض المضغوط
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <CoursesCarousel courses={courses} viewMode={viewMode} />
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="mt-6 flex justify-center"
+        embedded ? (
+          /* /programs and other embedded contexts: flat grid of all results */
+          <>
+            <div className={gridClass}>
+              <AnimatePresence>
+                {courses.map((course, i) => (
+                  <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
+                ))}
+              </AnimatePresence>
+            </div>
+            <p className="mt-4 text-center text-xs text-muted-500">
+              عرض {courses.length.toLocaleString('en-US')} دورة
+            </p>
+          </>
+        ) : (
+          /* /courses discovery page: carousel + link to /programs */
+          <>
+            <CoursesCarousel courses={courses} viewMode={viewMode} />
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mt-6 flex justify-center"
+            >
+              <Link
+                to="/programs"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50"
               >
-                <button
-                  type="button"
-                  onClick={() => setShowAll(true)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50"
-                >
-                  <LayoutGrid className="h-4 w-4 text-brand-500" />
-                  عرض الكل ({courses.length.toLocaleString('en-US')} دورة)
-                </button>
-              </motion.div>
-            </>
-          )}
-        </>
+                <LayoutGrid className="h-4 w-4 text-brand-500" />
+                عرض الكل ({courses.length.toLocaleString('en-US')} دورة)
+              </Link>
+            </motion.div>
+          </>
+        )
       )}
     </>
   )

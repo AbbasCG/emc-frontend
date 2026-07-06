@@ -95,7 +95,7 @@ export default function HomeGrandCTA() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="mt-6 max-w-lg text-lg font-medium leading-9 text-white/60"
             >
-              انضم لأكثر من 850 متعلّم يبنون مهاراتهم يومياً على منصة EMC — ورشتك الأولى تبدأ اليوم.
+              انضم لأكثر من 9000 متعلّم يبنون مهاراتهم يومياً على منصة EMC — ورشتك الأولى تبدأ اليوم.
             </motion.p>
           </div>
 

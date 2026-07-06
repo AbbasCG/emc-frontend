@@ -2,16 +2,16 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Calendar, Clock, GraduationCap, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../../types'
-import { courseImages, formatPrice } from '../../utils/course'
+import { formatPrice } from '../../utils/course'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { formatPublicDate } from '@/utils/publicDetailFormat'
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { staggerItem } from '@/utils/animations'
 
-type Props = { course: Course; index: number }
+type Props = { course: Course; index?: number }
 
-export default function HomeCourseCard({ course, index }: Props) {
+export default function HomeCourseCard({ course }: Props) {
   const rawImg =
     course.course_image ||
     course.image_url ||
@@ -20,7 +20,6 @@ export default function HomeCourseCard({ course, index }: Props) {
     course.cover_image
 
   const imgSrc = rawImg ? (resolvePublicAssetUrl(rawImg) ?? rawImg) : null
-  const fallbackSrc = courseImages[index % courseImages.length]
 
   const isFree = course.type === 'free' || Boolean(course.is_free) || Number(course.price) === 0
   const isOnline = Boolean(course.is_online)
@@ -55,13 +54,6 @@ export default function HomeCourseCard({ course, index }: Props) {
           <img
             src={imgSrc}
             alt={course.title}
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
-            loading="lazy"
-          />
-        ) : fallbackSrc ? (
-          <img
-            src={fallbackSrc}
-            alt=""
             className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
             loading="lazy"
           />

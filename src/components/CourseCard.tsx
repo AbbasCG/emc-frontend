@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Building2, Clock3, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../types'
-import { courseImages, fadeUp, formatPrice } from '../utils/course'
+import { fadeUp, formatPrice } from '../utils/course'
+import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { formatPublicCount } from '@/utils/publicDetailFormat'
@@ -14,7 +15,7 @@ type CourseCardProps = {
 
 export default function CourseCard({ course, index }: CourseCardProps) {
   const isOnline = Boolean(course.is_online)
-  const image = courseImages[index % courseImages.length]
+  const image = resolveCourseCoverImageUrl(course)
   const isFree = course.type === 'free'
   const isEnded = resolveCourseIsEnded(course)
 
@@ -28,11 +29,18 @@ export default function CourseCard({ course, index }: CourseCardProps) {
       className="group overflow-hidden rounded-2xl bg-white text-right shadow-lg shadow-slate-200/80 ring-1 ring-slate-100 transition-shadow hover:shadow-2xl hover:shadow-slate-200"
     >
       <div className="relative h-52 overflow-hidden">
-        <img
-          src={image}
-          alt={course.title}
-          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-        />
+        {image ? (
+          <img
+            src={image}
+            alt={course.title}
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue via-[#1a3a5c] to-customBlue">
+            <BookOpen className="h-14 w-14 text-white/25" aria-hidden />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/60 via-transparent to-transparent" />
 
         {isEnded ?

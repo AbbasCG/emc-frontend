@@ -50,7 +50,7 @@ export function extractCoursesList(payload: unknown): Course[] {
 
 /** Same unwrap pattern as باقي الواجهات (`unwrapData`) ثم استخراج المصفوفة من أي شكل Laravel شائع */
 export async function fetchCoursesFromApi(): Promise<Course[]> {
-  const res = await apiClient.get('/courses', { skipErrorToast: true })
+  const res = await apiClient.get('/courses', { params: { per_page: 200 }, skipErrorToast: true })
   const body = res.data as unknown
   const unwrapped = unwrapData<unknown>(body)
   const candidate = Array.isArray(body) ? body : (unwrapped ?? body)
