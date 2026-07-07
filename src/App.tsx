@@ -567,6 +567,9 @@ function App() {
                   <Route path="/dashboard/admin/finance" element={<FinanceDashboardPage />} />
                   <Route path="/dashboard/admin/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/admin/finance/transactions" element={<FinanceTransactionsPage />} />
+                  <Route path="/dashboard/admin/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/admin/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/admin/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/admin/coupons" element={<CouponsAdminPage />} />
                   <Route path="/dashboard/admin/scholarships" element={<ScholarshipsAdminPage />} />
                   <Route path="/dashboard/admin/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
@@ -650,7 +653,7 @@ function App() {
                   <Route path="/dashboard/courses" element={<Navigate to="/dashboard/admin/programs" replace />} />
                   <Route path="/dashboard/programs" element={<Navigate to="/dashboard/admin/programs" replace />} />
                   <Route path="/dashboard/reports" element={<Navigate to="/dashboard/admin/reports" replace />} />
-                  <Route path="/dashboard/students" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
+                  <Route path="/dashboard/students" element={<Suspense fallback={<RouteFallback />}><StudentsManagementPage pageTitle="الطلاب — المشرف" /></Suspense>} />
                   <Route path="/dashboard/registrations" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                   <Route path="/dashboard/schedule" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                   <Route path="/dashboard/users" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />

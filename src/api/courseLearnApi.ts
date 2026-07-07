@@ -403,7 +403,7 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
 
       required: o.required !== undefined ? Boolean(o.required) : o.is_required !== undefined ? Boolean(o.is_required) : true,
 
-      visible: o.visible !== undefined ? Boolean(o.visible) : o.is_visible !== undefined ? Boolean(o.is_visible) : true,
+      visible: o.visible !== undefined ? Boolean(o.visible) : o.is_visible != null ? Boolean(o.is_visible) : true,
       status: str(o.status) || (mySub?.status != null ? str(mySub.status) : undefined),
 
       score,

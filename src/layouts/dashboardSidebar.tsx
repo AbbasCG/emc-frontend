@@ -36,7 +36,6 @@ import {
   ShieldCheck,
   ShieldQuestion,
   SlidersHorizontal,
-  Smartphone,
   Sparkles,
   TrendingUp,
   UserCheck,
@@ -119,109 +118,97 @@ function communicationsBlock(): SidebarNavGroup[] {
 
 function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
   return [
-    { items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }] },
+    // ── 1. الرئيسية ───────────────────────────────────────────────────────────
     {
-      title: 'نظام التعلّم LMS',
+      items: [{ label: 'لوحة التحكم', href: home, icon: LayoutDashboard }],
+    },
+
+    // ── 2. التعليم والبرامج ───────────────────────────────────────────────────
+    {
+      title: 'التعليم والبرامج',
+      collapsible: true,
+      defaultOpen: true,
       items: [
-        { label: 'الجلسات', href: '/dashboard/admin/lms/sessions', icon: Calendar },
-        { label: 'الحضور', href: '/dashboard/admin/lms/attendance', icon: Users },
-        { label: 'الواجبات', href: '/dashboard/admin/lms/assignments', icon: ClipboardList },
-        { label: 'المواد', href: '/dashboard/admin/lms/materials', icon: FolderOpen },
-        { label: 'التقييمات', href: '/dashboard/admin/lms/evaluations', icon: FileText },
-        { label: 'التقدّم', href: '/dashboard/admin/lms/progress', icon: BarChart3 },
+        { label: 'البرامج والدورات',  href: '/dashboard/admin/programs',                  icon: BookMarked    },
+        { label: 'المسارات التعليمية',href: '/dashboard/super-admin/crud/learning-paths', icon: Layers        },
+        { label: 'الجلسات',           href: '/dashboard/admin/lms/sessions',              icon: Calendar      },
+        { label: 'الحضور',            href: '/dashboard/admin/lms/attendance',            icon: Users         },
+        { label: 'الواجبات',          href: '/dashboard/admin/lms/assignments',           icon: ClipboardList },
+        { label: 'المواد',            href: '/dashboard/admin/lms/materials',             icon: FolderOpen    },
+        { label: 'التقييمات',         href: '/dashboard/admin/lms/evaluations',           icon: FileText      },
+        { label: 'التقدّم',           href: '/dashboard/admin/lms/progress',              icon: BarChart3     },
+        { label: 'الشهادات',          href: '/dashboard/admin/certificates',              icon: Award         },
+        { label: 'الاختبارات',        href: '/dashboard/admin/quizzes',                   icon: ClipboardCheck},
+        { label: 'الدروس',            href: '/dashboard/admin/lessons',                   icon: FileText      },
+        { label: 'الوحدات التعليمية', href: '/dashboard/admin/modules',                   icon: BookOpen      },
       ],
     },
+
+    // ── 3. الطلاب والمستخدمون ────────────────────────────────────────────────
     {
-      title: 'مركز العمليات',
+      title: 'الطلاب والمستخدمون',
+      collapsible: true,
+      defaultOpen: true,
       items: [
-        { label: 'لوحة العمليات', href: '/dashboard/admin/operations', icon: Sparkles },
-        { label: 'البرامج والدورات', href: '/dashboard/admin/programs', icon: BookMarked },
-        { label: 'الإدارات', href: '/dashboard/admin/departments', icon: Building2 },
-        { label: 'المهام', href: '/dashboard/admin/tasks', icon: ClipboardList },
-        { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar },
-        { label: 'النماذج', href: '/dashboard/admin/forms', icon: FileText },
-        membersNavItem(),
-        { label: 'طلبات التطوع', href: '/dashboard/admin/volunteers', icon: HeartHandshake },
-        { label: 'المتطوعون المقبولون', href: '/dashboard/volunteer', icon: Users },
-        { label: 'الشركاء', href: '/dashboard/admin/partners', icon: Briefcase },
-        { label: 'طلبات الشراكة', href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
-        { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
-        { label: 'التسويق', href: '/dashboard/admin/marketing', icon: Megaphone },
-        { label: 'تذاكر الدعم', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
+        { label: 'قائمة الطلاب', href: '/dashboard/students',                      icon: GraduationCap },
+        { label: 'التسجيلات',    href: '/dashboard/registrations',                  icon: ClipboardList },
+        { label: 'المستخدمون',   href: '/dashboard/users',                          icon: UserCog       },
+        { label: 'المدرسون',     href: '/dashboard/super-admin/crud/instructors',   icon: UserCheck     },
       ],
     },
+
+    // ── 4. الإدارة المالية ────────────────────────────────────────────────────
     {
-      title: 'الإيرادات والذكاء',
+      title: 'الإدارة المالية',
+      collapsible: true,
+      defaultOpen: false,
       items: [
-        { label: 'لوحة المالية', href: '/dashboard/admin/finance', icon: Wallet },
-        { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
-        { label: 'المنح', href: '/dashboard/admin/scholarships', icon: GraduationCap },
-        { label: 'الشهادات', href: '/dashboard/admin/certificates', icon: Award },
-        { label: 'مراجعة الجودة', href: '/dashboard/admin/quality', icon: ClipboardCheck },
-        { label: 'مؤشرات الأداء', href: '/dashboard/admin/kpi', icon: PieChart },
-        { label: 'التقارير التحليلية', href: '/dashboard/admin/reports', icon: FileBarChart },
+        { label: 'لوحة المالية',     href: '/dashboard/admin/finance',                          icon: Wallet        },
+        { label: 'المدفوعات',       href: '/dashboard/admin/finance/payments',                 icon: Receipt       },
+        { label: 'الطلبات',         href: '/dashboard/admin/finance/orders',                   icon: ClipboardList },
+        { label: 'الفواتير',        href: '/dashboard/admin/finance/invoices',                 icon: FileText      },
+        { label: 'المعاملات',       href: '/dashboard/admin/finance/transactions',             icon: BarChart3     },
+        { label: 'الطلبات المالية الداخلية', href: '/dashboard/admin/finance/financial-requests', icon: FileText  },
       ],
     },
+
+    // ── 5. الدعم والتواصل ─────────────────────────────────────────────────────
     {
-      title: 'منظومة EMC المتقدمة',
+      title: 'الدعم والتواصل',
+      collapsible: true,
+      defaultOpen: false,
       items: [
-        { label: 'قاعدة المعرفة', href: '/dashboard/admin/knowledge', icon: BookMarked },
-        { label: 'فئات المعرفة', href: '/dashboard/admin/knowledge/categories', icon: Layers },
-        { label: 'الوحدات التعليمية', href: '/dashboard/admin/modules', icon: BookOpen },
-        { label: 'الدروس', href: '/dashboard/admin/lessons', icon: FileText },
-        { label: 'الاختبارات', href: '/dashboard/admin/quizzes', icon: ClipboardCheck },
-        { label: 'الأتمتة', href: '/dashboard/admin/automations', icon: Cpu },
-        { label: 'مستندات الإدارة', href: '/dashboard/admin/documents', icon: FolderLock },
-        { label: 'سجل التدقيق', href: '/dashboard/admin/audit-logs', icon: ShieldCheck },
-        { label: 'نمو المنصة', href: '/dashboard/admin/platform-scale', icon: TrendingUp },
+        { label: 'الدعم / التذاكر',         href: '/dashboard/admin/support-tickets',      icon: ShieldQuestion },
+        { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
+        { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
+        { label: 'المتطوعون',               href: '/dashboard/admin/volunteers',            icon: Users          },
+        { label: 'الشركاء',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
+        { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
+        { label: 'النماذج',                 href: '/dashboard/admin/forms',                 icon: FileText       },
       ],
     },
+
+    // ── 6. النظام والإعدادات ─────────────────────────────────────────────────
     {
-      title: 'التكامل والمنظومة المفتوحة',
+      title: 'النظام والإعدادات',
+      collapsible: true,
+      defaultOpen: false,
       items: [
-        { label: 'مركز التكاملات', href: '/dashboard/admin/integrations', icon: Plug2 },
-        { label: 'الويبهوكس', href: '/dashboard/admin/webhooks', icon: WebhookIcon },
-        { label: 'رموز المطوّر', href: '/dashboard/admin/developer/api-tokens', icon: Code2 },
-        { label: 'جاهزية الجوال', href: '/dashboard/admin/mobile-readiness', icon: Smartphone },
-        { label: 'تقويم الإدارة', href: '/dashboard/admin/calendar', icon: CalendarDays },
+        { label: 'الإعدادات',         href: '/dashboard/settings',                      icon: Settings     },
+        { label: 'البريد الإلكتروني', href: '/dashboard/super-admin/email-settings',    icon: Mail         },
+        { label: 'سجلات البريد',      href: '/dashboard/super-admin/email-logs',        icon: ScrollText   },
+        { label: 'الإشعارات',         href: '/dashboard/notifications',                 icon: Bell         },
+        { label: 'تفضيلات الإشعارات', href: '/dashboard/settings/notifications',        icon: SlidersHorizontal },
+        { label: 'الملفات',           href: '/documents',                               icon: FolderOpen   },
+        { label: 'المساعد الذكي',     href: '/ai',                                      icon: Bot          },
       ],
     },
+
+    // ── الحساب ───────────────────────────────────────────────────────────────
     {
-      title: 'طبقة الذكاء الاصطناعي',
-      items: [
-        { label: 'AI Command Center', href: '/dashboard/admin/ai', icon: Bot },
-        { label: 'AI Automations', href: '/dashboard/admin/ai/automations', icon: Cpu },
-        { label: 'AI Insights', href: '/dashboard/admin/ai/insights', icon: PieChart },
-        { label: 'AI Usage', href: '/dashboard/admin/ai/usage', icon: BarChart3 },
-      ],
+      title: 'الحساب',
+      items: [{ label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog }],
     },
-    {
-      title: 'الإدارة الأكاديمية',
-      items: [
-        { label: 'الدورات', href: '/dashboard/courses', icon: BookOpen },
-        { label: 'البرامج', href: '/dashboard/programs', icon: GraduationCap },
-      ],
-    },
-    {
-      title: 'الطلاب',
-      items: [
-        { label: 'قائمة الطلاب', href: '/dashboard/students', icon: Users },
-        { label: 'التسجيلات', href: '/dashboard/registrations', icon: ClipboardList },
-      ],
-    },
-    {
-      title: 'الجدولة',
-      items: [{ label: 'الجدول الزمني', href: '/dashboard/schedule', icon: Calendar }],
-    },
-    {
-      title: 'الإدارة',
-      items: [
-        { label: 'المستخدمون', href: '/dashboard/users', icon: UserCog },
-        { label: 'التقارير العامة', href: '/dashboard/reports', icon: BarChart3 },
-        { label: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
-      ],
-    },
-    ...communicationsBlock(),
   ]
 }
 

@@ -5,6 +5,7 @@ import AdminLmsShell from '@/components/lms/AdminLmsShell'
 import { LmsEmptyState } from '@/components/lms'
 import { LmsFilterBar, LmsDataPanel, countActiveFilters, lmsSelectClass } from '@/components/lms/management'
 import { fmtDate, normCourseTitle, fmtNum } from '@/components/lms/lmsFormatters'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 
 type EvaluationRow = {
   id: number
@@ -150,8 +151,8 @@ export default function AdminLmsEvaluationsPage() {
                 {courseOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             : null}
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={lmsSelectClass()} />
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={lmsSelectClass()} />
+            <EmcDatePicker label="من تاريخ" value={dateFrom} onChange={(v) => setDateFrom(v)} />
+            <EmcDatePicker label="إلى تاريخ" value={dateTo} onChange={(v) => setDateTo(v)} />
           </>
         }
       />

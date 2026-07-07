@@ -74,7 +74,7 @@ import {
 } from '@/components/lms/CourseCmsFormModal'
 import { CmsSessionTimingSection } from '@/components/lms/CmsSessionTimingSection'
 import { useAuth } from '@/contexts/AuthContext'
-import { formatDateTime } from '@/utils/dateTime'
+import { formatLmsDateTime, formatLmsTime } from '@/components/lms/lmsFormatters'
 import type { CourseLearnAssignment, CourseLearnMaterial, CourseLearnSession, StudentLearnCourseOverview, StudentLearnModule } from '@/types/courseLearn'
 
 type TabId = 'modules' | 'sessions' | 'materials' | 'assignments'
@@ -126,10 +126,16 @@ function mergeServerErrors(e: unknown): Record<string, string> {
 }
 
 function formatSessionListWhen(s: CourseLearnSession): string {
+  // Prefer full ISO datetime; fall back to date + separate time field
   const raw = s.start_at ?? s.starts_at ?? (s.date && s.time ? `${s.date}T${s.time}` : s.date)
   if (!raw) return '—'
-  const formatted = formatDateTime(String(raw))
-  return formatted === '—' ? String(raw) : formatted
+  // If we have both date and a separate time field, format them individually
+  if (s.date && s.time) {
+    const timePart = formatLmsTime(String(s.time))
+    const datePart = formatLmsDateTime(`${s.date}T00:00:00`).split('،')[0]
+    return `${datePart}، ${timePart}`
+  }
+  return formatLmsDateTime(String(raw))
 }
 
 export default function CourseContentManagerPage() {
@@ -596,7 +602,7 @@ export default function CourseContentManagerPage() {
                                   <span className="flex-1 truncate text-[11px] font-semibold text-deepBlue">{a.title}</span>
                                   {a.due_at && (
                                     <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-400">
-                                      <Clock className="h-2.5 w-2.5" />{formatDateTime(String(a.due_at))}
+                                      <Clock className="h-2.5 w-2.5" />{formatLmsDateTime(String(a.due_at))}
                                     </span>
                                   )}
                                   <button type="button"
@@ -976,7 +982,7 @@ export default function CourseContentManagerPage() {
                       {a.due_at && (
                         <div className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-500">
                           <Clock className="h-3 w-3 text-slate-400" />
-                          <span dir="ltr">{formatDateTime(String(a.due_at))}</span>
+                          <span>{formatLmsDateTime(String(a.due_at))}</span>
                         </div>
                       )}
                     </div>

@@ -334,12 +334,12 @@ export default function EmcDateTimePicker({
         offset={8}
         layer="datetime"
         constrainViewport
-        className="w-[min(100vw-1rem,22rem)]"
+        className="w-[min(100vw-1rem,18rem)]"
       >
         <div
           role="dialog"
           aria-label={label}
-          className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
+          className="flex flex-col overflow-hidden rounded-2xl border border-[#22334A]/10 bg-white shadow-[0_20px_50px_-12px_rgba(34,51,74,0.35)]"
           dir="rtl"
         >
           {(showDatePresets || durationFrom) && (
@@ -369,8 +369,8 @@ export default function EmcDateTimePicker({
             </div>
           )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+          <div className="flex-1">
+            <div className="flex items-center justify-between gap-2 px-3 py-2">
               <button
                 type="button"
                 onClick={nextMonth}
@@ -390,17 +390,17 @@ export default function EmcDateTimePicker({
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5 px-2 pb-1">
+            <div className="grid grid-cols-7 gap-0.5 px-2 pb-0.5">
               {WEEKDAYS.map((wd) => (
-                <div key={wd} className="py-1 text-center text-[10px] font-bold text-slate-400">
+                <div key={wd} className="py-0.5 text-center text-[10px] font-bold text-slate-400">
                   {wd}
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5 px-2 pb-3">
+            <div className="grid grid-cols-7 gap-0.5 px-2 pb-2">
               {calendarDays.map((day, idx) => {
-                if (day == null) return <div key={`e-${idx}`} className="aspect-square" />
+                if (day == null) return <div key={`e-${idx}`} className="h-8" />
                 const isSelected =
                   draft.year === viewYear && draft.month === viewMonth && draft.day === day
                 const isToday =
@@ -411,7 +411,7 @@ export default function EmcDateTimePicker({
                     type="button"
                     onClick={() => selectDay(day)}
                     className={cn(
-                      'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',
+                      'h-8 rounded-lg text-[12px] font-bold tabular-nums transition',
                       isSelected
                         ? 'bg-[#2691C2] text-white shadow-sm'
                         : isToday
@@ -425,8 +425,8 @@ export default function EmcDateTimePicker({
               })}
             </div>
 
-            <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-3">
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-black text-[#22334A]/70">
+            <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-2.5">
+              <div className="mb-1.5 flex items-center gap-2 text-[11px] font-black text-[#22334A]/70">
                 <Clock className="h-3.5 w-3.5 text-[#2691C2]" aria-hidden />
                 الوقت
               </div>

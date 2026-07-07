@@ -652,7 +652,7 @@ function SkeletonCards() {
 
 /* ─── Page ────────────────────────────────────────────────────────────── */
 
-export default function StudentsManagementPage() {
+export default function StudentsManagementPage({ pageTitle }: { pageTitle?: string } = {}) {
   const [loading,    setLoading]    = useState(true)
   const [users,      setUsers]      = useState<AdminManagedUser[]>([])
   const [serverTotal, setServerTotal] = useState<number | null>(null)
@@ -740,7 +740,7 @@ export default function StudentsManagementPage() {
       {/* Hero */}
       <EnterpriseCrudHero
         eyebrow="Student Intelligence · admin/users directory"
-        title="الطلاب — لوحة الذكاء الطلابي"
+        title={pageTitle ?? "الطلاب — لوحة الذكاء الطلابي"}
         subtitle="عرض شامل لجميع الطلاب المسجلين مع بياناتهم الكاملة ورحلة التعلم"
         variant="blue"
         actions={

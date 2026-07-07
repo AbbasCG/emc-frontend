@@ -25,9 +25,11 @@ import { LmsEmptyState } from '@/components/lms'
 import AdminLmsShell from '@/components/lms/AdminLmsShell'
 import AdminAssignmentDetailDrawer from '@/components/lms/admin/AdminAssignmentDetailDrawer'
 import { LmsFilterBar, LmsDataPanel, countActiveFilters, lmsSelectClass } from '@/components/lms/management'
-import { fmtDate, normCourseTitle, normInstructor, fmtNum } from '@/components/lms/lmsFormatters'
+import { normCourseTitle, normInstructor, fmtNum, formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { CourseSelectField } from '@/components/lms/CourseSelectField'
 import EmcDateTimePicker from '@/components/ui/EmcDateTimePicker'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'
 import toast from '@/lib/toast'
 
 type AssignmentRow = AdminAssignmentListItem & {
@@ -98,9 +100,10 @@ type FormData = {
   due_date: string   // datetime-local: "YYYY-MM-DDTHH:mm"
   max_score: string
   status: string
+  is_visible: boolean
 }
 
-const EMPTY_FORM: FormData = { title: '', course_id: null, description: '', due_date: '', max_score: '', status: 'active' }
+const EMPTY_FORM: FormData = { title: '', course_id: null, description: '', due_date: '', max_score: '', status: 'active', is_visible: true }
 
 const fieldCls = 'w-full rounded-xl border border-[#22334A]/10 bg-[#22334A]/[0.02] px-3 py-2.5 text-sm font-semibold text-[#22334A] outline-none focus:border-[#2691C2]/40 focus:ring-2 focus:ring-[#2691C2]/10'
 
@@ -124,6 +127,7 @@ function AssignmentModal({
           due_date: (initial.due_date ?? '').slice(0, 16),  // trim to HH:mm if longer
           max_score: String(initial.max_score ?? ''),
           status: initial.status ?? 'active',
+          is_visible: (initial as Record<string, unknown>).is_visible !== false,
         }
       : EMPTY_FORM
   )
@@ -226,6 +230,21 @@ function AssignmentModal({
                 className={`${fieldCls} resize-none`}
               />
             </div>
+
+            {/* Visibility toggle */}
+            <label className="flex cursor-pointer items-center gap-3">
+              <div
+                role="checkbox"
+                tabIndex={0}
+                aria-checked={form.is_visible}
+                onClick={() => set('is_visible', !form.is_visible)}
+                onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') set('is_visible', !form.is_visible) }}
+                className={`relative h-5 w-9 rounded-full transition-colors ${form.is_visible ? 'bg-[#2691C2]' : 'bg-slate-200'}`}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${form.is_visible ? 'left-4' : 'left-0.5'}`} />
+              </div>
+              <span className="text-[12px] font-black text-[#22334A]/70">ظاهرة للطلاب</span>
+            </label>
           </div>
         </div>
         <div className="flex justify-end gap-2 border-t border-[#22334A]/[0.05] px-6 py-4">
@@ -262,6 +281,7 @@ function AssignmentCard({
   deleting: boolean
 }) {
   const overdue = row.status === 'active' && isOverdue(row.due_date)
+  const isVisible = (row as Record<string, unknown>).is_visible !== false
 
   return (
     <motion.button
@@ -276,15 +296,20 @@ function AssignmentCard({
           <p className="mt-0.5 text-[12px] font-semibold text-[#2691C2]/80 line-clamp-1">{row.course_title}</p>
           <p className="mt-1 text-[11px] font-medium text-[#22334A]/45">{row.instructor_name}</p>
         </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-black ${STATUS_BADGE[row.status ?? ''] ?? 'bg-slate-100 text-slate-500'}`}>
-          {STATUS_LABEL[row.status ?? ''] ?? row.status}
-        </span>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${STATUS_BADGE[row.status ?? ''] ?? 'bg-slate-100 text-slate-500'}`}>
+            {STATUS_LABEL[row.status ?? ''] ?? row.status}
+          </span>
+          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${isVisible ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-400 ring-1 ring-slate-200'}`}>
+            {isVisible ? 'ظاهر' : 'مخفي'}
+          </span>
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[#22334A]/6 pt-3">
         <div className="text-[11px] font-bold text-[#22334A]/50">
           <span className="text-[#22334A]/35">التسليم: </span>
-          <span className={overdue ? 'text-rose-600' : 'text-[#22334A]'}>{fmtDate(row.due_date)}</span>
+          <span className={overdue ? 'text-rose-600' : 'text-[#22334A]'}>{formatLmsDateTime(row.due_date ?? row.due_at)}</span>
           {overdue ? <span className="mr-1 text-rose-600">· متأخر</span> : null}
         </div>
         {row.max_score != null ?
@@ -301,7 +326,7 @@ function AssignmentCard({
         : null}
       </div>
 
-      <div className="mt-3 flex justify-end gap-1 opacity-0 transition group-hover:opacity-100">
+      <div className="mt-3 flex justify-end gap-1">
         <span
           role="button"
           tabIndex={0}
@@ -353,6 +378,7 @@ export default function AdminLmsAssignmentsPage() {
   const [drawerId, setDrawerId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<number | null>(null)
+  const [confirmDeleteRow, setConfirmDeleteRow] = useState<AssignmentRow | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -436,6 +462,7 @@ export default function AdminLmsAssignmentsPage() {
         due_date: form.due_date || undefined,
         max_score: form.max_score ? Number(form.max_score) : undefined,
         status: form.status,
+        is_visible: form.is_visible,
       }
       if (modal && modal !== 'create') {
         await adminUpdateAssignment((modal as AssignmentRow).id, payload)
@@ -454,7 +481,6 @@ export default function AdminLmsAssignmentsPage() {
   }
 
   async function handleDelete(id: number) {
-    if (!window.confirm('هل أنت متأكد من حذف هذا الواجب؟')) return
     setDeleting(id)
     try {
       await adminDeleteAssignment(id)
@@ -465,6 +491,7 @@ export default function AdminLmsAssignmentsPage() {
       toast.error('تعذّر حذف الواجب')
     } finally {
       setDeleting(null)
+      setConfirmDeleteRow(null)
     }
   }
 
@@ -559,8 +586,8 @@ export default function AdminLmsAssignmentsPage() {
                   {instructorOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               : null}
-              <input type="date" value={dueDateFrom} onChange={(e) => setDueDateFrom(e.target.value)} className={lmsSelectClass()} title="من تاريخ" />
-              <input type="date" value={dueDateTo} onChange={(e) => setDueDateTo(e.target.value)} className={lmsSelectClass()} title="إلى تاريخ" />
+              <EmcDatePicker label="من تاريخ" value={dueDateFrom} onChange={(v) => setDueDateFrom(v)} />
+              <EmcDatePicker label="إلى تاريخ" value={dueDateTo} onChange={(v) => setDueDateTo(v)} />
               <button type="button" onClick={() => setFilterPendingReview((v) => !v)} className={toggleBtn(filterPendingReview)}>
                 بانتظار المراجعة
               </button>
@@ -605,7 +632,7 @@ export default function AdminLmsAssignmentsPage() {
                       <p className="text-[12px] font-semibold text-[#22334A]/65">{r.instructor_name}</p>
                       <div>
                         <p className={`text-[12px] font-semibold ${isOverdue(r.due_date) && r.status === 'active' ? 'text-rose-600' : 'text-[#22334A]/65'}`}>
-                          {fmtDate(r.due_date)}
+                          {formatLmsDateTime(r.due_date ?? r.due_at)}
                         </p>
                         {r.max_score != null ?
                           <p className="text-[10px] text-[#22334A]/35">{fmtNum(r.max_score)} نقطة</p>
@@ -628,7 +655,7 @@ export default function AdminLmsAssignmentsPage() {
                       row={r}
                       onOpen={() => setDrawerId(r.id)}
                       onEdit={() => setModal(r)}
-                      onDelete={() => void handleDelete(r.id)}
+                      onDelete={() => setConfirmDeleteRow(r)}
                       deleting={deleting === r.id}
                     />
                   </div>
@@ -644,7 +671,7 @@ export default function AdminLmsAssignmentsPage() {
         open={drawerId != null}
         onClose={() => setDrawerId(null)}
         onEdit={handleEditFromDrawer}
-        onDelete={(id) => void handleDelete(id)}
+        onDelete={(id) => { const r = rows.find((x) => x.id === id); if (r) setConfirmDeleteRow(r) }}
         deleting={deleting != null}
       />
 
@@ -656,6 +683,16 @@ export default function AdminLmsAssignmentsPage() {
           saving={saving}
         />
       )}
+
+      <ConfirmDeleteModal
+        open={confirmDeleteRow != null}
+        title="حذف الواجب"
+        description="هل أنت متأكد من حذف هذا الواجب؟ لا يمكن التراجع عن هذا الإجراء."
+        itemLabel={confirmDeleteRow?.title ?? undefined}
+        busy={deleting != null}
+        onClose={() => setConfirmDeleteRow(null)}
+        onConfirm={() => { if (confirmDeleteRow) void handleDelete(confirmDeleteRow.id) }}
+      />
     </>
   )
 }

@@ -6,6 +6,7 @@ import { LmsEmptyState } from '@/components/lms'
 import AdminLmsShell from '@/components/lms/AdminLmsShell'
 import { LmsFilterBar, countActiveFilters, lmsSelectClass } from '@/components/lms/management'
 import { fmtDate, fmtNum } from '@/components/lms/lmsFormatters'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 
 type AttendanceRecord = {
   id: number
@@ -161,8 +162,8 @@ export default function AdminLmsAttendancePage() {
                 {courseOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             : null}
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={lmsSelectClass()} />
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={lmsSelectClass()} />
+            <EmcDatePicker label="من تاريخ" value={dateFrom} onChange={(v) => setDateFrom(v)} />
+            <EmcDatePicker label="إلى تاريخ" value={dateTo} onChange={(v) => setDateTo(v)} />
             {(late + excused) > 0 ?
               <span className="text-[11px] font-semibold text-amber-600">
                 {fmtNum(late)} متأخر · {fmtNum(excused)} معذور

@@ -144,7 +144,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
         offset={8}
         layer="datetime"
         constrainViewport
-        className="w-[min(100vw-1rem,22rem)]"
+        className="w-[min(100vw-1rem,18rem)]"
       >
         <div
           role="dialog"
@@ -169,7 +169,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
             ))}
           </div>
 
-          <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2 px-3 py-2">
             <button type="button" onClick={nextMonth} className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100" aria-label="الشهر التالي">
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -179,15 +179,15 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-0.5 px-2 pb-1">
+          <div className="grid grid-cols-7 gap-0.5 px-2 pb-0.5">
             {WEEKDAYS.map(wd => (
-              <div key={wd} className="py-1 text-center text-[10px] font-bold text-slate-400">{wd}</div>
+              <div key={wd} className="py-0.5 text-center text-[10px] font-bold text-slate-400">{wd}</div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-0.5 px-2 pb-3">
+          <div className="grid grid-cols-7 gap-0.5 px-2 pb-2">
             {calendarDays.map((day, idx) => {
-              if (day == null) return <div key={`e-${idx}`} className="aspect-square" />
+              if (day == null) return <div key={`e-${idx}`} className="h-8" />
               const iso = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
               const isSelected = value === iso
               const isToday = todayY === viewYear && todayM === viewMonth && todayD === day
@@ -197,7 +197,7 @@ export default function EmcDatePicker({ label, value, onChange, error, required 
                   type="button"
                   onClick={() => selectDay(day)}
                   className={cn(
-                    'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',
+                    'h-8 rounded-lg text-[12px] font-bold tabular-nums transition',
                     isSelected ? 'bg-[#2691C2] text-white shadow-sm'
                       : isToday ? 'bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/30'
                         : 'text-[#22334A] hover:bg-slate-100',

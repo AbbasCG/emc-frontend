@@ -23,6 +23,7 @@ import { fmtDate, normCourseTitle, fmtNum } from '@/components/lms/lmsFormatters
 import { CourseSelectField } from '@/components/lms/CourseSelectField'
 import toast from '@/lib/toast'
 import type { LucideIcon } from 'lucide-react'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 
 // ── Create Material Modal ────────────────────────────────────────────────────
 
@@ -716,8 +717,8 @@ export default function AdminLmsMaterialsPage() {
                 <option value="visible">ظاهر</option>
                 <option value="hidden">مخفي</option>
               </select>
-              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={lmsSelectClass()} />
-              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={lmsSelectClass()} />
+              <EmcDatePicker label="من تاريخ" value={dateFrom} onChange={(v) => setDateFrom(v)} />
+              <EmcDatePicker label="إلى تاريخ" value={dateTo} onChange={(v) => setDateTo(v)} />
             </>
           }
         />

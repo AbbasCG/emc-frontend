@@ -25,8 +25,10 @@ import { adminListSessions, adminCreateSession, adminUpdateSession, adminDeleteS
 import { CourseSelectField } from '@/components/lms/CourseSelectField'
 import toast from '@/lib/toast'
 import AdminLmsShell from '@/components/lms/AdminLmsShell'
-import { fmtDate, normCourseTitle, normInstructor, fmtNum } from '@/components/lms/lmsFormatters'
+import { fmtDate, formatLmsTime, normCourseTitle, normInstructor, fmtNum } from '@/components/lms/lmsFormatters'
 import { AnimatePresence, motion } from 'framer-motion'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
+import EmcTimePicker from '@/components/ui/EmcTimePicker'
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 
@@ -91,12 +93,14 @@ type SessionFormData = {
   location_type: string
   meeting_link: string
   status: string
+  is_visible: boolean
 }
 
 const EMPTY_SESSION_FORM: SessionFormData = {
   course_id: null, title: '', description: '',
   session_date: '', start_time: '', end_time: '',
   location_type: 'online', meeting_link: '', status: 'scheduled',
+  is_visible: true,
 }
 
 const sfieldCls = 'w-full rounded-xl border border-[#22334A]/10 bg-[#22334A]/[0.02] px-3 py-2.5 text-sm font-semibold text-[#22334A] outline-none focus:border-[#2691C2]/40 focus:ring-2 focus:ring-[#2691C2]/10'
@@ -124,6 +128,7 @@ function SessionModal({
           location_type: initial.location_type ?? 'online',
           meeting_link: initial.meeting_link ?? initial.meeting_url ?? '',
           status: initial.status ?? 'scheduled',
+          is_visible: (initial as Record<string, unknown>).is_visible !== false,
         }
       : EMPTY_SESSION_FORM
   )
@@ -179,16 +184,13 @@ function SessionModal({
             />
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1.5 block text-[12px] font-black text-[#22334A]/60">التاريخ <span className="text-rose-500">*</span></label>
-                <input
-                  type="date"
-                  value={form.session_date}
-                  onChange={(e) => set('session_date', e.target.value)}
-                  className={[sfieldCls, errors.session_date ? 'border-rose-300 ring-1 ring-rose-200' : ''].join(' ')}
-                />
-                {errors.session_date && <p className="mt-1 text-[11px] font-bold text-rose-600">{errors.session_date}</p>}
-              </div>
+              <EmcDatePicker
+                label="التاريخ"
+                required
+                value={form.session_date}
+                onChange={(v) => set('session_date', v)}
+                error={errors.session_date}
+              />
               <div>
                 <label className="mb-1.5 block text-[12px] font-black text-[#22334A]/60">النوع</label>
                 <select value={form.location_type} onChange={(e) => set('location_type', e.target.value)} className={sfieldCls}>
@@ -200,25 +202,19 @@ function SessionModal({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1.5 block text-[12px] font-black text-[#22334A]/60">وقت البداية <span className="text-rose-500">*</span></label>
-                <input
-                  type="time"
-                  value={form.start_time}
-                  onChange={(e) => set('start_time', e.target.value)}
-                  className={[sfieldCls, errors.start_time ? 'border-rose-300 ring-1 ring-rose-200' : ''].join(' ')}
-                />
-                {errors.start_time && <p className="mt-1 text-[11px] font-bold text-rose-600">{errors.start_time}</p>}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-[12px] font-black text-[#22334A]/60">وقت الانتهاء</label>
-                <input
-                  type="time"
-                  value={form.end_time}
-                  onChange={(e) => set('end_time', e.target.value)}
-                  className={sfieldCls}
-                />
-              </div>
+              <EmcTimePicker
+                label="وقت البداية"
+                required
+                value={form.start_time}
+                onChange={(v) => set('start_time', v)}
+                error={errors.start_time}
+              />
+              <EmcTimePicker
+                label="وقت الانتهاء"
+                value={form.end_time}
+                onChange={(v) => set('end_time', v)}
+                durationFrom={form.start_time}
+              />
             </div>
 
             <div>
@@ -257,6 +253,21 @@ function SessionModal({
                 className={`${sfieldCls} resize-none`}
               />
             </div>
+
+            {/* Visibility toggle */}
+            <label className="flex cursor-pointer items-center gap-3">
+              <div
+                role="checkbox"
+                tabIndex={0}
+                aria-checked={form.is_visible}
+                onClick={() => set('is_visible', !form.is_visible)}
+                onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') set('is_visible', !form.is_visible) }}
+                className={`relative h-5 w-9 rounded-full transition-colors ${form.is_visible ? 'bg-[#2691C2]' : 'bg-slate-200'}`}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${form.is_visible ? 'left-4' : 'left-0.5'}`} />
+              </div>
+              <span className="text-[12px] font-black text-[#22334A]/70">ظاهرة للطلاب</span>
+            </label>
           </div>
         </div>
 
@@ -298,7 +309,7 @@ function SessionGridCard({ row, onDetail, onEdit, onDelete, deleting }: CardProp
   const isBlocked = row.is_cancelled || row.is_ended
 
   const dateStr = fmtDate(deriveSessionDate(row))
-  const timeStr = row.start_time ? row.start_time.slice(0, 5) : null
+  const timeStr = row.start_time ? formatLmsTime(row.start_time) : null
 
   return (
     <motion.div
@@ -362,7 +373,7 @@ function SessionGridCard({ row, onDetail, onEdit, onDelete, deleting }: CardProp
           {dateStr && (
             <div className="flex items-center gap-2">
               <Calendar size={12} className="shrink-0 text-slate-400" />
-              <span dir="ltr">{dateStr}{timeStr ? ` · ${timeStr}` : ''}</span>
+              <span>{dateStr}{timeStr ? ` · ${timeStr}` : ''}</span>
             </div>
           )}
         </div>
@@ -440,7 +451,7 @@ function DetailsDrawer({ row, onClose }: { row: AdminSession; onClose: () => voi
 
   return (
     <div
-      className="fixed inset-0 z-50"
+      className="fixed inset-0 z-[60]"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -528,9 +539,9 @@ function DetailsDrawer({ row, onClose }: { row: AdminSession; onClose: () => voi
                 <Clock size={14} className="shrink-0 text-[#2691C2]" />
                 <div>
                   <p className="text-[10px] font-bold text-slate-400">الوقت</p>
-                  <p dir="ltr" className="font-black text-[#22334A]">
-                    {row.start_time ? row.start_time.slice(0, 5) : '—'}
-                    {row.end_time ? ` – ${row.end_time.slice(0, 5)}` : ''}
+                  <p className="font-black text-[#22334A]">
+                    {row.start_time ? formatLmsTime(row.start_time) : '—'}
+                    {row.end_time ? ` – ${formatLmsTime(row.end_time)}` : ''}
                   </p>
                 </div>
               </div>
@@ -593,8 +604,8 @@ function DetailsDrawer({ row, onClose }: { row: AdminSession; onClose: () => voi
                       <p className="truncate text-[11px] text-slate-400">{s.email ?? '—'}</p>
                     </div>
                     {s.opened_at && (
-                      <p className="shrink-0 text-[10px] font-bold text-slate-400" dir="ltr">
-                        {new Date(s.opened_at).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}
+                      <p className="shrink-0 text-[10px] font-bold text-slate-400">
+                        {formatLmsTime(new Date(s.opened_at).toTimeString().slice(0, 5))}
                       </p>
                     )}
                   </div>
@@ -730,6 +741,7 @@ export default function AdminLmsSessionsPage() {
         location_type: form.location_type,
         meeting_link: form.meeting_link.trim() || undefined,
         status: form.status,
+        is_visible: form.is_visible,
       }
       if (modal && modal !== 'create') {
         await adminUpdateSession(Number((modal as AdminSession).id), payload as Partial<AdminSession>)
@@ -890,8 +902,8 @@ export default function AdminLmsSessionsPage() {
                   <option value="upcoming">قادمة</option>
                   <option value="ended">منتهية</option>
                 </select>
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={selectCls} placeholder="من تاريخ" />
-                <input type="date" value={dateTo}   onChange={(e) => setDateTo(e.target.value)}   className={selectCls} placeholder="إلى تاريخ" />
+                <EmcDatePicker label="من تاريخ" value={dateFrom} onChange={(v) => setDateFrom(v)} />
+                <EmcDatePicker label="إلى تاريخ" value={dateTo} onChange={(v) => setDateTo(v)} />
               </div>
             </motion.div>
           )}
