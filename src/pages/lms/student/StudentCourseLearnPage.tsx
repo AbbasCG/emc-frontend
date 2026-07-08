@@ -273,19 +273,39 @@ export default function StudentCourseLearnPage() {
 
   const assignments = useMemo(() => {
     const seen = new Set<number>()
-    const raw = [...(ctx?.assignments ?? [])]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw: any[] = []
+
+    // Course-level assignments first — add their IDs to `seen` so module-level
+    // duplicates (same CA appearing in both buckets) are filtered out.
+    for (const a of ctx?.assignments ?? []) {
+      if (!seen.has(a.id)) {
+        seen.add(a.id)
+        raw.push(a)
+      }
+    }
+    // Module-level assignments, deduped against course-level AND each other.
     for (const mod of ctx?.modules ?? []) {
       for (const a of mod.assignments ?? []) {
         if (!seen.has(a.id)) {
-          raw.push(a)
           seen.add(a.id)
+          raw.push(a)
         }
       }
     }
-    return raw
+
+    const mapped = raw
       .filter((a) => a.visible !== false)
       .map((a) => mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle }))
       .filter((a): a is StudentAssignment => a != null)
+
+    // Final safety dedup by mapped StudentAssignment.id (= course_assignment_id).
+    const finalSeen = new Set<number>()
+    return mapped.filter((a) => {
+      if (finalSeen.has(a.id)) return false
+      finalSeen.add(a.id)
+      return true
+    })
   }, [ctx?.assignments, ctx?.modules, courseId, courseTitle])
 
   const progressPct = useMemo(() => (ctx ? deriveProgressPct(ctx) : 0), [ctx])
@@ -967,14 +987,18 @@ export default function StudentCourseLearnPage() {
 
           {/* ── الواجبات ────────────────────────────────────────────────── */}
           {activeTab === 'assignments' && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-[#22334A]">الواجبات والتكليفات</h2>
-                {assignments.length > 0 && (
-                  <span className="text-[12px] font-bold text-[#22334A]/50">
-                    {doneAssignments} / {assignments.length} مُسلَّمة
-                  </span>
-                )}
+            <div className="space-y-5">
+              {/* Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[#22334A]/[0.06] bg-gradient-to-bl from-white/95 to-blue-50/20 p-6 shadow-sm ring-1 ring-[#22334A]/[0.04]">
+                <div>
+                  <h2 className="text-xl font-black text-[#22334A]">الواجبات والتكليفات</h2>
+                  <p className="mt-1 text-[13px] font-semibold text-[#22334A]/55">
+                    {assignments.length > 0
+                      ? `${assignments.length} واجب متاح · ${doneAssignments} تم تسليمه`
+                      : 'لا توجد واجبات ظاهرة في هذه الدورة حتى الآن'}
+                  </p>
+                </div>
+                <ClipboardList className="h-6 w-6 text-[#EC943C]/70" />
               </div>
 
               {assignments.length === 0 ? (
@@ -987,17 +1011,19 @@ export default function StudentCourseLearnPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {assignments.map((a) => (
-                    <AssignmentCard
-                      key={a.id}
-                      assignment={a}
-                      onSubmit={
-                        ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(a.status))
-                          ? () => setActiveAssignment(a)
-                          : undefined
-                      }
-                    />
-                  ))}
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {assignments.map((a) => (
+                      <AssignmentCard
+                        key={a.id}
+                        assignment={a}
+                        onSubmit={
+                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(a.status))
+                            ? () => setActiveAssignment(a)
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </div>
                   <Link
                     to="/dashboard/student/assignments"
                     className="inline-flex items-center gap-2 text-[12px] font-black text-[#2691C2] hover:underline"

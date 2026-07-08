@@ -1597,6 +1597,7 @@ function AssignmentModalBody({
         submission_type: d.submission_type,
         is_required: d.required !== '0',
         is_visible: d.visible !== '0',
+        status: 'published',
       }
       if (modal.moduleId) body.module_id = modal.moduleId
 

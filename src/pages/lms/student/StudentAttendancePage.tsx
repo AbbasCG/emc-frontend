@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react'
-import { RefreshCw, UserCheck } from 'lucide-react'
-import { DashboardSection } from '@/components/dashboard'
+import { useEffect, useMemo, useState } from 'react'
+import { BookOpen, CheckCircle2, Clock, RefreshCw, UserCheck, XCircle } from 'lucide-react'
 import { LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
 import { fetchStudentAttendance } from '@/api/studentApi'
 import type { StudentAttendanceRecord } from '@/types/lms'
-import { formatDateTime, formatRelativeDate } from '@/utils/dateTime'
+import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'
+
+// ── Status helpers ──────────────────────────────────────────────────────────
 
 const STATUS_LABELS: Record<string, string> = {
   present: 'حاضر',
-  absent: 'غائب',
-  late: 'متأخر',
+  absent:  'غائب',
+  late:    'متأخر',
   excused: 'معذور',
 }
 
@@ -18,30 +19,101 @@ function statusLabel(raw: string): string {
   const key = raw.trim().toLowerCase()
   if (STATUS_LABELS[key]) return STATUS_LABELS[key]
   if (key.includes('present') || key.includes('حاض')) return 'حاضر'
-  if (key.includes('absent') || key.includes('غائ')) return 'غائب'
-  if (key.includes('late') || key.includes('متأ')) return 'متأخر'
-  if (key.includes('excuse') || key.includes('معذ')) return 'معذور'
+  if (key.includes('absent')  || key.includes('غائ')) return 'غائب'
+  if (key.includes('late')    || key.includes('متأ')) return 'متأخر'
+  if (key.includes('excuse')  || key.includes('معذ')) return 'معذور'
   return raw.trim() || '—'
+}
+
+function statusColors(raw: string): string {
+  const s = statusLabel(raw)
+  if (s === 'حاضر')  return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  if (s === 'غائب')  return 'bg-red-50 text-red-700 border-red-200'
+  if (s === 'متأخر') return 'bg-amber-50 text-amber-700 border-amber-200'
+  if (s === 'معذور') return 'bg-blue-50 text-blue-700 border-blue-200'
+  return 'bg-slate-50 text-slate-600 border-slate-200'
+}
+
+function statusIcon(raw: string) {
+  const s = statusLabel(raw)
+  if (s === 'حاضر')  return <CheckCircle2 className="h-3 w-3" />
+  if (s === 'غائب')  return <XCircle className="h-3 w-3" />
+  if (s === 'متأخر') return <Clock className="h-3 w-3" />
+  return <UserCheck className="h-3 w-3" />
 }
 
 function sessionWhen(row: StudentAttendanceRecord): string {
   const raw = row.starts_at ?? row.date
   if (!raw) return '—'
-  const rel = formatRelativeDate(raw)
-  if (rel.startsWith('اليوم') || rel.startsWith('أمس') || rel.startsWith('منذ')) return rel
-  return formatDateTime(raw)
+  return formatLmsDateTime(raw)
 }
 
-function markedWhen(raw: string | null | undefined): string {
-  if (!raw) return '—'
-  return formatRelativeDate(raw)
+// ── Stat Card ───────────────────────────────────────────────────────────────
+
+function StatCard({
+  label,
+  value,
+  colorClass,
+}: {
+  label: string
+  value: string | number
+  colorClass: string
+}) {
+  return (
+    <div className={`rounded-2xl border p-4 ${colorClass}`}>
+      <p className="text-[11px] font-black uppercase tracking-wide opacity-60">{label}</p>
+      <p className="mt-1.5 text-2xl font-black tabular-nums leading-none">{value}</p>
+    </div>
+  )
 }
+
+// ── Attendance Card ─────────────────────────────────────────────────────────
+
+function AttendanceCard({ row }: { row: StudentAttendanceRecord }) {
+  const when = sessionWhen(row)
+  const sl   = statusLabel(String(row.status))
+  const sc   = statusColors(String(row.status))
+
+  return (
+    <article className="flex flex-col gap-3 rounded-2xl border border-[#22334A]/[0.07] bg-white p-4 shadow-sm transition hover:shadow-md">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black ${sc}`}>
+          {statusIcon(String(row.status))}
+          {sl}
+        </span>
+        {row.course_title && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-[#2691C2]/20 bg-[#2691C2]/[0.06] px-2.5 py-1 text-[11px] font-bold text-[#1a6fa0]">
+            <BookOpen className="h-3 w-3" />
+            {row.course_title}
+          </span>
+        )}
+      </div>
+
+      <h3 className="text-[14px] font-black leading-snug text-[#0F172A]">{row.session_title}</h3>
+
+      {when !== '—' && (
+        <div className="flex items-center gap-2 rounded-xl border border-[#22334A]/[0.07] bg-slate-50/70 px-3 py-2">
+          <Clock className="h-3.5 w-3.5 shrink-0 text-[#22334A]/40" />
+          <p className="text-[12px] font-bold tabular-nums text-[#22334A]">{when}</p>
+        </div>
+      )}
+
+      {row.notes?.trim() && (
+        <p className="rounded-xl border border-[#22334A]/[0.06] bg-slate-50/50 px-3 py-2 text-[12px] font-medium leading-relaxed text-[#0F172A]/70">
+          {row.notes}
+        </p>
+      )}
+    </article>
+  )
+}
+
+// ── Page ────────────────────────────────────────────────────────────────────
 
 export default function StudentAttendancePage() {
-  const [rows, setRows] = useState<StudentAttendanceRecord[]>([])
-  const [loading, setLoading] = useState(true)
+  const [rows, setRows]         = useState<StudentAttendanceRecord[]>([])
+  const [loading, setLoading]   = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError]       = useState<string | null>(null)
 
   async function load(mode: 'initial' | 'refresh' = 'initial') {
     if (mode === 'initial') setLoading(true)
@@ -58,83 +130,83 @@ export default function StudentAttendancePage() {
     }
   }
 
-  useEffect(() => {
-    void load('initial')
-  }, [])
+  useEffect(() => { void load('initial') }, [])
+
+  const stats = useMemo(() => {
+    const present = rows.filter((r) => statusLabel(String(r.status)) === 'حاضر').length
+    const absent  = rows.filter((r) => statusLabel(String(r.status)) === 'غائب').length
+    const late    = rows.filter((r) => statusLabel(String(r.status)) === 'متأخر').length
+    const total   = rows.length
+    const pct     = total > 0 ? Math.round(((present + late) / total) * 100) : null
+    return { present, absent, late, total, pct }
+  }, [rows])
 
   if (loading && rows.length === 0) return <LmsPageSkeleton />
 
   return (
-    <div className="space-y-10 text-right rtl" dir="rtl">
-      <header className="flex flex-wrap items-start justify-between gap-4 rounded-[1.35rem] border border-deepBlue/[0.06] bg-white p-6 shadow-sm ring-1 ring-deepBlue/[0.04]">
+    <div className="space-y-6 pb-10 text-right" dir="rtl">
+
+      {/* Header */}
+      <header className="flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-[#22334A]/[0.06] bg-gradient-to-bl from-white/95 to-[#2691C2]/[0.03] p-6 shadow-sm ring-1 ring-[#22334A]/[0.04]">
         <div>
-          <h1 className="text-xl font-black text-deepBlue">سجل الحضور</h1>
-          <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-muted-700">
-            سجل حضورك في الجلسات من{' '}
-            <span className="font-mono text-[11px]">GET /student/attendance</span>.
+          <h1 className="text-2xl font-black text-[#22334A]">سجل الحضور</h1>
+          <p className="mt-1.5 text-[13px] font-semibold text-[#22334A]/55">
+            متابعة حضورك في جميع جلسات دوراتك المسجّلة
           </p>
-          {error ?
+          {error && (
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
               {error}
             </p>
-          : null}
+          )}
         </div>
         <button
           type="button"
           onClick={() => void load('refresh')}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 rounded-2xl border border-deepBlue/10 bg-deepBlue/[0.04] px-4 py-2 text-[11px] font-black text-deepBlue transition hover:bg-deepBlue/[0.07] disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-2xl border border-[#22334A]/10 bg-[#22334A]/[0.04] px-4 py-2 text-[11px] font-black text-[#22334A] transition hover:bg-[#22334A]/[0.07] disabled:opacity-60"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
-          تحديث
+          {refreshing ? 'جارٍ التحديث…' : 'تحديث'}
         </button>
       </header>
 
       <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
-      <DashboardSection title="سجل الجلسات" subtitle="الدورة، الجلسة، التاريخ، الحالة، والملاحظات.">
-        {rows.length === 0 ?
+      {/* Stats */}
+      {rows.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard label="إجمالي الجلسات" value={stats.total} colorClass="border-[#22334A]/[0.07] bg-white text-[#22334A]" />
+          <StatCard label="حاضر" value={stats.present} colorClass="border-emerald-200/70 bg-emerald-50/60 text-emerald-700" />
+          <StatCard label="غائب" value={stats.absent} colorClass="border-red-200/70 bg-red-50/60 text-red-700" />
+          <StatCard
+            label="نسبة الحضور"
+            value={stats.pct != null ? `${stats.pct}%` : '—'}
+            colorClass={
+              stats.pct == null ? 'border-slate-200 bg-slate-50 text-slate-500'
+              : stats.pct >= 80 ? 'border-emerald-200/70 bg-emerald-50/60 text-emerald-700'
+              : stats.pct >= 60 ? 'border-amber-200/70 bg-amber-50/60 text-amber-700'
+              : 'border-red-200/70 bg-red-50/60 text-red-700'
+            }
+          />
+        </div>
+      )}
+
+      {/* Cards */}
+      {rows.length === 0 ? (
+        <div className="rounded-3xl bg-white/80 ring-1 ring-[#22334A]/[0.06]">
           <LmsEmptyState
             icon={UserCheck}
             title="لا توجد سجلات حضور بعد"
             description="عند تسجيل حضورك في الجلسات ستظهر هنا."
           />
-        : <div className="overflow-x-auto rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm ring-1 ring-deepBlue/[0.04]">
-            <table className="min-w-full text-right text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/90 text-[11px] font-black text-slate-500">
-                  <th className="px-4 py-3">الدورة</th>
-                  <th className="px-4 py-3">الجلسة</th>
-                  <th className="px-4 py-3">التاريخ والوقت</th>
-                  <th className="px-4 py-3">الحالة</th>
-                  <th className="px-4 py-3">ملاحظات</th>
-                  <th className="px-4 py-3">تاريخ التسجيل</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((row) => (
-                  <tr key={row.id} className="text-[12px] font-semibold text-deepBlue">
-                    <td className="px-4 py-3">{row.course_title ?? '—'}</td>
-                    <td className="px-4 py-3">{row.session_title}</td>
-                    <td className="px-4 py-3 whitespace-nowrap" dir="ltr">
-                      {sessionWhen(row)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-black text-customBlue ring-1 ring-sky-100">
-                        {statusLabel(String(row.status))}
-                      </span>
-                    </td>
-                    <td className="max-w-[200px] px-4 py-3 text-slate-600">{row.notes?.trim() || '—'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-slate-500" dir="ltr">
-                      {markedWhen(row.marked_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        }
-      </DashboardSection>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((row) => (
+            <AttendanceCard key={row.id} row={row} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

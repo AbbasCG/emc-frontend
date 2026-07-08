@@ -5,7 +5,7 @@ import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentSessionsPage() {
-  const { loading, refreshing, loadError, refresh, sessionsUpcoming, sessionsCompleted, registrations } =
+  const { loading, refreshing, loadError, refresh, sessionsUpcoming, sessionsCompleted } =
     useStudentDashboardData()
 
   if (loading && sessionsUpcoming.length === 0 && sessionsCompleted.length === 0) {
@@ -18,8 +18,7 @@ export default function StudentSessionsPage() {
         <div>
           <h1 className="text-xl font-black text-deepBlue">جلساتي</h1>
           <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-muted-700">
-            جلسات مجمّعة من <span className="font-mono text-[11px]">GET /student/sessions</span> ولوحة الطالب، ومقيّدة بدوراتك
-            المسجّلة ({registrations.length} تسجيل).
+            جميع جلساتك القادمة والمنتهية ضمن دوراتك المسجّلة.
           </p>
           {loadError ?
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">

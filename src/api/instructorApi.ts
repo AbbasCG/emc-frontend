@@ -126,6 +126,7 @@ export type InstructorDashboardStats = {
   courses: TeachingCourseLms[]
   classes: ClassGroup[]
   sessions: LmsSession[]
+  submissions: InstructorSubmission[]
   studentsCount: number
   submissionsPending: number
   attendancePending: number
@@ -168,6 +169,7 @@ export async function fetchInstructorDashboardStats(): Promise<InstructorDashboa
     courses,
     classes,
     sessions,
+    submissions,
     studentsCount: dashboard?.student_count ?? students.length,
     submissionsPending,
     attendancePending: dashboard?.attendance_pending_count ?? 0,

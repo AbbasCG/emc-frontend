@@ -62,7 +62,6 @@ const StudentMaterialsPage       = lazy(() => import('./pages/lms/student/Studen
 const StudentAssignmentsPage     = lazy(() => import('./pages/lms/student/StudentAssignmentsPage'))
 const StudentAttendancePage      = lazy(() => import('./pages/lms/student/StudentAttendancePage'))
 const StudentProgressPage        = lazy(() => import('./pages/lms/student/StudentProgressPage'))
-const StudentEvaluationPage      = lazy(() => import('./pages/lms/student/StudentEvaluationPage'))
 const PlacementTestPage          = lazy(() => import('./pages/lms/student/PlacementTestPage'))
 const PlacementResultPage        = lazy(() => import('./pages/lms/student/PlacementResultPage'))
 const OralBookingPage            = lazy(() => import('./pages/lms/student/OralBookingPage'))
@@ -526,7 +525,7 @@ function App() {
                   <Route path="/dashboard/student/materials" element={<StudentMaterialsPage />} />
                   <Route path="/dashboard/student/assignments/:submissionId?" element={<StudentAssignmentsPage />} />
                   <Route path="/dashboard/student/progress" element={<StudentProgressPage />} />
-                  <Route path="/dashboard/student/evaluation" element={<StudentEvaluationPage />} />
+                  <Route path="/dashboard/student/evaluation" element={<Navigate to="/dashboard/student" replace />} />
                   <Route path="/dashboard/certificates" element={<Suspense fallback={<RouteFallback />}><StudentCertificatesLmsPage /></Suspense>} />
                   <Route path="/dashboard/student/my-certificates" element={<Suspense fallback={<RouteFallback />}><StudentCertificatesLmsPage /></Suspense>} />
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />

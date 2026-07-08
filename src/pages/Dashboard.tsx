@@ -3,11 +3,9 @@ import {
   BookOpen,
   Calendar,
   CheckCircle,
-  ChevronLeft,
   ClipboardList,
   GraduationCap,
   Radio,
-  RefreshCw,
   ScrollText,
   TrendingUp,
 } from 'lucide-react'
@@ -27,6 +25,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { formatDateTime } from '@/utils/dateTime'
+import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { getUserAvatarUrl, getUserInitials } from '@/utils/userIdentity'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import type { LmsSession } from '@/types/lms'
@@ -284,8 +283,6 @@ export default function Dashboard() {
   const {
     loading,
     loadError,
-    refresh,
-    refreshing,
     lmsDashboard,
     enrollmentsMerged,
     sessionsLive,
@@ -325,7 +322,8 @@ export default function Dashboard() {
       : currentCourses
 
   const certificates     = Array.isArray(lmsDashboard.certificates) ? [...lmsDashboard.certificates] : []
-  const pendingDueCount  = counts.pending_assignments_count
+  // Use actual list length so KPI always matches what is displayed
+  const pendingDueCount  = pendingAssignments.length > 0 ? pendingAssignments.length : counts.pending_assignments_count
   const activeCount      = counts.active_courses_count
   const unreadCount      = notificationsUnread || counts.unread_notifications_count
   const hasSessions      = sessionsLive.length + sessionsUpcoming.length + sessionsEnded.length > 0
@@ -363,10 +361,10 @@ export default function Dashboard() {
         avatarInitials={avatarInitials}
         actions={
           <>
-            <HeroChip href="/dashboard/student/materials"  label="المواد التعليمية" />
-            <HeroChip href="/dashboard/student/sessions"   label="جدول الجلسات" />
-            <HeroChip href="/dashboard/student/attendance" label="سجل الحضور" />
-            <HeroChip href="/dashboard/student/evaluation" label="تقييم التجربة" />
+            <HeroChip href="/dashboard/student/materials"    label="المواد التعليمية" />
+            <HeroChip href="/dashboard/student/sessions"     label="جدول الجلسات" />
+            <HeroChip href="/dashboard/student/attendance"   label="سجل الحضور" />
+            <HeroChip href="/dashboard/student/assignments"  label="واجباتي" />
           </>
         }
       />
@@ -473,35 +471,59 @@ export default function Dashboard() {
       </div>
 
       {/* ── Pending Assignments ─────────────────────────────────────────────── */}
-      {pendingAssignments.length > 0 && (
+      {!loading && (
         <DashboardSection
           title="واجبات تنتظر تسليمك"
-          action={{ label: 'الكل', href: '/dashboard/student/assignments' }}
+          action={pendingAssignments.length > 0 ? { label: 'واجباتي كاملاً', href: '/dashboard/student/assignments' } : undefined}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
-            {pendingAssignments.slice(0, 4).map((a) => (
-              <Link
-                key={a.id}
-                to={`/dashboard/student/assignments?submit=${a.assignment_id ?? a.id}`}
-                className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 ring-1 ring-amber-100 transition hover:border-amber-300"
-              >
-                <div className="min-w-0 text-right">
-                  <p className="line-clamp-1 text-[13px] font-black text-deepBlue">{a.title}</p>
-                  {a.course_name && (
-                    <p className="mt-0.5 text-[11px] font-bold text-slate-500">{a.course_name}</p>
-                  )}
-                  {a.due_at && (
-                    <p className="mt-1 text-[10px] font-bold text-amber-700" dir="ltr">
-                      {formatDateTime(a.due_at)}
-                    </p>
-                  )}
-                </div>
-                <span className="shrink-0 rounded-full bg-amber-500/90 px-2.5 py-1 text-[10px] font-black text-white">
-                  مطلوب
-                </span>
-              </Link>
-            ))}
-          </div>
+          {pendingAssignments.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="لا توجد واجبات تنتظر التسليم"
+              description="عند إضافة واجبات جديدة ضمن دوراتك ستظهر هنا."
+            />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {pendingAssignments.slice(0, 4).map((a) => {
+                const courseId = a.course_id
+                const learnHref = courseId
+                  ? studentLearnHref(courseId)
+                  : '/dashboard/student/courses'
+                return (
+                  <div
+                    key={a.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 ring-1 ring-amber-100"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="shrink-0 rounded-full bg-amber-500/90 px-2.5 py-1 text-[10px] font-black text-white">
+                        مطلوب
+                      </span>
+                      <div className="min-w-0 flex-1 text-right">
+                        <p className="line-clamp-1 text-[13px] font-black text-deepBlue">{a.title}</p>
+                        {a.course_name && (
+                          <p className="mt-0.5 text-[11px] font-bold text-slate-500">{a.course_name}</p>
+                        )}
+                      </div>
+                    </div>
+                    {a.due_at && (
+                      <div className="flex items-center gap-1.5 rounded-xl border border-amber-200/50 bg-amber-50 px-3 py-1.5">
+                        <Calendar size={11} className="shrink-0 text-amber-600" />
+                        <p className="text-[10px] font-black text-amber-700">
+                          الموعد النهائي: <span dir="ltr">{formatLmsDateTime(a.due_at)}</span>
+                        </p>
+                      </div>
+                    )}
+                    <Link
+                      to={learnHref}
+                      className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-amber-500 py-2 text-[11px] font-black text-white transition hover:brightness-105"
+                    >
+                      تسليم الواجب
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </DashboardSection>
       )}
 
@@ -569,45 +591,6 @@ export default function Dashboard() {
         </DashboardSection>
       )}
 
-      {/* ── Evaluation CTA ──────────────────────────────────────────────────── */}
-      <motion.section
-        layout
-        className="rounded-2xl border border-customOrange/25 bg-customOrange/[0.06] px-6 py-5 shadow-inner ring-1 ring-customOrange/20"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-4 rtl:flex-row-reverse">
-          <div className="min-w-[12rem] text-right">
-            <h3 className="text-sm font-black text-deepBlue">قيِّم تجربتك التعليمية</h3>
-            <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-600">
-              {counts.completed_courses_count > 0 ? (
-                <>
-                  أكملت <span className="font-black text-deepBlue">{counts.completed_courses_count}</span> دورة —
-                  شاركنا رأيك.
-                </>
-              ) : (
-                'سيُفعَّل هذا بعد إتمام أول دورة.'
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => void refresh()}
-              disabled={refreshing}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-slate-500 transition hover:border-customBlue hover:text-customBlue disabled:opacity-50"
-              title="تحديث البيانات"
-            >
-              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
-              تحديث
-            </button>
-            <Link
-              to="/dashboard/student/evaluation"
-              className="flex items-center gap-1.5 rounded-xl bg-customOrange px-4 py-2.5 text-[11px] font-black text-white shadow-md transition hover:brightness-105"
-            >
-              الانتقال للتقييم
-              <ChevronLeft size={13} />
-            </Link>
-          </div>
-        </div>
-      </motion.section>
     </div>
   )
 }

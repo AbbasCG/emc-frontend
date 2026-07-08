@@ -10,6 +10,7 @@ import {
   PLACEMENT_LEVELS,
   type PlacementAttempt,
 } from '@/api/placementApi'
+import { fmtDate } from '@/components/lms/lmsFormatters'
 
 type AttemptRow = {
   courseId: number
@@ -33,16 +34,6 @@ const STATUS_COLOR: Record<string, string> = {
 
 const DONE_STATUSES = new Set(['written_submitted', 'oral_booked', 'oral_completed', 'completed'])
 
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleDateString('ar-SA', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    })
-  } catch {
-    return iso
-  }
-}
 
 export default function StudentExamsPage() {
   const { enrollmentsMerged, loading: enrollLoading } = useStudentDashboardData()
@@ -152,7 +143,7 @@ export default function StudentExamsPage() {
                     <h2 className="mt-0.5 text-[15px] font-black text-deepBlue">{courseTitle}</h2>
                     {attempt.created_at && (
                       <p className="mt-0.5 text-[11px] font-semibold text-deepBlue/45">
-                        بتاريخ: {formatDate(attempt.created_at)}
+                        بتاريخ: {fmtDate(attempt.created_at)}
                       </p>
                     )}
                   </div>
@@ -200,7 +191,7 @@ export default function StudentExamsPage() {
                           <span className="text-[12px] font-black">محجوزة</span>
                         </div>
                         <p className="mt-0.5 text-[10px] font-semibold text-deepBlue/45">
-                          {formatDate(attempt.oral_booking_at)}
+                          {fmtDate(attempt.oral_booking_at)}
                         </p>
                       </>
                     ) : attempt.status === 'written_submitted' ? (

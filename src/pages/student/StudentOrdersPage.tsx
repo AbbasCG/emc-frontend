@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, FileText, Loader2, Receipt, ShoppingBag, TrendingUp, X, XCircle } from 'lucide-react'
 import { getStudentOrders, type Order } from '@/api/checkoutApi'
 import toast from '@/lib/toast'
+import { fmtDate } from '@/components/lms/lmsFormatters'
 
 const STATUS_AR: Record<string, { label: string; cls: string }> = {
   pending:  { label: 'قيد الانتظار', cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'   },
@@ -16,10 +17,6 @@ function fmtCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
 }
 
-function fmtDate(d: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-}
 
 function KpiCard({ icon: Icon, label, value, accent }: {
   icon: React.ElementType; label: string; value: string; accent?: string

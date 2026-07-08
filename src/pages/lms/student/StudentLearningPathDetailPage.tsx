@@ -17,19 +17,12 @@ import {
 } from 'lucide-react'
 import { fetchStudentLearningPath, type StudentEnrollment } from '../../../api/learningPathsApi'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
+import { fmtDate } from '@/components/lms/lmsFormatters'
 
 function fmt(n: number): string {
   return new Intl.NumberFormat('en-US').format(n)
 }
 
-function fmtDate(iso: string): string {
-  return new Intl.DateTimeFormat('ar', {
-    numberingSystem: 'latn',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(iso))
-}
 
 function certStatusLabel(status: string): { label: string; color: string; bg: string } {
   const s = status.toLowerCase()

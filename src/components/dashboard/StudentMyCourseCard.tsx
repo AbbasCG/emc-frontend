@@ -19,6 +19,7 @@ import type { Course, Enrollment } from '@/types'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
 import { getLevelFromScore, progressFromStatus } from '@/api/placementApi'
+import { fmtDate, formatStudentDateTime } from '@/components/lms/lmsFormatters'
 
 const CEFR_CODE: Record<string, string> = {
   beginner:           'Starter',
@@ -36,15 +37,6 @@ function hasScheduledDate(course: Course): boolean {
   return s !== '' && s !== '—'
 }
 
-function formatArabicDate(dateStr: string): string {
-  try {
-    return new Intl.DateTimeFormat('ar', {
-      day: 'numeric', month: 'long', year: 'numeric',
-      timeZone: 'Europe/Amsterdam',
-    }).format(new Date(dateStr + 'T00:00:00'))
-  } catch { return dateStr }
-}
-
 function stripSeconds(t: string): string {
   return String(t).slice(0, 5)
 }
@@ -52,12 +44,12 @@ function stripSeconds(t: string): string {
 function formatScheduleLine(course: Course): string | null {
   if (!hasScheduledDate(course)) return null
   const dateStr = String(course.start_date).slice(0, 10)
-  const formattedDate = formatArabicDate(dateStr)
+  const formattedDate = fmtDate(dateStr)
   const cx = course as Record<string, unknown>
   const startTime = cx.start_time ? stripSeconds(String(cx.start_time)) : null
   const endTime   = cx.end_time   ? stripSeconds(String(cx.end_time))   : null
-  if (startTime && endTime) return `${formattedDate} • ${startTime} - ${endTime}`
-  if (startTime)             return `${formattedDate} • ${startTime}`
+  if (startTime && endTime) return `${formattedDate}، ${startTime} - ${endTime}`
+  if (startTime)             return `${formattedDate}، ${startTime}`
   return formattedDate
 }
 
@@ -199,7 +191,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
         {scheduleLine ? (
           <div className="mt-3 flex items-start gap-2 rounded-2xl border border-customBlue/15 bg-customBlue/[0.05] px-3 py-2.5 text-[11px] font-bold text-deepBlue">
             <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-customBlue" aria-hidden />
-            <span dir="ltr" className="flex-1 text-right">{scheduleLine}</span>
+            <span className="flex-1 text-right">{scheduleLine}</span>
           </div>
         ) : (
           <div className="mt-3 rounded-2xl border border-orange-200/80 bg-orange-50/80 px-3 py-2.5 text-[11px] font-bold text-deepBlue/70">
@@ -263,16 +255,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-deepBlue/70">
               <Clock className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden />
-              <span dir="ltr" className="font-mono tabular-nums">
-                {(() => {
-                  try {
-                    const d = new Date(oralBookingStartsAt)
-                    const date = d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
-                    const time = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-                    return `${date} — ${time}`
-                  } catch { return oralBookingStartsAt }
-                })()}
-              </span>
+              <span>{formatStudentDateTime(oralBookingStartsAt)}</span>
             </p>
           </div>
         )}

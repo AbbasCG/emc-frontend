@@ -19,13 +19,10 @@ import {
 import { notifyNotificationsRefresh } from '@/api/notificationsApi'
 import toast from '@/lib/toast'
 import { BackButton } from '@/components/shared/BackButton'
+import { formatStudentDateWithWeekday, formatStudentDateShort } from '@/components/lms/lmsFormatters'
 
 /* ── Helpers ────────────────────────────────────────────────────────────────── */
 
-function safeDate(d: string): Date {
-  const iso = /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d}T00:00:00` : d
-  return new Date(iso)
-}
 
 function groupByDate(slots: OralSlot[]): Map<string, OralSlot[]> {
   const map = new Map<string, OralSlot[]>()
@@ -46,19 +43,6 @@ function groupByInstructor(slots: OralSlot[]): Array<{ name: string; slots: Oral
   return [...map.entries()].map(([name, slots]) => ({ name, slots }))
 }
 
-function formatDateAr(d: string): string {
-  try {
-    return safeDate(d).toLocaleDateString('ar-SA', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-    })
-  } catch { return d }
-}
-
-function formatDateShort(d: string): string {
-  try {
-    return safeDate(d).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' })
-  } catch { return d }
-}
 
 /* ── Page ───────────────────────────────────────────────────────────────────── */
 
@@ -139,7 +123,7 @@ export default function OralBookingPage() {
           <h2 className="text-[20px] font-black text-deepBlue">تم حجز المقابلة بنجاح</h2>
           {selected && (
             <p className="mt-2 text-[13px] font-semibold text-deepBlue/55">
-              {formatDateAr(selected.date)} — {selected.time}
+              {formatStudentDateWithWeekday(selected.date)} — {selected.time}
             </p>
           )}
           {selected?.instructor_name && (
@@ -240,7 +224,7 @@ export default function OralBookingPage() {
                       : 'border border-slate-200 bg-white text-deepBlue/55 hover:text-deepBlue'
                   }`}
                 >
-                  {formatDateShort(d)}
+                  {formatStudentDateShort(d)}
                 </button>
               ))}
             </div>
@@ -257,7 +241,7 @@ export default function OralBookingPage() {
               <ChevronRight className="h-5 w-5" />
             </button>
             <div className="flex-1 text-center">
-              <p className="text-[14px] font-black text-deepBlue">{formatDateAr(currentDate)}</p>
+              <p className="text-[14px] font-black text-deepBlue">{formatStudentDateWithWeekday(currentDate)}</p>
               <p className="text-[11px] font-semibold text-deepBlue/40">
                 {availableCount} موعد متاح
               </p>
@@ -342,7 +326,7 @@ export default function OralBookingPage() {
                     <Clock className="h-3.5 w-3.5 shrink-0 text-customBlue" />
                     <span className="font-mono font-black tabular-nums text-deepBlue">{selected.time}</span>
                     <span className="text-deepBlue/35">·</span>
-                    <span>{formatDateAr(selected.date)}</span>
+                    <span>{formatStudentDateWithWeekday(selected.date)}</span>
                   </div>
                   {selected.instructor_name && (
                     <div className="flex items-center gap-2 text-[12px] font-semibold text-deepBlue/60">
