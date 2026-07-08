@@ -95,7 +95,8 @@ const AdminCertificateAnalyticsPage    = lazy(() => import('./pages/lms/admin/Ad
 const StudentCertificatesLmsPage    = lazy(() => import('./pages/lms/student/StudentCertificatesPage'))
 const PaymentSuccessPage            = lazy(() => import('./pages/student/PaymentSuccessPage'))
 const StudentOrdersPage             = lazy(() => import('./pages/student/StudentOrdersPage'))
-const FinanceOrdersPage             = lazy(() => import('./pages/finance/FinanceOrdersPage'))
+const FinanceOrdersPage             = lazy(() => import('./pages/intelligence/admin/FinanceOrdersPage'))
+const FinanceInvoicesPage           = lazy(() => import('./pages/intelligence/admin/FinanceInvoicesPage'))
 const FinanceFinancialRequestsPage  = lazy(() => import('./pages/finance/FinanceFinancialRequestsPage'))
 const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
 const ExecutiveFinancialRequestsPage  = lazy(() => import('./pages/executive/ExecutiveFinancialRequestsPage'))
@@ -465,7 +466,7 @@ function App() {
                   <Route path="/dashboard/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/finance/transactions" element={<FinanceTransactionsPage />} />
                   <Route path="/dashboard/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
-                  <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceInvoicesPage /></Suspense>} />
                   <Route path="/dashboard/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/quality" element={<QualityDashboardPage />} />
                   <Route path="/dashboard/quality/reviews" element={<QualityReviewsPage />} />
@@ -568,7 +569,7 @@ function App() {
                   <Route path="/dashboard/admin/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/admin/finance/transactions" element={<FinanceTransactionsPage />} />
                   <Route path="/dashboard/admin/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
-                  <Route path="/dashboard/admin/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
+                  <Route path="/dashboard/admin/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceInvoicesPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/admin/coupons" element={<CouponsAdminPage />} />
                   <Route path="/dashboard/admin/scholarships" element={<ScholarshipsAdminPage />} />

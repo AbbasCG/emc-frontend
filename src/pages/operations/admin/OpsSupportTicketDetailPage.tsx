@@ -283,31 +283,29 @@ interface PortalDropdownProps {
 }
 
 function PortalDropdown({ open, triggerRef, onClose, children, width }: PortalDropdownProps) {
-  const [pos, setPos] = useState({ top: 0, left: 0, w: 0 })
+  const [pos, setPos] = useState({ top: 0, right: 0, w: 0 })
   const contentRef = useRef<HTMLDivElement>(null)
 
-  useLayoutEffect(() => {
-    if (open && triggerRef.current) {
+  const updatePos = useCallback(() => {
+    if (triggerRef.current) {
       const r = triggerRef.current.getBoundingClientRect()
-      setPos({ top: r.bottom + 6, left: r.left, w: width ?? r.width })
+      setPos({ top: r.bottom + 6, right: window.innerWidth - r.right, w: width ?? r.width })
     }
-  }, [open, triggerRef, width])
+  }, [triggerRef, width])
+
+  useLayoutEffect(() => {
+    if (open) updatePos()
+  }, [open, updatePos])
 
   useEffect(() => {
     if (!open) return
-    function update() {
-      if (triggerRef.current) {
-        const r = triggerRef.current.getBoundingClientRect()
-        setPos({ top: r.bottom + 6, left: r.left, w: width ?? r.width })
-      }
-    }
-    window.addEventListener('scroll', update, true)
-    window.addEventListener('resize', update)
+    window.addEventListener('scroll', updatePos, true)
+    window.addEventListener('resize', updatePos)
     return () => {
-      window.removeEventListener('scroll', update, true)
-      window.removeEventListener('resize', update)
+      window.removeEventListener('scroll', updatePos, true)
+      window.removeEventListener('resize', updatePos)
     }
-  }, [open, triggerRef, width])
+  }, [open, updatePos])
 
   useEffect(() => {
     if (!open) return
@@ -340,7 +338,7 @@ function PortalDropdown({ open, triggerRef, onClose, children, width }: PortalDr
         style={{
           position: 'fixed',
           top: pos.top,
-          left: pos.left,
+          right: pos.right,
           width: pos.w,
           zIndex: 99999,
         }}
@@ -585,7 +583,6 @@ function AssignmentCard({
           open={open}
           triggerRef={triggerRef as React.RefObject<HTMLElement | null>}
           onClose={() => setOpen(false)}
-          width={triggerRef.current?.getBoundingClientRect().width}
         >
           {/* Search */}
           <div className="border-b border-slate-100 p-3">
@@ -1275,15 +1272,22 @@ export default function OpsSupportTicketDetailPage() {
     catch { toast.error('فشل التحديث'); setTicket({ ...ticket, priority: prev }) }
   }
 
-  async function handleAssign(user: AssigneeUser) {
+  async function handleAssign(assignee: AssigneeUser) {
     if (!ticket) return
-    await assignSupportTicket(ticket.id, user.id)
+    await assignSupportTicket(ticket.id, assignee.id)
     setTicket({
       ...ticket,
-      assigned_to: { id: user.id, name: user.name, email: user.email ?? undefined, role: user.role ?? undefined, department: user.department ?? undefined },
+      assigned_to: {
+        id: assignee.id,
+        name: assignee.name,
+        email: assignee.email ?? undefined,
+        role: assignee.role ?? undefined,
+        department: assignee.department ?? undefined,
+        avatar: assignee.avatar ?? null,
+      },
       status: ticket.status === 'new' ? 'in_progress' : ticket.status,
     })
-    toast.success(`تم التعيين إلى ${user.name}`)
+    toast.success(`تم التعيين إلى ${assignee.name}`)
   }
 
   async function handleResolve() {
@@ -1528,7 +1532,7 @@ export default function OpsSupportTicketDetailPage() {
           </motion.div>
 
           {/* ══ TWO COLUMN LAYOUT ══════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[340px_1fr]">
+          <div dir="rtl" className="grid grid-cols-1 gap-6 xl:grid-cols-[340px_1fr]">
 
             {/* ── RIGHT: Sidebar (first in DOM → right column in RTL) ──── */}
             <div className="space-y-5">

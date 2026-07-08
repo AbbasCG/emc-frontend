@@ -12,15 +12,34 @@ export async function fetchSupportTickets(params?: Record<string, string>): Prom
   }
 }
 
+function pickAvatar(u: Record<string, unknown>): string | null {
+  return (u.avatar_url ?? u.profile_photo_url ?? u.photo_url ?? u.image ?? u.avatar) as string | null ?? null
+}
+
 export async function fetchSupportTicket(id: number): Promise<SupportTicketDetail> {
   const res = await apiClient.get<unknown>(`/operations/support-tickets/${id}`)
-  return unwrapLms<SupportTicketDetail>(res.data)
+  const ticket = unwrapLms<SupportTicketDetail>(res.data)
+  if (ticket?.assigned_to) {
+    ticket.assigned_to.avatar = pickAvatar(ticket.assigned_to as unknown as Record<string, unknown>)
+  }
+  return ticket
 }
 
 export async function fetchSupportTicketAssignees(): Promise<AssigneeUser[]> {
   const res = await apiClient.get<unknown>('/operations/support-tickets/assignees')
-  const raw = res.data as any
-  return raw?.data ?? []
+  const raw = res.data as { data?: unknown[] }
+  return (raw?.data ?? []).map((u) => {
+    const r = u as Record<string, unknown>
+    return {
+      id: r.id as number,
+      name: r.name as string,
+      email: r.email as string | null,
+      role: r.role as string | null,
+      department: r.department as string | null,
+      active_tickets: r.active_tickets as number | undefined,
+      avatar: pickAvatar(r),
+    }
+  })
 }
 
 export async function fetchTicketActivity(id: number): Promise<TicketActivity[]> {

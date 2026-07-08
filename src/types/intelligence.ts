@@ -20,8 +20,92 @@ export type FinancePaymentRow = {
   currency?: string
   status: PaymentStatus
   provider: PaymentProvider
+  payment_method?: string | null
+  // student
+  student_name?: string | null
+  student_email?: string | null
+  student_phone?: string | null
+  student_avatar?: string | null
+  // item
+  item_title?: string | null
+  item_type?: 'course' | 'workshop' | 'learning_path' | string | null
+  // legacy compat
   course_name?: string | null
   payer_email?: string | null
+  // order
+  order_number?: string | null
+  invoice_number?: string | null
+  order_id?: number | null
+  registration_id?: number | null
+  confirmed_at?: string | null
+  receipt_url?: string | null
+  created_at: string
+}
+
+export type FinanceOrder = {
+  id: number
+  order_number: string
+  type?: string | null
+  subtotal?: number | null
+  tax_amount?: number | null
+  total: number
+  currency: string
+  status: string
+  payment_provider?: string | null
+  paid_at?: string | null
+  created_at: string
+  updated_at?: string | null
+  course?: { id: number; title: string; slug?: string } | null
+  user?: {
+    id?: number
+    name?: string | null
+    email?: string | null
+    phone?: string | null
+    phone_country_code?: string | null
+    city?: string | null
+    country?: string | null
+    avatar_url?: string | null
+  } | null
+  invoice?: { id: number; invoice_number: string; issued_at: string } | null
+}
+
+export type FinanceInvoice = {
+  id: number
+  invoice_number: string
+  issued_at?: string | null
+  order_number?: string | null
+  total?: number | null
+  currency: string
+  status?: string | null
+  course_title?: string | null
+  student_name?: string | null
+  student_email?: string | null
+  has_pdf?: boolean
+}
+
+export type FinanceAccount = {
+  id: number
+  name: string
+  type: string
+  currency: string
+  opening_balance: number
+  current_balance: number
+  notes?: string | null
+  is_active: boolean
+  created_at?: string
+}
+
+export type FinanceAccountTransaction = {
+  id: number
+  finance_account_id: number
+  type: string
+  category?: string | null
+  amount: number
+  currency: string
+  status: string
+  description?: string | null
+  payment_method?: string | null
+  transaction_date: string
   created_at: string
 }
 
