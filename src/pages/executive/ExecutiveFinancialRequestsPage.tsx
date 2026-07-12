@@ -3,6 +3,7 @@ import { RefreshCw, CheckCircle2, XCircle, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { AnimatePresence } from 'framer-motion'
 import type { FinancialRequest } from '@/api/financialRequestsApi'
+import { formatSAR } from '@/utils/currency'
 import { fetchFinancialRequests } from '@/api/financialRequestsApi'
 import FinancialRequestsTable from '@/components/financial/FinancialRequestsTable'
 import FinancialRequestDetailView from '@/components/financial/FinancialRequestDetailView'
@@ -68,7 +69,7 @@ export default function ExecutiveFinancialRequestsPage() {
         <div className="rounded-2xl border border-green-100 bg-gradient-to-br from-green-50 to-emerald-50 p-5">
           <p className="text-[11px] font-black uppercase tracking-wider text-green-600">إجمالي المبالغ المعتمدة</p>
           <p className="mt-2 text-3xl font-black text-green-700">
-            {totalApprovedAmount.toLocaleString('en-US')} <span className="text-lg font-bold">SAR</span>
+            <span dir="ltr">{formatSAR(totalApprovedAmount)}</span>
           </p>
         </div>
       )}

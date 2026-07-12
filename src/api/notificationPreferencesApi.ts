@@ -1,36 +1,32 @@
 import apiClient from './axios'
-import { unwrapData } from './unwrap'
-import type { NotificationPreferenceRow } from '@/types/phase7'
 
-function normalizePreferences(payload: unknown): NotificationPreferenceRow[] | null {
-  const inner = unwrapData<{ preferences?: NotificationPreferenceRow[] } | NotificationPreferenceRow[]>(
-    payload,
-  )
-  if (Array.isArray(inner)) return inner as NotificationPreferenceRow[]
-  if (inner && typeof inner === 'object' && Array.isArray((inner as { preferences: NotificationPreferenceRow[] }).preferences)) {
-    return (inner as { preferences: NotificationPreferenceRow[] }).preferences
-  }
-  return null
+type BackendPrefRow = {
+  id?: number
+  user_id?: number
+  channel: string
+  type: string
+  enabled: boolean
 }
 
-const silent = { skipErrorToast: true }
+const silent = { skipErrorToast: true as const }
 
-export async function fetchNotificationPreferences(): Promise<NotificationPreferenceRow[]> {
+export async function fetchNotificationPreferences(): Promise<BackendPrefRow[]> {
   try {
     const res = await apiClient.get<unknown>('/notifications/preferences', silent)
-    return normalizePreferences(res.data) ?? []
+    const d = res.data as { data?: BackendPrefRow[] | { data?: BackendPrefRow[] } }
+    const inner = d?.data
+    if (Array.isArray(inner)) return inner
+    if (inner && typeof inner === 'object' && Array.isArray((inner as { data?: unknown[] }).data)) {
+      return (inner as { data: BackendPrefRow[] }).data
+    }
+    return []
   } catch {
     return []
   }
 }
 
 export async function updateNotificationPreferences(
-  preferences: NotificationPreferenceRow[],
-): Promise<NotificationPreferenceRow[]> {
-  try {
-    const res = await apiClient.patch<unknown>('/notifications/preferences', { preferences }, silent)
-    return normalizePreferences(res.data) ?? preferences
-  } catch {
-    return preferences
-  }
+  preferences: BackendPrefRow[],
+): Promise<void> {
+  await apiClient.patch('/notifications/preferences', { preferences }, silent)
 }

@@ -110,6 +110,10 @@ const stepAnimation = {
 const glassCard =
   'rounded-3xl border border-white/70 bg-white/75 shadow-[0_20px_60px_-18px_rgba(34,51,74,0.14)] backdrop-blur-md ring-1 ring-slate-200/45'
 
+const helpCardHoverShadow = 'hover:shadow-[0_24px_56px_-14px_rgba(34,51,74,0.22)]'
+
+const GENERAL_CONTACT_PATH = '/contact#general-contact-form'
+
 const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
 const SUCCESS_DESCRIPTION =
   'تم إرسال طلب الورشة بنجاح، وسيقوم فريق EMC بالتواصل معك بعد مراجعة البيانات.'
@@ -825,6 +829,7 @@ export default function SubmitWorkshop() {
                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <EmcDatePicker
                                   label="التاريخ"
+                                  layout="stacked"
                                   value={form[`proposed_date_${n}` as keyof WorkshopFormValues]}
                                   onChange={(v) => updateField(`proposed_date_${n}` as keyof WorkshopFormValues, v)}
                                   error={getError(`proposed_date_${n}`)}
@@ -1009,19 +1014,33 @@ export default function SubmitWorkshop() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className={cn(glassCard, 'overflow-hidden')}
             >
-              <div className="flex items-start gap-4 bg-gradient-to-l from-[#EC943C]/15 via-white to-white p-6 text-right">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/15 text-[#2691C2] ring-1 ring-[#2691C2]/25">
-                  <Headphones className="h-6 w-6" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-[#22334A]">تحتاج مساعدة؟</h3>
-                  <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
-                    فريق EMC سيراجع طلبك ويتواصل معك بعد الإرسال.
-                  </p>
-                </div>
-              </div>
+              <Link
+                to={GENERAL_CONTACT_PATH}
+                aria-label="الانتقال إلى نموذج التواصل العام"
+                className={cn(
+                  glassCard,
+                  'block cursor-pointer overflow-hidden transition-shadow duration-[250ms]',
+                  helpCardHoverShadow,
+                )}
+              >
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.99 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-start gap-4 bg-gradient-to-l from-[#EC943C]/15 via-white to-white p-6 text-right"
+                >
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#2691C2]/15 text-[#2691C2] ring-1 ring-[#2691C2]/25">
+                    <Headphones className="h-6 w-6" aria-hidden />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-[#22334A]">تحتاج مساعدة؟</h3>
+                    <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
+                      فريق EMC سيراجع طلبك ويتواصل معك بعد الإرسال.
+                    </p>
+                  </div>
+                </motion.div>
+              </Link>
             </motion.div>
 
             <motion.div

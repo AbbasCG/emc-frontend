@@ -93,6 +93,10 @@ export type FinanceAccount = {
   notes?: string | null
   is_active: boolean
   created_at?: string
+  bank_name?: string | null
+  account_holder?: string | null
+  iban?: string | null
+  account_number?: string | null
 }
 
 export type FinanceAccountTransaction = {
@@ -117,6 +121,42 @@ export type FinanceTransactionRow = {
   status: PaymentStatus
   provider: PaymentProvider
   created_at: string
+}
+
+/** Ledger row from GET /finance/transactions (FinancialTransactionResource). */
+export type FinancialTransactionType = 'revenue' | 'refund' | 'expense' | 'adjustment' | string
+export type FinancialTransactionStatus = 'confirmed' | 'pending' | 'failed' | string
+
+export type FinancialTransactionUser = {
+  id: number
+  name: string
+  email: string
+}
+
+export type FinancialTransaction = {
+  id: number
+  type: FinancialTransactionType
+  amount: number
+  currency: string
+  status: FinancialTransactionStatus
+  description: string | null
+  occurred_at: string
+  payment_id: number | null
+  registration_id: number | null
+  user: FinancialTransactionUser | null
+  created_at: string
+}
+
+export type FinancePaginationMeta = {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+}
+
+export type FinanceTransactionsPage = {
+  data: FinancialTransaction[]
+  meta: FinancePaginationMeta
 }
 
 export type CouponDiscountType = 'percent' | 'fixed'
@@ -247,4 +287,66 @@ export type ReportRecord = {
   related_label?: string | null
   created_at: string
   preview_summary?: string | null
+}
+
+export type ManualPaymentStatus = 'pending_review' | 'confirmed' | 'rejected' | 'cancelled' | 'refunded'
+
+export type ManualPaymentPurchasableType = 'course' | 'workshop' | 'learning_path'
+
+export type ManualPayment = {
+  id: number
+  status: ManualPaymentStatus
+  paid_amount: number
+  expected_amount: number
+  difference_amount: number
+  currency: string
+  payment_method: string | null
+  external_reference: string | null
+  internal_reference?: string | null
+  reference?: string | null
+  payment_date: string
+  notes: string | null
+  rejection_reason?: string | null
+  created_at: string
+  updated_at?: string | null
+  reviewed_at: string | null
+  has_proof?: boolean
+  proof_original_name?: string | null
+  student: {
+    id: number
+    name: string
+    email: string
+    phone: string | null
+    role?: string | null
+  } | null
+  purchasable: {
+    id: number
+    title: string
+    type: ManualPaymentPurchasableType
+    price?: number | null
+  } | null
+  account: {
+    id: number
+    name: string
+    currency: string
+    bank_name?: string | null
+  } | null
+  reviewer: { id: number; name: string } | null
+  created_by?: { id: number; name: string } | null
+  creator?: { id: number; name: string } | null
+  order_id: number | null
+  payment_id: number | null
+  finance_transaction_id: number | null
+}
+
+export type FinanceAccountFull = FinanceAccount & {
+  bank_name?: string | null
+  account_holder?: string | null
+  iban?: string | null
+  account_number?: string | null
+  confirmed_income?: number
+  confirmed_expenses?: number
+  pending_amount?: number
+  last_transaction_date?: string | null
+  transactions_count?: number
 }

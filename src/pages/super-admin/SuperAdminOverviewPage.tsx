@@ -30,7 +30,7 @@ import {
   UserPlus,
   Settings2,
 } from 'lucide-react'
-import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
+import { fetchAdminUsers, type AdminManagedUser, fetchSuperAdminStats, type SuperAdminStats } from '@/api/adminUsersApi'
 import { fetchVolunteers, fetchVolunteerRequestsStats } from '@/api/volunteersApi'
 import {
   fetchAdminRegistrations,
@@ -410,20 +410,23 @@ export default function SuperAdminOverviewPage() {
   const [departments, setDepartments] = useState<WorkspaceDepartment[]>([])
   const [finance, setFinance] = useState<FinanceDashboardData | null>(null)
   const [refreshTs, setRefreshTs] = useState(new Date())
+  const [stats, setStats] = useState<SuperAdminStats | null>(null)
 
   const load = useCallback(async () => {
     setKpiLoading(true)
     setDetailLoading(true)
 
     // Phase 1 — critical KPIs: users, registrations, courses (show fast)
-    const [uR, rR, cR] = await Promise.allSettled([
+    const [uR, rR, cR, stR] = await Promise.allSettled([
       fetchAdminUsers(),
       fetchAdminRegistrations(),
       fetchCoursesStrict(),
+      fetchSuperAdminStats(),
     ])
     if (uR.status === 'fulfilled') setUsers(uR.value)
     if (rR.status === 'fulfilled') setRegistrations(rR.value)
     if (cR.status === 'fulfilled' && cR.value.ok) setCourses(cR.value.rows)
+    if (stR.status === 'fulfilled' && stR.value) setStats(stR.value)
     setKpiLoading(false)
 
     // Phase 2 — secondary: volunteers, instructors, departments, finance
@@ -477,11 +480,17 @@ export default function SuperAdminOverviewPage() {
   const { keys: mKeys, labels: mLabels } = last6()
   const uByM = groupByMonth(users)
   const rByM = groupByMonth(registrations.map((r) => ({ created_at: r.created_at })))
-  const chartData = mKeys.map((k, i) => ({
-    month: mLabels[i],
-    students: uByM[k] ?? 0,
-    registrations: rByM[k] ?? 0,
-  }))
+  const chartData = stats?.chart
+    ? stats.chart.map((c) => ({
+        month: c.label,
+        students: c.students,
+        registrations: c.registrations,
+      }))
+    : mKeys.map((k, i) => ({
+        month: mLabels[i],
+        students: uByM[k] ?? 0,
+        registrations: rByM[k] ?? 0,
+      }))
 
   /* ── ترتيب الدورات ───────────────────────────────────────────── */
   const regsByCourse = new Map<number, number>()
@@ -541,16 +550,16 @@ export default function SuperAdminOverviewPage() {
   const kpiItems: KpiItem[] = [
     {
       labelAr: 'المستخدمون',
-      value: users.length,
-      growth: calcGrowth(users),
+      value: stats?.users.total ?? users.length,
+      growth: stats ? stats.users.change_percentage : calcGrowth(users),
       icon: Users,
       accent: '#22334A',
       href: '/dashboard/super-admin/crud/users',
     },
     {
       labelAr: 'الطلاب',
-      value: students.length,
-      growth: calcGrowth(students),
+      value: stats?.students.total ?? students.length,
+      growth: stats ? stats.students.change_percentage : calcGrowth(students),
       icon: GraduationCap,
       accent: '#10b981',
       href: '/dashboard/super-admin/crud/students',
@@ -565,7 +574,7 @@ export default function SuperAdminOverviewPage() {
     },
     {
       labelAr: 'الدورات',
-      value: courses.length,
+      value: stats?.courses.total ?? courses.length,
       growth: null,
       icon: BookOpen,
       accent: '#2691C2',
@@ -573,8 +582,8 @@ export default function SuperAdminOverviewPage() {
     },
     {
       labelAr: 'التسجيلات',
-      value: registrations.length,
-      growth: calcGrowth(registrations.map((r) => ({ created_at: r.created_at }))),
+      value: stats?.registrations.total ?? registrations.length,
+      growth: stats ? stats.registrations.change_percentage : calcGrowth(registrations.map((r) => ({ created_at: r.created_at }))),
       icon: FileSignature,
       accent: '#EC943C',
       href: '/dashboard/super-admin/crud/registrations',
@@ -594,8 +603,8 @@ export default function SuperAdminOverviewPage() {
     {
       key: 'regs',
       labelAr: 'تسجيلات معلقة',
-      value: pendingRegs.length,
-      status: pendingRegs.length === 0 ? 'ok' : pendingRegs.length < 5 ? 'warn' : 'crit',
+      value: stats?.registrations.pending ?? pendingRegs.length,
+      status: (stats?.registrations.pending ?? pendingRegs.length) === 0 ? 'ok' : (stats?.registrations.pending ?? pendingRegs.length) < 5 ? 'warn' : 'crit',
       href: '/dashboard/super-admin/crud/registrations',
     },
     {
@@ -754,10 +763,10 @@ export default function SuperAdminOverviewPage() {
               <h3 className="text-[13px] font-bold text-[#22334A]">نمو الطلاب</h3>
               <p className="text-[11px] font-medium text-slate-400">آخر 6 أشهر</p>
             </div>
-            {!kpiLoading && students.length > 0 && (
+            {!kpiLoading && (stats?.students.total ?? students.length) > 0 && (
               <div className="text-end">
                 <p className="font-mono text-[22px] font-bold leading-none text-emerald-600">
-                  {formatNumberEn(students.length)}
+                  {formatNumberEn(stats?.students.total ?? students.length)}
                 </p>
                 <p className="text-[10px] font-medium text-slate-400">إجمالي الطلاب</p>
               </div>

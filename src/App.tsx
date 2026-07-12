@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
+﻿import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -97,6 +97,9 @@ const StudentOrdersPage             = lazy(() => import('./pages/student/Student
 const FinanceOrdersPage             = lazy(() => import('./pages/intelligence/admin/FinanceOrdersPage'))
 const FinanceInvoicesPage           = lazy(() => import('./pages/intelligence/admin/FinanceInvoicesPage'))
 const FinanceFinancialRequestsPage  = lazy(() => import('./pages/finance/FinanceFinancialRequestsPage'))
+const FinanceAccountsPage           = lazy(() => import('./pages/finance/FinanceAccountsPage'))
+const FinanceManualPaymentsPage     = lazy(() => import('./pages/finance/FinanceManualPaymentsPage'))
+const ProgramApprovalsPage          = lazy(() => import('./pages/finance/ProgramApprovalsPage'))
 const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
 const ExecutiveFinancialRequestsPage  = lazy(() => import('./pages/executive/ExecutiveFinancialRequestsPage'))
 const SuperAdminFinancialRequestsPage = lazy(() => import('./pages/super-admin/SuperAdminFinancialRequestsPage'))
@@ -226,6 +229,7 @@ const WorkshopRequestDetailPage   = lazy(() => import('./pages/WorkshopRequestDe
 
 // ── Lazy: dashboard pages — super admin ──────────────────────────────────────
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
+const ProductUpdatesPage          = lazy(() => import('./pages/super-admin/ProductUpdatesPage'))
 const VolunteerRequestsPage       = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
 const SuperAdminAuditLogsPage     = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
@@ -383,6 +387,7 @@ function App() {
                   <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
+                  <Route path="/dashboard/super-admin/product-updates" element={<Suspense fallback={<RouteFallback />}><ProductUpdatesPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/financial-requests" element={<Suspense fallback={<RouteFallback />}><SuperAdminFinancialRequestsPage /></Suspense>} />
                   <Route
                     path="/dashboard/super-admin/crud/partnerships"
@@ -467,6 +472,9 @@ function App() {
                   <Route path="/dashboard/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
                   <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceInvoicesPage /></Suspense>} />
                   <Route path="/dashboard/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/program-approvals" element={<Suspense fallback={<RouteFallback />}><ProgramApprovalsPage /></Suspense>} />
                   <Route path="/dashboard/quality" element={<QualityDashboardPage />} />
                   <Route path="/dashboard/quality/reviews" element={<QualityReviewsPage />} />
                   <Route path="/dashboard/quality/workshops" element={<Navigate to="/dashboard/admin/workshop-requests" replace />} />
@@ -570,6 +578,8 @@ function App() {
                   <Route path="/dashboard/admin/finance/orders" element={<Suspense fallback={<RouteFallback />}><FinanceOrdersPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceInvoicesPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
                   <Route path="/dashboard/admin/coupons" element={<CouponsAdminPage />} />
                   <Route path="/dashboard/admin/scholarships" element={<ScholarshipsAdminPage />} />
                   <Route path="/dashboard/admin/certificates" element={<Suspense fallback={<RouteFallback />}><AdminCertificatesLmsPage /></Suspense>} />
@@ -673,3 +683,5 @@ function App() {
 }
 
 export default App
+
+

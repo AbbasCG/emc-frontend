@@ -246,11 +246,20 @@ export type AuditLogEntry = {
 }
 
 export type PlatformScaleData = {
-  total_users: number
-  active_courses: number
-  monthly_active_learners: number
-  api_requests_24h: number
-  storage_used_gb: number
-  uptime_percent: number
-  regions: string[]
+  users?: number
+  courses?: number
+  instructors?: number
+  registrations?: number
+  total_users?: number
+  active_courses?: number
+  monthly_active_learners?: number
+  api_requests_24h?: number
+  storage_used_gb: number | null
+  storage_total_gb: number | null
+  storage_used_percent: number | null
+  database_size_gb: number | null
+  uploads_count: number | null
+  queue_pending: number | null
+  uptime_percent?: number | null
+  regions?: string[]
 }

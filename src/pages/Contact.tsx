@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -72,7 +72,13 @@ const optionCards = [
   },
 ]
 
+const GENERAL_CONTACT_HASH = '#general-contact-form'
+const CONTACT_SCROLL_OFFSET = 100
+
 export default function Contact() {
+  const location = useLocation()
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [isFormHighlighted, setIsFormHighlighted] = useState(false)
   const [form, setFormData] = useState({
     name: '', email: '', phone: '', category: 'general', subject: '', message: '',
   })
@@ -81,6 +87,30 @@ export default function Contact() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [ticketData, setTicketData] = useState<ContactTicketData | null>(null)
+
+  useEffect(() => {
+    if (location.hash !== GENERAL_CONTACT_HASH) return
+
+    const scrollTimer = window.setTimeout(() => {
+      const element = document.getElementById('general-contact-form')
+      if (!element) return
+
+      const y = element.getBoundingClientRect().top + window.scrollY - CONTACT_SCROLL_OFFSET
+      window.scrollTo({ top: y, behavior: 'smooth' })
+
+      setIsFormHighlighted(true)
+      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current)
+      highlightTimeoutRef.current = window.setTimeout(() => setIsFormHighlighted(false), 1300)
+    }, 100)
+
+    return () => window.clearTimeout(scrollTimer)
+  }, [location])
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current)
+    }
+  }, [])
 
   function setField(k: keyof typeof form, v: string) {
     setFormData(f => ({ ...f, [k]: v }))
@@ -232,7 +262,12 @@ export default function Contact() {
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.9fr]">
           <motion.article
-            className="rounded-3xl bg-white p-6 text-right shadow-xl ring-1 ring-slate-100 sm:p-8"
+            id="general-contact-form"
+            className={`rounded-3xl bg-white p-6 text-right shadow-xl ring-1 sm:p-8 transition-[box-shadow,ring-color] duration-300 ${
+              isFormHighlighted
+                ? 'ring-2 ring-[#2691C2]/55 shadow-[0_0_28px_rgba(38,145,194,0.38)]'
+                : 'ring-slate-100'
+            }`}
             initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}

@@ -382,7 +382,7 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
   if (timeStart && timeEnd)  timeLabel = `${timeStart} - ${timeEnd}`
   else if (timeStart)        timeLabel = timeStart
 
-  const imageUrl = c.thumbnail ?? (c as Record<string, unknown>).image as string | null | undefined ?? null
+  const imageUrl = c.image_url ?? c.thumbnail ?? c.image ?? null
 
   const actions = [
     {

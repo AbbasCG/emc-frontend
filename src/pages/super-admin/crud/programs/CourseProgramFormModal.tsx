@@ -1178,7 +1178,7 @@ export function CourseProgramFormModal({
         /* ignore */
       }
       setSavedCourse(course)
-      setLastSavedAsPublished(String(payload.status).toLowerCase() === 'published')
+      setLastSavedAsPublished(String((course as Record<string, unknown>).status).toLowerCase() === 'published')
       setSuccessOpen(true)
       onSaved()
     } catch (e) {
@@ -2135,11 +2135,16 @@ export function CourseProgramFormModal({
   ])
 
   const successSlug = savedCourse?.slug
+  const _savedIsPaid = savedCourse
+    ? (String((savedCourse as Record<string, unknown>).finance_approval_status) === 'pending')
+    : false
   const successTitle = editing
     ? 'تم تحديث الدورة بنجاح'
     : lastSavedAsPublished
       ? 'تم إنشاء الدورة ونشرها بنجاح'
-      : 'تم إنشاء الدورة بنجاح'
+      : _savedIsPaid
+        ? 'تم إنشاء البرنامج وإرساله للمراجعة المالية'
+        : 'تم إنشاء الدورة بنجاح'
 
   const validationSummary =
     Object.keys(fieldErrors).length > 0 ?

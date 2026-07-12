@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, Calendar, ClipboardList, Loader2, RefreshCw, Send, X } from 'lucide-react'
+import { AlertCircle, Calendar, CheckCircle2, ClipboardList, Loader2, RefreshCw, Send, Star, X } from 'lucide-react'
 import { submitStudentAssignment } from '@/api/studentApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import AppFileUpload from '@/components/ui/AppFileUpload'
 import type { StudentAssignment } from '@/types/lms'
-import { formatDateTime } from '@/utils/dateTime'
+import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { isNeedsResubmission } from '@/utils/lmsAssignment'
 import toast from '@/lib/toast'
 
@@ -71,7 +71,10 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
     }
   }
 
-  const dueLabel = assignment?.due_at ? formatDateTime(assignment.due_at) : null
+  const isReadOnly = !!assignment && NON_SUBMITTABLE.includes(assignment.status) && !isResubmission
+
+  const dueLabel = assignment?.due_at ? formatLmsDateTime(assignment.due_at) : null
+  const submittedLabel = assignment?.submitted_at ? formatLmsDateTime(assignment.submitted_at) : null
 
   return (
     <AnimatePresence>
@@ -138,91 +141,139 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 text-right">
-                {isResubmission && !submitError && (
-                  <div className="flex items-start gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-[12px] font-bold text-orange-800">
-                    <RefreshCw className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                    <span>طلب المدرس إعادة تسليم هذا الواجب. يمكنك إرسال نسخة جديدة.</span>
+            {isReadOnly ? (
+              /* ── Read-only: already submitted, instructor hasn't requested resubmission ── */
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 text-right">
+                  <div className="flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] font-bold text-emerald-800">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <span>تم تسليم هذا الواجب. لا يمكن إعادة التسليم إلا بطلب من المدرس.</span>
                   </div>
-                )}
-                {submitError ?
-                  <div
-                    role="alert"
-                    className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[12px] font-bold text-rose-800"
-                  >
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                    <span>{submitError}</span>
-                  </div>
-                : null}
-
-                <label className="grid gap-2">
-                  <span className="text-xs font-black text-[#22334A]">إجابة نصية</span>
-                  <textarea
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    rows={5}
-                    disabled={submitting}
-                    placeholder="اكتب إجابتك هنا…"
-                    className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-xs font-black text-[#22334A]">ملاحظات (اختياري)</span>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={2}
-                    disabled={submitting}
-                    placeholder="ملاحظة للمدرب…"
-                    className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
-                  />
-                </label>
-
-                <AppFileUpload
-                  label="مرفق (اختياري)"
-                  name="assignment_file"
-                  file={file}
-                  onChange={setFile}
-                  compress={false}
-                  hint="PDF · Word · صور"
-                />
-              </div>
-
-              <div className="sticky bottom-0 flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={onClose}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-50"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
-                >
-                  {submitting ?
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      جارٍ الإرسال…
-                    </>
-                  : isResubmission ? (
-                    <>
-                      <RefreshCw size={14} aria-hidden />
-                      إعادة تسليم الواجب
-                    </>
-                  ) : (
-                    <>
-                      <Send size={14} aria-hidden />
-                      إرسال التسليم
-                    </>
+                  {submittedLabel && (
+                    <div className="flex items-center gap-2.5 rounded-xl border border-[#22334A]/[0.07] bg-slate-50/70 px-3.5 py-2.5">
+                      <Calendar className="h-4 w-4 shrink-0 text-[#22334A]/40" aria-hidden />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/50">تاريخ التسليم</p>
+                        <p className="text-[13px] font-black text-[#22334A]">{submittedLabel}</p>
+                      </div>
+                    </div>
                   )}
-                </button>
+                  {assignment?.score != null && (
+                    <div className="flex items-center gap-2.5 rounded-xl border border-[#2691C2]/15 bg-blue-50/50 px-3.5 py-2.5">
+                      <Star className="h-4 w-4 shrink-0 text-[#EC943C]" aria-hidden />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/50">الدرجة</p>
+                        <p className="text-[13px] font-black text-[#22334A]">
+                          {assignment.score}{assignment.max_score != null ? ` / ${assignment.max_score}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {assignment?.feedback && (
+                    <div className="rounded-xl border border-[#2691C2]/15 bg-blue-50/50 px-3.5 py-3">
+                      <p className="mb-1 text-[10px] font-black uppercase tracking-wide text-[#2691C2]/70">ملاحظات المدرب</p>
+                      <p className="text-[12px] font-medium leading-relaxed text-[#0F172A]/80">{assignment.feedback}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="sticky bottom-0 flex shrink-0 items-center justify-end border-t border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50"
+                  >
+                    إغلاق
+                  </button>
+                </div>
               </div>
-            </form>
+            ) : (
+              /* ── Submission form ── */
+              <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 text-right">
+                  {isResubmission && !submitError && (
+                    <div className="flex items-start gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-[12px] font-bold text-orange-800">
+                      <RefreshCw className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                      <span>طلب المدرس إعادة تسليم هذا الواجب. يمكنك إرسال نسخة جديدة.</span>
+                    </div>
+                  )}
+                  {submitError ?
+                    <div
+                      role="alert"
+                      className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-[12px] font-bold text-rose-800"
+                    >
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                      <span>{submitError}</span>
+                    </div>
+                  : null}
+
+                  <label className="grid gap-2">
+                    <span className="text-xs font-black text-[#22334A]">إجابة نصية</span>
+                    <textarea
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      rows={5}
+                      disabled={submitting}
+                      placeholder="اكتب إجابتك هنا…"
+                      className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
+                    />
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-xs font-black text-[#22334A]">ملاحظات (اختياري)</span>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={2}
+                      disabled={submitting}
+                      placeholder="ملاحظة للمدرب…"
+                      className="resize-none rounded-2xl border border-[#22334A]/12 bg-slate-50/80 px-4 py-3 font-semibold text-[#22334A] outline-none transition focus:border-[#2691C2]/50 focus:ring-4 focus:ring-[#2691C2]/10 disabled:opacity-60"
+                    />
+                  </label>
+
+                  <AppFileUpload
+                    label="مرفق (اختياري)"
+                    name="assignment_file"
+                    file={file}
+                    onChange={setFile}
+                    compress={false}
+                    hint="PDF · Word · صور"
+                  />
+                </div>
+
+                <div className="sticky bottom-0 flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 bg-white/95 px-5 py-3.5 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={onClose}
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-black text-[#22334A] transition hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-[#2691C2] px-5 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:bg-[#1e7dab] disabled:opacity-50"
+                  >
+                    {submitting ?
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                        جارٍ الإرسال…
+                      </>
+                    : isResubmission ? (
+                      <>
+                        <RefreshCw size={14} aria-hidden />
+                        إعادة تسليم الواجب
+                      </>
+                    ) : (
+                      <>
+                        <Send size={14} aria-hidden />
+                        إرسال التسليم
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </motion.div>
         </motion.div>
       )}

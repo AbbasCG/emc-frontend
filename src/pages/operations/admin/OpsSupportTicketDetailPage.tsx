@@ -1247,11 +1247,17 @@ export default function OpsSupportTicketDetailPage() {
     if (!ticket || !reply.trim()) return
     setBusy(true)
     try {
-      await replySupportTicket(ticket.id, { message: reply.trim(), is_internal_note: internal })
+      const result = await replySupportTicket(ticket.id, { message: reply.trim(), is_internal_note: internal })
       setReply('')
       setInternal(false)
       setTicket(await fetchSupportTicket(ticket.id))
-      toast.success('تم إرسال الرد')
+      if (result.email_warning) {
+        toast.error(result.email_warning)
+      } else if (!internal && result.email_queued) {
+        toast.success('تم إرسال الرد وإرسال البريد الإلكتروني للعميل')
+      } else {
+        toast.success('تم إرسال الرد')
+      }
     } catch { toast.error('فشل إرسال الرد') }
     finally { setBusy(false) }
   }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
+  Archive,
   Download,
   Eye,
   ExternalLink,
@@ -46,14 +47,22 @@ const EMPTY_MAT_FORM: MaterialForm = {
 }
 
 const MATERIAL_TYPES = [
-  { value: 'pdf',      label: 'PDF' },
-  { value: 'video',    label: 'فيديو' },
-  { value: 'link',     label: 'رابط خارجي' },
-  { value: 'document', label: 'مستند' },
-  { value: 'image',    label: 'صورة' },
-  { value: 'slide',    label: 'شرائح' },
-  { value: 'other',    label: 'أخرى' },
+  { value: 'pdf',                 label: 'PDF' },
+  { value: 'video',               label: 'فيديو' },
+  { value: 'link',                label: 'رابط خارجي' },
+  { value: 'document',            label: 'مستند' },
+  { value: 'image',               label: 'صورة' },
+  { value: 'slide',               label: 'شرائح' },
+  { value: 'programming_project', label: 'ملف ZIP' },
+  { value: 'other',               label: 'أخرى' },
 ]
+
+const ZIP_ACCEPT = '.zip,application/zip,application/x-zip-compressed'
+const DEFAULT_ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.mp4,.mov,.avi'
+
+function getAcceptAttr(type: string): string {
+  return type === 'programming_project' ? ZIP_ACCEPT : DEFAULT_ACCEPT
+}
 
 const fieldCls = 'w-full rounded-xl border border-[#22334A]/10 bg-[#22334A]/[0.02] px-3 py-2.5 text-sm font-semibold text-[#22334A] outline-none focus:border-[#2691C2]/40 focus:ring-2 focus:ring-[#2691C2]/10'
 
@@ -73,7 +82,7 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
         }
       : EMPTY_MAT_FORM
   )
-  const [errors, setErrors] = useState<Partial<Record<keyof MaterialForm | 'source_field', string>>>({})
+  const [errors, setErrors] = useState<Partial<Record<keyof MaterialForm | 'source_field' | 'file', string>>>({})
   const [saving, setSaving] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -84,7 +93,21 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
 
   function setType(t: string) {
     set('type', t)
+    set('file', null)
     if (t === 'link') set('source', 'url')
+    else if (t === 'programming_project') set('source', 'file')
+  }
+
+  function handleFileChange(picked: File | null) {
+    if (!picked) { set('file', null); return }
+    const ext = picked.name.split('.').pop()?.toLowerCase() ?? ''
+    if (ext === 'zip' && form.type !== 'programming_project') {
+      // Auto-switch: user picked a ZIP file while a non-ZIP type was selected.
+      setForm((f) => ({ ...f, type: 'programming_project', source: 'file', file: picked }))
+      setErrors({})
+      return
+    }
+    set('file', picked)
   }
 
   function validate(): boolean {
@@ -132,8 +155,20 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
       toast.success(isEdit ? 'تم تحديث المادة بنجاح' : 'تمت إضافة المادة بنجاح')
       onSaved()
       onClose()
-    } catch {
-      toast.error('تعذّر حفظ المادة')
+    } catch (err: unknown) {
+      const res = (err as { response?: { data?: { errors?: Record<string, string[]> } } })?.response?.data
+      const apiErrors = res?.errors
+      if (apiErrors && Object.keys(apiErrors).length > 0) {
+        const mapped: typeof errors = {}
+        for (const [field, msgs] of Object.entries(apiErrors)) {
+          const key = field as keyof typeof errors
+          mapped[key] = msgs[0]
+        }
+        setErrors(mapped)
+        toast.error('يرجى مراجعة الأخطاء أدناه')
+      } else {
+        toast.error('تعذّر حفظ المادة')
+      }
     } finally {
       setSaving(false)
     }
@@ -184,8 +219,8 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
               </select>
             </div>
 
-            {/* Source toggle */}
-            {form.type !== 'link' && (
+            {/* Source toggle — hidden for ZIP (always file) and link (always url) */}
+            {form.type !== 'link' && form.type !== 'programming_project' && (
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -204,6 +239,16 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
               </div>
             )}
 
+            {/* ZIP helper */}
+            {form.type === 'programming_project' && (
+              <div className="flex items-start gap-2 rounded-xl border border-purple-200 bg-purple-50 px-3 py-2.5">
+                <Archive size={14} className="mt-0.5 shrink-0 text-purple-600" />
+                <p className="text-[11px] font-bold text-purple-700">
+                  ملف مضغوط للتحميل فقط، ولن يتم فك ضغطه على الخادم. الحد الأقصى: 512 MB.
+                </p>
+              </div>
+            )}
+
             {/* File upload */}
             {form.source === 'file' && form.type !== 'link' && (
               <div>
@@ -211,9 +256,9 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
                 <input
                   ref={fileRef}
                   type="file"
-                  onChange={(e) => set('file', e.target.files?.[0] ?? null)}
+                  onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.mp4,.mov,.avi"
+                  accept={getAcceptAttr(form.type)}
                 />
                 <button
                   type="button"
@@ -225,11 +270,14 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
                 >
                   {form.file ? (
                     <span>📎 {form.file.name}</span>
+                  ) : form.type === 'programming_project' ? (
+                    <span>اضغط لاختيار ملف ZIP</span>
                   ) : (
                     <span>اضغط لاختيار ملف</span>
                   )}
                 </button>
                 {errors.source_field && <p className="mt-1 text-[11px] font-bold text-rose-600">{errors.source_field}</p>}
+                {errors.file && <p className="mt-1 text-[11px] font-bold text-rose-600">{errors.file}</p>}
               </div>
             )}
 
@@ -319,7 +367,7 @@ type MaterialRow = {
   updated_at?: string | null
 }
 
-const NON_PREVIEWABLE_TYPES = new Set(['video', 'link'])
+const NON_PREVIEWABLE_TYPES = new Set(['video', 'link', 'programming_project'])
 
 function normMaterial(r: MaterialRow): MaterialRow {
   const type = r.type ?? r.kind ?? 'other'
@@ -339,12 +387,13 @@ function normMaterial(r: MaterialRow): MaterialRow {
 type FileTypeDef = { icon: LucideIcon; label: string; bg: string; text: string }
 
 const typeMap: Record<string, FileTypeDef> = {
-  pdf:      { icon: FileText,   label: 'PDF',    bg: 'bg-rose-50',          text: 'text-rose-600'    },
-  video:    { icon: Video,      label: 'فيديو',  bg: 'bg-purple-50',        text: 'text-purple-600'  },
-  link:     { icon: Link2,      label: 'رابط',   bg: 'bg-sky-50',           text: 'text-sky-600'     },
-  slide:    { icon: BookOpen,   label: 'شرائح',  bg: 'bg-amber-50',         text: 'text-amber-600'   },
-  document: { icon: FileText,   label: 'مستند',  bg: 'bg-slate-50',         text: 'text-slate-600'   },
-  other:    { icon: FolderOpen, label: 'ملف',    bg: 'bg-[#22334A]/5',      text: 'text-[#22334A]/60' },
+  pdf:                 { icon: FileText,   label: 'PDF',      bg: 'bg-rose-50',     text: 'text-rose-600'     },
+  video:               { icon: Video,      label: 'فيديو',    bg: 'bg-purple-50',   text: 'text-purple-600'   },
+  link:                { icon: Link2,      label: 'رابط',     bg: 'bg-sky-50',      text: 'text-sky-600'      },
+  slide:               { icon: BookOpen,   label: 'شرائح',    bg: 'bg-amber-50',    text: 'text-amber-600'    },
+  document:            { icon: FileText,   label: 'مستند',    bg: 'bg-slate-50',    text: 'text-slate-600'    },
+  programming_project: { icon: Archive,    label: 'ملف ZIP',  bg: 'bg-purple-50',   text: 'text-purple-700'   },
+  other:               { icon: FolderOpen, label: 'ملف',      bg: 'bg-[#22334A]/5', text: 'text-[#22334A]/60' },
 }
 
 function fmtSize(bytes: number | null | undefined): string | null {
@@ -696,6 +745,7 @@ export default function AdminLmsMaterialsPage() {
                 <option value="link">رابط</option>
                 <option value="slide">شرائح</option>
                 <option value="document">مستند</option>
+                <option value="programming_project">ملف ZIP</option>
                 <option value="other">أخرى</option>
               </select>
               <select value={filterFile} onChange={(e) => setFilterFile(e.target.value as '' | 'has' | 'missing')} className={lmsSelectClass()}>

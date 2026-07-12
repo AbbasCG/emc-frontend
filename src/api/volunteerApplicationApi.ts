@@ -192,17 +192,6 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
   }
 }
 
-function unwrapList(res: unknown): unknown[] {
-  const inner = unwrapData<unknown>(res)
-  if (Array.isArray(inner)) return inner
-  if (inner && typeof inner === 'object') {
-    const o = inner as Record<string, unknown>
-    if (Array.isArray(o.data)) return o.data
-    if (Array.isArray(o.members)) return o.members
-    if (Array.isArray(o.items)) return o.items
-  }
-  return []
-}
 
 export async function fetchAcceptedVolunteers(params?: Record<string, string>): Promise<{
   data: VolunteerRequest[]
@@ -250,13 +239,84 @@ export async function fetchAcceptedVolunteers(params?: Record<string, string>): 
   }
 }
 
-export async function fetchVolunteerRequests(): Promise<VolunteerRequest[]> {
-  const res = await apiClient.get<unknown>('/admin/volunteer-requests', { skipErrorToast: true } as Record<string, unknown>)
-  const list = unwrapList(res.data)
-  return list
+export type VolunteerRequestsParams = {
+  page?: number
+  per_page?: number
+  status?: VolunteerRequestStatus | 'all'
+  search?: string
+  desired_department?: string
+}
+
+export type VolunteerRequestsPagination = {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  from: number
+  to: number
+}
+
+export type VolunteerRequestsStatistics = {
+  total: number
+  pending: number
+  reviewing: number
+  reviewed: number
+  accepted: number
+  rejected: number
+  contacted: number
+  converted_to_member: number
+}
+
+export type FetchVolunteerRequestsResult = {
+  data: VolunteerRequest[]
+  meta: VolunteerRequestsPagination
+  statistics: VolunteerRequestsStatistics
+}
+
+export async function fetchVolunteerRequests(
+  params: VolunteerRequestsParams = {},
+): Promise<FetchVolunteerRequestsResult> {
+  const qs: Record<string, string> = {}
+  if (params.page && params.page > 1) qs.page = String(params.page)
+  if (params.per_page) qs.per_page = String(params.per_page)
+  if (params.status && params.status !== 'all') qs.status = params.status
+  if (params.search?.trim()) qs.search = params.search.trim()
+  if (params.desired_department && params.desired_department !== 'all') qs.desired_department = params.desired_department
+
+  const query = Object.keys(qs).length ? '?' + new URLSearchParams(qs).toString() : ''
+  const res = await apiClient.get<unknown>(`/admin/volunteer-requests${query}`, { skipErrorToast: true } as Record<string, unknown>)
+
+  const body = res.data as Record<string, unknown>
+
+  const rawList = Array.isArray(body?.data) ? (body.data as unknown[]) : []
+  const data = rawList
     .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null && !Array.isArray(r))
     .map(normalizeRequest)
     .filter((r) => r.id > 0)
+
+  const rawMeta = (body?.meta ?? {}) as Record<string, unknown>
+  const meta: VolunteerRequestsPagination = {
+    current_page: Number(rawMeta.current_page ?? 1),
+    last_page:    Number(rawMeta.last_page    ?? 1),
+    per_page:     Number(rawMeta.per_page     ?? 20),
+    total:        Number(rawMeta.total        ?? data.length),
+    from:         Number(rawMeta.from         ?? 1),
+    to:           Number(rawMeta.to           ?? data.length),
+  }
+
+  const rawStats = (body?.statistics ?? {}) as Record<string, unknown>
+  const statistics: VolunteerRequestsStatistics = {
+    total:               Number(rawStats.total               ?? meta.total),
+    pending:             Number(rawStats.pending             ?? 0),
+    reviewing:           Number(rawStats.reviewing           ?? 0),
+    reviewed:            Number(rawStats.reviewed            ?? 0),
+    accepted:            Number(rawStats.accepted            ?? 0),
+    rejected:            Number(rawStats.rejected            ?? 0),
+    contacted:           Number(rawStats.contacted           ?? 0),
+    converted_to_member: Number(rawStats.converted_to_member ?? 0),
+  }
+
+  return { data, meta, statistics }
 }
 
 export async function updateVolunteerRequestStatus(

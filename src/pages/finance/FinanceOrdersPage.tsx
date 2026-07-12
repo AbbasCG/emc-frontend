@@ -8,6 +8,7 @@ import {
 import api from '@/api/axios'
 import type { Order } from '@/api/checkoutApi'
 import toast from '@/lib/toast'
+import { formatEuro } from '@/utils/currency'
 
 // ── Extended order type with phone ───────────────────────────────────────────
 
@@ -39,9 +40,9 @@ const STATUS_AR: Record<string, { label: string; cls: string; dot: string; accen
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtCurrency(amount: number | undefined | null, currency: string) {
+function fmtCurrency(amount: number | undefined | null, _currency = 'EUR') {
   if (amount == null) return '—'
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(amount))
+  return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function fmtDate(d: string | null | undefined) {

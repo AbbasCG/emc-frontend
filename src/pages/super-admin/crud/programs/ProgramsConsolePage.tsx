@@ -36,6 +36,7 @@ import {
   type CoursePageMeta,
 } from '@/api/superAdminCatalogApi'
 import { fetchAdminLearningPaths } from '@/api/learningPathsApi'
+import { programFinanceApi } from '@/api/programFinanceApi'
 import type { Course } from '@/types'
 import { formatEuro } from '@/utils/currency'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
@@ -88,6 +89,7 @@ type CourseVM = Course & {
   _priceNum:           number
   _status:             'published' | 'archived' | 'draft'
   _hasDate:            boolean
+  _financeStatus:      'not_required' | 'pending' | 'approved' | 'rejected' | null
 }
 
 /** All params sent to the backend — single source of truth for filters + pagination */
@@ -137,6 +139,7 @@ function vmFromCourse(
     _priceNum:            Number.isFinite(n) ? n : 0,
     _status:              pub ? 'published' : arc ? 'archived' : 'draft',
     _hasDate:             !missingCourseDate(c),
+    _financeStatus:       ((c as Record<string, unknown>).finance_approval_status as CourseVM['_financeStatus']) ?? null,
   }
 }
 
@@ -441,6 +444,14 @@ export default function ProgramsConsolePage() {
     try {
       await patchCoursePublishState(c.id, next)
       toast.success(next ? 'تم نشر الدورة' : 'أُعيدت الدورة كمسودة')
+      void load(params)
+    } catch (e) { toast.error(getApiErrorMessage(e)) }
+  }
+
+  async function submitForFinanceReview(c: CourseVM) {
+    try {
+      await programFinanceApi.submitCourse(c.id)
+      toast.success('تم إرسال الدورة للمراجعة المالية')
       void load(params)
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
@@ -852,8 +863,18 @@ export default function ProgramsConsolePage() {
                             ] : c._status === 'published' ? [
                               { key: 'p',    label: 'إلغاء النشر (تحويل لمسودة)', onClick: () => void togglePublish(c), disabled: c.can_deactivate === false },
                               { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
+                            ] : c._isPaid && c._financeStatus !== 'approved' ? [
+                              // Paid course awaiting / needing finance approval
+                              ...(c._financeStatus === 'pending' ? [
+                                { key: 'p', label: 'بانتظار الاعتماد المالي', onClick: () => {}, disabled: true },
+                              ] : c._financeStatus === 'rejected' ? [
+                                { key: 'p', label: 'إعادة الإرسال للمراجعة المالية', onClick: () => void submitForFinanceReview(c) },
+                              ] : [
+                                { key: 'p', label: 'إرسال للمراجعة المالية', onClick: () => void submitForFinanceReview(c) },
+                              ]),
+                              { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                             ] : [
-                              { key: 'p',    label: 'نشر',   onClick: () => void togglePublish(c) },
+                              { key: 'p',    label: 'نشر البرنامج',   onClick: () => void togglePublish(c) },
                               { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                             ]),
                             { key: 'x', label: c.can_delete === false ? 'حذف (مقيّد — مرتبط بمسار نشط)' : 'حذف', onClick: () => void removeCourse(c), disabled: c.can_delete === false, destructive: true },

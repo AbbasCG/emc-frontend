@@ -1,83 +1,148 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Download, FileText, Film, Link2, Loader2, Presentation } from 'lucide-react'
+import {
+  AlertCircle,
+  Archive,
+  BookOpen,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  FileText,
+  Film,
+  Folder,
+  Link2,
+  Loader2,
+  Presentation,
+} from 'lucide-react'
 import type { LmsMaterial } from '@/types/lms'
 import { downloadMaterial } from '@/api/studentApi'
+import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 
-const iconMap = {
-  pdf: FileText,
-  video: Film,
-  link: Link2,
-  slides: Presentation,
-  document: BookOpen,
-  other: BookOpen,
+// ── Icon + badge config per material kind ──────────────────────────────────
+
+type KindMeta = { Icon: typeof FileText; label: string; badge: string; badgeCls: string }
+
+const KIND_META: Record<string, KindMeta> = {
+  pdf:                 { Icon: FileText,     label: 'PDF',           badge: 'PDF',      badgeCls: 'bg-red-50 text-red-700 border-red-200' },
+  video:               { Icon: Film,         label: 'فيديو',         badge: 'فيديو',    badgeCls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  link:                { Icon: Link2,        label: 'رابط',          badge: 'رابط',     badgeCls: 'bg-sky-50 text-sky-700 border-sky-200' },
+  slides:              { Icon: Presentation, label: 'عرض',           badge: 'Slides',   badgeCls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  document:            { Icon: BookOpen,     label: 'مستند',         badge: 'مستند',    badgeCls: 'bg-slate-50 text-slate-700 border-slate-200' },
+  zip:                 { Icon: Archive,      label: 'مشروع ZIP',     badge: 'ZIP',      badgeCls: 'bg-purple-50 text-purple-700 border-purple-200' },
+  other:               { Icon: Folder,       label: 'ملف',           badge: 'ملف',      badgeCls: 'bg-purple-50 text-purple-700 border-purple-200' },
 }
 
+function meta(kind: string): KindMeta {
+  return KIND_META[kind] ?? KIND_META.other
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
+
+type DownloadState = 'idle' | 'downloading' | 'success' | 'error'
+
 export default function MaterialCard({ material }: { material: LmsMaterial }) {
-  const [downloading, setDownloading] = useState(false)
-  const Icon = iconMap[material.kind] ?? iconMap.other
+  const [dlState, setDlState] = useState<DownloadState>('idle')
+  const { Icon, badge, badgeCls } = meta(material.kind)
   const isLink = material.kind === 'link'
   const hasUrl = Boolean(material.url && String(material.url).trim() !== '')
+  const updatedLabel = formatLmsDateTime(material.updated_at ?? null)
 
   async function handleDownload() {
     if (isLink && material.url) {
       window.open(material.url, '_blank', 'noreferrer')
       return
     }
-    setDownloading(true)
+    if (dlState === 'downloading') return
+    setDlState('downloading')
     try {
-      await downloadMaterial(material.id, material.url)
-    } finally {
-      setDownloading(false)
+      const fallback = material.original_filename ?? undefined
+      await downloadMaterial(material.id, fallback)
+      setDlState('success')
+      setTimeout(() => setDlState('idle'), 3000)
+    } catch {
+      setDlState('error')
+      setTimeout(() => setDlState('idle'), 4000)
     }
   }
-
-  const actionVerb =
-    isLink ? 'فتح الرابط'
-    : ['pdf', 'document', 'slides'].includes(material.kind) ? 'تحميل'
-    : material.kind === 'video' ? 'مشاهدة'
-    : 'فتح المادة'
 
   return (
     <motion.div
       layout
-      className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-deepBlue/[0.06]"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col gap-4 rounded-2xl border border-[#22334A]/[0.07] bg-white p-5 shadow-sm transition hover:border-[#2691C2]/25 hover:shadow-md"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 text-right">
-          <h3 className="font-black text-deepBlue">{material.title}</h3>
-          {material.course_name && (
-            <p className="mt-1 text-xs font-bold text-slate-500">{material.course_name}</p>
-          )}
-          {material.description && (
-            <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">{material.description}</p>
-          )}
-          <div className="mt-3 flex flex-wrap items-center justify-start gap-2 text-[11px] font-bold text-slate-400">
-            {material.size_label && <span>{material.size_label}</span>}
-            {material.updated_at && <span>آخر تحديث: {material.updated_at}</span>}
-          </div>
-        </div>
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-customBlue/10 text-customBlue">
-          <Icon size={22} />
+      {/* Header: type badge */}
+      <div className="flex items-center gap-2">
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black ${badgeCls}`}>
+          <Icon className="h-3 w-3" aria-hidden />
+          {badge}
         </span>
       </div>
 
+      {/* Icon + title */}
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
+          <Icon className="h-4 w-4" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[15px] font-black leading-snug text-[#0F172A]">{material.title}</h3>
+          {material.course_name && (
+            <p className="mt-0.5 text-[11px] font-semibold text-[#22334A]/50">{material.course_name}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Description */}
+      {material.description && (
+        <p className="text-[12px] font-medium leading-relaxed text-slate-600">{material.description}</p>
+      )}
+
+      {/* Meta row: updated date + size */}
+      {(updatedLabel !== '—' || material.size_label) && (
+        <div className="flex flex-wrap items-center gap-3">
+          {updatedLabel !== '—' && (
+            <div className="flex items-center gap-1.5 rounded-xl border border-[#22334A]/[0.07] bg-slate-50/70 px-3 py-2">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/50">آخر تحديث</p>
+                <p className="text-[12px] font-black tabular-nums text-[#22334A]">{updatedLabel}</p>
+              </div>
+            </div>
+          )}
+          {material.size_label && (
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#22334A]/[0.07] bg-slate-50 px-3 py-2 text-[12px] font-bold text-[#22334A]/70">
+              {material.size_label}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Action button */}
       {hasUrl || !isLink ? (
         <button
           type="button"
-          disabled={downloading}
+          disabled={dlState === 'downloading'}
           onClick={() => void handleDownload()}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue py-2.5 text-xs font-black text-white transition hover:bg-deepBlue/90 disabled:opacity-60"
+          className={`mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-60 ${
+            dlState === 'success' ? 'bg-emerald-600'
+            : dlState === 'error'   ? 'bg-rose-600'
+            : 'bg-[#2691C2]'
+          }`}
         >
-          {downloading ? (
-            <Loader2 size={14} className="animate-spin" />
+          {dlState === 'downloading' ? (
+            <><Loader2 className="h-4 w-4 animate-spin" aria-hidden />جارٍ التحميل...</>
+          ) : dlState === 'success' ? (
+            <><CheckCircle2 className="h-4 w-4" aria-hidden />تم بدء التحميل</>
+          ) : dlState === 'error' ? (
+            <><AlertCircle className="h-4 w-4" aria-hidden />تعذّر تحميل الملف</>
+          ) : isLink ? (
+            <><ExternalLink className="h-4 w-4" aria-hidden />فتح الرابط</>
           ) : (
-            !isLink && <Download size={14} />
+            <><Download className="h-4 w-4" aria-hidden />تحميل المادة</>
           )}
-          {downloading ? 'جارٍ التحميل...' : actionVerb}
         </button>
       ) : (
-        <p className="mt-4 rounded-xl border border-deepBlue/[0.08] bg-deepBlue/[0.03] py-2.5 text-center text-[11px] font-bold text-deepBlue/55">
+        <p className="mt-auto rounded-xl border border-[#22334A]/[0.07] bg-slate-50/70 py-2.5 text-center text-[11px] font-bold text-[#22334A]/40">
           لا رابط أو ملف متاح لهذه المادة.
         </p>
       )}

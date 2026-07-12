@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronLeft,
   LogOut,
+  Megaphone,
   Menu,
   Search,
   Settings,
@@ -17,6 +18,8 @@ import CommandPalette from '../components/ai/CommandPalette'
 import ImpersonationBanner from '../components/ImpersonationBanner'
 import NotificationBell from '../components/platform/NotificationBell'
 import NotificationDrawer from '../components/platform/NotificationDrawer'
+import { WhatsNewDrawer } from '../components/platform/WhatsNewDrawer'
+import { WhatsNewPopup } from '../components/platform/WhatsNewPopup'
 import {
   fetchNotifications,
   markAllNotificationsRead,
@@ -59,6 +62,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/super-admin/crud/workshops': 'الورش — السوبر مشرف',
   '/dashboard/super-admin/crud/registrations': 'التسجيلات — السوبر مشرف',
   '/dashboard/super-admin/crud/partners': 'الشراكات — السوبر مشرف',
+  '/dashboard/super-admin/product-updates': 'تحديثات المنصة',
   '/dashboard/super-admin/volunteer-requests': 'طلبات التطوع',
   '/dashboard/executive': 'اللوحة التنفيذية',
   '/dashboard/finance': 'لوحة المالية',
@@ -498,11 +502,15 @@ function Topbar({
   onOpenSearch,
   unread,
   onOpenNotifications,
+  whatsNewUnread,
+  onOpenWhatsNew,
 }: {
   onMenuClick: () => void
   onOpenSearch: () => void
   unread: number
   onOpenNotifications: () => void
+  whatsNewUnread: number
+  onOpenWhatsNew: () => void
 }) {
   const { user, logout } = useAuth()
   const location = useLocation()
@@ -553,6 +561,21 @@ function Topbar({
           <kbd className="hidden rounded-md bg-white px-1.5 py-0.5 text-[10px] font-black text-deepBlue/45 ring-1 ring-deepBlue/[0.08] font-latin md:inline">
             Ctrl K
           </kbd>
+        </button>
+
+        {/* What's New button */}
+        <button
+          type="button"
+          onClick={onOpenWhatsNew}
+          aria-label="ما الجديد؟"
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] text-deepBlue/65 transition hover:border-customBlue/30 hover:bg-white hover:text-customBlue"
+        >
+          <Megaphone size={17} />
+          {whatsNewUnread > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-customBlue px-0.5 text-[9px] font-black text-white">
+              {whatsNewUnread > 9 ? '9+' : whatsNewUnread}
+            </span>
+          )}
         </button>
 
         <NotificationBell unread={unread} onClick={onOpenNotifications} />
@@ -646,6 +669,8 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [whatsNewUnread, setWhatsNewUnread] = useState(0)
   const [notifications, setNotifications] = useState<PlatformNotification[]>([])
   const location = useLocation()
 
@@ -729,6 +754,8 @@ export default function DashboardLayout() {
           setDrawerOpen(true)
           refreshNotifications()
         }}
+        whatsNewUnread={whatsNewUnread}
+        onOpenWhatsNew={() => setWhatsNewOpen(true)}
       />
 
       <CommandPalette
@@ -742,6 +769,17 @@ export default function DashboardLayout() {
         items={notifications}
         onMarkRead={(id) => void handleMarkRead(id)}
         onMarkAll={() => void handleMarkAll()}
+      />
+
+      <WhatsNewDrawer
+        open={whatsNewOpen}
+        onClose={() => setWhatsNewOpen(false)}
+        onUnreadChange={setWhatsNewUnread}
+      />
+
+      <WhatsNewPopup
+        onOpen={() => setWhatsNewOpen(true)}
+        onUnreadChange={setWhatsNewUnread}
       />
 
       <main

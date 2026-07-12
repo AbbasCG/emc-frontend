@@ -44,6 +44,7 @@ import {
 import CourseSelector from '../../../components/learning-paths/CourseSelector'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
 import type { Course } from '@/types'
+import { formatEuro } from '@/utils/currency'
 
 const CourseProgramFormModal = lazy(() =>
   import('./programs/CourseProgramFormModal').then((m) => ({ default: m.CourseProgramFormModal })),
@@ -63,7 +64,7 @@ function enPrice(n: number | string | null | undefined): string {
   if (n == null) return '—'
   const num = typeof n === 'number' ? n : Number(n)
   if (!Number.isFinite(num)) return '—'
-  return '€' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num)
+  return formatEuro(num, { locale: 'nl-NL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
 function StatusBadge({ status }: { status: string }) {

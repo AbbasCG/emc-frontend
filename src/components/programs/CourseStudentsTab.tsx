@@ -8,6 +8,7 @@ import {
   type CourseParticipant,
 } from '@/api/adminCoursesApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { formatEnglishCount, formatEnglishPercent } from '@/utils/formatEnglishNumber'
 
 const STATUS_LABELS: Record<string, string> = {
   registered: 'مسجّل',
@@ -94,7 +95,7 @@ export function CourseStudentsTab({ courseId, onChanged, onRequestAdd }: Props) 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-black text-[#22334A]">طلاب الدورة</p>
-          <p className="text-[11px] font-medium text-[#22334A]/50">{total} مشترك</p>
+          <p className="text-[11px] font-medium text-[#22334A]/50">{formatEnglishCount(total)} مشترك</p>
         </div>
         <button
           type="button"
@@ -161,7 +162,7 @@ export function CourseStudentsTab({ courseId, onChanged, onRequestAdd }: Props) 
                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${statusClass(p.status)}`}>
                   {statusLabel(p.status)}
                 </span>
-                <span className="text-[11px] font-bold tabular-nums text-[#22334A]/55">{p.progress_pct}%</span>
+                <span className="text-[11px] font-bold tabular-nums text-[#22334A]/55" dir="ltr">{formatEnglishPercent(p.progress_pct)}</span>
                 {p.user_id != null ?
                   <button
                     type="button"

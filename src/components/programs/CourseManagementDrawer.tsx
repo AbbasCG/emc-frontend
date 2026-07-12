@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react'
+import React, { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -26,10 +26,18 @@ import { isEndedCourse, inferProgramKind, PROGRAM_KIND_LABEL } from '@/pages/sup
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import { getCourseInstructor } from '@/utils/courseInstructor'
 import { formatEuro } from '@/utils/currency'
+import {
+  formatEnglishCount,
+  formatEnglishDate,
+  formatEnglishDetailText,
+  formatEnglishPercent,
+  formatEnglishTime,
+} from '@/utils/formatEnglishNumber'
 import type { Course } from '@/types'
 import type { CatalogTrackRow } from '@/api/superAdminCatalogApi'
 import type { OpsDepartmentOption } from '@/api/adminCoursesApi'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
+import { adminRoleLabelAr } from '@/pages/super-admin/users/assignableRoles'
 
 const CourseProgramFormModal = lazy(() =>
   import('@/pages/super-admin/crud/programs/CourseProgramFormModal').then((m) => ({ default: m.CourseProgramFormModal })),
@@ -56,12 +64,55 @@ type Props = {
 }
 
 function fmtDate(v: string | null | undefined): string {
-  if (!v) return '—'
-  try {
-    return new Date(v).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })
-  } catch {
-    return String(v).slice(0, 10)
-  }
+  return formatEnglishDate(v, 'short')
+}
+
+type UserRef = { id: number; name: string; email?: string; role?: string }
+
+function CreatorCard({
+  label,
+  user,
+  date,
+  dateLabel,
+}: {
+  label: string
+  user: UserRef | null | undefined
+  date: string | null | undefined
+  dateLabel: string
+}) {
+  const initials = user?.name ? initialsFromName(user.name) : '؟'
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-[#22334A]/8 bg-gradient-to-br from-white to-slate-50 p-3.5" dir="rtl">
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#2691C2]/10 text-[11px] font-black text-[#2691C2] ring-1 ring-[#2691C2]/20 select-none">
+        {initials}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/45">{label}</p>
+        {user ? (
+          <>
+            <p className="mt-0.5 font-black text-[13px] text-[#22334A]">{user.name}</p>
+            {user.email && (
+              <p className="mt-0.5 text-[11px] font-semibold text-slate-500" dir="ltr" style={{ unicodeBidi: 'plaintext' }}>
+                {user.email}
+              </p>
+            )}
+            {user.role && (
+              <span className="mt-1 inline-block rounded-full bg-[#2691C2]/8 px-2 py-0.5 text-[10px] font-black text-[#2691C2]">
+                {adminRoleLabelAr(user.role)}
+              </span>
+            )}
+          </>
+        ) : (
+          <p className="mt-0.5 text-[12px] font-semibold text-slate-400">غير معروف</p>
+        )}
+        {date && (
+          <p className="mt-1.5 text-[10px] text-slate-400">
+            {dateLabel}: <span className="font-bold text-[#22334A]/60">{fmtDate(date)}</span>
+          </p>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function MetricTile({ label, value, icon: Icon }: { label: string; value: ReactNode; icon: React.ElementType }) {
@@ -71,7 +122,7 @@ function MetricTile({ label, value, icon: Icon }: { label: string; value: ReactN
         <p className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/45">{label}</p>
         <Icon size={14} className="text-[#2691C2]" />
       </div>
-      <p className="mt-2 text-lg font-black tabular-nums text-[#22334A]">{value}</p>
+      <p className="mt-2 text-lg font-black tabular-nums text-[#22334A]" dir="ltr">{value}</p>
     </div>
   )
 }
@@ -168,7 +219,7 @@ function CourseCertificatesTab({ courseId }: { courseId: number }) {
           ].map(({ label, value, cls }) => (
             <div key={label} className={`rounded-xl border p-3.5 ${cls}`}>
               <p className="text-[10px] font-black uppercase tracking-wide opacity-60">{label}</p>
-              <p className="mt-1 text-xl font-black tabular-nums">{value}</p>
+              <p className="mt-1 text-xl font-black tabular-nums" dir="ltr">{formatEnglishCount(value)}</p>
             </div>
           ))}
         </div>
@@ -195,7 +246,7 @@ function CourseCertificatesTab({ courseId }: { courseId: number }) {
             onClick={() => navigate(issuePath)}
             className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[12px] font-black text-emerald-700 hover:bg-emerald-100"
           >
-            <Check size={13} strokeWidth={3} /> إصدار للمؤهلين ({data.summary.eligible})
+            <Check size={13} strokeWidth={3} /> إصدار للمؤهلين ({formatEnglishCount(data.summary.eligible)})
           </button>
         )}
       </div>
@@ -215,7 +266,7 @@ function CourseCertificatesTab({ courseId }: { courseId: number }) {
                   <p className="truncate text-[10px] text-[#94A3B8]">{s.user.email}</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-3 text-[10px] text-[#64748B]">
-                  <span><TrendingUp size={10} className="inline ml-0.5" />{s.progress_pct ?? s.progress ?? 0}%</span>
+                  <span dir="ltr"><TrendingUp size={10} className="inline ml-0.5" />{formatEnglishPercent(s.progress_pct ?? s.progress ?? 0)}</span>
                 </div>
                 {s.existing_certificate ? (
                   <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black text-blue-700">صدرت</span>
@@ -302,13 +353,13 @@ export function CourseManagementDrawer({
   : (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricTile label="الطلاب" value={d.students_count ?? d.effective_enrollment_count ?? d.registrations_count ?? 0} icon={Users} />
-        <MetricTile label="التسجيلات" value={d.registrations_count ?? 0} icon={UserCheck} />
-        <MetricTile label="الجلسات" value={d.sessions_count ?? 0} icon={Calendar} />
-        <MetricTile label="الواجبات" value={d.assignments_count ?? 0} icon={ClipboardList} />
-        <MetricTile label="المواد" value={d.materials_count ?? 0} icon={FileText} />
-        <MetricTile label="متوسط التقدم" value={`${d.average_progress ?? 0}%`} icon={GraduationCap} />
-        <MetricTile label="نسبة الحضور" value={`${d.attendance_summary?.present_pct ?? 0}%`} icon={UserCheck} />
+        <MetricTile label="الطلاب" value={formatEnglishCount(d.students_count ?? d.effective_enrollment_count ?? d.registrations_count ?? 0)} icon={Users} />
+        <MetricTile label="التسجيلات" value={formatEnglishCount(d.registrations_count ?? 0)} icon={UserCheck} />
+        <MetricTile label="الجلسات" value={formatEnglishCount(d.sessions_count ?? 0)} icon={Calendar} />
+        <MetricTile label="الواجبات" value={formatEnglishCount(d.assignments_count ?? 0)} icon={ClipboardList} />
+        <MetricTile label="المواد" value={formatEnglishCount(d.materials_count ?? 0)} icon={FileText} />
+        <MetricTile label="متوسط التقدم" value={formatEnglishPercent(d.average_progress ?? 0)} icon={GraduationCap} />
+        <MetricTile label="نسبة الحضور" value={formatEnglishPercent(d.attendance_summary?.present_pct ?? 0)} icon={UserCheck} />
         <MetricTile label="السعر" value={
           String(d.type) === 'paid' && Number(d.price) > 0
             ? formatEuro(Number(d.price), { locale: 'nl-NL', minimumFractionDigits: 0 })
@@ -324,8 +375,8 @@ export function CourseManagementDrawer({
           <EntityDetailField label="النشر" value={d.is_published || d.status === 'published' ? 'منشور' : 'غير منشور'} />
           <EntityDetailField label="نوع البرنامج" value={PROGRAM_KIND_LABEL[kind]} />
           <EntityDetailField label="نوع التسعير" value={String(d.type) === 'paid' ? 'مدفوع' : 'مجاني'} />
-          <EntityDetailField label="المدة" value={d.computed_duration_label ?? d.duration ?? '—'} />
-          <EntityDetailField label="ساعات التدريب" value={d.training_hours ?? d.hours_count ?? '—'} />
+          <EntityDetailField label="المدة" value={formatEnglishDetailText(d.computed_duration_label ?? d.duration)} />
+          <EntityDetailField label="ساعات التدريب" value={formatEnglishDetailText(d.training_hours ?? d.hours_count)} />
         </dl>
       </EntityDetailSection>
 
@@ -342,7 +393,7 @@ export function CourseManagementDrawer({
         <dl className="grid gap-3 sm:grid-cols-2">
           <EntityDetailField label="تاريخ البداية" value={fmtDate(d.start_date as string)} />
           <EntityDetailField label="تاريخ النهاية" value={fmtDate(d.end_date as string)} />
-          <EntityDetailField label="وقت البداية" value={d.start_time ?? '—'} />
+          <EntityDetailField label="وقت البداية" value={formatEnglishTime(d.start_time as string)} />
           <EntityDetailField label="نوع الموقع" value={d.location_type ?? d.delivery_type ?? '—'} />
           <EntityDetailField label="الموقع" value={d.location ?? '—'} />
           <EntityDetailField label="رابط الاجتماع" value={
@@ -355,7 +406,7 @@ export function CourseManagementDrawer({
               <a href={d.whatsapp_community_url} target="_blank" rel="noreferrer" className="text-[#2691C2] hover:underline">فتح الرابط</a>
             : '—'
           } />
-          <EntityDetailField label="السعة" value={d.capacity ?? d.seats_count ?? '—'} />
+          <EntityDetailField label="السعة" value={formatEnglishDetailText(d.capacity ?? d.seats_count)} />
         </dl>
       </EntityDetailSection>
 
@@ -367,11 +418,21 @@ export function CourseManagementDrawer({
         </EntityDetailSection>
       : null}
 
-      <EntityDetailSection title="السجل">
-        <dl className="grid gap-3 sm:grid-cols-2">
-          <EntityDetailField label="تاريخ الإنشاء" value={fmtDate(d.created_at as string)} />
-          <EntityDetailField label="آخر تحديث" value={fmtDate(d.updated_at as string)} />
-        </dl>
+      <EntityDetailSection title="معلومات الإنشاء والإدارة" icon={<UserCheck className="size-4" />}>
+        <div className="space-y-4">
+          <CreatorCard
+            label="أنشأه"
+            user={(d as Record<string, unknown>).created_by as UserRef | null | undefined}
+            date={d.created_at as string}
+            dateLabel="تاريخ الإنشاء"
+          />
+          <CreatorCard
+            label="آخر تعديل بواسطة"
+            user={(d as Record<string, unknown>).updated_by as UserRef | null | undefined}
+            date={d.updated_at as string}
+            dateLabel="تاريخ آخر تعديل"
+          />
+        </div>
       </EntityDetailSection>
     </div>
   )
@@ -406,7 +467,7 @@ export function CourseManagementDrawer({
             <div key={s.id} className="rounded-xl border border-[#22334A]/8 px-4 py-3">
               <p className="text-[13px] font-black text-[#22334A]">{s.title ?? 'جلسة'}</p>
               <p className="mt-1 text-[11px] text-[#22334A]/50">
-                {fmtDate(s.session_date)} · {s.start_time ?? '—'} · {s.status}
+                {fmtDate(s.session_date)} · {formatEnglishTime(s.start_time)} · {s.status}
               </p>
             </div>
           )}
@@ -505,7 +566,7 @@ export function CourseManagementDrawer({
               label="رمز التسجيل"
               value={
                 d.requires_registration_code
-                  ? (d.registration_code ? `مفعّل · ${d.registration_code}` : 'مفعّل · —')
+                  ? (d.registration_code ? `مفعّل · ${formatEnglishDetailText(d.registration_code)}` : 'مفعّل · —')
                   : 'غير مطلوب'
               }
             />

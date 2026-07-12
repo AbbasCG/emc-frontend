@@ -24,7 +24,7 @@ export type LmsSession = {
   platform?: string | null
 }
 
-export type MaterialKind = 'pdf' | 'video' | 'link' | 'slides' | 'document' | 'other'
+export type MaterialKind = 'pdf' | 'video' | 'link' | 'slides' | 'document' | 'zip' | 'other'
 
 export type LmsMaterial = {
   id: number
@@ -36,6 +36,9 @@ export type LmsMaterial = {
   course_name?: string | null
   size_label?: string | null
   updated_at?: string | null
+  original_filename?: string | null
+  extension?: string | null
+  mime_type?: string | null
 }
 
 export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' | 'late' | 'needs_resubmission'
@@ -217,6 +220,7 @@ export type TeachingCourseLms = {
   meeting_link?: string | null
   thumbnail?: string | null
   image?: string | null
+  image_url?: string | null
 }
 
 export type InstructorSubmission = {

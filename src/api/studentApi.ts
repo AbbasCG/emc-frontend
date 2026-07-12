@@ -991,6 +991,7 @@ function normalizeMaterialKind(raw: unknown): import('@/types/lms').MaterialKind
   if (s.includes('slide')) return 'slides'
   if (s.includes('link') || s.includes('url')) return 'link'
   if (s.includes('doc')) return 'document'
+  if (s === 'zip' || s === 'programming_project') return 'zip'
   return 'other'
 }
 
@@ -1015,6 +1016,9 @@ function normalizeMaterialRow(raw: unknown): LmsMaterial | null {
       o.course_name != null ? String(o.course_name) : nested?.title != null ? String(nested.title) : null,
     size_label: o.size_label != null ? String(o.size_label) : null,
     updated_at: o.updated_at != null ? String(o.updated_at) : null,
+    original_filename: o.original_filename != null ? String(o.original_filename) : null,
+    extension: o.extension != null ? String(o.extension) : null,
+    mime_type: o.mime_type != null ? String(o.mime_type) : null,
   }
 }
 
@@ -1104,32 +1108,40 @@ function normalizeStudentAssignmentRow(raw: unknown): StudentAssignment | null {
 }
 
 /**
- * Triggers a protected file download via the backend auth-gated endpoint.
- * Falls back to opening `fallbackUrl` in a new tab if the download endpoint is unavailable.
+ * Authenticated file download — uses the Bearer token via Axios, never
+ * window.open / window.location.href (which drop the Authorization header
+ * and cause the backend to return 401 Unauthenticated).
+ *
+ * Throws on failure so the caller can show a proper error state in the UI.
  */
-export async function downloadMaterial(materialId: number, fallbackUrl?: string | null): Promise<void> {
-  try {
-    const res = await apiClient.get<Blob>(`/materials/${materialId}/download`, {
-      responseType: 'blob',
-      skipErrorToast: true,
-    })
-    const blob = res.data
-    const disposition = String(res.headers['content-disposition'] ?? '')
-    const match = /filename[^;=\n]*=(['"]?)([^'";\n]+)\1/i.exec(disposition)
-    const filename = match?.[2]?.trim() || `material-${materialId}`
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  } catch {
-    if (fallbackUrl) {
-      window.open(fallbackUrl, '_blank', 'noreferrer')
-    }
+export async function downloadMaterial(materialId: number, fallbackFilename?: string): Promise<void> {
+  const res = await apiClient.get<Blob>(`/materials/${materialId}/download`, {
+    responseType: 'blob',
+    skipErrorToast: true,
+  })
+  const blob = res.data
+  const disposition = String(res.headers['content-disposition'] ?? '')
+
+  // Parse RFC 5987 filename* first (UTF-8 encoded), then fall back to filename=.
+  let filename: string | null = null
+  const rfc5987 = /filename\*\s*=\s*UTF-8''([^\s;]+)/i.exec(disposition)
+  if (rfc5987?.[1]) {
+    try { filename = decodeURIComponent(rfc5987[1]) } catch { /* ignore */ }
   }
+  if (!filename) {
+    const ascii = /filename[^;=\n]*=(['"]?)([^'";\n]+)\1/i.exec(disposition)
+    filename = ascii?.[2]?.trim() ?? null
+  }
+  filename = filename || fallbackFilename || `material-${materialId}`
+
+  const objectUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = objectUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(objectUrl)
 }
 
 export async function fetchStudentMaterials(): Promise<LmsMaterial[]> {

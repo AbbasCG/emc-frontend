@@ -4,6 +4,7 @@ import { CheckCircle2, FileText, Loader2, Receipt, ShoppingBag, TrendingUp, X, X
 import { getStudentOrders, type Order } from '@/api/checkoutApi'
 import toast from '@/lib/toast'
 import { fmtDate } from '@/components/lms/lmsFormatters'
+import { formatEuro } from '@/utils/currency'
 
 const STATUS_AR: Record<string, { label: string; cls: string }> = {
   pending:  { label: 'قيد الانتظار', cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'   },
@@ -13,8 +14,8 @@ const STATUS_AR: Record<string, { label: string; cls: string }> = {
   refunded: { label: 'مسترد',        cls: 'bg-sky-50 text-sky-600 ring-1 ring-sky-200'         },
 }
 
-function fmtCurrency(amount: number, currency: string) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
+function fmtCurrency(amount: number, _currency: string) {
+  return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 

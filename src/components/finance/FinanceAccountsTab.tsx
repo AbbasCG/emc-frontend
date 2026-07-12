@@ -8,11 +8,15 @@ import {
   fetchFinanceAccounts,
 } from '@/api/financeApi'
 import type { FinanceAccount } from '@/types/intelligence'
+import { formatEuro, formatSAR } from '@/utils/currency'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtBalance(n: number, currency = 'EUR') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 2 }).format(n)
+  const c = currency.toUpperCase()
+  if (c === 'EUR') return formatEuro(n, { locale: 'nl-NL', maximumFractionDigits: 2 })
+  if (c === 'SAR') return formatSAR(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: c, maximumFractionDigits: 2 }).format(n)
 }
 
 const ACCOUNT_ICON: Record<string, React.ElementType> = {
@@ -72,7 +76,7 @@ function AccountCard({ account, onAddTxn }: { account: FinanceAccount; onAddTxn:
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-white/20 pt-3">
-        <span className="text-[10px] font-semibold opacity-60">الرصيد الافتتاحي: {fmtBalance(account.opening_balance, account.currency)}</span>
+        <span className="text-[10px] font-semibold opacity-60">الرصيد الافتتاحي: <span dir="ltr">{fmtBalance(account.opening_balance, account.currency)}</span></span>
         <button
           type="button"
           onClick={() => onAddTxn(account)}
@@ -341,7 +345,7 @@ export default function FinanceAccountsTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">إجمالي النقدية (EUR)</p>
           <p className="mt-1 text-2xl font-black text-deepBlue tabular-nums" dir="ltr">
-            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(totalEur)}
+            {formatEuro(totalEur, { locale: 'nl-NL' })}
           </p>
           <p className="mt-0.5 text-xs font-semibold text-slate-400">{accounts.length} حساب نشط</p>
         </div>

@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Calendar, ChevronLeft, ChevronRight, Clock, ChevronDown } from 'lucide-react'
+import { Calendar, Clock, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import { CALENDAR_PORTAL_CLASS, EmcCalendarBody } from '@/components/ui/EmcCalendarPopover'
 import {
   addDaysToDatetimeLocal,
   addMinutesToDatetimeLocal,
@@ -12,8 +13,6 @@ import {
   startOfTodayDatetimeLocal,
   toDatetimeLocalValue,
 } from '@/utils/datetimeLocal'
-
-const WEEKDAYS = ['أحد', 'إثن', 'ثل', 'أرب', 'خم', 'جم', 'سب'] as const
 
 type DatePreset = { id: string; label: string; apply: (current: string) => string }
 type DurationPreset = { id: string; label: string; minutes: number }
@@ -43,30 +42,6 @@ const DURATION_PRESETS: DurationPreset[] = [
   { id: '2h', label: '+2 ساعة', minutes: 120 },
 ]
 
-function monthLabel(year: number, month: number): string {
-  const d = new Date(year, month - 1, 1)
-  return new Intl.DateTimeFormat('ar', {
-    month: 'long',
-    year: 'numeric',
-    numberingSystem: 'latn',
-  }).format(d)
-}
-
-function buildCalendarDays(viewYear: number, viewMonth: number): (number | null)[] {
-  const first = new Date(viewYear, viewMonth - 1, 1)
-  const startPad = first.getDay()
-  const daysInMonth = new Date(viewYear, viewMonth, 0).getDate()
-  const cells: (number | null)[] = []
-  for (let i = 0; i < startPad; i++) cells.push(null)
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
-  while (cells.length % 7 !== 0) cells.push(null)
-  return cells
-}
-
-function mergeDateTime(y: number, m: number, day: number, hour: number, minute: number): string {
-  return toDatetimeLocalValue(new Date(y, m - 1, day, hour, minute, 0, 0))
-}
-
 type Draft = {
   year: number
   month: number
@@ -85,6 +60,10 @@ function draftFromValue(value: string, fallback: Date): Draft {
     hour: 9,
     minute: 0,
   }
+}
+
+function mergeDateTime(y: number, m: number, day: number, hour: number, minute: number): string {
+  return toDatetimeLocalValue(new Date(y, m - 1, day, hour, minute, 0, 0))
 }
 
 function draftToValue(d: Draft): string {
@@ -239,7 +218,6 @@ export default function EmcDateTimePicker({
 
   const { date: selectedDate, time: selectedTime } = splitDatetimeLocalPreview(value)
   const draftPreview = formatDatetimeLocalPreview(draftToValue(draft))
-  const calendarDays = buildCalendarDays(viewYear, viewMonth)
 
   function patchDraft(patch: Partial<Draft>) {
     setDraft((prev) => {
@@ -330,11 +308,11 @@ export default function EmcDateTimePicker({
         open={open}
         anchorRef={anchorRef}
         onClose={() => setOpen(false)}
-        align="stretch"
+        align="end"
         offset={8}
         layer="datetime"
         constrainViewport
-        className="w-[min(100vw-1rem,18rem)]"
+        className={CALENDAR_PORTAL_CLASS}
       >
         <div
           role="dialog"
@@ -343,14 +321,14 @@ export default function EmcDateTimePicker({
           dir="rtl"
         >
           {(showDatePresets || durationFrom) && (
-            <div className="shrink-0 flex flex-wrap gap-1.5 border-b border-slate-100 bg-slate-50/80 p-2.5">
+            <div className="shrink-0 flex flex-wrap gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-3">
               {showDatePresets &&
                 DATE_PRESETS.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => applyPreset(p.apply(value))}
-                    className="rounded-lg border border-[#22334A]/10 bg-white px-2.5 py-1 text-[11px] font-black text-[#22334A] transition hover:border-[#2691C2]/30 hover:text-[#2691C2]"
+                    className="rounded-lg border border-[#22334A]/10 bg-white px-3 py-1.5 text-[12px] font-black text-[#22334A] transition hover:border-[#2691C2]/35 hover:bg-[#2691C2]/5 hover:text-[#2691C2]"
                   >
                     {p.label}
                   </button>
@@ -370,60 +348,29 @@ export default function EmcDateTimePicker({
           )}
 
           <div className="flex-1">
-            <div className="flex items-center justify-between gap-2 px-3 py-2">
-              <button
-                type="button"
-                onClick={nextMonth}
-                className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100"
-                aria-label="الشهر التالي"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <p className="text-[13px] font-black text-[#22334A]">{monthLabel(viewYear, viewMonth)}</p>
-              <button
-                type="button"
-                onClick={prevMonth}
-                className="rounded-lg p-1.5 text-[#22334A]/60 transition hover:bg-slate-100"
-                aria-label="الشهر السابق"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-7 gap-0.5 px-2 pb-0.5">
-              {WEEKDAYS.map((wd) => (
-                <div key={wd} className="py-0.5 text-center text-[10px] font-bold text-slate-400">
-                  {wd}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-0.5 px-2 pb-2">
-              {calendarDays.map((day, idx) => {
-                if (day == null) return <div key={`e-${idx}`} className="h-8" />
-                const isSelected =
-                  draft.year === viewYear && draft.month === viewMonth && draft.day === day
-                const isToday =
-                  today.getFullYear() === viewYear && today.getMonth() + 1 === viewMonth && today.getDate() === day
-                return (
-                  <button
-                    key={`d-${day}-${idx}`}
-                    type="button"
-                    onClick={() => selectDay(day)}
-                    className={cn(
-                      'h-8 rounded-lg text-[12px] font-bold tabular-nums transition',
-                      isSelected
-                        ? 'bg-[#2691C2] text-white shadow-sm'
-                        : isToday
-                          ? 'bg-[#2691C2]/10 text-[#2691C2] ring-1 ring-[#2691C2]/30'
-                          : 'text-[#22334A] hover:bg-slate-100',
-                    )}
-                  >
-                    {day}
-                  </button>
-                )
-              })}
-            </div>
+            <EmcCalendarBody
+              viewYear={viewYear}
+              viewMonth={viewMonth}
+              isDaySelected={(day) =>
+                draft.year === viewYear && draft.month === viewMonth && draft.day === day
+              }
+              onPrevMonth={prevMonth}
+              onNextMonth={nextMonth}
+              onSelectDay={selectDay}
+              onPreset={(iso) => {
+                const p = parseDatetimeLocalParts(iso + 'T12:00:00') ?? {
+                  year: draft.year,
+                  month: draft.month,
+                  day: draft.day,
+                  hour: draft.hour,
+                  minute: draft.minute,
+                }
+                setDraft({ year: p.year, month: p.month, day: p.day, hour: draft.hour, minute: draft.minute })
+                setViewYear(p.year)
+                setViewMonth(p.month)
+              }}
+              showPresets={false}
+            />
 
             <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-2.5">
               <div className="mb-1.5 flex items-center gap-2 text-[11px] font-black text-[#22334A]/70">

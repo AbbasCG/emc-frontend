@@ -187,6 +187,7 @@ function SessionModal({
               <EmcDatePicker
                 label="التاريخ"
                 required
+                layout="stacked"
                 value={form.session_date}
                 onChange={(v) => set('session_date', v)}
                 error={errors.session_date}

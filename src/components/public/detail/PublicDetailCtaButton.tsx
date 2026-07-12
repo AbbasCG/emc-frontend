@@ -6,6 +6,7 @@ import type { PublicEnrollCta } from '@/utils/publicCourseDetailCta'
 import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import toast from '@/lib/toast'
 import { initiateCheckout } from '@/api/checkoutApi'
+import { formatEuro } from '@/utils/currency'
 
 type Props = {
   cta: PublicEnrollCta
@@ -56,7 +57,7 @@ export default function PublicDetailCtaButton({
           <div className="flex items-center gap-2 text-sm text-deepBlue/60">
             <Lock size={13} className="text-emerald-600" />
             <span className="font-black text-deepBlue">
-              {new Intl.NumberFormat('ar-SA', { style: 'currency', currency: cta.currency ?? 'EUR' }).format(cta.price)}
+              {formatEuro(cta.price, { locale: 'nl-NL', minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </span>
             <span className="text-[10px] text-emerald-600 font-semibold">دفع آمن</span>
           </div>

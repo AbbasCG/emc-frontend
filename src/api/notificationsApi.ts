@@ -184,9 +184,16 @@ function resolveReadAt(raw: Record<string, unknown>): string | null {
  * variants. Replace valid ISO patterns with Arabic Amsterdam-local time; remove
  * unrecoverable garbled patterns rather than show broken text.
  */
+/**
+ * Only reformat raw ISO datetime strings embedded in old notification bodies.
+ * The regex specifically targets ISO 8601 patterns (YYYY-MM-DDTHH:…) so that
+ * already-formatted Arabic dates like "10 يوليو 2026، 09:00" pass through
+ * completely untouched. Without this guard the old \S+ pattern would capture
+ * only the leading digit ("10"), fail to parse it, and strip it — leaving
+ * "يوليو 2026، 09:00" as orphaned text with the wrong day gone.
+ */
 function sanitizeNotificationBody(body: string): string {
-  return body.replace(/—\s*الموعد:\s*(\S+)/g, (_match, raw: string) => {
-    // Try to parse as a valid ISO datetime
+  return body.replace(/—\s*الموعد:\s*(\d{4}-\d{2}-\d{2}T[^\s،"]+)/g, (_match, raw: string) => {
     const d = new Date(raw)
     if (!Number.isNaN(d.getTime())) {
       try {
@@ -205,7 +212,6 @@ function sanitizeNotificationBody(body: string): string {
         return ''
       }
     }
-    // Garbled / unparseable — strip the broken datetime suffix
     return ''
   })
 }

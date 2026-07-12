@@ -39,7 +39,7 @@ export function normalizeLmsSessionRow(raw: unknown): LmsSession | null {
 
   const cidRaw = o.course_id ?? nested?.id
   const course_id = cidRaw != null && cidRaw !== '' && Number.isFinite(Number(cidRaw)) ? Number(cidRaw) : null
-  const course_name = String(o.course_name ?? nested?.title ?? o.title ?? 'دورة')
+  const course_name = String(o.course_name ?? o.course_title ?? nested?.title ?? 'دورة')
   const course_slug =
     o.course_slug != null && String(o.course_slug).trim() !== '' ?
       String(o.course_slug)

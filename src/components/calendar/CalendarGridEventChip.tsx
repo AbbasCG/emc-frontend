@@ -43,8 +43,8 @@ export default function CalendarGridEventChip({
         className={`flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-start text-[10px] font-bold text-[#22334A] ring-1 ring-slate-100 transition hover:ring-[#2691C2]/30 ${colorCls}`}
       >
         <span className={`h-2 w-1 shrink-0 rounded-full ${bar}`} />
-        <span className="truncate">{formatCalendarTime(event.start_at)}</span>
         <span className="min-w-0 flex-1 truncate">{event.title}</span>
+        <span className="shrink-0 opacity-70">{formatCalendarTime(event.start_at)}</span>
       </button>
     )
   }

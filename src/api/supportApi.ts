@@ -59,11 +59,24 @@ export async function submitSupportTicket(payload: {
   await apiClient.post('/support-tickets', payload)
 }
 
+export interface ReplyResult {
+  email_queued: boolean
+  email_warning: string | null
+}
+
 export async function replySupportTicket(
   id: number,
   body: { message: string; is_internal_note?: boolean },
-): Promise<void> {
-  await apiClient.post(`/operations/support-tickets/${id}/replies`, body)
+): Promise<ReplyResult> {
+  const res = await apiClient.post<{ email_queued?: boolean; email_warning?: string | null }>(
+    `/operations/support-tickets/${id}/replies`,
+    body,
+  )
+  const d = res.data as Record<string, unknown>
+  return {
+    email_queued:  Boolean(d.email_queued),
+    email_warning: (d.email_warning as string | null | undefined) ?? null,
+  }
 }
 
 export async function updateSupportTicket(

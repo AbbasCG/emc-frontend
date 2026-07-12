@@ -31,7 +31,7 @@ import {
   mapLearnSessionToLms,
   saveCourseNotes,
 } from '@/api/courseLearnApi'
-import { STUDENT_SCOPE_REFRESH_EVENT, notifyStudentScopeRefresh } from '@/api/studentApi'
+import { STUDENT_SCOPE_REFRESH_EVENT, notifyStudentScopeRefresh, fetchStudentCoursesList } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, MaterialCard, SessionCard } from '@/components/lms'
 import type { StudentAssignment } from '@/types/lms'
@@ -47,6 +47,33 @@ import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
 const NOTES_KEY = (courseId: number) => `emc-student-learn-notes:${courseId}`
 
 type LearnTab = 'modules' | 'sessions' | 'materials' | 'assignments' | 'notes' | 'progress'
+
+type GateError =
+  | 'forbidden'
+  | 'forbidden_sync'
+  | 'missing'
+  | 'placement_required'
+  | 'placement_oral'
+  | null
+
+function parseLearnGateError(e: unknown): { gate: GateError; message: string | null } {
+  if (!axios.isAxiosError(e)) return { gate: null, message: null }
+  const status = e.response?.status
+  const body = e.response?.data as { placement_status?: string; message?: string } | undefined
+  if (status === 404) return { gate: 'missing', message: body?.message ?? null }
+  if (status === 403) {
+    const ps = body?.placement_status
+    if (ps === 'placement_required') return { gate: 'placement_required', message: body?.message ?? null }
+    if (ps === 'written_completed') return { gate: 'placement_oral', message: body?.message ?? null }
+    return { gate: 'forbidden', message: body?.message ?? null }
+  }
+  return { gate: null, message: null }
+}
+
+async function isCourseListedForStudent(courseId: number): Promise<boolean> {
+  const listed = await fetchStudentCoursesList()
+  return listed.some((c) => c.id === courseId)
+}
 
 function tsFromSession(s: LmsSession): number {
   const raw = s.starts_at ?? s.date
@@ -98,7 +125,7 @@ export default function StudentCourseLearnPage() {
   const [learnLoading, setLearnLoading] = useState(validId)
   const [refreshing, setRefreshing] = useState(false)
   const [learnError, setLearnError] = useState<string | null>(null)
-  const [gateError, setGateError] = useState<'forbidden' | 'missing' | null>(null)
+  const [gateError, setGateError] = useState<GateError>(null)
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignment | null>(null)
   const [activeTab, setActiveTab] = useState<LearnTab>('modules')
 
@@ -112,7 +139,7 @@ export default function StudentCourseLearnPage() {
   const [openModules, setOpenModules] = useState<Set<number>>(new Set())
   const modulesInitializedRef = useRef(false)
 
-  const { registrations, enrollmentsMerged, registeredCourseIds } = useStudentDashboardData()
+  const { registrations, enrollmentsMerged, registeredCourseIds, loading: dashboardLoading, refresh: refreshDashboard } = useStudentDashboardData()
 
   const redirectCoursePk = useMemo(
     () => (validId ? resolveCoursePkFromLikelyMisKey(courseId, registrations) : null),
@@ -131,24 +158,40 @@ export default function StudentCourseLearnPage() {
     return enrollmentsMerged.some((e) => e.course.id === courseId)
   }, [validId, courseId, registeredCourseIds, registrations, enrollmentsMerged])
 
-  const loadLearn = useCallback(async () => {
+  const loadLearn = useCallback(async (opts?: { refreshEnrollment?: boolean }) => {
     if (!validId) return
     setLearnError(null)
     setGateError(null)
     setLearnLoading(true)
+    if (opts?.refreshEnrollment) {
+      try { await refreshDashboard() } catch { /* non-fatal */ }
+    }
     try {
       const data = await fetchStudentCourseLearn(courseId)
       setLearn(data)
     } catch (e) {
       setLearn(null)
-      const status = axios.isAxiosError(e) ? e.response?.status : undefined
-      if (status === 403) setGateError('forbidden')
-      else if (status === 404) setGateError('missing')
-      else setLearnError(getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      const { gate, message } = parseLearnGateError(e)
+      if (gate === 'missing') {
+        setGateError('missing')
+      } else if (gate === 'placement_required' || gate === 'placement_oral') {
+        setGateError(gate)
+        if (message) setLearnError(message)
+      } else if (gate === 'forbidden') {
+        let enrolledInList = registeredCourseIds.has(courseId)
+          || registrations.some((r) => r.course_id === courseId)
+          || enrollmentsMerged.some((en) => en.course.id === courseId)
+        if (!enrolledInList) {
+          try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
+        }
+        setGateError(enrolledInList ? 'forbidden_sync' : 'forbidden')
+      } else {
+        setLearnError(message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      }
     } finally {
       setLearnLoading(false)
     }
-  }, [courseId, validId])
+  }, [courseId, validId, registeredCourseIds, registrations, enrollmentsMerged, refreshDashboard])
 
   const softRefresh = useCallback(async () => {
     if (!validId) return
@@ -160,14 +203,26 @@ export default function StudentCourseLearnPage() {
       setLearn(data)
     } catch (e) {
       setLearn(null)
-      const status = axios.isAxiosError(e) ? e.response?.status : undefined
-      if (status === 403) setGateError('forbidden')
-      else if (status === 404) setGateError('missing')
-      else setLearnError(getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      const { gate, message } = parseLearnGateError(e)
+      if (gate === 'missing') setGateError('missing')
+      else if (gate === 'placement_required' || gate === 'placement_oral') {
+        setGateError(gate)
+        if (message) setLearnError(message)
+      } else if (gate === 'forbidden') {
+        let enrolledInList = registeredCourseIds.has(courseId)
+          || registrations.some((r) => r.course_id === courseId)
+          || enrollmentsMerged.some((en) => en.course.id === courseId)
+        if (!enrolledInList) {
+          try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
+        }
+        setGateError(enrolledInList ? 'forbidden_sync' : 'forbidden')
+      } else {
+        setLearnError(message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      }
     } finally {
       setRefreshing(false)
     }
-  }, [courseId, validId])
+  }, [courseId, validId, registeredCourseIds, registrations, enrollmentsMerged])
 
   useEffect(() => { void loadLearn() }, [loadLearn])
 
@@ -339,7 +394,7 @@ export default function StudentCourseLearnPage() {
     )
   }
 
-  if (learnLoading && !ctx && redirectCoursePk == null) {
+  if ((learnLoading || dashboardLoading) && !ctx && redirectCoursePk == null) {
     return (
       <div className="animate-pulse space-y-6" dir="rtl">
         <div className="h-52 rounded-3xl bg-slate-200/90" />
@@ -352,21 +407,56 @@ export default function StudentCourseLearnPage() {
   if (gateError !== null) {
     const title =
       gateError === 'missing' ? 'لم يُعثر على هذه الدورة'
+      : gateError === 'placement_required' ? 'اختبار تحديد المستوى مطلوب'
+      : gateError === 'placement_oral' ? 'المقابلة الشفوية مطلوبة'
+      : gateError === 'forbidden_sync' ? 'تعذّر فتح محتوى الدورة مؤقتاً'
       : 'لا يمكنك الوصول إلى محتوى هذه الدورة'
+
+    const body =
+      gateError === 'placement_required'
+        ? 'أكمل اختبار تحديد المستوى الكتابي من صفحة دوراتي قبل الدخول إلى محتوى هذه الدورة.'
+      : gateError === 'placement_oral'
+        ? 'احجز موعد المقابلة الشفوية من صفحة دوراتي قبل الدخول إلى محتوى هذه الدورة.'
+      : gateError === 'forbidden_sync'
+        ? 'أنت مسجّل في هذه الدورة في دوراتي، لكن التحقق من الوصول لم ينجح بعد. جرّب إعادة المحاولة أو افتح الدورة من دوراتي مرة أخرى.'
+      : gateError === 'forbidden'
+        ? 'تأكّد من تسجيلك في هذه الدورة عبر مسارك التعليمي أو من صفحة دوراتي.'
+      : clientKnowsRegistered
+        ? 'يبدو أن الرابط لا يطابق الدورة المسجّلة. جرّب فتح الدورة من صفحة دوراتي.'
+        : 'تحقّق من الرابط أو تواصل مع الإدارة.'
 
     return (
       <div className="rounded-3xl border border-[#22334A]/10 bg-white/90 p-10 text-center shadow-xl" dir="rtl">
         <BookOpen className="mx-auto h-12 w-12 text-[#2691C2]" aria-hidden />
         <h1 className="mt-4 text-xl font-black text-[#22334A]">{title}</h1>
         <p className="mx-auto mt-2 max-w-lg text-[13px] font-semibold text-[#22334A]/60">
-          {gateError === 'forbidden'
-            ? 'تأكّد من تسجيلك في هذه الدورة عبر مسارك التعليمي أو من صفحة دوراتي.'
-            : clientKnowsRegistered
-              ? 'يبدو أن الرابط لا يطابق الدورة المسجّلة. جرّب فتح الدورة من صفحة دوراتي.'
-              : 'تحقّق من الرابط أو تواصل مع الإدارة.'}
+          {body}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button type="button" onClick={() => void loadLearn()} className="rounded-2xl border border-[#22334A]/15 px-6 py-2.5 text-[12px] font-black text-[#22334A]">
+          {gateError === 'placement_required' && (
+            <Link
+              to={`/dashboard/student/courses/${courseId}/placement-test`}
+              className="rounded-2xl bg-amber-500 px-6 py-2.5 text-[12px] font-black text-white"
+            >
+              ابدأ اختبار تحديد المستوى
+            </Link>
+          )}
+          {gateError === 'placement_oral' && (
+            <Link
+              to={`/dashboard/student/courses/${courseId}/oral-booking`}
+              className="rounded-2xl bg-[#2691C2] px-6 py-2.5 text-[12px] font-black text-white"
+            >
+              حجز المقابلة الشفوية
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              notifyStudentScopeRefresh()
+              void loadLearn({ refreshEnrollment: true })
+            }}
+            className="rounded-2xl border border-[#22334A]/15 px-6 py-2.5 text-[12px] font-black text-[#22334A]"
+          >
             إعادة المحاولة
           </button>
           <Link to="/dashboard/student/courses" className="rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white">

@@ -66,7 +66,7 @@ export const STATUS_CFG: Record<
     dot: 'bg-violet-500',
   },
   reviewing: {
-    label: 'قيد المراجعة',
+    label: 'جاري المراجعة',
     badge: 'bg-orange-50 text-orange-800 ring-1 ring-orange-200/80',
     dot: 'bg-orange-500',
   },

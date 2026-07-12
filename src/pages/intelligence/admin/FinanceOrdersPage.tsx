@@ -25,6 +25,7 @@ import { fetchFinanceOrders } from '@/api/financeApi'
 import type { FinanceOrder } from '@/types/intelligence'
 import { FinanceSubnav } from '@/components/intelligence'
 import toast from '@/lib/toast'
+import { formatEuro } from '@/utils/currency'
 
 /* ─── Status config ────────────────────────────────────────────────────────── */
 
@@ -43,9 +44,9 @@ const STATUS_AR: Record<string, { label: string; dot: string; bg: string; text: 
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
-function fmtCurrency(amount: number | null | undefined, currency = 'EUR') {
+function fmtCurrency(amount: number | null | undefined, _currency = 'EUR') {
   if (amount == null) return '—'
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2 }).format(Number(amount))
+  return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function fmtDate(d?: string | null) {

@@ -76,12 +76,6 @@ export default function AssignmentCard({ assignment, onSubmit }: Props) {
           {statusLabel(assignment.status, overdue)}
         </span>
 
-        {overdue && !trulySubmitted && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-black text-red-700">
-            <AlertCircle className="h-3 w-3" />
-            متأخر
-          </span>
-        )}
         {dueSoon && !trulySubmitted && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700">
             <AlertTriangle className="h-3 w-3" />

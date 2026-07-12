@@ -53,9 +53,9 @@ export function ScheduleCourseModal({ open, course, onClose, onSaved }: Props) {
   return (
     <CrudModal open={open} onClose={onClose} title="تحديد موعد الدورة" subtitle={course?.title} widthClassName="max-w-md">
       <div className="space-y-4 text-right" dir="rtl">
-        <EmcDatePicker label="تاريخ البداية" value={startDate} onChange={setStartDate} />
+        <EmcDatePicker label="تاريخ البداية" layout="stacked" value={startDate} onChange={setStartDate} />
         <EmcTimePicker label="وقت البداية" value={startTime} onChange={setStartTime} />
-        <EmcDatePicker label="تاريخ الانتهاء" value={endDate} onChange={setEndDate} />
+        <EmcDatePicker label="تاريخ الانتهاء" layout="stacked" value={endDate} onChange={setEndDate} />
         <label className="block text-xs font-black text-deepBlue">
           رابط الجلسة
           <input value={meetingLink} onChange={(e) => setMeetingLink(e.target.value)} dir="ltr" className="mt-1 w-full rounded-xl border px-3 py-2 font-mono text-sm" />

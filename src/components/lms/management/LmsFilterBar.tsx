@@ -60,7 +60,7 @@ export function LmsFilterBar({
         </span>
       </div>
       {secondary ?
-        <div className="flex flex-wrap items-center gap-2 border-t border-[#22334A]/6 pt-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#22334A]/6 pt-3">
           <span className="inline-flex items-center gap-1 text-[11px] font-black text-[#22334A]/35">
             <Filter size={11} /> فلاتر
           </span>

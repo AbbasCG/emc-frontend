@@ -7,6 +7,7 @@ import {
   Search, X, XCircle,
 } from 'lucide-react'
 import { FinanceSubnav } from '@/components/intelligence'
+import { formatEuro } from '@/utils/currency'
 import { fetchFinancePayments } from '@/api/financeApi'
 import type { FinancePaymentRow } from '@/types/intelligence'
 
@@ -56,9 +57,9 @@ const PROVIDER_AR: Record<string, string> = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtCurrency(amount: number | undefined | null, currency = 'EUR') {
+function fmtCurrency(amount: number | undefined | null, _currency = 'EUR') {
   if (amount == null) return '—'
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 2 }).format(Number(amount))
+  return formatEuro(amount, { locale: 'nl-NL', maximumFractionDigits: 2 })
 }
 
 function fmtDate(d: string | null | undefined) {

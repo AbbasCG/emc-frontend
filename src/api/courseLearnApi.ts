@@ -43,7 +43,8 @@ export function mapCourseLearnMaterialToLmsMaterial(
   const raw = m.file_url ?? m.external_url ?? m.url ?? null
   const resolved = resolvePublicAssetUrl(raw) ?? (raw && String(raw).trim() !== '' ? String(raw).trim() : null)
   const kr = String(m.kind ?? 'other').toLowerCase()
-  const kind: LmsMaterial['kind'] = ['pdf', 'video', 'link', 'slides', 'document', 'other'].includes(kr) ? (kr as LmsMaterial['kind']) : 'other'
+  const kindNormalized = (kr === 'programming_project') ? 'zip' : kr
+  const kind: LmsMaterial['kind'] = ['pdf', 'video', 'link', 'slides', 'document', 'zip', 'other'].includes(kindNormalized) ? (kindNormalized as LmsMaterial['kind']) : 'other'
   return {
     id: m.id,
     course_id: m.course_id ?? ctx.courseId,
@@ -52,7 +53,11 @@ export function mapCourseLearnMaterialToLmsMaterial(
     url: resolved,
     description: m.description ?? null,
     course_name: ctx.courseTitle,
+    size_label: m.size_human ?? null,
     updated_at: m.updated_at ?? null,
+    original_filename: m.original_filename ?? null,
+    extension: m.extension ?? null,
+    mime_type: m.mime_type ?? null,
   }
 }
 

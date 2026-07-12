@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { AnimatePresence } from 'framer-motion'
 import type { FinancialRequest, FinancialRequestStatus } from '@/api/financialRequestsApi'
+import { formatSAR } from '@/utils/currency'
 import { fetchFinancialRequests, STATUS_LABELS } from '@/api/financialRequestsApi'
 import FinancialRequestsTable from '@/components/financial/FinancialRequestsTable'
 import FinancialRequestDetailView from '@/components/financial/FinancialRequestDetailView'
@@ -56,7 +57,7 @@ export default function SuperAdminFinancialRequestsPage() {
         </div>
         <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">إجمالي المبالغ</p>
-          <p className="mt-3 text-2xl font-black text-deepBlue">{totalAmount.toLocaleString('en-US')} <span className="text-sm font-bold text-deepBlue/50">SAR</span></p>
+          <p className="mt-3 text-2xl font-black text-deepBlue"><span dir="ltr">{formatSAR(totalAmount)}</span></p>
         </div>
         <div className="rounded-2xl border border-green-100 bg-green-50 p-5">
           <p className="text-[11px] font-black uppercase tracking-wider text-green-600">المعتمدة</p>
