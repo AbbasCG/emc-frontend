@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { FinancialTransaction } from '@/types/intelligence'
-import { formatEuroCompact, formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCount, formatFinanceCurrencyCompact, formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 import { deriveTransactionTrend } from './deriveTrend'
 import { TREND_RANGE_OPTIONS, type TrendRangeKey } from './constants'
 import { FINANCE_CHART } from '@/components/finance/command-center/chartConfig'
@@ -74,7 +74,7 @@ export default function TransactionTrendChart({
               tick={{ fill: '#64748b', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => formatEuroCompact(v as number)}
+              tickFormatter={(v) => formatFinanceCurrencyCompact(v as number)}
             />
             <Tooltip
               contentStyle={FINANCE_CHART.tooltip}
@@ -84,7 +84,7 @@ export default function TransactionTrendChart({
                 const payload = item?.payload as { count?: number } | undefined
                 const count = payload?.count ?? 0
                 return [
-                  `${formatEuroInteger(typeof v === 'number' ? v : 0, 'ar')} · ${count} معاملة`,
+                  `${formatFinanceCurrencyInteger(typeof v === 'number' ? v : 0)} · ${formatFinanceCount(count)} معاملة`,
                   'الحجم',
                 ]
               }}

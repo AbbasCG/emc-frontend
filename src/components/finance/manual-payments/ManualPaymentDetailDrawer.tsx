@@ -16,14 +16,21 @@ import type { ManualPayment } from '@/types/intelligence'
 import { CancelPaymentModal, ConfirmPaymentModal, RejectPaymentModal } from './ApprovalModals'
 import { ENTITY_AR, PAYMENT_METHOD_AR, paymentReference } from './constants'
 import ManualPaymentStatusBadge, { EntityTypeBadge } from './ManualPaymentStatusBadge'
-import { creatorName, formatPaymentAmount, formatTxDate } from './formatters'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { creatorName, formatPaymentAmount } from './formatters'
 
-function DetailRow({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
+function DetailRow({ label, value, ltr, dateValue, showTime }: {
+  label: string
+  value?: string
+  ltr?: boolean
+  dateValue?: string | null
+  showTime?: boolean
+}) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-[#F1F5F9] py-3 last:border-0">
       <dt className="shrink-0 text-[11px] font-black text-[#94A3B8]">{label}</dt>
       <dd className={`text-left text-[12px] font-bold text-[#0F172A] ${ltr ? 'font-mono' : ''}`} dir={ltr ? 'ltr' : 'rtl'}>
-        {value}
+        {dateValue !== undefined ? <FinanceDate value={dateValue} showTime={showTime} /> : value}
       </dd>
     </div>
   )
@@ -132,10 +139,6 @@ export default function ManualPaymentDetailDrawer({
   if (!paymentId || !payment) return null
 
   const ref = paymentReference(payment)
-  const payDate = formatTxDate(payment.payment_date)
-  const created = formatTxDate(payment.created_at)
-  const reviewed = payment.reviewed_at ? formatTxDate(payment.reviewed_at) : null
-  const updated = payment.updated_at ? formatTxDate(payment.updated_at) : null
   const currency = payment.currency ?? payment.account?.currency ?? 'EUR'
   const diff = payment.difference_amount ?? 0
   const methodLabel = payment.payment_method ? (PAYMENT_METHOD_AR[payment.payment_method] ?? payment.payment_method) : '—'
@@ -237,12 +240,12 @@ export default function ManualPaymentDetailDrawer({
               <DetailRow label="حساب المالية" value={payment.account?.name ?? '—'} />
               <DetailRow label="العملة" value={currency} ltr />
               <DetailRow label="المرجع الخارجي" value={payment.external_reference?.trim() || '—'} ltr />
-              <DetailRow label="تاريخ الدفع" value={`${payDate.date} ${payDate.time}`.trim()} ltr />
-              <DetailRow label="تاريخ الإنشاء" value={`${created.date} ${created.time}`.trim()} ltr />
-              {updated && <DetailRow label="آخر تحديث" value={`${updated.date} ${updated.time}`.trim()} ltr />}
+              <DetailRow label="تاريخ الدفع" dateValue={payment.payment_date} ltr />
+              <DetailRow label="تاريخ الإنشاء" dateValue={payment.created_at} showTime ltr />
+              {payment.updated_at && <DetailRow label="آخر تحديث" dateValue={payment.updated_at} showTime ltr />}
               {registrar && <DetailRow label="أُنشئت بواسطة" value={registrar} />}
               {payment.reviewer && <DetailRow label="المراجع" value={payment.reviewer.name} />}
-              {reviewed && <DetailRow label="تاريخ المراجعة" value={`${reviewed.date} ${reviewed.time}`.trim()} ltr />}
+              {payment.reviewed_at && <DetailRow label="تاريخ المراجعة" dateValue={payment.reviewed_at} showTime ltr />}
               {payment.rejection_reason && <DetailRow label="سبب الرفض" value={payment.rejection_reason} />}
               {payment.notes?.trim() && <DetailRow label="ملاحظات" value={payment.notes} />}
             </dl>
@@ -271,10 +274,10 @@ export default function ManualPaymentDetailDrawer({
             <section className="mt-5 rounded-2xl border border-[#E2E8F0] bg-[#F6F8FB] p-4">
               <h3 className="text-[11px] font-black text-[#64748B]">السجل</h3>
               <ul className="mt-3 space-y-2 text-[11px] font-semibold text-[#64748B]">
-                <li>• تم إنشاء الدفعة — {created.date}</li>
+                <li>• تم إنشاء الدفعة — <FinanceDate value={payment.created_at} showTime /></li>
                 {payment.status === 'pending_review' && <li>• بانتظار المراجعة</li>}
-                {payment.status === 'confirmed' && reviewed && <li>• تمت الموافقة عليها — {reviewed.date}</li>}
-                {payment.status === 'rejected' && <li>• تم رفضها{reviewed ? ` — ${reviewed.date}` : ''}</li>}
+                {payment.status === 'confirmed' && payment.reviewed_at && <li>• تمت الموافقة عليها — <FinanceDate value={payment.reviewed_at} showTime /></li>}
+                {payment.status === 'rejected' && <li>• تم رفضها{payment.reviewed_at ? <> — <FinanceDate value={payment.reviewed_at} showTime /></> : ''}</li>}
                 {payment.status === 'cancelled' && <li>• تم إلغاؤها</li>}
               </ul>
             </section>

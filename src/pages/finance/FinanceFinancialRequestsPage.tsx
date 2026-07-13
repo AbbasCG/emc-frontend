@@ -13,6 +13,7 @@ import {
   TYPE_LABELS, PRIORITY_LABELS, PRIORITY_COLORS,
 } from '@/api/financialRequestsApi'
 import FinancialRequestDetailView from '@/components/financial/FinancialRequestDetailView'
+import { formatFinanceDateTime } from '@/utils/financeDateFormatters'
 
 // Right-border accent color per status (RTL: right = start = visual stripe)
 const STATUS_STRIPE: Record<string, string> = {
@@ -51,8 +52,7 @@ function numFmt(n: number) {
   return n.toLocaleString('en-US')
 }
 function dateFmt(iso: string | null | undefined) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-GB')
+  return formatFinanceDateTime(iso)
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────

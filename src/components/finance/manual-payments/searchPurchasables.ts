@@ -1,103 +1,55 @@
 import apiClient from '@/api/axios'
-import { fetchAdminCoursesPage } from '@/api/superAdminCatalogApi'
-import { fetchPublicWorkshopsPage } from '@/api/workshopsApi.public'
-import { fetchAdminLearningPaths } from '@/api/learningPathsApi'
-import { extractCoursesList } from '@/api/coursesApi.public'
 import type { SearchablePurchasable } from './manualPaymentFormTypes'
 
 const silent = { skipErrorToast: true } as Record<string, unknown>
 
-function toNum(v: unknown): number | null {
-  const n = Number(v)
-  return Number.isFinite(n) ? n : null
-}
-
-function mapCourse(row: Record<string, unknown>): SearchablePurchasable | null {
+function toSearchable(row: Record<string, unknown>): SearchablePurchasable | null {
   const id = Number(row.id)
   if (!id) return null
   const title = String(row.title ?? row.name ?? '').trim()
   if (!title) return null
+  const type = String(row.type ?? 'course') as SearchablePurchasable['type']
   return {
     id,
-    type: 'course',
+    type,
     title,
     slug: (row.slug as string) ?? null,
-    price: toNum(row.price ?? row.discount_price),
+    price: Number.isFinite(Number(row.price)) ? Number(row.price) : null,
     status: (row.status as string) ?? null,
-    subtitle: (row.instructor_name as string) ?? null,
+    subtitle: (row.subtitle ?? row.instructor_name ?? null) as string | null,
   }
 }
 
-async function searchCourses(q: string): Promise<SearchablePurchasable[]> {
-  // Primary: finance-accessible endpoint (works for finance_manager + admin roles)
+/**
+ * Load paid courses and workshops for the Manual Payment relation step.
+ * Uses the finance-accessible /finance/purchasables endpoint which allows
+ * finance_manager, admin, super_admin, and tech_admin roles.
+ * Passes student_id so the backend can annotate enrollment status.
+ */
+export async function searchPurchasablesForManualPayment(
+  q: string,
+  studentId?: number | null,
+): Promise<SearchablePurchasable[]> {
   try {
     const res = await apiClient.get<unknown>('/finance/purchasables', {
       ...silent,
-      params: { q: q.trim() || undefined, per_page: 30 },
+      params: {
+        q: q.trim() || undefined,
+        student_id: studentId || undefined,
+        type: 'all',
+        per_page: 50,
+      },
     })
     const body = res.data as Record<string, unknown>
     if (Array.isArray(body.data)) {
       return (body.data as Record<string, unknown>[])
-        .map(mapCourse)
+        .map(toSearchable)
         .filter((x): x is SearchablePurchasable => x != null)
     }
   } catch {
-    // fall through to admin endpoint
+    // endpoint unavailable — return empty rather than crashing
   }
-
-  // Fallback: try admin courses page (works for admin/super_admin/tech_admin)
-  const params: Record<string, unknown> = { per_page: 30, page: 1 }
-  if (q.trim()) params.search = q.trim()
-  else params.status = 'published'
-
-  const page = await fetchAdminCoursesPage(params)
-  if (page?.rows?.length) {
-    return page.rows
-      .map((c) => mapCourse(c as unknown as Record<string, unknown>))
-      .filter((x): x is SearchablePurchasable => x != null)
-  }
-
-  // Last resort: public courses list
-  try {
-    const res = await apiClient.get<unknown>('/courses', { ...silent, params: { per_page: 50, search: q.trim() || undefined } })
-    const list = extractCoursesList(res.data)
-    return list
-      .map((c) => mapCourse(c as unknown as Record<string, unknown>))
-      .filter((x): x is SearchablePurchasable => x != null)
-  } catch {
-    return []
-  }
-}
-
-export async function searchPurchasablesForManualPayment(q: string): Promise<SearchablePurchasable[]> {
-  const query = q.trim()
-  const [courses, workshopsRes, pathsRes] = await Promise.all([
-    searchCourses(query),
-    fetchPublicWorkshopsPage({ search: query || undefined, per_page: 20 }),
-    fetchAdminLearningPaths({ search: query || undefined, per_page: 20, status: query ? undefined : 'published' }),
-  ])
-
-  const workshops: SearchablePurchasable[] = workshopsRes.workshops.map((w) => ({
-    id: w.id,
-    type: 'workshop' as const,
-    title: w.title,
-    slug: w.slug,
-    price: w.price,
-    status: w.status,
-    subtitle: w.instructor_name,
-  }))
-
-  const paths: SearchablePurchasable[] = pathsRes.data.map((lp) => ({
-    id: lp.id,
-    type: 'learning_path' as const,
-    title: lp.title,
-    slug: lp.slug,
-    price: lp.discount_price ?? lp.price,
-    status: lp.status,
-    subtitle: null,
-  }))
-
-  return [...courses, ...workshops, ...paths]
+  return []
 }
 
 export function groupPurchasables(items: SearchablePurchasable[]): Record<string, SearchablePurchasable[]> {

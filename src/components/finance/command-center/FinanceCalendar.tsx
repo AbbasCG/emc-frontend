@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Calendar, Clock } from 'lucide-react'
-import { formatEuroInteger } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 import { SectionShell } from './shared'
 import type { FinanceCalendarItem } from './types'
 
@@ -20,11 +21,6 @@ const TYPE_COLOR: Record<FinanceCalendarItem['type'], string> = {
   deadline: 'bg-rose-100 text-rose-700',
 }
 
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('ar-SA', { weekday: 'short', month: 'short', day: 'numeric' }).format(d)
-}
 
 export default function FinanceCalendar({ items }: { items: FinanceCalendarItem[] }) {
   return (
@@ -46,7 +42,7 @@ export default function FinanceCalendar({ items }: { items: FinanceCalendarItem[
               <div className="flex items-center gap-2 text-left">
                 {item.amount !== undefined && (
                   <span className="font-latin text-[12px] font-black tabular-nums text-deepBlue" dir="ltr">
-                    {formatEuroInteger(item.amount, 'ar')}
+                    {formatFinanceCurrencyInteger(item.amount)}
                   </span>
                 )}
                 <span className={`rounded-full px-2 py-0.5 text-[9px] font-black ${TYPE_COLOR[item.type]}`}>
@@ -57,7 +53,7 @@ export default function FinanceCalendar({ items }: { items: FinanceCalendarItem[
                 <p className="truncate text-[13px] font-black text-deepBlue">{item.title}</p>
                 <p className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400">
                   <Clock size={10} />
-                  {formatDate(item.date)}
+                  <FinanceDate value={item.date} />
                 </p>
               </div>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">

@@ -1,4 +1,5 @@
 import type { FinancialTransaction } from '@/types/intelligence'
+import { formatFinanceDate } from '@/utils/financeDateFormatters'
 import type { TrendRangeKey } from './constants'
 import { TREND_RANGE_OPTIONS } from './constants'
 
@@ -31,8 +32,7 @@ export function deriveTransactionTrend(
 
   return keys.map((key) => {
     const b = bucket.get(key)!
-    const d = new Date(key + 'T12:00:00')
-    const label = new Intl.DateTimeFormat('ar', { month: 'short', day: 'numeric', numberingSystem: 'latn' }).format(d)
+    const label = formatFinanceDate(key)
     return { label, amount: b.amount, count: b.count }
   })
 }

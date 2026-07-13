@@ -25,16 +25,17 @@ function isDueSoon(dueAt: string | null | undefined, status: StudentAssignment['
 }
 
 function statusLabel(status: StudentAssignment['status'], overdue: boolean): string {
-  if (STATUS_SUBMITTED.includes(status) && !isNeedsResubmission(status)) return 'تم التسليم'
   if (status === 'graded') return 'مُقيَّم'
+  if (status === 'submitted') return 'بانتظار التقييم'
+  if (STATUS_SUBMITTED.includes(status) && !isNeedsResubmission(status)) return 'بانتظار التقييم'
   if (overdue || status === 'late') return 'متأخر'
-  if (isNeedsResubmission(status)) return 'إعادة تسليم'
+  if (isNeedsResubmission(status)) return 'إعادة تسليم مطلوب'
   return 'مطلوب'
 }
 
 function statusColors(status: StudentAssignment['status'], overdue: boolean): string {
   if (status === 'graded') return 'bg-blue-50 text-blue-700 border-blue-200'
-  if (STATUS_SUBMITTED.includes(status) && !isNeedsResubmission(status)) return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  if (STATUS_SUBMITTED.includes(status) && !isNeedsResubmission(status)) return 'bg-purple-50 text-purple-700 border-purple-200'
   if (overdue || status === 'late') return 'bg-red-50 text-red-700 border-red-200'
   if (isNeedsResubmission(status)) return 'bg-orange-50 text-orange-700 border-orange-200'
   return 'bg-[#2691C2]/8 text-[#1a6fa0] border-[#2691C2]/20'
@@ -42,7 +43,8 @@ function statusColors(status: StudentAssignment['status'], overdue: boolean): st
 
 function statusIcon(status: StudentAssignment['status'], overdue: boolean) {
   if (status === 'graded') return <Star className="h-3 w-3" />
-  if (STATUS_SUBMITTED.includes(status) && !isNeedsResubmission(status)) return <CheckCircle2 className="h-3 w-3" />
+  if (status === 'submitted') return <Clock className="h-3 w-3" />
+  if (STATUS_SUBMITTED.includes(status) && !isNeedsResubmission(status)) return <Clock className="h-3 w-3" />
   if (overdue || status === 'late') return <AlertCircle className="h-3 w-3" />
   if (isNeedsResubmission(status)) return <RefreshCw className="h-3 w-3" />
   return <ClipboardList className="h-3 w-3" />
@@ -50,8 +52,8 @@ function statusIcon(status: StudentAssignment['status'], overdue: boolean) {
 
 export default function AssignmentCard({ assignment, onSubmit }: Props) {
   const needsResub = isNeedsResubmission(assignment.status)
-  const canSubmit = needsResub || assignment.status === 'pending' || assignment.status === 'revision' || assignment.status === 'late'
-  const trulySubmitted = STATUS_SUBMITTED.includes(assignment.status) && !needsResub
+  const canSubmit = needsResub || assignment.status === 'pending'
+  const trulySubmitted = (STATUS_SUBMITTED.includes(assignment.status) || assignment.status === 'late') && !needsResub
   const overdue = isOverdue(assignment.due_at, assignment.status)
   const dueSoon = isDueSoon(assignment.due_at, assignment.status)
 

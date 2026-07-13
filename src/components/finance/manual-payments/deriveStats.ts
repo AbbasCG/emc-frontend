@@ -2,7 +2,6 @@ import type { ManualPayment } from '@/types/intelligence'
 
 export type ManualPaymentSummaryStats = {
   totalCount: number
-  totalAmount: number
   pendingCount: number
   pendingAmount: number
   confirmedCount: number
@@ -12,7 +11,6 @@ export type ManualPaymentSummaryStats = {
 }
 
 export function deriveManualPaymentStats(rows: ManualPayment[]): ManualPaymentSummaryStats {
-  let totalAmount = 0
   let pendingCount = 0
   let pendingAmount = 0
   let confirmedCount = 0
@@ -22,7 +20,6 @@ export function deriveManualPaymentStats(rows: ManualPayment[]): ManualPaymentSu
 
   for (const p of rows) {
     const amt = Number(p.paid_amount) || 0
-    totalAmount += amt
     if (p.status === 'pending_review') {
       pendingCount += 1
       pendingAmount += amt
@@ -37,7 +34,6 @@ export function deriveManualPaymentStats(rows: ManualPayment[]): ManualPaymentSu
 
   return {
     totalCount: rows.length,
-    totalAmount,
     pendingCount,
     pendingAmount,
     confirmedCount,

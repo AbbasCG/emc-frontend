@@ -1,3 +1,4 @@
+import { formatFinanceCurrency, formatFinanceDate, formatFinanceDateTime } from '@/utils/financeFormatters'
 import type { ManualPayment } from '@/types/intelligence'
 import { ENTITY_AR, PAYMENT_METHOD_AR, STATUS_AR, paymentReference } from './constants'
 
@@ -29,12 +30,12 @@ export function exportManualPaymentsCsv(rows: ManualPayment[], filename: string)
       p.student?.email ?? '',
       p.purchasable?.title ?? '',
       p.purchasable?.type ? (ENTITY_AR[p.purchasable.type] ?? p.purchasable.type) : '',
-      String(p.paid_amount ?? ''),
+      formatFinanceCurrency(p.paid_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       p.currency ?? '',
       p.payment_method ? (PAYMENT_METHOD_AR[p.payment_method] ?? p.payment_method) : '',
       p.account?.name ?? '',
-      p.payment_date ?? '',
-      p.created_at ?? '',
+      formatFinanceDate(p.payment_date),
+      formatFinanceDateTime(p.created_at),
     ]
     return cols.map((c) => csvEscape(c)).join(',')
   })

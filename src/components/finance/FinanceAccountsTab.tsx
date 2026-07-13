@@ -8,15 +8,13 @@ import {
   fetchFinanceAccounts,
 } from '@/api/financeApi'
 import type { FinanceAccount } from '@/types/intelligence'
-import { formatEuro, formatSAR } from '@/utils/currency'
+import { formatFinanceCurrency, formatFinanceForeignCurrency } from '@/utils/financeFormatters'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtBalance(n: number, currency = 'EUR') {
-  const c = currency.toUpperCase()
-  if (c === 'EUR') return formatEuro(n, { locale: 'nl-NL', maximumFractionDigits: 2 })
-  if (c === 'SAR') return formatSAR(n)
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: c, maximumFractionDigits: 2 }).format(n)
+  return formatFinanceForeignCurrency(n, currency, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
 const ACCOUNT_ICON: Record<string, React.ElementType> = {
@@ -248,11 +246,16 @@ function AddTransactionModal({ account, onClose, onAdded }: {
             <option value="cancelled">ملغية</option>
           </select>
         </Field>
-        <Field label="تاريخ العملية">
-          <input type="date" required value={form.transaction_date}
-            onChange={e => setForm(f => ({ ...f, transaction_date: e.target.value }))}
-            className={inputCls} dir="ltr" />
-        </Field>
+        <div className="grid gap-1.5 text-right text-[11px] font-black text-deepBlue">
+          <EmcDatePicker
+            label="تاريخ العملية"
+            layout="stacked"
+            displayMode="finance"
+            value={form.transaction_date}
+            onChange={(v) => setForm((f) => ({ ...f, transaction_date: v }))}
+            required
+          />
+        </div>
       </div>
       <Field label="الوصف">
         <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -345,7 +348,7 @@ export default function FinanceAccountsTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">إجمالي النقدية (EUR)</p>
           <p className="mt-1 text-2xl font-black text-deepBlue tabular-nums" dir="ltr">
-            {formatEuro(totalEur, { locale: 'nl-NL' })}
+            {formatFinanceCurrency(totalEur, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <p className="mt-0.5 text-xs font-semibold text-slate-400">{accounts.length} حساب نشط</p>
         </div>

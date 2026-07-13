@@ -1,13 +1,11 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, HandCoins, Plus, RefreshCw } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCount } from '@/utils/financeFormatters'
 import { financeSectionBase } from '@/utils/financeNav'
 import { FinanceSubnav } from '@/components/intelligence'
 
-function formatLastSync(d: Date | null): string | null {
-  if (!d) return null
-  return new Intl.DateTimeFormat('ar-SA', { timeStyle: 'short', dateStyle: 'short', numberingSystem: 'latn' }).format(d)
-}
 
 export default function ManualPaymentsHeader({
   totalCount,
@@ -25,7 +23,7 @@ export default function ManualPaymentsHeader({
   const { pathname } = useLocation()
   const base = financeSectionBase(pathname)
   const reduce = useReducedMotion()
-  const syncLabel = formatLastSync(lastSync)
+  const syncAt = lastSync
 
   return (
     <header dir="rtl">
@@ -54,8 +52,8 @@ export default function ManualPaymentsHeader({
               إضافة ومراجعة وتتبع المدفوعات التي تم تسجيلها يدوياً
             </p>
             <p className="mt-2 text-[11px] font-bold text-[#94A3B8]">
-              إجمالي النتائج: {totalCount.toLocaleString('ar')}
-              {syncLabel ? ` · آخر تحديث: ${syncLabel}` : ''}
+              إجمالي النتائج: {formatFinanceCount(totalCount)}
+              {syncAt ? <> · آخر تحديث: <FinanceDate value={syncAt} showTime /></> : ''}
             </p>
           </div>
 

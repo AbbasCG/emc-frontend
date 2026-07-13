@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { formatFinanceCount } from '@/utils/financeFormatters'
 import { PAGE_SIZE } from './constants'
 
 export default function TransactionsPagination({
@@ -20,8 +21,8 @@ export default function TransactionsPagination({
       className="flex flex-col gap-3 border-t border-[#E2E8F0] bg-[#F6F8FB]/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <p className="text-[11px] font-bold text-[#64748B]">
-        عرض {Math.min((page - 1) * PAGE_SIZE + 1, totalItems).toLocaleString('ar')}–
-        {Math.min(page * PAGE_SIZE, totalItems).toLocaleString('ar')} من {totalItems.toLocaleString('ar')}
+        عرض {formatFinanceCount(Math.min((page - 1) * PAGE_SIZE + 1, totalItems))}–
+        {formatFinanceCount(Math.min(page * PAGE_SIZE, totalItems))} من {formatFinanceCount(totalItems)}
       </p>
       <div className="flex items-center justify-end gap-2">
         <button

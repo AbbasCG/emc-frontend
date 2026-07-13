@@ -20,6 +20,8 @@ export type EmcDatePickerProps = {
    * stacked — label above field (form grids)
    */
   layout?: 'inline' | 'stacked'
+  /** Finance module uses Arabic long-month display (04 يوليو 2026) */
+  displayMode?: 'default' | 'finance'
 }
 
 export default function EmcDatePicker({
@@ -29,6 +31,7 @@ export default function EmcDatePicker({
   error,
   required,
   layout = 'inline',
+  displayMode = 'default',
 }: EmcDatePickerProps) {
   const anchorRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
@@ -89,7 +92,7 @@ export default function EmcDatePicker({
   }
 
   const isInline = layout === 'inline'
-  const displayText = value ? formatDateDisplay(value, isInline) : ''
+  const displayText = value ? formatDateDisplay(value, isInline, displayMode) : ''
 
   const triggerButton = (
     <button
@@ -109,7 +112,13 @@ export default function EmcDatePicker({
     >
       <Calendar className="h-4 w-4 shrink-0 text-[#2691C2]" aria-hidden />
       <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-[#22334A]">
-        {displayText || <span className="font-semibold text-slate-400">اختر التاريخ</span>}
+        {displayText ? (
+          <span className={displayMode === 'finance' ? 'finance-date-value text-[13px]' : undefined} dir="ltr">
+            {displayText}
+          </span>
+        ) : (
+          <span className="font-semibold text-slate-400">اختر التاريخ</span>
+        )}
       </span>
     </button>
   )

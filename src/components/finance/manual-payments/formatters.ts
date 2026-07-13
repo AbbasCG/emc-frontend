@@ -1,8 +1,8 @@
-import { formatTxAmount, formatTxAmountCompact, formatTxDate, txInitials } from '@/components/finance/transactions/formatters'
+import { formatTxAmount, formatTxAmountCompact, formatTxDate, formatTxDateOnly, formatTxDateTime, txInitials } from '@/components/finance/transactions/formatters'
 import { paymentReference } from './constants'
 import type { ManualPayment } from '@/types/intelligence'
 
-export { formatTxAmount, formatTxAmountCompact, formatTxDate, txInitials }
+export { formatTxAmount, formatTxAmountCompact, formatTxDate, formatTxDateOnly, formatTxDateTime, txInitials }
 
 export function formatPaymentAmount(p: ManualPayment): string {
   const currency = p.currency ?? p.account?.currency ?? 'EUR'

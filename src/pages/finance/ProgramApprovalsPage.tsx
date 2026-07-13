@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, Clock, BookOpen, RefreshCw, FileText } from "lucide-react";
 import { programFinanceApi } from "@/api/programFinanceApi";
 import type { FinanceApprovalItem, FinanceApprovalSummary } from "@/api/programFinanceApi";
-import { formatDate } from "@/utils/dateTime";
-import { formatEuro } from "@/utils/currency";
+import { formatFinanceDateTime } from '@/utils/financeDateFormatters'
+import { formatFinanceCurrency } from '@/utils/financeFormatters'
 import toast from "react-hot-toast";
 
 type StatusFilter = "pending" | "approved" | "rejected" | "all";
@@ -45,7 +45,7 @@ function ApproveModal({ item, onClose, onConfirm }: {
           </div>
         </div>
         <div className="mb-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-sm text-emerald-700">
-          السعر: <strong dir="ltr">{formatEuro(item.price_snapshot, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+          السعر: <strong dir="ltr">{formatFinanceCurrency(item.price_snapshot, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
         </div>
         <textarea value={note} onChange={e => setNote(e.target.value)}
           placeholder="ملاحظة (اختياري)" rows={3}
@@ -232,11 +232,11 @@ export default function ProgramApprovalsPage() {
                       <td className="px-4 py-3 text-gray-500">{item.approvable_type === "Course" ? "دورة" : "مسار تعليمي"}</td>
                       <td className="px-4 py-3">
                         <span className="font-medium text-gray-700" dir="ltr">
-                          {formatEuro(item.price_snapshot ?? item.program?.price, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {formatFinanceCurrency(item.price_snapshot ?? item.program?.price, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500">{item.submitter?.name ?? "—"}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{item.submitted_at ? formatDate(item.submitted_at) : "—"}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs"><FinanceDate value={item.submitted_at} showTime /></td>
                       <td className="px-4 py-3"><StatusBadge status={item.status} /></td>
                       <td className="px-4 py-3">
                         {item.status === "pending" && (
@@ -246,7 +246,7 @@ export default function ProgramApprovalsPage() {
                           </div>
                         )}
                         {item.status !== "pending" && item.reviewed_at && (
-                          <span className="text-xs text-gray-400">{formatDate(item.reviewed_at)}</span>
+                          <FinanceDate value={item.reviewed_at} showTime />
                         )}
                       </td>
                     </motion.tr>

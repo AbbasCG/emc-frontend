@@ -49,7 +49,7 @@ export function emptyManualPaymentForm(): ManualPaymentFormValues {
     payment_date: new Date().toISOString().split('T')[0],
     payment_method: 'bank_transfer',
     destination_account_id: null,
-    currency: 'EUR',
+    currency: '',
     external_reference: '',
     notes: '',
     proof: null,

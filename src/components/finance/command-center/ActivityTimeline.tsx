@@ -7,7 +7,8 @@ import {
   User,
   Webhook,
 } from 'lucide-react'
-import { formatEuroInteger } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 import PaymentStatusBadge from '@/components/intelligence/PaymentStatusBadge'
 import { providerLabelAr } from './chartConfig'
 import { SectionShell } from './shared'
@@ -22,12 +23,6 @@ const TYPE_ICON: Record<FinanceActivityItem['type'], React.ElementType> = {
   transfer: ArrowLeftRight,
   expense: CreditCard,
   webhook: Webhook,
-}
-
-function formatWhen(iso: string) {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('ar-SA', { dateStyle: 'medium', timeStyle: 'short' }).format(d)
 }
 
 export default function ActivityTimeline({ items }: { items: FinanceActivityItem[] }) {
@@ -60,11 +55,13 @@ export default function ActivityTimeline({ items }: { items: FinanceActivityItem
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="text-left">
                       {item.amount !== null && (
-                        <p className="font-latin text-sm font-black tabular-nums text-deepBlue" dir="ltr">
-                          {formatEuroInteger(item.amount, 'ar')}
+                        <p className="font-latin text-sm font-black tabular-nums whitespace-nowrap text-deepBlue" dir="ltr">
+                          {formatFinanceCurrencyInteger(item.amount)}
                         </p>
                       )}
-                      <p className="text-[10px] font-semibold text-slate-400">{formatWhen(item.timestamp)}</p>
+                      <p className="text-[10px] font-semibold text-slate-400 whitespace-nowrap tabular-nums" dir="ltr">
+                        <FinanceDate value={item.timestamp} showTime />
+                      </p>
                     </div>
                     <div className="min-w-0">
                       <p className="font-black text-sm text-deepBlue">{item.title}</p>

@@ -7,7 +7,9 @@ import {
   Search, X, XCircle,
 } from 'lucide-react'
 import { FinanceSubnav } from '@/components/intelligence'
-import { formatEuro } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCount, formatFinanceForeignCurrency, formatFinanceDateTime } from '@/utils/financeFormatters'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import { fetchFinancePayments } from '@/api/financeApi'
 import type { FinancePaymentRow } from '@/types/intelligence'
 
@@ -57,14 +59,13 @@ const PROVIDER_AR: Record<string, string> = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtCurrency(amount: number | undefined | null, _currency = 'EUR') {
+function fmtCurrency(amount: number | undefined | null, currency = 'EUR') {
   if (amount == null) return '—'
-  return formatEuro(amount, { locale: 'nl-NL', maximumFractionDigits: 2 })
+  return formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
-function fmtDate(d: string | null | undefined) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
+function fmtDateExport(d: string | null | undefined) {
+  return formatFinanceDateTime(d)
 }
 
 function initials(name: string | null | undefined) {
@@ -211,8 +212,8 @@ function PaymentDrawer({ payment, onClose }: { payment: FinancePaymentRow; onClo
               <Row label="رقم الفاتورة" value={payment.invoice_number ?? '—'} />
               <Row label="مزود الدفع" value={PROVIDER_AR[payment.provider] ?? payment.provider ?? '—'} />
               <Row label="طريقة الدفع" value={payment.payment_method ?? '—'} />
-              <Row label="تاريخ الإنشاء" value={fmtDate(payment.created_at)} />
-              <Row label="تاريخ الدفع" value={fmtDate(payment.confirmed_at)} />
+              <Row label="تاريخ الإنشاء" value={<FinanceDate value={payment.created_at} showTime />} />
+              <Row label="تاريخ الدفع" value={<FinanceDate value={payment.confirmed_at} showTime />} />
             </div>
           </div>
         </motion.div>
@@ -223,11 +224,11 @@ function PaymentDrawer({ payment, onClose }: { payment: FinancePaymentRow; onClo
   return createPortal(drawer, document.body)
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
       <span className="text-[11px] font-black text-slate-400">{label}</span>
-      <span className="text-[11px] font-bold text-deepBlue" dir="ltr">{value}</span>
+      <span className="text-[11px] font-bold text-deepBlue">{value}</span>
     </div>
   )
 }
@@ -303,8 +304,8 @@ export default function FinancePaymentsPage() {
       r.currency ?? 'EUR',
       STATUS_AR[r.status]?.label ?? r.status,
       PROVIDER_AR[r.provider] ?? r.provider,
-      fmtDate(r.created_at),
-      fmtDate(r.confirmed_at),
+      fmtDateExport(r.created_at),
+      fmtDateExport(r.confirmed_at),
     ])]
     const csv = bom + csvRows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
@@ -322,16 +323,16 @@ export default function FinancePaymentsPage() {
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-customBlue">العمليات المالية</p>
         <h1 className="mt-1.5 text-2xl font-black text-deepBlue sm:text-3xl">المدفوعات</h1>
         <p className="mt-1.5 text-sm font-semibold text-slate-500">
-          {total > 0 ? `${total.toLocaleString('en-US')} عملية في قاعدة البيانات` : 'متابعة عمليات الدفع وحالاتها'}
+          {total > 0 ? `${formatFinanceCount(total)} عملية في قاعدة البيانات` : 'متابعة عمليات الدفع وحالاتها'}
         </p>
       </div>
 
       {/* KPIs */}
       <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
-        <KpiCard icon={CreditCard} label="إجمالي" value={kpis.total.toLocaleString('en-US')} accent="blue" />
-        <KpiCard icon={CheckCircle2} label="مدفوعة" value={kpis.paid.toLocaleString('en-US')} accent="green" />
-        <KpiCard icon={Clock3} label="معلقة" value={kpis.pending.toLocaleString('en-US')} accent="amber" />
-        <KpiCard icon={XCircle} label="فاشلة / ملغية" value={kpis.failed.toLocaleString('en-US')} accent="rose" />
+        <KpiCard icon={CreditCard} label="إجمالي" value={formatFinanceCount(kpis.total)} accent="blue" />
+        <KpiCard icon={CheckCircle2} label="مدفوعة" value={formatFinanceCount(kpis.paid)} accent="green" />
+        <KpiCard icon={Clock3} label="معلقة" value={formatFinanceCount(kpis.pending)} accent="amber" />
+        <KpiCard icon={XCircle} label="فاشلة / ملغية" value={formatFinanceCount(kpis.failed)} accent="rose" />
         <KpiCard icon={BadgeDollarSign} label="الإيرادات المؤكدة" value={fmtCurrency(kpis.revenue)} accent="green" />
       </div>
 
@@ -382,10 +383,8 @@ export default function FinancePaymentsPage() {
           <div className="flex flex-col gap-1.5">
             <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400">الفترة</label>
             <div className="flex items-center gap-2">
-              <input type="date" value={range.from} onChange={e => setRange(r => ({ ...r, from: e.target.value }))}
-                className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-2 text-xs font-bold text-deepBlue focus:border-customBlue focus:outline-none" />
-              <input type="date" value={range.to} onChange={e => setRange(r => ({ ...r, to: e.target.value }))}
-                className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-2 text-xs font-bold text-deepBlue focus:border-customBlue focus:outline-none" />
+              <EmcDatePicker label="من" displayMode="finance" value={range.from} onChange={(v) => setRange((r) => ({ ...r, from: v }))} />
+              <EmcDatePicker label="إلى" displayMode="finance" value={range.to} onChange={(v) => setRange((r) => ({ ...r, to: v }))} />
             </div>
           </div>
         </div>
@@ -486,7 +485,7 @@ export default function FinancePaymentsPage() {
                         {PROVIDER_AR[p.provider] ?? p.provider ?? '—'}
                       </td>
                       <td className="px-4 py-3 text-[11px] font-bold text-slate-500 tabular-nums" dir="ltr">
-                        {fmtDate(p.created_at)}
+                        <FinanceDate value={p.created_at} showTime />
                       </td>
                       <td className="px-4 py-3">
                         <button
@@ -507,7 +506,7 @@ export default function FinancePaymentsPage() {
 
         {!loading && filtered.length > 0 && (
           <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-2 text-right text-[11px] font-bold text-slate-500" dir="ltr">
-            Showing {filtered.length.toLocaleString('en-US')} of {rows.length.toLocaleString('en-US')} payments
+            Showing {formatFinanceCount(filtered.length)} of {formatFinanceCount(rows.length)} payments
           </div>
         )}
       </div>

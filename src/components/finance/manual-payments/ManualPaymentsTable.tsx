@@ -4,7 +4,8 @@ import { Banknote, Check, Copy, Eye, Landmark } from 'lucide-react'
 import type { ManualPayment } from '@/types/intelligence'
 import { PAYMENT_METHOD_AR, paymentReference } from './constants'
 import ManualPaymentStatusBadge, { EntityTypeBadge } from './ManualPaymentStatusBadge'
-import { creatorName, formatPaymentAmount, formatTxDate, shortPaymentRef, txInitials } from './formatters'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { creatorName, formatPaymentAmount, shortPaymentRef, txInitials } from './formatters'
 
 function CopyRefButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -57,8 +58,8 @@ export default function ManualPaymentsTable({
         </thead>
         <tbody>
           {rows.map((p, i) => {
-            const when = formatTxDate(p.payment_date)
-            const created = formatTxDate(p.created_at)
+            const when = p.payment_date
+            const created = p.created_at
             const ref = paymentReference(p)
             const bg = avatarColors[p.id % avatarColors.length]
             const methodLabel = p.payment_method ? (PAYMENT_METHOD_AR[p.payment_method] ?? p.payment_method) : '—'
@@ -132,12 +133,25 @@ export default function ManualPaymentsTable({
                   <ManualPaymentStatusBadge status={p.status} />
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-[12px] text-[#0F172A]" dir="ltr">{when.date}</p>
-                  {when.time && <p className="text-[10px] text-[#94A3B8]" dir="ltr">{when.time}</p>}
+                  <FinanceDate value={when} />
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-[12px] text-[#0F172A]">{registrar ?? '—'}</p>
-                  <p className="text-[10px] text-[#94A3B8]" dir="ltr">{created.date}</p>
+                  {registrar ? (
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-[#22334A]/10 text-[9px] font-black text-[#22334A]">
+                        {txInitials(registrar)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[12px] font-black text-[#0F172A]">{registrar}</p>
+                        <FinanceDate value={created} showTime />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[12px] text-[#94A3B8]">—</p>
+                      <FinanceDate value={created} showTime />
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <button
@@ -166,7 +180,7 @@ export function MobileManualPaymentCard({
   onView: (row: ManualPayment) => void
 }) {
   const ref = paymentReference(p)
-  const when = formatTxDate(p.payment_date)
+  const when = p.payment_date
   const methodLabel = p.payment_method ? (PAYMENT_METHOD_AR[p.payment_method] ?? p.payment_method) : '—'
 
   return (
@@ -192,7 +206,7 @@ export function MobileManualPaymentCard({
           <span className="font-mono text-[14px] font-black text-[#0F172A]" dir="ltr">{formatPaymentAmount(p)}</span>
           <div className="text-left">
             <p className="text-[10px] text-[#64748B]">{methodLabel}</p>
-            <p className="text-[10px] text-[#94A3B8]" dir="ltr">{when.date}</p>
+            <FinanceDate value={when} />
           </div>
         </div>
       </button>

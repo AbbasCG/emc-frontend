@@ -4,10 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { financeSectionBase } from '@/utils/financeNav'
 import { FinanceSubnav } from '@/components/intelligence'
 
-function formatLastSync(d: Date | null): string | null {
-  if (!d) return null
-  return new Intl.DateTimeFormat('ar-SA', { timeStyle: 'short', dateStyle: 'short', numberingSystem: 'latn' }).format(d)
-}
+import FinanceDate from '@/components/finance/FinanceDate'
 
 export default function TransactionsHeader({
   onExport,
@@ -25,7 +22,7 @@ export default function TransactionsHeader({
   const { pathname } = useLocation()
   const base = financeSectionBase(pathname)
   const reduce = useReducedMotion()
-  const syncLabel = formatLastSync(lastSync)
+  const syncAt = lastSync
 
   return (
     <header dir="rtl">
@@ -50,8 +47,10 @@ export default function TransactionsHeader({
             <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-[#64748B]">
               إدارة ومتابعة جميع الحركات المالية والمدفوعات داخل المنصة
             </p>
-            {syncLabel && (
-              <p className="mt-2 text-[11px] font-bold text-[#94A3B8]">آخر تحديث: {syncLabel}</p>
+            {syncAt && (
+              <p className="mt-2 text-[11px] font-bold text-[#94A3B8]">
+                آخر تحديث: <FinanceDate value={syncAt} showTime />
+              </p>
             )}
           </div>
 

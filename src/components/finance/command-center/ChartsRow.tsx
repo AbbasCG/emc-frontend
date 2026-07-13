@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { formatEuroCompact, formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCurrencyCompact, formatFinanceCurrencyInteger, formatFinanceCount } from '@/utils/financeFormatters'
 import { FINANCE_CHART, PROVIDER_COLORS, providerLabelAr } from './chartConfig'
 import { SectionShell } from './shared'
 import type { ChartPeriod } from './types'
@@ -101,14 +101,14 @@ function ChartsRowInner({
                   tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'Inter' }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => formatEuroCompact(v as number)}
+                  tickFormatter={(v) => formatFinanceCurrencyCompact(v as number)}
                 />
                 <Tooltip
                   contentStyle={FINANCE_CHART.tooltip}
                   labelStyle={FINANCE_CHART.labelStyle}
                   itemStyle={FINANCE_CHART.itemStyle}
                   formatter={(v, name) => [
-                    formatEuroInteger(typeof v === 'number' ? v : 0, 'ar'),
+                    formatFinanceCurrencyInteger(typeof v === 'number' ? v : 0),
                     name === 'revenue' ? 'إيراد' : 'مصروف',
                   ]}
                 />
@@ -172,13 +172,13 @@ function ChartsRowInner({
                   </Pie>
                   <Tooltip
                     contentStyle={FINANCE_CHART.tooltip}
-                    formatter={(v) => formatEuroInteger(typeof v === 'number' ? v : 0, 'ar')}
+                    formatter={(v) => formatFinanceCurrencyInteger(typeof v === 'number' ? v : 0)}
                   />
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <p className="font-latin text-lg font-black text-deepBlue">
-                  {totalSources > 0 ? '100٪' : '—'}
+                  {totalSources > 0 ? '100%' : '—'}
                 </p>
                 <p className="text-[10px] font-bold text-slate-400">التوزيع</p>
               </div>
@@ -198,7 +198,7 @@ function ChartsRowInner({
                   animate={{ opacity: 1, x: 0 }}
                   className="flex items-center justify-between gap-2 text-[11px]"
                 >
-                  <span className="font-black tabular-nums text-deepBlue font-latin">{pct}٪</span>
+                  <span className="font-black tabular-nums text-deepBlue font-latin">{formatFinanceCount(pct)}%</span>
                   <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
                     <span className="truncate font-bold text-slate-600">{s.name}</span>
                     <span

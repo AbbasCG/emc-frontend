@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Wallet,
 } from 'lucide-react'
+import FinanceDate from '@/components/finance/FinanceDate'
 import type { FinanceCurrency } from './types'
 
 type Props = {
@@ -42,16 +43,8 @@ export default function FinanceHeader({
   onRefresh,
   onExport,
 }: Props) {
-  const today = new Intl.DateTimeFormat('ar-SA', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date())
-
-  const syncLabel = lastSync
-    ? new Intl.DateTimeFormat('ar-SA', { timeStyle: 'short' }).format(lastSync)
-    : '—'
+  const today = new Date()
+  const syncAt = lastSync ?? null
 
   return (
     <motion.header
@@ -83,9 +76,9 @@ export default function FinanceHeader({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-white/50">
               <span className="inline-flex items-center gap-1">
                 <Calendar size={12} />
-                {today}
+                <FinanceDate value={today} />
               </span>
-              <span>آخر مزامنة: {syncLabel}</span>
+              <span>آخر مزامنة: <FinanceDate value={syncAt} showTime /></span>
               <span>الفترة: {periodLabel}</span>
             </div>
           </div>

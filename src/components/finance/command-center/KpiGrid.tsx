@@ -85,7 +85,7 @@ export default function KpiGrid({
                     {kpi.emoji}
                   </span>
                 </div>
-                <p className="mt-2 font-latin text-xl font-black tabular-nums text-deepBlue sm:text-[1.35rem]">
+                <p className="mt-2 font-latin text-xl font-black tabular-nums whitespace-nowrap text-deepBlue sm:text-[1.35rem]" dir="ltr">
                   {kpi.suffix ? (
                     <FinanceAnimatedNumber value={kpi.value} format={(n) => `${Math.round(n)}${kpi.suffix}`} />
                   ) : kpi.id === 'paid_students' || kpi.id === 'outstanding_invoices' ? (

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Filter, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react'
+import { formatFinanceCount } from '@/utils/financeFormatters'
 import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import type { TransactionFilterState } from './filterRows'
 import { STATUS_FILTER_OPTIONS, TYPE_FILTER_OPTIONS } from './constants'
@@ -84,10 +85,10 @@ export default function TransactionFilters({
       </label>
 
       <div className="md:col-span-2 xl:col-span-2">
-        <EmcDatePicker label="من تاريخ" value={filters.from} onChange={(v) => onPatch({ from: v })} />
+        <EmcDatePicker label="من تاريخ" displayMode="finance" value={filters.from} onChange={(v) => onPatch({ from: v })} />
       </div>
       <div className="md:col-span-2 xl:col-span-2">
-        <EmcDatePicker label="إلى تاريخ" value={filters.to} onChange={(v) => onPatch({ to: v })} />
+        <EmcDatePicker label="إلى تاريخ" displayMode="finance" value={filters.to} onChange={(v) => onPatch({ to: v })} />
       </div>
 
       <label className="text-right">
@@ -130,7 +131,7 @@ export default function TransactionFilters({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[11px] font-bold text-[#64748B]">
-            {resultCount.toLocaleString('ar')} نتيجة
+            {formatFinanceCount(resultCount)} نتيجة
           </p>
           <button
             type="button"

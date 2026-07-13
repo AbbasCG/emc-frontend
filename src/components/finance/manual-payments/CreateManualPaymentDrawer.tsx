@@ -16,8 +16,9 @@ import {
   PROOF_MAX_BYTES,
   PURCHASABLE_MODEL,
 } from './constants'
-import { formatTxDate } from './formatters'
-import { formatEuro } from '@/utils/currency'
+import { formatTxDateOnly } from './formatters'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
+import { formatFinanceCurrency, formatFinanceCurrencyInteger, formatMoney } from '@/utils/financeFormatters'
 import {
   emptyManualPaymentForm,
   relationAmountLabel,
@@ -194,13 +195,13 @@ export default function CreateManualPaymentModal({
     if (section !== 'relation') return
     const timer = window.setTimeout(() => {
       setRelationLoading(true)
-      void searchPurchasablesForManualPayment(relationQuery)
+      void searchPurchasablesForManualPayment(relationQuery, form.recipient_id)
         .then(setRelationResults)
         .catch(() => setRelationResults([]))
         .finally(() => setRelationLoading(false))
     }, relationQuery.trim() ? 350 : 0)
     return () => window.clearTimeout(timer)
-  }, [relationQuery, section])
+  }, [relationQuery, section, form.recipient_id])
 
   useEffect(() => {
     if (!form.destination_account_id) return
@@ -217,7 +218,9 @@ export default function CreateManualPaymentModal({
   }
 
   const clearRecipient = () => {
-    patchForm({ recipient_id: null, recipient: null })
+    patchForm({ recipient_id: null, recipient: null, relation_type: null, relation_id: null, relation: null, relation_amount: null })
+    setRelationQuery('')
+    setRelationResults([])
   }
 
   const selectRelation = (item: SearchablePurchasable) => {
@@ -349,8 +352,10 @@ export default function CreateManualPaymentModal({
 
   const groupedRelations = useMemo(() => groupPurchasables(relationResults), [relationResults])
   const amountLabel = relationAmountLabel(form.relation_type)
-  const payDateLabel = formatTxDate(form.payment_date).date
-  const accountName = accounts.find((a) => a.id === form.destination_account_id)?.name ?? '—'
+  const payDateLabel = formatTxDateOnly(form.payment_date)
+  const selectedAccount = accounts.find((a) => a.id === form.destination_account_id)
+  const accountName = selectedAccount?.name ?? '—'
+  const activeCurrency = selectedAccount?.currency ?? 'EUR'
 
   const stepMotion = reduce
     ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
@@ -480,9 +485,20 @@ export default function CreateManualPaymentModal({
                         </div>
                         {!form.relation && <FieldError msg={fieldErrors.purchasable_id} />}
                       </label>
-                      {relationLoading && <p className="text-[11px] font-bold text-slate-400">جاري تحميل العناصر…</p>}
-                      {!relationLoading && relationResults.length === 0 && !form.relation && (
-                        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-[12px] font-semibold text-slate-500">لا توجد عناصر متاحة</p>
+                      {relationLoading && (
+                        <p className="text-[11px] font-bold text-slate-400">جارٍ تحميل البرامج…</p>
+                      )}
+                      {!relationLoading && !form.recipient_id && (
+                        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-[12px] font-semibold text-slate-500">
+                          اختر المستفيد أولاً لعرض البرامج المدفوعة
+                        </p>
+                      )}
+                      {!relationLoading && form.recipient_id && relationResults.length === 0 && !form.relation && (
+                        <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-[12px] font-semibold text-slate-500">
+                          {relationQuery.trim()
+                            ? 'لا توجد نتائج مطابقة لعبارة البحث'
+                            : 'لا توجد دورات أو ورش مدفوعة متاحة'}
+                        </p>
                       )}
                       {relationResults.length > 0 && !form.relation && (
                         <div className="max-h-52 space-y-3 overflow-y-auto rounded-xl border border-slate-200 p-2">
@@ -502,7 +518,7 @@ export default function CreateManualPaymentModal({
                                         </div>
                                         {item.price != null && (
                                           <span className="shrink-0 font-mono text-[11px] font-black text-[#2691C2]" dir="ltr">
-                                            {formatEuro(item.price, { locale: 'nl-NL', minimumFractionDigits: 0 })}
+                                            {formatFinanceCurrencyInteger(item.price)}
                                           </span>
                                         )}
                                       </button>
@@ -528,7 +544,7 @@ export default function CreateManualPaymentModal({
                           </p>
                           {form.relation_amount != null && (
                             <p className="text-[11px] font-bold text-slate-600">
-                              {amountLabel}: <span className="font-mono text-[#2691C2]" dir="ltr">{formatEuro(form.relation_amount, { locale: 'nl-NL' })}</span>
+                              {amountLabel}: <span className="font-mono text-[#2691C2]" dir="ltr">{formatFinanceCurrency(form.relation_amount)}</span>
                             </p>
                           )}
                         </motion.div>
@@ -543,21 +559,27 @@ export default function CreateManualPaymentModal({
                       </div>
                       {form.relation_amount != null && (
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                          <p className="text-[10px] font-black text-slate-500">{amountLabel}</p>
-                          <p className="mt-0.5 font-mono text-[14px] font-black text-[#22334A]" dir="ltr">{formatEuro(form.relation_amount, { locale: 'nl-NL' })}</p>
+                          <p className="text-[10px] font-black text-slate-500">{amountLabel} (EUR)</p>
+                          <p className="mt-0.5 font-mono text-[14px] font-black text-[#22334A]" dir="ltr">{formatFinanceCurrency(form.relation_amount)}</p>
                         </div>
                       )}
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <label>
-                          <span className="mb-1 block text-[11px] font-black text-slate-500">المبلغ المدفوع *</span>
+                          <span className="mb-1 block text-[11px] font-black text-slate-500">
+                            المبلغ المدفوع{activeCurrency ? ` (${activeCurrency})` : ''} *
+                          </span>
                           <input type="number" min={0} step="0.01" value={form.paid_amount} onChange={(e) => { patchForm({ paid_amount: e.target.value }); clearError('paid_amount') }} dir="ltr" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-[13px] font-bold" />
                           <FieldError msg={fieldErrors.paid_amount} />
                         </label>
-                        <label>
-                          <span className="mb-1 block text-[11px] font-black text-slate-500">تاريخ الدفع *</span>
-                          <input type="date" value={form.payment_date} onChange={(e) => patchForm({ payment_date: e.target.value })} dir="ltr" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-[13px] font-bold" />
-                          <FieldError msg={fieldErrors.payment_date} />
-                        </label>
+                        <EmcDatePicker
+                          label="تاريخ الدفع *"
+                          layout="stacked"
+                          displayMode="finance"
+                          value={form.payment_date}
+                          onChange={(v) => patchForm({ payment_date: v })}
+                          error={fieldErrors.payment_date}
+                          required
+                        />
                         <label>
                           <span className="mb-1 block text-[11px] font-black text-slate-500">طريقة الدفع *</span>
                           <select value={form.payment_method} onChange={(e) => patchForm({ payment_method: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-[13px] font-bold">
@@ -577,11 +599,29 @@ export default function CreateManualPaymentModal({
                           <FieldError msg={fieldErrors.finance_account_id} />
                         </label>
                       </div>
-                      {form.paid_amount && form.relation_amount != null && diff !== 0 && (
-                        <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] font-bold ${diff > 0 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'}`}>
-                          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
-                          {diff > 0 ? `الدفع ناقص بمقدار ${formatEuro(diff, { locale: 'nl-NL' })}` : `الدفع زائد بمقدار ${formatEuro(Math.abs(diff), { locale: 'nl-NL' })}`}
+                      {/* Currency read-only badge — shown once an account is selected */}
+                      {form.destination_account_id && (
+                        <div className="flex items-center gap-2 rounded-xl border border-[#2691C2]/20 bg-[#2691C2]/5 px-3 py-2">
+                          <span className="text-[10px] font-black text-slate-500">عملة الحساب:</span>
+                          <span className="font-mono text-[13px] font-black text-[#22334A]">{activeCurrency}</span>
+                          <span className="text-[10px] text-slate-400">— أدخل المبلغ بهذه العملة</span>
                         </div>
+                      )}
+                      {form.paid_amount && form.relation_amount != null && (
+                        <>
+                          {activeCurrency === 'EUR' && diff !== 0 && (
+                            <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] font-bold ${diff > 0 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'}`}>
+                              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+                              {diff > 0 ? `الدفع ناقص بمقدار ${formatMoney(diff, activeCurrency)}` : `الدفع زائد بمقدار ${formatMoney(Math.abs(diff), activeCurrency)}`}
+                            </div>
+                          )}
+                          {activeCurrency !== 'EUR' && (
+                            <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-[11px] font-bold text-blue-800">
+                              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+                              سعر العنصر {formatFinanceCurrency(form.relation_amount)} — المبلغ المدفوع بعملة مختلفة ({activeCurrency})، تحقق من سعر الصرف
+                            </div>
+                          )}
+                        </>
                       )}
                       <label className="block">
                         <span className="mb-1 block text-[11px] font-black text-slate-500">رقم المرجع</span>
@@ -643,15 +683,16 @@ export default function CreateManualPaymentModal({
                           <ReviewRow label="العنصر" value={form.relation?.title ?? '—'} />
                           <ReviewRow label="نوع العنصر" value={form.relation_type ? ENTITY_AR[form.relation_type] : '—'} />
                           {form.relation_amount != null && (
-                            <ReviewRow label={amountLabel} value={formatEuro(form.relation_amount, { locale: 'nl-NL' })} ltr />
+                            <ReviewRow label={amountLabel} value={formatFinanceCurrency(form.relation_amount)} ltr />
                           )}
+                          {/* Course price is in EUR; paid amount will be in the account's currency */}
                         </dl>
                       </div>
 
                       <div className="rounded-xl border border-slate-200 bg-white p-3">
                         <p className="mb-2 text-[10px] font-black uppercase tracking-wide text-slate-400">بيانات الدفع</p>
                         <dl>
-                          <ReviewRow label="المبلغ المدفوع" value={form.paid_amount ? formatEuro(parseFloat(form.paid_amount), { locale: 'nl-NL' }) : '—'} ltr />
+                          <ReviewRow label={`المبلغ المدفوع (${activeCurrency})`} value={form.paid_amount ? formatMoney(parseFloat(form.paid_amount), activeCurrency) : '—'} ltr />
                           <ReviewRow label="طريقة الدفع" value={PAYMENT_METHOD_AR[form.payment_method] ?? form.payment_method} />
                           <ReviewRow label="الحساب المستلم" value={accountName} />
                           <ReviewRow label="تاريخ الدفع" value={payDateLabel} ltr />

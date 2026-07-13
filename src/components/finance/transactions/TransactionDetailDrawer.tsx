@@ -6,14 +6,21 @@ import { Link, useLocation } from 'react-router-dom'
 import type { FinancialTransaction } from '@/types/intelligence'
 import { financeSectionBase } from '@/utils/financeNav'
 import TransactionStatusBadge, { TransactionTypeBadge } from './TransactionStatusBadge'
-import { formatTxAmount, formatTxDate } from './formatters'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatMoney } from '@/utils/financeFormatters'
 
-function DetailRow({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
+function DetailRow({ label, value, ltr, dateValue, showTime }: {
+  label: string
+  value?: string
+  ltr?: boolean
+  dateValue?: string | null
+  showTime?: boolean
+}) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-[#F1F5F9] py-3 last:border-0">
       <dt className="shrink-0 text-[11px] font-black text-[#94A3B8]">{label}</dt>
       <dd className={`text-left text-[12px] font-bold text-[#0F172A] ${ltr ? 'font-mono' : ''}`} dir={ltr ? 'ltr' : 'rtl'}>
-        {value}
+        {dateValue !== undefined ? <FinanceDate value={dateValue} showTime={showTime} /> : value}
       </dd>
     </div>
   )
@@ -47,9 +54,6 @@ export default function TransactionDetailDrawer({
   }, [])
 
   if (!tx) return null
-
-  const occurred = formatTxDate(tx.occurred_at || tx.created_at)
-  const created = formatTxDate(tx.created_at)
 
   const drawer = (
     <AnimatePresence>
@@ -93,15 +97,15 @@ export default function TransactionDetailDrawer({
               <TransactionTypeBadge type={tx.type} />
             </div>
 
-            <p className="font-mono text-2xl font-black tabular-nums text-[#0F172A]" dir="ltr">
-              {formatTxAmount(tx.amount, tx.currency)}
+            <p className="font-mono text-2xl font-black tabular-nums whitespace-nowrap text-[#0F172A]" dir="ltr">
+              {formatMoney(tx.amount, tx.currency)}
             </p>
 
             <dl className="mt-6">
               <DetailRow label="الوصف" value={tx.description?.trim() || '—'} />
               <DetailRow label="العملة" value={tx.currency} ltr />
-              <DetailRow label="تاريخ التنفيذ" value={`${occurred.date} ${occurred.time}`.trim()} ltr />
-              <DetailRow label="تاريخ الإنشاء" value={`${created.date} ${created.time}`.trim()} ltr />
+              <DetailRow label="تاريخ التنفيذ" dateValue={tx.occurred_at || tx.created_at} showTime ltr />
+              <DetailRow label="تاريخ الإنشاء" dateValue={tx.created_at} showTime ltr />
               {tx.payment_id != null && (
                 <DetailRow label="مرجع الدفع" value={String(tx.payment_id)} ltr />
               )}

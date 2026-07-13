@@ -4,7 +4,7 @@ import type {
   FinancePaymentRow,
   FinanceTransactionRow,
 } from '@/types/intelligence'
-import { formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCurrencyInteger, formatFinanceNumber, formatFinancePercent } from '@/utils/financeFormatters'
 import { monthOverMonthGrowthPct } from '../financeDashboardDerivations'
 import type {
   FinanceActivityItem,
@@ -138,7 +138,7 @@ export function buildKpiCards(
       label: 'نسبة التحصيل',
       emoji: '📊',
       value: collectionRate,
-      formatted: `${collectionRate}٪`,
+      formatted: formatFinancePercent(collectionRate),
       trendPct: null,
       trendLabel: 'مؤكد ÷ إجمالي',
       sparkline: [collectionRate - 8, collectionRate - 3, collectionRate, collectionRate].map((x) =>
@@ -270,7 +270,7 @@ export function buildAlerts(data: FinanceCommandCenterData, financeBase: string)
       id: `neg-${acc.id}`,
       severity: 'danger',
       title: `رصيد سالب — ${acc.name}`,
-      description: formatEuroInteger(acc.current_balance, 'ar'),
+      description: formatFinanceCurrencyInteger(acc.current_balance),
       href: `${financeBase}/accounts`,
     })
   }
@@ -280,7 +280,7 @@ export function buildAlerts(data: FinanceCommandCenterData, financeBase: string)
       id: `low-${acc.id}`,
       severity: 'info',
       title: `رصيد منخفض — ${acc.name}`,
-      description: `الرصيد الحالي ${formatEuroInteger(acc.current_balance, 'ar')}`,
+      description: `الرصيد الحالي ${formatFinanceCurrencyInteger(acc.current_balance)}`,
       href: `${financeBase}/accounts`,
     })
   }
@@ -387,11 +387,13 @@ export function buildAnalyticsWidgets(data: FinanceCommandCenterData, formatCurr
     { label: 'أعلى دورة مبيعاً', value: topCourse?.course_name ?? '—' },
     { label: 'أعلى دورة ربحاً', value: topCourse ? formatCurrency(topCourse.amount) : '—' },
     { label: 'أفضل بوابة دفع', value: bestProvider },
-    { label: 'نسبة الاسترداد', value: `${refundRatio}٪` },
+    { label: 'نسبة الاسترداد', value: formatFinancePercent(refundRatio) },
     { label: 'طلاب هذا الشهر', value: String(uniquePaidStudents(confirmed)) },
     {
       label: 'النمو الشهري',
-      value: growth !== null ? `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}٪` : '—',
+      value: growth !== null
+        ? `${growth >= 0 ? '+' : ''}${formatFinanceNumber(growth, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+        : '—',
     },
   ]
 }

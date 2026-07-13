@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowDownLeft, ArrowUpRight, Building2, CreditCard, MoreHorizontal, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { formatEuroInteger } from '@/utils/currency'
+import { formatFinanceForeignCurrency } from '@/utils/financeFormatters'
 import type { FinanceAccount, FinancePaymentRow } from '@/types/intelligence'
 import { accountIncomingOutgoing } from './derivations'
 import { providerLabelAr } from './chartConfig'
@@ -18,12 +18,7 @@ const TYPE_ICON: Record<string, React.ElementType> = {
 }
 
 function fmt(n: number, currency: string) {
-  if (currency.toUpperCase() === 'EUR') return formatEuroInteger(n, 'ar')
-  try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n)
-  } catch {
-    return formatEuroInteger(n, 'ar')
-  }
+  return formatFinanceForeignCurrency(n, currency)
 }
 
 function AccountCard({

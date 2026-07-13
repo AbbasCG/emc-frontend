@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Plus, Megaphone, Edit2, Trash2, Send, Eye, RefreshCw,
-  ExternalLink, AlertTriangle, Shield, Wrench, Zap, Bug,
-  Palette, Info, Bell, CheckCircle, ArrowRight,
+  Plus, Megaphone, RefreshCw,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { cn } from '@/lib/utils'
@@ -16,7 +14,6 @@ import {
   publishProductUpdate,
   deleteProductUpdate,
   type ProductUpdate,
-  type ProductUpdateCategory,
   type ProductUpdateStatus,
   type ProductUpdatePayload,
   type UpdateType,
@@ -24,96 +21,20 @@ import {
   type Priority,
 } from '@/api/productUpdatesApi'
 import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
-import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
 import { KpiCards } from '@/pages/super-admin/crud/shared/KpiStrip'
-
-// ─── Update type metadata ─────────────────────────────────────────────────────
-
-type TypeMeta = {
-  label: string
-  color: string
-  bg: string
-  dot: string
-  icon: React.ElementType
-}
-
-const UPDATE_TYPE_META: Record<UpdateType, TypeMeta> = {
-  information:     { label: 'معلومات فقط',    color: 'text-slate-700',   bg: 'bg-slate-100 ring-1 ring-slate-300',    dot: 'bg-slate-500',   icon: Info          },
-  new_feature:     { label: 'ميزة جديدة',     color: 'text-blue-700',    bg: 'bg-blue-50 ring-1 ring-blue-200',       dot: 'bg-blue-500',    icon: Zap           },
-  improvement:     { label: 'تحسين',          color: 'text-emerald-700', bg: 'bg-emerald-50 ring-1 ring-emerald-200', dot: 'bg-emerald-500', icon: ArrowRight     },
-  redesign:        { label: 'إعادة تصميم',    color: 'text-purple-700',  bg: 'bg-purple-50 ring-1 ring-purple-200',   dot: 'bg-purple-500',  icon: Palette        },
-  bug_fix:         { label: 'إصلاح خطأ',      color: 'text-orange-700',  bg: 'bg-orange-50 ring-1 ring-orange-200',   dot: 'bg-orange-500',  icon: Bug            },
-  announcement:    { label: 'إعلان عام',       color: 'text-gray-700',    bg: 'bg-gray-100 ring-1 ring-gray-300',      dot: 'bg-gray-500',    icon: Bell           },
-  maintenance:     { label: 'صيانة',           color: 'text-amber-700',   bg: 'bg-amber-50 ring-1 ring-amber-200',     dot: 'bg-amber-500',   icon: Wrench         },
-  security_update: { label: 'تحديث أمني',     color: 'text-red-700',     bg: 'bg-red-50 ring-1 ring-red-200',         dot: 'bg-red-500',     icon: Shield         },
-  action_required: { label: 'يتطلب إجراء',    color: 'text-rose-700',    bg: 'bg-rose-50 ring-1 ring-rose-200',       dot: 'bg-rose-500',    icon: AlertTriangle  },
-  mandatory_update:{ label: 'تحديث إلزامي',   color: 'text-indigo-700',  bg: 'bg-indigo-50 ring-1 ring-indigo-200',   dot: 'bg-indigo-500',  icon: CheckCircle    },
-}
-
-const ALL_UPDATE_TYPES = Object.keys(UPDATE_TYPE_META) as UpdateType[]
-
-// Legacy category meta (kept for backward compat display)
-const CATEGORY_META: Record<ProductUpdateCategory, { label: string; color: string; bg: string }> = {
-  feature:      { label: 'ميزة جديدة',  color: 'text-blue-700',    bg: 'bg-blue-50 ring-1 ring-blue-200'    },
-  improvement:  { label: 'تحسين',       color: 'text-emerald-700', bg: 'bg-emerald-50 ring-1 ring-emerald-200' },
-  fix:          { label: 'إصلاح',       color: 'text-orange-700',  bg: 'bg-orange-50 ring-1 ring-orange-200' },
-  security:     { label: 'أمان',        color: 'text-red-700',     bg: 'bg-red-50 ring-1 ring-red-200'      },
-  announcement: { label: 'إعلان',       color: 'text-purple-700',  bg: 'bg-purple-50 ring-1 ring-purple-200'},
-}
-
-function getTypeMeta(item: ProductUpdate): TypeMeta {
-  if (item.update_type && UPDATE_TYPE_META[item.update_type]) {
-    return UPDATE_TYPE_META[item.update_type]
-  }
-  const cat = CATEGORY_META[item.category]
-  return { label: cat.label, color: cat.color, bg: cat.bg, dot: 'bg-gray-400', icon: Bell }
-}
-
-const STATUS_META: Record<ProductUpdateStatus, { label: string; color: string; dot: string }> = {
-  draft:     { label: 'مسودة',  color: 'text-slate-600',   dot: 'bg-slate-400'   },
-  published: { label: 'منشور', color: 'text-emerald-700',  dot: 'bg-emerald-500' },
-  archived:  { label: 'مؤرشف', color: 'text-rose-600',     dot: 'bg-rose-400'    },
-}
-
-const PRIORITY_META: Record<Priority, { label: string; color: string }> = {
-  low:      { label: 'منخفضة',  color: 'text-slate-600'   },
-  medium:   { label: 'متوسطة',  color: 'text-amber-600'   },
-  high:     { label: 'عالية',   color: 'text-orange-600'  },
-  critical: { label: 'حرجة',    color: 'text-red-600'     },
-}
-
-const SEVERITY_META: Record<MaintenanceSeverity, { label: string; color: string }> = {
-  low:      { label: 'منخفضة',  color: 'text-slate-600'  },
-  medium:   { label: 'متوسطة',  color: 'text-amber-600'  },
-  high:     { label: 'عالية',   color: 'text-orange-600' },
-  critical: { label: 'حرجة',    color: 'text-red-600'    },
-}
-
-const ALL_ROLES = [
-  'super_admin','tech_admin','admin','executive_admin','department_manager',
-  'programs_manager','marketing_manager','finance_manager','hr_manager',
-  'operations_manager','support_agent','instructor','student','volunteer','partner',
-]
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'مدير النظام', tech_admin: 'مدير تقني', admin: 'مدير',
-  executive_admin: 'مدير تنفيذي', department_manager: 'مدير قسم',
-  programs_manager: 'مدير برامج', marketing_manager: 'مدير تسويق',
-  finance_manager: 'مدير مالي', hr_manager: 'مدير الموارد',
-  operations_manager: 'مدير عمليات', support_agent: 'دعم فني',
-  instructor: 'مدرب', student: 'طالب', volunteer: 'متطوع', partner: 'شريك',
-}
-
-// Map update_type → legacy category for backward compat
-function typeToCategoryDefault(t: UpdateType): ProductUpdateCategory {
-  const map: Partial<Record<UpdateType, ProductUpdateCategory>> = {
-    new_feature:     'feature',
-    improvement:     'improvement',
-    redesign:        'improvement',
-    bug_fix:         'fix',
-    security_update: 'security',
-  }
-  return map[t] ?? 'announcement'
-}
+import { ProductUpdateDetailDrawer } from '@/components/product-updates/ProductUpdateDetailDrawer'
+import { ProductUpdateTableRow } from '@/components/product-updates/ProductUpdateTableRow'
+import { formatProductUpdateCount } from '@/utils/productUpdateFormatters'
+import {
+  ALL_ROLES,
+  ALL_UPDATE_TYPES,
+  PRIORITY_META,
+  ROLE_LABELS,
+  SEVERITY_META,
+  STATUS_META,
+  UPDATE_TYPE_META,
+  typeToCategoryDefault,
+} from '@/components/product-updates/productUpdateMeta'
 
 // ─── Shared form field ────────────────────────────────────────────────────────
 
@@ -533,260 +454,6 @@ function UpdateForm({
   )
 }
 
-// ─── Type Badge ───────────────────────────────────────────────────────────────
-
-function TypeBadge({ item }: { item: ProductUpdate }) {
-  const m = getTypeMeta(item)
-  const Icon = m.icon
-  return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold', m.bg, m.color)}>
-      <Icon className="h-3 w-3" />
-      {m.label}
-    </span>
-  )
-}
-
-// ─── Detail Drawer ────────────────────────────────────────────────────────────
-
-function UpdateDetailDrawer({ item, onClose, onEdit, onPublish, onDelete }: {
-  item: ProductUpdate | null
-  onClose: () => void
-  onEdit: (item: ProductUpdate) => void
-  onPublish: (item: ProductUpdate) => void
-  onDelete: (item: ProductUpdate) => void
-}) {
-  if (!item) return null
-  const tm = getTypeMeta(item)
-  const st = STATUS_META[item.status]
-
-  return (
-    <CrudDrawer
-      open={!!item}
-      title={item.title}
-      subtitle={`${tm.label} · ${st.label}`}
-      onClose={onClose}
-      widthClassName="max-w-xl"
-      footerSlot={
-        <div className="flex gap-2" dir="rtl">
-          {item.status === 'draft' && (
-            <button onClick={() => onPublish(item)}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-700">
-              <Send className="h-3.5 w-3.5" /> نشر
-            </button>
-          )}
-          <button onClick={() => onEdit(item)}
-            className="flex items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-4 py-2 text-sm font-bold text-deepBlue transition hover:bg-brand-50">
-            <Edit2 className="h-3.5 w-3.5" /> تعديل
-          </button>
-          <button onClick={() => onDelete(item)}
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50">
-            <Trash2 className="h-3.5 w-3.5" /> حذف
-          </button>
-        </div>
-      }
-    >
-      <div className="space-y-5" dir="rtl">
-        {/* Badges row */}
-        <div className="flex flex-wrap gap-2">
-          <TypeBadge item={item} />
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold', st.color)}>
-            <span className={cn('h-1.5 w-1.5 rounded-full', st.dot)} />
-            {st.label}
-          </span>
-          {item.reads_count > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
-              <Eye className="h-3 w-3" /> {item.reads_count} قراءة
-            </span>
-          )}
-          {item.requires_acknowledgement && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
-              <CheckCircle className="h-3 w-3" /> يتطلب تأكيد
-            </span>
-          )}
-          {item.priority && (
-            <span className={cn('inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold', PRIORITY_META[item.priority].color)}>
-              أولوية: {PRIORITY_META[item.priority].label}
-            </span>
-          )}
-        </div>
-
-        {/* Dates */}
-        <div className="flex flex-wrap gap-4 text-xs text-muted-500">
-          {item.published_at && (
-            <span>نُشر: {new Date(item.published_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-          )}
-          {item.due_date && (
-            <span className="font-bold text-rose-600">الموعد النهائي: {new Date(item.due_date).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          )}
-          {item.maintenance_start && item.maintenance_end && (
-            <span className="font-bold text-amber-600">
-              صيانة: {new Date(item.maintenance_start).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })} – {new Date(item.maintenance_end).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-        </div>
-
-        {/* Target audience */}
-        {item.target_roles && item.target_roles.length > 0 && (
-          <div>
-            <p className="mb-1.5 text-xs font-bold text-deepBlue">الجمهور المستهدف:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {item.target_roles.map(r => (
-                <span key={r} className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
-                  {ROLE_LABELS[r] ?? r}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Main body */}
-        <div className="rounded-2xl border border-ink-100 bg-slate-50/60 p-4">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-deepBlue/90">{item.body}</p>
-        </div>
-
-        {/* Images */}
-        {item.image_url && (
-          <div>
-            <p className="mb-1.5 text-xs font-bold text-deepBlue">لقطة الشاشة:</p>
-            <img src={item.image_url} alt="screenshot" className="rounded-xl border border-ink-100 object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-          </div>
-        )}
-        {(item.image_before_url || item.image_after_url) && (
-          <div className="grid grid-cols-2 gap-3">
-            {item.image_before_url && (
-              <div>
-                <p className="mb-1 text-xs font-bold text-slate-500">قبل</p>
-                <img src={item.image_before_url} alt="before" className="rounded-xl border border-ink-100 object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-              </div>
-            )}
-            {item.image_after_url && (
-              <div>
-                <p className="mb-1 text-xs font-bold text-emerald-600">بعد</p>
-                <img src={item.image_after_url} alt="after" className="rounded-xl border border-ink-100 object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Bug fix details */}
-        {(item.problem_description || item.fix_description) && (
-          <div className="space-y-2">
-            {item.problem_description && (
-              <div className="rounded-xl border border-red-100 bg-red-50/60 p-3">
-                <p className="mb-1 text-xs font-black text-red-700">المشكلة</p>
-                <p className="text-xs text-red-700/80 leading-relaxed">{item.problem_description}</p>
-              </div>
-            )}
-            {item.fix_description && (
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
-                <p className="mb-1 text-xs font-black text-emerald-700">الإصلاح</p>
-                <p className="text-xs text-emerald-700/80 leading-relaxed">{item.fix_description}</p>
-              </div>
-            )}
-            {item.affected_users && (
-              <p className="text-xs text-muted-500">المتأثرون: <span className="font-bold text-deepBlue">{item.affected_users}</span></p>
-            )}
-          </div>
-        )}
-
-        {/* Maintenance details */}
-        {item.affected_services && item.affected_services.length > 0 && (
-          <div>
-            <p className="mb-1.5 text-xs font-bold text-deepBlue">الخدمات المتأثرة:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {item.affected_services.map(s => (
-                <span key={s} className="rounded-lg bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{s}</span>
-              ))}
-            </div>
-            {item.maintenance_severity && (
-              <p className={cn('mt-1.5 text-xs font-bold', SEVERITY_META[item.maintenance_severity].color)}>
-                خطورة: {SEVERITY_META[item.maintenance_severity].label}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* CTA button */}
-        {item.cta_url && item.cta_label && (
-          <a
-            href={item.cta_url}
-            target={item.cta_external ? '_blank' : '_self'}
-            rel={item.cta_external ? 'noopener noreferrer' : undefined}
-            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-4 py-2.5 text-sm font-bold text-white transition hover:bg-deepBlue"
-          >
-            {item.cta_label}
-            {item.cta_external && <ExternalLink className="h-3.5 w-3.5" />}
-          </a>
-        )}
-
-        {/* Mandatory banner */}
-        {item.update_type === 'mandatory_update' && (
-          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs font-bold text-indigo-700">
-            ⚡ هذا التحديث إلزامي — يجب على المستخدم الضغط على "فهمت".
-          </div>
-        )}
-
-        {item.created_by && (
-          <p className="text-xs text-muted-400">أنشأه: {item.created_by.name}</p>
-        )}
-      </div>
-    </CrudDrawer>
-  )
-}
-
-// ─── Table Row ────────────────────────────────────────────────────────────────
-
-function UpdateRow({ item, onView, onEdit, onPublish, onDelete }: {
-  item: ProductUpdate
-  onView: () => void
-  onEdit: () => void
-  onPublish: () => void
-  onDelete: () => void
-}) {
-  const st = STATUS_META[item.status]
-
-  return (
-    <motion.tr
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="group border-b border-ink-100/60 transition hover:bg-brand-50/40"
-    >
-      <td className="px-4 py-3 text-right">
-        <button onClick={onView} className="text-sm font-bold text-deepBlue hover:text-customBlue hover:underline">
-          {item.title}
-        </button>
-        {item.target_roles && item.target_roles.length > 0 && (
-          <p className="mt-0.5 text-[11px] text-muted-400">{item.target_roles.map(r => ROLE_LABELS[r] ?? r).join('، ')}</p>
-        )}
-      </td>
-      <td className="px-4 py-3 text-right">
-        <TypeBadge item={item} />
-      </td>
-      <td className="px-4 py-3 text-right">
-        <span className={cn('inline-flex items-center gap-1.5 text-xs font-bold', st.color)}>
-          <span className={cn('h-1.5 w-1.5 rounded-full', st.dot)} />
-          {st.label}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-right text-xs text-muted-500">
-        {item.published_at
-          ? new Date(item.published_at).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', year: 'numeric' })
-          : '—'}
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex justify-end gap-1 opacity-0 transition group-hover:opacity-100">
-          <button onClick={onView}    title="عرض"  className="rounded-lg p-1.5 text-slate-400 hover:bg-brand-50 hover:text-customBlue"><Eye     className="h-4 w-4" /></button>
-          <button onClick={onEdit}    title="تعديل" className="rounded-lg p-1.5 text-slate-400 hover:bg-brand-50 hover:text-customBlue"><Edit2   className="h-4 w-4" /></button>
-          {item.status === 'draft' && (
-            <button onClick={onPublish} title="نشر" className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"><Send className="h-4 w-4" /></button>
-          )}
-          <button onClick={onDelete}  title="حذف"  className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"><Trash2  className="h-4 w-4" /></button>
-        </div>
-      </td>
-    </motion.tr>
-  )
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProductUpdatesPage() {
@@ -807,6 +474,10 @@ export default function ProductUpdatesPage() {
   const [editItem,    setEditItem]    = useState<ProductUpdate | null>(null)
   const [detailItem,  setDetailItem]  = useState<ProductUpdate | null>(null)
   const [confirmItem, setConfirmItem] = useState<{ item: ProductUpdate; action: 'publish' | 'delete' } | null>(null)
+
+  const tableSectionRef = useRef<HTMLDivElement>(null)
+  const rowRefs = useRef<Map<number, HTMLTableRowElement>>(new Map())
+  const lastOpenedRowId = useRef<number | null>(null)
 
   const canManage = user?.role === 'super_admin' || user?.role === 'tech_admin'
     || user?.role === 'admin' || user?.role === 'marketing_manager'
@@ -885,6 +556,26 @@ export default function ProductUpdatesPage() {
     ? items.filter(i => i.update_type === typeFilter)
     : items
 
+  const openDetail = useCallback((item: ProductUpdate) => {
+    lastOpenedRowId.current = item.id
+    setDetailItem(item)
+  }, [])
+
+  const closeDetail = useCallback(() => {
+    const rowId = lastOpenedRowId.current
+    setDetailItem(null)
+    requestAnimationFrame(() => {
+      if (rowId != null) rowRefs.current.get(rowId)?.focus()
+    })
+  }, [])
+
+  const browseAllUpdates = useCallback(() => {
+    closeDetail()
+    requestAnimationFrame(() => {
+      tableSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [closeDetail])
+
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-50/30 p-4 sm:p-6">
       {/* Header */}
@@ -905,10 +596,10 @@ export default function ProductUpdatesPage() {
       {stats && (
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <KpiCards items={[
-            { label: 'إجمالي التحديثات', value: stats.total,     tone: 'blue'    },
-            { label: 'منشور',            value: stats.published,  tone: 'success' },
-            { label: 'مسودة',            value: stats.draft,      tone: 'slate'   },
-            { label: 'مؤرشف',            value: stats.archived,   tone: 'danger'  },
+            { label: 'إجمالي التحديثات', value: formatProductUpdateCount(stats.total),     tone: 'blue'    },
+            { label: 'منشور',            value: formatProductUpdateCount(stats.published),  tone: 'success' },
+            { label: 'مسودة',            value: formatProductUpdateCount(stats.draft),      tone: 'slate'   },
+            { label: 'مؤرشف',            value: formatProductUpdateCount(stats.archived),   tone: 'danger'  },
           ]} />
         </div>
       )}
@@ -958,7 +649,10 @@ export default function ProductUpdatesPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
+      <div
+        ref={tableSectionRef}
+        className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[0_2px_16px_rgba(15,23,42,0.06)]"
+      >
         {loading && items.length === 0 ? (
           <div className="flex h-48 items-center justify-center">
             <RefreshCw className="h-6 w-6 animate-spin text-customBlue" />
@@ -986,11 +680,16 @@ export default function ProductUpdatesPage() {
               <tbody>
                 <AnimatePresence initial={false}>
                   {displayItems.map(item => (
-                    <UpdateRow
+                    <ProductUpdateTableRow
                       key={item.id}
+                      ref={(el) => {
+                        if (el) rowRefs.current.set(item.id, el)
+                        else rowRefs.current.delete(item.id)
+                      }}
                       item={item}
-                      onView={() => setDetailItem(item)}
-                      onEdit={() => setEditItem(item)}
+                      selected={detailItem?.id === item.id}
+                      onOpen={() => openDetail(item)}
+                      onEdit={() => { setDetailItem(null); setEditItem(item) }}
                       onPublish={() => setConfirmItem({ item, action: 'publish' })}
                       onDelete={() => setConfirmItem({ item, action: 'delete' })}
                     />
@@ -1005,13 +704,17 @@ export default function ProductUpdatesPage() {
       {/* Pagination */}
       {lastPage > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm" dir="rtl">
-          <span className="text-muted-500">{total} تحديث إجمالاً</span>
+          <span className="text-muted-500 tabular-nums" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+            {formatProductUpdateCount(total)} تحديث إجمالاً
+          </span>
           <div className="flex gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
               className="rounded-xl border border-ink-200 bg-white px-3 py-1.5 font-bold text-deepBlue disabled:opacity-40 hover:bg-brand-50">
               السابق
             </button>
-            <span className="flex items-center px-2 text-muted-500">{page} / {lastPage}</span>
+            <span className="flex items-center px-2 text-muted-500 tabular-nums" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+              {formatProductUpdateCount(page)} / {formatProductUpdateCount(lastPage)}
+            </span>
             <button onClick={() => setPage(p => Math.min(lastPage, p + 1))} disabled={page === lastPage}
               className="rounded-xl border border-ink-200 bg-white px-3 py-1.5 font-bold text-deepBlue disabled:opacity-40 hover:bg-brand-50">
               التالي
@@ -1038,9 +741,10 @@ export default function ProductUpdatesPage() {
       </CrudModal>
 
       {/* Detail Drawer */}
-      <UpdateDetailDrawer
+      <ProductUpdateDetailDrawer
         item={detailItem}
-        onClose={() => setDetailItem(null)}
+        onClose={closeDetail}
+        onBrowseAll={browseAllUpdates}
         onEdit={item => { setDetailItem(null); setEditItem(item) }}
         onPublish={item => setConfirmItem({ item, action: 'publish' })}
         onDelete={item => setConfirmItem({ item, action: 'delete' })}

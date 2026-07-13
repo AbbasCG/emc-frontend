@@ -66,7 +66,7 @@ function KPICard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">{label}</p>
-              <p className="mt-2 truncate font-latin text-xl font-black tabular-nums text-deepBlue">{value}</p>
+              <p className="mt-2 truncate font-latin text-xl font-black tabular-nums whitespace-nowrap text-deepBlue" dir="ltr">{value}</p>
               {sub ? <p className="mt-1 text-[11px] font-bold text-slate-500">{sub}</p> : null}
             </div>
             <div

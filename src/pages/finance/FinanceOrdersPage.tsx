@@ -8,7 +8,8 @@ import {
 import api from '@/api/axios'
 import type { Order } from '@/api/checkoutApi'
 import toast from '@/lib/toast'
-import { formatEuro } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceForeignCurrency, formatFinanceDateTime } from '@/utils/financeFormatters'
 
 // ── Extended order type with phone ───────────────────────────────────────────
 
@@ -40,14 +41,13 @@ const STATUS_AR: Record<string, { label: string; cls: string; dot: string; accen
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtCurrency(amount: number | undefined | null, _currency = 'EUR') {
+function fmtCurrency(amount: number | undefined | null, currency = 'EUR') {
   if (amount == null) return '—'
-  return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function fmtDate(d: string | null | undefined) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
+function fmtDateExport(d: string | null | undefined) {
+  return formatFinanceDateTime(d)
 }
 
 function useCopy(text: string) {
@@ -88,7 +88,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function Row({ label, value, mono }: { label: string; value: string | null | undefined; mono?: boolean }) {
+function Row({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-2 px-4 py-2.5">
       <span className="shrink-0 text-xs text-deepBlue/40">{label}</span>
@@ -225,8 +225,8 @@ function OrderDrawer({ order, onClose }: { order: FinanceOrder; onClose: () => v
               )}
               <Row label="الإجمالي"     value={fmtCurrency(order.total, order.currency)} />
               <Row label="العملة"       value={order.currency} />
-              <Row label="تاريخ الإنشاء" value={fmtDate(order.created_at)} />
-              <Row label="تاريخ الدفع"  value={fmtDate(order.paid_at)} />
+              <Row label="تاريخ الإنشاء" value={<FinanceDate value={order.created_at} showTime />} />
+              <Row label="تاريخ الدفع"  value={<FinanceDate value={order.paid_at} showTime />} />
             </Section>
 
             {/* Course / program */}
@@ -248,7 +248,7 @@ function OrderDrawer({ order, onClose }: { order: FinanceOrder; onClose: () => v
             {order.invoice && (
               <Section title="الفاتورة">
                 <Row label="رقم الفاتورة" value={order.invoice.invoice_number} mono />
-                <Row label="تاريخ الإصدار" value={fmtDate(order.invoice.issued_at)} />
+                <Row label="تاريخ الإصدار" value={<FinanceDate value={order.invoice.issued_at} />} />
                 <div className="px-4 py-3">
                   <button className="inline-flex items-center gap-2 rounded-xl bg-customBlue/[0.07] px-4 py-2 text-xs font-black text-customBlue transition hover:bg-customBlue/[0.12]">
                     <FileText size={13} />
@@ -416,7 +416,7 @@ export default function FinanceOrdersPage() {
                     <span className="font-black text-deepBlue" dir="ltr">
                       {fmtCurrency(order.total, order.currency)}
                     </span>
-                    <span className="text-deepBlue/40">{fmtDate(order.paid_at ?? order.created_at)}</span>
+                    <FinanceDate value={order.paid_at ?? order.created_at} />
                   </div>
                 </motion.div>
               )

@@ -12,6 +12,7 @@ import {
   financeApprove, financeReject, returnFinancialRequest,
   executiveApprove, executiveReject, uploadAttachment,
 } from '@/api/financialRequestsApi'
+import { formatFinanceDate, formatFinanceDateTime } from '@/utils/financeDateFormatters'
 
 interface Props {
   request: FinancialRequest
@@ -59,14 +60,11 @@ function numFmt(n: number, opts?: Intl.NumberFormatOptions) {
 }
 
 function dateFmt(iso: string | null | undefined) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-GB') // DD/MM/YYYY
+  return formatFinanceDate(iso)
 }
 
 function datetimeFmt(iso: string | null | undefined) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  return `${d.toLocaleDateString('en-GB')} ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+  return formatFinanceDateTime(iso)
 }
 
 export default function FinancialRequestDetailView({ request: initialReq, onClose, onUpdate, viewerRole }: Props) {

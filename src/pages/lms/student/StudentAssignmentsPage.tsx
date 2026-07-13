@@ -21,17 +21,17 @@ import { StudentBackButton } from '@/components/shared/StudentBackButton'
 // ── Status helpers ────────────────────────────────────────────────────────────
 
 const STATUS_LABEL: Record<string, string> = {
-  submitted:          'تم التسليم',
+  submitted:          'بانتظار التقييم',
   graded:             'تم التقييم',
-  revision:           'إعادة تسليم',
-  needs_resubmission: 'إعادة تسليم',
+  revision:           'إعادة تسليم مطلوب',
+  needs_resubmission: 'إعادة تسليم مطلوب',
   late:               'متأخر',
   pending:            'قيد المعالجة',
 }
 
 const STATUS_COLORS: Record<string, string> = {
   graded:             'bg-blue-50 text-blue-700 border-blue-200',
-  submitted:          'bg-emerald-50 text-emerald-700 border-emerald-200',
+  submitted:          'bg-purple-50 text-purple-700 border-purple-200',
   revision:           'bg-amber-50 text-amber-700 border-amber-200',
   needs_resubmission: 'bg-amber-50 text-amber-700 border-amber-200',
   late:               'bg-red-50 text-red-700 border-red-200',
@@ -255,15 +255,16 @@ export default function StudentAssignmentsPage() {
   }, [submitted, filterStatus, search])
 
   const stats = useMemo(() => {
-    const total   = submitted.length
-    const graded  = submitted.filter((a) => isGraded(a.status)).length
-    const pending = submitted.filter((a) => isPendingReview(a.status)).length
-    const scores  = submitted.filter((a) => a.score != null && a.max_score != null)
+    const total    = submitted.length
+    const graded   = submitted.filter((a) => isGraded(a.status)).length
+    const pending  = submitted.filter((a) => isPendingReview(a.status)).length
+    const revision = submitted.filter((a) => a.status === 'needs_resubmission' || a.status === 'revision').length
+    const scores   = submitted.filter((a) => a.score != null && a.max_score != null)
     const avg =
       scores.length > 0
         ? Math.round(scores.reduce((s, a) => s + (a.score! / a.max_score!) * 100, 0) / scores.length)
         : null
-    return { total, graded, pending, avg }
+    return { total, graded, pending, revision, avg }
   }, [submitted])
 
   if (loading && assignmentsScoped.length === 0) return <LmsPageSkeleton />
@@ -298,7 +299,7 @@ export default function StudentAssignmentsPage() {
       <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       {/* ── Stats ──────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <StatCard
           label="إجمالي التسليمات"
           value={stats.total}
@@ -313,6 +314,11 @@ export default function StudentAssignmentsPage() {
           label="تم تقييمها"
           value={stats.graded}
           colorClass="border-blue-200/70 bg-blue-50/60 text-blue-700"
+        />
+        <StatCard
+          label="إعادة تسليم"
+          value={stats.revision}
+          colorClass="border-amber-200/70 bg-amber-50/60 text-amber-700"
         />
         <StatCard
           label="متوسط الدرجة"

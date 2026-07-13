@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FinanceSubnav } from '@/components/intelligence'
-import { formatEuroInteger, formatSARInteger } from '@/utils/currency'
+import { formatFinanceCurrencyInteger, formatFinanceSAR } from '@/utils/financeFormatters'
 import FinanceHeader from './FinanceHeader'
 import KpiGrid from './KpiGrid'
 import AccountGrid from './AccountGrid'
@@ -63,7 +63,7 @@ export default function FinanceCommandCenter({
   const [periodKey, setPeriodKey] = useState<'month' | 'quarter' | 'year'>('year')
 
   const formatCurrency = useMemo(
-    () => (n: number) => currency === 'SAR' ? formatSARInteger(n) : formatEuroInteger(n),
+    () => (n: number) => currency === 'SAR' ? formatFinanceSAR(n) : formatFinanceCurrencyInteger(n),
     [currency],
   )
 

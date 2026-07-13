@@ -11,29 +11,12 @@ import {
   createFinanceAccount,
   updateFinanceAccount,
 } from '@/api/financeApi'
-import { formatEuro, formatSAR } from '@/utils/currency'
+import { formatFinanceForeignCurrency } from '@/utils/financeFormatters'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-const formatCurrency = (amount: number, currency = 'EUR') => {
-  const c = currency.toUpperCase()
-  if (c === 'EUR') {
-    return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-  if (c === 'SAR') {
-    return formatSAR(amount)
-  }
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: c,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount)
-  } catch {
-    return `${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-}
+const formatCurrency = (amount: number, currency = 'EUR') =>
+  formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   bank: 'بنك',

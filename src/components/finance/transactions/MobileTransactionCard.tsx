@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import type { FinancialTransaction } from '@/types/intelligence'
 import TransactionStatusBadge from './TransactionStatusBadge'
-import { formatTxAmount, formatTxDate, shortTxId } from './formatters'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatTxAmount, shortTxId } from './formatters'
 
 export default function MobileTransactionCard({
   row,
@@ -10,7 +11,7 @@ export default function MobileTransactionCard({
   row: FinancialTransaction
   onView: (row: FinancialTransaction) => void
 }) {
-  const when = formatTxDate(row.occurred_at || row.created_at)
+  const when = row.occurred_at || row.created_at
   return (
     <motion.button
       type="button"
@@ -27,10 +28,10 @@ export default function MobileTransactionCard({
         <TransactionStatusBadge status={row.status} type={row.type} />
       </div>
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#F1F5F9] pt-3">
-        <span className="font-mono text-[15px] font-black tabular-nums text-[#0F172A]" dir="ltr">
+        <span className="font-mono text-[15px] font-black tabular-nums whitespace-nowrap text-[#0F172A]" dir="ltr">
           {formatTxAmount(row.amount, row.currency)}
         </span>
-        <span className="text-[10px] font-semibold text-[#94A3B8]">{when.date}</span>
+        <FinanceDate value={when} showTime />
       </div>
     </motion.button>
   )

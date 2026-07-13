@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import {
   X, Megaphone, Check, RefreshCw, ExternalLink,
   Info, Zap, ArrowRight, Palette, Bug, Bell,
@@ -37,20 +38,11 @@ function getTypeMeta(item: ProductUpdate): TypeMeta {
   return (item.update_type ? UPDATE_TYPE_META[item.update_type] : null) ?? FALLBACK_META
 }
 
-// ─── Date helper ──────────────────────────────────────────────────────────────
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(diff / 60000)
-  if (m < 1)  return 'الآن'
-  if (m < 60) return `منذ ${m} دقيقة`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `منذ ${h} ساعة`
-  const d = Math.floor(h / 24)
-  return `منذ ${d} يوم`
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
+import {
+  formatProductUpdateDate,
+  formatProductUpdateDateTime,
+  formatProductUpdateTimeRange,
+} from '@/utils/productUpdateFormatters'
 
 type Props = {
   open: boolean
@@ -59,6 +51,7 @@ type Props = {
 }
 
 export function WhatsNewDrawer({ open, onClose, onUnreadChange }: Props) {
+  const navigate = useNavigate()
   const [items,    setItems]    = useState<ProductUpdate[]>([])
   const [loading,  setLoading]  = useState(false)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
@@ -188,7 +181,9 @@ export function WhatsNewDrawer({ open, onClose, onUnreadChange }: Props) {
                                 {tm.label}
                               </span>
                               {item.published_at && (
-                                <span className="text-[11px] text-muted-400">{timeAgo(item.published_at)}</span>
+                                <span className="text-[11px] text-muted-400 tabular-nums whitespace-nowrap" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                                  {formatProductUpdateDateTime(item.published_at)}
+                                </span>
                               )}
                             </div>
 
@@ -237,29 +232,39 @@ export function WhatsNewDrawer({ open, onClose, onUnreadChange }: Props) {
 
                             {/* Maintenance window */}
                             {item.maintenance_start && item.maintenance_end && isEx && (
-                              <p className="mt-1.5 text-[11px] font-bold text-amber-600">
-                                وقت الصيانة: {new Date(item.maintenance_start).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })} – {new Date(item.maintenance_end).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                              <p className="mt-1.5 text-[11px] font-bold text-amber-600 tabular-nums whitespace-nowrap" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                                وقت الصيانة: {formatProductUpdateTimeRange(item.maintenance_start, item.maintenance_end)}
                               </p>
                             )}
 
                             {/* Due date */}
                             {item.due_date && (
-                              <p className="mt-1.5 text-[11px] font-bold text-rose-600">
-                                الموعد النهائي: {new Date(item.due_date).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                              <p className="mt-1.5 text-[11px] font-bold text-rose-600 tabular-nums whitespace-nowrap" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                                الموعد النهائي: {formatProductUpdateDate(item.due_date)}
                               </p>
                             )}
 
                             {/* CTA button */}
-                            {item.cta_url && item.cta_label && (
-                              <a
-                                href={item.cta_url}
-                                target={item.cta_external ? '_blank' : '_self'}
-                                rel={item.cta_external ? 'noopener noreferrer' : undefined}
-                                className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-customBlue/90 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-customBlue"
-                              >
-                                {item.cta_label}
-                                {item.cta_external && <ExternalLink className="h-2.5 w-2.5" />}
-                              </a>
+                            {item.cta_url && (
+                              item.cta_external ? (
+                                <a
+                                  href={item.cta_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-customBlue/90 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-customBlue"
+                                >
+                                  {item.cta_label ?? 'عرض التحديث'}
+                                  <ExternalLink className="h-2.5 w-2.5" />
+                                </a>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => { navigate(item.cta_url!); onClose() }}
+                                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-customBlue/90 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-customBlue"
+                                >
+                                  {item.cta_label ?? 'عرض التحديث'}
+                                </button>
+                              )
                             )}
 
                             {/* Mandatory acknowledgement note */}

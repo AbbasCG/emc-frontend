@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
 import { BadgeCheck, Ban, Clock3, HandCoins } from 'lucide-react'
+import { formatFinanceCount } from '@/utils/financeFormatters'
 import type { ManualPaymentSummaryStats } from './deriveStats'
 import { formatTxAmountCompact } from './formatters'
 
@@ -60,35 +61,35 @@ export default function ManualPaymentStats({
     {
       icon: HandCoins,
       label: 'إجمالي المدفوعات اليدوية',
-      value: stats.totalCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.totalCount),
       sub: 'عدد السجلات في النتائج المصفّاة',
       accent: 'bg-[#2691C2]/10 text-[#2691C2]',
     },
     {
       icon: HandCoins,
-      label: 'إجمالي المبالغ',
-      value: formatTxAmountCompact(stats.totalAmount),
-      sub: 'مجموع المبالغ المدفوعة',
+      label: 'الإيرادات المعتمدة',
+      value: formatTxAmountCompact(stats.confirmedAmount),
+      sub: 'مجموع المبالغ المعتمدة فقط',
       accent: 'bg-[#22334A]/8 text-[#22334A]',
     },
     {
       icon: Clock3,
       label: 'بانتظار المراجعة',
-      value: stats.pendingCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.pendingCount),
       sub: stats.pendingAmount > 0 ? `بقيمة ${formatTxAmountCompact(stats.pendingAmount)}` : 'لا توجد دفعات معلقة',
       accent: 'bg-amber-50 text-amber-600',
     },
     {
       icon: BadgeCheck,
       label: 'المدفوعات المعتمدة',
-      value: stats.confirmedCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.confirmedCount),
       sub: stats.confirmedAmount > 0 ? `بقيمة ${formatTxAmountCompact(stats.confirmedAmount)}` : 'لا توجد دفعات معتمدة',
       accent: 'bg-emerald-50 text-emerald-600',
     },
     {
       icon: Ban,
       label: 'المدفوعات المرفوضة',
-      value: stats.rejectedCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.rejectedCount),
       sub: stats.rejectedAmount > 0 ? `بقيمة ${formatTxAmountCompact(stats.rejectedAmount)}` : 'لا توجد دفعات مرفوضة',
       accent: 'bg-rose-50 text-rose-600',
     },

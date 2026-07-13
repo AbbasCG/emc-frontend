@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
 import { Clock3, RotateCcw, TrendingUp, WalletCards } from 'lucide-react'
+import { formatFinanceCount } from '@/utils/financeFormatters'
 import type { TransactionSummaryStats } from './deriveStats'
 import { formatTxAmountCompact } from './formatters'
 
@@ -62,7 +63,7 @@ export default function TransactionStats({
     {
       icon: WalletCards,
       label: 'إجمالي المعاملات',
-      value: stats.totalCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.totalCount),
       sub: 'عدد السجلات في النتائج المصفّاة',
       accent: 'bg-[#2691C2]/10 text-[#2691C2]',
     },
@@ -76,14 +77,14 @@ export default function TransactionStats({
     {
       icon: Clock3,
       label: 'المدفوعات المعلقة',
-      value: stats.pendingCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.pendingCount),
       sub: stats.pendingTotal > 0 ? `بقيمة ${formatTxAmountCompact(stats.pendingTotal)}` : 'لا توجد مبالغ معلقة',
       accent: 'bg-amber-50 text-amber-600',
     },
     {
       icon: RotateCcw,
       label: 'المبالغ المستردة',
-      value: stats.refundedCount.toLocaleString('ar'),
+      value: formatFinanceCount(stats.refundedCount),
       sub: stats.refundedTotal > 0 ? `بقيمة ${formatTxAmountCompact(stats.refundedTotal)}` : 'لا توجد استردادات',
       accent: 'bg-violet-50 text-violet-600',
     },

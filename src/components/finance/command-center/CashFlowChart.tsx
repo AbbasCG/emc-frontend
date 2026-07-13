@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { formatEuroCompact, formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCurrencyCompact, formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 import { FINANCE_CHART } from './chartConfig'
 import { SectionShell } from './shared'
 
@@ -43,7 +43,7 @@ function CashFlowChartInner({ data }: { data: Point[] }) {
                 tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'Inter' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v) => formatEuroCompact(v as number)}
+                tickFormatter={(v) => formatFinanceCurrencyCompact(v as number)}
               />
               <Tooltip
                 contentStyle={FINANCE_CHART.tooltip}
@@ -56,7 +56,7 @@ function CashFlowChartInner({ data }: { data: Point[] }) {
                     transfers: 'تحويل',
                     net: 'صافي',
                   }
-                  return [formatEuroInteger(typeof v === 'number' ? v : 0, 'ar'), labels[String(name)] ?? name]
+                  return [formatFinanceCurrencyInteger(typeof v === 'number' ? v : 0), labels[String(name)] ?? name]
                 }}
               />
               <Legend

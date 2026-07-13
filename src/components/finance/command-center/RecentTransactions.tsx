@@ -2,19 +2,14 @@ import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Eye, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { formatEuroInteger } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCurrencyInteger, FINANCE_ACCOUNT_EMPTY_LABEL } from '@/utils/financeFormatters'
 import PaymentStatusBadge from '@/components/intelligence/PaymentStatusBadge'
 import type { FinancePaymentRow, PaymentStatus } from '@/types/intelligence'
 import { providerLabelAr } from './chartConfig'
 import { SectionShell } from './shared'
 
 const PAGE_SIZE = 8
-
-function formatWhen(iso: string) {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('ar-SA', { dateStyle: 'short', timeStyle: 'short' }).format(d)
-}
 
 export default function RecentTransactions({
   payments,
@@ -104,17 +99,21 @@ export default function RecentTransactions({
                 <td className="px-3 py-3">
                   <PaymentStatusBadge status={p.status} />
                 </td>
-                <td className="px-3 py-3 font-latin text-[12px] font-black tabular-nums text-deepBlue" dir="ltr">
-                  {formatEuroInteger(p.amount, 'ar')}
+                <td className="px-3 py-3 font-latin text-[12px] font-black tabular-nums whitespace-nowrap text-deepBlue" dir="ltr">
+                  {formatFinanceCurrencyInteger(p.amount)}
                 </td>
                 <td className="px-3 py-3 font-latin text-[11px] font-bold text-slate-500">{p.currency ?? 'EUR'}</td>
-                <td className="px-3 py-3 text-[11px] font-semibold text-slate-500">—</td>
+                <td className="px-3 py-3 text-[11px] font-semibold text-slate-400">{FINANCE_ACCOUNT_EMPTY_LABEL}</td>
                 <td className="px-3 py-3 text-[11px] font-bold text-slate-600">{providerLabelAr(p.provider)}</td>
                 <td className="px-3 py-3 text-[11px] font-bold text-deepBlue">{p.student_name ?? p.payer_email ?? '—'}</td>
                 <td className="max-w-[120px] truncate px-3 py-3 text-[11px] font-semibold text-slate-500">
                   {p.item_title ?? p.course_name ?? '—'}
                 </td>
-                <td className="px-3 py-3 text-[10px] font-semibold text-slate-400">{formatWhen(p.created_at)}</td>
+                <td className="px-3 py-3">
+                  <span className="text-[10px] font-semibold text-slate-400 whitespace-nowrap tabular-nums" dir="ltr">
+                    <FinanceDate value={p.created_at} showTime />
+                  </span>
+                </td>
                 <td className="px-3 py-3">
                   <Link
                     to={`${financeBase}/payments`}

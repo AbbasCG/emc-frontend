@@ -3,7 +3,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { BookOpen, Check, Copy, Eye, FileText, Landmark } from 'lucide-react'
 import type { FinancialTransaction } from '@/types/intelligence'
 import TransactionStatusBadge, { TransactionTypeBadge } from './TransactionStatusBadge'
-import { formatTxAmount, formatTxDate, shortTxId, txInitials } from './formatters'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatTxAmount, shortTxId, txInitials } from './formatters'
 
 function CopyIdButton({ id }: { id: number }) {
   const [copied, setCopied] = useState(false)
@@ -59,7 +60,7 @@ export default function TransactionsTable({
         </thead>
         <tbody>
           {rows.map((t, i) => {
-            const when = formatTxDate(t.occurred_at || t.created_at)
+            const when = t.occurred_at || t.created_at
             const bg = avatarColors[t.id % avatarColors.length]
             return (
               <motion.tr
@@ -110,7 +111,7 @@ export default function TransactionsTable({
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <span
-                    className={`font-mono text-[13px] font-black tabular-nums ${
+                    className={`font-mono text-[13px] font-black tabular-nums whitespace-nowrap ${
                       t.type === 'revenue' ? 'text-[#0F172A]' : 'text-[#64748B]'
                     }`}
                     dir="ltr"
@@ -125,8 +126,12 @@ export default function TransactionsTable({
                   <TransactionStatusBadge status={t.status} type={t.type} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
-                  <p className="text-[11px] font-bold text-[#64748B]">{when.date}</p>
-                  {when.time && <p className="text-[10px] font-semibold text-[#94A3B8]" dir="ltr">{when.time}</p>}
+                  <span
+                    className="text-[11px] font-bold text-[#64748B] whitespace-nowrap tabular-nums"
+                    dir="ltr"
+                  >
+                    <FinanceDate value={when} showTime />
+                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <button

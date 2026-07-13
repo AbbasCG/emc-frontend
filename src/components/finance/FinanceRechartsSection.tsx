@@ -15,7 +15,7 @@ import {
 } from 'recharts'
 import type { FinanceDashboardData } from '@/types/intelligence'
 import { gatewayTotalsFromPayments } from './financeDashboardDerivations'
-import { formatEuroCompact, formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCurrencyCompact, formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 
 const brand = '#2691C2'
 const accent = '#EC943C'
@@ -34,7 +34,7 @@ function providerLabelAr(p: string) {
 }
 
 function fmtCurrencyTooltip(v: number) {
-  return formatEuroInteger(v, 'ar')
+  return formatFinanceCurrencyInteger(v)
 }
 
 export default function FinanceRechartsSection({ data }: { data: FinanceDashboardData }) {
@@ -107,7 +107,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
                   tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Inter' }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => formatEuroCompact(v as number, 'nl-NL')}
+                  tickFormatter={(v) => formatFinanceCurrencyCompact(v as number)}
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
@@ -165,7 +165,7 @@ export default function FinanceRechartsSection({ data }: { data: FinanceDashboar
                     tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'Inter' }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v) => formatEuroCompact(v as number, 'nl-NL')}
+                    tickFormatter={(v) => formatFinanceCurrencyCompact(v as number)}
                   />
                   <YAxis
                     type="category"

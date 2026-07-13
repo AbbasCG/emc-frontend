@@ -103,6 +103,21 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--deepBlue);
 }
 
+/* Finance date/time — workshop-requests visual reference */
+.finance-date-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.finance-time-value {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* ── Focus ring (legacy class, refined) ── */
 .emc-focus-ring:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--customBlue) 65%, white);

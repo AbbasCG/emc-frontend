@@ -1,5 +1,7 @@
 import type { FinancialTransaction } from '@/types/intelligence'
-import { downloadCsv, formatFinanceCurrency } from '@/components/finance/financeTablesShared'
+import { downloadCsv } from '@/components/finance/financeTablesShared'
+import { formatFinanceDateTime, formatMoney } from '@/utils/financeFormatters'
+import { getTransactionStatusLabel } from '@/utils/transactionStatusLabels'
 import { mapStatusForFilter, typeLabelAr } from './constants'
 
 export function exportTransactionsCsv(rows: FinancialTransaction[], filename: string) {
@@ -20,12 +22,12 @@ export function exportTransactionsCsv(rows: FinancialTransaction[], filename: st
     t.id,
     typeLabelAr(t.type),
     t.description ?? '',
-    formatFinanceCurrency(t.amount),
+    formatMoney(t.amount, t.currency),
     t.currency,
-    mapStatusForFilter(t.status, t.type),
+    getTransactionStatusLabel(mapStatusForFilter(t.status, t.type)),
     t.user?.name ?? '',
     t.user?.email ?? '',
-    t.occurred_at || t.created_at,
+    formatFinanceDateTime(t.occurred_at || t.created_at),
     t.payment_id ?? '',
     t.registration_id ?? '',
   ])

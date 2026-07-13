@@ -18,7 +18,8 @@ import { fetchFinanceInvoices } from '@/api/financeApi'
 import type { FinanceInvoice } from '@/types/intelligence'
 import { FinanceSubnav } from '@/components/intelligence'
 import toast from '@/lib/toast'
-import { formatEuro } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceForeignCurrency, formatFinanceDateTime } from '@/utils/financeFormatters'
 
 /* ─── Status config ────────────────────────────────────────────────────────── */
 
@@ -35,14 +36,13 @@ const STATUS_AR: Record<string, { label: string; dot: string; bg: string; text: 
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
-function fmtCurrency(amount: number | null | undefined, _currency = 'EUR') {
+function fmtCurrency(amount: number | null | undefined, currency = 'EUR') {
   if (amount == null) return '—'
-  return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function fmtDate(d?: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
+function fmtDateExport(d?: string | null) {
+  return formatFinanceDateTime(d)
 }
 
 /* ─── StatusBadge ──────────────────────────────────────────────────────────── */
@@ -102,7 +102,7 @@ function exportCsv(invoices: FinanceInvoice[]) {
     String(inv.total ?? ''),
     inv.currency,
     STATUS_AR[inv.status ?? '']?.label ?? inv.status ?? '',
-    fmtDate(inv.issued_at),
+    fmtDateExport(inv.issued_at),
   ])
   const csv = '﻿' + [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
   const a = document.createElement('a')
@@ -300,7 +300,7 @@ export default function FinanceInvoicesPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 text-[12px] text-slate-500">
                         <Calendar size={11} className="shrink-0 text-slate-400" />
-                        {fmtDate(inv.issued_at)}
+                        <FinanceDate value={inv.issued_at} />
                       </div>
                     </td>
                     {/* Download */}

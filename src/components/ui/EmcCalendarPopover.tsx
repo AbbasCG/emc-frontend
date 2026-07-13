@@ -1,5 +1,17 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatFinanceDate } from '@/utils/financeDateFormatters'
+
+export function formatDateDisplay(iso: string, _compact = false, mode: 'default' | 'finance' = 'default'): string {
+  if (!iso) return ''
+  if (mode === 'finance') return formatFinanceDate(iso)
+  try {
+    const d = new Date(iso + 'T12:00:00')
+    return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
+  } catch {
+    return iso
+  }
+}
 
 export const CALENDAR_WEEKDAYS = ['أحد', 'إثن', 'ثل', 'أرب', 'خم', 'جم', 'سب'] as const
 
@@ -52,18 +64,6 @@ export function parseIso(iso: string): { y: number; m: number; d: number } | nul
   return { y, m, d }
 }
 
-export function formatDateDisplay(iso: string, compact = false): string {
-  if (!iso) return ''
-  try {
-    const d = new Date(iso + 'T12:00:00')
-    if (compact) {
-      return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(d)
-    }
-    return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
-  } catch {
-    return iso
-  }
-}
 
 type CalendarBodyProps = {
   viewYear: number

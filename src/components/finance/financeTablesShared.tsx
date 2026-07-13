@@ -1,20 +1,8 @@
 import type { PaymentProvider } from '@/types/intelligence'
 
-import { formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCurrency, formatFinanceDate, formatFinanceDateTime } from '@/utils/financeFormatters'
 
-export function formatFinanceCurrency(n: number) {
-  return formatEuroInteger(n, 'ar')
-}
-
-export function formatFinanceDateTime(iso: string) {
-  if (!iso?.trim()) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('ar-SA', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(d)
-}
+export { formatFinanceCurrency, formatFinanceDate, formatFinanceDateTime }
 
 const PROVIDER_AR: Record<string, string> = {
   stripe: 'سترايب',

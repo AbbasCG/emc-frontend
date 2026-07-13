@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Eye } from 'lucide-react'
 import type { FinancialRequest, FinancialRequestStatus } from '@/api/financialRequestsApi'
 import { STATUS_LABELS, STATUS_COLORS, TYPE_LABELS, PRIORITY_LABELS, PRIORITY_COLORS } from '@/api/financialRequestsApi'
+import FinanceDate from '@/components/finance/FinanceDate'
 
 interface Props {
   requests: FinancialRequest[]
@@ -63,7 +64,7 @@ export default function FinancialRequestsTable({ requests, onSelect }: Props) {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-[12px] text-deepBlue/50">
-                  {new Date(req.created_at).toLocaleDateString('ar-SA')}
+                  <FinanceDate value={req.created_at} showTime />
                 </td>
                 <td className="px-4 py-3">
                   <button className="flex size-8 items-center justify-center rounded-full hover:bg-blue-50 text-customBlue">

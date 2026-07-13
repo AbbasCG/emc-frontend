@@ -25,7 +25,8 @@ import { fetchFinanceOrders } from '@/api/financeApi'
 import type { FinanceOrder } from '@/types/intelligence'
 import { FinanceSubnav } from '@/components/intelligence'
 import toast from '@/lib/toast'
-import { formatEuro } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceForeignCurrency, formatFinanceDateTime } from '@/utils/financeFormatters'
 
 /* ─── Status config ────────────────────────────────────────────────────────── */
 
@@ -44,14 +45,13 @@ const STATUS_AR: Record<string, { label: string; dot: string; bg: string; text: 
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
-function fmtCurrency(amount: number | null | undefined, _currency = 'EUR') {
+function fmtCurrency(amount: number | null | undefined, currency = 'EUR') {
   if (amount == null) return '—'
-  return formatEuro(amount, { locale: 'nl-NL', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function fmtDate(d?: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
+function fmtDateExport(d?: string | null) {
+  return formatFinanceDateTime(d)
 }
 
 function getInitials(name: string) {
@@ -202,8 +202,8 @@ function OrderDrawer({ order, onClose }: { order: FinanceOrder; onClose: () => v
                   order.tax_amount != null ? { label: 'الضريبة', value: fmtCurrency(order.tax_amount, order.currency) } : null,
                   { label: 'طريقة الدفع',   value: order.payment_provider ?? '—' },
                   { label: 'النوع',          value: order.type ?? '—' },
-                  { label: 'تاريخ الدفع',   value: fmtDate(order.paid_at) },
-                  { label: 'تاريخ الإنشاء', value: fmtDate(order.created_at) },
+                  { label: 'تاريخ الدفع',   value: <FinanceDate value={order.paid_at} showTime /> },
+                  { label: 'تاريخ الإنشاء', value: <FinanceDate value={order.created_at} showTime /> },
                 ].filter(Boolean).map((row, i) => (
                   <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5">
                     <span className="shrink-0 text-[11px] font-bold text-slate-400">{(row as { label: string }).label}</span>
@@ -272,8 +272,8 @@ function exportCsv(orders: FinanceOrder[], mode: 'orders' | 'invoices') {
     String(o.total),
     o.currency,
     STATUS_AR[o.status]?.label ?? o.status,
-    fmtDate(o.paid_at),
-    fmtDate(o.created_at),
+    fmtDateExport(o.paid_at),
+    fmtDateExport(o.created_at),
   ])
   const csv = '﻿' + [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
   const a = document.createElement('a')
@@ -485,7 +485,7 @@ export default function FinanceOrdersPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 text-[12px] text-slate-500">
                           <Calendar size={11} className="shrink-0 text-slate-400" />
-                          {fmtDate(order.paid_at ?? order.created_at)}
+                          <FinanceDate value={order.paid_at ?? order.created_at} />
                         </div>
                       </td>
                       {/* Actions */}

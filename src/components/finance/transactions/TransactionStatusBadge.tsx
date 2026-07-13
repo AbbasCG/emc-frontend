@@ -1,8 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { STATUS_AR } from './constants'
-import type { FinancialTransactionStatus } from '@/types/intelligence'
-import { mapStatusForFilter } from './constants'
-import type { FinancialTransactionType } from '@/types/intelligence'
+import type { FinancialTransactionStatus, FinancialTransactionType } from '@/types/intelligence'
+import { getTransactionStatusBadgeStyle, mapTransactionStatusKey } from '@/utils/transactionStatusLabels'
 
 export default function TransactionStatusBadge({
   status,
@@ -11,8 +9,8 @@ export default function TransactionStatusBadge({
   status: FinancialTransactionStatus
   type?: FinancialTransactionType
 }) {
-  const key = type ? mapStatusForFilter(status, type) : status
-  const s = STATUS_AR[key] ?? STATUS_AR.pending
+  const key = mapTransactionStatusKey(status, type)
+  const s = getTransactionStatusBadgeStyle(key)
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-black ring-1 ${s.cls}`}
