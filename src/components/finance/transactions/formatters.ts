@@ -24,7 +24,9 @@ export function formatTxDate(iso: string | null | undefined): { date: string; ti
 }
 
 export function formatTxDateTime(iso: string | null | undefined): string {
-  return formatFinanceDate(iso)
+  const { date, time } = formatFinanceDateTimeParts(iso)
+  if (!time) return date
+  return `${date}\n${time}`
 }
 
 export function txInitials(name: string | null | undefined): string {

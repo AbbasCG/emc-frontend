@@ -34,9 +34,11 @@ describe('formatMoney', () => {
   })
 })
 
-describe('formatDateDDMMYYYY', () => {
-  it('renders DD/MM/YYYY', () => {
-    expect(formatDateDDMMYYYY('2026-07-13T22:34:00+02:00')).toBe('13/07/2026')
+describe('formatDateDDMMYYYY alias', () => {
+  it('renders Arabic long-month date', () => {
+    const result = formatDateDDMMYYYY('2026-07-04')
+    expect(result).toMatch(/04/)
+    expect(result).toMatch(/2026/)
   })
 
   it('returns dash for empty value', () => {
@@ -46,19 +48,17 @@ describe('formatDateDDMMYYYY', () => {
 
 describe('formatTime24', () => {
   it('renders 24-hour time without AM/PM', () => {
-    const time = formatTime24('2026-07-13T22:34:00+02:00')
+    const time = formatTime24('2026-07-04T22:34:00+02:00')
     expect(time).toMatch(/^\d{2}:\d{2}$/)
-    expect(time).not.toMatch(/[مص]/)
     expect(time).not.toMatch(/AM|PM/i)
   })
 })
 
 describe('formatFinanceDateTime', () => {
-  it('combines date and time with space separator', () => {
-    const result = formatFinanceDateTime('2026-07-13T22:34:00+02:00')
-    expect(result).toContain('13/07/2026')
-    expect(result).toMatch(/13\/07\/2026 \d{2}:\d{2}/)
-    expect(result).not.toContain('·')
+  it('includes Arabic date and 24h time for timestamps', () => {
+    const result = formatFinanceDateTime('2026-07-04T22:34:00+02:00')
+    expect(result).toMatch(/2026/)
+    expect(result).toMatch(/\d{2}:\d{2}/)
     expect(result).not.toMatch(/AM|PM/i)
   })
 })

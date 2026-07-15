@@ -5,12 +5,11 @@ import { formatFinanceDate } from '@/utils/financeDateFormatters'
 export function formatDateDisplay(iso: string, _compact = false, mode: 'default' | 'finance' = 'default'): string {
   if (!iso) return ''
   if (mode === 'finance') return formatFinanceDate(iso)
-  try {
-    const d = new Date(iso + 'T12:00:00')
-    return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
-  } catch {
-    return iso
-  }
+  const parts = parseIso(iso)
+  if (!parts) return iso
+  const dd = String(parts.d).padStart(2, '0')
+  const mm = String(parts.m).padStart(2, '0')
+  return `${dd}/${mm}/${parts.y}`
 }
 
 export const CALENDAR_WEEKDAYS = ['أحد', 'إثن', 'ثل', 'أرب', 'خم', 'جم', 'سب'] as const
@@ -65,6 +64,11 @@ export function parseIso(iso: string): { y: number; m: number; d: number } | nul
 }
 
 
+const MONTH_NAMES_AR = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+] as const
+
 type CalendarBodyProps = {
   viewYear: number
   viewMonth: number
@@ -75,6 +79,14 @@ type CalendarBodyProps = {
   onSelectDay: (day: number) => void
   onPreset: (iso: string) => void
   showPresets?: boolean
+  /** Enables quick month/year <select> jump in the header — pass to allow fast navigation to distant dates (e.g. date of birth). */
+  onSelectMonthYear?: (year: number, month: number) => void
+  /** Bounds for the year <select> range when onSelectMonthYear is provided. Defaults to current year -100..+10. */
+  minYear?: number
+  maxYear?: number
+  /** Disables individual day buttons outside this ISO range (YYYY-MM-DD, inclusive). */
+  minDate?: string
+  maxDate?: string
 }
 
 export function EmcCalendarBody({
@@ -87,12 +99,21 @@ export function EmcCalendarBody({
   onSelectDay,
   onPreset,
   showPresets = true,
+  onSelectMonthYear,
+  minYear,
+  maxYear,
+  minDate,
+  maxDate,
 }: CalendarBodyProps) {
   const today = new Date()
   const todayY = today.getFullYear()
   const todayM = today.getMonth() + 1
   const todayD = today.getDate()
   const calendarDays = buildCalendarDays(viewYear, viewMonth)
+  const yearRangeStart = minYear ?? todayY - 100
+  const yearRangeEnd = maxYear ?? todayY + 10
+  const yearOptions: number[] = []
+  for (let y = yearRangeEnd; y >= yearRangeStart; y--) yearOptions.push(y)
 
   return (
     <>
@@ -120,9 +141,34 @@ export function EmcCalendarBody({
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <p className="min-w-0 flex-1 text-center text-[14px] font-black text-[#22334A]">
-          {monthLabel(viewYear, viewMonth)}
-        </p>
+        {onSelectMonthYear ? (
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+            <select
+              aria-label="الشهر"
+              value={viewMonth}
+              onChange={(e) => onSelectMonthYear(viewYear, Number(e.target.value))}
+              className="rounded-lg border border-transparent bg-transparent px-1 py-1 text-[13px] font-black text-[#22334A] transition hover:bg-slate-100 focus:border-[#2691C2]/30 focus:outline-none"
+            >
+              {MONTH_NAMES_AR.map((name, idx) => (
+                <option key={name} value={idx + 1}>{name}</option>
+              ))}
+            </select>
+            <select
+              aria-label="السنة"
+              value={viewYear}
+              onChange={(e) => onSelectMonthYear(Number(e.target.value), viewMonth)}
+              className="rounded-lg border border-transparent bg-transparent px-1 py-1 text-[13px] font-black tabular-nums text-[#22334A] transition hover:bg-slate-100 focus:border-[#2691C2]/30 focus:outline-none"
+            >
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <p className="min-w-0 flex-1 text-center text-[14px] font-black text-[#22334A]">
+            {monthLabel(viewYear, viewMonth)}
+          </p>
+        )}
         <button
           type="button"
           onClick={onPrevMonth}
@@ -147,18 +193,22 @@ export function EmcCalendarBody({
           const iso = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           const selected = isDaySelected ? isDaySelected(day) : selectedIso === iso
           const isToday = todayY === viewYear && todayM === viewMonth && todayD === day
+          const disabled = Boolean((minDate && iso < minDate) || (maxDate && iso > maxDate))
           return (
             <button
               key={`d-${day}-${idx}`}
               type="button"
+              disabled={disabled}
               onClick={() => onSelectDay(day)}
               className={cn(
                 'flex h-10 w-full items-center justify-center rounded-xl text-[13px] font-bold tabular-nums transition duration-200',
-                selected
-                  ? 'bg-[#2691C2] text-white shadow-sm shadow-[#2691C2]/25'
-                  : isToday
-                    ? 'bg-[#2691C2]/8 text-[#2691C2] ring-1 ring-[#2691C2]/35'
-                    : 'text-[#22334A] hover:bg-slate-100',
+                disabled
+                  ? 'cursor-not-allowed text-slate-300'
+                  : selected
+                    ? 'bg-[#2691C2] text-white shadow-sm shadow-[#2691C2]/25'
+                    : isToday
+                      ? 'bg-[#2691C2]/8 text-[#2691C2] ring-1 ring-[#2691C2]/35'
+                      : 'text-[#22334A] hover:bg-slate-100',
               )}
             >
               {day}

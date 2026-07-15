@@ -65,6 +65,7 @@ const joinItems: MegaDropdownItem[] = [
   { href: '/contact#trainer', label: 'انضم كمدرب', description: 'تواصل للانضمام كمدّرب مع EMC', icon: GraduationCap },
   { href: '/partnerships/apply', label: 'انضم كشريك', description: 'تقديم طلب شراكة مؤسسية أو خدمية', icon: Handshake },
   { href: '/volunteer', label: 'انضم كمتطوّع', description: 'شارك مهاراتك وفق أطر EMC التطوعية', icon: HeartHandshake },
+  { href: '/ambassador', label: 'سفير التحول الرقمي', description: 'برنامج سفراء EMC في الجامعات العربية', icon: Sparkles },
   { href: '/contact', label: 'تواصل معنا', description: 'قنوات التواصل والاستفسارات العامّة', icon: Mail },
 ]
 
@@ -74,7 +75,7 @@ const megaPrefixes: Record<MegaId, readonly string[]> = {
   about: ['/about', '/impact', '/ar/impact', '/team', '/ar/team'],
   programs: ['/courses', '/workshops', '/learning-paths', '/paths', '/tracks', '/programs', '/instructors', '/submit-workshop'],
   center: ['/departments', '/platform'],
-  join: ['/signup', '/contact', '/volunteer', '/partnerships/apply'],
+  join: ['/signup', '/contact', '/volunteer', '/partnerships/apply', '/ambassador'],
 }
 
 function pathActive(pathname: string, mega: MegaId): boolean {

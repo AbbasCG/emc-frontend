@@ -9,7 +9,7 @@ import api from '@/api/axios'
 import type { Order } from '@/api/checkoutApi'
 import toast from '@/lib/toast'
 import FinanceDate from '@/components/finance/FinanceDate'
-import { formatFinanceForeignCurrency, formatFinanceDateTime } from '@/utils/financeFormatters'
+import { formatFinanceForeignCurrency } from '@/utils/financeFormatters'
 
 // ── Extended order type with phone ───────────────────────────────────────────
 
@@ -46,9 +46,6 @@ function fmtCurrency(amount: number | undefined | null, currency = 'EUR') {
   return formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function fmtDateExport(d: string | null | undefined) {
-  return formatFinanceDateTime(d)
-}
 
 function useCopy(text: string) {
   const [copied, setCopied] = useState(false)

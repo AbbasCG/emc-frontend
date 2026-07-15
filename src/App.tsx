@@ -46,6 +46,9 @@ const VolunteerApply     = lazy(() => import('./pages/VolunteerApply'))
 const ThankYou           = lazy(() => import('./pages/ThankYou'))
 const Tracks             = lazy(() => import('./pages/Tracks'))
 const Volunteer          = lazy(() => import('./pages/Volunteer'))
+const AmbassadorProgram           = lazy(() => import('./pages/AmbassadorProgram'))
+const AmbassadorApply             = lazy(() => import('./pages/AmbassadorApply'))
+const AmbassadorApplicationSuccess = lazy(() => import('./pages/AmbassadorApplicationSuccess'))
 const LegalPage          = lazy(() => import('./pages/legal/LegalPage'))
 
 // ── Lazy: dashboard layout (code-split entry point) ──────────────────────────
@@ -230,8 +233,10 @@ const WorkshopRequestDetailPage   = lazy(() => import('./pages/WorkshopRequestDe
 // ── Lazy: dashboard pages — super admin ──────────────────────────────────────
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
 const ProductUpdatesPage          = lazy(() => import('./pages/super-admin/ProductUpdatesPage'))
-const VolunteerRequestsPage       = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
-const SuperAdminAuditLogsPage     = lazy(() => import('./pages/super-admin/AuditLogsPage'))
+const VolunteerRequestsPage            = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
+const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
+const AmbassadorApplicationDetailPage  = lazy(() => import('./pages/super-admin/AmbassadorApplicationDetailPage'))
+const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
 const DepartmentsManagementPage   = lazy(() => import('./pages/super-admin/crud/DepartmentsManagementPage'))
@@ -336,8 +341,11 @@ function App() {
               <Route path="/impact"       element={<Suspense fallback={<RouteFallback />}><Impact /></Suspense>} />
               <Route path="/ar/impact"    element={<Suspense fallback={<RouteFallback />}><Impact /></Suspense>} />
               <Route path="/partnerships" element={<Suspense fallback={<RouteFallback />}><Partnerships /></Suspense>} />
-              <Route path="/volunteer"       element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
-              <Route path="/volunteer/apply" element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
+              <Route path="/volunteer"          element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
+              <Route path="/volunteer/apply"   element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
+              <Route path="/ambassador"                      element={<Suspense fallback={<RouteFallback />}><AmbassadorProgram /></Suspense>} />
+              <Route path="/ambassador/apply"            element={<Suspense fallback={<RouteFallback />}><AmbassadorApply /></Suspense>} />
+              <Route path="/ambassador/application-success" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationSuccess /></Suspense>} />
               <Route path="/support" element={<Suspense fallback={<RouteFallback />}><SupportPage /></Suspense>} />
               <Route path="/forms/:slug" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
               <Route path="/partnerships/apply" element={<Suspense fallback={<RouteFallback />}><PartnershipApplyPage /></Suspense>} />
@@ -386,6 +394,10 @@ function App() {
                   <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/super-admin/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
+                  <Route path="/dashboard/super-admin/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
+                  <Route path="/dashboard/hr/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
+                  <Route path="/dashboard/hr/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
                   <Route path="/dashboard/super-admin/product-updates" element={<Suspense fallback={<RouteFallback />}><ProductUpdatesPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/financial-requests" element={<Suspense fallback={<RouteFallback />}><SuperAdminFinancialRequestsPage /></Suspense>} />

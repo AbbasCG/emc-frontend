@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, Clock, BookOpen, RefreshCw, FileText } from "lucide-react";
 import { programFinanceApi } from "@/api/programFinanceApi";
 import type { FinanceApprovalItem, FinanceApprovalSummary } from "@/api/programFinanceApi";
-import { formatFinanceDateTime } from '@/utils/financeDateFormatters'
+import FinanceDate from '@/components/finance/FinanceDate'
 import { formatFinanceCurrency } from '@/utils/financeFormatters'
 import toast from "react-hot-toast";
 

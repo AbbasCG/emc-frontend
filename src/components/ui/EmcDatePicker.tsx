@@ -22,6 +22,12 @@ export type EmcDatePickerProps = {
   layout?: 'inline' | 'stacked'
   /** Finance module uses Arabic long-month display (04 يوليو 2026) */
   displayMode?: 'default' | 'finance'
+  /** Earliest selectable date (YYYY-MM-DD). Also bounds the year <select> range. */
+  minDate?: string
+  /** Latest selectable date (YYYY-MM-DD). Also bounds the year <select> range. */
+  maxDate?: string
+  /** Hide the "اليوم / غداً / بعد أسبوع" quick presets — irrelevant for fields like date of birth. */
+  showPresets?: boolean
 }
 
 export default function EmcDatePicker({
@@ -32,6 +38,9 @@ export default function EmcDatePicker({
   required,
   layout = 'inline',
   displayMode = 'default',
+  minDate,
+  maxDate,
+  showPresets = true,
 }: EmcDatePickerProps) {
   const anchorRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
@@ -73,6 +82,11 @@ export default function EmcDatePicker({
     } else {
       setViewMonth((m) => m + 1)
     }
+  }
+
+  function selectMonthYear(year: number, month: number) {
+    setViewYear(year)
+    setViewMonth(month)
   }
 
   function selectDay(day: number) {
@@ -174,6 +188,12 @@ export default function EmcDatePicker({
             onNextMonth={nextMonth}
             onSelectDay={selectDay}
             onPreset={applyPreset}
+            onSelectMonthYear={selectMonthYear}
+            minDate={minDate}
+            maxDate={maxDate}
+            minYear={minDate ? parseIso(minDate)?.y : undefined}
+            maxYear={maxDate ? parseIso(maxDate)?.y : undefined}
+            showPresets={showPresets}
           />
         </div>
       </DropdownPortal>

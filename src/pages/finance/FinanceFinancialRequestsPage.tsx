@@ -12,8 +12,8 @@ import {
   STATUS_LABELS, STATUS_COLORS,
   TYPE_LABELS, PRIORITY_LABELS, PRIORITY_COLORS,
 } from '@/api/financialRequestsApi'
+import FinanceDate from '@/components/finance/FinanceDate'
 import FinancialRequestDetailView from '@/components/financial/FinancialRequestDetailView'
-import { formatFinanceDateTime } from '@/utils/financeDateFormatters'
 
 // Right-border accent color per status (RTL: right = start = visual stripe)
 const STATUS_STRIPE: Record<string, string> = {
@@ -50,9 +50,6 @@ const FILTERS: [string, string][] = [
 
 function numFmt(n: number) {
   return n.toLocaleString('en-US')
-}
-function dateFmt(iso: string | null | undefined) {
-  return formatFinanceDateTime(iso)
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────
@@ -129,12 +126,12 @@ function FinanceRequestCard({ req, index, onSelect }: CardProps) {
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-deepBlue/45">
         <span className="flex items-center gap-1">
           <Calendar size={11} />
-          <span dir="ltr">{dateFmt(req.created_at)}</span>
+          <FinanceDate value={req.created_at} showTime />
         </span>
         {req.needed_by_date && (
           <span className="flex items-center gap-1 font-bold text-amber-600">
             <AlertTriangle size={11} />
-            مطلوب: <span dir="ltr">{dateFmt(req.needed_by_date)}</span>
+            مطلوب: <FinanceDate value={req.needed_by_date} />
           </span>
         )}
         {attachCount > 0 && (

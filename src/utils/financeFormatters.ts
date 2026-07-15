@@ -2,11 +2,10 @@
  * Central finance number, currency, and datetime formatting for EMC dashboards.
  * UI language stays Arabic/RTL; numeric values always use Western digits.
  * Currency display: € 60,00 (symbol, space, nl-NL amount with comma decimals).
- * Datetime display: 13/07/2026 22:34 (24h, Europe/Amsterdam) — see financeDateFormatters.ts.
+ * Datetime display: 04 يوليو 2026 + separate 23:45 line — see financeDateFormatters.ts.
  */
 
 export {
-  FINANCE_DATE_LOCALE,
   FINANCE_TZ,
   formatFinanceDate,
   formatFinanceDateOnlyString,

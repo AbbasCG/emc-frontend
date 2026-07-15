@@ -12,7 +12,7 @@ import {
   financeApprove, financeReject, returnFinancialRequest,
   executiveApprove, executiveReject, uploadAttachment,
 } from '@/api/financialRequestsApi'
-import { formatFinanceDate, formatFinanceDateTime } from '@/utils/financeDateFormatters'
+import FinanceDate from '@/components/finance/FinanceDate'
 
 interface Props {
   request: FinancialRequest
@@ -59,13 +59,6 @@ function numFmt(n: number, opts?: Intl.NumberFormatOptions) {
   return n.toLocaleString('en-US', opts)
 }
 
-function dateFmt(iso: string | null | undefined) {
-  return formatFinanceDate(iso)
-}
-
-function datetimeFmt(iso: string | null | undefined) {
-  return formatFinanceDateTime(iso)
-}
 
 export default function FinancialRequestDetailView({ request: initialReq, onClose, onUpdate, viewerRole }: Props) {
   const [req, setReq] = useState(initialReq)
@@ -142,7 +135,7 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
                 </span>
                 {req.needed_by_date && (
                   <span className="flex items-center gap-1.5 tabular-nums" dir="ltr">
-                    <Calendar size={13} /> {dateFmt(req.needed_by_date)}
+                    <Calendar size={13} /> <FinanceDate value={req.needed_by_date} />
                   </span>
                 )}
               </div>
@@ -202,12 +195,12 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
                 <>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <InfoCard label="نوع الطلب" value={TYPE_LABELS[req.request_type as keyof typeof TYPE_LABELS] ?? req.request_type} />
-                    <InfoCard label="تاريخ الإنشاء" value={dateFmt(req.created_at)} />
+                    <InfoCard label="تاريخ الإنشاء" dateValue={req.created_at} showTime />
                     {req.submitted_at && (
-                      <InfoCard label="تاريخ الإرسال" value={dateFmt(req.submitted_at)} />
+                      <InfoCard label="تاريخ الإرسال" dateValue={req.submitted_at} showTime />
                     )}
                     {req.needed_by_date && (
-                      <InfoCard label="مطلوب بتاريخ" value={dateFmt(req.needed_by_date)} highlight />
+                      <InfoCard label="مطلوب بتاريخ" dateValue={req.needed_by_date} highlight />
                     )}
                   </div>
 
@@ -294,7 +287,7 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
                           <p className="text-[11px] text-deepBlue/40" dir="ltr">
                             {att.uploaded_by?.name}
                             {att.file_size ? ` · ${numFmt(Math.round(att.file_size / 1024))} KB` : ''}
-                            {att.created_at ? ` · ${dateFmt(att.created_at)}` : ''}
+                            {att.created_at ? <> · <FinanceDate value={att.created_at} showTime /></> : ''}
                           </p>
                         </div>
                         <a
@@ -343,7 +336,7 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
                                     {ACTION_LABELS[step.action] ?? step.action}
                                   </span>
                                   <span className="shrink-0 tabular-nums text-[10px] text-deepBlue/40" dir="ltr">
-                                    {datetimeFmt(step.created_at)}
+                                    <FinanceDate value={step.created_at} showTime />
                                   </span>
                                 </div>
                                 <div className="mt-1.5 flex items-center gap-2 text-[11px]">
@@ -438,7 +431,7 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
                       <p className="mt-1 font-bold text-deepBlue">{req.finance_reviewer.name}</p>
                       {req.finance_note && <p className="mt-2 text-sm text-deepBlue/70">{req.finance_note}</p>}
                       {req.finance_reviewed_at && (
-                        <p className="mt-1 tabular-nums text-[11px] text-teal-600/70" dir="ltr">{datetimeFmt(req.finance_reviewed_at)}</p>
+                        <div className="mt-1"><FinanceDate value={req.finance_reviewed_at} showTime /></div>
                       )}
                     </div>
                   )}
@@ -501,11 +494,19 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function InfoCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function InfoCard({ label, value, highlight, dateValue, showTime }: {
+  label: string
+  value?: React.ReactNode
+  highlight?: boolean
+  dateValue?: string | null
+  showTime?: boolean
+}) {
   return (
     <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-      <p className={`mt-1 font-bold tabular-nums ${highlight ? 'text-lg text-deepBlue' : 'text-sm text-deepBlue'}`}>{value}</p>
+      <div className={`mt-1 ${highlight ? 'text-lg text-deepBlue' : 'text-sm text-deepBlue'}`}>
+        {dateValue !== undefined ? <FinanceDate value={dateValue} showTime={showTime} /> : value}
+      </div>
     </div>
   )
 }
@@ -521,7 +522,7 @@ function ReviewerCard({ label, name, reviewedAt, note, color }: {
       <p className={`text-[11px] font-black ${txt}`}>{label}</p>
       <p className="mt-1.5 text-lg font-black text-deepBlue">{name}</p>
       {reviewedAt && (
-        <p className="tabular-nums text-[11px] text-deepBlue/50" dir="ltr">{datetimeFmt(reviewedAt)}</p>
+        <FinanceDate value={reviewedAt} showTime />
       )}
       {note && <p className="mt-3 text-sm text-deepBlue/80 border-t border-white/50 pt-3">{note}</p>}
     </div>
