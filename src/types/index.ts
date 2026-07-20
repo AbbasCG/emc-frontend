@@ -137,6 +137,8 @@ export type Course = {
   /** Computed ended fields — returned by CourseResource, never stored in DB */
   is_ended?: boolean | null
   computed_status?: 'draft' | 'published' | 'archived' | 'ended' | string | null
+  /** Timing-oriented lifecycle — cancelled/archived/upcoming/active/completed. Separate concept from computed_status. */
+  lifecycle_status?: 'cancelled' | 'archived' | 'upcoming' | 'active' | 'completed' | string | null
   status_label_ar?: string | null
 
   /** Effective instructor: course's own, or inherited from LP when course has none */

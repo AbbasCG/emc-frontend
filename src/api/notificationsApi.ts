@@ -216,6 +216,18 @@ function sanitizeNotificationBody(body: string): string {
   })
 }
 
+/** Defense-in-depth: only ever treat http(s) URLs as clickable — the
+ *  backend already validates this, but never trust a link at render time. */
+function safeExternalUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? url : null
+  } catch {
+    return null
+  }
+}
+
 export function normalizePlatformNotification(raw: unknown): PlatformNotification | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
   const o = raw as Record<string, unknown>
@@ -240,6 +252,7 @@ export function normalizePlatformNotification(raw: unknown): PlatformNotificatio
     created_at,
     href,
     action_url: trimStr(o.action_url),
+    meta_url: safeExternalUrl(trimStr(o.meta_url)),
     entity_type: trimStr(o.entity_type ?? o.resource_type),
     entity_id:
       o.entity_id != null && Number.isFinite(Number(o.entity_id)) ?

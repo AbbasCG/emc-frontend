@@ -87,6 +87,11 @@ type CalendarBodyProps = {
   /** Disables individual day buttons outside this ISO range (YYYY-MM-DD, inclusive). */
   minDate?: string
   maxDate?: string
+  /** Range-selection mode — when set, days between (exclusive) get a soft-blue
+   *  fill and the start/end days get filled pills with matching rounded caps.
+   *  Takes precedence over selectedIso/isDaySelected for styling. */
+  rangeFrom?: string
+  rangeTo?: string
 }
 
 export function EmcCalendarBody({
@@ -104,6 +109,8 @@ export function EmcCalendarBody({
   maxYear,
   minDate,
   maxDate,
+  rangeFrom,
+  rangeTo,
 }: CalendarBodyProps) {
   const today = new Date()
   const todayY = today.getFullYear()
@@ -191,24 +198,41 @@ export function EmcCalendarBody({
         {calendarDays.map((day, idx) => {
           if (day == null) return <div key={`e-${idx}`} className="h-10" aria-hidden />
           const iso = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const selected = isDaySelected ? isDaySelected(day) : selectedIso === iso
           const isToday = todayY === viewYear && todayM === viewMonth && todayD === day
           const disabled = Boolean((minDate && iso < minDate) || (maxDate && iso > maxDate))
+
+          const inRange = Boolean(rangeFrom && rangeTo)
+          const isRangeStart = inRange && iso === rangeFrom
+          const isRangeEnd = inRange && iso === rangeTo
+          const isRangeMiddle = inRange && iso > rangeFrom! && iso < rangeTo!
+          const isRangeEdge = Boolean(rangeFrom && !rangeTo && iso === rangeFrom)
+          const selected = rangeFrom
+            ? isRangeStart || isRangeEnd || isRangeEdge
+            : isDaySelected ? isDaySelected(day) : selectedIso === iso
+
           return (
             <button
               key={`d-${day}-${idx}`}
               type="button"
               disabled={disabled}
+              aria-current={isToday ? 'date' : undefined}
+              aria-pressed={selected}
               onClick={() => onSelectDay(day)}
               className={cn(
-                'flex h-10 w-full items-center justify-center rounded-xl text-[13px] font-bold tabular-nums transition duration-200',
+                'relative flex h-10 w-full items-center justify-center text-[13px] font-bold tabular-nums transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2691C2]/50',
+                isRangeMiddle && 'bg-[#2691C2]/10 text-[#22334A] rounded-none',
+                (isRangeStart || isRangeEdge) && 'rounded-r-xl rounded-l-none',
+                isRangeEnd && 'rounded-l-xl rounded-r-none',
+                !inRange && !isRangeEdge && 'rounded-xl',
                 disabled
                   ? 'cursor-not-allowed text-slate-300'
                   : selected
                     ? 'bg-[#2691C2] text-white shadow-sm shadow-[#2691C2]/25'
-                    : isToday
-                      ? 'bg-[#2691C2]/8 text-[#2691C2] ring-1 ring-[#2691C2]/35'
-                      : 'text-[#22334A] hover:bg-slate-100',
+                    : isRangeMiddle
+                      ? ''
+                      : isToday
+                        ? 'bg-[#2691C2]/8 text-[#2691C2] ring-1 ring-[#2691C2]/35'
+                        : 'text-[#22334A] hover:bg-slate-100',
               )}
             >
               {day}

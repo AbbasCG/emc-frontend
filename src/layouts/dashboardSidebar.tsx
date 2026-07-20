@@ -200,6 +200,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       defaultOpen: false,
       items: [
         { label: 'الإعدادات',         href: '/dashboard/settings',                      icon: Settings     },
+        { label: 'إعدادات الحضور',    href: '/dashboard/super-admin/attendance-settings', icon: ClipboardCheck },
         { label: 'البريد الإلكتروني', href: '/dashboard/super-admin/email-settings',    icon: Mail         },
         { label: 'سجلات البريد',      href: '/dashboard/super-admin/email-logs',        icon: ScrollText   },
         { label: 'الإشعارات',         href: '/dashboard/notifications',                 icon: Bell         },
@@ -381,6 +382,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'تحديثات المنصة',     href: '/dashboard/super-admin/product-updates',  icon: Megaphone         },
         { label: 'الإعدادات',          href: '/dashboard/settings/notifications',     icon: Settings          },
+        { label: 'إعدادات الحضور',     href: '/dashboard/super-admin/attendance-settings', icon: ClipboardCheck },
         { label: 'البريد الإلكتروني',  href: '/dashboard/super-admin/email-settings', icon: Mail              },
         { label: 'سجلات البريد',       href: '/dashboard/super-admin/email-logs',     icon: ScrollText        },
         { label: 'الإشعارات',          href: '/dashboard/notifications',              icon: Bell              },

@@ -1,4 +1,5 @@
 export { default as LearningDashboardCard } from './LearningDashboardCard'
+export { default as StudentCardGrid } from './StudentCardGrid'
 export { default as SessionCard } from './SessionCard'
 export { default as ProgressRing } from './ProgressRing'
 export { default as AssignmentCard } from './AssignmentCard'

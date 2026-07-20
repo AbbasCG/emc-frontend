@@ -45,7 +45,11 @@ function tabForEnrollment(e: Enrollment): CoursesTabId {
   if (e.status === 'completed') return 'completed'
 
   // Course whose end date/time is past → treat as completed regardless of enrollment status
-  if (e.course.is_ended === true || e.course.computed_status === 'ended') return 'completed'
+  if (
+    e.course.is_ended === true ||
+    e.course.computed_status === 'ended' ||
+    e.course.lifecycle_status === 'completed'
+  ) return 'completed'
 
   // Placement approved or explicit can_start flag → student may enter course
   const canLearn = e.can_start_learning || e.placement_status === 'completed'
@@ -115,8 +119,10 @@ export default function StudentMyCoursesPage() {
     return grouped
   }, [enrollmentsMerged])
 
-  const currentCourses  = useMemo(() => enrollmentsMerged.filter((e) => e.status !== 'completed').length, [enrollmentsMerged])
-  const completedCourses = buckets.completed.length
+  // Derived from the same lifecycle buckets tabForEnrollment computed above — never a
+  // separate ad-hoc date/status check, so this count can't disagree with the tabs.
+  const currentCourses    = buckets.active.length + buckets.upcoming.length + buckets.pending.length
+  const completedCourses  = buckets.completed.length
   const certCount =
     lmsDashboard.certificates?.length ??
     lmsDashboard.certificates_count ??

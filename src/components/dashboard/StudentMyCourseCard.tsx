@@ -53,8 +53,15 @@ function formatScheduleLine(course: Course): string | null {
   return formattedDate
 }
 
+/** Course lifecycle end has passed, per the backend's centralized CourseComputedStatus —
+ *  never re-derived from raw dates on the frontend. */
+function isEndedByLifecycle(course: Course): boolean {
+  const c = course as Record<string, unknown>
+  return c.is_ended === true || c.computed_status === 'ended' || c.lifecycle_status === 'completed'
+}
+
 function statusArabic(enrollment: Enrollment): string {
-  if (enrollment.status === 'completed') return 'مكتملة'
+  if (enrollment.status === 'completed' || isEndedByLifecycle(enrollment.course)) return 'مكتملة'
   if (enrollment.can_start_learning || enrollment.placement_status === 'completed') return 'نشطة'
   if (enrollment.status === 'pending') return 'معلّقة'
   return 'نشطة'
@@ -72,7 +79,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
     : status === 'completed' ? 100
     : 0
 
-  const isCompleted = status === 'completed'
+  const isCompleted = status === 'completed' || isEndedByLifecycle(course)
   const badgeColor =
     isCompleted ? 'bg-emerald-600/95'
     : status === 'pending' ? 'bg-amber-500/95'
@@ -326,10 +333,14 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
           )}
 
           {canLearn && isCompleted && (
-            <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/20 opacity-80 cursor-default select-none">
+            <Link
+              to={learnHref}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/20 transition hover:brightness-105"
+            >
               <CheckCircle className="h-4 w-4 opacity-95" aria-hidden />
-              مكتملة
-            </div>
+              مراجعة الدورة
+              <ArrowLeft className="h-4 w-4 opacity-90" aria-hidden />
+            </Link>
           )}
 
           {canLearn && !isCompleted && pct > 0 && (

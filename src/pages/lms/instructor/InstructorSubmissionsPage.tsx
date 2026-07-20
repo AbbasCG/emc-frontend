@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertCircle,
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import DashboardBreadcrumbs from '@/components/ui/DashboardBreadcrumbs'
 import {
+  bulkReviewSubmissions,
   fetchInstructorAssignmentsQueue,
   fetchSubmissionDetail,
   reviewInstructorSubmission,
@@ -87,6 +88,33 @@ export default function InstructorSubmissionsPage() {
   const [search, setSearch] = useState('')
   const [courseFilter, setCourseFilter] = useState<number | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+
+  function toggleSelected(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  async function handleBulkReview(status: 'graded' | 'needs_revision') {
+    if (selected.size === 0 || bulkBusy) return
+    setBulkBusy(true)
+    try {
+      const res = await bulkReviewSubmissions({ submission_ids: [...selected], status })
+      toast.success(`تم تحديث ${res.updated_count} تسليم${res.skipped_count ? `، وتخطي ${res.skipped_count}` : ''}.`)
+      setSelected(new Set())
+      const filters: SubmissionsQueueFilters = { per_page: 100 }
+      if (courseFilter !== 'all') filters.course_id = courseFilter
+      void load(filters)
+    } catch {
+      toast.error('تعذّر تنفيذ المراجعة الجماعية.')
+    } finally {
+      setBulkBusy(false)
+    }
+  }
 
   const load = useCallback(async (filters?: SubmissionsQueueFilters) => {
     setLoading(true)
@@ -222,6 +250,14 @@ export default function InstructorSubmissionsPage() {
           void load(filters)
         }}
         refreshing={loading}
+        actions={
+          <Link
+            to="/dashboard/instructor/assignments/dashboard"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-deepBlue/10 bg-white px-4 py-2 text-[12px] font-bold text-deepBlue/70 transition hover:border-[#2691C2]/30"
+          >
+            لوحة الواجبات
+          </Link>
+        }
       />
 
       {/* KPI cards */}
@@ -328,13 +364,41 @@ export default function InstructorSubmissionsPage() {
         />
       ) : (
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+          {selected.size > 0 && (
+            <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-[#2691C2]/[0.04] px-4 py-2.5">
+              <span className="text-[11px] font-black text-[#22334A]">{selected.size} محدد</span>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => handleBulkReview('graded')}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white transition hover:bg-emerald-700 disabled:opacity-40"
+              >
+                تحديد كمُراجَع (مراجعة جماعية)
+              </button>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => handleBulkReview('needs_revision')}
+                className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[10px] font-black text-amber-700 transition hover:bg-amber-100 disabled:opacity-40"
+              >
+                طلب إعادة تسليم (جماعي)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="mr-auto rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-black text-deepBlue/50 transition hover:bg-slate-50"
+              >
+                إلغاء التحديد
+              </button>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-right text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  {['الطالب', 'الدورة', 'الواجب', 'التسليم', 'الحالة', 'الدرجة', 'مرفق', ''].map((h) => (
+                  {['', 'الطالب', 'الدورة', 'الواجب', 'التسليم', 'الحالة', 'الدرجة', 'مرفق', ''].map((h, i) => (
                     <th
-                      key={h || 'actions'}
+                      key={h ? h : `col-${i}`}
                       className="px-4 py-3 text-[11px] font-black uppercase tracking-wide text-slate-400"
                     >
                       {h}
@@ -356,6 +420,17 @@ export default function InstructorSubmissionsPage() {
                           : 'opacity-70'
                       } ${detail?.id === row.id ? 'bg-[#2691C2]/[0.06]' : ''}`}
                     >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        {clickable && (
+                          <input
+                            type="checkbox"
+                            checked={selected.has(row.id)}
+                            onChange={() => toggleSelected(row.id)}
+                            aria-label={`تحديد تسليم ${row.student_name}`}
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           {avatarUrl ? (

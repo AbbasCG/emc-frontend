@@ -1701,7 +1701,7 @@ function LearningPathDetailDrawer({
                               </div>
                               <div className="min-w-0">
                                 <p className="truncate font-black text-[#22334A]">{s.name}</p>
-                                <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500 dir-ltr">
+                                <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500">
                                   <Mail className="h-3 w-3 shrink-0" /> {s.email}
                                 </p>
                                 {s.phone && (

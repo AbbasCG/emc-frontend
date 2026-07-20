@@ -1,6 +1,6 @@
 import { CalendarClock, History, RefreshCw } from 'lucide-react'
 import { DashboardSection } from '@/components/dashboard'
-import { LmsEmptyState, LmsPageSkeleton, SessionCard } from '@/components/lms'
+import { LmsEmptyState, LmsPageSkeleton, SessionCard, StudentCardGrid } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
@@ -46,11 +46,11 @@ export default function StudentSessionsPage() {
             title="لا توجد جلسات قادمة"
             description="ستظهر الجلسات هنا بعد جدولتها ضمن دوراتك المسجّلة."
           />
-        : <div className="grid gap-4">
+        : <StudentCardGrid>
             {sessionsUpcoming.map((s) => (
-              <SessionCard key={s.id} session={s} />
+              <SessionCard key={s.id} session={s} compact studentDateFormat />
             ))}
-          </div>
+          </StudentCardGrid>
         }
       </DashboardSection>
 
@@ -61,11 +61,11 @@ export default function StudentSessionsPage() {
             title="لا توجد جلسات مكتملة بعد"
             description="عند انتهاء الجلسات ستُعرض هنا مع روابط التسجيل إن وُجدت."
           />
-        : <div className="grid gap-4">
+        : <StudentCardGrid>
             {sessionsCompleted.map((s) => (
-              <SessionCard key={s.id} session={s} showRecording />
+              <SessionCard key={s.id} session={s} showRecording compact studentDateFormat />
             ))}
-          </div>
+          </StudentCardGrid>
         }
       </DashboardSection>
     </div>

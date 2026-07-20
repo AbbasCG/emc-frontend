@@ -221,6 +221,16 @@ export type TeachingCourseLms = {
   thumbnail?: string | null
   image?: string | null
   image_url?: string | null
+  // Ticket 2 canonical course counters — all backend-computed, never
+  // recalculated in the frontend.
+  assigned_students_count?: number | null
+  waiting_assignment_count?: number | null
+  completed_written_tests_count?: number | null
+  completed_oral_tests_count?: number | null
+  completed_placement_count?: number | null
+  classes_count?: number | null
+  active_classes_count?: number | null
+  completed_classes_count?: number | null
 }
 
 export type InstructorSubmission = {

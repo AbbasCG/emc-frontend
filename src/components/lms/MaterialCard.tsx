@@ -36,6 +36,21 @@ function meta(kind: string): KindMeta {
   return KIND_META[kind] ?? KIND_META.other
 }
 
+/** Type-specific primary action label (kind + mime-type fallback for audio). */
+function primaryActionLabel(material: LmsMaterial): string {
+  const mime = (material.mime_type ?? '').toLowerCase()
+  if (mime.startsWith('audio/')) return 'تشغيل'
+  switch (material.kind) {
+    case 'pdf': return 'معاينة / تحميل'
+    case 'video': return 'مشاهدة'
+    case 'link': return 'فتح الرابط'
+    case 'zip': return 'تحميل الملف'
+    case 'slides': return 'معاينة'
+    case 'document': return 'معاينة'
+    default: return 'تحميل المادة'
+  }
+}
+
 // ── Component ──────────────────────────────────────────────────────────────
 
 type DownloadState = 'idle' | 'downloading' | 'success' | 'error'
@@ -70,50 +85,37 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col gap-4 rounded-2xl border border-[#22334A]/[0.07] bg-white p-5 shadow-sm transition hover:border-[#2691C2]/25 hover:shadow-md"
+      className="flex flex-col gap-2.5 rounded-2xl border border-[#22334A]/[0.07] bg-white p-4 shadow-sm transition hover:border-[#2691C2]/25 hover:shadow-md"
     >
-      {/* Header: type badge */}
-      <div className="flex items-center gap-2">
-        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-black ${badgeCls}`}>
-          <Icon className="h-3 w-3" aria-hidden />
-          {badge}
-        </span>
-      </div>
-
-      {/* Icon + title */}
+      {/* Icon + title + badge */}
       <div className="flex items-start gap-2.5">
         <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2691C2]/10 text-[#2691C2]">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-black leading-snug text-[#0F172A]">{material.title}</h3>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="min-w-0 truncate text-[14px] font-black leading-snug text-[#0F172A]" title={material.title}>{material.title}</h3>
+            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black ${badgeCls}`}>
+              {badge}
+            </span>
+          </div>
           {material.course_name && (
-            <p className="mt-0.5 text-[11px] font-semibold text-[#22334A]/50">{material.course_name}</p>
+            <p className="mt-0.5 truncate text-[11px] font-semibold text-[#22334A]/50">{material.course_name}</p>
           )}
         </div>
       </div>
 
       {/* Description */}
       {material.description && (
-        <p className="text-[12px] font-medium leading-relaxed text-slate-600">{material.description}</p>
+        <p className="line-clamp-2 text-[12px] font-medium leading-relaxed text-slate-600">{material.description}</p>
       )}
 
-      {/* Meta row: updated date + size */}
+      {/* Meta row: updated date + size — plain text, not boxed chips */}
       {(updatedLabel !== '—' || material.size_label) && (
-        <div className="flex flex-wrap items-center gap-3">
-          {updatedLabel !== '—' && (
-            <div className="flex items-center gap-1.5 rounded-xl border border-[#22334A]/[0.07] bg-slate-50/70 px-3 py-2">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wide text-[#22334A]/50">آخر تحديث</p>
-                <p className="text-[12px] font-black tabular-nums text-[#22334A]">{updatedLabel}</p>
-              </div>
-            </div>
-          )}
-          {material.size_label && (
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#22334A]/[0.07] bg-slate-50 px-3 py-2 text-[12px] font-bold text-[#22334A]/70">
-              {material.size_label}
-            </span>
-          )}
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] font-semibold text-[#22334A]/45">
+          {updatedLabel !== '—' && <span className="tabular-nums">{updatedLabel}</span>}
+          {updatedLabel !== '—' && material.size_label && <span className="text-[#22334A]/20">·</span>}
+          {material.size_label && <span>{material.size_label}</span>}
         </div>
       )}
 
@@ -123,7 +125,7 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
           type="button"
           disabled={dlState === 'downloading'}
           onClick={() => void handleDownload()}
-          className={`mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-60 ${
+          className={`mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[12px] font-black text-white shadow-sm transition hover:brightness-105 disabled:opacity-60 ${
             dlState === 'success' ? 'bg-emerald-600'
             : dlState === 'error'   ? 'bg-rose-600'
             : 'bg-[#2691C2]'
@@ -136,9 +138,9 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
           ) : dlState === 'error' ? (
             <><AlertCircle className="h-4 w-4" aria-hidden />تعذّر تحميل الملف</>
           ) : isLink ? (
-            <><ExternalLink className="h-4 w-4" aria-hidden />فتح الرابط</>
+            <><ExternalLink className="h-4 w-4" aria-hidden />{primaryActionLabel(material)}</>
           ) : (
-            <><Download className="h-4 w-4" aria-hidden />تحميل المادة</>
+            <><Download className="h-4 w-4" aria-hidden />{primaryActionLabel(material)}</>
           )}
         </button>
       ) : (

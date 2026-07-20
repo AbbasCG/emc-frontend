@@ -442,7 +442,7 @@ export default function CreateManualPaymentModal({
                                 <div className="min-w-0 flex-1">
                                   <p className="truncate text-[12px] font-black text-slate-900">{s.name}</p>
                                   <p className="truncate text-[11px] text-slate-500" dir="ltr">{s.email}</p>
-                                  {s.phone && <p className="truncate text-[10px] text-slate-400" dir="ltr">{s.phone}</p>}
+                                  {s.phone && <p className="truncate text-[10px] text-slate-400">{s.phone}</p>}
                                 </div>
                                 <span className="text-[10px] font-bold text-slate-400" dir="ltr">#{s.id}</span>
                               </button>

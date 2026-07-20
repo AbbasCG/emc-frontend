@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BookOpen, CheckCircle2, Clock, RefreshCw, UserCheck, XCircle } from 'lucide-react'
 import { LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
-import { fetchStudentAttendance } from '@/api/studentApi'
+import { fetchStudentAttendance, fetchStudentAttendanceSummary, type StudentAttendanceSummary } from '@/api/studentApi'
 import type { StudentAttendanceRecord } from '@/types/lms'
 import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'
@@ -111,6 +111,7 @@ function AttendanceCard({ row }: { row: StudentAttendanceRecord }) {
 
 export default function StudentAttendancePage() {
   const [rows, setRows]         = useState<StudentAttendanceRecord[]>([])
+  const [summary, setSummary]   = useState<StudentAttendanceSummary | null>(null)
   const [loading, setLoading]   = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -120,7 +121,12 @@ export default function StudentAttendancePage() {
     else setRefreshing(true)
     setError(null)
     try {
-      setRows(await fetchStudentAttendance())
+      const [attendance, statsSummary] = await Promise.all([
+        fetchStudentAttendance(),
+        fetchStudentAttendanceSummary(),
+      ])
+      setRows(attendance)
+      setSummary(statsSummary)
     } catch {
       setError('تعذّر تحميل سجل الحضور.')
       setRows([])
@@ -186,6 +192,24 @@ export default function StudentAttendancePage() {
               : stats.pct >= 80 ? 'border-emerald-200/70 bg-emerald-50/60 text-emerald-700'
               : stats.pct >= 60 ? 'border-amber-200/70 bg-amber-50/60 text-amber-700'
               : 'border-red-200/70 bg-red-50/60 text-red-700'
+            }
+          />
+        </div>
+      )}
+
+      {/* Streaks + risk level — backend-computed by AttendanceStatisticsService, never recalculated here. */}
+      {summary && summary.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard label="تتابع حضور حالي" value={summary.current_attendance_streak} colorClass="border-emerald-200/70 bg-emerald-50/60 text-emerald-700" />
+          <StatCard label="تتابع غياب حالي" value={summary.current_absence_streak} colorClass="border-red-200/70 bg-red-50/60 text-red-700" />
+          <StatCard label="أطول تتابع حضور" value={summary.longest_attendance_streak} colorClass="border-[#22334A]/[0.07] bg-white text-[#22334A]" />
+          <StatCard
+            label="مستوى الخطر"
+            value={summary.risk_level === 'high' ? 'مرتفع' : summary.risk_level === 'medium' ? 'متوسط' : 'منخفض'}
+            colorClass={
+              summary.risk_level === 'high' ? 'border-red-200/70 bg-red-50/60 text-red-700'
+              : summary.risk_level === 'medium' ? 'border-amber-200/70 bg-amber-50/60 text-amber-700'
+              : 'border-emerald-200/70 bg-emerald-50/60 text-emerald-700'
             }
           />
         </div>

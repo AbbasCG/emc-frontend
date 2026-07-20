@@ -59,6 +59,7 @@ const Dashboard                  = lazy(() => import('./pages/Dashboard'))
 const StudentMyCoursesPage       = lazy(() => import('./pages/lms/student/StudentMyCoursesPage'))
 const StudentCourseLearnPage     = lazy(() => import('./pages/lms/student/StudentCourseLearnPage'))
 const StudentRegistrationsListPage = lazy(() => import('./pages/lms/student/StudentRegistrationsListPage'))
+const StudentClassAnnouncementsPage = lazy(() => import('./pages/lms/student/StudentClassAnnouncementsPage'))
 const StudentAvailableCoursesPage  = lazy(() => import('./pages/lms/student/StudentAvailableCoursesPage'))
 const StudentSessionsPage        = lazy(() => import('./pages/lms/student/StudentSessionsPage'))
 const StudentMaterialsPage       = lazy(() => import('./pages/lms/student/StudentMaterialsPage'))
@@ -77,7 +78,11 @@ const TeacherDashboard           = lazy(() => import('./pages/TeacherDashboard')
 const InstructorAssignedCoursesPage  = lazy(() => import('./pages/lms/instructor/InstructorAssignedCoursesPage'))
 const InstructorSessionsPage     = lazy(() => import('./pages/lms/instructor/InstructorSessionsPage'))
 const InstructorAttendancePage   = lazy(() => import('./pages/lms/instructor/InstructorAttendancePage'))
+const InstructorAttendanceDashboardPage = lazy(() => import('./pages/lms/instructor/InstructorAttendanceDashboardPage'))
+const InstructorAttendanceReportsPage = lazy(() => import('./pages/lms/instructor/InstructorAttendanceReportsPage'))
 const InstructorSubmissionsPage  = lazy(() => import('./pages/lms/instructor/InstructorSubmissionsPage'))
+const InstructorAssignmentDashboardPage = lazy(() => import('./pages/lms/instructor/InstructorAssignmentDashboardPage'))
+const InstructorMissingSubmissionsPage  = lazy(() => import('./pages/lms/instructor/InstructorMissingSubmissionsPage'))
 const InstructorPlacementStudentsPage = lazy(() => import('./pages/lms/instructor/InstructorPlacementStudentsPage'))
 const InstructorOralAssessmentsPage   = lazy(() => import('./pages/lms/instructor/InstructorOralAssessmentsPage'))
 const InstructorAvailabilityPage      = lazy(() => import('./pages/lms/instructor/InstructorAvailabilityPage'))
@@ -85,6 +90,11 @@ const InstructorAllStudentsPage       = lazy(() => import('./pages/lms/instructo
 const InstructorCourseStudentsPage    = lazy(() => import('./pages/lms/instructor/InstructorCourseStudentsPage'))
 const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructor/InstructorPlacementTestsPage'))
 const InstructorClassesPage           = lazy(() => import('./pages/lms/instructor/InstructorClassesPage'))
+const InstructorClassWorkspacePage    = lazy(() => import('./pages/lms/instructor/InstructorClassWorkspacePage'))
+const InstructorCalendarPage          = lazy(() => import('./pages/lms/instructor/InstructorCalendarPage'))
+const InstructorSessionDetailPage     = lazy(() => import('./pages/lms/instructor/InstructorSessionDetailPage'))
+const StudentCalendarPage             = lazy(() => import('./pages/lms/student/StudentCalendarPage'))
+const StudentSessionDetailPage        = lazy(() => import('./pages/lms/student/StudentSessionDetailPage'))
 
 // ── Lazy: Certificate Management (LMS-style) ─────────────────────────────────
 const AdminCertificatesLmsPage         = lazy(() => import('./pages/lms/admin/AdminCertificatesPage'))
@@ -249,6 +259,7 @@ const RegistrationsManagementPage = lazy(() => import('./pages/super-admin/crud/
 const PartnersManagementPage         = lazy(() => import('./pages/super-admin/crud/PartnersManagementPage'))
 const LearningPathsManagementPage      = lazy(() => import('./pages/super-admin/crud/LearningPathsManagementPage'))
 const EmailSettingsPage                = lazy(() => import('./pages/super-admin/EmailSettingsPage'))
+const AttendanceSettingsPage           = lazy(() => import('./pages/super-admin/AttendanceSettingsPage'))
 const EmailLogsPage                    = lazy(() => import('./pages/super-admin/EmailLogsPage'))
 const InstructorLearningPathsPage      = lazy(() => import('./pages/lms/instructor/InstructorLearningPathsPage'))
 const InstructorLearningPathDetailPage = lazy(() => import('./pages/lms/instructor/InstructorLearningPathDetailPage'))
@@ -427,6 +438,7 @@ function App() {
                   />
                   <Route path="/dashboard/super-admin/crud/*" element={<Navigate to="/dashboard/super-admin" replace />} />
                   <Route path="/dashboard/super-admin/email-settings" element={<Suspense fallback={<RouteFallback />}><EmailSettingsPage /></Suspense>} />
+                  <Route path="/dashboard/super-admin/attendance-settings" element={<Suspense fallback={<RouteFallback />}><AttendanceSettingsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/email-logs" element={<Suspense fallback={<RouteFallback />}><EmailLogsPage /></Suspense>} />
 
                   <Route path="/dashboard/admin/programs" element={<ProgramsManagementPage />} />
@@ -439,6 +451,9 @@ function App() {
                   <Route path="/dashboard/student/registrations" element={<StudentRegistrationsListPage />} />
                   <Route path="/dashboard/student/available-courses" element={<StudentAvailableCoursesPage />} />
                   <Route path="/dashboard/student/exams" element={<StudentExamsPage />} />
+                  <Route path="/dashboard/student/classes/:groupId/announcements" element={<Suspense fallback={<RouteFallback />}><StudentClassAnnouncementsPage /></Suspense>} />
+                  <Route path="/dashboard/student/calendar" element={<Suspense fallback={<RouteFallback />}><StudentCalendarPage /></Suspense>} />
+                  <Route path="/dashboard/student/sessions/:sessionId" element={<Suspense fallback={<RouteFallback />}><StudentSessionDetailPage /></Suspense>} />
                   <Route path="/dashboard/student/courses/:courseId/placement-test" element={<PlacementTestPage />} />
                   <Route path="/dashboard/student/courses/:courseId/placement-result" element={<PlacementResultPage />} />
                   <Route path="/dashboard/student/courses/:courseId/oral-booking" element={<OralBookingPage />} />
@@ -464,6 +479,9 @@ function App() {
                   <Route path="/dashboard/instructor/courses/:courseId/students" element={<InstructorCourseStudentsPage />} />
                   <Route path="/dashboard/instructor/placement-tests" element={<InstructorPlacementTestsPage />} />
                   <Route path="/dashboard/instructor/classes" element={<InstructorClassesPage />} />
+                  <Route path="/dashboard/instructor/classes/:groupId/:tab" element={<Suspense fallback={<RouteFallback />}><InstructorClassWorkspacePage /></Suspense>} />
+                  <Route path="/dashboard/instructor/calendar" element={<Suspense fallback={<RouteFallback />}><InstructorCalendarPage /></Suspense>} />
+                  <Route path="/dashboard/instructor/classes/:groupId/sessions/:sessionId" element={<Suspense fallback={<RouteFallback />}><InstructorSessionDetailPage /></Suspense>} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
@@ -557,7 +575,11 @@ function App() {
 
                   <Route path="/dashboard/instructor/sessions" element={<InstructorSessionsPage />} />
                   <Route path="/dashboard/instructor/attendance" element={<InstructorAttendancePage />} />
+                  <Route path="/dashboard/instructor/attendance/dashboard" element={<Suspense fallback={<RouteFallback />}><InstructorAttendanceDashboardPage /></Suspense>} />
+                  <Route path="/dashboard/instructor/attendance/reports" element={<Suspense fallback={<RouteFallback />}><InstructorAttendanceReportsPage /></Suspense>} />
                   <Route path="/dashboard/instructor/submissions/:submissionId?" element={<InstructorSubmissionsPage />} />
+                  <Route path="/dashboard/instructor/assignments/dashboard" element={<Suspense fallback={<RouteFallback />}><InstructorAssignmentDashboardPage /></Suspense>} />
+                  <Route path="/dashboard/instructor/assignments/missing-submissions" element={<Suspense fallback={<RouteFallback />}><InstructorMissingSubmissionsPage /></Suspense>} />
 
                   <Route path="/dashboard/admin/lms/sessions" element={<AdminLmsSessionsPage />} />
                   <Route path="/dashboard/admin/lms/attendance" element={<AdminLmsAttendancePage />} />

@@ -20,6 +20,7 @@ import {
 import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import { useAuth } from '@/contexts/AuthContext'
+import { formatInstructorDateRange, formatInstructorTimeRange } from '@/utils/instructorScheduleFormat'
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -331,23 +332,6 @@ export default function InstructorAssignedCoursesPage() {
   )
 }
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-
-function fmtDateAr(d: string | null | undefined): string | null {
-  if (!d) return null
-  try {
-    return new Intl.DateTimeFormat('ar', {
-      day: 'numeric', month: 'long', year: 'numeric',
-      timeZone: 'Europe/Amsterdam',
-    }).format(new Date(d + 'T00:00:00'))
-  } catch { return d }
-}
-
-function stripSec(t: string | null | undefined): string | null {
-  if (!t) return null
-  return String(t).slice(0, 5)
-}
-
 /* ── CourseCard ───────────────────────────────────────────────────────────── */
 
 function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: number }) {
@@ -356,6 +340,10 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
   const oralPend       = c.oral_pending_count ?? c.waiting_oral_count ?? null
   const finalLvl       = c.final_level_count ?? c.oral_completed_count ?? null
   const needsPlacement = !!c.requires_placement_test
+  // Ticket 2 canonical course counters — backend-computed only, never
+  // recalculated here (see InstructorCourseController::index()).
+  const assignedToClass = c.assigned_students_count ?? null
+  const classesCount    = c.classes_count ?? null
 
   // Status badge — prefer backend Arabic label, fallback to STATUS_AR map
   const statusKey  = (c.status ?? '').toLowerCase()
@@ -369,18 +357,8 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
     : 'bg-emerald-100 text-emerald-700'
 
   // Date / time
-  const dateStart = fmtDateAr(c.start_date)
-  const dateEnd   = fmtDateAr(c.end_date)
-  const timeStart = stripSec(c.start_time)
-  const timeEnd   = stripSec(c.end_time)
-
-  let dateLabel: string | null = null
-  if (dateStart && dateEnd)  dateLabel = `${dateStart} – ${dateEnd}`
-  else if (dateStart)        dateLabel = dateStart
-
-  let timeLabel: string | null = null
-  if (timeStart && timeEnd)  timeLabel = `${timeStart} - ${timeEnd}`
-  else if (timeStart)        timeLabel = timeStart
+  const dateLabel = formatInstructorDateRange(c.start_date, c.end_date)
+  const timeLabel = formatInstructorTimeRange(c.start_time, c.end_time)
 
   const imageUrl = c.image_url ?? c.thumbnail ?? c.image ?? null
 
@@ -396,6 +374,12 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
       icon:  UserCheck,
       href:  `/dashboard/instructor/attendance?course_id=${c.id}`,
       cls:   'text-emerald-600 hover:bg-emerald-50',
+    },
+    {
+      label: 'الصفوف',
+      icon:  Layers,
+      href:  `/dashboard/instructor/classes?course_id=${c.id}`,
+      cls:   'text-sky-600 hover:bg-sky-50',
     },
     {
       label: 'التسليمات',
@@ -506,6 +490,12 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
             <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-600">
               <span className="font-mono tabular-nums">{finalLvl}</span>
               <span className="font-semibold opacity-70">نتيجة معتمدة</span>
+            </span>
+          )}
+          {assignedToClass != null && classesCount != null && classesCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-xl bg-violet-50 px-2.5 py-1 text-[10px] font-black text-violet-600">
+              <span className="font-mono tabular-nums">{assignedToClass}</span>
+              <span className="font-semibold opacity-70">مُعيَّن لصف ({classesCount} صف)</span>
             </span>
           )}
         </div>

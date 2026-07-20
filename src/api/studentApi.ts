@@ -120,6 +120,12 @@ export type StudentListedCourse = {
   status?: string
   start_date?: string | null
   start_time?: string | null
+  end_date?: string | null
+  end_time?: string | null
+  /** Computed course lifecycle from CourseComputedStatus — never a stored DB status. */
+  is_ended?: boolean | null
+  computed_status?: string | null
+  lifecycle_status?: string | null
   meeting_link?: string | null
   /** Placement fields — preserved so card can render correct CTA */
   requires_placement_test?: boolean
@@ -180,6 +186,11 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
   const slugRaw = o.slug ?? o.course_slug ?? nested?.slug
   const startRaw = o.start_date ?? nested?.start_date ?? o.course_start_date
   const timeRaw = o.start_time ?? nested?.start_time ?? o.study_time
+  const endRaw = o.end_date ?? nested?.end_date
+  const endTimeRaw = o.end_time ?? nested?.end_time
+  const isEndedRaw = o.is_ended ?? nested?.is_ended
+  const computedStatusRaw = o.computed_status ?? nested?.computed_status
+  const lifecycleStatusRaw = o.lifecycle_status ?? nested?.lifecycle_status
   const meetRaw = o.meeting_link ?? nested?.meeting_link ?? o.join_url
 
   // Placement fields — read from top-level, placement_progress nested object, AND nested course object
@@ -268,6 +279,11 @@ function normalizeListedCourse(raw: unknown): StudentListedCourse | null {
     status: o.status != null ? String(o.status) : undefined,
     start_date: startRaw != null && String(startRaw).trim() !== '' ? String(startRaw) : null,
     start_time: timeRaw != null && String(timeRaw).trim() !== '' ? String(timeRaw) : null,
+    end_date: endRaw != null && String(endRaw).trim() !== '' ? String(endRaw) : null,
+    end_time: endTimeRaw != null && String(endTimeRaw).trim() !== '' ? String(endTimeRaw) : null,
+    is_ended: isEndedRaw != null ? !!isEndedRaw : null,
+    computed_status: computedStatusRaw != null ? String(computedStatusRaw) : null,
+    lifecycle_status: lifecycleStatusRaw != null ? String(lifecycleStatusRaw) : null,
     meeting_link: meetRaw != null && String(meetRaw).trim() !== '' ? String(meetRaw) : null,
     requires_placement_test: requiresPlacementTest,
     placement_status: placementStatusStr,
@@ -722,6 +738,11 @@ export type StudentRegistrationRow = {
   enrolled_at?: string | null
   start_date?: string | null
   start_time?: string | null
+  end_date?: string | null
+  end_time?: string | null
+  is_ended?: boolean | null
+  computed_status?: string | null
+  lifecycle_status?: string | null
   meeting_link?: string | null
   instructor_name?: string | null
   /** Resolved from nested course media keys when backend sends them */
@@ -769,6 +790,11 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
     o.enrolled_at ?? o.registered_at ?? o.created_at
   const startD = o.start_date ?? nested?.start_date ?? o.course_start_at
   const startT = o.start_time ?? nested?.start_time ?? o.study_time
+  const endD = o.end_date ?? nested?.end_date
+  const endT = o.end_time ?? nested?.end_time
+  const isEndedRaw = o.is_ended ?? nested?.is_ended
+  const computedStatusRaw = o.computed_status ?? nested?.computed_status
+  const lifecycleStatusRaw = o.lifecycle_status ?? nested?.lifecycle_status
   const link = o.meeting_link ?? nested?.meeting_link
   let inst: string | undefined
   if (nestedInstr?.name != null) inst = String(nestedInstr.name)
@@ -811,6 +837,11 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
     enrolled_at: enrolled != null && String(enrolled).trim() !== '' ? String(enrolled) : null,
     start_date: startD != null && String(startD).trim() !== '' ? String(startD) : null,
     start_time: startT != null && String(startT).trim() !== '' ? String(startT) : null,
+    end_date: endD != null && String(endD).trim() !== '' ? String(endD) : null,
+    end_time: endT != null && String(endT).trim() !== '' ? String(endT) : null,
+    is_ended: isEndedRaw != null ? !!isEndedRaw : null,
+    computed_status: computedStatusRaw != null ? String(computedStatusRaw) : null,
+    lifecycle_status: lifecycleStatusRaw != null ? String(lifecycleStatusRaw) : null,
     meeting_link: link != null && String(link).trim() !== '' ? String(link) : null,
     instructor_name: inst,
     course_cover_url: cover ?? null,
@@ -1249,6 +1280,35 @@ export async function fetchStudentAttendance(): Promise<StudentAttendanceRecord[
     return rawList.map(normalizeStudentAttendanceRow).filter((x): x is StudentAttendanceRecord => x != null)
   } catch {
     return []
+  }
+}
+
+export type StudentAttendanceSummary = {
+  total: number
+  present_count: number
+  absent_count: number
+  late_count: number
+  excused_count: number
+  attendance_percentage: number
+  current_attendance_streak: number
+  current_absence_streak: number
+  current_late_streak: number
+  longest_attendance_streak: number
+  longest_absence_streak: number
+  risk_level: 'low' | 'medium' | 'high'
+}
+
+/** GET /student/attendance/summary — Ticket 6: student's own attendance
+ *  statistics/streaks. Always derives the student from auth server-side. */
+export async function fetchStudentAttendanceSummary(courseId?: number): Promise<StudentAttendanceSummary> {
+  const res = await apiClient.get<unknown>('/student/attendance/summary', {
+    params: courseId ? { course_id: courseId } : {}, skipErrorToast: true,
+  })
+  const data = (res.data as Record<string, unknown>)?.data as StudentAttendanceSummary | undefined
+  return data ?? {
+    total: 0, present_count: 0, absent_count: 0, late_count: 0, excused_count: 0,
+    attendance_percentage: 0, current_attendance_streak: 0, current_absence_streak: 0,
+    current_late_streak: 0, longest_attendance_streak: 0, longest_absence_streak: 0, risk_level: 'low',
   }
 }
 

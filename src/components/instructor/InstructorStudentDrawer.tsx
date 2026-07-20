@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Award, CheckCircle2, ClipboardCheck, ExternalLink, Mic, X } from 'lucide-react'
+import { Award, CheckCircle2, ClipboardCheck, ExternalLink, Layers, Mic, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { fetchPlacementTestAnswers, progressFromStatus, type PlacementTestAnswerRow } from '@/api/placementApi'
+import { progressFromStatus } from '@/api/placementApi'
 import type { InstructorStudentRow } from '@/api/instructorApi'
+import { formatAmsterdamDMY, formatAmsterdamTime24 } from '@/utils/amsterdamTime'
 
 /* ── shared maps ────────────────────────────────────────────────────────── */
 
@@ -43,24 +44,28 @@ const TIMELINE_STEPS = [
   'الوصول للدورة',
 ]
 
+/**
+ * ISO datetime → "21/07/2026", rendered in Europe/Amsterdam local time.
+ *
+ * Previously sliced the raw ISO string (`iso.slice(0, 10)`), which read the
+ * UTC calendar day instead of the Amsterdam one — the direct cause of
+ * instructor-vs-student date/time mismatches on placement-interview bookings.
+ * Always go through the shared Amsterdam formatter instead.
+ */
 export function toDMY(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  const s = iso.slice(0, 10)
-  if (s.length < 10) return '—'
-  const [y, m, d] = s.split('-')
-  return `${d}/${m}/${y}`
+  return formatAmsterdamDMY(iso)
 }
 
+/**
+ * ISO datetime → "14:30", rendered in Europe/Amsterdam local time.
+ *
+ * Previously sliced the raw ISO string (`iso.slice(11, 16)`), which read the
+ * UTC clock digits verbatim with zero timezone conversion — the root cause of
+ * the instructor seeing oral-interview bookings 1-2 hours earlier than the
+ * student (Amsterdam is UTC+1/+2 depending on daylight saving).
+ */
 export function toHM(iso: string | null | undefined): string {
-  if (!iso) return ''
-  const t = iso.slice(11, 16)
-  if (/^\d{2}:\d{2}$/.test(t)) return t
-  try {
-    const dt = new Date(iso)
-    if (!isNaN(dt.getTime()))
-      return `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
-  } catch { /* */ }
-  return ''
+  return formatAmsterdamTime24(iso)
 }
 
 /* ── Props ──────────────────────────────────────────────────────────────── */
@@ -70,12 +75,22 @@ interface Props {
   onClose: () => void
   /** When provided, a "Start oral assessment" CTA appears for eligible students */
   onStartAssessment?: () => void
+  /** When provided, a "View Test Answers" button opens the full answer-review modal. */
+  onViewAnswers?: () => void
 }
 
 /* ── Exported drawer wrapper ────────────────────────────────────────────── */
 
-export function InstructorStudentDrawer({ student, onClose, onStartAssessment }: Props) {
-  return (
+export function InstructorStudentDrawer({ student, onClose, onStartAssessment, onViewAnswers }: Props) {
+  // Rendered via a portal directly under document.body — the previous
+  // in-tree placement (nested under <main>) meant it shared a stacking
+  // context with page content, so the dashboard header's own `isolate` +
+  // equal z-index could paint above it despite `fixed` positioning. A
+  // portal removes the ambiguity outright; the z-index bump is just a
+  // second guarantee, not the actual fix.
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {student && (
         <motion.div
@@ -84,7 +99,7 @@ export function InstructorStudentDrawer({ student, onClose, onStartAssessment }:
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-50 overflow-hidden"
+          className="fixed inset-0 z-[60] overflow-hidden"
           dir="rtl"
         >
           {/* Backdrop */}
@@ -106,11 +121,13 @@ export function InstructorStudentDrawer({ student, onClose, onStartAssessment }:
               student={student}
               onClose={onClose}
               onStartAssessment={onStartAssessment}
+              onViewAnswers={onViewAnswers}
             />
           </motion.aside>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }
 
@@ -120,33 +137,13 @@ function DrawerContent({
   student: s,
   onClose,
   onStartAssessment,
+  onViewAnswers,
 }: {
   student: InstructorStudentRow
   onClose: () => void
   onStartAssessment?: () => void
+  onViewAnswers?: () => void
 }) {
-  const [answersOpen,    setAnswersOpen]    = useState(false)
-  const [answers,        setAnswers]        = useState<PlacementTestAnswerRow[] | null>(null)
-  const [answersLoading, setAnswersLoading] = useState(false)
-
-  async function loadAnswers() {
-    if (!s.attempt_id) return
-    setAnswersLoading(true)
-    try {
-      const data = await fetchPlacementTestAnswers(s.attempt_id)
-      setAnswers(data)
-    } catch {
-      setAnswers([])
-    } finally {
-      setAnswersLoading(false)
-    }
-  }
-
-  function toggleAnswers() {
-    if (!answersOpen && answers === null) void loadAnswers()
-    setAnswersOpen((v) => !v)
-  }
-
   const progress  = progressFromStatus(s.placement_status)
   const cefrInfo  = s.written_level ? (CEFR_MAP[s.written_level] ?? null) : null
   const finalCefr = s.final_level   ? (CEFR_MAP[s.final_level]   ?? null) : null
@@ -179,7 +176,7 @@ function DrawerContent({
         {/* Name / email / status */}
         <div className="relative min-w-0 flex-1">
           <p className="text-[15px] font-black leading-tight">{s.name}</p>
-          <p className="mt-0.5 text-[11px] font-semibold text-white/55" dir="ltr">{s.email}</p>
+          <p className="mt-0.5 text-[11px] font-semibold text-white/55">{s.email}</p>
           {s.enrollment_status && (
             <span
               className={`mt-1.5 inline-block rounded-xl px-2 py-0.5 text-[9px] font-black
@@ -302,78 +299,16 @@ function DrawerContent({
           )}
         </div>
 
-        {/* Written test answers (lazy) */}
-        {s.attempt_id != null && s.written_score != null && (
-          <div>
-            <button
-              type="button"
-              onClick={toggleAnswers}
-              className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-2.5 transition hover:bg-slate-100"
-            >
-              <span className="text-[10px] font-black uppercase tracking-widest text-deepBlue/35">
-                إجابات الاختبار الكتابي
-              </span>
-              <span className="font-mono text-[11px] font-black text-deepBlue/30">
-                {answersOpen ? '▲' : '▼'}
-              </span>
-            </button>
-            {answersOpen && (
-              <div className="mt-2 space-y-2">
-                {answersLoading ? (
-                  <>
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />
-                    ))}
-                  </>
-                ) : answers && answers.length > 0 ? (
-                  answers.map((a, i) => (
-                    <div
-                      key={a.question_id}
-                      className={`rounded-2xl border p-3 ${a.is_correct ? 'border-emerald-100 bg-emerald-50/60' : 'border-red-100 bg-red-50/40'}`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className="shrink-0 font-mono text-[10px] font-black text-deepBlue/30">{i + 1}</span>
-                        <p className="flex-1 text-[11px] font-semibold text-deepBlue leading-snug">{a.question_text}</p>
-                        <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${a.is_correct ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                          {a.is_correct ? '✓' : '✗'}
-                        </span>
-                      </div>
-                      <div className="mt-2 space-y-1 text-[10px]">
-                        <div className="flex items-start gap-1.5">
-                          <span className="shrink-0 font-semibold text-deepBlue/40">إجابة الطالب:</span>
-                          <span className={`font-black ${a.is_correct ? 'text-emerald-700' : 'text-red-600'}`}>
-                            {a.student_answer
-                              ? `${a.student_answer.toUpperCase()} · ${a.options[a.student_answer as keyof typeof a.options] || '—'}`
-                              : '—'}
-                          </span>
-                        </div>
-                        {!a.is_correct && (
-                          <div className="flex items-start gap-1.5">
-                            <span className="shrink-0 font-semibold text-deepBlue/40">الصحيح:</span>
-                            <span className="font-black text-emerald-700">
-                              {a.correct_answer
-                                ? `${a.correct_answer.toUpperCase()} · ${a.options[a.correct_answer as keyof typeof a.options] || '—'}`
-                                : '—'}
-                            </span>
-                          </div>
-                        )}
-                        {a.score_contribution != null && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-deepBlue/40">النقاط:</span>
-                            <span className="font-mono font-black tabular-nums text-deepBlue/60">{a.score_contribution}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="rounded-2xl border border-dashed border-slate-200 py-4 text-center text-[11px] font-semibold text-deepBlue/35">
-                    لا توجد إجابات متاحة
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+        {/* Written test answers — opens the full review modal (see PlacementAnswerReviewModal) */}
+        {s.attempt_id != null && s.written_score != null && onViewAnswers && (
+          <button
+            type="button"
+            onClick={onViewAnswers}
+            className="flex w-full items-center justify-between rounded-2xl border border-[#2691C2]/25 bg-[#2691C2]/[0.06] px-4 py-3 transition hover:bg-[#2691C2]/[0.12]"
+          >
+            <span className="text-[12px] font-black text-[#2691C2]">عرض إجابات الاختبار</span>
+            <ClipboardCheck className="h-4 w-4 text-[#2691C2]" />
+          </button>
         )}
 
         {/* Oral interview */}
@@ -459,6 +394,39 @@ function DrawerContent({
             </div>
           )}
         </div>
+
+        {/* Class assignment */}
+        {s.final_level && (
+          <div>
+            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-deepBlue/35">
+              الفصل الدراسي
+            </p>
+            {s.class_assignment?.status === 'assigned' ? (
+              <div className="rounded-2xl border border-[#2691C2]/25 bg-[#2691C2]/[0.06] p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#2691C2] text-white shadow-md">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-[14px] font-black text-deepBlue">{s.class_assignment.class_name}</p>
+                    {s.class_assignment.instructor_name && (
+                      <p className="text-[11px] font-semibold text-deepBlue/55">المدرّب: {s.class_assignment.instructor_name}</p>
+                    )}
+                  </div>
+                  <span className="flex items-center gap-1 rounded-xl bg-[#2691C2]/15 px-2.5 py-1 text-[10px] font-black text-[#2691C2]">
+                    <CheckCircle2 className="h-3 w-3" />
+                    تم التوزيع
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 py-6 text-center">
+                <Layers className="mx-auto h-6 w-6 text-amber-400" />
+                <p className="mt-2 text-[11px] font-semibold text-amber-700">بانتظار التوزيع على فصل</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* CTAs */}
         {onStartAssessment && progress.oral_booked && (

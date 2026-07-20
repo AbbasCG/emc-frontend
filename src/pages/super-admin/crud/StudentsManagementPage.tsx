@@ -97,7 +97,7 @@ function StudentCard({ u, idx, onSelect }: { u: AdminManagedUser; idx: number; o
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-black text-[#22334A]">{u.name}</p>
-          <p className="truncate text-[10px] font-semibold text-[#22334A]/40" dir="ltr">{u.email}</p>
+          <p className="truncate text-[10px] font-semibold text-[#22334A]/40">{u.email}</p>
         </div>
         <span className={`shrink-0 rounded-xl px-2 py-0.5 text-[9px] font-black ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
           {active ? 'نشط' : 'موقوف'}
@@ -177,7 +177,7 @@ function StudentSearchDropdown({
             )}
             <div className="min-w-0 flex-1 text-right">
               <p className="truncate text-[12px] font-black text-[#22334A]">{selected.name}</p>
-              <p className="truncate text-[10px] font-semibold text-[#22334A]/40" dir="ltr">{selected.email}</p>
+              <p className="truncate text-[10px] font-semibold text-[#22334A]/40">{selected.email}</p>
             </div>
             <X
               className="h-4 w-4 shrink-0 text-slate-400 hover:text-red-500"

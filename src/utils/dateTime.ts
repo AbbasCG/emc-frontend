@@ -92,7 +92,9 @@ export function formatRelativeDate(
 
   if (diffDays === 0) return `اليوم، ${timeStr(date, timezone)}`
   if (diffDays === 1) return `أمس، ${timeStr(date, timezone)}`
-  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays === -1) return `غداً، ${timeStr(date, timezone)}`
+  if (diffDays > 1 && diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays < -1 && diffDays > -7) return `بعد ${String(Math.abs(diffDays))} أيام`
   return formatDate(dateStr, 'ar', timezone)
 }
 

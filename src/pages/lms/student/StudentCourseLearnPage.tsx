@@ -1,22 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import axios, { type AxiosError } from 'axios'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft,
-  Award,
   BookOpen,
   Calendar,
-  CheckCircle2,
-  ChevronDown,
   ClipboardList,
   ExternalLink,
   FolderOpen,
-  GraduationCap,
-  Layers,
-  Loader2,
   RefreshCw,
-  Save,
   StickyNote,
   TrendingUp,
   Users,
@@ -33,16 +26,21 @@ import {
 } from '@/api/courseLearnApi'
 import { STUDENT_SCOPE_REFRESH_EVENT, notifyStudentScopeRefresh, fetchStudentCoursesList } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
-import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, MaterialCard, SessionCard } from '@/components/lms'
+import { AssignmentSubmitModal } from '@/components/lms'
 import type { StudentAssignment } from '@/types/lms'
-import type { StudentCourseLearnPayload } from '@/types/courseLearn'
+import type { CourseLearnAssignment, StudentCourseLearnPayload } from '@/types/courseLearn'
 import type { LmsModule } from '@/types/platform'
 import type { LmsSession } from '@/types/lms'
 import logo from '@/assets/logo.png'
 import { resolveCoursePkFromLikelyMisKey, studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
-import { formatDateTime } from '@/utils/dateTime'
 import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
+import UnitsTab from './learn-tabs/UnitsTab'
+import SessionsTab from './learn-tabs/SessionsTab'
+import MaterialsTab, { type MaterialEntry } from './learn-tabs/MaterialsTab'
+import AssignmentsTab, { type AssignmentEntry } from './learn-tabs/AssignmentsTab'
+import NotesTab from './learn-tabs/NotesTab'
+import ProgressTab from './learn-tabs/ProgressTab'
 
 const NOTES_KEY = (courseId: number) => `emc-student-learn-notes:${courseId}`
 
@@ -326,10 +324,23 @@ export default function StudentCourseLearnPage() {
     return raw.map((m) => mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle }))
   }, [ctx?.materials, courseId, courseTitle])
 
-  const assignments = useMemo(() => {
+  const materialEntries = useMemo((): MaterialEntry[] => {
+    const raw = ctx?.materials ?? []
+    return raw.map((m) => ({
+      material: mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle }),
+      moduleId: m.module_id ?? null,
+    }))
+  }, [ctx?.materials, courseId, courseTitle])
+
+  const moduleTitleById = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const m of ctx?.modules ?? []) map.set(m.id, m.title)
+    return map
+  }, [ctx?.modules])
+
+  const rawAssignmentsDeduped = useMemo((): CourseLearnAssignment[] => {
     const seen = new Set<number>()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const raw: any[] = []
+    const raw: CourseLearnAssignment[] = []
 
     // Course-level assignments first — add their IDs to `seen` so module-level
     // duplicates (same CA appearing in both buckets) are filtered out.
@@ -348,20 +359,26 @@ export default function StudentCourseLearnPage() {
         }
       }
     }
+    return raw.filter((a) => a.visible !== false)
+  }, [ctx?.assignments, ctx?.modules])
 
-    const mapped = raw
-      .filter((a) => a.visible !== false)
-      .map((a) => mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle }))
-      .filter((a): a is StudentAssignment => a != null)
-
-    // Final safety dedup by mapped StudentAssignment.id (= course_assignment_id).
+  const assignmentEntries = useMemo((): AssignmentEntry[] => {
     const finalSeen = new Set<number>()
-    return mapped.filter((a) => {
-      if (finalSeen.has(a.id)) return false
-      finalSeen.add(a.id)
-      return true
-    })
-  }, [ctx?.assignments, ctx?.modules, courseId, courseTitle])
+    const out: AssignmentEntry[] = []
+    for (const a of rawAssignmentsDeduped) {
+      const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
+      if (!sa || finalSeen.has(sa.id)) continue
+      finalSeen.add(sa.id)
+      out.push({
+        assignment: sa,
+        moduleId: a.module_id ?? null,
+        required: a.is_required ?? a.required ?? true,
+      })
+    }
+    return out
+  }, [rawAssignmentsDeduped, courseId, courseTitle])
+
+  const assignments = useMemo(() => assignmentEntries.map((e) => e.assignment), [assignmentEntries])
 
   const progressPct = useMemo(() => (ctx ? deriveProgressPct(ctx) : 0), [ctx])
   const totalLessons = useMemo(() => modulesLms.reduce((s, m) => s + (m.lessons_count ?? 0), 0), [modulesLms])
@@ -672,649 +689,79 @@ export default function StudentCourseLearnPage() {
       </div>
 
       {/* ── Tab Content ──────────────────────────────────────────────────── */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18 }}
-        >
+      {/*
+        Deliberately NOT AnimatePresence mode="wait": that mode blocks the new
+        tab from mounting until the outgoing one's exit animation resolves.
+        Child tab components (Units/Sessions/Materials/etc.) each run their own
+        nested Framer Motion animations (skeletons, staggered lists), and a
+        nested animation's promise can prevent the parent's exit from ever
+        completing — which silently froze tab-switching entirely (verified
+        live: state updated correctly, DOM never re-rendered). A plain keyed
+        fade-in gives the same "tab content fade/slide" feel without the risk.
+      */}
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+      >
 
-          {/* ── المنهاج ─────────────────────────────────────────────────── */}
           {activeTab === 'modules' && (
-            <div className="space-y-5">
-              {/* Class group */}
-              {classGroup && (
-                <div className="rounded-2xl border border-[#EC943C]/20 bg-orange-50/60 p-5">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EC943C]/15 text-[#EC943C]">
-                      <Users className="h-4.5 w-4.5" />
-                    </span>
-                    <div>
-                      <p className="text-[13px] font-black text-[#22334A]">فصلك الدراسي: {classGroup.name}</p>
-                      {classGroup.level_code && (
-                        <p className="text-[11px] font-semibold text-[#22334A]/60">{classGroup.level_code}</p>
-                      )}
-                    </div>
-                    {classGroup.schedule_day && classGroup.schedule_time && (
-                      <span className="mr-auto rounded-xl border border-[#22334A]/10 bg-white px-3 py-1 text-[11px] font-bold text-[#22334A]/70">
-                        {classGroup.schedule_day} · {classGroup.schedule_time}
-                      </span>
-                    )}
-                    {classGroup.meeting_link && (
-                      <a
-                        href={classGroup.meeting_link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-4 py-2 text-[11px] font-black text-white transition hover:opacity-90"
-                      >
-                        <Video className="h-3.5 w-3.5" />
-                        رابط الفصل
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <div className="mb-4 flex items-end justify-between">
-                  <div>
-                    <h2 className="text-xl font-black text-[#22334A]">الوحدات والمنهاج</h2>
-                    <p className="mt-0.5 text-[13px] font-semibold text-[#22334A]/50">
-                      {ctx.modules.length > 0
-                        ? `${ctx.modules.length} وحدة · ${totalLessons} درس`
-                        : 'سيظهر المنهاج بعد إضافة الوحدات من الإدارة'}
-                    </p>
-                  </div>
-                </div>
-
-                {ctx.modules.length === 0 ? (
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-[#22334A]/[0.08] bg-white/70 p-6 text-center text-[13px] font-semibold text-[#22334A]/60">
-                      لم تتم إضافة وحدات تعليمية لهذه الدورة بعد
-                    </div>
-                    {(() => {
-                      const nullMaterials = (ctx.materials ?? []).filter((m) => m.module_id == null)
-                      const nullSessions = (ctx.sessions ?? []).filter((s) => s.module_id == null)
-                      const nullAssignments = (ctx.assignments ?? []).filter((a) => a.module_id == null && a.visible !== false)
-                      const hasGeneral = nullMaterials.length > 0 || nullSessions.length > 0 || nullAssignments.length > 0
-                      if (!hasGeneral) return null
-                      return (
-                        <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
-                          <div className="flex items-center gap-3 p-4">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#EC943C]">
-                              <Layers className="h-4 w-4" />
-                            </span>
-                            <div>
-                              <h3 className="text-[14px] font-black text-[#22334A]">محتوى عام للدورة</h3>
-                              <p className="text-[11px] font-medium text-[#22334A]/55">جلسات ومواد وواجبات على مستوى الدورة</p>
-                            </div>
-                          </div>
-                          <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
-                            {nullSessions.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                  <Calendar className="h-3 w-3" /> الجلسات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullSessions.map((s) => (
-                                    <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullMaterials.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                  <FolderOpen className="h-3 w-3" /> المواد
-                                </h4>
-                                <div className="grid gap-2 sm:grid-cols-2">
-                                  {nullMaterials.map((m) => (
-                                    <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullAssignments.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                  <ClipboardList className="h-3 w-3" /> الواجبات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullAssignments.map((a) => {
-                                    const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
-                                    if (!sa) return null
-                                    return (
-                                      <AssignmentCard
-                                        key={a.id}
-                                        assignment={sa}
-                                        onSubmit={
-                                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
-                                            ? () => setActiveAssignment(sa)
-                                            : undefined
-                                        }
-                                      />
-                                    )
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {ctx.modules.map((mod, idx) => {
-                      const isOpen = openModules.has(mod.id)
-                      const pct =
-                        typeof mod.progress_percentage === 'number'
-                          ? Math.round(mod.progress_percentage)
-                          : Math.round((Math.max(0, mod.completed_lessons_count ?? mod.completed_lessons ?? 0) / Math.max(mod.lessons_count, 1)) * 100)
-                      const modLessons = mod.lessons ?? []
-                      const modMaterials = mod.materials ?? []
-                      const modSessions = mod.sessions ?? []
-                      const modAssignments = mod.assignments ?? []
-                      const hasChildren = modLessons.length > 0 || modMaterials.length > 0 || modSessions.length > 0 || modAssignments.length > 0
-                      return (
-                        <div key={mod.id} className="overflow-hidden rounded-2xl border border-[#22334A]/[0.08] bg-white/85 shadow-sm">
-                          <button
-                            type="button"
-                            onClick={() => toggleModule(mod.id)}
-                            className="flex w-full items-center gap-3 p-4 text-right transition hover:bg-slate-50/60"
-                          >
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-[12px] font-black text-white tabular-nums">
-                              {idx + 1}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <h3 className="line-clamp-1 text-[14px] font-black leading-snug text-[#22334A]">{mod.title}</h3>
-                                {mod.is_completed && (
-                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-700">✓ مكتملة</span>
-                                )}
-                              </div>
-                              <div className="mt-1.5 flex items-center gap-2">
-                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
-                                  <div className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C] transition-all" style={{ width: `${pct}%` }} />
-                                </div>
-                                <span className="shrink-0 text-[10px] font-black tabular-nums text-[#22334A]/60">{pct}%</span>
-                              </div>
-                              <p className="mt-0.5 text-[10px] font-semibold text-[#22334A]/45">
-                                {mod.lessons_count} درس
-                                {(mod.assignments_count ?? 0) > 0 ? ` · ${mod.assignments_count} واجب` : ''}
-                                {modMaterials.length > 0 ? ` · ${modMaterials.length} مادة` : ''}
-                              </p>
-                            </div>
-                            <ChevronDown className={`h-4 w-4 shrink-0 text-[#22334A]/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                          </button>
-
-                          {isOpen && (
-                            <div className="space-y-4 border-t border-[#22334A]/[0.06] px-4 pb-4 pt-4">
-                              {!hasChildren ? (
-                                <p className="py-4 text-center text-[12px] font-semibold text-[#22334A]/45">
-                                  لا يوجد محتوى داخل هذه الوحدة بعد
-                                </p>
-                              ) : (
-                                <>
-                                  {modLessons.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                        <BookOpen className="h-3 w-3" /> الدروس
-                                      </h4>
-                                      <div className="space-y-1.5">
-                                        {modLessons.map((l) => (
-                                          <div key={l.id} className="flex items-center gap-3 rounded-xl border border-[#22334A]/[0.06] bg-slate-50/60 px-3 py-2.5">
-                                            {l.video_url
-                                              ? <Video className="h-3.5 w-3.5 shrink-0 text-[#2691C2]" />
-                                              : <BookOpen className="h-3.5 w-3.5 shrink-0 text-[#22334A]/30" />
-                                            }
-                                            <span className="flex-1 text-[12px] font-semibold text-[#22334A]">{l.title}</span>
-                                            {l.duration_minutes != null && (
-                                              <span className="text-[10px] font-bold tabular-nums text-[#22334A]/45">{l.duration_minutes} د</span>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {modSessions.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                        <Calendar className="h-3 w-3" /> الجلسات
-                                      </h4>
-                                      <div className="space-y-2">
-                                        {modSessions.map((s) => (
-                                          <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {modMaterials.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                        <FolderOpen className="h-3 w-3" /> المواد
-                                      </h4>
-                                      <div className="grid gap-2 sm:grid-cols-2">
-                                        {modMaterials.map((m) => (
-                                          <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {modAssignments.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                        <ClipboardList className="h-3 w-3" /> الواجبات
-                                      </h4>
-                                      <div className="space-y-2">
-                                        {modAssignments.map((a) => {
-                                          const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
-                                          if (!sa) return null
-                                          return (
-                                            <AssignmentCard
-                                              key={a.id}
-                                              assignment={sa}
-                                              onSubmit={
-                                                ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
-                                                  ? () => setActiveAssignment(sa)
-                                                  : undefined
-                                              }
-                                            />
-                                          )
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-
-                    {/* General course content: top-level items not linked to any module */}
-                    {(() => {
-                      const nullMaterials = (ctx.materials ?? []).filter((m) => m.module_id == null)
-                      const nullSessions = (ctx.sessions ?? []).filter((s) => s.module_id == null)
-                      const nullAssignments = (ctx.assignments ?? []).filter((a) => a.module_id == null)
-                      const hasGeneral = nullMaterials.length > 0 || nullSessions.length > 0 || nullAssignments.length > 0
-                      if (!hasGeneral) return null
-                      return (
-                        <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
-                          <div className="flex items-center gap-3 p-4">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#EC943C]">
-                              <Layers className="h-4 w-4" />
-                            </span>
-                            <h3 className="text-[14px] font-black text-[#22334A]">محتوى عام للدورة</h3>
-                          </div>
-                          <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
-                            {nullSessions.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                  <Calendar className="h-3 w-3" /> الجلسات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullSessions.map((s) => (
-                                    <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullMaterials.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                  <FolderOpen className="h-3 w-3" /> المواد
-                                </h4>
-                                <div className="grid gap-2 sm:grid-cols-2">
-                                  {nullMaterials.map((m) => (
-                                    <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullAssignments.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">
-                                  <ClipboardList className="h-3 w-3" /> الواجبات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullAssignments.map((a) => {
-                                    const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
-                                    if (!sa) return null
-                                    return (
-                                      <AssignmentCard
-                                        key={a.id}
-                                        assignment={sa}
-                                        onSubmit={
-                                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
-                                            ? () => setActiveAssignment(sa)
-                                            : undefined
-                                        }
-                                      />
-                                    )
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </div>
-                )}
-              </div>
-            </div>
+            <UnitsTab
+              ctx={ctx}
+              courseId={courseId}
+              courseTitle={courseTitle}
+              totalLessons={totalLessons}
+              openModules={openModules}
+              onToggleModule={toggleModule}
+              onSubmitAssignment={setActiveAssignment}
+              loading={learnLoading}
+            />
           )}
 
-          {/* ── الجلسات ─────────────────────────────────────────────────── */}
           {activeTab === 'sessions' && (
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#22334A]/[0.06] bg-gradient-to-bl from-white/95 to-orange-50/20 p-6 shadow-sm ring-1 ring-[#22334A]/[0.04]">
-                <div>
-                  <h2 className="text-xl font-black text-[#22334A]">الجلسات المباشرة</h2>
-                  <p className="mt-1 text-[13px] font-semibold text-[#22334A]/55">
-                    {sessionsMapped.length > 0
-                      ? `${upcomingSorted.length} قادمة · ${sessionsMapped.length - upcomingSorted.length} مكتملة`
-                      : 'سيُضيف الفريق الجلسات وروابط الانضمام هنا'}
-                  </p>
-                </div>
-                <Calendar className="h-6 w-6 text-[#EC943C]/70" />
-              </div>
-
-              {sessionsMapped.length === 0 ? (
-                <div className="rounded-3xl border border-[#22334A]/[0.06] bg-white/80 p-6">
-                  <LmsEmptyState
-                    icon={Calendar}
-                    title="لا جلسات حتى الآن"
-                    description="عندما تُنشأ الجلسات من لوحة المحتوى، ستظهر هنا مع الموعد والروابط."
-                  />
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {sessionsMapped.map((s) => (
-                    <SessionCard key={s.id} session={s} showRecording joinMeetingLabel="انضم للجلسة" />
-                  ))}
-                </div>
-              )}
-            </div>
+            <SessionsTab sessions={sessionsMapped} loading={learnLoading} />
           )}
 
-          {/* ── المواد ──────────────────────────────────────────────────── */}
           {activeTab === 'materials' && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-[#22334A]">المقررات والمواد</h2>
-                {materials.length > 0 && (
-                  <Link to="/dashboard/student/materials" className="text-[12px] font-black text-[#2691C2] hover:underline">
-                    عرض كل المواد
-                  </Link>
-                )}
-              </div>
-
-              {materials.length === 0 ? (
-                <div className="rounded-3xl bg-white/80 p-4 ring-1 ring-[#22334A]/[0.06]">
-                  <LmsEmptyState
-                    icon={FolderOpen}
-                    title="لا مواد لهذه الدورة بعد"
-                    description="بعد أن يرفع الفريق ملفاتاً أو روابط عبر لوحة المحتوى، ستظهر هنا مع أزرار التحميل."
-                  />
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {materials.map((m) => (
-                    <MaterialCard key={m.id} material={m} />
-                  ))}
-                </div>
-              )}
-            </div>
+            <MaterialsTab entries={materialEntries} moduleTitleById={moduleTitleById} loading={learnLoading} />
           )}
 
-          {/* ── الواجبات ────────────────────────────────────────────────── */}
           {activeTab === 'assignments' && (
-            <div className="space-y-5">
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[#22334A]/[0.06] bg-gradient-to-bl from-white/95 to-blue-50/20 p-6 shadow-sm ring-1 ring-[#22334A]/[0.04]">
-                <div>
-                  <h2 className="text-xl font-black text-[#22334A]">الواجبات والتكليفات</h2>
-                  <p className="mt-1 text-[13px] font-semibold text-[#22334A]/55">
-                    {assignments.length > 0
-                      ? `${assignments.length} واجب متاح · ${doneAssignments} تم تسليمه`
-                      : 'لا توجد واجبات ظاهرة في هذه الدورة حتى الآن'}
-                  </p>
-                </div>
-                <ClipboardList className="h-6 w-6 text-[#EC943C]/70" />
-              </div>
-
-              {assignments.length === 0 ? (
-                <div className="rounded-3xl bg-white/80 ring-1 ring-[#22334A]/[0.06]">
-                  <LmsEmptyState
-                    icon={ClipboardList}
-                    title="لا واجبات ظاهرة"
-                    description="عند إضافة واجبات من لوحة المحتوى، ستُعرض هنا مع الموعد وحالة التسليم."
-                  />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {assignments.map((a) => (
-                      <AssignmentCard
-                        key={a.id}
-                        assignment={a}
-                        onSubmit={
-                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(a.status))
-                            ? () => setActiveAssignment(a)
-                            : undefined
-                        }
-                      />
-                    ))}
-                  </div>
-                  <Link
-                    to="/dashboard/student/assignments"
-                    className="inline-flex items-center gap-2 text-[12px] font-black text-[#2691C2] hover:underline"
-                  >
-                    فتح كل الواجبات
-                    <ArrowLeft className="h-4 w-4 rotate-180" />
-                  </Link>
-                </div>
-              )}
-            </div>
+            <AssignmentsTab
+              entries={assignmentEntries}
+              moduleTitleById={moduleTitleById}
+              onSubmitAssignment={setActiveAssignment}
+              loading={learnLoading}
+            />
           )}
 
-          {/* ── ملاحظاتي ────────────────────────────────────────────────── */}
           {activeTab === 'notes' && (
-            <div className="rounded-3xl border border-[#22334A]/[0.08] bg-white/85 p-6 shadow-sm">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2 text-xl font-black text-[#22334A]">
-                  <StickyNote className="h-5 w-5 text-[#EC943C]" />
-                  ملاحظاتي الخاصة
-                </h2>
-                <div className="flex items-center gap-3">
-                  {notesSavedAt && !notesError && !notesSaving && (
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      محفوظة · {formatDateTime(notesSavedAt)}
-                    </span>
-                  )}
-                  {notesError && (
-                    <span className="text-[11px] font-bold text-rose-600">{notesError}</span>
-                  )}
-                  <button
-                    type="button"
-                    disabled={notesSaving || notesLoading}
-                    onClick={() => void handleSaveNotes()}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#22334A] px-4 py-2 text-[12px] font-black text-white transition hover:opacity-90 disabled:opacity-55"
-                  >
-                    {notesSaving
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Save className="h-3.5 w-3.5" />}
-                    {notesSaving ? 'جارٍ الحفظ…' : 'حفظ الملاحظات'}
-                  </button>
-                </div>
-              </div>
-
-              {notesLoading ? (
-                <div className="flex items-center justify-center py-10 text-[13px] font-semibold text-[#22334A]/50">
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جارٍ تحميل الملاحظات…
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => {
-                      setNotes(e.target.value)
-                      notesDirtyRef.current = true
-                    }}
-                    dir="rtl"
-                    rows={10}
-                    placeholder="دوّن أفكارك، روابط مهمة أو ما تريد متابعته قبل الجلسة القادمة..."
-                    className="w-full resize-y rounded-2xl border border-[#22334A]/12 bg-slate-50/60 px-4 py-3.5 text-[13px] font-semibold text-[#22334A] shadow-inner outline-none ring-1 ring-transparent transition focus:border-[#2691C2]/35 focus:ring-[#2691C2]/20"
-                  />
-                  <p className="mt-2 text-[11px] font-semibold text-[#22334A]/40">
-                    ملاحظاتك خاصة ولا تظهر للمدرب أو الإدارة
-                  </p>
-                </>
-              )}
-            </div>
+            <NotesTab
+              notes={notes}
+              onChangeNotes={setNotes}
+              onSave={handleSaveNotes}
+              loading={notesLoading}
+              saving={notesSaving}
+              savedAt={notesSavedAt}
+              error={notesError}
+            />
           )}
 
-          {/* ── التقدم ──────────────────────────────────────────────────── */}
           {activeTab === 'progress' && (
-            <div className="space-y-6">
-              {/* Stats cards */}
-              <div>
-                <h2 className="mb-4 text-xl font-black text-[#22334A]">تقدّمك في هذه الدورة</h2>
-                <div className="grid gap-4 md:grid-cols-3">
-                  {[
-                    {
-                      label: 'التقدّم الإجمالي',
-                      Icon: Layers,
-                      value: `${progressPct}%`,
-                      sub: totalLessons > 0 ? `${doneLessons} / ${totalLessons} درس مكتمل` : 'لا دروس مسجّلة بعد',
-                      color: 'text-[#2691C2]',
-                    },
-                    {
-                      label: 'الواجبات',
-                      Icon: ClipboardList,
-                      value: `${doneAssignments} / ${assignments.length}`,
-                      sub: assignments.length > 0 ? 'واجب تم تسليمه' : 'لا واجبات ظاهرة حتى الآن',
-                      color: 'text-[#EC943C]',
-                    },
-                    {
-                      label: 'الجلسات',
-                      Icon: Calendar,
-                      value: `${upcomingSorted.length}`,
-                      sub: upcomingSorted.length > 0
-                        ? 'جلسة قادمة أو نشطة'
-                        : `${sessionsMapped.filter((s) => s.status === 'completed').length} جلسة مكتملة`,
-                      color: 'text-emerald-600',
-                    },
-                  ].map(({ label, value, Icon, sub, color }) => (
-                    <motion.div
-                      key={label}
-                      whileHover={{ y: -2 }}
-                      className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#22334A]/[0.04]"
-                    >
-                      <Icon className={`mb-3 h-5 w-5 ${color}`} />
-                      <p className="text-[11px] font-black uppercase tracking-wide text-[#22334A]/50">{label}</p>
-                      <p className="mt-2 text-2xl font-black tabular-nums text-[#22334A]">{value}</p>
-                      {sub && <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[#22334A]/50">{sub}</p>}
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Instructor */}
-              {instructor && (
-                <div>
-                  <h2 className="mb-3 text-lg font-black text-[#22334A]">المدرب المسؤول</h2>
-                  <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#22334A]/[0.04]">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-bl from-[#22334A] to-[#2691C2] text-lg font-black text-white">
-                      {instructor.charAt(0)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-black text-[#22334A]">{instructor}</p>
-                      <p className="mt-0.5 text-[12px] font-semibold text-[#22334A]/50">مدرب الدورة</p>
-                    </div>
-                    <Link
-                      to="/dashboard/student/sessions"
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[#22334A]/12 px-4 py-2 text-[12px] font-black text-[#22334A] transition hover:border-[#EC943C]/30"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      جلساتي مع المدرب
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Completion status */}
-              <div className={`rounded-3xl border p-6 ${
-                progressPct >= 100
-                  ? 'border-emerald-200/80 bg-gradient-to-bl from-emerald-50 to-teal-50/40'
-                  : progressPct > 0
-                    ? 'border-[#2691C2]/15 bg-gradient-to-bl from-blue-50/50 to-white/80'
-                    : 'border-[#22334A]/[0.08] bg-white/80'
-              }`}>
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                    progressPct >= 100 ? 'bg-emerald-100 text-emerald-600'
-                    : progressPct > 0 ? 'bg-[#2691C2]/10 text-[#2691C2]'
-                    : 'bg-[#22334A]/[0.06] text-[#22334A]/40'
-                  }`}>
-                    {progressPct >= 100 ? <Award className="h-6 w-6" />
-                    : progressPct > 0 ? <GraduationCap className="h-6 w-6" />
-                    : <BookOpen className="h-6 w-6" />}
-                  </span>
-                  <div className="flex-1">
-                    <h3 className={`font-black ${progressPct >= 100 ? 'text-emerald-700' : 'text-[#22334A]'}`}>
-                      {progressPct >= 100 ? 'أكملت الدورة بنجاح!'
-                      : progressPct > 0 ? `استمر في التعلّم — ${progressPct}% مكتمل`
-                      : 'ابدأ رحلة التعلّم'}
-                    </h3>
-                    <p className="mt-0.5 text-[12px] font-semibold text-[#22334A]/50">
-                      {progressPct >= 100 ? 'يمكنك طلب شهادة إتمام الدورة من الإدارة.'
-                      : progressPct > 0 ? 'أكمل الدروس والواجبات للوصول إلى 100%.'
-                      : 'ابدأ بمراجعة الوحدات والدروس المتاحة.'}
-                    </p>
-                  </div>
-                  {progressPct >= 100 && (
-                    <Link
-                      to="/dashboard/student/certificates"
-                      className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-200 transition hover:opacity-90"
-                    >
-                      <Award className="h-4 w-4" />
-                      شهاداتي
-                    </Link>
-                  )}
-                </div>
-
-                {progressPct > 0 && progressPct < 100 && (
-                  <div className="mt-4">
-                    <div className="mb-1 flex justify-between text-[11px] font-black text-[#22334A]/50">
-                      <span>{progressPct}%</span>
-                      <span>100%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[#22334A]/[0.06]">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-l from-[#2691C2] to-[#EC943C]"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progressPct}%` }}
-                        transition={{ duration: 1.1, ease: 'easeOut', delay: 0.2 }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ProgressTab
+              progressPct={progressPct}
+              totalLessons={totalLessons}
+              doneLessons={doneLessons}
+              doneAssignments={doneAssignments}
+              assignmentsCount={assignments.length}
+              upcomingCount={upcomingSorted.length}
+              completedSessionsCount={sessionsMapped.filter((s) => s.status === 'completed').length}
+              instructor={instructor}
+              modules={ctx.modules}
+            />
           )}
-        </motion.div>
-      </AnimatePresence>
+      </motion.div>
 
       <AssignmentSubmitModal
         assignment={activeAssignment}

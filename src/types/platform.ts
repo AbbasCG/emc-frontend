@@ -143,6 +143,8 @@ export type PlatformNotification = {
   href?: string | null
   /** Raw link from API */
   action_url?: string | null
+  /** External action link (e.g. a meeting URL) — backend-validated to http(s) only. */
+  meta_url?: string | null
   entity_type?: string | null
   entity_id?: number | null
 }

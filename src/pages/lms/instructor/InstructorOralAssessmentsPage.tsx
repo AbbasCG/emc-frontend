@@ -109,6 +109,7 @@ function toStudentRow(row: InstructorOralAssessment): InstructorStudentRow {
     enrolled_at:       null,
     avatar_url:        row.avatar_url,
     attempt_id:        row.attempt_id,
+    class_assignment:  null,
   }
 }
 

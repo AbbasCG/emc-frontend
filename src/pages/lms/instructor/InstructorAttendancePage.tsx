@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   BookOpen,
   GraduationCap,
@@ -248,6 +248,14 @@ export default function InstructorAttendancePage() {
           { label: 'دورة',  value: fmt(courses.length)  },
           { label: 'جلسة', value: fmt(sessions.length) },
         ]}
+        actions={
+          <Link
+            to="/dashboard/instructor/attendance/dashboard"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-deepBlue/10 bg-white px-4 py-2 text-[12px] font-bold text-deepBlue/70 transition hover:border-[#2691C2]/30"
+          >
+            لوحة الحضور
+          </Link>
+        }
       />
 
       {/* Filters toolbar */}

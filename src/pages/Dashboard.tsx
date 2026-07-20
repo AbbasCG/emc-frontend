@@ -269,7 +269,7 @@ function SessionGroup({
       </div>
       <div className="space-y-3">
         {sessions.slice(0, 4).map((s) => (
-          <SessionCard key={s.id} session={s} joinMeetingLabel="انضم للجلسة" compact />
+          <SessionCard key={s.id} session={s} joinMeetingLabel="انضم للجلسة" compact studentDateFormat />
         ))}
       </div>
     </div>

@@ -13,6 +13,7 @@ import EmptyState from '@/components/dashboard/EmptyState'
 import type { PlatformNotification, NotificationType } from '@/types/platform'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
 import { formatNotificationDate } from '@/utils/dateTime'
+import NotificationDetailModal from '@/components/platform/NotificationDetailModal'
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
@@ -41,6 +42,7 @@ export default function NotificationsCenterPage() {
   const [loading, setLoading] = useState(true)
   const [readFilter, setReadFilter] = useState<ReadFilter>('all')
   const [typeFilter, setTypeFilter] = useState<NotificationType | 'all'>('all')
+  const [detail, setDetail] = useState<PlatformNotification | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -83,6 +85,10 @@ export default function NotificationsCenterPage() {
   async function openItem(n: PlatformNotification) {
     if (isNotificationUnread(n)) {
       await onRead(n.id)
+    }
+    if (n.meta_url) {
+      setDetail(n)
+      return
     }
     if (n.href) navigate(normalizeNotificationInternalPath(n.href))
   }
@@ -201,7 +207,9 @@ export default function NotificationsCenterPage() {
                   </div>
                   {n.body && <p className="mt-2 text-sm leading-7 text-slate-500">{n.body}</p>}
                   <p className="mt-3 text-[11px] font-bold text-slate-400">{formatNotificationDate(n.created_at)}</p>
-                  {n.href ?
+                  {n.meta_url ?
+                    <p className="mt-2 text-[11px] font-black text-customBlue">انقر لفتح رابط المقابلة</p>
+                  : n.href ?
                     <p className="mt-2 text-[11px] font-black text-customBlue">انقر لفتح الصفحة المرتبطة</p>
                   : null}
                 </button>
@@ -233,6 +241,7 @@ export default function NotificationsCenterPage() {
           })}
         </ul>
       )}
+      <NotificationDetailModal notification={detail} onClose={() => setDetail(null)} />
     </div>
   )
 }
