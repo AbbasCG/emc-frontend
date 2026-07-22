@@ -27,6 +27,7 @@ import {
   NOTIFICATIONS_REFRESH_EVENT,
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
+import { subscribeToUserNotifications } from '@/lib/echo'
 import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
@@ -673,10 +674,45 @@ export default function DashboardLayout() {
   const [whatsNewUnread, setWhatsNewUnread] = useState(0)
   const [notifications, setNotifications] = useState<PlatformNotification[]>([])
   const location = useLocation()
+  const { user: currentUser } = useAuth()
 
   const refreshNotifications = useCallback(() => {
     void fetchNotifications().then((n) => setNotifications(n))
   }, [])
+
+  // Realtime (Ticket 8 completion pass) — when configured, new notifications
+  // prepend instantly instead of waiting for the 90s poll below, which
+  // remains as the graceful fallback when realtime is unavailable or the
+  // socket drops. Duplicate-safe: a broadcast that arrives for an id
+  // already in state (e.g. the REST poll won the race) is ignored.
+  useEffect(() => {
+    if (!currentUser?.id) return
+
+    const unsubscribe = subscribeToUserNotifications(currentUser.id, (payload) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === payload.id)) return prev
+        return [
+          {
+            id: payload.id,
+            type: payload.type as PlatformNotification['type'],
+            title: payload.title,
+            body: payload.message,
+            message: payload.message,
+            is_read: false,
+            read_at: null,
+            created_at: payload.created_at ?? new Date().toISOString(),
+            action_url: payload.action_url,
+            meta_url: payload.meta_url,
+            pinned: payload.pinned,
+            archived_at: null,
+          },
+          ...prev,
+        ]
+      })
+    })
+
+    return unsubscribe
+  }, [currentUser?.id])
 
   useEffect(() => {
     setSidebarOpen(false)

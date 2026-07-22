@@ -49,4 +49,14 @@ describe('formatWallClockTime24 / formatWallClockDMY — no double timezone conv
     expect(formatWallClockDMY(undefined)).toBe('—')
     expect(formatWallClockTime24(null)).toBe('—')
   })
+
+  it('extracts the time from a naive datetime with a space separator, no shift', () => {
+    expect(formatWallClockTime24('2026-07-23 20:00:00')).toBe('20:00')
+    expect(formatWallClockTime24('2026-07-23 22:00:00')).toBe('22:00')
+  })
+
+  it('extracts the time from a naive ISO-shaped datetime (T separator), no shift', () => {
+    expect(formatWallClockTime24('2026-07-23T20:00:00')).toBe('20:00')
+    expect(formatWallClockTime24('2026-07-23T22:00:00')).toBe('22:00')
+  })
 })

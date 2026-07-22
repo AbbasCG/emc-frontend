@@ -84,11 +84,18 @@ export function formatWallClockDMY(value: string | null | undefined): string {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : '—'
 }
 
-/** "HH:MM" (or "HH:MM:SS") wall-clock string → "HH:MM", passed through
- *  unchanged — no Date parsing, no timezone conversion. The backend already
- *  returns 24-hour wall-clock values. */
+/**
+ * Wall-clock time string → "HH:MM" — no Date parsing, no timezone
+ * conversion. The backend already returns 24-hour wall-clock values.
+ * Accepts a bare time ("20:00", "20:00:00") or a naive datetime with the
+ * time embedded ("2026-07-23 20:00:00", "2026-07-23T20:00:00") — the time
+ * portion is extracted by string matching only, never passed through
+ * `new Date(...)`.
+ */
 export function formatWallClockTime24(value: string | null | undefined): string {
   if (!value) return '—'
-  const m = value.match(/^(\d{2}):(\d{2})/)
-  return m ? `${m[1]}:${m[2]}` : value
+  const embedded = value.match(/(?:T|\s)(\d{2}):(\d{2})(?::\d{2})?$/)
+  if (embedded) return `${embedded[1]}:${embedded[2]}`
+  const bare = value.match(/^(\d{2}):(\d{2})/)
+  return bare ? `${bare[1]}:${bare[2]}` : value
 }

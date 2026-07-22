@@ -2,7 +2,16 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import type { ElementType } from 'react'
 import { successToast, errorToast } from '@/lib/toast'
-import { fetchNotificationPreferences, updateNotificationPreferences } from '@/api/notificationPreferencesApi'
+import {
+  fetchNotificationPreferences,
+  updateNotificationPreferences,
+  fetchQuietHours,
+  updateQuietHours,
+  fetchPushSubscriptionState,
+  type QuietHoursSettings,
+} from '@/api/notificationPreferencesApi'
+import { isPushSupported, isPushConfigured, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
+import { isRealtimeConfigured } from '@/lib/echo'
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import { LoadingSkeletonStack } from '@/components/enterprise/LoadingSkeleton'
 import NotificationPreferenceRowComponent from '@/components/enterprise/NotificationPreferenceRow'
@@ -10,9 +19,176 @@ import type { NotificationPreferenceRow } from '@/types/phase7'
 import {
   Shield, BookOpen, CalendarDays, ClipboardList,
   CreditCard, Award, Headphones, Megaphone,
-  Bell, Mail, RefreshCw, RotateCcw,
+  Bell, Mail, RefreshCw, RotateCcw, Moon, Smartphone, Wifi, WifiOff,
 } from 'lucide-react'
 import { formatEnglishCount } from '@/utils/formatEnglishNumber'
+
+const COMMON_TIMEZONES = [
+  'UTC', 'Asia/Riyadh', 'Asia/Dubai', 'Europe/Amsterdam', 'Europe/London', 'Africa/Cairo',
+]
+
+function QuietHoursAndPushPanel() {
+  const [quietHours, setQuietHours] = useState<QuietHoursSettings>({ enabled: false, start_time: null, end_time: null, timezone: 'UTC' })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(false)
+  const [pushSubscribed, setPushSubscribed] = useState(false)
+  const [pushBusy, setPushBusy] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(false)
+    try {
+      const [qh, subscribed] = await Promise.all([fetchQuietHours(), fetchPushSubscriptionState()])
+      setQuietHours({ ...qh, start_time: qh.start_time?.slice(0, 5) ?? null, end_time: qh.end_time?.slice(0, 5) ?? null })
+      setPushSubscribed(subscribed)
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { void load() }, [load])
+
+  async function saveQuietHours(next: QuietHoursSettings) {
+    setQuietHours(next)
+    setSaving(true)
+    try {
+      await updateQuietHours(next)
+      successToast('تم تحديث ساعات الهدوء')
+    } catch {
+      errorToast('تعذّر حفظ ساعات الهدوء')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function togglePush() {
+    setPushBusy(true)
+    try {
+      if (pushSubscribed) {
+        await unsubscribeFromPush()
+        setPushSubscribed(false)
+        successToast('تم إيقاف إشعارات الدفع')
+      } else {
+        const ok = await subscribeToPush()
+        setPushSubscribed(ok)
+        if (ok) successToast('تم تفعيل إشعارات الدفع')
+        else errorToast('تعذّر تفعيل إشعارات الدفع — تحقق من إذن المتصفح')
+      }
+    } catch {
+      errorToast('حدث خطأ أثناء تحديث إشعارات الدفع')
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  if (loading) return <LoadingSkeletonStack rows={2} />
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-100 bg-red-50/50 p-4 text-center text-[13px] font-semibold text-red-500">
+        تعذّر تحميل إعدادات ساعات الهدوء والدفع.
+        <button type="button" onClick={() => void load()} className="mr-2 font-black text-red-600 underline">إعادة المحاولة</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {/* Quiet hours */}
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Moon className="h-4 w-4 text-indigo-500" />
+            <h3 className="text-[14px] font-black text-[#22334A]">ساعات الهدوء</h3>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={quietHours.enabled}
+            aria-label="تفعيل ساعات الهدوء"
+            disabled={saving}
+            onClick={() => void saveQuietHours({ ...quietHours, enabled: !quietHours.enabled })}
+            className={`h-6 w-11 rounded-full transition ${quietHours.enabled ? 'bg-indigo-500' : 'bg-slate-200'}`}
+          >
+            <span className={`block h-5 w-5 translate-y-0.5 rounded-full bg-white shadow transition ${quietHours.enabled ? 'translate-x-0.5' : 'translate-x-5'}`} />
+          </button>
+        </div>
+        <p className="mb-3 text-[12px] leading-relaxed text-slate-500">
+          خلال هذه الساعات، تُحفظ الإشعارات داخل المنصة فوراً كالمعتاد، بينما تُؤجَّل قنوات SMS والدفع حتى نهاية الفترة.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-bold text-slate-500">من</span>
+            <input
+              type="time"
+              disabled={!quietHours.enabled || saving}
+              value={quietHours.start_time ?? '22:00'}
+              onChange={(e) => setQuietHours({ ...quietHours, start_time: e.target.value })}
+              onBlur={() => void saveQuietHours(quietHours)}
+              className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-[12px] font-bold disabled:opacity-40"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-bold text-slate-500">إلى</span>
+            <input
+              type="time"
+              disabled={!quietHours.enabled || saving}
+              value={quietHours.end_time ?? '07:00'}
+              onChange={(e) => setQuietHours({ ...quietHours, end_time: e.target.value })}
+              onBlur={() => void saveQuietHours(quietHours)}
+              className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-[12px] font-bold disabled:opacity-40"
+            />
+          </label>
+        </div>
+        <label className="mt-2 block">
+          <span className="mb-1 block text-[11px] font-bold text-slate-500">المنطقة الزمنية</span>
+          <select
+            disabled={!quietHours.enabled || saving}
+            value={quietHours.timezone}
+            onChange={(e) => void saveQuietHours({ ...quietHours, timezone: e.target.value })}
+            className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-[12px] font-bold disabled:opacity-40"
+          >
+            {COMMON_TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
+          </select>
+        </label>
+      </div>
+
+      {/* Push + realtime status */}
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <Smartphone className="h-4 w-4 text-emerald-500" />
+          <h3 className="text-[14px] font-black text-[#22334A]">إشعارات الدفع (Push)</h3>
+        </div>
+        {!isPushSupported() ? (
+          <p className="text-[12px] font-semibold text-slate-400">متصفحك لا يدعم إشعارات الدفع.</p>
+        ) : !isPushConfigured() ? (
+          <p className="text-[12px] font-semibold text-slate-400">إشعارات الدفع غير مفعّلة على هذه المنصة حالياً.</p>
+        ) : (
+          <button
+            type="button"
+            disabled={pushBusy}
+            onClick={() => void togglePush()}
+            className={`w-full rounded-xl px-4 py-2.5 text-[12px] font-black shadow-sm transition disabled:opacity-50 ${
+              pushSubscribed ? 'border border-slate-200 bg-white text-slate-600' : 'bg-emerald-500 text-white'
+            }`}
+          >
+            {pushBusy ? 'جارٍ التحديث...' : pushSubscribed ? 'إيقاف إشعارات الدفع على هذا الجهاز' : 'تفعيل إشعارات الدفع على هذا الجهاز'}
+          </button>
+        )}
+
+        <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3 text-[11px] font-bold text-slate-400">
+          {isRealtimeConfigured() ? (
+            <><Wifi className="h-3.5 w-3.5 text-emerald-500" /> التحديث الفوري مفعّل</>
+          ) : (
+            <><WifiOff className="h-3.5 w-3.5 text-slate-300" /> التحديث الفوري غير متاح — التحديث كل 90 ثانية</>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 type EventDef = {
   key: string
@@ -357,6 +533,10 @@ export default function NotificationPreferencesPage() {
 
         <div className="mb-6">
           <SecretWarningPanel body="بعض الإشعارات الأمنية إلزامية ولا يمكن تعطيلها. يُطبَّق كل إعداد فوراً على الإشعارات المستقبلية." />
+        </div>
+
+        <div className="mb-6">
+          <QuietHoursAndPushPanel />
         </div>
 
         {!loading && (

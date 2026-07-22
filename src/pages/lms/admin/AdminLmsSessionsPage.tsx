@@ -25,7 +25,8 @@ import { adminListSessions, adminCreateSession, adminUpdateSession, adminDeleteS
 import { CourseSelectField } from '@/components/lms/CourseSelectField'
 import toast from '@/lib/toast'
 import AdminLmsShell from '@/components/lms/AdminLmsShell'
-import { fmtDate, formatLmsTime, normCourseTitle, normInstructor, fmtNum } from '@/components/lms/lmsFormatters'
+import { fmtDate, normCourseTitle, normInstructor, fmtNum } from '@/components/lms/lmsFormatters'
+import { formatWallClockTime24 } from '@/utils/amsterdamTime'
 import { AnimatePresence, motion } from 'framer-motion'
 import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import EmcTimePicker from '@/components/ui/EmcTimePicker'
@@ -310,7 +311,7 @@ function SessionGridCard({ row, onDetail, onEdit, onDelete, deleting }: CardProp
   const isBlocked = row.is_cancelled || row.is_ended
 
   const dateStr = fmtDate(deriveSessionDate(row))
-  const timeStr = row.start_time ? formatLmsTime(row.start_time) : null
+  const timeStr = row.start_time ? formatWallClockTime24(row.start_time) : null
 
   return (
     <motion.div
@@ -541,8 +542,8 @@ function DetailsDrawer({ row, onClose }: { row: AdminSession; onClose: () => voi
                 <div>
                   <p className="text-[10px] font-bold text-slate-400">الوقت</p>
                   <p className="font-black text-[#22334A]">
-                    {row.start_time ? formatLmsTime(row.start_time) : '—'}
-                    {row.end_time ? ` – ${formatLmsTime(row.end_time)}` : ''}
+                    {row.start_time ? formatWallClockTime24(row.start_time) : '—'}
+                    {row.end_time ? ` – ${formatWallClockTime24(row.end_time)}` : ''}
                   </p>
                 </div>
               </div>
@@ -606,7 +607,7 @@ function DetailsDrawer({ row, onClose }: { row: AdminSession; onClose: () => voi
                     </div>
                     {s.opened_at && (
                       <p className="shrink-0 text-[10px] font-bold text-slate-400">
-                        {formatLmsTime(new Date(s.opened_at).toTimeString().slice(0, 5))}
+                        {formatWallClockTime24(new Date(s.opened_at).toTimeString().slice(0, 5))}
                       </p>
                     )}
                   </div>

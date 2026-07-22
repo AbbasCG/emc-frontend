@@ -729,6 +729,33 @@ export async function fetchStudentCoursesList(): Promise<StudentListedCourse[]> 
   }
 }
 
+/**
+ * Production hotfix — canonical backend payment/placement eligibility block.
+ * Single source of truth: the backend (CourseAccessEligibilityService) decides
+ * this, never re-derived on the frontend from `status`/registration existence.
+ */
+export type StudentCourseAccess = {
+  is_paid_course: boolean
+  payment_required: boolean
+  payment_status: string | null
+  payment_completed: boolean
+  payment_url: string | null
+  enrollment_active: boolean
+  can_start_placement_test: boolean
+  placement_test_required: boolean
+  can_access_learning: boolean
+  block_reason:
+    | 'no_registration'
+    | 'payment_pending'
+    | 'payment_failed'
+    | 'payment_required'
+    | 'registration_cancelled'
+    | 'placement_test_required'
+    | 'placement_test_in_progress'
+    | 'access_allowed'
+  registration_id: number | null
+}
+
 export type StudentRegistrationRow = {
   id: number
   course_id: number
@@ -753,6 +780,26 @@ export type StudentRegistrationRow = {
   requires_placement_test?: boolean
   placement_status?: string | null
   can_start_learning?: boolean | null
+  /** Canonical backend eligibility block — see StudentCourseAccess. */
+  access?: StudentCourseAccess | null
+}
+
+function normalizeAccessBlock(raw: unknown): StudentCourseAccess | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const a = raw as Record<string, unknown>
+  return {
+    is_paid_course: a.is_paid_course === true,
+    payment_required: a.payment_required === true,
+    payment_status: a.payment_status != null ? String(a.payment_status) : null,
+    payment_completed: a.payment_completed === true,
+    payment_url: a.payment_url != null && String(a.payment_url).trim() !== '' ? String(a.payment_url) : null,
+    enrollment_active: a.enrollment_active === true,
+    can_start_placement_test: a.can_start_placement_test === true,
+    placement_test_required: a.placement_test_required === true,
+    can_access_learning: a.can_access_learning === true,
+    block_reason: (a.block_reason != null ? String(a.block_reason) : 'no_registration') as StudentCourseAccess['block_reason'],
+    registration_id: typeof a.registration_id === 'number' ? a.registration_id : null,
+  }
 }
 
 function pickCourseCover(nested: Record<string, unknown> | null): string | undefined {
@@ -848,6 +895,7 @@ export function normalizeRegistrationRow(raw: unknown): StudentRegistrationRow |
     requires_placement_test: requiresPlacementTestReg || undefined,
     placement_status: placementStatusReg,
     can_start_learning: canStartLearningReg,
+    access: normalizeAccessBlock(o.access),
   }
 }
 

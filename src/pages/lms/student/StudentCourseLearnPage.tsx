@@ -7,13 +7,16 @@ import {
   BookOpen,
   Calendar,
   ClipboardList,
+  CreditCard,
   ExternalLink,
   FolderOpen,
+  Hourglass,
   RefreshCw,
   StickyNote,
   TrendingUp,
   Users,
   Video,
+  XCircle,
 } from 'lucide-react'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import {
@@ -52,20 +55,38 @@ type GateError =
   | 'missing'
   | 'placement_required'
   | 'placement_oral'
+  | 'payment_pending'
+  | 'payment_failed'
+  | 'payment_required'
   | null
 
-function parseLearnGateError(e: unknown): { gate: GateError; message: string | null } {
-  if (!axios.isAxiosError(e)) return { gate: null, message: null }
+/** Production hotfix — canonical backend access block attached to a 403, when present. */
+type LearnGateAccess = {
+  payment_url?: string | null
+  block_reason?: string | null
+} | null
+
+function parseLearnGateError(e: unknown): { gate: GateError; message: string | null; access: LearnGateAccess } {
+  if (!axios.isAxiosError(e)) return { gate: null, message: null, access: null }
   const status = e.response?.status
-  const body = e.response?.data as { placement_status?: string; message?: string } | undefined
-  if (status === 404) return { gate: 'missing', message: body?.message ?? null }
+  const body = e.response?.data as { placement_status?: string; message?: string; access?: LearnGateAccess } | undefined
+  const access = body?.access ?? null
+  if (status === 404) return { gate: 'missing', message: body?.message ?? null, access }
   if (status === 403) {
     const ps = body?.placement_status
-    if (ps === 'placement_required') return { gate: 'placement_required', message: body?.message ?? null }
-    if (ps === 'written_completed') return { gate: 'placement_oral', message: body?.message ?? null }
-    return { gate: 'forbidden', message: body?.message ?? null }
+    // Payment must be evaluated before placement state — these reason codes
+    // come straight from the backend's canonical access block, never
+    // re-derived here (production hotfix).
+    if (ps === 'payment_pending') return { gate: 'payment_pending', message: body?.message ?? null, access }
+    if (ps === 'payment_failed') return { gate: 'payment_failed', message: body?.message ?? null, access }
+    if (ps === 'payment_required' || ps === 'no_registration' || ps === 'registration_cancelled') {
+      return { gate: 'payment_required', message: body?.message ?? null, access }
+    }
+    if (ps === 'placement_required') return { gate: 'placement_required', message: body?.message ?? null, access }
+    if (ps === 'written_completed') return { gate: 'placement_oral', message: body?.message ?? null, access }
+    return { gate: 'forbidden', message: body?.message ?? null, access }
   }
-  return { gate: null, message: null }
+  return { gate: null, message: null, access: null }
 }
 
 async function isCourseListedForStudent(courseId: number): Promise<boolean> {
@@ -124,6 +145,7 @@ export default function StudentCourseLearnPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [learnError, setLearnError] = useState<string | null>(null)
   const [gateError, setGateError] = useState<GateError>(null)
+  const [gatePaymentUrl, setGatePaymentUrl] = useState<string | null>(null)
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignment | null>(null)
   const [activeTab, setActiveTab] = useState<LearnTab>('modules')
 
@@ -160,6 +182,7 @@ export default function StudentCourseLearnPage() {
     if (!validId) return
     setLearnError(null)
     setGateError(null)
+    setGatePaymentUrl(null)
     setLearnLoading(true)
     if (opts?.refreshEnrollment) {
       try { await refreshDashboard() } catch { /* non-fatal */ }
@@ -169,9 +192,13 @@ export default function StudentCourseLearnPage() {
       setLearn(data)
     } catch (e) {
       setLearn(null)
-      const { gate, message } = parseLearnGateError(e)
+      const { gate, message, access } = parseLearnGateError(e)
       if (gate === 'missing') {
         setGateError('missing')
+      } else if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
+        setGateError(gate)
+        setGatePaymentUrl(access?.payment_url ?? null)
+        if (message) setLearnError(message)
       } else if (gate === 'placement_required' || gate === 'placement_oral') {
         setGateError(gate)
         if (message) setLearnError(message)
@@ -195,14 +222,20 @@ export default function StudentCourseLearnPage() {
     if (!validId) return
     setLearnError(null)
     setGateError(null)
+    setGatePaymentUrl(null)
     setRefreshing(true)
     try {
       const data = await fetchStudentCourseLearn(courseId)
       setLearn(data)
     } catch (e) {
       setLearn(null)
-      const { gate, message } = parseLearnGateError(e)
+      const { gate, message, access } = parseLearnGateError(e)
       if (gate === 'missing') setGateError('missing')
+      else if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
+        setGateError(gate)
+        setGatePaymentUrl(access?.payment_url ?? null)
+        if (message) setLearnError(message)
+      }
       else if (gate === 'placement_required' || gate === 'placement_oral') {
         setGateError(gate)
         if (message) setLearnError(message)
@@ -417,6 +450,68 @@ export default function StudentCourseLearnPage() {
         <div className="h-52 rounded-3xl bg-slate-200/90" />
         <div className="h-12 rounded-2xl bg-slate-100" />
         <div className="h-80 rounded-3xl bg-slate-100" />
+      </div>
+    )
+  }
+
+  // Production hotfix — dedicated unpaid-course state. Payment is always
+  // evaluated before placement-test state (never shows the placement-test
+  // start/retry actions here), per the canonical backend access block.
+  if (gateError === 'payment_pending' || gateError === 'payment_failed' || gateError === 'payment_required') {
+    const Icon = gateError === 'payment_failed' ? XCircle : gateError === 'payment_pending' ? Hourglass : CreditCard
+    const iconColor = gateError === 'payment_failed' ? 'text-red-500' : 'text-customOrange'
+    const title =
+      gateError === 'payment_pending' ? 'الدفع قيد المراجعة'
+      : gateError === 'payment_failed' ? 'لم تكتمل عملية الدفع'
+      : 'يلزم إكمال الدفع أولاً'
+    const body =
+      gateError === 'payment_pending'
+        ? 'تم تسجيل عملية الدفع، وهي الآن قيد المراجعة. ستتمكن من بدء اختبار تحديد المستوى بعد اعتماد الدفع.'
+      : gateError === 'payment_failed'
+        ? 'تعذر تأكيد عملية الدفع. يرجى إعادة المحاولة للمتابعة إلى اختبار تحديد المستوى ومحتوى الدورة.'
+      : 'لا يمكنك بدء اختبار تحديد المستوى أو الوصول إلى محتوى هذه الدورة قبل إتمام عملية الدفع بنجاح.'
+
+    return (
+      <div className="rounded-3xl border border-[#22334A]/10 bg-white/90 p-10 text-center shadow-xl" dir="rtl">
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 ${iconColor}`}>
+          <Icon className="h-7 w-7" aria-hidden />
+        </div>
+        <h1 className="mt-4 text-xl font-black text-[#22334A]">{title}</h1>
+        <p className="mx-auto mt-2 max-w-lg text-[13px] font-semibold leading-relaxed text-[#22334A]/60">
+          {body}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {gateError !== 'payment_pending' && (
+            gatePaymentUrl ? (
+              <a
+                href={gatePaymentUrl}
+                className="rounded-2xl bg-customOrange px-6 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
+              >
+                إكمال الدفع
+              </a>
+            ) : (
+              <Link
+                to="/dashboard/student/courses"
+                className="rounded-2xl bg-customOrange px-6 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
+              >
+                إكمال الدفع
+              </Link>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              notifyStudentScopeRefresh()
+              void loadLearn({ refreshEnrollment: true })
+            }}
+            className="rounded-2xl border border-[#22334A]/15 px-6 py-2.5 text-[12px] font-black text-[#22334A]"
+          >
+            إعادة التحقق من حالة الدفع
+          </button>
+          <Link to="/dashboard/student/courses" className="rounded-2xl bg-[#22334A] px-6 py-2.5 text-[12px] font-black text-white">
+            العودة إلى دوراتي
+          </Link>
+        </div>
       </div>
     )
   }

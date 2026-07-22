@@ -70,6 +70,7 @@ function enrollmentFromRegistration(r: StudentRegistrationRow): Enrollment {
     status: mapBackendRegStatus(r.status),
     placement_status: r.placement_status ?? null,
     can_start_learning: r.can_start_learning ?? null,
+    access: r.access ?? null,
   }
 }
 

@@ -147,6 +147,8 @@ export type PlatformNotification = {
   meta_url?: string | null
   entity_type?: string | null
   entity_id?: number | null
+  pinned?: boolean
+  archived_at?: string | null
 }
 
 export type AutomationTrigger =

@@ -260,6 +260,9 @@ export function normalizePlatformNotification(raw: unknown): PlatformNotificatio
       : o.course_id != null && Number.isFinite(Number(o.course_id)) ?
         Number(o.course_id)
       : null,
+    // Backend booleans/nulls preserved as-is — never truthy-coerced (false and null are valid states, not "missing").
+    pinned: o.pinned === true,
+    archived_at: trimStr(o.archived_at),
   }
 }
 
@@ -316,4 +319,89 @@ export async function deleteNotification(id: number): Promise<void> {
   } catch {
     /* optional */
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Notification Center — filtered/paginated fetch + pin/archive/bulk.
+   Additive to the functions above (which remain used as-is by the
+   notification bell/drawer/dashboard hook — unchanged signatures).
+══════════════════════════════════════════════════════════════════ */
+
+export type NotificationArchivedFilter = '0' | '1' | 'all'
+
+export type NotificationFilters = {
+  search?: string
+  archived?: NotificationArchivedFilter
+  unread_only?: boolean
+  pinned_only?: boolean
+  page?: number
+}
+
+export type NotificationsPageMeta = {
+  total: number
+  current_page: number
+  last_page: number
+  per_page: number
+}
+
+export type NotificationsPageResult = {
+  data: PlatformNotification[]
+  unread_count: number
+  meta: NotificationsPageMeta
+}
+
+export type BulkNotificationAction = 'read' | 'unread' | 'archive' | 'unarchive' | 'pin' | 'unpin' | 'delete'
+
+/**
+ * Filtered/paginated fetch — filters are sent to the backend (never
+ * reproduced client-side); the backend controls ordering (pinned-first)
+ * and pagination metadata, both used as-is here.
+ */
+export async function fetchNotificationsPage(filters: NotificationFilters = {}): Promise<NotificationsPageResult> {
+  const params: Record<string, string | number> = {}
+  if (filters.search) params.search = filters.search
+  if (filters.archived) params.archived = filters.archived
+  if (filters.unread_only) params.unread_only = 1
+  if (filters.pinned_only) params.pinned_only = 1
+  if (filters.page) params.page = filters.page
+
+  const res = await apiClient.get<{ success: boolean; unread_count: number; data: unknown[]; meta: NotificationsPageMeta }>(
+    '/notifications',
+    { params, ...silent },
+  )
+  const normalized = (res.data.data ?? [])
+    .map(normalizePlatformNotification)
+    .filter((x): x is PlatformNotification => x != null)
+
+  return {
+    data: normalized,
+    unread_count: res.data.unread_count ?? 0,
+    meta: res.data.meta ?? { total: normalized.length, current_page: 1, last_page: 1, per_page: normalized.length },
+  }
+}
+
+export async function pinNotification(id: number): Promise<void> {
+  await apiClient.put(`/notifications/${id}/pin`, undefined, silent)
+}
+
+export async function unpinNotification(id: number): Promise<void> {
+  await apiClient.put(`/notifications/${id}/unpin`, undefined, silent)
+}
+
+export async function archiveNotification(id: number): Promise<void> {
+  await apiClient.put(`/notifications/${id}/archive`, undefined, silent)
+}
+
+export async function unarchiveNotification(id: number): Promise<void> {
+  await apiClient.put(`/notifications/${id}/unarchive`, undefined, silent)
+}
+
+/** No dedicated single-item "mark unread" route exists — reuses the bulk endpoint with one ID. */
+export async function markNotificationUnread(id: number): Promise<void> {
+  await bulkUpdateNotifications([id], 'unread')
+}
+
+export async function bulkUpdateNotifications(ids: number[], action: BulkNotificationAction): Promise<number> {
+  const res = await apiClient.post<{ success: boolean; affected: number }>('/notifications/bulk', { ids, action })
+  return res.data.affected ?? 0
 }

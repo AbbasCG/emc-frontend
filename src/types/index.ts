@@ -197,6 +197,8 @@ export type Enrollment = {
   can_start_learning?: boolean | null
   /** Class group assignment — set after instructor assigns the student */
   class_assignment?: ClassAssignment | null
+  /** Production hotfix — canonical backend payment/placement eligibility block. */
+  access?: import('@/api/studentApi').StudentCourseAccess | null
 }
 
 export type UpcomingSession = {
