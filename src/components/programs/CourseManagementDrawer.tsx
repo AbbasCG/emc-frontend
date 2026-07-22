@@ -450,6 +450,9 @@ export function CourseManagementDrawer({
           onChanged={() => {
             void loadDetail()
             setStudentsRefreshKey((k) => k + 1)
+            // Registration counts shown on the programs overview list must
+            // reflect a removal immediately, not only after the drawer closes.
+            onSaved()
           }}
         />
       ),

@@ -1,5 +1,6 @@
 import apiClient from '@/api/axios'
 import { unwrapData } from '@/api/unwrap'
+import { normalizePublicCertificateName } from '@/utils/programCertificateAvailability'
 
 const silent = { skipErrorToast: true as const }
 
@@ -131,7 +132,9 @@ function normalizeWorkshopRow(raw: unknown): PublicWorkshop | null {
     seats_total: totalSpots,
     seats_remaining: remaining,
     duration_hours: toNum(o.duration_hours ?? o.hours ?? o.duration),
-    certificate_name: pickStr(o.certificate_name, o.certificate, course?.certificate_name),
+    certificate_name: normalizePublicCertificateName(
+      pickStr(o.certificate_name, o.certificate, course?.certificate_name, course?.certificate),
+    ),
     cover_image: pickStr(
       o.cover_image,
       o.image_url,

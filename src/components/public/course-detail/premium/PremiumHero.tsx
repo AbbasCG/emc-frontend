@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import type { Course } from '@/types'
 import type { CourseDetailDerived } from '@/utils/courseDetailDerived'
 import type { CourseGalleryItem } from '@/utils/courseDetailPageData'
-import { courseHasCertificate } from '@/utils/courseDetailPageData'
+import { resolveCertificateAvailability } from '@/utils/programCertificateAvailability'
 import { formatPublicText } from '@/utils/publicDetailFormat'
 
 const AVATAR_PLACEHOLDER =
@@ -53,7 +53,8 @@ export default function PremiumHero({
   const [activeImg, setActiveImg] = useState(coverUrl)
   useEffect(() => { setActiveImg(coverUrl) }, [coverUrl])
 
-  const showCert = courseHasCertificate(course)
+  const cert = resolveCertificateAvailability(course)
+  const showCert = cert.hasCertificate && Boolean(cert.badgeLabel)
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#2a4568] via-[#256a9a] to-[#2fa0d4]">
@@ -99,7 +100,7 @@ export default function PremiumHero({
             {showCert && (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/45 bg-emerald-300/22 px-3 py-1 text-[11px] font-black text-white">
                 <BadgeCheck className="h-3 w-3" />
-                شهادة معتمدة
+                {cert.badgeLabel}
               </span>
             )}
             {derived.registration.open && !derived.seatsFull && (

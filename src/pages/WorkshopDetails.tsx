@@ -30,6 +30,7 @@ import {
   gatePublicEnrollClick,
   PUBLIC_ENROLL_STUDENT_ONLY_MSG,
 } from '@/utils/publicEnrollAuth'
+import { resolveCertificateAvailability } from '@/utils/programCertificateAvailability'
 import { formatEuroInteger } from '@/utils/currency'
 import PremiumSnapshot from '@/components/public/course-detail/premium/PremiumSnapshot'
 import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
@@ -76,8 +77,9 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
   if (workshop.seats_remaining != null) {
     items.push({ id: 'remaining', icon: Users, label: 'المقاعد المتبقية', value: `${workshop.seats_remaining} مقعد`, accent: 'green' })
   }
-  if (workshop.certificate_name) {
-    items.push({ id: 'cert', icon: BadgeCheck, label: 'الشهادة', value: workshop.certificate_name, accent: 'orange' })
+  const cert = resolveCertificateAvailability(workshop)
+  if (cert.hasCertificate && cert.label) {
+    items.push({ id: 'cert', icon: BadgeCheck, label: 'الشهادة', value: cert.label, accent: 'orange' })
   }
   if (!workshop.is_online && workshop.location_type) {
     items.push({ id: 'location', icon: MapPin, label: 'المكان', value: workshop.location_type === 'offline' ? 'حضوري' : 'مختلط', accent: 'navy' })
@@ -143,6 +145,10 @@ export default function WorkshopDetailsPage() {
   const seatsFull = (workshop?.seats_remaining ?? 1) <= 0 && (workshop?.seats_total ?? 0) > 0
 
   const metrics = useMemo(() => (workshop ? buildMetrics(workshop) : []), [workshop])
+  const certificateAvailability = useMemo(
+    () => (workshop ? resolveCertificateAvailability(workshop) : null),
+    [workshop],
+  )
 
   async function handleShare() {
     const url = window.location.href
@@ -356,10 +362,10 @@ export default function WorkshopDetailsPage() {
               <span className="inline-flex items-center rounded-full border border-white/35 bg-white/20 px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-sm">
                 ورشة تدريبية
               </span>
-              {w.certificate_name && (
+              {certificateAvailability?.hasCertificate && certificateAvailability.badgeLabel && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/45 bg-emerald-300/22 px-3 py-1 text-[11px] font-black text-white">
                   <BadgeCheck className="h-3 w-3" />
-                  شهادة معتمدة
+                  {certificateAvailability.badgeLabel}
                 </span>
               )}
               {registrationOpen && !seatsFull && (

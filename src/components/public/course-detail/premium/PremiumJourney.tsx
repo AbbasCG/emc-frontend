@@ -3,7 +3,7 @@ import { Award, BookOpen, CalendarDays, ClipboardCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Course } from '@/types'
 import type { CourseDetailDerived } from '@/utils/courseDetailDerived'
-import { courseHasCertificate } from '@/utils/courseDetailPageData'
+import { hasProgramCertificate } from '@/utils/programCertificateAvailability'
 import { formatPublicDate } from '@/utils/publicDetailFormat'
 
 type Step = {
@@ -18,10 +18,10 @@ type Props = { course: Course; derived: CourseDetailDerived }
 
 export default function PremiumJourney({ course, derived }: Props) {
   const startDate = formatPublicDate(course.start_date)
+  const certAvailable = hasProgramCertificate(course)
 
   const steps: Step[] = [
     {
-      number: 1,
       phase: 'قبل الدورة',
       icon: CalendarDays,
       desc:
@@ -35,7 +35,6 @@ export default function PremiumJourney({ course, derived }: Props) {
       isOrange: false,
     },
     {
-      number: 2,
       phase: 'أثناء الدورة',
       icon: BookOpen,
       desc:
@@ -49,7 +48,6 @@ export default function PremiumJourney({ course, derived }: Props) {
       isOrange: true,
     },
     {
-      number: 3,
       phase: 'إتمام البرنامج',
       icon: ClipboardCheck,
       desc: derived.completionHint
@@ -57,14 +55,15 @@ export default function PremiumJourney({ course, derived }: Props) {
         : 'أتمّ جميع متطلبات البرنامج بنجاح',
       isOrange: false,
     },
-    {
-      number: 4,
-      phase: 'الشهادة',
-      icon: Award,
-      desc: derived.certificateLine ?? 'استلم شهادة إتمامك المعتمدة',
-      isOrange: true,
-    },
-  ].filter((step) => step.phase !== 'الشهادة' || courseHasCertificate(course))
+    ...(certAvailable
+      ? [{
+          phase: 'الشهادة',
+          icon: Award,
+          desc: derived.certificateLine ?? 'استلم شهادة إتمامك المعتمدة',
+          isOrange: true,
+        }]
+      : []),
+  ].map((step, index) => ({ ...step, number: index + 1 }))
 
   return (
     <section aria-label="رحلة التعلم" dir="rtl">

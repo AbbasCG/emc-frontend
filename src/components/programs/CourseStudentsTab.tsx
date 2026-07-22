@@ -78,8 +78,8 @@ export function CourseStudentsTab({ courseId, onChanged, onRequestAdd }: Props) 
     if (!confirmRemove) return
     setRemoveLoading(true)
     try {
-      await removeStudentFromCourse(courseId, confirmRemove.userId)
-      toast.success('تم إلغاء تسجيل الطالب')
+      const message = await removeStudentFromCourse(courseId, confirmRemove.userId)
+      toast.success(message)
       setConfirmRemove(null)
       void loadParticipants()
       onChanged?.()

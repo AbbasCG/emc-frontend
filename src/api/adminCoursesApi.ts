@@ -582,8 +582,10 @@ export async function addStudentToCourse(
   return (raw.data ?? raw) as CourseParticipant
 }
 
-export async function removeStudentFromCourse(courseId: number, userId: number): Promise<void> {
-  await apiClient.delete(`/admin/courses/${courseId}/students/${userId}`, silent)
+export async function removeStudentFromCourse(courseId: number, userId: number): Promise<string> {
+  const res = await apiClient.delete<unknown>(`/admin/courses/${courseId}/students/${userId}`, silent)
+  const raw = (res.data ?? {}) as Record<string, unknown>
+  return typeof raw.message === 'string' ? raw.message : 'تمت إزالة الطالب من الدورة وإلغاء تسجيله بنجاح'
 }
 
 // ---------------------------------------------------------------------------

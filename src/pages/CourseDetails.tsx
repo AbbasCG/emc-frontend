@@ -20,10 +20,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import PublicSeo from '@/components/public/PublicSeo'
 import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
 import PublicDetailCtaButton from '@/components/public/detail/PublicDetailCtaButton'
+import AppAlert from '@/components/ui/AppAlert'
 import { resolveCourseEnrollCta } from '@/utils/publicCourseDetailCta'
 import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import { deriveCourseDetail } from '@/utils/courseDetailDerived'
-import { fetchStudentRegistrations } from '@/api/studentApi'
+import { fetchStudentRegistrations, type StudentCourseAccess } from '@/api/studentApi'
 import { fetchCoursesFromApi } from '@/api/coursesApi.public'
 import { formatPublicDate, formatPublicText, formatPublicTime, formatPublicCount } from '@/utils/publicDetailFormat'
 import {
@@ -138,6 +139,7 @@ export default function CourseDetails() {
   const [error, setError] = useState('')
   const [notFound, setNotFound] = useState(false)
   const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
+  const [courseAccess, setCourseAccess] = useState<StudentCourseAccess | null>(null)
   const [wishlisted, setWishlisted] = useState(false)
 
   useEffect(() => {
@@ -207,13 +209,15 @@ export default function CourseDetails() {
       try {
         const rows = await fetchStudentRegistrations()
         if (cancelled) return
-        setAlreadyEnrolled(
-          rows.some(
-            (r) => r.course_id === course.id || (course.slug && r.slug === course.slug),
-          ),
+        const matched = rows.find(
+          (r) => r.course_id === course.id || (course.slug && r.slug === course.slug),
         )
+        setAlreadyEnrolled(Boolean(matched))
+        // Backend eligibility (CourseAccessEligibilityService) — never re-derived
+        // from registration presence alone; see resolveAccessBlockedCta().
+        setCourseAccess(matched?.access ?? null)
       } catch {
-        /* default false */
+        /* default false / no access block */
       }
     })()
     return () => {
@@ -354,6 +358,7 @@ export default function CourseDetails() {
     isPaid: Boolean(courseX2.is_paid),
     price: typeof courseX2.price === 'number' ? courseX2.price : undefined,
     currency: typeof courseX2.currency === 'string' ? courseX2.currency : 'EUR',
+    access: courseAccess,
   })
 
   const gallery = extractCourseGallery(course, coverUrl)
@@ -404,8 +409,11 @@ export default function CourseDetails() {
           </div>
         )}
       </div>
-      <div className="p-4 sm:p-5">
+      <div className="space-y-3 p-4 sm:p-5">
         <PublicDetailCtaButton cta={enrollCta} className="w-full justify-center" />
+        {enrollCta.message && (
+          <AppAlert type={enrollCta.disabled ? 'info' : 'error'} title={enrollCta.message} />
+        )}
       </div>
     </div>
   )
