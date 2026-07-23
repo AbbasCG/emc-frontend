@@ -31,6 +31,7 @@ import {
   Lock,
   Mail,
   MessageSquare,
+  MoreVertical,
   Paperclip,
   Phone,
   Printer,
@@ -380,7 +381,7 @@ function SCardHeader({ icon: Icon, title, color = 'text-slate-500', bg = 'bg-sla
   icon: React.ElementType; title: string; color?: string; bg?: string
 }) {
   return (
-    <div className="flex items-center gap-2.5 border-b border-slate-100 px-5 py-4">
+    <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
       <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${bg}`}>
         <Icon size={13} className={color} />
       </div>
@@ -408,7 +409,7 @@ function MCard({ children, delay = 0 }: { children: React.ReactNode; delay?: num
 
 function MCardHeader({ icon: Icon, title, badge }: { icon: React.ElementType; title: string; badge?: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-6 sm:py-4">
       <div className="flex items-center gap-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100">
           <Icon size={14} className="text-slate-500" />
@@ -1213,7 +1214,12 @@ export default function OpsSupportTicketDetailPage() {
   const [resolving, setResolving] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
+  const replyFormRef = useRef<HTMLDivElement>(null)
+  const statusCardRef = useRef<HTMLDivElement>(null)
+  const moreMenuTriggerRef = useRef<HTMLDivElement>(null)
 
   const loadTicket = useCallback(async () => {
     if (!Number.isFinite(tid)) return
@@ -1226,13 +1232,45 @@ export default function OpsSupportTicketDetailPage() {
 
   useEffect(() => { void loadTicket() }, [loadTicket])
 
-  /* Scroll to bottom when replies load or a new one is added */
+  /*
+   * Reset the page's own scroll position whenever a (possibly different)
+   * ticket is opened — covers both a fresh navigation into this page and
+   * opening another ticket from inside it (the route's `:id` param changes,
+   * but this page instance can stay mounted across that transition).
+   * The app-wide <ScrollToTop /> already does this on pathname change, but
+   * it fires once, immediately on navigation, before the ticket has loaded —
+   * see the note below on why an uncontained inner scroll used to undo it.
+   */
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [tid])
+
+  /*
+   * Scroll to the latest message when replies load or a new one is added —
+   * contained to the conversation panel itself via its own scrollTop, never
+   * `scrollIntoView()`. `scrollIntoView` walks up every scrollable ancestor
+   * to bring its target into view, including the window — since the chat
+   * panel sits far down a very tall page, that dragged the entire page
+   * scroll position down every time ticket data finished loading, exactly
+   * the "page opens already scrolled down" bug: the window correctly reset
+   * to the top on navigation, then this effect silently scrolled it back
+   * down once the ticket (and its replies) arrived a moment later.
+   */
   const repliesLength = ticket?.replies?.length ?? 0
   useEffect(() => {
-    if (!loading && chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: repliesLength > 1 ? 'smooth' : 'instant' })
+    const el = chatScrollRef.current
+    if (!loading && el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: repliesLength > 1 ? 'smooth' : 'instant' })
     }
   }, [repliesLength, loading])
+
+  function scrollToReply() {
+    replyFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function scrollToStatus() {
+    statusCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 
   async function handleRefresh() {
     if (!Number.isFinite(tid) || refreshing) return
@@ -1351,32 +1389,40 @@ export default function OpsSupportTicketDetailPage() {
         transition={{ duration: 0.2 }}
         className="min-h-screen bg-[#F0F4F8]"
       >
-        <div className="mx-auto max-w-[1700px] space-y-6 px-6 py-6 pb-24 lg:px-8">
-
-          {/* ── BREADCRUMB ──────────────────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28 }}
-            className="flex items-center gap-2"
-          >
+        {/* ── STICKY COMPACT HEADER — back button, ticket #, status/priority badges, always visible while scrolling ── */}
+        <div className="sticky top-0 z-20 border-b border-slate-200/70 bg-[#F0F4F8]/90 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-[1700px] items-center gap-2.5 px-3 py-2.5 sm:px-6 sm:py-3 lg:px-8">
             <Link
               to={listPath}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-[13px] font-bold text-slate-500 shadow-sm transition hover:border-[#2691C2]/40 hover:text-[#2691C2]"
+              aria-label="العودة إلى قائمة التذاكر"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[#2691C2]/40 hover:text-[#2691C2] sm:h-9 sm:w-9"
             >
-              <ArrowLeft size={13} />
-              قائمة التذاكر
+              <ArrowLeft size={15} />
             </Link>
-            <span className="text-slate-300">/</span>
-            <span className="font-mono text-[12px] font-bold text-slate-400">{ticketNum}</span>
-          </motion.div>
+            <span className="shrink-0 truncate font-mono text-[12px] font-bold text-slate-500">{ticketNum}</span>
+            <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${STATUS_LIGHT[ticket.status] ?? ''}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[ticket.status] ?? ''}`} />
+              {STATUS_AR[ticket.status] ?? ticket.status}
+            </span>
+            {ticket.priority && (
+              <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[10px] font-bold ${PRIORITY_LIGHT[ticket.priority] ?? ''}`}>
+                {PRIORITY_AR[ticket.priority] ?? ticket.priority}
+              </span>
+            )}
+            <span className="min-w-0 flex-1 truncate text-[12px] font-bold text-slate-400 max-sm:hidden">
+              {ticket.subject}
+            </span>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-[1700px] space-y-4 px-3 py-4 pb-24 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
 
           {/* ══ HERO ════════════════════════════════════════════════════════ */}
           <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.4, ease: [0.22, 0.61, 0.36, 1] }}
-            className="relative overflow-hidden rounded-[28px] p-7 text-white shadow-2xl sm:p-8"
+            className="relative overflow-hidden rounded-[24px] p-4 text-white shadow-2xl sm:rounded-[28px] sm:p-7 lg:p-8"
             style={{ background: 'linear-gradient(145deg, #22334A 0%, #172235 100%)' }}
           >
             {/* Glow orb */}
@@ -1419,6 +1465,12 @@ export default function OpsSupportTicketDetailPage() {
                       {reqType}
                     </span>
                   )}
+                  {submitter && (
+                    <span className="flex min-w-0 items-center gap-1">
+                      <User size={11} className="shrink-0 text-white/30" />
+                      <span className="truncate text-white/60">{submitter}</span>
+                    </span>
+                  )}
                   {ticket.assigned_to && (
                     <span className="flex items-center gap-1.5">
                       <Avatar name={ticket.assigned_to.name} px={18} />
@@ -1452,18 +1504,31 @@ export default function OpsSupportTicketDetailPage() {
               </div>
             </div>
 
-            {/* Horizontal action bar */}
-            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4">
+            {/* Action bar — primary actions (Reply / Change Status / Resolve) always
+                reachable and full-width on mobile; secondary/destructive actions
+                (Refresh, Copy Link, Print, Delete) collapse into a "More" menu so
+                they don't compete for thumb reach on a small screen. */}
+            <div className="mt-5 flex flex-wrap items-stretch gap-2 border-t border-white/[0.06] pt-4">
               <motion.button
                 type="button"
                 whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => void handleRefresh()}
-                disabled={refreshing}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[12px] font-bold text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 disabled:opacity-50"
+                onClick={scrollToReply}
+                className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#2691C2]/25 px-4 text-[13px] font-bold text-white ring-1 ring-[#2691C2]/40 transition hover:bg-[#2691C2]/35 sm:flex-none"
               >
-                <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-                تحديث
+                <Send size={13} />
+                رد
+              </motion.button>
+
+              <motion.button
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={scrollToStatus}
+                className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/10 px-4 text-[13px] font-bold text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 sm:flex-none"
+              >
+                <TrendingUp size={13} />
+                تغيير الحالة
               </motion.button>
 
               {!isResolved && (
@@ -1473,45 +1538,69 @@ export default function OpsSupportTicketDetailPage() {
                   whileTap={{ scale: 0.96 }}
                   onClick={() => void handleResolve()}
                   disabled={resolving}
-                  className="flex h-8 items-center gap-1.5 rounded-lg bg-emerald-500/20 px-3 text-[12px] font-bold text-emerald-300 ring-1 ring-emerald-400/30 transition hover:bg-emerald-500/30 disabled:opacity-50"
+                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 px-4 text-[13px] font-bold text-emerald-300 ring-1 ring-emerald-400/30 transition hover:bg-emerald-500/30 disabled:opacity-50 sm:flex-none"
                 >
-                  <CheckCircle2 size={12} className={resolving ? 'animate-spin' : ''} />
+                  <CheckCircle2 size={13} className={resolving ? 'animate-spin' : ''} />
                   {resolving ? 'جارٍ...' : 'حل التذكرة'}
                 </motion.button>
               )}
 
-              <motion.button
-                type="button"
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={async () => { await navigator.clipboard.writeText(window.location.href); toast.success('تم نسخ الرابط') }}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[12px] font-bold text-white/70 ring-1 ring-white/10 transition hover:bg-white/15"
-              >
-                <Copy size={12} />
-                نسخ الرابط
-              </motion.button>
+              {/* More menu — Refresh / Copy Link / Print / Delete */}
+              <div ref={moreMenuTriggerRef} className="relative">
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setMoreMenuOpen((v) => !v)}
+                  aria-label="المزيد من الإجراءات"
+                  aria-expanded={moreMenuOpen}
+                  className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white/80 ring-1 ring-white/10 transition hover:bg-white/15"
+                >
+                  <MoreVertical size={15} />
+                </motion.button>
+              </div>
 
-              <motion.button
-                type="button"
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => window.print()}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-[12px] font-bold text-white/70 ring-1 ring-white/10 transition hover:bg-white/15"
+              <PortalDropdown
+                open={moreMenuOpen}
+                triggerRef={moreMenuTriggerRef as React.RefObject<HTMLElement | null>}
+                onClose={() => setMoreMenuOpen(false)}
+                width={200}
               >
-                <Printer size={12} />
-                طباعة
-              </motion.button>
-
-              <motion.button
-                type="button"
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setShowDeleteModal(true)}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-red-500/15 px-3 text-[12px] font-bold text-red-300 ring-1 ring-red-400/20 transition hover:bg-red-500/25"
-              >
-                <Trash2 size={12} />
-                حذف
-              </motion.button>
+                <button
+                  type="button"
+                  onClick={() => { setMoreMenuOpen(false); void handleRefresh() }}
+                  disabled={refreshing}
+                  className="flex h-11 w-full items-center gap-2.5 px-4 text-start text-[13px] font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+                  تحديث
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMoreMenuOpen(false); void (async () => { await navigator.clipboard.writeText(window.location.href); toast.success('تم نسخ الرابط') })() }}
+                  className="flex h-11 w-full items-center gap-2.5 px-4 text-start text-[13px] font-bold text-slate-700 transition hover:bg-slate-50"
+                >
+                  <Copy size={14} />
+                  نسخ الرابط
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMoreMenuOpen(false); window.print() }}
+                  className="flex h-11 w-full items-center gap-2.5 px-4 text-start text-[13px] font-bold text-slate-700 transition hover:bg-slate-50"
+                >
+                  <Printer size={14} />
+                  طباعة
+                </button>
+                <div className="my-1 h-px bg-slate-100" />
+                <button
+                  type="button"
+                  onClick={() => { setMoreMenuOpen(false); setShowDeleteModal(true) }}
+                  className="flex h-11 w-full items-center gap-2.5 px-4 text-start text-[13px] font-bold text-red-600 transition hover:bg-red-50"
+                >
+                  <Trash2 size={14} />
+                  حذف
+                </button>
+              </PortalDropdown>
             </div>
 
             {/* Bottom dates strip */}
@@ -1537,22 +1626,28 @@ export default function OpsSupportTicketDetailPage() {
             </div>
           </motion.div>
 
-          {/* ══ TWO COLUMN LAYOUT ══════════════════════════════════════════ */}
-          <div dir="rtl" className="grid grid-cols-1 gap-6 xl:grid-cols-[340px_1fr]">
+          {/* ══ TWO COLUMN LAYOUT ══════════════════════════════════════════
+              `order` puts the conversation first on mobile (no large empty
+              sidebar stack before it) while preserving the existing RTL
+              desktop grid — right column (sidebar) first, left column
+              (conversation) second — via DOM order at xl and above. ── */}
+          <div dir="rtl" className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-[340px_1fr]">
 
-            {/* ── RIGHT: Sidebar (first in DOM → right column in RTL) ──── */}
-            <div className="space-y-5">
+            {/* ── RIGHT: Sidebar (xl: first in DOM → right column in RTL) ──── */}
+            <div className="order-2 space-y-4 sm:space-y-5 xl:order-1">
               <AssignmentCard currentAssignee={ticket.assigned_to} onAssign={handleAssign} />
               <PriorityCard value={ticket.priority ?? 'medium'} onChange={patchPriority} />
-              <StatusCard value={ticket.status} onChange={patchStatus} />
+              <div ref={statusCardRef}>
+                <StatusCard value={ticket.status} onChange={patchStatus} />
+              </div>
               <ApplicantCard name={submitter} email={ticket.email} phone={ticket.phone} />
               <AttachmentsCard />
               <TicketDetailsCard ticket={ticket} ticketNum={ticketNum} reqType={reqType} />
               <ActivityLogCard ticketId={ticket.id} />
             </div>
 
-            {/* ── LEFT: Main content (second in DOM → left column in RTL) ── */}
-            <div className="min-w-0 space-y-5">
+            {/* ── LEFT: Main content (xl: second in DOM → left column in RTL) ── */}
+            <div className="order-1 min-w-0 space-y-4 sm:space-y-5 xl:order-2">
 
               {/* Conversation — original message + all replies, oldest→newest */}
               <MCard delay={0.08}>
@@ -1562,7 +1657,8 @@ export default function OpsSupportTicketDetailPage() {
                   badge={`${replies.length + (ticket.message ? 1 : 0)} رسائل`}
                 />
                 <div
-                  className="flex h-[560px] flex-col gap-4 overflow-y-auto px-5 py-5"
+                  ref={chatScrollRef}
+                  className="flex h-[70vh] max-h-[420px] flex-col gap-4 overflow-y-auto px-4 py-4 sm:h-[560px] sm:max-h-none sm:px-5 sm:py-5"
                   style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}
                 >
                   {(() => {
@@ -1632,9 +1728,10 @@ export default function OpsSupportTicketDetailPage() {
               </MCard>
 
               {/* Reply editor */}
+              <div ref={replyFormRef}>
               <MCard delay={0.18}>
                 <MCardHeader icon={Send} title="رد جديد" />
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <form onSubmit={(e) => { void sendReply(e) }} className="space-y-3">
                     {/* Toolbar */}
                     <div className="flex flex-wrap items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5">
@@ -1680,7 +1777,7 @@ export default function OpsSupportTicketDetailPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-4">
                         {/* Toggle */}
-                        <label className="flex cursor-pointer select-none items-center gap-2.5">
+                        <label className="flex min-h-11 cursor-pointer select-none items-center gap-2.5">
                           <div
                             role="checkbox"
                             aria-checked={internal}
@@ -1708,7 +1805,7 @@ export default function OpsSupportTicketDetailPage() {
                         disabled={busy || !reply.trim()}
                         whileHover={{ y: -2 }}
                         whileTap={{ y: 0 }}
-                        className="flex h-11 items-center gap-2 rounded-2xl bg-[#2691C2] px-7 text-[13px] font-black text-white shadow-md shadow-[#2691C2]/20 transition hover:bg-[#1e7aa8] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#2691C2] px-7 text-[13px] font-black text-white shadow-md shadow-[#2691C2]/20 transition hover:bg-[#1e7aa8] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                       >
                         {busy ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
                         {busy ? 'جارٍ الإرسال...' : 'إرسال الرد'}
@@ -1717,6 +1814,7 @@ export default function OpsSupportTicketDetailPage() {
                   </form>
                 </div>
               </MCard>
+              </div>
             </div>
           </div>
         </div>

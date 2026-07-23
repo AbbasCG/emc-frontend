@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -417,6 +417,7 @@ function TicketCard({
             <Tooltip label="فتح التذكرة">
               <button
                 type="button"
+                aria-label="فتح التذكرة"
                 onClick={(e) => { e.stopPropagation(); onOpen() }}
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-brand-200 bg-brand-50 text-brand-600 transition hover:bg-brand-100"
               >
@@ -500,6 +501,17 @@ function TicketCard({
 
 export default function OpsSupportTicketsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  // This page is mounted under two namespaces (/dashboard/support for
+  // support_agent, /dashboard/admin/support-tickets for admin/tech_admin) —
+  // see DASHBOARD_NAMESPACE_RULES in utils/dashboardAccess.ts. Navigating to
+  // the wrong namespace's detail route gets silently bounced back here by
+  // DashboardAccessGuard, which looked like the "Open" button just
+  // refreshing the page. Mirrors the same namespace check already used by
+  // OpsSupportTicketDetailPage's own back-link.
+  const detailBasePath = location.pathname.startsWith('/dashboard/support')
+    ? '/dashboard/support'
+    : '/dashboard/admin/support-tickets'
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [stats, setStats] = useState({ total: 0, open: 0, unassigned: 0, resolved: 0, high: 0 })
   const [meta, setMeta] = useState<{ last_page?: number; current_page?: number }>({})
@@ -822,7 +834,7 @@ export default function OpsSupportTicketsPage() {
                 >
                   <TicketCard
                     t={t}
-                    onOpen={() => navigate(`/dashboard/admin/support-tickets/${t.id}`)}
+                    onOpen={() => navigate(`${detailBasePath}/${t.id}`)}
                     onStatusChange={handleStatusChange}
                     onPriorityChange={handlePriorityChange}
                     onResolve={handleResolve}
