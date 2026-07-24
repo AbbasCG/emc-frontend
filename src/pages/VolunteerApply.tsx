@@ -10,9 +10,7 @@ import {
   Paperclip,
   Upload,
   User,
-  Briefcase,
   Sparkles,
-  ClipboardList,
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
@@ -51,10 +49,8 @@ const GENDER_OPTIONS = [
 ]
 
 const STEPS = [
-  { id: 1, label: 'البيانات الشخصية', icon: User },
-  { id: 2, label: 'مجال التطوع', icon: Briefcase },
-  { id: 3, label: 'الخبرات والتوفر', icon: Sparkles },
-  { id: 4, label: 'المراجعة والإرسال', icon: ClipboardList },
+  { id: 1, label: 'البيانات والمجال', icon: User },
+  { id: 2, label: 'الخبرات والإرسال', icon: Sparkles },
 ]
 
 /* ── Types ───────────────────────────────────────────────────────────── */
@@ -316,6 +312,7 @@ export default function VolunteerApply() {
 
   /* ── Validation ── */
 
+  // Step 1 = personal data + desired department (old steps 1+2 merged)
   function validateStep1(): FieldErrors {
     const e: FieldErrors = {}
     if (!form.full_name.trim()) e.full_name = 'الاسم الكامل مطلوب'
@@ -325,16 +322,12 @@ export default function VolunteerApply() {
     if (!form.country) e.country = 'الدولة مطلوبة'
     if (!form.city.trim()) e.city = 'المدينة مطلوبة'
     if (!form.gender) e.gender = 'الجنس مطلوب'
-    return e
-  }
-
-  function validateStep2(): FieldErrors {
-    const e: FieldErrors = {}
     if (!form.desired_department) e.desired_department = 'القسم مطلوب'
     return e
   }
 
-  function validateStep3(): FieldErrors {
+  // Step 2 = experience & availability (old step 3)
+  function validateStep2(): FieldErrors {
     const e: FieldErrors = {}
     if (!form.experience_level) e.experience_level = 'مستوى الخبرة مطلوب'
     if (!form.availability) e.availability = 'التوفر مطلوب'
@@ -344,7 +337,8 @@ export default function VolunteerApply() {
     return e
   }
 
-  function validateStep4(): FieldErrors {
+  // Consent checkbox (old step 4)
+  function validateTerms(): FieldErrors {
     const e: FieldErrors = {}
     if (!form.agree_terms) e.agree_terms = 'يجب الموافقة قبل الإرسال'
     return e
@@ -353,15 +347,13 @@ export default function VolunteerApply() {
   function next() {
     let errors: FieldErrors = {}
     if (step === 1) errors = validateStep1()
-    if (step === 2) errors = validateStep2()
-    if (step === 3) errors = validateStep3()
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
       return
     }
     setFieldErrors({})
-    setStep((s) => Math.min(s + 1, 4))
+    setStep((s) => Math.min(s + 1, 2))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -373,16 +365,24 @@ export default function VolunteerApply() {
   // Which step owns each backend field name
   const FIELD_STEP: Record<string, number> = {
     full_name: 1, email: 1, phone: 1, country: 1, city: 1, gender: 1,
-    desired_department: 2,
-    experience_level: 3, skills: 3, availability: 3, motivation: 3,
-    previous_experience: 3, cv_file: 3, notes: 3,
-    agree_terms: 4,
+    desired_department: 1,
+    experience_level: 2, skills: 2, availability: 2, motivation: 2,
+    previous_experience: 2, cv_file: 2, notes: 2,
+    agree_terms: 2,
   }
 
   async function handleSubmit() {
-    const errors = validateStep4()
+    // Submit lives at the end of step 2, so step-2 fields are no longer gated
+    // by next(). Run the full validation here: step 2 + consent, plus a
+    // defensive re-check of step 1 (routing back to it if it somehow fails).
+    const step1Errors = validateStep1()
+    const errors: FieldErrors = { ...validateStep2(), ...validateTerms(), ...step1Errors }
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
+      if (Object.keys(step1Errors).length > 0) {
+        setStep(1)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
       return
     }
     setSubmitError(null)
@@ -419,9 +419,9 @@ export default function VolunteerApply() {
         // Surface backend errors as field-level errors and navigate to earliest failing step
         setFieldErrors(fieldErrs as FieldErrors)
         const earliestStep = Object.keys(fieldErrs).reduce((min, field) => {
-          const s = FIELD_STEP[field] ?? 4
+          const s = FIELD_STEP[field] ?? 2
           return s < min ? s : min
-        }, 4)
+        }, 2)
         setStep(earliestStep)
         toast.error('يرجى مراجعة البيانات المدخلة', { description: getApiErrorMessage(err) })
       } else {
@@ -519,10 +519,8 @@ export default function VolunteerApply() {
                 {STEPS[step - 1]?.label}
               </h1>
               <p className="mt-1.5 text-[13px] font-semibold text-foreground/55">
-                {step === 1 && 'أدخل بياناتك الشخصية بدقة حتى نتمكن من التواصل معك.'}
-                {step === 2 && 'اختر القسم الذي تودّ التطوع فيه داخل EMC.'}
-                {step === 3 && 'أخبرنا عن خبرتك ومهاراتك ووقتك المتاح.'}
-                {step === 4 && 'راجع بياناتك ثم أرسل طلبك.'}
+                {step === 1 && 'أدخل بياناتك الشخصية بدقة واختر القسم الذي تودّ التطوع فيه داخل EMC.'}
+                {step === 2 && 'أخبرنا عن خبرتك ومهاراتك ووقتك المتاح، ثم راجع بياناتك وأرسل طلبك.'}
               </p>
             </div>
 
@@ -537,7 +535,7 @@ export default function VolunteerApply() {
                 className="space-y-7 px-8 py-9"
               >
 
-                {/* ── Step 1: البيانات الشخصية ── */}
+                {/* ── Step 1: البيانات والمجال ── */}
                 {step === 1 && (
                   <>
                     <Field label="الاسم الكامل" required error={fieldErrors.full_name}>
@@ -609,40 +607,32 @@ export default function VolunteerApply() {
                         ))}
                       </div>
                     </Field>
+
+                    <Field label="القسم الذي ترغب بالتطوع فيه" required error={fieldErrors.desired_department}>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {DEPARTMENTS.map((dept) => (
+                          <button
+                            key={dept}
+                            type="button"
+                            onClick={() => set('desired_department', dept)}
+                            className={`rounded-2xl border px-5 py-4 text-right text-[13px] font-bold transition duration-250 ease-emc ${
+                              form.desired_department === dept
+                                ? 'border-customBlue bg-brand-50 text-customBlue shadow-emc-sm'
+                                : fieldErrors.desired_department
+                                  ? 'border-red-200 bg-paper2 text-foreground/70'
+                                  : 'border-line bg-paper2 text-foreground/80 hover:border-customBlue/30 hover:bg-brand-50/60'
+                            }`}
+                          >
+                            {dept}
+                          </button>
+                        ))}
+                      </div>
+                    </Field>
                   </>
                 )}
 
-                {/* ── Step 2: مجال التطوع ── */}
+                {/* ── Step 2: الخبرات والإرسال ── */}
                 {step === 2 && (
-                  <Field label="القسم الذي ترغب بالتطوع فيه" required error={fieldErrors.desired_department}>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {DEPARTMENTS.map((dept) => (
-                        <button
-                          key={dept}
-                          type="button"
-                          onClick={() => set('desired_department', dept)}
-                          className={`rounded-2xl border px-5 py-4 text-right text-[13px] font-bold transition duration-250 ease-emc ${
-                            form.desired_department === dept
-                              ? 'border-customBlue bg-brand-50 text-customBlue shadow-emc-sm'
-                              : fieldErrors.desired_department
-                                ? 'border-red-200 bg-paper2 text-foreground/70'
-                                : 'border-line bg-paper2 text-foreground/80 hover:border-customBlue/30 hover:bg-brand-50/60'
-                          }`}
-                        >
-                          {dept}
-                        </button>
-                      ))}
-                    </div>
-                    {fieldErrors.desired_department && (
-                      <p className="mt-2 text-[12px] font-bold text-red-600">
-                        {fieldErrors.desired_department}
-                      </p>
-                    )}
-                  </Field>
-                )}
-
-                {/* ── Step 3: الخبرات والتوفر ── */}
-                {step === 3 && (
                   <>
                     <Field label="مستوى الخبرة" required error={fieldErrors.experience_level}>
                       <div className="flex flex-wrap gap-3">
@@ -753,12 +743,11 @@ export default function VolunteerApply() {
                         rows={3}
                       />
                     </Field>
-                  </>
-                )}
 
-                {/* ── Step 4: المراجعة والإرسال ── */}
-                {step === 4 && (
-                  <>
+                    {/* ── Review summary (tail of step 2) ── */}
+                    <div className="pt-2 text-right">
+                      <h2 className="text-sm font-black text-deepBlue">مراجعة بياناتك قبل الإرسال</h2>
+                    </div>
                     <div className="space-y-1 divide-y divide-line rounded-2xl border border-line bg-paper2/60 px-6 py-2">
                       <ReviewRow label="الاسم" value={form.full_name} />
                       <ReviewRow label="البريد" value={form.email} />
@@ -823,7 +812,7 @@ export default function VolunteerApply() {
                 </Link>
               )}
 
-              {step < 4 ? (
+              {step < 2 ? (
                 <button
                   type="button"
                   onClick={next}
