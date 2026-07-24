@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
   Building2,
   CalendarPlus,
+  Check,
   ChevronDown,
+  Globe,
   GraduationCap,
   LayoutDashboard,
   LayoutGrid,
@@ -23,39 +25,59 @@ import {
   HeartHandshake,
   Handshake,
   X,
+  type LucideIcon,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import MegaDropdown, { type MegaDropdownItem } from './nav/MegaDropdown'
 import { useAuth } from '../contexts/AuthContext'
 import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
 import { routeMatchesPath } from '@/utils/routeMatch'
 import { UserAvatar } from '@/components/UserAvatar'
+import { LANGS } from '@/i18n'
+import { useLanguage } from '@/i18n/LanguageProvider'
 
-const aboutItems: MegaDropdownItem[] = [
-  { href: '/about', label: 'من نحن', description: 'تعريف بالمنصة وأسلوب عملها', icon: Users },
-  { href: '/impact', label: 'الأثر والإنجازات', description: 'اتجاهات أثر واقعية وشفافة', icon: TrendingUp },
-  { href: '/ar/team', label: 'الفريق', description: 'الهيكل والأدوار والقيم', icon: UserCircle },
-  { href: '/departments', label: 'الإدارات والحوكمة', description: 'الهيكل التنظيمي وسياسات الجودة والامتثال', icon: Building2 },
-  { href: '/platform', label: 'المنصة', description: 'التجربة الرقمية والخدمات', icon: Monitor },
+/**
+ * M3 i18n: mega-menu items are defined by catalog key; labels/descriptions
+ * live in src/i18n/locales/*.json under nav.<group>.items.<key>.
+ */
+type MegaItemDef = { href: string; key: string; icon: LucideIcon }
+
+const ABOUT_ITEM_DEFS: readonly MegaItemDef[] = [
+  { href: '/about', key: 'about', icon: Users },
+  { href: '/impact', key: 'impact', icon: TrendingUp },
+  { href: '/ar/team', key: 'team', icon: UserCircle },
+  { href: '/departments', key: 'departments', icon: Building2 },
+  { href: '/platform', key: 'platform', icon: Monitor },
 ]
 
-const programsItems: MegaDropdownItem[] = [
-  { href: '/courses', label: 'البرامج والدورات', description: 'استعرض البرامج وسجّل مباشرة', icon: BookOpen },
-  { href: '/workshops', label: 'الورش', description: 'ورش تدريبية قصيرة ومجتمعية', icon: Sparkles },
-  { href: '/learning-paths', label: 'مسارات التعلم', description: 'مسارات تعليمية مترابطة مع شهادات', icon: Waypoints },
-  { href: '/tracks', label: 'المجالات والمحاور', description: 'المجالات الاثنا عشر والمحاور التفصيلية', icon: LayoutGrid },
-  { href: '/instructors', label: 'المدربون', description: 'تعرّف على خبراء التدريب', icon: UserCircle },
+const PROGRAMS_ITEM_DEFS: readonly MegaItemDef[] = [
+  { href: '/courses', key: 'courses', icon: BookOpen },
+  { href: '/workshops', key: 'workshops', icon: Sparkles },
+  { href: '/learning-paths', key: 'learningPaths', icon: Waypoints },
+  { href: '/tracks', key: 'tracks', icon: LayoutGrid },
+  { href: '/instructors', key: 'instructors', icon: UserCircle },
 ]
 
-const joinItems: MegaDropdownItem[] = [
-  { href: '/partnerships', label: 'الشراكات — نظرة عامة', description: 'تعرّف على شراكات EMC المؤسسية والخدمية', icon: Handshake },
-  { href: '/signup', label: 'انضم كطالب', description: 'إنشاء حساب للتعلّم والتسجيل في البرامج', icon: UserCircle },
-  { href: '/contact#trainer', label: 'انضم كمدرب', description: 'تواصل للانضمام كمدّرب مع EMC', icon: GraduationCap },
-  { href: '/partnerships/apply', label: 'انضم كشريك', description: 'تقديم طلب شراكة مؤسسية أو خدمية', icon: Handshake },
-  { href: '/volunteer', label: 'انضم كمتطوّع', description: 'شارك مهاراتك وفق أطر EMC التطوعية', icon: HeartHandshake },
-  { href: '/ambassador', label: 'سفير التحول الرقمي', description: 'برنامج سفراء EMC في الجامعات العربية', icon: Sparkles },
-  { href: '/submit-workshop', label: 'تقديم ورشة', description: 'طلب ورشة أو برنامج عبر النموذج الرسمي', icon: CalendarPlus },
-  { href: '/contact', label: 'تواصل معنا', description: 'قنوات التواصل والاستفسارات العامّة', icon: Mail },
+const JOIN_ITEM_DEFS: readonly MegaItemDef[] = [
+  { href: '/partnerships', key: 'partnerships', icon: Handshake },
+  { href: '/signup', key: 'student', icon: UserCircle },
+  { href: '/contact#trainer', key: 'trainer', icon: GraduationCap },
+  { href: '/partnerships/apply', key: 'partner', icon: Handshake },
+  { href: '/volunteer', key: 'volunteer', icon: HeartHandshake },
+  { href: '/ambassador', key: 'ambassador', icon: Sparkles },
+  { href: '/submit-workshop', key: 'submitWorkshop', icon: CalendarPlus },
+  { href: '/contact', key: 'contact', icon: Mail },
 ]
+
+function buildMegaItems(t: TFunction, group: 'about' | 'programs' | 'join', defs: readonly MegaItemDef[]): MegaDropdownItem[] {
+  return defs.map(({ href, key, icon }) => ({
+    href,
+    icon,
+    label: t(`nav.${group}.items.${key}.label`),
+    description: t(`nav.${group}.items.${key}.description`),
+  }))
+}
 
 type MegaId = 'about' | 'programs' | 'join'
 
@@ -88,12 +110,20 @@ const loginIconClass =
   'relative size-[15px] shrink-0 text-white/85 transition-colors duration-200 group-hover/login:text-white'
 
 export default function Navbar() {
+  const { t } = useTranslation()
+  const { lang, dir, setLang } = useLanguage()
   const { isAuthenticated, isLoading, user, logout } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [openMega, setOpenMega] = useState<MegaId | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileGroup, setMobileGroup] = useState<MegaId | null>(null)
+
+  const aboutItems = useMemo(() => buildMegaItems(t, 'about', ABOUT_ITEM_DEFS), [t])
+  const programsItems = useMemo(() => buildMegaItems(t, 'programs', PROGRAMS_ITEM_DEFS), [t])
+  const joinItems = useMemo(() => buildMegaItems(t, 'join', JOIN_ITEM_DEFS), [t])
+  const currentLang = LANGS.find((l) => l.code === lang) ?? LANGS[0]
 
   const navRef = useRef<HTMLElement>(null)
   const { pathname, hash } = useLocation()
@@ -107,6 +137,7 @@ export default function Navbar() {
   useEffect(() => {
     setOpenMega(null)
     setUserMenuOpen(false)
+    setLangMenuOpen(false)
     setMobileOpen(false)
     setMobileGroup(null)
   }, [pathname])
@@ -116,6 +147,7 @@ export default function Navbar() {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
         setOpenMega(null)
         setUserMenuOpen(false)
+        setLangMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -127,6 +159,7 @@ export default function Navbar() {
       if (e.key === 'Escape') {
         setOpenMega(null)
         setUserMenuOpen(false)
+        setLangMenuOpen(false)
         setMobileOpen(false)
       }
     }
@@ -137,12 +170,13 @@ export default function Navbar() {
   function toggleMega(id: MegaId) {
     setOpenMega((m) => (m === id ? null : id))
     setUserMenuOpen(false)
+    setLangMenuOpen(false)
   }
 
   return (
     <header
       ref={navRef}
-      dir="rtl"
+      dir={dir}
       className={[
         'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-500 ease-emc-out',
         scrolled
@@ -153,23 +187,23 @@ export default function Navbar() {
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:h-[4.25rem] lg:px-8">
         <Link
           to="/"
-          aria-label="EMC — الصفحة الرئيسية"
+          aria-label={t('nav.aria.homeLink')}
           className="relative z-20 flex shrink-0 items-center rounded-2xl p-1.5 ring-1 ring-transparent transition-all duration-200 ease-emc-out hover:bg-emcBg/90 hover:ring-customBlue/18 hover:shadow-emc-xs"
         >
-          <img src="/brand/logos/logo_full_color.png" alt="EMC — Educational Mastar Central" className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
+          <img src="/brand/logos/logo_full_color.png" alt={t('brand.logoAlt')} className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
         </Link>
 
         <nav
           className="absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center lg:flex"
-          aria-label="القائمة الرئيسية"
+          aria-label={t('nav.aria.mainMenu')}
         >
           <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl backdrop-saturate-150">
             <NavLink to="/" end className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}>
-              الرئيسية
+              {t('nav.home')}
             </NavLink>
 
             <MegaDropdown
-              label="عن EMC"
+              label={t('nav.about.label')}
               items={aboutItems}
               isOpen={openMega === 'about'}
               onToggle={() => toggleMega('about')}
@@ -178,7 +212,7 @@ export default function Navbar() {
               locationHash={hash}
             />
             <MegaDropdown
-              label="البرامج"
+              label={t('nav.programs.label')}
               items={programsItems}
               isOpen={openMega === 'programs'}
               onToggle={() => toggleMega('programs')}
@@ -187,7 +221,7 @@ export default function Navbar() {
               locationHash={hash}
             />
             <MegaDropdown
-              label="انضم إلينا"
+              label={t('nav.join.label')}
               items={joinItems}
               isOpen={openMega === 'join'}
               onToggle={() => toggleMega('join')}
@@ -205,7 +239,7 @@ export default function Navbar() {
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
                   <Link to="/dashboard" className={dashboardBtnClass}>
                     <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                    <span className="whitespace-nowrap">لوحة التحكم</span>
+                    <span className="whitespace-nowrap">{t('nav.auth.dashboard')}</span>
                   </Link>
                 </motion.span>
                 <div className="relative">
@@ -249,14 +283,14 @@ export default function Navbar() {
                           className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-deepBlue transition-all duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue"
                         >
                           <LayoutDashboard size={16} />
-                          لوحة التحكم
+                          {t('nav.auth.dashboard')}
                         </Link>
                         <Link
                           to="/dashboard/profile"
                           className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-deepBlue transition-all duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue"
                         >
                           <User size={16} />
-                          الملف الشخصي
+                          {t('nav.auth.profile')}
                         </Link>
                         <div className="my-1 border-t border-deepBlue/[0.06]" />
                         <button
@@ -265,7 +299,7 @@ export default function Navbar() {
                           className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-customOrange transition-all duration-200 ease-emc-out hover:bg-customOrange/[0.08]"
                         >
                           <LogOut size={16} />
-                          تسجيل الخروج
+                          {t('nav.auth.logout')}
                         </button>
                       </motion.div>
                     )}
@@ -277,17 +311,78 @@ export default function Navbar() {
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
                   <Link to="/login" className={loginBtnClass}>
                     <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
-                    <span className="whitespace-nowrap">تسجيل الدخول</span>
+                    <span className="whitespace-nowrap">{t('nav.auth.login')}</span>
                   </Link>
                 </motion.span>
               </>
             ))}
+
+          {/* M3: language switcher — trailing utility at the outer edge of the cluster */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setLangMenuOpen((v) => !v)
+                setOpenMega(null)
+                setUserMenuOpen(false)
+              }}
+              aria-expanded={langMenuOpen}
+              aria-haspopup="menu"
+              aria-label={t('nav.aria.changeLanguage')}
+              className={[
+                'flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-[13px] font-semibold transition-all duration-200',
+                langMenuOpen
+                  ? 'border-customBlue/35 bg-customBlue/[0.08] text-customBlue shadow-emc-xs backdrop-blur-sm'
+                  : 'border-deepBlue/[0.1] bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-emcBg/90',
+              ].join(' ')}
+            >
+              <Globe size={15} strokeWidth={2} className="shrink-0 text-customBlue opacity-95" aria-hidden />
+              <span className="whitespace-nowrap">{currentLang.label}</span>
+              <ChevronDown
+                size={14}
+                className={['transition-transform duration-300 ease-emc-out', langMenuOpen ? '-rotate-180 opacity-80' : 'opacity-55'].join(' ')}
+              />
+            </button>
+            <AnimatePresence>
+              {langMenuOpen && (
+                <motion.div
+                  variants={dropdownMotion}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="absolute left-0 top-full z-50 mt-2.5 w-44 overflow-hidden rounded-2xl border border-deepBlue/[0.08] bg-white/[0.97] p-1.5 shadow-emc-lg ring-1 ring-white/80 backdrop-blur-2xl backdrop-saturate-150"
+                  role="menu"
+                >
+                  {LANGS.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setLang(l.code)
+                        setLangMenuOpen(false)
+                      }}
+                      className={[
+                        'flex w-full items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-all duration-200 ease-emc-out',
+                        l.code === lang
+                          ? 'bg-customBlue/[0.08] text-customBlue'
+                          : 'text-deepBlue hover:bg-customBlue/[0.06] hover:text-customBlue',
+                      ].join(' ')}
+                    >
+                      {l.label}
+                      {l.code === lang ? <Check size={14} strokeWidth={2.5} aria-hidden /> : null}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+          aria-label={mobileOpen ? t('nav.aria.closeMenu') : t('nav.aria.openMenu')}
           className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-emcBg/90 lg:hidden"
         >
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -315,14 +410,14 @@ export default function Navbar() {
                   ].join(' ')
                 }
               >
-                الرئيسية
+                {t('nav.home')}
               </NavLink>
 
               {(
                 [
-                  ['about', 'عن EMC', aboutItems],
-                  ['programs', 'البرامج', programsItems],
-                  ['join', 'انضم إلينا', joinItems],
+                  ['about', t('nav.about.label'), aboutItems],
+                  ['programs', t('nav.programs.label'), programsItems],
+                  ['join', t('nav.join.label'), joinItems],
                 ] as const
               ).map(([id, label, items]) => (
                 <div
@@ -383,6 +478,29 @@ export default function Navbar() {
                 </div>
               ))}
 
+              {/* M3: language switcher (mobile) */}
+              <div className="flex items-center gap-2 rounded-2xl border border-deepBlue/[0.08] bg-[#F8FBFE]/80 px-4 py-2.5">
+                <Globe size={16} strokeWidth={2} className="shrink-0 text-customBlue" aria-hidden />
+                <div className="flex flex-1 items-center justify-end gap-1.5" role="group" aria-label={t('nav.aria.changeLanguage')}>
+                  {LANGS.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => setLang(l.code)}
+                      aria-pressed={l.code === lang}
+                      className={[
+                        'rounded-xl px-3.5 py-2 text-[13px] font-black transition-colors duration-200 ease-emc-out',
+                        l.code === lang
+                          ? 'bg-customBlue text-white shadow-emc-xs'
+                          : 'text-deepBlue hover:bg-customBlue/[0.08] hover:text-customBlue',
+                      ].join(' ')}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {!isLoading && (
                 <div className="grid gap-3 border-t border-deepBlue/[0.07] pt-4">
                   {isAuthenticated && user ? (
@@ -404,7 +522,7 @@ export default function Navbar() {
                         className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
                       >
                         <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
-                        <span className="whitespace-nowrap">لوحة التحكم</span>
+                        <span className="whitespace-nowrap">{t('nav.auth.dashboard')}</span>
                       </Link>
                       <button
                         type="button"
@@ -414,7 +532,7 @@ export default function Navbar() {
                         }}
                         className="rounded-2xl border border-customOrange/30 py-3.5 text-sm font-black text-customOrange"
                       >
-                        تسجيل الخروج
+                        {t('nav.auth.logout')}
                       </button>
                     </>
                   ) : (
@@ -424,7 +542,7 @@ export default function Navbar() {
                       className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${loginBtnClass}`}
                     >
                       <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
-                      <span className="whitespace-nowrap">تسجيل الدخول</span>
+                      <span className="whitespace-nowrap">{t('nav.auth.login')}</span>
                     </Link>
                   )}
                 </div>

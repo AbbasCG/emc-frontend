@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { dropdownMotion } from '@/utils/animations'
 import { routeMatchesPath } from '@/utils/routeMatch'
 
@@ -57,6 +58,7 @@ export default function MegaDropdown({
   pathname,
   locationHash,
 }: MegaDropdownProps) {
+  const { t } = useTranslation()
   return (
     <div className="relative">
       <button
@@ -96,7 +98,7 @@ export default function MegaDropdown({
               <span aria-hidden className="absolute inset-y-3.5 right-0 w-[3px] rounded-full bg-customOrange" />
               <p className="pr-3 text-right text-[12px] font-black tracking-tight text-customBlue/90">{label}</p>
               <p className="mt-1 pr-3 text-right text-xs font-semibold leading-relaxed text-deepBlue/65">
-                انتقال سريع ضمن منظومة EMC
+                {t('nav.mega.quickJump')}
               </p>
             </div>
             <div className="max-h-[min(70vh,26rem)] overflow-y-auto p-3">

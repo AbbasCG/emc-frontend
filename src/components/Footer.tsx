@@ -1,40 +1,46 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ChevronDown, Cookie, Mail, MapPin, Phone } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useLanguage } from '@/i18n/LanguageProvider'
 import { siteContact } from '@/data/publicPages'
 import { useCookieConsentOptional } from '@/contexts/CookieConsentContext'
 import { cn } from '@/lib/utils'
 
+/**
+ * M3 i18n: link labels live in the catalog under footer.nav.* / footer.legal.*
+ * (see src/i18n/locales/ar.json — the source of truth for the Arabic strings).
+ */
 const NAV_MAIN = [
-  { label: 'الرئيسية', href: '/' },
-  { label: 'عن المركز', href: '/about' },
-  { label: 'المجالات', href: '/tracks' },
-  { label: 'فريق EMC', href: '/ar/team' },
-  { label: 'الأثر', href: '/impact' },
-  { label: 'الشراكات', href: '/partnerships' },
-  { label: 'التطوع', href: '/volunteer' },
-  { label: 'تواصل', href: '/contact' },
+  { key: 'home', href: '/' },
+  { key: 'about', href: '/about' },
+  { key: 'tracks', href: '/tracks' },
+  { key: 'team', href: '/ar/team' },
+  { key: 'impact', href: '/impact' },
+  { key: 'partnerships', href: '/partnerships' },
+  { key: 'volunteer', href: '/volunteer' },
+  { key: 'contact', href: '/contact' },
 ] as const
 
 const NAV_PROGRAMS = [
-  { label: 'الدورات', href: '/courses' },
-  { label: 'الورش', href: '/workshops' },
-  { label: 'مسارات التعلم', href: '/learning-paths' },
-  { label: 'البرامج', href: '/programs' },
-  { label: 'المنصة', href: '/platform' },
-  { label: 'تقديم ورشة', href: '/submit-workshop' },
-  { label: 'الدعم', href: '/support' },
-  { label: 'قاعدة المعرفة', href: '/knowledge' },
+  { key: 'courses', href: '/courses' },
+  { key: 'workshops', href: '/workshops' },
+  { key: 'learningPaths', href: '/learning-paths' },
+  { key: 'programs', href: '/programs' },
+  { key: 'platform', href: '/platform' },
+  { key: 'submitWorkshop', href: '/submit-workshop' },
+  { key: 'support', href: '/support' },
+  { key: 'knowledge', href: '/knowledge' },
 ] as const
 
 const BOTTOM_LEGAL = [
-  { label: 'الخصوصية', href: '/privacy' },
-  { label: 'ملفات تعريف الارتباط', href: '/cookies' },
-  { label: 'الشروط', href: '/terms' },
-  { label: 'الاسترداد', href: '/refund-policy' },
-  { label: 'إخلاء المسؤولية', href: '/disclaimer' },
-  { label: 'الشكاوى', href: '/complaints' },
-  { label: 'إمكانية الوصول', href: '/accessibility' },
+  { key: 'privacy', href: '/privacy' },
+  { key: 'cookies', href: '/cookies' },
+  { key: 'terms', href: '/terms' },
+  { key: 'refund', href: '/refund-policy' },
+  { key: 'disclaimer', href: '/disclaimer' },
+  { key: 'complaints', href: '/complaints' },
+  { key: 'accessibility', href: '/accessibility' },
 ] as const
 
 const SOCIAL_LINKS = [
@@ -102,10 +108,15 @@ function NavLinks({ links }: { links: ReadonlyArray<{ label: string; href: strin
 }
 
 export default function Footer() {
+  const { t } = useTranslation()
+  const { dir } = useLanguage()
   const cookieConsent = useCookieConsentOptional()
 
+  const mainLinks = NAV_MAIN.map((l) => ({ href: l.href, label: t(`footer.nav.main.${l.key}`) }))
+  const programLinks = NAV_PROGRAMS.map((l) => ({ href: l.href, label: t(`footer.nav.programs.${l.key}`) }))
+
   return (
-    <footer className="relative isolate overflow-hidden bg-[#0C2A4B] text-white" dir="rtl">
+    <footer className="relative isolate overflow-hidden bg-[#0C2A4B] text-white" dir={dir}>
       <div
         aria-hidden
         className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0"
@@ -121,7 +132,7 @@ export default function Footer() {
             <Link to="/" className="inline-block transition-opacity hover:opacity-90">
               <img
                 src="/brand/logos/logo_full_white.png"
-                alt="EMC — Educational Mastar Central"
+                alt={t('brand.logoAlt')}
                 className="h-16 w-auto sm:h-[4.5rem]"
                 width={200}
                 height={80}
@@ -129,29 +140,29 @@ export default function Footer() {
               />
             </Link>
             <p className="mt-2 max-w-xs text-[12px] font-medium leading-6 text-white/50">
-              منصة تعليمية عربية—هولندية: برامج، ورش، شراكات، وتعلم رقمي بمعايير احترافية.
+              {t('footer.tagline')}
             </p>
             <p className="emc-tridot mt-3 inline-flex items-center text-[12.5px] font-bold tracking-wide text-white/75">
-              نُرشد العقول، ونبني المستقبل.
+              {t('footer.motto')}
             </p>
             <Link
               to="/contact"
               className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-brand-600"
             >
-              تواصل معنا
+              {t('footer.contactCta')}
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
 
-          <FooterAccordion title="روابط رئيسية">
-            <NavLinks links={NAV_MAIN} />
+          <FooterAccordion title={t('footer.headings.main')}>
+            <NavLinks links={mainLinks} />
           </FooterAccordion>
 
-          <FooterAccordion title="البرامج">
-            <NavLinks links={NAV_PROGRAMS} />
+          <FooterAccordion title={t('footer.headings.programs')}>
+            <NavLinks links={programLinks} />
           </FooterAccordion>
 
-          <FooterAccordion title="تواصل" defaultOpen>
+          <FooterAccordion title={t('footer.headings.contact')} defaultOpen>
             <ul className="space-y-2 text-[12px] font-semibold text-white/55">
               <li>
                 <a
@@ -186,11 +197,11 @@ export default function Footer() {
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <p className="text-center text-[11px] font-semibold text-white/35 lg:text-right">
-              © {new Date().getFullYear()} <span className="font-latin text-white/45">EMC</span> · جميع الحقوق محفوظة
+              © {new Date().getFullYear()} <span className="font-latin text-white/45">EMC</span> · {t('footer.copyright')}
             </p>
 
             <nav
-              aria-label="القانونية والخصوصية"
+              aria-label={t('footer.aria.legalNav')}
               className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-[10px] font-semibold text-white/40 sm:text-[11px]"
             >
               {BOTTOM_LEGAL.map((link, i) => (
@@ -201,7 +212,7 @@ export default function Footer() {
                     </span>
                   : null}
                   <Link to={link.href} className="transition hover:text-[#0077B6]">
-                    {link.label}
+                    {t(`footer.legal.${link.key}`)}
                   </Link>
                 </span>
               ))}
@@ -216,7 +227,7 @@ export default function Footer() {
                     className="inline-flex items-center gap-1 transition hover:text-[#F28C00]"
                   >
                     <Cookie className="h-3 w-3" aria-hidden />
-                    الكوكيز
+                    {t('footer.cookieSettings')}
                   </button>
                 </>
               : null}

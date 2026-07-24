@@ -1,0 +1,112 @@
+{
+  "brand": {
+    "logoAlt": "EMC — Educational Mastar Central"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "aria": {
+      "homeLink": "EMC — الصفحة الرئيسية",
+      "mainMenu": "القائمة الرئيسية",
+      "openMenu": "فتح القائمة",
+      "closeMenu": "إغلاق القائمة",
+      "changeLanguage": "تغيير اللغة"
+    },
+    "mega": {
+      "quickJump": "انتقال سريع ضمن منظومة EMC"
+    },
+    "about": {
+      "label": "عن EMC",
+      "items": {
+        "about": { "label": "من نحن", "description": "تعريف بالمنصة وأسلوب عملها" },
+        "impact": { "label": "الأثر والإنجازات", "description": "اتجاهات أثر واقعية وشفافة" },
+        "team": { "label": "الفريق", "description": "الهيكل والأدوار والقيم" },
+        "departments": { "label": "الإدارات والحوكمة", "description": "الهيكل التنظيمي وسياسات الجودة والامتثال" },
+        "platform": { "label": "المنصة", "description": "التجربة الرقمية والخدمات" }
+      }
+    },
+    "programs": {
+      "label": "البرامج",
+      "items": {
+        "courses": { "label": "البرامج والدورات", "description": "استعرض البرامج وسجّل مباشرة" },
+        "workshops": { "label": "الورش", "description": "ورش تدريبية قصيرة ومجتمعية" },
+        "learningPaths": { "label": "مسارات التعلم", "description": "مسارات تعليمية مترابطة مع شهادات" },
+        "tracks": { "label": "المجالات والمحاور", "description": "المجالات الاثنا عشر والمحاور التفصيلية" },
+        "instructors": { "label": "المدربون", "description": "تعرّف على خبراء التدريب" }
+      }
+    },
+    "join": {
+      "label": "انضم إلينا",
+      "items": {
+        "partnerships": { "label": "الشراكات — نظرة عامة", "description": "تعرّف على شراكات EMC المؤسسية والخدمية" },
+        "student": { "label": "انضم كطالب", "description": "إنشاء حساب للتعلّم والتسجيل في البرامج" },
+        "trainer": { "label": "انضم كمدرب", "description": "تواصل للانضمام كمدّرب مع EMC" },
+        "partner": { "label": "انضم كشريك", "description": "تقديم طلب شراكة مؤسسية أو خدمية" },
+        "volunteer": { "label": "انضم كمتطوّع", "description": "شارك مهاراتك وفق أطر EMC التطوعية" },
+        "ambassador": { "label": "سفير التحول الرقمي", "description": "برنامج سفراء EMC في الجامعات العربية" },
+        "submitWorkshop": { "label": "تقديم ورشة", "description": "طلب ورشة أو برنامج عبر النموذج الرسمي" },
+        "contact": { "label": "تواصل معنا", "description": "قنوات التواصل والاستفسارات العامّة" }
+      }
+    },
+    "auth": {
+      "dashboard": "لوحة التحكم",
+      "profile": "الملف الشخصي",
+      "login": "تسجيل الدخول",
+      "logout": "تسجيل الخروج"
+    }
+  },
+  "footer": {
+    "tagline": "منصة تعليمية عربية—هولندية: برامج، ورش، شراكات، وتعلم رقمي بمعايير احترافية.",
+    "motto": "نُرشد العقول، ونبني المستقبل.",
+    "contactCta": "تواصل معنا",
+    "copyright": "جميع الحقوق محفوظة",
+    "cookieSettings": "الكوكيز",
+    "headings": {
+      "main": "روابط رئيسية",
+      "programs": "البرامج",
+      "contact": "تواصل"
+    },
+    "aria": {
+      "legalNav": "القانونية والخصوصية"
+    },
+    "nav": {
+      "main": {
+        "home": "الرئيسية",
+        "about": "عن المركز",
+        "tracks": "المجالات",
+        "team": "فريق EMC",
+        "impact": "الأثر",
+        "partnerships": "الشراكات",
+        "volunteer": "التطوع",
+        "contact": "تواصل"
+      },
+      "programs": {
+        "courses": "الدورات",
+        "workshops": "الورش",
+        "learningPaths": "مسارات التعلم",
+        "programs": "البرامج",
+        "platform": "المنصة",
+        "submitWorkshop": "تقديم ورشة",
+        "support": "الدعم",
+        "knowledge": "قاعدة المعرفة"
+      }
+    },
+    "legal": {
+      "privacy": "الخصوصية",
+      "cookies": "ملفات تعريف الارتباط",
+      "terms": "الشروط",
+      "refund": "الاسترداد",
+      "disclaimer": "إخلاء المسؤولية",
+      "complaints": "الشكاوى",
+      "accessibility": "إمكانية الوصول"
+    }
+  },
+  "cookie": {
+    "title": "نستخدم ملفات تعريف الارتباط لتحسين تجربتك",
+    "description": "ملفات ضرورية لتشغيل EMC. التحليلات والتسويق تُفعَّل فقط بموافقتك.",
+    "policyLink": "سياسة ملفات تعريف الارتباط",
+    "privacyLink": "الخصوصية",
+    "managePreferences": "إدارة التفضيلات",
+    "rejectNonEssential": "رفض غير الضرورية",
+    "acceptAll": "قبول الكل"
+  }
+}

@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion'
 import { Cookie, Settings2, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useLanguage } from '@/i18n/LanguageProvider'
 import { useCookieConsent } from '@/contexts/CookieConsentContext'
 
 export default function CookieBanner() {
+  const { t } = useTranslation()
+  const { dir } = useLanguage()
   const { bannerVisible, acceptAll, rejectNonEssential, openPreferences } = useCookieConsent()
 
   if (!bannerVisible) return null
@@ -13,7 +17,7 @@ export default function CookieBanner() {
       role="dialog"
       aria-labelledby="cookie-banner-title"
       aria-describedby="cookie-banner-desc"
-      dir="rtl"
+      dir={dir}
       initial={{ y: 48, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 320, damping: 28 }}
@@ -32,16 +36,16 @@ export default function CookieBanner() {
                 AVG / GDPR
               </div>
               <h2 id="cookie-banner-title" className="text-base font-black sm:text-lg">
-                نستخدم ملفات تعريف الارتباط لتحسين تجربتك
+                {t('cookie.title')}
               </h2>
               <p id="cookie-banner-desc" className="mt-2 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65">
-                ملفات ضرورية لتشغيل EMC. التحليلات والتسويق تُفعَّل فقط بموافقتك.{' '}
+                {t('cookie.description')}{' '}
                 <Link to="/cookies" className="font-black text-[#F28C00] underline-offset-2 hover:underline">
-                  سياسة ملفات تعريف الارتباط
+                  {t('cookie.policyLink')}
                 </Link>
                 {' · '}
                 <Link to="/privacy" className="font-black text-[#0077B6] underline-offset-2 hover:underline">
-                  الخصوصية
+                  {t('cookie.privacyLink')}
                 </Link>
               </p>
             </div>
@@ -54,21 +58,21 @@ export default function CookieBanner() {
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/10"
             >
               <Settings2 className="h-4 w-4" aria-hidden />
-              إدارة التفضيلات
+              {t('cookie.managePreferences')}
             </button>
             <button
               type="button"
               onClick={rejectNonEssential}
               className="rounded-xl border border-white/15 px-4 py-2.5 text-[12px] font-black text-white/90 transition hover:bg-white/10"
             >
-              رفض غير الضرورية
+              {t('cookie.rejectNonEssential')}
             </button>
             <button
               type="button"
               onClick={acceptAll}
               className="rounded-xl bg-[#F28C00] px-5 py-2.5 text-[12px] font-black text-white shadow-[0_8px_24px_-8px_rgba(242,140,0,0.55)] transition hover:brightness-105"
             >
-              قبول الكل
+              {t('cookie.acceptAll')}
             </button>
           </div>
         </div>
