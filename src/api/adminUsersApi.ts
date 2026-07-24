@@ -690,7 +690,9 @@ export async function fetchSuperAdminStats(): Promise<SuperAdminStats | null> {
   try {
     const res = await apiClient.get<unknown>('/admin/stats', { ...silent })
     const d = res.data as { data?: SuperAdminStats }
-    return d?.data ?? null
+    // Guard: a truthy-but-wrong payload (e.g. `data: []`) must not reach the page —
+    // SuperAdminOverviewPage reads nested fields and would crash into the ErrorBoundary.
+    return d?.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : null
   } catch {
     return null
   }

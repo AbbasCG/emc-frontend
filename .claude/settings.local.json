@@ -30,7 +30,9 @@
       "Bash(grep -nE *)",
       "Bash(grep -cE *)",
       "Bash(npx eslint *)",
-      "Bash(grep -E 'error|\\\\.tsx?$|\\\\.ts$')"
+      "Bash(grep -E 'error|\\\\.tsx?$|\\\\.ts$')",
+      "Read(//c/Users/ttuaa/.claude/projects/C--EMC-WEP/memory/**)",
+      "Bash(printf -- '- [Single executor for master-plan]\\(single-executor-master-plan.md\\) — never run two /execute-master-plan instances at once; check HEAD vs STATE snapshot at startup\\\\n')"
     ]
   }
 }
