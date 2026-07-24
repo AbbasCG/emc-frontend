@@ -1,5 +1,5 @@
 /**
- * توضيحي — أرقام عرض تأثير EMC للصفحة العامّة؛ يمكن لاحقاً استبداله باستجابة API.
+ * أرقام الأثر المعتمدة (V3) — الأرقام الوحيدة المصرّح بعرضها على الواجهات العامّة.
  */
 
 export type ImpactMainStat = {
@@ -12,14 +12,9 @@ export type ImpactMainStat = {
 }
 
 export const impactMainStats: ImpactMainStat[] = [
-  { id: 'registrations', value: 1500, suffix: '+', labelAr: 'تسجيل موثّق', hintAr: 'سجلات مؤكّدة ضمن المنظومة' },
-  { id: 'sessions', value: 250, suffix: '+', labelAr: 'جلسة منفّذة', hintAr: 'جلسات تعليمية وورش وحلقات' },
-  { id: 'activities', value: 44, labelAr: 'نشاط', hintAr: 'أنشطة موثقة في التقارير' },
-  { id: 'countries', value: 17, labelAr: 'دولة', hintAr: 'توزيع جغرافي للمشاركين' },
-  { id: 'nl-cities', value: 16, labelAr: 'مدينة هولندية', hintAr: 'تغطية حضور وفعاليات داخل هولندا' },
-  { id: 'partners', value: 14, labelAr: 'شريك مؤسسي', hintAr: 'تعاون ضمن اتفاقيات واضحة' },
-  { id: 'speakers', value: 22, labelAr: 'متحدّث ومدرّب', hintAr: 'خبراء ساهموا بالمحتوى' },
-  { id: 'languages', value: 3, labelAr: 'لغة برامجية', hintAr: 'طرق التوصيل الأساسية' },
+  { id: 'beneficiaries', value: 13000, suffix: '+', labelAr: 'مستفيد ومستفيدة', hintAr: 'ورش ودورات ومسارات' },
+  { id: 'camp-registrations', value: 9000, suffix: '+', labelAr: 'مسجّل في المخيمات', hintAr: 'سجلات مؤكّدة ضمن المنظومة' },
+  { id: 'countries', value: 50, suffix: '+', labelAr: 'دولة', hintAr: 'توزيع جغرافي للمشاركين' },
 ]
 
 export const impactNetherlandsCities: { city: string; count: number; xPct: number; yPct: number }[] = [

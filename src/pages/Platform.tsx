@@ -73,7 +73,7 @@ export default function Platform() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.55 }}
           >
-            <span className="emc-wing emc-eyebrow mb-4">
+            <span className="emc-eyebrow mb-4">
               <MonitorCheck size={17} />
               منصة تعليمية رقمية عالمية
             </span>

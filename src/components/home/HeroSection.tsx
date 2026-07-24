@@ -55,9 +55,9 @@ export default function HeroSection() {
         tertiaryCtaText="اطلب ورشة"
         tertiaryCtaLink="/submit-workshop"
         statsCards={[
-          { number: '+500', label: 'المتدربون' },
-          { number: '+25', label: 'البرامج' },
-          { number: '✓', label: 'الشراكات' },
+          { number: '+13,000', label: 'مستفيد ومستفيدة' },
+          { number: '+9,000', label: 'مسجّل في المخيمات' },
+          { number: '+50', label: 'دولة' },
         ]}
       />
 

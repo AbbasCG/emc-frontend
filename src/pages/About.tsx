@@ -127,7 +127,7 @@ export default function About() {
               transition={{ duration: 0.55 }}
               className="text-right"
             >
-              <span className="emc-wing emc-eyebrow mb-4">
+              <span className="emc-eyebrow mb-4">
                 <Sparkles size={15} />
                 من نحن
               </span>

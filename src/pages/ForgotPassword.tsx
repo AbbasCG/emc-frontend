@@ -64,7 +64,7 @@ export default function ForgotPassword() {
             </div>
           ) : (
             <>
-              <span className="emc-wing emc-eyebrow-accent mb-4">
+              <span className="emc-eyebrow-accent mb-4">
                 <Mail size={15} />
                 استعادة الوصول
               </span>

@@ -28,7 +28,7 @@ export default function TeamHero() {
 
         <motion.div variants={fadeUp} initial="hidden" animate="visible">
           <div className="mb-8 flex justify-end">
-            <span className="emc-wing emc-eyebrow-ink shadow-emc-xs backdrop-blur-md">
+            <span className="emc-eyebrow-ink shadow-emc-xs backdrop-blur-md">
               <Shield size={13} className="text-customOrange" aria-hidden />
               EMC V3 · 2026
             </span>

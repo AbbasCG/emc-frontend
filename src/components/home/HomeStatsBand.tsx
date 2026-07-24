@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { BookOpen, LayoutGrid, TrendingUp, Users } from 'lucide-react'
+import { BookOpen, Globe2, TrendingUp, Users } from 'lucide-react'
 import StatCard from '@/components/shared/StatCard'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
+// أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const bandStats = [
-  { raw: '+25', label: 'برنامج تدريبي', icon: LayoutGrid },
-  { raw: '+500', label: 'مستفيد', icon: TrendingUp },
-  { raw: '+10', label: 'مجالات تطوير', icon: Users },
-  { raw: '✓', label: 'شراكات تعليمية', icon: BookOpen },
+  { raw: '+13,000', label: 'مستفيد ومستفيدة', icon: Users },
+  { raw: '+9,000', label: 'مسجّل في المخيمات', icon: TrendingUp },
+  { raw: '+50', label: 'دولة', icon: Globe2 },
+  { raw: '✓', label: 'ورش ودورات ومسارات', icon: BookOpen },
 ] as const
 
 function AnimatedNumber({ value }: { value: string }) {
@@ -37,15 +38,15 @@ function AnimatedNumber({ value }: { value: string }) {
 
   if (!isCountUp) {
     return (
-      <span ref={ref} className="tabular-nums">
+      <span ref={ref} className="tabular-nums" dir="ltr">
         {value}
       </span>
     )
   }
 
   return (
-    <span ref={ref} className="tabular-nums">
-      +{display}
+    <span ref={ref} className="tabular-nums" dir="ltr">
+      +{display.toLocaleString('en-US')}
     </span>
   )
 }

@@ -17,7 +17,6 @@ import {
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import logo from '@/assets/logo.png'
 import type { Course, Enrollment } from '@/types'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
@@ -155,7 +154,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-deepBlue via-deepBlue to-customBlue"
           >
             <img
-              src={logo} alt="" loading="lazy" draggable={false}
+              src="/brand/logos/logo_full_white.png" alt="" loading="lazy" draggable={false}
               className="h-16 w-auto opacity-90 drop-shadow-lg"
               width={160} height={64}
             />

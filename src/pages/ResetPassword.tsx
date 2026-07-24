@@ -105,7 +105,7 @@ export default function ResetPassword() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <span className="emc-wing emc-eyebrow-accent mb-4">
+          <span className="emc-eyebrow-accent mb-4">
             <LockKeyhole size={15} />
             أمان الحساب
           </span>

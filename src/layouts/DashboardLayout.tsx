@@ -14,7 +14,6 @@ import {
   Wallet,
   X,
 } from 'lucide-react'
-import logo from '../assets/logo.png'
 import CommandPalette from '../components/ai/CommandPalette'
 import ImpersonationBanner from '../components/ImpersonationBanner'
 import NotificationBell from '../components/platform/NotificationBell'
@@ -355,7 +354,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         {/* ── Logo ── */}
         <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-white/[0.08] px-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="EMC" className="h-9 w-auto brightness-0 invert" width={160} height={36} loading="eager" fetchPriority="high" />
+            <img src="/brand/logos/logo_full_white.png" alt="EMC — Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" fetchPriority="high" />
           </Link>
           <button
             type="button"

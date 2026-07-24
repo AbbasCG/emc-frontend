@@ -66,6 +66,11 @@ export default {
         ember: "#C97208",
         sand:  "#FCE9D2",
 
+        /* ── V3 functional colors ── */
+        success: "#1B7F4B",
+        warning: "#FFA733",
+        danger:  "#B3401E",
+
         /* ── Institutional ink (dark neutral / body). 500 = #27384B ── */
         ink: {
           50:  "#EEF1F5",
@@ -88,12 +93,14 @@ export default {
       },
 
       fontFamily: {
-        /* Body/UI text — IBM Plex Sans Arabic (Arabic-first), Tajawal fallback. */
-        sans: ['"IBM Plex Sans Arabic"', '"Tajawal"', "ui-sans-serif", "system-ui", "sans-serif"],
-        /* Display/headings — Tajawal. */
-        display: ['"Tajawal"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
-        /* Latin numerals / English-Dutch — IBM Plex Sans. */
-        latin: ['"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* V3: Thmanyah exclusive — Sans for body/UI/ALL numerals; IBM Plex = sanctioned fallback. */
+        sans: ['"Thmanyah Sans"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* V3: headings/covers — Thmanyah Serif Display. */
+        display: ['"Thmanyah Serif Display"', '"Thmanyah Sans"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* V3: long-form booklet body. */
+        serif: ['"Thmanyah Serif Text"', '"Thmanyah Serif Display"', "serif"],
+        /* Latin/numeric contexts — Sans carries numerals per V3; IBM Plex fallback. */
+        latin: ['"Thmanyah Sans"', '"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
 

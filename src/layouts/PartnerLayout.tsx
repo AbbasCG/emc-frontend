@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Briefcase, FileStack, LayoutDashboard, Menu, PieChart, X } from 'lucide-react'
-import logo from '../assets/logo.png'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserDisplayName, getUserInitials, getUserSidebarSubtitle } from '../utils/userIdentity'
 
@@ -53,7 +52,7 @@ export default function PartnerLayout() {
         />
         <div className="relative flex h-16 items-center justify-between border-b border-white/[0.08] px-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="EMC" className="h-9 w-auto brightness-0 invert" width={160} height={36} loading="eager" />
+            <img src="/brand/logos/logo_full_white.png" alt="EMC — Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" />
           </Link>
           <button
             type="button"

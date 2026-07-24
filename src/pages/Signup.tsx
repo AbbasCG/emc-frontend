@@ -150,7 +150,7 @@ export default function Signup() {
           <div className="emc-dawn relative hidden min-h-[420px] overflow-hidden lg:block">
             <div className="emc-dawn-field absolute inset-0 opacity-70" />
             <div className="relative flex h-full flex-col justify-end p-10 text-white">
-              <span className="emc-wing emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
+              <span className="emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
                 <UserPlus size={15} />
                 EMC OS
               </span>

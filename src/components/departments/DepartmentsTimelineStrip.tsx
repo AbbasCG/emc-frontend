@@ -19,7 +19,7 @@ export default function DepartmentsTimelineStrip() {
           viewport={{ once: true }}
           transition={{ duration: 0.45 }}
         >
-          <span className="emc-wing emc-eyebrow mb-3 border-white/25 bg-white/10 text-amber">
+          <span className="emc-eyebrow mb-3 border-white/25 bg-white/10 text-amber">
             مسار التطور
           </span>
           <h2 className="font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">خط زمني للنضج المؤسسي</h2>

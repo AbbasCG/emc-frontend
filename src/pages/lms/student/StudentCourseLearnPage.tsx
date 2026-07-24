@@ -35,7 +35,6 @@ import type { StudentAssignment } from '@/types/lms'
 import type { CourseLearnAssignment, StudentCourseLearnPayload } from '@/types/courseLearn'
 import type { LmsModule } from '@/types/platform'
 import type { LmsSession } from '@/types/lms'
-import logo from '@/assets/logo.png'
 import { resolveCoursePkFromLikelyMisKey, studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
@@ -626,7 +625,7 @@ export default function StudentCourseLearnPage() {
                 <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/12 ring-1 ring-white/20">
                   {coverUrl
                     ? <img src={coverUrl} alt="" className="h-full w-full object-cover" draggable={false} />
-                    : <img src={logo} alt="" className="h-10 w-auto opacity-90" loading="lazy" draggable={false} />
+                    : <img src="/brand/logos/logo_icon_white.png" alt="" className="h-11 w-auto opacity-90" loading="lazy" draggable={false} />
                   }
                 </div>
 

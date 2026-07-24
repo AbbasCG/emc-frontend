@@ -33,7 +33,7 @@ export default function StatCard({ number, label, icon: Icon, className = '' }: 
           </span>
         </div>
       )}
-      <div className="relative emc-display-num text-3xl text-deepBlue sm:text-[2.1rem]">{number}</div>
+      <div className="relative emc-display-num text-3xl text-deepBlue sm:text-[2.1rem]" dir="ltr">{number}</div>
       <p className="relative mt-1 text-xs font-black uppercase tracking-[0.16em] text-deepBlue/55 font-latin sm:text-[13px]">
         {label}
       </p>

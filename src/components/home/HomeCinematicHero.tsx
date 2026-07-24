@@ -259,10 +259,9 @@ export default function HomeCinematicHero() {
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.1 } } }}
             className="mt-12 flex flex-wrap justify-start gap-3 border-t border-white/[0.08] pt-10"
           >
-            <StatPill value="+9000" label="متعلّم" />
-            <StatPill value="+500" label="خريج معتمد" />
-            <StatPill value="+95" label="ورشة مباشرة" />
-            <StatPill value="+10" label="مسار ودورة" />
+            <StatPill value="+13,000" label="مستفيد" />
+            <StatPill value="+9,000" label="مسجّل مخيمات" />
+            <StatPill value="+50" label="دولة" />
           </motion.div>
         </motion.div>
 

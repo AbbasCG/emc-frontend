@@ -17,7 +17,7 @@ export default function ProgramsHero({ coursesCount }: Props) {
         <motion.span
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="emc-wing emc-eyebrow mb-4 border-white/15 bg-white/10 text-ice"
+          className="emc-eyebrow mb-4 border-white/15 bg-white/10 text-ice"
         >
           <Sparkles className="h-3.5 w-3.5 text-amber" aria-hidden />
           EMC · منظومة البرامج التدريبية

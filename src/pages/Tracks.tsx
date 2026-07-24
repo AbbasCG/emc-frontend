@@ -77,7 +77,7 @@ export default function Tracks() {
             transition={{ duration: 0.45 }}
             className="mb-12 max-w-3xl text-right"
           >
-            <span className="emc-wing emc-eyebrow mb-4">المحاور</span>
+            <span className="emc-eyebrow mb-4">المحاور</span>
             <p className="mt-3 text-[1.05rem] font-medium leading-8 text-foreground/73">
               تجربة محاور حديثة ومنظمة: نفس المنظومة الاثني عشر، وبطاقات مصمّمة لتسهيل القراءة والانتقال السريع إلى
               البرامج. اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون

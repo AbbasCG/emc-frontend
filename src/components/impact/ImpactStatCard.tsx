@@ -20,7 +20,7 @@ const toneRing: Record<NonNullable<Props['tone']>, string> = {
 
 export default function ImpactStatCard({ icon: Icon, label, end, suffix = '', subtitle, tone = 'blue' }: Props) {
   const { ref, count } = useImpactCountUp(end, { duration: 2 })
-  const display = `${new Intl.NumberFormat('ar').format(count)}${suffix}`
+  const display = `${new Intl.NumberFormat('en-US').format(count)}${suffix}`
 
   return (
     <motion.article
@@ -45,7 +45,7 @@ export default function ImpactStatCard({ icon: Icon, label, end, suffix = '', su
       >
         <Icon size={20} strokeWidth={2} aria-hidden />
       </span>
-      <p className="font-display text-3xl font-black tabular-nums leading-none text-deepBlue md:text-4xl" aria-live="polite">
+      <p className="font-latin text-3xl font-black tabular-nums leading-none text-deepBlue md:text-4xl" dir="ltr" aria-live="polite">
         {display}
       </p>
       <h3 className="mt-3 text-lg font-black leading-snug text-deepBlue">{label}</h3>

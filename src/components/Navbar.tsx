@@ -28,7 +28,6 @@ import {
   Handshake,
   X,
 } from 'lucide-react'
-import logo from '../assets/logo.png'
 import MegaDropdown, { type MegaDropdownItem } from './nav/MegaDropdown'
 import { useAuth } from '../contexts/AuthContext'
 import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
@@ -169,7 +168,7 @@ export default function Navbar() {
           aria-label="EMC — الصفحة الرئيسية"
           className="relative z-20 flex shrink-0 items-center rounded-2xl p-1.5 ring-1 ring-transparent transition-all duration-200 ease-emc-out hover:bg-emcBg/90 hover:ring-customBlue/18 hover:shadow-emc-xs"
         >
-          <img src={logo} alt="EMC" className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
+          <img src="/brand/logos/logo_full_color.png" alt="EMC — Educational Mastar Central" className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
         </Link>
 
         <nav

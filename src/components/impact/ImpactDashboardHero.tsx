@@ -16,7 +16,7 @@ const iconStrip: [LucideIcon, string][] = [
   [Languages, 'from-customBlue/25'],
 ]
 
-const heroPeek = impactMainStats.slice(0, 4)
+const heroPeek = impactMainStats.slice(0, 3)
 
 function QuickCounter({
   stat,
@@ -24,13 +24,13 @@ function QuickCounter({
   stat: { value: number; suffix?: string; labelAr: string }
 }) {
   const { ref, count } = useImpactCountUp(stat.value, { duration: 1.7 })
-  const fmt = new Intl.NumberFormat('ar').format(count)
+  const fmt = new Intl.NumberFormat('en-US').format(count)
   return (
     <div
       ref={ref}
       className="rounded-xl border border-white/14 bg-white/[0.08] px-3 py-2.5 text-right shadow-inner ring-1 ring-white/[0.07] backdrop-blur-md sm:px-4 sm:py-3"
     >
-      <p className="font-display text-lg font-black tabular-nums text-white sm:text-xl">
+      <p className="font-latin text-lg font-black tabular-nums text-white sm:text-xl" dir="ltr">
         {fmt}
         {stat.suffix ?? ''}
       </p>
@@ -71,7 +71,7 @@ export default function ImpactDashboardHero() {
         </motion.div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:items-end">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3">
             {heroPeek.map((s) => (
               <QuickCounter key={s.id} stat={s} />
             ))}

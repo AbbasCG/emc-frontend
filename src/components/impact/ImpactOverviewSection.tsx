@@ -1,15 +1,6 @@
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
-import {
-  Building2,
-  Globe2,
-  Languages,
-  MapPinned,
-  Mic2,
-  MonitorPlay,
-  Sparkles,
-  UserPlus,
-} from 'lucide-react'
+import { Globe2, Sparkles, UserPlus } from 'lucide-react'
 import ImpactStatCard from '@/components/impact/ImpactStatCard'
 import SectionHeader from '@/components/sections/SectionHeader'
 import type { ImpactMainStat } from '@/data/impactDashboard'
@@ -17,17 +8,12 @@ import { impactMainStats } from '@/data/impactDashboard'
 import { staggerContainer, viewportOnce } from '@/utils/animations'
 
 const iconFor: Record<ImpactMainStat['id'], LucideIcon> = {
-  registrations: UserPlus,
-  sessions: MonitorPlay,
-  activities: Sparkles,
+  beneficiaries: UserPlus,
+  'camp-registrations': Sparkles,
   countries: Globe2,
-  'nl-cities': MapPinned,
-  partners: Building2,
-  speakers: Mic2,
-  languages: Languages,
 }
 
-const toneCycle: ('blue' | 'orange' | 'ink')[] = ['blue', 'orange', 'ink', 'blue', 'orange', 'ink', 'blue', 'orange']
+const toneCycle: ('blue' | 'orange' | 'ink')[] = ['blue', 'orange', 'ink']
 
 export default function ImpactOverviewSection() {
   return (
@@ -40,7 +26,7 @@ export default function ImpactOverviewSection() {
           description="بطاقات موثقة تعكس جانباً من حجم المنظومة: التسجيل، التنفيذ، التوزيع الجغرافي، والشراكات."
         />
         <motion.div
-          className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+          className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"

@@ -1,11 +1,25 @@
-/* EMC global stylesheet — premium design system foundation.
-   Arabic-first (Tajawal), Latin/numeric opt-in (Inter), RTL by default.
-   Fonts load via <link rel="preconnect"> + a single <link rel="stylesheet"> in index.html
-   (off the CSS critical path → faster first text paint than @import). */
+/* EMC global stylesheet — Brand V3.1 foundation.
+   Arabic-first, RTL by default. Typography: Thmanyah (exclusive per V3) —
+   Serif Display for headings, Sans for body/UI/ALL numerals, Serif Text for long-form.
+   Font binaries are locally provisioned (public/fonts/thmanyah — gitignored pending the
+   web-license gate); IBM Plex (via <link> in index.html) is the sanctioned institutional
+   fallback so environments without the files degrade gracefully. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Thmanyah @font-face (V3 exclusive) — local, swap ── */
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Light.otf') format('opentype'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
+@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyah/thmanyahserifdisplay-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyah/thmanyahserifdisplay-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyah/thmanyahserifdisplay-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
+@font-face { font-family: 'Thmanyah Serif Text'; src: url('/fonts/thmanyah/thmanyahseriftext-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Thmanyah Serif Text'; src: url('/fonts/thmanyah/thmanyahseriftext-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
 
 :root {
   /* ── Brand vars → V2.2 (do not remove — used across components) ── */
@@ -37,9 +51,9 @@
   --emc-brand-strong:  #0e5a8a;
   --emc-accent:        #f28c00;
   --emc-accent-soft:   rgba(242,140,0,0.10);
-  --emc-success:       #16a36a;
-  --emc-warning:       #c97208;
-  --emc-danger:        #dc2626;
+  --emc-success:       #1b7f4b; /* V3 functional */
+  --emc-warning:       #ffa733; /* V3 functional (amber) */
+  --emc-danger:        #b3401e; /* V3 functional */
   --emc-ring:          rgba(0,119,182,0.30);
   --emc-radius-card:   1.25rem;  /* 20px */
   --emc-radius-pill:   999px;
@@ -71,7 +85,7 @@ html {
 
 /* Project font + smoother rendering. Numerals use tabular (kerning/lining stays default). */
 body {
-  font-family: "IBM Plex Sans Arabic", "Tajawal", sans-serif;
+  font-family: "Thmanyah Sans", "IBM Plex Sans Arabic", sans-serif;
   direction: rtl;
   background-color: var(--paper);
   color: var(--body);
@@ -88,14 +102,14 @@ body {
 kbd,
 code,
 .tabular-nums {
-  font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Thmanyah Sans", "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "cv11" 1, "ss01" 1;
 }
 
-/* Headings — Tajawal display family (brand V2.2). */
+/* Headings — Thmanyah Serif Display (brand V3). */
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Tajawal", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Thmanyah Serif Display", "Thmanyah Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.012em;
 }
 
@@ -373,16 +387,19 @@ a {
     -webkit-backdrop-filter: blur(18px) saturate(1.25);
     backdrop-filter: blur(18px) saturate(1.25);
   }
-  /* Tri-segment signature (sky · amber · navy) — precedes the footer slogan. */
+  /* Footer dots (V3): ● orange ● sky ● navy — precedes the slogan. */
   .emc-tridot::before {
     content: "";
     display: inline-block;
-    width: 2.75rem;
-    height: 0.38rem;
+    width: 2.1rem;
+    height: 0.45rem;
     margin-inline-end: 0.6rem;
     vertical-align: middle;
-    border-radius: 999px;
-    background: linear-gradient(to left, #089fe0 0 33%, #ffa733 33% 66%, #0c2a4b 66% 100%);
+    background-image:
+      radial-gradient(circle 3px at 4px 50%, #f28c00 98%, transparent),
+      radial-gradient(circle 3px at 50% 50%, #089fe0 98%, transparent),
+      radial-gradient(circle 3px at calc(100% - 4px) 50%, #0c2a4b 98%, transparent);
+    background-repeat: no-repeat;
   }
 
   /* Spine — the signature page-edge bar: Depth descending from sky to night,
@@ -400,23 +417,54 @@ a {
     );
   }
 
-  /* Wing — a small two-stroke mark (amber over sky) that precedes a kicker label.
-     Two thin offset bars: a sky stroke with an amber stroke nudged above it. */
-  .emc-wing::before {
-    content: "";
+  /* ── V3 signatures (wings deprecated by V3 — replaced by the flying-pages motif) ── */
+
+  /* Tricolor top bar: orange 0–22% · sky 22–58% · light 58–100% (3-4px). RTL-aware via `to left`. */
+  .emc-tricolor {
+    height: 4px;
+    background: linear-gradient(to left, #f28c00 0 22%, #089fe0 22% 58%, #e7e3da 58% 100%);
+  }
+  .emc-tricolor-on-dark {
+    height: 4px;
+    background: linear-gradient(to left, #f28c00 0 22%, #089fe0 22% 58%, rgba(255,255,255,0.22) 58% 100%);
+  }
+
+  /* Double arc under a title: path M2 8 Q54 -3 106 8, stroke 3 — orange over a .45 sky underlayer. */
+  .emc-arc {
     display: inline-block;
-    position: relative;
-    width: 1.1rem;
-    height: 0.5rem;
-    margin-inline-end: 0.1rem;
-    vertical-align: middle;
-    background-image:
-      linear-gradient(to left, #ffa733, rgba(255, 167, 51, 0)),
-      linear-gradient(to left, #089fe0, rgba(8, 159, 224, 0));
+    width: 108px;
+    height: 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='108' height='12' viewBox='0 0 108 12'%3E%3Cpath d='M2 10 Q54 -1 106 10' fill='none' stroke='%23089FE0' stroke-opacity='0.45' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M2 8 Q54 -3 106 8' fill='none' stroke='%23F28C00' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-size: 100% 2px, 80% 2px;
-    background-position: left 1px, right 5px;
-    opacity: 0.9;
+  }
+
+  /* Flying-pages monogram pattern (from the logo) — light / dark / gold variants. */
+  .emc-pages-light { background-image: url('/brand/patterns/pattern_light.png'); background-size: 520px 460px; }
+  .emc-pages-dark  { background-image: url('/brand/patterns/pattern_dark.png');  background-size: 520px 460px; }
+  .emc-pages-gold  { background-image: url('/brand/patterns/pattern_gold.png');  background-size: 520px 460px; }
+  /* Corner pages badge — bottom-inline-start, ~330px, very low opacity. */
+  .emc-corner-pages { position: relative; }
+  .emc-corner-pages::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: 0;
+    width: 330px;
+    height: 330px;
+    max-width: 45%;
+    background: url('/brand/patterns/corner_pages_navy.png') no-repeat bottom left / contain;
+    pointer-events: none;
+  }
+  .emc-corner-pages-white::after { background-image: url('/brand/patterns/corner_pages_white.png'); }
+
+  /* Ghost numbers — huge Sans Black at 5% navy, behind section numbering. */
+  .emc-ghost-num {
+    font-family: "Thmanyah Sans", "IBM Plex Sans", sans-serif;
+    font-weight: 900;
+    color: rgba(12,42,75,0.05);
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
   }
 
   /* Dawn field — a subtle concentric-arc texture (low-opacity sky strokes + exactly

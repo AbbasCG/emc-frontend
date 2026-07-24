@@ -116,7 +116,7 @@ export default function Login() {
             <div className="emc-dawn absolute inset-0 opacity-90 mix-blend-multiply" />
             <div className="emc-dawn-field absolute inset-0 opacity-70" />
             <div className="absolute bottom-8 right-8 max-w-sm text-right text-white">
-              <span className="emc-wing emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
+              <span className="emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
                 <LogIn size={15} />
                 EMC للاستشارات والتدريب
               </span>

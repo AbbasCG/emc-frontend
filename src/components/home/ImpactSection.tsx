@@ -2,30 +2,31 @@ import { motion } from 'framer-motion'
 import { BookOpen, Globe, LayoutGrid, TrendingUp } from 'lucide-react'
 import { fadeUp } from '../../utils/course'
 
+// أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const metrics = [
   {
-    icon: LayoutGrid,
-    value: '+25',
-    label: 'برنامج',
-    desc: 'برامج متنوعة في التعليم والتطوير',
+    icon: TrendingUp,
+    value: '+13,000',
+    label: 'مستفيد ومستفيدة',
+    desc: 'دعم للطلاب والمهنيين في مساراتهم',
     iconColor: 'text-customBlue',
     iconBg: 'bg-sky-50',
     valueColor: 'text-customBlue',
   },
   {
-    icon: TrendingUp,
-    value: '+500',
-    label: 'مستفيد',
-    desc: 'دعم للطلاب والمهنيين في مساراتهم',
+    icon: LayoutGrid,
+    value: '+9,000',
+    label: 'مسجّل في المخيمات',
+    desc: 'ورش ودورات ومسارات',
     iconColor: 'text-customOrange',
     iconBg: 'bg-orange-50',
     valueColor: 'text-customOrange',
   },
   {
     icon: Globe,
-    value: '4+',
-    label: 'لغات',
-    desc: 'محتوى متعدد اللغات يخدم جمهوراً واسعاً',
+    value: '+50',
+    label: 'دولة',
+    desc: 'توزيع جغرافي واسع للمشاركين',
     iconColor: 'text-customBlue',
     iconBg: 'bg-sky-50',
     valueColor: 'text-customBlue',
@@ -71,7 +72,7 @@ export default function ImpactSection() {
                 >
                   <Icon size={28} aria-hidden="true" />
                 </div>
-                <strong className={`block text-4xl font-black ${metric.valueColor}`}>
+                <strong className={`block text-4xl font-black tabular-nums ${metric.valueColor}`} dir="ltr">
                   {metric.value}
                 </strong>
                 <span className="mt-1 block text-lg font-extrabold text-deepBlue">

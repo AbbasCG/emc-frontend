@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ChevronDown, Cookie, Mail, MapPin, Phone } from 'lucide-react'
-import logo from '../assets/logo.png'
 import { siteContact } from '@/data/publicPages'
 import { useCookieConsentOptional } from '@/contexts/CookieConsentContext'
 import { cn } from '@/lib/utils'
@@ -119,9 +118,9 @@ export default function Footer() {
           <div className="text-right md:col-span-2 lg:col-span-1">
             <Link to="/" className="inline-block transition-opacity hover:opacity-90">
               <img
-                src={logo}
+                src="/brand/logos/logo_full_white.png"
                 alt="EMC — Educational Mastar Central"
-                className="h-16 w-auto brightness-0 invert sm:h-[4.5rem]"
+                className="h-16 w-auto sm:h-[4.5rem]"
                 width={200}
                 height={80}
                 loading="lazy"

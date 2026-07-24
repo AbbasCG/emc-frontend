@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 
+// أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const metrics = [
-  { raw: 9000, suffix: '+', label: 'متعلّم', sub: 'في المنظومة الآن' },
-  { raw: 500, suffix: '+', label: 'خريج معتمد', sub: 'شهادات موثّقة' },
-  { raw: 95, suffix: '+', label: 'ورشة تنفيذية', sub: 'حضورية وعن بُعد' },
-  { raw: 10, suffix: '+', label: 'مسار وبرنامج', sub: 'متخصص ومنظّم' },
+  { raw: 13000, suffix: '+', label: 'مستفيد ومستفيدة', sub: 'في المنظومة الآن' },
+  { raw: 9000, suffix: '+', label: 'مسجّل في المخيمات', sub: 'حضورية وعن بُعد' },
+  { raw: 50, suffix: '+', label: 'دولة', sub: 'توزيع جغرافي للمشاركين' },
+  { raw: null, suffix: '', label: 'ورش ودورات ومسارات', sub: 'متخصص ومنظّم' },
 ] as const
 
 function Counter({ target, suffix }: { target: number; suffix: string }) {
@@ -27,7 +28,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 
   return (
     <span ref={ref} className="font-latin tabular-nums" dir="ltr">
-      {suffix}{val}
+      {suffix}{val.toLocaleString('en-US')}
     </span>
   )
 }
@@ -55,9 +56,9 @@ export default function HomeImpactMetrics() {
               className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-6 text-right backdrop-blur-sm transition-colors hover:border-sky/30 hover:bg-white/[0.07] sm:p-8"
             >
               <div aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-customBlue/15 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
-              {/* Big number */}
+              {/* Big number (or qualitative check for non-numeric slots) */}
               <p className="text-[2.6rem] font-black tabular-nums leading-none tracking-tight text-white sm:text-[3.2rem] lg:text-[3.6rem]">
-                <Counter target={m.raw} suffix={m.suffix} />
+                {m.raw !== null ? <Counter target={m.raw} suffix={m.suffix} /> : <span aria-hidden>✓</span>}
               </p>
               {/* Label */}
               <p className="mt-4 text-base font-black text-ice sm:text-lg">{m.label}</p>
