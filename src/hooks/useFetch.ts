@@ -31,6 +31,17 @@ export function useFetch<T>(
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
 
+  // Return to the loading state during render when `deps` change — react.dev's
+  // "adjusting state when a prop changes". Doing it here rather than from the fetch
+  // effect below means consumers never paint one stale "ready" frame for the previous
+  // deps, and it costs no extra committed render.
+  const [seenDeps, setSeenDeps] = useState(deps)
+  if (seenDeps.length !== deps.length || seenDeps.some((d, i) => !Object.is(d, deps[i]))) {
+    setSeenDeps(deps)
+    setLoading(true)
+    setError(null)
+  }
+
   // Latest-callback ref so `refetch` stays referentially stable while always
   // invoking the most recent `fn`. Updated in an effect (declared before the
   // fetch effect below, so it is fresh by the time a dep-change run starts).
@@ -42,14 +53,14 @@ export function useFetch<T>(
   const controllerRef = useRef<AbortController | null>(null)
   const runIdRef = useRef(0)
 
-  const run = useCallback(async () => {
+  // Starts a request *without* touching state synchronously, so it is safe to call
+  // straight from the effect below (the loading reset already happened during render).
+  const start = useCallback(async () => {
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
     const runId = ++runIdRef.current
 
-    setLoading(true)
-    setError(null)
     try {
       const result = await fnRef.current(controller.signal)
       if (runId !== runIdRef.current || controller.signal.aborted) return
@@ -65,12 +76,20 @@ export function useFetch<T>(
     }
   }, [])
 
+  // Imperative re-run from an event handler — outside the effect, so it may flip to
+  // the loading state synchronously.
+  const refetch = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    await start()
+  }, [start])
+
   useEffect(() => {
-    void run()
+    void start()
     return () => {
       controllerRef.current?.abort()
     }
   }, deps)
 
-  return { data, loading, error, refetch: run }
+  return { data, loading, error, refetch }
 }

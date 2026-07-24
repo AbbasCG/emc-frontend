@@ -220,11 +220,11 @@ function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDas
   const [reviews, setReviews] = useState<StudentReviewRow[]>([])
   const [notificationsUnread, setNotificationsUnread] = useState(0)
 
+  // Runs the fetch without touching state synchronously, so the mount effect below can
+  // call it directly. Each caller arms the flags first: the render adjustment for the
+  // initial load, the handler itself for a refresh.
   const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (!enabled) return
-    if (mode === 'initial') setLoading(true)
-    else setRefreshing(true)
-    setLoadError(null)
 
     try {
       const results = await Promise.allSettled([
@@ -290,17 +290,25 @@ function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDas
     }
   }, [enabled, userId])
 
+  // Re-arm for a new scope during render (react.dev "adjusting state when a prop
+  // changes") so a switched student never paints the previous one's data as settled.
+  const [seenScope, setSeenScope] = useState({ enabled, userId })
+  if (seenScope.enabled !== enabled || seenScope.userId !== userId) {
+    setSeenScope({ enabled, userId })
+    setLoading(enabled)
+    setLoadError(null)
+  }
+
   useEffect(() => {
-    if (!enabled) {
-      setLoading(false)
-      return
-    }
+    if (!enabled) return
     void load('initial')
   }, [enabled, userId, load])
 
   useEffect(() => {
     if (!enabled) return
     function onRefresh() {
+      setRefreshing(true)
+      setLoadError(null)
       void load('refresh')
     }
     window.addEventListener(STUDENT_SCOPE_REFRESH_EVENT, onRefresh)
@@ -405,6 +413,8 @@ function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDas
   }, [lmsDashboard.counts, enrollmentsMerged.length, registrations.length, sessionsUpcoming.length, sessionsLive.length])
 
   const refresh = useCallback(async () => {
+    setRefreshing(true)
+    setLoadError(null)
     await load('refresh')
   }, [load])
 

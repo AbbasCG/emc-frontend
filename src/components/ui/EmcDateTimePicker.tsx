@@ -99,9 +99,13 @@ function TimeDropdown({
   const anchorRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  // Re-sync the text field when the committed value changes underneath it — adjusted
+  // during render so the input never shows one frame of the previous value.
+  const [seenValue, setSeenValue] = useState(value)
+  if (seenValue !== value) {
+    setSeenValue(value)
     setInputVal(value)
-  }, [value])
+  }
 
   useEffect(() => {
     if (open && listRef.current) {
@@ -206,14 +210,18 @@ export default function EmcDateTimePicker({
   const [viewYear, setViewYear] = useState(() => draft.year)
   const [viewMonth, setViewMonth] = useState(() => draft.month)
 
-  useEffect(() => {
-    if (!open) return
-    const next = draftFromValue(value, today)
-    setDraft(next)
-    setViewYear(next.year)
-    setViewMonth(next.month)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  // Re-seed the draft from the committed value each time the popover opens — adjusted
+  // during render so the panel never paints the previous draft for a frame.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) {
+      const next = draftFromValue(value, today)
+      setDraft(next)
+      setViewYear(next.year)
+      setViewMonth(next.month)
+    }
+  }
 
 
   const { date: selectedDate, time: selectedTime } = splitDatetimeLocalPreview(value)

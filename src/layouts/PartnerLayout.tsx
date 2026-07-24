@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Briefcase, FileStack, LayoutDashboard, Menu, PieChart, X } from 'lucide-react'
@@ -17,9 +17,14 @@ export default function PartnerLayout() {
   const location = useLocation()
   const [open, setOpen] = useState(false)
 
-  useEffect(() => {
+  // Close the mobile drawer on navigation. Adjusted during render (react.dev
+  // "adjusting state when a prop changes") so the new route never paints with the
+  // previous route's drawer still open.
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
     setOpen(false)
-  }, [location.pathname])
+  }
 
   const sidebarName = getUserDisplayName(user)
   const sidebarSub = getUserSidebarSubtitle(user)

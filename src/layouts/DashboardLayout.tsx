@@ -269,12 +269,17 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     }
   })
 
-  useEffect(() => {
-    setSidebarQuery('')
-  }, [location.pathname])
+  // Clear the filter on navigation and auto-expand the collapsible group owning the
+  // active route. Adjusted during render (react.dev "adjusting state when a prop
+  // changes") so the sidebar never paints with the previous route's search text or a
+  // collapsed group; `null` seeds it so the mount pass expands the landing route too.
+  const [seenNav, setSeenNav] = useState<{
+    pathname: string
+    groups: SidebarNavGroup[]
+  } | null>(null)
+  if (seenNav === null || seenNav.pathname !== location.pathname || seenNav.groups !== groups) {
+    if (seenNav !== null && seenNav.pathname !== location.pathname) setSidebarQuery('')
 
-  // Auto-expand collapsible group when a child route is active
-  useEffect(() => {
     const updates: Record<string, boolean> = {}
     for (const group of groups) {
       if (!group.collapsible || !group.title) continue
@@ -285,10 +290,12 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       )
       if (hasActiveChild) updates[group.title] = true
     }
+
+    setSeenNav({ pathname: location.pathname, groups })
     if (Object.keys(updates).length > 0) {
       setCollapsibleExpanded((prev) => ({ ...prev, ...updates }))
     }
-  }, [location.pathname, groups])
+  }
 
   function collapsibleSectionOpen(title?: string, collapsible?: boolean, defaultOpen = true) {
     if (!collapsible || !title) return true
@@ -529,9 +536,13 @@ function Topbar({
   const displayName = getUserDisplayName(user)
   const roleLabel = getUserRoleLabel(user)
 
-  useEffect(() => {
+  // Close the account menu on navigation — adjusted during render so the new page
+  // never paints with the previous page's menu still open.
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
     setMenuOpen(false)
-  }, [location.pathname])
+  }
 
   return (
     <header
@@ -715,9 +726,13 @@ export default function DashboardLayout() {
     return unsubscribe
   }, [currentUser?.id])
 
-  useEffect(() => {
+  // Close the mobile sidebar on navigation — adjusted during render so the new page
+  // never paints with the previous page's drawer still open.
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
     setSidebarOpen(false)
-  }, [location.pathname])
+  }
 
   useEffect(() => {
     refreshNotifications()

@@ -82,9 +82,14 @@ function CoursesCarousel({
   const itemsPerPage = useItemsPerPage()
   const [page, setPage] = useState(0)
 
-  useEffect(() => {
+  // Back to the first page whenever the result set or the page size changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes") so a
+  // filtered list never paints on the previous page index first.
+  const [seen, setSeen] = useState({ courses, itemsPerPage })
+  if (seen.courses !== courses || seen.itemsPerPage !== itemsPerPage) {
+    setSeen({ courses, itemsPerPage })
     setPage(0)
-  }, [courses, itemsPerPage])
+  }
 
   const totalPages = Math.max(1, Math.ceil(courses.length / itemsPerPage))
   const clamped = Math.min(page, totalPages - 1)

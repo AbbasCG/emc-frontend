@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
@@ -53,18 +53,17 @@ export default function EmcDatePicker({
   const [viewYear, setViewYear] = useState(parsed?.y ?? todayY)
   const [viewMonth, setViewMonth] = useState(parsed?.m ?? todayM)
 
-  useEffect(() => {
-    if (!open) return
-    const p = parseIso(value)
-    if (p) {
-      setViewYear(p.y)
-      setViewMonth(p.m)
-    } else {
-      setViewYear(todayY)
-      setViewMonth(todayM)
+  // Re-centre the visible month on the committed value each time the popover opens —
+  // adjusted during render so the calendar never paints the previous month first.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) {
+      const p = parseIso(value)
+      setViewYear(p ? p.y : todayY)
+      setViewMonth(p ? p.m : todayM)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }
 
   function prevMonth() {
     if (viewMonth === 1) {

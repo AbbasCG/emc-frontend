@@ -1,5 +1,5 @@
 import { Check, FileText, ImagePlus, Loader2, X } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { cn } from '@/lib/utils'
 import AppFormError from './AppFormError'
@@ -77,10 +77,13 @@ export default function AppFileUpload({
   const [isDragging, setIsDragging] = useState(false)
   const [cs, setCs] = useState<CompressState>(IDLE)
 
-  // Reset compression state when parent clears the file
-  useEffect(() => {
+  // Reset compression state when the parent clears the file — adjusted during render
+  // so a cleared field never paints stale compression progress.
+  const [seenFile, setSeenFile] = useState(file)
+  if (seenFile !== file) {
+    setSeenFile(file)
     if (file === null) setCs(IDLE)
-  }, [file])
+  }
 
   const applyFile = async (raw: File | undefined) => {
     if (!raw) return

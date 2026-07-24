@@ -134,13 +134,18 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => {
+  // Collapse every open surface on navigation. Adjusted during render (react.dev
+  // "adjusting state when a prop changes") so the new route never paints with the
+  // previous route's menus still open.
+  const [seenPath, setSeenPath] = useState(pathname)
+  if (seenPath !== pathname) {
+    setSeenPath(pathname)
     setOpenMega(null)
     setUserMenuOpen(false)
     setLangMenuOpen(false)
     setMobileOpen(false)
     setMobileGroup(null)
-  }, [pathname])
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

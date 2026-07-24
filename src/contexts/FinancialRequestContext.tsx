@@ -26,18 +26,26 @@ const FinancialRequestContext = createContext<FinancialRequestContextValue>({
  */
 export function FinancialRequestProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth()
+  /** Identity of the session whose context is loaded — `null` when signed out. */
+  const sessionId = isAuthenticated ? (user?.id ?? null) : null
+
   const [data, setData] = useState<MyFinancialContext | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(sessionId !== null)
+
+  // Re-arm for a new session (login, logout, impersonation) during render — react.dev
+  // "adjusting state when a prop changes" — so consumers never read the previous
+  // user's permissions for a frame.
+  const [seenSession, setSeenSession] = useState(sessionId)
+  if (seenSession !== sessionId) {
+    setSeenSession(sessionId)
+    setData(null)
+    setIsLoading(sessionId !== null)
+  }
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.id) {
-      setData(null)
-      setIsLoading(false)
-      return
-    }
+    if (sessionId === null) return
 
     let cancelled = false
-    setIsLoading(true)
 
     fetchMyFinancialContext()
       .then((ctx) => {
@@ -53,7 +61,7 @@ export function FinancialRequestProvider({ children }: { children: ReactNode }) 
     return () => {
       cancelled = true
     }
-  }, [user?.id, isAuthenticated])
+  }, [sessionId])
 
   return (
     <FinancialRequestContext.Provider

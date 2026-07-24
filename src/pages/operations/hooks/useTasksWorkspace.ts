@@ -5,6 +5,18 @@ import type { OpsTask } from '@/types/operations'
 
 export type TasksScope = 'all' | 'mine' | 'overdue' | 'kanban'
 
+/** Pure I/O — kept outside the hook so the effect and `reload` share it without either
+ *  having to call a state-mutating callback. */
+function fetchScopedTasks(scope: TasksScope): Promise<OpsTask[]> {
+  const params =
+    scope === 'mine'
+      ? ({ scope: 'mine' } as const)
+      : scope === 'overdue'
+        ? ({ scope: 'overdue' } as const)
+        : undefined
+  return fetchTasks(params)
+}
+
 export function useTasksWorkspace(scope: TasksScope) {
   const { user } = useAuth()
   const [tasks, setTasks] = useState<OpsTask[]>([])
@@ -12,27 +24,44 @@ export function useTasksWorkspace(scope: TasksScope) {
   const [selected, setSelected] = useState<OpsTask | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
 
-  const load = useCallback(async () => {
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"), so the new scope never paints the previous
+  // scope's rows as if they were settled.
+  const userId = user?.id
+  const [seenQuery, setSeenQuery] = useState({ scope, userId })
+  if (seenQuery.scope !== scope || seenQuery.userId !== userId) {
+    setSeenQuery({ scope, userId })
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchScopedTasks(scope)
+        if (alive) setTasks(data)
+      } catch {
+        if (alive) setTasks([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [scope, userId])
+
+  /** Imperative refresh from an event handler — shows the loading state again. */
+  const reload = useCallback(async () => {
     setLoading(true)
     try {
-      const params =
-        scope === 'mine'
-          ? ({ scope: 'mine' } as const)
-          : scope === 'overdue'
-            ? ({ scope: 'overdue' } as const)
-            : undefined
-      const data = await fetchTasks(params)
-      setTasks(data)
+      setTasks(await fetchScopedTasks(scope))
     } catch {
       setTasks([])
     } finally {
       setLoading(false)
     }
-  }, [scope, user?.id])
-
-  useEffect(() => {
-    load()
-  }, [load])
+  }, [scope])
 
   const openTask = useCallback(async (t: OpsTask) => {
     setSelected(t)
@@ -64,10 +93,10 @@ export function useTasksWorkspace(scope: TasksScope) {
           ...(patch.description !== undefined ? { description: patch.description } : {}),
         })
       } catch {
-        await load()
+        await reload()
       }
     },
-    [selected, load],
+    [selected, reload],
   )
 
   const onToggleChecklist = useCallback(
@@ -84,10 +113,10 @@ export function useTasksWorkspace(scope: TasksScope) {
           checklist: checklist.map((c) => ({ id: c.id, done: c.done })),
         })
       } catch {
-        await load()
+        await reload()
       }
     },
-    [selected, load],
+    [selected, reload],
   )
 
   const onComment = useCallback(
@@ -119,7 +148,7 @@ export function useTasksWorkspace(scope: TasksScope) {
   return {
     tasks,
     loading,
-    reload: load,
+    reload,
     selected,
     panelOpen,
     openTask,

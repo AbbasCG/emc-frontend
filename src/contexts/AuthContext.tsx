@@ -52,10 +52,29 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+/**
+ * Cached `/auth/me` payload from a previous session — only trusted while a token is
+ * present, and refreshed by `hydrate()` on mount. A malformed entry is dropped.
+ */
+function readCachedUser(): User | null {
+  if (!localStorage.getItem(TOKEN_KEY)) return null
+  const cached = localStorage.getItem(USER_KEY)
+  if (!cached) return null
+  try {
+    return normalizeAuthUser(JSON.parse(cached) as unknown)
+  } catch {
+    localStorage.removeItem(USER_KEY)
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Session bootstrap reads localStorage in lazy initialisers rather than from the
+  // mount effect: the first render already reflects the stored session, so there is
+  // no logged-out frame to flash and no cascading re-render.
+  const [user, setUser] = useState<User | null>(readCachedUser)
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
+  const [isLoading, setIsLoading] = useState(() => localStorage.getItem(TOKEN_KEY) != null)
   const [impersonationOriginalUser, setImpersonationOriginalUser] = useState<User | null>(
     () => readStoredImpersonationOriginal()?.originalUser ?? null,
   )
@@ -63,14 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isImpersonating = impersonationOriginalUser != null
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY)
-
-    if (!storedToken) {
-      setIsLoading(false)
-      return
-    }
-
-    setToken(storedToken)
+    if (!localStorage.getItem(TOKEN_KEY)) return
 
     let cancelled = false
 
@@ -93,19 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const cached = localStorage.getItem(USER_KEY)
-    if (cached) {
-      try {
-        setUser(normalizeAuthUser(JSON.parse(cached) as unknown))
-      } catch {
-        localStorage.removeItem(USER_KEY)
-      }
-    }
-
-    const snap = readStoredImpersonationOriginal()
-    setImpersonationOriginalUser((prev) => snap?.originalUser ?? prev ?? null)
-
-    hydrate()
+    void hydrate()
     return () => {
       cancelled = true
     }

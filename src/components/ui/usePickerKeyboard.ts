@@ -75,14 +75,17 @@ export function usePickerKeyboard({
     isSelectable(selectedIndex) ? selectedIndex : firstSelectable(),
   )
 
-  // Keep the roving index valid as the visible month / selection changes.
-  useEffect(() => {
+  // Keep the roving index valid as the visible month / selection changes. Adjusted
+  // during render so the grid never exposes a stale `aria-activedescendant` for a frame.
+  const [seenGrid, setSeenGrid] = useState({ cells, selectedIndex })
+  if (seenGrid.cells !== cells || seenGrid.selectedIndex !== selectedIndex) {
+    setSeenGrid({ cells, selectedIndex })
     setActiveIndex((prev) => {
       if (isSelectable(selectedIndex)) return selectedIndex
       if (isSelectable(prev)) return prev
       return firstSelectable()
     })
-  }, [cells, selectedIndex, isSelectable, firstSelectable])
+  }
 
   // Focus the active gridcell whenever the picker is open.
   useEffect(() => {
