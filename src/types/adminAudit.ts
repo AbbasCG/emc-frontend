@@ -37,8 +37,32 @@ export type AdminAuditLogEntry = {
 
   ip_address: string | null
   user_agent_summary: string
+  user_agent?: string | null
+  metadata?: unknown
   route?: string | null
   method?: string | null
 
   created_at: string
+}
+
+export type AdminAuditLogStats = {
+  total: number
+  today: number
+  this_week: number
+  this_month: number
+  unique_users: number
+  failed_operations: number
+  successful_operations: number
+  top_entity: string | null
+  most_active_user: string | null
+  most_common_action: string | null
+}
+
+export type AdminAuditLogPaginationMeta = {
+  total: number
+  current_page: number
+  last_page: number
+  per_page: number
+  from: number | null
+  to: number | null
 }

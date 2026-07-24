@@ -1,7 +1,7 @@
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
 
-export type VolunteerRequestStatus = 'pending' | 'reviewed' | 'accepted' | 'rejected' | 'contacted'
+export type VolunteerRequestStatus = 'pending' | 'reviewing' | 'reviewed' | 'accepted' | 'rejected' | 'contacted' | 'converted_to_member'
 
 export type VolunteerRequest = {
   id: number
@@ -24,6 +24,10 @@ export type VolunteerRequest = {
   cv_download_url?: string | null
   status: VolunteerRequestStatus
   created_at?: string | null
+  reviewed_at?: string | null
+  accepted_at?: string | null
+  accepted_by?: { id: number; name: string } | null
+  accepted_by_name?: string | null
 
   /** True when the volunteer has been converted to an internal member */
   is_converted?: boolean | null
@@ -35,6 +39,13 @@ export type VolunteerRequest = {
   converted_member?: { id: number; name: string } | null
   /** Backend flag: false means already converted or not eligible */
   can_convert_to_member?: boolean | null
+}
+
+export type AcceptedVolunteersMeta = {
+  total_accepted: number
+  total_converted: number
+  accepted_this_month: number
+  top_department: string | null
 }
 
 export type VolunteerApplicationInput = {
@@ -103,7 +114,7 @@ function parseStr(v: unknown): string | null {
 
 export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest {
   const statusRaw = String(raw.status ?? 'pending').toLowerCase()
-  const validStatuses: VolunteerRequestStatus[] = ['pending', 'reviewed', 'accepted', 'rejected', 'contacted']
+  const validStatuses: VolunteerRequestStatus[] = ['pending', 'reviewing', 'reviewed', 'accepted', 'rejected', 'contacted', 'converted_to_member']
   const status: VolunteerRequestStatus = validStatuses.includes(statusRaw as VolunteerRequestStatus)
     ? (statusRaw as VolunteerRequestStatus)
     : 'pending'
@@ -161,6 +172,18 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
     cv_download_url: parseStr(raw.cv_download_url ?? raw.cv_file_url ?? raw.cv_url),
     status,
     created_at: parseStr(raw.created_at),
+    reviewed_at: parseStr(raw.reviewed_at),
+    accepted_at: parseStr(raw.accepted_at),
+    accepted_by_name: parseStr(raw.accepted_by_name),
+    accepted_by: (() => {
+      const ab = raw.accepted_by
+      if (ab && typeof ab === 'object' && !Array.isArray(ab)) {
+        const o = ab as Record<string, unknown>
+        const mid = parseId(o.id); const mname = parseStr(o.name)
+        if (mid && mname) return { id: mid, name: mname }
+      }
+      return null
+    })(),
     is_converted: isConverted,
     converted_to_member_at: convertedAt,
     converted_member_id: convertedMemberId,
@@ -169,25 +192,131 @@ export function normalizeRequest(raw: Record<string, unknown>): VolunteerRequest
   }
 }
 
-function unwrapList(res: unknown): unknown[] {
-  const inner = unwrapData<unknown>(res)
-  if (Array.isArray(inner)) return inner
-  if (inner && typeof inner === 'object') {
-    const o = inner as Record<string, unknown>
-    if (Array.isArray(o.data)) return o.data
-    if (Array.isArray(o.members)) return o.members
-    if (Array.isArray(o.items)) return o.items
+
+export async function fetchAcceptedVolunteers(params?: Record<string, string>): Promise<{
+  data: VolunteerRequest[]
+  meta: AcceptedVolunteersMeta
+  pagination: { total: number; current_page: number; last_page: number; per_page: number }
+}> {
+  const qs = params ? '?' + new URLSearchParams(params).toString() : ''
+  const res = await apiClient.get<unknown>(`/admin/volunteers/accepted${qs}`, { skipErrorToast: true } as Record<string, unknown>)
+
+  if (import.meta.env.DEV) {
+    console.log('[fetchAcceptedVolunteers] raw API response:', res.data)
   }
-  return []
+
+  // res.data = { success, data: { data: [...], meta: {pagination} }, meta: {stats} }
+  const body = unwrapData<unknown>(res.data) as Record<string, unknown>
+  // body = { data: [...volunteers], meta: {pagination}, links: {...} }
+
+  const rawData = Array.isArray(body?.data) ? body.data as unknown[] :
+    // Fallback: if body itself is an array (non-paginated response), use it directly
+    Array.isArray(body) ? body as unknown[] : []
+
+  const paginationMeta = (body?.meta ?? {}) as Record<string, unknown>
+  const appMeta = (res.data as Record<string, unknown>)?.meta as AcceptedVolunteersMeta ?? {
+    total_accepted: 0, total_converted: 0, accepted_this_month: 0, top_department: null,
+  }
+
+  const volunteers = rawData
+    .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
+    .map(normalizeRequest)
+    .filter((r) => r.id > 0)
+
+  if (import.meta.env.DEV) {
+    console.log('[fetchAcceptedVolunteers] body:', body, '| rawData length:', rawData.length, '| normalized volunteers:', volunteers, '| meta:', appMeta)
+  }
+
+  return {
+    data: volunteers,
+    meta: appMeta,
+    pagination: {
+      total: Number(paginationMeta.total ?? 0),
+      current_page: Number(paginationMeta.current_page ?? 1),
+      last_page: Number(paginationMeta.last_page ?? 1),
+      per_page: Number(paginationMeta.per_page ?? 50),
+    },
+  }
 }
 
-export async function fetchVolunteerRequests(): Promise<VolunteerRequest[]> {
-  const res = await apiClient.get<unknown>('/admin/volunteer-requests', { skipErrorToast: true } as Record<string, unknown>)
-  const list = unwrapList(res.data)
-  return list
+export type VolunteerRequestsParams = {
+  page?: number
+  per_page?: number
+  status?: VolunteerRequestStatus | 'all'
+  search?: string
+  desired_department?: string
+}
+
+export type VolunteerRequestsPagination = {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  from: number
+  to: number
+}
+
+export type VolunteerRequestsStatistics = {
+  total: number
+  pending: number
+  reviewing: number
+  reviewed: number
+  accepted: number
+  rejected: number
+  contacted: number
+  converted_to_member: number
+}
+
+export type FetchVolunteerRequestsResult = {
+  data: VolunteerRequest[]
+  meta: VolunteerRequestsPagination
+  statistics: VolunteerRequestsStatistics
+}
+
+export async function fetchVolunteerRequests(
+  params: VolunteerRequestsParams = {},
+): Promise<FetchVolunteerRequestsResult> {
+  const qs: Record<string, string> = {}
+  if (params.page && params.page > 1) qs.page = String(params.page)
+  if (params.per_page) qs.per_page = String(params.per_page)
+  if (params.status && params.status !== 'all') qs.status = params.status
+  if (params.search?.trim()) qs.search = params.search.trim()
+  if (params.desired_department && params.desired_department !== 'all') qs.desired_department = params.desired_department
+
+  const query = Object.keys(qs).length ? '?' + new URLSearchParams(qs).toString() : ''
+  const res = await apiClient.get<unknown>(`/admin/volunteer-requests${query}`, { skipErrorToast: true } as Record<string, unknown>)
+
+  const body = res.data as Record<string, unknown>
+
+  const rawList = Array.isArray(body?.data) ? (body.data as unknown[]) : []
+  const data = rawList
     .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null && !Array.isArray(r))
     .map(normalizeRequest)
     .filter((r) => r.id > 0)
+
+  const rawMeta = (body?.meta ?? {}) as Record<string, unknown>
+  const meta: VolunteerRequestsPagination = {
+    current_page: Number(rawMeta.current_page ?? 1),
+    last_page:    Number(rawMeta.last_page    ?? 1),
+    per_page:     Number(rawMeta.per_page     ?? 20),
+    total:        Number(rawMeta.total        ?? data.length),
+    from:         Number(rawMeta.from         ?? 1),
+    to:           Number(rawMeta.to           ?? data.length),
+  }
+
+  const rawStats = (body?.statistics ?? {}) as Record<string, unknown>
+  const statistics: VolunteerRequestsStatistics = {
+    total:               Number(rawStats.total               ?? meta.total),
+    pending:             Number(rawStats.pending             ?? 0),
+    reviewing:           Number(rawStats.reviewing           ?? 0),
+    reviewed:            Number(rawStats.reviewed            ?? 0),
+    accepted:            Number(rawStats.accepted            ?? 0),
+    rejected:            Number(rawStats.rejected            ?? 0),
+    contacted:           Number(rawStats.contacted           ?? 0),
+    converted_to_member: Number(rawStats.converted_to_member ?? 0),
+  }
+
+  return { data, meta, statistics }
 }
 
 export async function updateVolunteerRequestStatus(

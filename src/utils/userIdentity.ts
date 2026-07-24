@@ -113,6 +113,11 @@ export function normalizeAuthUser(payload: unknown): User {
   const permissions: string[] | undefined =
     Array.isArray(rawPerms) ? (rawPerms as unknown[]).map(String).filter(Boolean) : undefined
 
+  // is_department_leader may live on the outer envelope (sibling to `user`) or directly on `r`
+  const rawLeader = outer.is_department_leader ?? r.is_department_leader
+  const is_department_leader: boolean | undefined =
+    typeof rawLeader === 'boolean' ? rawLeader : undefined
+
   return {
     id: finiteId(r.id),
     name,
@@ -131,6 +136,7 @@ export function normalizeAuthUser(payload: unknown): User {
     is_active,
     role,
     permissions,
+    is_department_leader,
   }
 }
 

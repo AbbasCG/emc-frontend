@@ -12,6 +12,7 @@ export type EnrollmentFieldValues = {
   city: string
   gender: string
   notes: string
+  registration_code?: string
   payment_provider?: 'stripe' | 'paypal' | 'fake'
   country?: string
   country_code?: string
@@ -27,7 +28,7 @@ type Props = {
   initial?: Partial<EnrollmentFieldValues>
   submitting?: boolean
   error?: string
-  fieldErrors?: Partial<Record<'phone' | 'city' | 'gender' | 'notes' | 'payment_provider', string>>
+  fieldErrors?: Partial<Record<'phone' | 'city' | 'gender' | 'notes' | 'payment_provider' | 'registration_code', string>>
   onClose: () => void
   onSubmit: (values: EnrollmentFieldValues) => void
 }
@@ -46,22 +47,26 @@ export default function CourseEnrollmentFieldsModal({
   onClose,
   onSubmit,
 }: Props) {
-  const isPaid = course.type === 'paid'
+  const isPaid = course.is_paid === true || course.type === 'paid'
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
   const [localPhone, setLocalPhone] = useState('')
   const [city, setCity] = useState('')
   const [gender, setGender] = useState('')
   const [notes, setNotes] = useState('')
+  const [registrationCode, setRegistrationCode] = useState('')
   const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'paypal' | 'fake'>('stripe')
   const panelRef = useRef<HTMLDivElement | null>(null)
 
   useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
+  const requiresRegistrationCode = Boolean(course.requires_registration_code)
 
   useEffect(() => {
     if (!open) return
     setCity(initial?.city ?? '')
     setGender(initial?.gender ?? '')
     setNotes(initial?.notes ?? '')
+    setRegistrationCode(initial?.registration_code ?? '')
     setPaymentProvider(initial?.payment_provider ?? 'stripe')
 
     const phoneRaw = initial?.phone?.trim() ?? ''
@@ -91,6 +96,7 @@ export default function CourseEnrollmentFieldsModal({
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!selectedCountry && missing.includes('phone')) return
+    if (requiresRegistrationCode && !registrationCode.trim()) return
     const phone =
       selectedCountry && localPhone.trim() ? `${selectedCountry.dialCode}${localPhone.trim()}` : initial?.phone ?? ''
     onSubmit({
@@ -98,6 +104,7 @@ export default function CourseEnrollmentFieldsModal({
       city: city.trim() || initial?.city || '',
       gender: gender || initial?.gender || '',
       notes: notes.trim(),
+      ...(requiresRegistrationCode ? { registration_code: registrationCode.trim() } : {}),
       ...(isPaid ? { payment_provider: paymentProvider } : {}),
       country: selectedCountry?.name,
       country_code: selectedCountry?.code,
@@ -210,6 +217,23 @@ export default function CourseEnrollmentFieldsModal({
                   </span>
                 </label>
               )}
+
+              {requiresRegistrationCode ?
+                <label className="grid gap-2 text-sm font-black text-deepBlue">
+                  رمز التسجيل
+                  <input
+                    value={registrationCode}
+                    required
+                    onChange={(e) => setRegistrationCode(e.target.value)}
+                    className={inputCls(fieldErrors.registration_code)}
+                    placeholder="أدخل رمز التسجيل للدورة"
+                    autoComplete="off"
+                  />
+                  {fieldErrors.registration_code ?
+                    <span className="text-xs text-red-600">{fieldErrors.registration_code}</span>
+                  : null}
+                </label>
+              : null}
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
                 ملاحظات <span className="font-semibold text-muted-400">(اختياري)</span>

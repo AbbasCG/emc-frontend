@@ -13,6 +13,7 @@ export type RegistrationSubmitPayload = {
   city: string
   gender: string
   notes: string
+  registration_code?: string
   payment_provider?: string
   /** Sent for UX context; backend ignores via validated() */
   country?: string

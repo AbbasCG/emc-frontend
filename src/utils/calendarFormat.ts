@@ -34,7 +34,7 @@ export function formatCalendarTime(iso: string | null | undefined): string {
   return formatCalendarDateTime(iso, {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true,
+    hour12: false,
   })
 }
 
@@ -45,7 +45,7 @@ export function formatCalendarDateShort(iso: string | null | undefined): string 
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true,
+    hour12: false,
   })
 }
 

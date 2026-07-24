@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { Heart, Play, Share2, Star } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
+import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { mapCourseStatusArabic } from '@/utils/publicCourseDisplay'
 import { formatPublicText } from '@/utils/publicDetailFormat'
 import type { Course } from '@/types'
@@ -43,7 +45,8 @@ export default function CourseDetailCompactHero({
   onVideoPreview,
   cta,
 }: Props) {
-  const status = mapCourseStatusArabic(course.status, course.is_published)
+  const ended = resolveCourseIsEnded(course)
+  const status = ended ? null : mapCourseStatusArabic(course.status, course.is_published)
   const thumbs = gallery.slice(0, 4)
   const [activeImage, setActiveImage] = useState(coverUrl)
 
@@ -68,6 +71,11 @@ export default function CourseDetailCompactHero({
           <div className="group relative h-[120px] overflow-hidden rounded-xl ring-1 ring-white/20 sm:h-[130px] lg:h-[min(200px,calc(400px-4rem))]">
             <img src={activeImage} alt="" loading="eager" className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/60 to-transparent" />
+            {ended ?
+              <div className="absolute left-2 top-2 z-10">
+                <CourseStatusBadge isEnded placement="overlay" />
+              </div>
+            : null}
             {videoUrl ?
               <button
                 type="button"
@@ -118,7 +126,9 @@ export default function CourseDetailCompactHero({
             {level ?
               <span className="rounded-full bg-[#F28C00]/25 px-2 py-0.5 text-[9px] font-black text-[#fcd9b0] ring-1 ring-[#F28C00]/30">{level}</span>
             : null}
-            {status ?
+            {ended ?
+              <CourseStatusBadge isEnded placement="inline" />
+            : status ?
               <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black">{status}</span>
             : null}
           </div>

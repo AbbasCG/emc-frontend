@@ -18,6 +18,7 @@ function formatDate(dateStr: string): string {
 }
 
 function spotsColor(remaining: number, total: number): string {
+  if (!total) return 'text-emerald-600 bg-emerald-50 border-emerald-200'
   const ratio = remaining / total
   if (ratio <= 0.2) return 'text-red-600 bg-red-50 border-red-200'
   if (ratio <= 0.5) return 'text-amber-600 bg-amber-50 border-amber-200'
@@ -105,7 +106,9 @@ type WorkshopCardProps = {
 
 function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
   const spotsStyle = spotsColor(workshop.spots_remaining, workshop.total_spots)
-  const spotsPercent = Math.round((workshop.spots_remaining / workshop.total_spots) * 100)
+  const spotsPercent = workshop.total_spots
+    ? Math.round((workshop.spots_remaining / workshop.total_spots) * 100)
+    : 100
 
   return (
     <motion.div
@@ -143,7 +146,9 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       <div className="flex flex-col gap-1.5 mb-4">
         <div className="flex items-center gap-2 text-xs text-muted-500">
           <Calendar className="w-3.5 h-3.5 text-customBlue shrink-0" />
-          <span>{formatDate(workshop.date)} · {workshop.time}</span>
+          <span>
+            {workshop.date ? `${formatDate(workshop.date)}${workshop.time ? ` · ${workshop.time}` : ''}` : 'الموعد لم يحدد بعد'}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-500">
           <Clock className="w-3.5 h-3.5 text-customOrange shrink-0" />

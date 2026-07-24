@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
+import { Calendar, Clock, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
-import { usePickerKeyboard } from '@/components/ui/usePickerKeyboard'
+import { CALENDAR_PORTAL_CLASS, EmcCalendarBody } from '@/components/ui/EmcCalendarPopover'
 import {
   addDaysToDatetimeLocal,
   addMinutesToDatetimeLocal,
@@ -13,8 +13,6 @@ import {
   startOfTodayDatetimeLocal,
   toDatetimeLocalValue,
 } from '@/utils/datetimeLocal'
-
-const WEEKDAYS = ['أحد', 'إثن', 'ثل', 'أرب', 'خم', 'جم', 'سب'] as const
 
 type DatePreset = { id: string; label: string; apply: (current: string) => string }
 type DurationPreset = { id: string; label: string; minutes: number }
@@ -44,40 +42,6 @@ const DURATION_PRESETS: DurationPreset[] = [
   { id: '2h', label: '+2 ساعة', minutes: 120 },
 ]
 
-function monthLabel(year: number, month: number): string {
-  const d = new Date(year, month - 1, 1)
-  return new Intl.DateTimeFormat('ar', {
-    month: 'long',
-    year: 'numeric',
-    numberingSystem: 'latn',
-  }).format(d)
-}
-
-function dayAriaLabel(year: number, month: number, day: number): string {
-  return new Intl.DateTimeFormat('ar', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    numberingSystem: 'latn',
-  }).format(new Date(year, month - 1, day))
-}
-
-function buildCalendarDays(viewYear: number, viewMonth: number): (number | null)[] {
-  const first = new Date(viewYear, viewMonth - 1, 1)
-  const startPad = first.getDay()
-  const daysInMonth = new Date(viewYear, viewMonth, 0).getDate()
-  const cells: (number | null)[] = []
-  for (let i = 0; i < startPad; i++) cells.push(null)
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
-  while (cells.length % 7 !== 0) cells.push(null)
-  return cells
-}
-
-function mergeDateTime(y: number, m: number, day: number, hour: number, minute: number): string {
-  return toDatetimeLocalValue(new Date(y, m - 1, day, hour, minute, 0, 0))
-}
-
 type Draft = {
   year: number
   month: number
@@ -98,6 +62,10 @@ function draftFromValue(value: string, fallback: Date): Draft {
   }
 }
 
+function mergeDateTime(y: number, m: number, day: number, hour: number, minute: number): string {
+  return toDatetimeLocalValue(new Date(y, m - 1, day, hour, minute, 0, 0))
+}
+
 function draftToValue(d: Draft): string {
   return mergeDateTime(d.year, d.month, d.day, d.hour, d.minute)
 }
@@ -113,38 +81,108 @@ type Props = {
   showDatePresets?: boolean
 }
 
-function TimeColumn({
-  label,
-  items,
+const TIME_OPTIONS: string[] = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4)
+  const m = (i % 4) * 15
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+})
+
+function TimeDropdown({
   value,
-  onSelect,
+  onChange,
 }: {
-  label: string
-  items: number[]
-  value: number
-  onSelect: (v: number) => void
+  value: string
+  onChange: (v: string) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const [inputVal, setInputVal] = useState(value)
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setInputVal(value)
+  }, [value])
+
+  useEffect(() => {
+    if (open && listRef.current) {
+      const idx = TIME_OPTIONS.indexOf(value)
+      if (idx >= 0) {
+        const btn = listRef.current.children[idx] as HTMLElement
+        btn?.scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }, [open, value])
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = e.target.value
+    setInputVal(v)
+    if (/^\d{1,2}:\d{2}$/.test(v)) {
+      const [hStr, mStr] = v.split(':')
+      const h = parseInt(hStr, 10)
+      const m = parseInt(mStr, 10)
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+        onChange(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+      }
+    }
+  }
+
+  function handleSelect(opt: string) {
+    onChange(opt)
+    setInputVal(opt)
+    setOpen(false)
+  }
+
   return (
-    <div className="min-w-0">
-      <p className="mb-1 text-center text-[10px] font-bold text-slate-500">{label}</p>
-      <div className="max-h-36 overflow-y-auto rounded-xl border border-[#0C2A4B]/10 bg-white p-1 scrollbar-thin">
-        {items.map((item) => {
-          const active = item === value
-          return (
-            <button
-              key={item}
-              type="button"
-              onClick={() => onSelect(item)}
-              className={cn(
-                'flex w-full items-center justify-center rounded-lg py-1.5 text-[12px] font-bold tabular-nums transition',
-                active ? 'bg-[#0077B6] text-white' : 'text-[#0C2A4B] hover:bg-slate-100',
-              )}
-            >
-              {String(item).padStart(2, '0')}
-            </button>
-          )
-        })}
+    <div ref={anchorRef} className="relative">
+      <div className="flex items-center gap-1 rounded-xl border border-[#0C2A4B]/12 bg-white px-2.5 py-2 focus-within:border-[#0077B6]/50 focus-within:ring-2 focus-within:ring-[#0077B6]/10">
+        <Clock className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" aria-hidden />
+        <input
+          type="text"
+          value={inputVal}
+          onChange={handleInputChange}
+          onFocus={() => setOpen(true)}
+          placeholder="00:00"
+          dir="ltr"
+          className="w-full min-w-0 bg-transparent text-center text-[13px] font-black tabular-nums text-[#0C2A4B] outline-none placeholder:text-slate-300"
+        />
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0 text-[#0C2A4B]/40 hover:text-[#0077B6]"
+          tabIndex={-1}
+        >
+          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
+        </button>
       </div>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[290]" onClick={() => setOpen(false)} />
+          <div
+            ref={listRef}
+            className="absolute bottom-full left-0 right-0 z-[300] mb-1 max-h-48 overflow-y-auto overscroll-contain rounded-xl border border-[#0C2A4B]/10 bg-white py-1 shadow-[0_8px_30px_-6px_rgba(12,42,75,0.25)]"
+            dir="ltr"
+          >
+            {TIME_OPTIONS.map((opt) => {
+              const active = opt === value
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => handleSelect(opt)}
+                  className={cn(
+                    'flex w-full items-center justify-center py-1.5 text-[13px] font-black tabular-nums transition',
+                    active
+                      ? 'bg-[#0077B6] text-white'
+                      : 'text-[#0C2A4B] hover:bg-[#0077B6]/8 hover:text-[#0077B6]',
+                  )}
+                >
+                  {opt}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -180,7 +218,6 @@ export default function EmcDateTimePicker({
 
   const { date: selectedDate, time: selectedTime } = splitDatetimeLocalPreview(value)
   const draftPreview = formatDatetimeLocalPreview(draftToValue(draft))
-  const calendarDays = buildCalendarDays(viewYear, viewMonth)
 
   function patchDraft(patch: Partial<Draft>) {
     setDraft((prev) => {
@@ -227,26 +264,12 @@ export default function EmcDateTimePicker({
     }
   }
 
-  const selectedIndex = calendarDays.findIndex(
-    (day) => day != null && draft.year === viewYear && draft.month === viewMonth && draft.day === day,
-  )
+  const draftTime = `${String(draft.hour).padStart(2, '0')}:${String(draft.minute).padStart(2, '0')}`
 
-  const { gridRef, onGridKeyDown, activeIndex } = usePickerKeyboard({
-    cells: calendarDays,
-    selectedIndex,
-    open,
-    // Enter/Space updates the DRAFT only; commit happens via the تأكيد button.
-    onSelect: (index) => {
-      const day = calendarDays[index]
-      if (day != null) selectDay(day)
-    },
-    onPrevMonth: prevMonth,
-    onNextMonth: nextMonth,
-    onClose: () => setOpen(false),
-  })
-
-  const hours = Array.from({ length: 24 }, (_, i) => i)
-  const minutes = Array.from({ length: 60 }, (_, i) => i)
+  function handleTimeChange(t: string) {
+    const [hStr, mStr] = t.split(':')
+    patchDraft({ hour: parseInt(hStr, 10), minute: parseInt(mStr, 10) })
+  }
 
   return (
     <div className="block text-right font-[Cairo,Tajawal,sans-serif]">
@@ -285,28 +308,28 @@ export default function EmcDateTimePicker({
         open={open}
         anchorRef={anchorRef}
         onClose={() => setOpen(false)}
-        align="stretch"
+        align="end"
         offset={8}
         layer="datetime"
         constrainViewport
-        className="w-[min(100vw-1rem,22rem)]"
+        className={CALENDAR_PORTAL_CLASS}
       >
         <div
           role="dialog"
           aria-modal="true"
           aria-label={label}
-          className="flex max-h-[min(85vh,32rem)] flex-col overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12,42,75,0.35)]"
+          className="flex flex-col overflow-hidden rounded-2xl border border-[#0C2A4B]/10 bg-white shadow-[0_20px_50px_-12px_rgba(12,42,75,0.35)]"
           dir="rtl"
         >
           {(showDatePresets || durationFrom) && (
-            <div className="shrink-0 flex flex-wrap gap-1.5 border-b border-slate-100 bg-slate-50/80 p-2.5">
+            <div className="shrink-0 flex flex-wrap gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-3">
               {showDatePresets &&
                 DATE_PRESETS.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => applyPreset(p.apply(value))}
-                    className="rounded-lg border border-[#0C2A4B]/10 bg-white px-2.5 py-1 text-[11px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/30 hover:text-[#0077B6]"
+                    className="rounded-lg border border-[#0C2A4B]/10 bg-white px-3 py-1.5 text-[12px] font-black text-[#0C2A4B] transition hover:border-[#0077B6]/35 hover:bg-[#0077B6]/5 hover:text-[#0077B6]"
                   >
                     {p.label}
                   </button>
@@ -325,83 +348,37 @@ export default function EmcDateTimePicker({
             </div>
           )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-              <button
-                type="button"
-                onClick={nextMonth}
-                className="rounded-lg p-1.5 text-[#0C2A4B]/60 transition hover:bg-slate-100"
-                aria-label="الشهر التالي"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <p className="text-[13px] font-black text-[#0C2A4B]">{monthLabel(viewYear, viewMonth)}</p>
-              <button
-                type="button"
-                onClick={prevMonth}
-                className="rounded-lg p-1.5 text-[#0C2A4B]/60 transition hover:bg-slate-100"
-                aria-label="الشهر السابق"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="flex-1">
+            <EmcCalendarBody
+              viewYear={viewYear}
+              viewMonth={viewMonth}
+              isDaySelected={(day) =>
+                draft.year === viewYear && draft.month === viewMonth && draft.day === day
+              }
+              onPrevMonth={prevMonth}
+              onNextMonth={nextMonth}
+              onSelectDay={selectDay}
+              onPreset={(iso) => {
+                const p = parseDatetimeLocalParts(iso + 'T12:00:00') ?? {
+                  year: draft.year,
+                  month: draft.month,
+                  day: draft.day,
+                  hour: draft.hour,
+                  minute: draft.minute,
+                }
+                setDraft({ year: p.year, month: p.month, day: p.day, hour: draft.hour, minute: draft.minute })
+                setViewYear(p.year)
+                setViewMonth(p.month)
+              }}
+              showPresets={false}
+            />
 
-            <div className="grid grid-cols-7 gap-0.5 px-2 pb-1">
-              {WEEKDAYS.map((wd) => (
-                <div key={wd} className="py-1 text-center text-[10px] font-bold text-slate-400">
-                  {wd}
-                </div>
-              ))}
-            </div>
-
-            <div
-              ref={gridRef}
-              role="grid"
-              aria-label={monthLabel(viewYear, viewMonth)}
-              onKeyDown={onGridKeyDown}
-              className="grid grid-cols-7 gap-0.5 px-2 pb-3"
-            >
-              {calendarDays.map((day, idx) => {
-                if (day == null) return <div key={`e-${idx}`} className="aspect-square" />
-                const isSelected =
-                  draft.year === viewYear && draft.month === viewMonth && draft.day === day
-                const isToday =
-                  today.getFullYear() === viewYear && today.getMonth() + 1 === viewMonth && today.getDate() === day
-                return (
-                  <button
-                    key={`d-${day}-${idx}`}
-                    type="button"
-                    role="gridcell"
-                    data-cell-index={idx}
-                    aria-selected={isSelected}
-                    aria-current={isToday ? 'date' : undefined}
-                    aria-label={dayAriaLabel(viewYear, viewMonth, day)}
-                    tabIndex={idx === activeIndex ? 0 : -1}
-                    onClick={() => selectDay(day)}
-                    className={cn(
-                      'aspect-square rounded-xl text-[12px] font-bold tabular-nums transition',
-                      isSelected
-                        ? 'bg-[#0077B6] text-white shadow-sm'
-                        : isToday
-                          ? 'bg-[#0077B6]/10 text-[#0077B6] ring-1 ring-[#0077B6]/30'
-                          : 'text-[#0C2A4B] hover:bg-slate-100',
-                    )}
-                  >
-                    {day}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-3">
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-black text-[#0C2A4B]/70">
+            <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-2.5">
+              <div className="mb-1.5 flex items-center gap-2 text-[11px] font-black text-[#0C2A4B]/70">
                 <Clock className="h-3.5 w-3.5 text-[#0077B6]" aria-hidden />
                 الوقت
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <TimeColumn label="ساعة" items={hours} value={draft.hour} onSelect={(h) => patchDraft({ hour: h })} />
-                <TimeColumn label="دقيقة" items={minutes} value={draft.minute} onSelect={(m) => patchDraft({ minute: m })} />
-              </div>
+              <TimeDropdown value={draftTime} onChange={handleTimeChange} />
             </div>
           </div>
 

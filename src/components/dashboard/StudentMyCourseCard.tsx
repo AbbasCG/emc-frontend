@@ -7,9 +7,12 @@ import {
   CheckCircle,
   ClipboardCheck,
   Clock,
+  CreditCard,
+  Hourglass,
   LayoutList,
   MessageSquare,
   PlayCircle,
+  XCircle,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -19,6 +22,8 @@ import type { Course, Enrollment } from '@/types'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
 import { getLevelFromScore, progressFromStatus } from '@/api/placementApi'
+import { fmtDate, formatStudentDateTime } from '@/components/lms/lmsFormatters'
+import PaymentRequiredCta from './PaymentRequiredCta'
 
 const CEFR_CODE: Record<string, string> = {
   beginner:           'Starter',
@@ -36,16 +41,37 @@ function hasScheduledDate(course: Course): boolean {
   return s !== '' && s !== '—'
 }
 
+function stripSeconds(t: string): string {
+  return String(t).slice(0, 5)
+}
+
 function formatScheduleLine(course: Course): string | null {
   if (!hasScheduledDate(course)) return null
-  const d = String(course.start_date).slice(0, 10)
+  const dateStr = String(course.start_date).slice(0, 10)
+  const formattedDate = fmtDate(dateStr)
   const cx = course as Record<string, unknown>
-  if (cx.start_time) return `${d} — ${String(cx.start_time)}`
-  return d
+  const startTime = cx.start_time ? stripSeconds(String(cx.start_time)) : null
+  const endTime   = cx.end_time   ? stripSeconds(String(cx.end_time))   : null
+  if (startTime && endTime) return `${formattedDate}، ${startTime} - ${endTime}`
+  if (startTime)             return `${formattedDate}، ${startTime}`
+  return formattedDate
+}
+
+/** Course lifecycle end has passed, per the backend's centralized CourseComputedStatus —
+ *  never re-derived from raw dates on the frontend. */
+function isEndedByLifecycle(course: Course): boolean {
+  const c = course as Record<string, unknown>
+  return c.is_ended === true || c.computed_status === 'ended' || c.lifecycle_status === 'completed'
 }
 
 function statusArabic(enrollment: Enrollment): string {
-  if (enrollment.status === 'completed') return 'مكتملة'
+  if (enrollment.status === 'completed' || isEndedByLifecycle(enrollment.course)) return 'مكتملة'
+  // The detailed payment badge (rendered separately, see paymentBlocked in the
+  // component body) already carries the specific pending/failed/required
+  // label — this top-line status pill stays generic to avoid showing the
+  // same message twice.
+  const access = enrollment.access
+  if (access?.payment_required && !access.payment_completed) return 'معلّقة'
   if (enrollment.can_start_learning || enrollment.placement_status === 'completed') return 'نشطة'
   if (enrollment.status === 'pending') return 'معلّقة'
   return 'نشطة'
@@ -63,7 +89,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
     : status === 'completed' ? 100
     : 0
 
-  const isCompleted = status === 'completed'
+  const isCompleted = status === 'completed' || isEndedByLifecycle(course)
   const badgeColor =
     isCompleted ? 'bg-emerald-600/95'
     : status === 'pending' ? 'bg-amber-500/95'
@@ -74,6 +100,12 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
   const learnHref = studentLearnHref(enrollment.course.id)
   const detailHref = slug ? `/courses/${slug}` : '/dashboard/student/registrations'
   const courseId = enrollment.course.id
+
+  // ── Payment gate — canonical backend block, never inferred from status/tab ───
+  // A registration existing (even a "pending" one) is not proof of payment;
+  // the backend's access.payment_completed is the only source of truth here.
+  const access = enrollment.access ?? null
+  const paymentBlocked = !!access && access.payment_required && !access.payment_completed
 
   // ── Placement logic — source of truth is placement_progress from API ─────────
   const cx = course as Record<string, unknown>
@@ -143,7 +175,15 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
           <span className={`rounded-full px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-[2px] ${badgeColor}`}>
             {statusArabic(enrollment)}
           </span>
-          {placementLocked && (
+          {paymentBlocked ? (
+            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-[2px] ${
+              access?.block_reason === 'payment_failed' ? 'bg-red-600/95' : 'bg-customOrange/95'
+            }`}>
+              {access?.block_reason === 'payment_pending' ? (<><Hourglass className="h-3 w-3" aria-hidden /> الدفع قيد المراجعة</>)
+               : access?.block_reason === 'payment_failed' ? (<><XCircle className="h-3 w-3" aria-hidden /> فشل الدفع</>)
+               : (<><CreditCard className="h-3 w-3" aria-hidden /> بانتظار الدفع</>)}
+            </span>
+          ) : placementLocked && (
             <span className={`rounded-full px-3 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur-[2px] ${
               placementState === 'awaiting_result' ? 'bg-purple-600/95'
               : placementState === 'waiting'       ? 'bg-emerald-600/95'
@@ -182,7 +222,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
         {scheduleLine ? (
           <div className="mt-3 flex items-start gap-2 rounded-2xl border border-customBlue/15 bg-customBlue/[0.05] px-3 py-2.5 text-[11px] font-bold text-deepBlue">
             <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-customBlue" aria-hidden />
-            <span dir="ltr" className="flex-1 text-right">{scheduleLine}</span>
+            <span className="flex-1 text-right">{scheduleLine}</span>
           </div>
         ) : (
           <div className="mt-3 rounded-2xl border border-orange-200/80 bg-orange-50/80 px-3 py-2.5 text-[11px] font-bold text-deepBlue/70">
@@ -246,16 +286,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-deepBlue/70">
               <Clock className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden />
-              <span dir="ltr" className="font-mono tabular-nums">
-                {(() => {
-                  try {
-                    const d = new Date(oralBookingStartsAt)
-                    const date = d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })
-                    const time = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-                    return `${date} — ${time}`
-                  } catch { return oralBookingStartsAt }
-                })()}
-              </span>
+              <span>{formatStudentDateTime(oralBookingStartsAt)}</span>
             </p>
           </div>
         )}
@@ -278,7 +309,9 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
 
         {/* ── Primary Action Button ────────────────────────────────────── */}
         <div className="mt-4 grid gap-2">
-          {placementState === 'start' && (
+          {paymentBlocked && <PaymentRequiredCta access={access} course={course} />}
+
+          {!paymentBlocked && placementState === 'start' && (
             <Link
               to={`/dashboard/student/courses/${courseId}/placement-test`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-amber-500 to-amber-600 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-amber-400/25 transition hover:brightness-105"
@@ -288,7 +321,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </Link>
           )}
 
-          {placementState === 'resume' && (
+          {!paymentBlocked && placementState === 'resume' && (
             <Link
               to={`/dashboard/student/courses/${courseId}/placement-test`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-amber-500 to-amber-600 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-amber-400/25 transition hover:brightness-105"
@@ -298,7 +331,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </Link>
           )}
 
-          {placementState === 'oral' && (
+          {!paymentBlocked && placementState === 'oral' && (
             <Link
               to={`/dashboard/student/courses/${courseId}/oral-booking`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-deepBlue px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-customBlue/25 transition hover:brightness-105"
@@ -308,7 +341,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </Link>
           )}
 
-          {placementState === 'waiting' && (
+          {!paymentBlocked && placementState === 'waiting' && (
             <Link
               to={`/dashboard/student/courses/${courseId}/placement-result`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/25 transition hover:brightness-105"
@@ -318,21 +351,25 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </Link>
           )}
 
-          {placementState === 'awaiting_result' && (
+          {!paymentBlocked && placementState === 'awaiting_result' && (
             <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-purple-600 to-purple-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-purple-400/20 opacity-80 cursor-default select-none">
               <Award className="h-4 w-4" aria-hidden />
               بانتظار اعتماد المستوى
             </div>
           )}
 
-          {canLearn && isCompleted && (
-            <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/20 opacity-80 cursor-default select-none">
+          {!paymentBlocked && canLearn && isCompleted && (
+            <Link
+              to={learnHref}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/20 transition hover:brightness-105"
+            >
               <CheckCircle className="h-4 w-4 opacity-95" aria-hidden />
-              مكتملة
-            </div>
+              مراجعة الدورة
+              <ArrowLeft className="h-4 w-4 opacity-90" aria-hidden />
+            </Link>
           )}
 
-          {canLearn && !isCompleted && pct > 0 && (
+          {!paymentBlocked && canLearn && !isCompleted && pct > 0 && (
             <Link
               to={learnHref}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-deepBlue to-[#2e4a63] px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-deepBlue/20 transition hover:brightness-[1.05]"
@@ -343,7 +380,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
             </Link>
           )}
 
-          {canLearn && !isCompleted && pct === 0 && (
+          {!paymentBlocked && canLearn && !isCompleted && pct === 0 && (
             <Link
               to={learnHref}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-400/25 transition hover:brightness-105"

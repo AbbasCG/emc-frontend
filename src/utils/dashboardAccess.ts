@@ -52,7 +52,7 @@ const ROLE_HOME: Record<string, string> = {
   partner: '/dashboard/partner',
   marketing_manager: '/dashboard/marketing',
   support_agent: '/dashboard/support',
-  volunteer: '/dashboard/volunteer',
+  volunteer: '/dashboard/ops/volunteers',
   department_manager: '/dashboard/department',
   programs_manager: '/dashboard/programs-manager',
   operations_manager: '/dashboard/operations-manager',
@@ -80,8 +80,9 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/admin/tasks',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
   { prefix: '/dashboard/admin/forms',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
   { prefix: '/dashboard/admin/departments',   roles: ['admin', 'super_admin', 'operations_manager'] },
-  { prefix: '/dashboard/admin/kpi',           roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager'] },
-  { prefix: '/dashboard/admin/lms',           roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/kpi',              roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager'] },
+  { prefix: '/dashboard/admin/lms',              roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/registrations',    roles: ['admin', 'super_admin', 'tech_admin', 'programs_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
@@ -89,13 +90,15 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/executive', roles: ['executive_admin'] },
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
   { prefix: '/dashboard/student', roles: ['student'] },
+  { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance', roles: ['finance_manager'] },
   { prefix: '/dashboard/quality', roles: ['quality_manager'] },
   { prefix: '/dashboard/hr', roles: ['hr_manager'] },
   { prefix: '/dashboard/partner', roles: ['partner'] },
   { prefix: '/dashboard/marketing', roles: ['marketing_manager'] },
   { prefix: '/dashboard/support', roles: ['support_agent'] },
-  { prefix: '/dashboard/volunteer', roles: ['volunteer'] },
+  { prefix: '/dashboard/volunteer', roles: ['super_admin', 'tech_admin', 'admin', 'hr_manager'] },
+  { prefix: '/dashboard/ops/volunteers', roles: ['volunteer'] },
   { prefix: '/dashboard/department', roles: ['department_manager'] },
   { prefix: '/dashboard/programs-manager', roles: ['programs_manager'] },
   { prefix: '/dashboard/operations-manager', roles: ['operations_manager'] },
@@ -184,6 +187,15 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 
   if (path === '/dashboard/teacher' || path.startsWith('/dashboard/teacher/')) {
     return ['instructor']
+  }
+
+  /* Financial requests — any authenticated user who is a department leader may access this page.
+     Backend enforces is_leader=true; frontend just needs to not block it. */
+  if (
+    path === '/dashboard/department/financial-requests' ||
+    path.startsWith('/dashboard/department/financial-requests/')
+  ) {
+    return 'authenticated'
   }
 
   /* Workshop requests — must be checked BEFORE generic namespace rules to override /dashboard/admin prefix */

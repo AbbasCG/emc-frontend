@@ -1,10 +1,11 @@
 import { CalendarClock, History, RefreshCw } from 'lucide-react'
 import { DashboardSection } from '@/components/dashboard'
-import { LmsEmptyState, LmsPageSkeleton, SessionCard } from '@/components/lms'
+import { LmsEmptyState, LmsPageSkeleton, SessionCard, StudentCardGrid } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentSessionsPage() {
-  const { loading, refreshing, loadError, refresh, sessionsUpcoming, sessionsCompleted, registrations } =
+  const { loading, refreshing, loadError, refresh, sessionsUpcoming, sessionsCompleted } =
     useStudentDashboardData()
 
   if (loading && sessionsUpcoming.length === 0 && sessionsCompleted.length === 0) {
@@ -17,8 +18,7 @@ export default function StudentSessionsPage() {
         <div>
           <h1 className="text-xl font-black text-deepBlue">جلساتي</h1>
           <p className="mt-2 max-w-2xl text-[13px] font-semibold leading-relaxed text-muted-700">
-            جلسات مجمّعة من <span className="font-mono text-[11px]">GET /student/sessions</span> ولوحة الطالب، ومقيّدة بدوراتك
-            المسجّلة ({registrations.length} تسجيل).
+            جميع جلساتك القادمة والمنتهية ضمن دوراتك المسجّلة.
           </p>
           {loadError ?
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
@@ -37,6 +37,8 @@ export default function StudentSessionsPage() {
         </button>
       </header>
 
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
+
       <DashboardSection title="الجلسات القادمة" subtitle="روابط الدخول والتفاصيل لكل جلسة مجدولة لدوراتك.">
         {sessionsUpcoming.length === 0 ?
           <LmsEmptyState
@@ -44,11 +46,11 @@ export default function StudentSessionsPage() {
             title="لا توجد جلسات قادمة"
             description="ستظهر الجلسات هنا بعد جدولتها ضمن دوراتك المسجّلة."
           />
-        : <div className="grid gap-4">
+        : <StudentCardGrid>
             {sessionsUpcoming.map((s) => (
-              <SessionCard key={s.id} session={s} />
+              <SessionCard key={s.id} session={s} compact studentDateFormat />
             ))}
-          </div>
+          </StudentCardGrid>
         }
       </DashboardSection>
 
@@ -59,11 +61,11 @@ export default function StudentSessionsPage() {
             title="لا توجد جلسات مكتملة بعد"
             description="عند انتهاء الجلسات ستُعرض هنا مع روابط التسجيل إن وُجدت."
           />
-        : <div className="grid gap-4">
+        : <StudentCardGrid>
             {sessionsCompleted.map((s) => (
-              <SessionCard key={s.id} session={s} showRecording />
+              <SessionCard key={s.id} session={s} showRecording compact studentDateFormat />
             ))}
-          </div>
+          </StudentCardGrid>
         }
       </DashboardSection>
     </div>

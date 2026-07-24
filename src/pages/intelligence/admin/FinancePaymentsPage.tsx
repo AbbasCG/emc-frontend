@@ -1,303 +1,518 @@
-import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  AlertCircle,
-  Banknote,
-  CheckCircle2,
-  Clock3,
-  CreditCard,
-  FileSpreadsheet,
-  Loader2,
-  Search,
-  XCircle,
+  BadgeDollarSign, Check, CheckCircle2, Clock3, Copy,
+  CreditCard, FileSpreadsheet, Loader2, Mail, Phone,
+  Search, X, XCircle,
 } from 'lucide-react'
-import { DateRangeFilter, FinanceSubnav, PaymentStatusBadge } from '@/components/intelligence'
+import { FinanceSubnav } from '@/components/intelligence'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCount, formatFinanceForeignCurrency, formatFinanceDateTime } from '@/utils/financeFormatters'
+import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import { fetchFinancePayments } from '@/api/financeApi'
+import type { FinancePaymentRow } from '@/types/intelligence'
 
-import type { FinancePaymentRow, PaymentStatus, PaymentProvider } from '@/types/intelligence'
-import {
-  ProviderBadge,
-  downloadCsv,
-  financeFadeUp,
-  financeMotionContainer,
-  formatFinanceCurrency,
-  formatFinanceDateTime,
-  providerLabelAr,
-} from '@/components/finance/financeTablesShared'
-import { FinancePageKpiCard } from '@/components/finance/FinancePageKpiCard'
+// ── Arabic status map ────────────────────────────────────────────────────────
 
-function PaymentActionsCell() {
+const STATUS_AR: Record<string, { label: string; cls: string; dot: string }> = {
+  confirmed:           { label: 'مدفوع',           cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-400' },
+  paid:                { label: 'مدفوع',           cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200', dot: 'bg-emerald-400' },
+  completed:           { label: 'مكتمل',           cls: 'bg-teal-50 text-teal-700 ring-teal-200',         dot: 'bg-teal-400'   },
+  pending:             { label: 'قيد الانتظار',    cls: 'bg-amber-50 text-amber-700 ring-amber-200',      dot: 'bg-amber-400'  },
+  pending_payment:     { label: 'قيد الانتظار',    cls: 'bg-amber-50 text-amber-700 ring-amber-200',      dot: 'bg-amber-400'  },
+  processing:          { label: 'قيد المعالجة',    cls: 'bg-sky-50 text-sky-700 ring-sky-200',            dot: 'bg-sky-400'    },
+  failed:              { label: 'فشل الدفع',       cls: 'bg-rose-50 text-rose-700 ring-rose-200',         dot: 'bg-rose-400'   },
+  payment_failed:      { label: 'فشل الدفع',       cls: 'bg-rose-50 text-rose-700 ring-rose-200',         dot: 'bg-rose-400'   },
+  cancelled:           { label: 'ملغي',            cls: 'bg-slate-100 text-slate-500 ring-slate-200',     dot: 'bg-slate-400'  },
+  refunded:            { label: 'مسترد',           cls: 'bg-violet-50 text-violet-700 ring-violet-200',   dot: 'bg-violet-400' },
+  partially_refunded:  { label: 'مسترد جزئياً',   cls: 'bg-purple-50 text-purple-700 ring-purple-200',   dot: 'bg-purple-400' },
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const s = STATUS_AR[status] ?? STATUS_AR['pending']
   return (
-    <div className="flex justify-end">
-      <button
-        type="button"
-        className="rounded-xl border border-deepBlue/[0.08] bg-white px-3 py-1.5 text-[11px] font-black text-customBlue shadow-sm transition hover:border-brand-400/35 hover:bg-brand-500/5 hover:shadow-emc-xs"
-      >
-        تفاصيل
-      </button>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-black ring-1 ${s.cls}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+      {s.label}
+    </span>
+  )
+}
+
+// ── Item type label ──────────────────────────────────────────────────────────
+
+const ITEM_TYPE_AR: Record<string, string> = {
+  course: 'دورة',
+  workshop: 'ورشة',
+  learning_path: 'مسار تعليمي',
+}
+
+// ── Provider label ───────────────────────────────────────────────────────────
+
+const PROVIDER_AR: Record<string, string> = {
+  stripe: 'Stripe',
+  paypal: 'PayPal',
+  fake: 'تجريبي',
+  bank_transfer: 'تحويل بنكي',
+  cash: 'نقدي',
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtCurrency(amount: number | undefined | null, currency = 'EUR') {
+  if (amount == null) return '—'
+  return formatFinanceForeignCurrency(amount, currency, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
+
+function fmtDateExport(d: string | null | undefined) {
+  return formatFinanceDateTime(d)
+}
+
+function initials(name: string | null | undefined) {
+  if (!name) return '?'
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
+
+function useCopy(text: string) {
+  const [copied, setCopied] = useState(false)
+  const copy = useCallback(() => {
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }, [text])
+  return { copied, copy }
+}
+
+// ── KPI card ─────────────────────────────────────────────────────────────────
+
+function KpiCard({ icon: Icon, label, value, sub, accent = 'blue' }: {
+  icon: React.ElementType; label: string; value: string; sub?: string; accent?: 'blue' | 'green' | 'amber' | 'rose'
+}) {
+  const accents = {
+    blue:  'border-t-sky-400',
+    green: 'border-t-emerald-400',
+    amber: 'border-t-amber-400',
+    rose:  'border-t-rose-400',
+  }
+  return (
+    <div className={`flex flex-col gap-1 rounded-2xl border border-deepBlue/[0.07] bg-white p-5 shadow-sm border-t-[3px] ${accents[accent]}`}>
+      <div className="flex items-center gap-2 text-deepBlue/40">
+        <Icon size={14} />
+        <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+      </div>
+      <p className="text-2xl font-black text-deepBlue tabular-nums" dir="ltr">{value}</p>
+      {sub && <p className="text-[10px] font-semibold text-slate-400">{sub}</p>}
     </div>
   )
 }
 
+// ── Copy row ─────────────────────────────────────────────────────────────────
+
+function CopyRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+  const { copied, copy } = useCopy(value)
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+      <div className="flex items-center gap-2 text-slate-500">
+        <Icon size={13} />
+        <span className="text-[11px] font-black">{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-bold text-deepBlue" dir="ltr">{value}</span>
+        <button type="button" onClick={copy} className="rounded-lg p-1 transition hover:bg-slate-200">
+          {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} className="text-slate-400" />}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Detail Drawer ─────────────────────────────────────────────────────────────
+
+function PaymentDrawer({ payment, onClose }: { payment: FinancePaymentRow; onClose: () => void }) {
+  const name = payment.student_name ?? '—'
+  const email = payment.student_email ?? payment.payer_email ?? ''
+  const phone = payment.student_phone ?? ''
+  const itemLabel = ITEM_TYPE_AR[payment.item_type ?? ''] ?? 'دورة'
+  const itemTitle = payment.item_title ?? payment.course_name ?? '—'
+  const avatarBg = ['bg-sky-500', 'bg-violet-500', 'bg-teal-500', 'bg-rose-500', 'bg-amber-500']
+  const bg = avatarBg[payment.id % avatarBg.length]
+
+  const drawer = (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0"
+        style={{ zIndex: 300 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-deepBlue/30 backdrop-blur-sm" onClick={onClose} />
+
+        {/* Drawer */}
+        <motion.div
+          dir="rtl"
+          className="absolute inset-y-0 end-0 flex w-full max-w-md flex-col bg-white shadow-2xl"
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">تفاصيل الدفعة</p>
+            <button type="button" onClick={onClose} className="rounded-xl p-1.5 transition hover:bg-slate-100">
+              <X size={18} className="text-slate-500" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+            {/* Student */}
+            <div className="flex items-center gap-4">
+              {payment.student_avatar ? (
+                <img src={payment.student_avatar} alt={name} className="h-14 w-14 rounded-full object-cover ring-2 ring-slate-100" />
+              ) : (
+                <div className={`flex h-14 w-14 items-center justify-center rounded-full ${bg} text-sm font-black text-white`}>
+                  {initials(name)}
+                </div>
+              )}
+              <div>
+                <p className="text-base font-black text-deepBlue">{name}</p>
+                <p className="text-xs font-semibold text-slate-500">{itemLabel} — {itemTitle}</p>
+              </div>
+            </div>
+
+            {/* Contact */}
+            {(email || phone) && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">معلومات التواصل</p>
+                {email && <CopyRow icon={Mail} label="البريد" value={email} />}
+                {phone && <CopyRow icon={Phone} label="الهاتف" value={phone} />}
+              </div>
+            )}
+
+            {/* Amount */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">بيانات الدفعة</p>
+              <div className="rounded-2xl border border-deepBlue/[0.07] bg-gradient-to-br from-slate-50 to-white p-4 text-center">
+                <p className="text-3xl font-black text-deepBlue tabular-nums" dir="ltr">
+                  {fmtCurrency(payment.amount, payment.currency ?? 'EUR')}
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-2">
+                  <StatusBadge status={payment.status} />
+                </div>
+              </div>
+            </div>
+
+            {/* Meta */}
+            <div className="space-y-2 text-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">تفاصيل أخرى</p>
+              <Row label="رقم الطلب" value={payment.order_number ?? '—'} />
+              <Row label="رقم الفاتورة" value={payment.invoice_number ?? '—'} />
+              <Row label="مزود الدفع" value={PROVIDER_AR[payment.provider] ?? payment.provider ?? '—'} />
+              <Row label="طريقة الدفع" value={payment.payment_method ?? '—'} />
+              <Row label="تاريخ الإنشاء" value={<FinanceDate value={payment.created_at} showTime />} />
+              <Row label="تاريخ الدفع" value={<FinanceDate value={payment.confirmed_at} showTime />} />
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+
+  return createPortal(drawer, document.body)
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
+      <span className="text-[11px] font-black text-slate-400">{label}</span>
+      <span className="text-[11px] font-bold text-deepBlue">{value}</span>
+    </div>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export default function FinancePaymentsPage() {
-  const [allRows, setAllRows] = useState<FinancePaymentRow[]>([])
+  const [rows, setRows] = useState<FinancePaymentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [loadErr, setLoadErr] = useState(false)
+  const [total, setTotal] = useState(0)
 
-  const [range, setRange] = useState({ from: '2026-01-01', to: '2026-06-30' })
+  const [range, setRange] = useState(() => {
+    const y = new Date().getFullYear()
+    return { from: `${y}-01-01`, to: `${y}-12-31` }
+  })
   const [applied, setApplied] = useState(range)
-
-  const [status, setStatus] = useState<PaymentStatus | 'all'>('all')
-  const [provider, setProvider] = useState<PaymentProvider | 'all'>('all')
+  const [status, setStatus] = useState('all')
+  const [provider, setProvider] = useState('all')
   const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<FinancePaymentRow | null>(null)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setLoadErr(false)
-    ;(async () => {
+    void (async () => {
       try {
         const d = await fetchFinancePayments({ from: applied.from, to: applied.to })
-        if (!cancelled) setAllRows(Array.isArray(d) ? d : [])
+        if (!cancelled) { setRows(d.data); setTotal(d.total) }
       } catch {
-        if (!cancelled) {
-          setAllRows([])
-          setLoadErr(true)
-        }
+        if (!cancelled) { setRows([]); setLoadErr(true) }
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [applied])
 
-  const filteredRows = useMemo(() => {
+  const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return allRows.filter((r) => {
+    return rows.filter(r => {
       if (status !== 'all' && r.status !== status) return false
-      if (provider !== 'all' && String(r.provider).toLowerCase() !== String(provider).toLowerCase()) return false
+      if (provider !== 'all' && String(r.provider).toLowerCase() !== provider) return false
       if (!q) return true
-      const blob = `${r.payer_email ?? ''} ${r.course_name ?? ''} ${r.id}`.toLowerCase()
+      const blob = [r.student_name, r.student_email, r.payer_email, r.item_title, r.course_name, r.order_number, String(r.id)].join(' ').toLowerCase()
       return blob.includes(q)
     })
-  }, [allRows, status, provider, search])
+  }, [rows, status, provider, search])
 
   const kpis = useMemo(() => {
-    const total = allRows.length
-    const confirmed = allRows.filter((r) => r.status === 'confirmed').length
-    const pending = allRows.filter((r) => r.status === 'pending').length
-    const failed = allRows.filter((r) => r.status === 'failed').length
-    const amountSum = allRows.reduce((a, r) => a + (Number(r.amount) || 0), 0)
-    return { total, confirmed, pending, failed, amountSum }
-  }, [allRows])
+    const paid = rows.filter(r => ['confirmed', 'paid', 'completed'].includes(r.status))
+    return {
+      total: rows.length,
+      paid: paid.length,
+      pending: rows.filter(r => ['pending', 'pending_payment', 'processing'].includes(r.status)).length,
+      failed: rows.filter(r => ['failed', 'payment_failed', 'cancelled'].includes(r.status)).length,
+      revenue: paid.reduce((a, r) => a + Number(r.amount || 0), 0),
+    }
+  }, [rows])
 
-  function exportExcel() {
-    const headers = [
-      'رقم العملية',
-      'البريد',
-      'الدورة',
-      'المبلغ (EUR)',
-      'الحالة',
-      'المزود',
-      'التاريخ',
-    ]
-    const data = filteredRows.map((p) => [
-      p.id,
-      p.payer_email ?? '',
-      p.course_name ?? '',
-      formatFinanceCurrency(p.amount),
-      p.status,
-      providerLabelAr(p.provider),
-      p.created_at,
-    ])
-    downloadCsv(`emc-payments-${applied.from}_${applied.to}`, headers, data)
+  function exportCsv() {
+    const headers = ['رقم العملية', 'اسم الطالب', 'البريد الإلكتروني', 'الهاتف', 'اسم البرنامج', 'النوع', 'المبلغ', 'العملة', 'الحالة', 'مزود الدفع', 'تاريخ الإنشاء', 'تاريخ الدفع']
+    const bom = '﻿'
+    const csvRows = [headers, ...filtered.map(r => [
+      r.id,
+      r.student_name ?? r.payer_email ?? '',
+      r.student_email ?? r.payer_email ?? '',
+      r.student_phone ?? '',
+      r.item_title ?? r.course_name ?? '',
+      ITEM_TYPE_AR[r.item_type ?? ''] ?? 'دورة',
+      Number(r.amount).toFixed(2),
+      r.currency ?? 'EUR',
+      STATUS_AR[r.status]?.label ?? r.status,
+      PROVIDER_AR[r.provider] ?? r.provider,
+      fmtDateExport(r.created_at),
+      fmtDateExport(r.confirmed_at),
+    ])]
+    const csv = bom + csvRows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url; a.download = `emc-payments-${applied.from}_${applied.to}.csv`; a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
-    <div dir="rtl" className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+    <div dir="rtl" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <FinanceSubnav />
 
-      <motion.div initial="hidden" animate="show" variants={financeMotionContainer} className="mt-10 space-y-8">
-        <motion.div variants={financeFadeUp} className="text-right">
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-brand-600">العمليات المالية</p>
-          <h1 className="mt-2 text-2xl font-black text-deepBlue sm:text-3xl">المدفوعات</h1>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-slate-600">
-            متابعة عمليات الدفع حسب الحالة ومزوّد الخدمة
-          </p>
-        </motion.div>
+      {/* Header */}
+      <div className="mt-8 text-right">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-customBlue">العمليات المالية</p>
+        <h1 className="mt-1.5 text-2xl font-black text-deepBlue sm:text-3xl">المدفوعات</h1>
+        <p className="mt-1.5 text-sm font-semibold text-slate-500">
+          {total > 0 ? `${formatFinanceCount(total)} عملية في قاعدة البيانات` : 'متابعة عمليات الدفع وحالاتها'}
+        </p>
+      </div>
 
-        {loadErr ?
-          <motion.div
-            variants={financeFadeUp}
-            className="flex items-center justify-end gap-2 rounded-3xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-bold text-amber-900 ring-1 ring-amber-100"
-            role="status"
-          >
-            <AlertCircle size={18} aria-hidden />
-            تعذّر تحميل المدفوعات من الخادم. تحقق من الاتصال وأعد المحاولة.
-          </motion.div>
-        : null}
+      {/* KPIs */}
+      <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+        <KpiCard icon={CreditCard} label="إجمالي" value={formatFinanceCount(kpis.total)} accent="blue" />
+        <KpiCard icon={CheckCircle2} label="مدفوعة" value={formatFinanceCount(kpis.paid)} accent="green" />
+        <KpiCard icon={Clock3} label="معلقة" value={formatFinanceCount(kpis.pending)} accent="amber" />
+        <KpiCard icon={XCircle} label="فاشلة / ملغية" value={formatFinanceCount(kpis.failed)} accent="rose" />
+        <KpiCard icon={BadgeDollarSign} label="الإيرادات المؤكدة" value={fmtCurrency(kpis.revenue)} accent="green" />
+      </div>
 
-        <motion.div variants={financeMotionContainer} className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          <FinancePageKpiCard icon={CreditCard} label="إجمالي المدفوعات" value={String(kpis.total)} accent="blue" />
-          <FinancePageKpiCard icon={CheckCircle2} label="المؤكدة" value={String(kpis.confirmed)} accent="blue" />
-          <FinancePageKpiCard icon={Clock3} label="المعلقة" value={String(kpis.pending)} accent="orange" />
-          <FinancePageKpiCard icon={XCircle} label="الفاشلة" value={String(kpis.failed)} accent="orange" />
-          <FinancePageKpiCard
-            icon={Banknote}
-            label="إجمالي المبلغ"
-            value={formatFinanceCurrency(kpis.amountSum)}
-            sub="للفترة المحددة"
-            accent="blue"
-            className="xl:col-span-2"
-          />
-        </motion.div>
-      </motion.div>
-
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08, duration: 0.4, ease: [0.22, 0.61, 0.36, 1] as const }}
-        className="mt-10 rounded-3xl border border-deepBlue/[0.06] bg-white/90 p-5 shadow-sm ring-1 ring-deepBlue/[0.03] md:p-6"
-      >
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-100 pb-5">
-          <h2 className="text-sm font-black text-deepBlue">التصفية والتصدير</h2>
-        </div>
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <label className="grid gap-1.5 text-right text-[11px] font-black text-deepBlue">
-              حالة الدفع
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as PaymentStatus | 'all')}
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-deepBlue shadow-inner shadow-slate-100/80 focus:border-brand-400/55 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              >
-                <option value="all">كل الحالات</option>
-                <option value="confirmed">مؤكدة</option>
-                <option value="pending">معلقة</option>
-                <option value="failed">فاشلة</option>
-                <option value="refunded">مستردة</option>
-              </select>
-            </label>
-            <label className="grid gap-1.5 text-right text-[11px] font-black text-deepBlue">
-              مزوّد الخدمة
-              <select
-                value={provider}
-                onChange={(e) => setProvider(e.target.value as PaymentProvider | 'all')}
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-deepBlue shadow-inner shadow-slate-100/80 focus:border-brand-400/55 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              >
-                <option value="all">كل المزوّدين</option>
-                <option value="stripe">سترايب</option>
-                <option value="paypal">باي بال</option>
-                <option value="fake">تجريبي</option>
-              </select>
-            </label>
-            <div className="sm:col-span-2">
-              <label className="grid gap-1.5 text-right text-[11px] font-black text-deepBlue">
-                بحث (بريد / دورة / رقم)
-                <span className="relative">
-                  <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="ابحث…"
-                    className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pe-11 ps-3 text-sm font-semibold text-[#0F172A] shadow-inner shadow-slate-100/80 placeholder:text-slate-400 focus:border-brand-400/55 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                  />
-                </span>
-              </label>
+      {/* Filters */}
+      <div className="mt-7 rounded-2xl border border-deepBlue/[0.06] bg-white p-5 shadow-sm">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          {/* Search */}
+          <div className="xl:col-span-2">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">بحث</label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="اسم الطالب، البريد، رقم الطلب..."
+                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pe-10 ps-3 text-sm font-semibold text-deepBlue placeholder:text-slate-400 focus:border-customBlue focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-100"
+              />
             </div>
           </div>
-          <div className="flex flex-wrap items-end justify-end gap-3">
-            <button
-              type="button"
-              onClick={exportExcel}
-              className="inline-flex h-11 items-center gap-2 rounded-2xl bg-gradient-to-l from-brand-500 to-brand-600 px-4 text-[12px] font-black text-white shadow-emc-glow transition hover:-translate-y-px disabled:opacity-50"
-              disabled={filteredRows.length === 0}
-            >
-              <FileSpreadsheet size={17} aria-hidden />
-              تصدير Excel (CSV)
-            </button>
-            <DateRangeFilter from={range.from} to={range.to} onChange={setRange} onApply={() => setApplied(range)} />
+
+          {/* Status */}
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">الحالة</label>
+            <select value={status} onChange={e => setStatus(e.target.value)}
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-deepBlue focus:border-customBlue focus:outline-none">
+              <option value="all">كل الحالات</option>
+              <option value="confirmed">مدفوع</option>
+              <option value="pending">قيد الانتظار</option>
+              <option value="failed">فشل الدفع</option>
+              <option value="cancelled">ملغي</option>
+              <option value="refunded">مسترد</option>
+            </select>
+          </div>
+
+          {/* Provider */}
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">المزود</label>
+            <select value={provider} onChange={e => setProvider(e.target.value)}
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-deepBlue focus:border-customBlue focus:outline-none">
+              <option value="all">الكل</option>
+              <option value="stripe">Stripe</option>
+              <option value="paypal">PayPal</option>
+              <option value="fake">تجريبي</option>
+            </select>
+          </div>
+
+          {/* Date + Export */}
+          <div className="flex flex-col gap-1.5">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400">الفترة</label>
+            <div className="flex items-center gap-2">
+              <EmcDatePicker label="من" displayMode="finance" value={range.from} onChange={(v) => setRange((r) => ({ ...r, from: v }))} />
+              <EmcDatePicker label="إلى" displayMode="finance" value={range.to} onChange={(v) => setRange((r) => ({ ...r, to: v }))} />
+            </div>
           </div>
         </div>
-      </motion.section>
 
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.42, ease: [0.22, 0.61, 0.36, 1] as const }}
-        className="mt-8 overflow-hidden rounded-3xl border border-deepBlue/[0.06] bg-white/90 shadow-sm ring-1 ring-deepBlue/[0.03]"
-      >
-        {loading ?
+        <div className="mt-4 flex items-center justify-end gap-3">
+          <button type="button" onClick={() => setApplied(range)}
+            className="h-9 rounded-xl bg-customBlue px-5 text-xs font-black text-white transition hover:opacity-90">
+            تطبيق
+          </button>
+          <button type="button" onClick={exportCsv} disabled={filtered.length === 0}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-customOrange px-4 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50">
+            <FileSpreadsheet size={14} />
+            تصدير CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {loadErr && (
+        <div className="mt-5 rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 ring-1 ring-rose-200">
+          تعذّر تحميل المدفوعات من الخادم.
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="mt-6 overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-sm">
+        {loading ? (
           <div className="flex items-center justify-center gap-3 py-20 text-sm font-bold text-slate-500">
-            <Loader2 className="size-5 animate-spin text-customBlue" aria-hidden />
-            جاري تحميل المدفوعات…
+            <Loader2 className="animate-spin text-customBlue" size={20} />
+            جاري التحميل...
           </div>
-        : filteredRows.length === 0 ?
-          <div className="px-6 py-16 text-center">
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
               <CreditCard size={26} />
             </div>
             <p className="mt-4 text-sm font-black text-deepBlue">لا توجد مدفوعات مطابقة</p>
-            <p className="mt-2 text-xs font-semibold text-slate-500">جرّب توسيع الفترة أو إعادة ضبط المرشّحات.</p>
+            <p className="mt-1 text-xs font-semibold text-slate-400">جرّب توسيع الفترة أو تعديل المرشّحات.</p>
           </div>
-        : (
-          <div className="max-h-[min(70vh,720px)] overflow-auto">
-            <table className="w-full min-w-[900px] border-collapse text-right text-sm">
-              <thead className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 text-[10px] font-black uppercase tracking-wide text-slate-400 shadow-sm backdrop-blur-sm">
+        ) : (
+          <div className="overflow-auto">
+            <table className="w-full min-w-[860px] border-collapse text-right text-sm">
+              <thead className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 text-[10px] font-black uppercase tracking-widest text-slate-400 backdrop-blur">
                 <tr>
-                  <th className="whitespace-nowrap px-4 py-3">رقم العملية</th>
-                  <th className="px-4 py-3">الطالب / البريد</th>
-                  <th className="px-4 py-3">الدورة</th>
-                  <th className="px-4 py-3 font-latin">المبلغ</th>
+                  <th className="px-4 py-3 w-16">#</th>
+                  <th className="px-4 py-3">الطالب</th>
+                  <th className="px-4 py-3">البرنامج</th>
+                  <th className="px-4 py-3">المبلغ</th>
                   <th className="px-4 py-3">الحالة</th>
-                  <th className="px-4 py-3">مزود الدفع</th>
+                  <th className="px-4 py-3">المزود</th>
                   <th className="px-4 py-3">التاريخ</th>
-                  <th className="px-4 py-3">إجراءات</th>
+                  <th className="px-4 py-3 w-20" />
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((p, i) => (
-                  <motion.tr
-                    key={p.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(i * 0.02, 0.35), duration: 0.25 }}
-                    className="group border-b border-slate-50 font-semibold text-deepBlue transition-colors hover:bg-brand-500/[0.04]"
-                  >
-                    <td className="whitespace-nowrap px-4 py-2.5 font-latin tabular-nums text-slate-600">{p.id}</td>
-                    <td className="max-w-[200px] px-4 py-2.5">
-                      <p className="truncate text-xs font-bold text-deepBlue font-latin">{p.payer_email ?? '—'}</p>
-                    </td>
-                    <td className="max-w-[220px] px-4 py-2.5 text-xs text-slate-600">{p.course_name ?? '—'}</td>
-                    <td className="whitespace-nowrap px-4 py-2.5 font-latin text-sm font-black tabular-nums text-[#0F172A]">
-                      {formatFinanceCurrency(p.amount)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <PaymentStatusBadge status={p.status} />
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <ProviderBadge provider={p.provider} />
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2.5 text-[11px] font-bold text-slate-500 font-latin">
-                      {formatFinanceDateTime(p.created_at)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <PaymentActionsCell />
-                    </td>
-                  </motion.tr>
-                ))}
+                {filtered.map((p, i) => {
+                  const name = p.student_name ?? p.payer_email ?? '—'
+                  const email = p.student_email ?? p.payer_email ?? ''
+                  const avatarBg = ['bg-sky-500', 'bg-violet-500', 'bg-teal-500', 'bg-rose-500', 'bg-amber-500']
+                  const bg = avatarBg[p.id % avatarBg.length]
+                  return (
+                    <motion.tr
+                      key={p.id}
+                      initial={{ opacity: 0, y: 3 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(i * 0.015, 0.3) }}
+                      className="border-b border-slate-50 transition-colors hover:bg-slate-50/70"
+                    >
+                      <td className="px-4 py-3 tabular-nums text-[11px] font-bold text-slate-400" dir="ltr">{p.id}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          {p.student_avatar ? (
+                            <img src={p.student_avatar} alt={name} className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200" />
+                          ) : (
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${bg} text-[10px] font-black text-white`}>
+                              {initials(name)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-black text-deepBlue">{name}</p>
+                            {email && <p className="truncate text-[10px] font-semibold text-slate-400" dir="ltr">{email}</p>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="max-w-[200px] px-4 py-3">
+                        <p className="truncate text-xs font-bold text-deepBlue">{p.item_title ?? p.course_name ?? '—'}</p>
+                        {p.item_type && (
+                          <span className="text-[10px] font-semibold text-slate-400">{ITEM_TYPE_AR[p.item_type] ?? p.item_type}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 tabular-nums" dir="ltr">
+                        <span className="text-sm font-black text-deepBlue">{fmtCurrency(p.amount, p.currency)}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={p.status} />
+                      </td>
+                      <td className="px-4 py-3 text-[11px] font-bold text-slate-500">
+                        {PROVIDER_AR[p.provider] ?? p.provider ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-[11px] font-bold text-slate-500 tabular-nums" dir="ltr">
+                        <FinanceDate value={p.created_at} showTime />
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelected(p)}
+                          className="rounded-xl border border-deepBlue/[0.08] px-3 py-1.5 text-[11px] font-black text-customBlue transition hover:border-customBlue/30 hover:bg-sky-50"
+                        >
+                          تفاصيل
+                        </button>
+                      </td>
+                    </motion.tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
-        {!loading && filteredRows.length > 0 ?
-          <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-2.5 text-right text-[11px] font-bold text-slate-500">
-            عرض {filteredRows.length} من أصل {allRows.length} للفترة المحددة
+
+        {!loading && filtered.length > 0 && (
+          <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-2 text-right text-[11px] font-bold text-slate-500" dir="ltr">
+            Showing {formatFinanceCount(filtered.length)} of {formatFinanceCount(rows.length)} payments
           </div>
-        : null}
-      </motion.section>
+        )}
+      </div>
+
+      {/* Detail drawer */}
+      {selected && <PaymentDrawer payment={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }

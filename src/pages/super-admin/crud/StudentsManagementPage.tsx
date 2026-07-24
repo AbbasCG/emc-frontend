@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
-import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsers, fetchStudentCourses, type AdminManagedUser, type StudentCourseRow } from '@/api/adminUsersApi'
+import { ADMIN_USER_FORBIDDEN_AR, fetchAdminUsersPage, fetchStudentCourses, type AdminManagedUser, type StudentCourseRow } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { SaGlassCard, SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
@@ -97,7 +97,7 @@ function StudentCard({ u, idx, onSelect }: { u: AdminManagedUser; idx: number; o
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-black text-[#0C2A4B]">{u.name}</p>
-          <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40" dir="ltr">{u.email}</p>
+          <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40">{u.email}</p>
         </div>
         <span className={`shrink-0 rounded-xl px-2 py-0.5 text-[9px] font-black ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
           {active ? 'نشط' : 'موقوف'}
@@ -177,7 +177,7 @@ function StudentSearchDropdown({
             )}
             <div className="min-w-0 flex-1 text-right">
               <p className="truncate text-[12px] font-black text-[#0C2A4B]">{selected.name}</p>
-              <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40" dir="ltr">{selected.email}</p>
+              <p className="truncate text-[10px] font-semibold text-[#0C2A4B]/40">{selected.email}</p>
             </div>
             <X
               className="h-4 w-4 shrink-0 text-slate-400 hover:text-red-500"
@@ -652,22 +652,36 @@ function SkeletonCards() {
 
 /* ─── Page ────────────────────────────────────────────────────────────── */
 
-export default function StudentsManagementPage() {
-  const [loading,   setLoading]   = useState(true)
-  const [users,     setUsers]     = useState<AdminManagedUser[]>([])
-  const [error,     setError]     = useState<string | null>(null)
-  const [forbidden, setForbidden] = useState(false)
-  const [q,         setQ]         = useState('')
-  const [status,    setStatus]    = useState<'all' | 'active' | 'inactive'>('all')
-  const [selected,  setSelected]  = useState<AdminManagedUser | null>(null)
+export default function StudentsManagementPage({ pageTitle }: { pageTitle?: string } = {}) {
+  const [loading,    setLoading]    = useState(true)
+  const [users,      setUsers]      = useState<AdminManagedUser[]>([])
+  const [serverTotal, setServerTotal] = useState<number | null>(null)
+  const [error,      setError]      = useState<string | null>(null)
+  const [forbidden,  setForbidden]  = useState(false)
+  const [q,          setQ]          = useState('')
+  const [status,     setStatus]     = useState<'all' | 'active' | 'inactive'>('all')
+  const [selected,   setSelected]   = useState<AdminManagedUser | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true); setError(null); setForbidden(false)
     try {
-      const rows = await fetchAdminUsers()
-      setUsers(rows.filter((u) => normalizeRole(u.role) === 'student'))
+      // Fetch all students server-side (role filter + all pages)
+      const first = await fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: 1 })
+      let allUsers = [...first.users]
+      if (first.serverPaginated && first.lastPage > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: first.lastPage - 1 }, (_, i) =>
+            fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: i + 2 })
+          )
+        )
+        for (const p of rest) allUsers = allUsers.concat(p.users)
+      }
+      // Use server total for KPI accuracy; fall back to loaded count
+      setServerTotal(first.serverPaginated ? first.total : null)
+      setUsers(allUsers.filter((u) => normalizeRole(u.role) === 'student'))
     } catch (e) {
       setUsers([])
+      setServerTotal(null)
       if (axios.isAxiosError(e) && e.response?.status === 403) { setForbidden(true); toast.warning(ADMIN_USER_FORBIDDEN_AR) }
       else setError(getApiErrorMessage(e))
     } finally { setLoading(false) }
@@ -684,7 +698,8 @@ export default function StudentsManagementPage() {
     })
   }, [users, q, status])
 
-  const total       = users.length
+  // Use server-reported total for KPI tiles (accurate even when client-side filters are applied)
+  const total       = serverTotal ?? users.length
   const activeCount = users.filter((u) => u.is_active !== false).length
   const inactiveCount = users.filter((u) => u.is_active === false).length
   const thisMonth   = useMemo(() => {
@@ -725,7 +740,7 @@ export default function StudentsManagementPage() {
       {/* Hero */}
       <EnterpriseCrudHero
         eyebrow="Student Intelligence · admin/users directory"
-        title="الطلاب — لوحة الذكاء الطلابي"
+        title={pageTitle ?? "الطلاب — لوحة الذكاء الطلابي"}
         subtitle="عرض شامل لجميع الطلاب المسجلين مع بياناتهم الكاملة ورحلة التعلم"
         variant="blue"
         actions={

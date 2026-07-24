@@ -20,10 +20,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import PublicSeo from '@/components/public/PublicSeo'
 import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
 import PublicDetailCtaButton from '@/components/public/detail/PublicDetailCtaButton'
+import AppAlert from '@/components/ui/AppAlert'
 import { resolveCourseEnrollCta } from '@/utils/publicCourseDetailCta'
 import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import { deriveCourseDetail } from '@/utils/courseDetailDerived'
-import { fetchStudentRegistrations } from '@/api/studentApi'
+import { fetchStudentRegistrations, type StudentCourseAccess } from '@/api/studentApi'
 import { fetchCoursesFromApi } from '@/api/coursesApi.public'
 import { formatPublicDate, formatPublicText, formatPublicTime, formatPublicCount } from '@/utils/publicDetailFormat'
 import {
@@ -138,6 +139,7 @@ export default function CourseDetails() {
   const [error, setError] = useState('')
   const [notFound, setNotFound] = useState(false)
   const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
+  const [courseAccess, setCourseAccess] = useState<StudentCourseAccess | null>(null)
   const [wishlisted, setWishlisted] = useState(false)
 
   useEffect(() => {
@@ -207,13 +209,15 @@ export default function CourseDetails() {
       try {
         const rows = await fetchStudentRegistrations()
         if (cancelled) return
-        setAlreadyEnrolled(
-          rows.some(
-            (r) => r.course_id === course.id || (course.slug && r.slug === course.slug),
-          ),
+        const matched = rows.find(
+          (r) => r.course_id === course.id || (course.slug && r.slug === course.slug),
         )
+        setAlreadyEnrolled(Boolean(matched))
+        // Backend eligibility (CourseAccessEligibilityService) — never re-derived
+        // from registration presence alone; see resolveAccessBlockedCta().
+        setCourseAccess(matched?.access ?? null)
       } catch {
-        /* default false */
+        /* default false / no access block */
       }
     })()
     return () => {
@@ -338,6 +342,7 @@ export default function CourseDetails() {
   const learningPathSlug =
     (courseX.learning_path as { slug?: string } | null | undefined)?.slug ?? null
 
+  const courseX2 = course as Record<string, unknown>
   const enrollCta = resolveCourseEnrollCta({
     registrationOpen: registration.open,
     seatsFull,
@@ -346,8 +351,14 @@ export default function CourseDetails() {
     userRole: user?.role,
     courseSlug: course.slug,
     courseId: course.id,
+    isEnded: derived.isEnded,
+    allowEndedEnrollment: derived.isEnded && registration.open,
     isPartOfLearningPath,
     learningPathSlug,
+    isPaid: Boolean(courseX2.is_paid),
+    price: typeof courseX2.price === 'number' ? courseX2.price : undefined,
+    currency: typeof courseX2.currency === 'string' ? courseX2.currency : 'EUR',
+    access: courseAccess,
   })
 
   const gallery = extractCourseGallery(course, coverUrl)
@@ -361,14 +372,20 @@ export default function CourseDetails() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-display text-base font-black tracking-tight text-[#0C2A4B]">الالتحاق بالبرنامج</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
-            registration.open && !seatsFull
+            derived.isEnded ? 'bg-slate-100 text-slate-700 ring-slate-200'
+            : registration.open && !seatsFull
               ? 'bg-emerald-50 text-emerald-800 ring-emerald-100'
               : 'bg-orange-50 text-orange-800 ring-orange-100'
           }`}>
-            {registration.open && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
+            {derived.isEnded ? 'انتهت' : registration.open && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
           </span>
         </div>
       </div>
+      {derived.endedMessage ?
+        <div className="border-b border-[#0C2A4B]/6 bg-slate-50 px-5 py-3">
+          <p className="text-[12px] font-semibold leading-relaxed text-[#0C2A4B]/70">{derived.endedMessage}</p>
+        </div>
+      : null}
       <div className="border-b border-[#0C2A4B]/6 px-5 py-4">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-black text-slate-400">الرسوم</span>
@@ -392,8 +409,11 @@ export default function CourseDetails() {
           </div>
         )}
       </div>
-      <div className="p-4 sm:p-5">
+      <div className="space-y-3 p-4 sm:p-5">
         <PublicDetailCtaButton cta={enrollCta} className="w-full justify-center" />
+        {enrollCta.message && (
+          <AppAlert type={enrollCta.disabled ? 'info' : 'error'} title={enrollCta.message} />
+        )}
       </div>
     </div>
   )

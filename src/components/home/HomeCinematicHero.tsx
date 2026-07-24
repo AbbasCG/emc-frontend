@@ -124,7 +124,7 @@ function DotGrid() {
           const alpha = (wave + 1) / 2 * 0.2 + 0.03
           ctx.beginPath()
           ctx.arc(x, y, 1.2, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(0, 119, 182, ${alpha})`
+          ctx.fillStyle = `rgba(0,119,182, ${alpha})`
           ctx.fill()
         }
       }
@@ -259,10 +259,10 @@ export default function HomeCinematicHero() {
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.1 } } }}
             className="mt-12 flex flex-wrap justify-start gap-3 border-t border-white/[0.08] pt-10"
           >
-            <StatPill value="+850" label="متعلّم" />
-            <StatPill value="+420" label="خريج معتمد" />
+            <StatPill value="+9000" label="متعلّم" />
+            <StatPill value="+500" label="خريج معتمد" />
             <StatPill value="+95" label="ورشة مباشرة" />
-            <StatPill value="+32" label="مسار ودورة" />
+            <StatPill value="+10" label="مسار ودورة" />
           </motion.div>
         </motion.div>
 

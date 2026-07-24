@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { DashboardSection, EmptyState } from '@/components/dashboard'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { mapBackendRegStatus } from '@/utils/studentEnrollmentMerge'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentRegistrationsListPage() {
   const { loading, refreshing, loadError, refresh, registrations } = useStudentDashboardData()
@@ -36,6 +37,8 @@ export default function StudentRegistrationsListPage() {
       {loadError ?
         <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] font-bold text-amber-950">{loadError}</p>
       : null}
+
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       <DashboardSection title="سجل التسجيل">
         {loading ?

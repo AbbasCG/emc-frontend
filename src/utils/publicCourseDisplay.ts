@@ -1,5 +1,6 @@
 import type { Course } from '@/types'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import { certificateLineForCourse } from '@/utils/programCertificateAvailability'
 
 export type PublicItemType = 'course' | 'workshop' | 'program'
 
@@ -99,6 +100,7 @@ export function mapCourseStatusArabic(status: unknown, isPublished: unknown): st
   const map: Record<string, string> = {
     published: 'منشورة',
     active: 'منشورة',
+    ended: 'انتهت',
     draft: 'مسودة',
     archived: 'مؤرشفة',
     inactive: 'غير نشطة',
@@ -160,28 +162,6 @@ export function mapRegistrationOpen(course: Course): { open: boolean; labelAr: s
 }
 
 export function certificateLineArabic(course: Course, extra: Record<string, unknown>): string | null {
-  const explicitOff =
-    extra.certificate_available === false ||
-    `${extra.certificate_available}` === '0' ||
-    extra.has_certificate === false ||
-    `${extra.has_certificate}` === '0'
-
-  const title =
-    trimStr(extra.certificate_title) ??
-    trimStr(extra.certificate_type) ??
-    (course.certificate && String(course.certificate).trim() !== '' ?
-      String(course.certificate).trim()
-    : null)
-
-  const explicitOn =
-    extra.certificate_available === true ||
-    `${extra.certificate_available}` === '1' ||
-    extra.has_certificate === true ||
-    `${extra.has_certificate}` === '1'
-
-  if (explicitOff) return null
-  if (title) return `شهادة: ${title}`
-  if (explicitOn) return 'شهادة متاحة وفق سياسات البرنامج'
-  return null
+  return certificateLineForCourse(course, extra)
 }
 

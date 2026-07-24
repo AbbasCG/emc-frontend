@@ -123,6 +123,100 @@ export async function fetchAdminRegistrations(
   return rawList.map(normalizeRow).filter((x): x is AdminRegistrationListRow => x !== null)
 }
 
+export type RegistrationDetail = AdminRegistrationListRow & {
+  full_name: string | null
+  city: string | null
+  country: string | null
+  gender: string | null
+  notes: string | null
+  source: string | null
+  user: { id: number; name: string; email: string; phone: string | null } | null
+  course: {
+    id: number
+    title: string
+    type: string | null
+    slug: string | null
+    status: string | null
+    start_date: string | null
+    end_date: string | null
+    location_type: string | null
+    instructor: string | null
+  } | null
+  progress: {
+    percentage: number
+    attendance_percentage: number
+    assignments_completed: number
+    certificate_status: string | null
+  } | null
+}
+
+/** GET /admin/registrations/{id} */
+export async function fetchAdminRegistrationDetail(id: number): Promise<RegistrationDetail> {
+  const res = await apiClient.get<unknown>(`/admin/registrations/${id}`, silent)
+  const raw = ((res.data ?? {}) as Record<string, unknown>)
+  const d   = (raw.data ?? raw) as Record<string, unknown>
+
+  const nestedUser   = (d.user   && typeof d.user   === 'object' ? d.user   : null) as Record<string, unknown> | null
+  const nestedCourse = (d.course && typeof d.course === 'object' ? d.course : null) as Record<string, unknown> | null
+  const nestedProg   = (d.progress && typeof d.progress === 'object' ? d.progress : null) as Record<string, unknown> | null
+
+  const nestedInstructor = (nestedCourse?.instructor && typeof nestedCourse.instructor === 'object'
+    ? nestedCourse.instructor
+    : null) as Record<string, unknown> | null
+
+  return {
+    id:            Number(d.id),
+    course_id:     Number(d.course_id ?? nestedCourse?.id ?? 0),
+    course_title:  str(nestedCourse?.title) ?? str(d.course_title) ?? '—',
+    student_name:  str(d.full_name) ?? str(nestedUser?.name) ?? str(d.student_name) ?? null,
+    email:         str(d.email) ?? str(nestedUser?.email) ?? null,
+    phone:         str(d.phone) ?? str(nestedUser?.phone) ?? null,
+    user_id:       d.user_id != null ? Number(d.user_id) : null,
+    has_account:   typeof d.has_account === 'boolean' ? d.has_account : d.user_id != null,
+    status:        str(d.status),
+    created_at:    str(d.created_at) ?? str(d.registered_at) ?? null,
+    full_name:     str(d.full_name) ?? null,
+    city:          str(d.city) ?? null,
+    country:       str(d.country) ?? null,
+    gender:        str(d.gender) ?? null,
+    notes:         str(d.notes) ?? null,
+    source:        str(d.source) ?? null,
+    user:          nestedUser ? {
+      id:    Number(nestedUser.id),
+      name:  str(nestedUser.name) ?? '—',
+      email: str(nestedUser.email) ?? '—',
+      phone: str(nestedUser.phone) ?? null,
+    } : null,
+    course: nestedCourse ? {
+      id:            Number(nestedCourse.id),
+      title:         str(nestedCourse.title) ?? '—',
+      type:          str(nestedCourse.type) ?? null,
+      slug:          str(nestedCourse.slug) ?? null,
+      status:        str(nestedCourse.status) ?? null,
+      start_date:    str(nestedCourse.start_date) ?? str(nestedCourse.starts_at) ?? null,
+      end_date:      str(nestedCourse.end_date) ?? str(nestedCourse.ends_at) ?? null,
+      location_type: str(nestedCourse.location_type) ?? str(nestedCourse.delivery_type) ?? null,
+      instructor:    nestedInstructor
+        ? (str(nestedInstructor.name) ?? str((nestedInstructor.user as Record<string, unknown>)?.name) ?? null)
+        : str(nestedCourse.instructor_name) ?? null,
+    } : null,
+    progress: nestedProg ? {
+      percentage:            Number(nestedProg.percentage ?? 0),
+      attendance_percentage: Number(nestedProg.attendance_percentage ?? 0),
+      assignments_completed: Number(nestedProg.assignments_completed ?? 0),
+      certificate_status:    str(nestedProg.certificate_status) ?? null,
+    } : null,
+  }
+}
+
+/** PATCH /admin/registrations/{id}/status */
+export async function updateRegistrationStatus(
+  registrationId: number,
+  status: string,
+): Promise<void> {
+  await apiClient.patch(`/admin/registrations/${registrationId}/status`, { status }, silent)
+}
+
 /** POST /admin/registrations/{id}/create-account */
 export async function createAccountFromRegistration(registrationId: number): Promise<{
   user_id: number

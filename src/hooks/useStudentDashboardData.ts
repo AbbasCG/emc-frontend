@@ -318,7 +318,16 @@ function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDas
     [enrollmentBaseline, registrations, listedCourses],
   )
 
-  const registeredCourseIds = useMemo(() => new Set(registrations.map((r) => r.course_id)), [registrations])
+  const registeredCourseIds = useMemo(() => {
+    const ids = new Set<number>()
+    for (const r of registrations) {
+      if (typeof r.course_id === 'number' && r.course_id > 0) ids.add(r.course_id)
+    }
+    for (const c of listedCourses) {
+      if (typeof c.id === 'number' && c.id > 0) ids.add(c.id)
+    }
+    return ids
+  }, [registrations, listedCourses])
 
   const { browse: browseCourses, source: browseSource } = useMemo(
     () => pickBrowseCourses(apiAvailable, publicCatalog, registrations),

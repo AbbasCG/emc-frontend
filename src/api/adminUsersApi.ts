@@ -647,3 +647,51 @@ export async function fetchStudentCourses(userId: number): Promise<StudentCourse
     return []
   }
 }
+
+// ---------------------------------------------------------------------------
+// Super-admin aggregate stats
+// ---------------------------------------------------------------------------
+
+export type SuperAdminStats = {
+  users: {
+    total: number
+    active: number
+    inactive: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  students: {
+    total: number
+    active: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  registrations: {
+    total: number
+    pending: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  courses: {
+    total: number
+  }
+  chart: Array<{
+    key: string
+    label: string
+    students: number
+    registrations: number
+  }>
+}
+
+export async function fetchSuperAdminStats(): Promise<SuperAdminStats | null> {
+  try {
+    const res = await apiClient.get<unknown>('/admin/stats', { ...silent })
+    const d = res.data as { data?: SuperAdminStats }
+    return d?.data ?? null
+  } catch {
+    return null
+  }
+}

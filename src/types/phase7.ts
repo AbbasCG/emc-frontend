@@ -1,23 +1,20 @@
 /** Phase 7 — integrations, webhooks, calendar, notifications prefs, API tokens, mobile readiness */
 
+export type NotificationChannel = 'in_app' | 'email' | 'sms'
+
 export type NotificationChannelKey = 'in_app' | 'email' | 'whatsapp'
 
-export type NotificationPreferenceKey =
-  | 'registration_confirm'
-  | 'payment_confirm'
-  | 'payment_failed'
-  | 'session_reminder'
-  | 'assignment_due'
-  | 'certificate_issued'
-  | 'task_assigned'
-  | 'meeting_invite'
-  | 'support_reply'
-  | 'partner_update'
-
 export type NotificationPreferenceRow = {
-  key: NotificationPreferenceKey
-  label_ar: string
-  channels: Record<NotificationChannelKey, boolean>
+  key: string
+  labelAr: string
+  descriptionAr?: string
+  category: string
+  channels: {
+    in_app?: boolean
+    email?: boolean
+    sms?: boolean
+  }
+  mandatory?: boolean
 }
 
 export type IntegrationProvider =

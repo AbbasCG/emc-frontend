@@ -22,7 +22,7 @@ export default function SupportTicketCard({ t }: { t: SupportTicket }) {
       <div className="mt-2 flex flex-wrap justify-end gap-2 text-[11px] font-bold text-slate-500">
         <span>{t.type ?? 'عام'}</span>
         <span>{t.priority ?? '—'}</span>
-        <span>{t.requester_name ?? '—'}</span>
+        <span>{t.full_name ?? t.name ?? '—'}</span>
       </div>
       <Link
         to={`${detailBase}/${t.id}`}

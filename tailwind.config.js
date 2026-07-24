@@ -196,6 +196,8 @@ export default {
         popover: "100",
         "modal-overlay": "200",
         "modal-content": "210",
+        /** Modals that must float above a z-modal-content drawer (e.g. AddStudentModal over CourseManagementDrawer) */
+        "nested-modal": "250",
         toast: "300",
       },
     },

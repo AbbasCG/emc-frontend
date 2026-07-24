@@ -244,7 +244,7 @@ export function ScheduleSection({ course, derived }: { course: Course; derived: 
   if (tracksCount && derived.itemType === 'program') {
     rows.push({ label: 'المسارات', value: formatPublicText(tracksCount) })
   }
-  if (derived.meetingLink) rows.push({ label: 'رابط الاجتماع', value: derived.meetingLink })
+  // meeting links are only visible to enrolled students/staff — not shown on public detail page
   if (derived.completionHint) rows.push({ label: 'معايير الإكمال', value: derived.completionHint.split('\n')[0] ?? derived.completionHint })
 
   if (rows.length === 0) return null

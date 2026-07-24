@@ -1,6 +1,11 @@
 import apiClient from './axios'
-import { asList } from './lmsApi'
-import type { AdminAuditLogEntry } from '@/types/adminAudit'
+import { unwrapData } from './unwrap'
+import type {
+  AdminAuditLogEntry,
+  AdminAuditLogPaginationMeta,
+  AdminAuditLogStats,
+} from '@/types/adminAudit'
+import type { AuditLogsPageResult, ExportFormat } from '@/components/super-admin/audit-logs/constants'
 
 export type AdminAuditLogQuery = {
   action?: string
@@ -10,8 +15,14 @@ export type AdminAuditLogQuery = {
   date_from?: string
   date_to?: string
   search?: string
+  ip_address?: string
+  method?: string
+  status?: string
+  page?: number
   per_page?: number
-  // Legacy query param aliases
+  sort?: string
+  direction?: 'asc' | 'desc'
+  // Legacy aliases
   actor?: string
   actor_role?: string
   from?: string
@@ -73,7 +84,6 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
   if (!raw || typeof raw !== 'object') return null
   const r = raw as Record<string, unknown>
 
-  // Support nested user object (new format) or flat actor fields (legacy)
   const userObj =
     r.user && typeof r.user === 'object' && !Array.isArray(r.user)
       ? (r.user as Record<string, unknown>)
@@ -128,18 +138,15 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
   const ip_address =
     pickStr(r.ip_address) || pickStr(r.ip) || pickStr(r.client_ip) || null
 
+  const fullUa = pickStr(r.user_agent) || pickStr(r.userAgent) || null
+
   const user_agent_summary =
-    pickStr(r.user_agent_summary) ||
-    uaBrief(pickStr(r.user_agent) || pickStr(r.userAgent))
+    pickStr(r.user_agent_summary) || uaBrief(fullUa)
 
   return {
     id: coerceId(r.id),
-
-    // Legacy flat fields
     actor_name,
     actor_role,
-
-    // New nested user object
     user: userObj
       ? {
           id: typeof userObj.id === 'number' ? userObj.id : null,
@@ -148,57 +155,181 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
           role: pickStr(userObj.role) || null,
         }
       : undefined,
-
     action,
     action_label: pickStr(r.action_label) || null,
     action_color: pickStr(r.action_color) || null,
     action_icon: pickStr(r.action_icon) || null,
-
     entity_type,
     entity_label: entity_label || '—',
     entity_name: pickStr(r.entity_name) || null,
     entity_id: r.entity_id != null ? Number(r.entity_id) : null,
-
     description: pickStr(r.description) || null,
     changed_fields,
     old_values,
     new_values,
-
     ip_address: ip_address || null,
     user_agent_summary,
+    user_agent: fullUa,
+    metadata: r.metadata ?? null,
     route: pickStr(r.route) || null,
     method: pickStr(r.method) || null,
     created_at: created_at || '—',
   }
 }
 
-/** Excludes impersonation-style events from operational changelog UX. */
 export function isImpersonationAuditEvent(e: AdminAuditLogEntry): boolean {
   const a = e.action.toLowerCase().replace(/[\s-]+/g, '_')
   const et = e.entity_type.toLowerCase()
   const lbl = e.entity_label.toLowerCase()
-
   const hay = `${a} ${et} ${lbl}`
   const signals = ['impersonat', 'simulate_session', 'act_as_user', 'login_as']
-
   return signals.some((s) => hay.includes(s))
 }
 
-export async function fetchAdminAuditLogs(params?: AdminAuditLogQuery): Promise<AdminAuditLogEntry[]> {
-  // Map legacy param names to new backend param names
+function buildQueryParams(params?: AdminAuditLogQuery): Record<string, unknown> {
   const query: Record<string, unknown> = { ...params }
   if (params?.actor) query.search = params.actor
   if (params?.actor_role) query.role = params.actor_role
   if (params?.from) query.date_from = params.from
   if (params?.to) query.date_to = params.to
+  return query
+}
 
-  const res = await apiClient.get<unknown>('/admin/audit-logs', {
-    params: query,
-    skipErrorToast: true,
-  })
-  const rows = asList<unknown>(res.data)
+function parsePaginationMeta(payload: unknown): AdminAuditLogPaginationMeta | null {
+  const root = payload != null && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : null
+  const meta = root?.meta as Record<string, unknown> | undefined
+  if (!meta || typeof meta !== 'object') return null
+
+  const total = Number(meta.total)
+  const current_page = Number(meta.current_page ?? meta.page)
+  const last_page = Number(meta.last_page ?? meta.lastPage)
+  const per_page = Number(meta.per_page ?? meta.perPage)
+  const from = meta.from != null ? Number(meta.from) : null
+  const to = meta.to != null ? Number(meta.to) : null
+
+  if (!Number.isFinite(total) || total < 0) return null
+
+  return {
+    total,
+    current_page: Number.isFinite(current_page) && current_page > 0 ? current_page : 1,
+    last_page: Number.isFinite(last_page) && last_page > 0 ? last_page : 1,
+    per_page: Number.isFinite(per_page) && per_page > 0 ? per_page : 20,
+    from: from != null && Number.isFinite(from) ? from : null,
+    to: to != null && Number.isFinite(to) ? to : null,
+  }
+}
+
+function unwrapRows(payload: unknown): AdminAuditLogEntry[] {
+  const data = unwrapData<unknown>(payload)
+  const list = Array.isArray(data) ? data : Array.isArray(payload) ? payload : []
+  return list
     .map((row) => normalizeAdminAuditLogRow(row))
     .filter((row): row is AdminAuditLogEntry => row != null)
+    .filter((row) => !isImpersonationAuditEvent(row))
+}
 
-  return rows.filter((row) => !isImpersonationAuditEvent(row))
+/** @deprecated Use fetchAdminAuditLogsPage for paginated results. */
+export async function fetchAdminAuditLogs(params?: AdminAuditLogQuery): Promise<AdminAuditLogEntry[]> {
+  const result = await fetchAdminAuditLogsPage({ ...params, page: params?.page ?? 1, per_page: params?.per_page ?? 20 })
+  return result.entries
+}
+
+export async function fetchAdminAuditLogsPage(params?: AdminAuditLogQuery): Promise<AuditLogsPageResult> {
+  const res = await apiClient.get<unknown>('/admin/audit-logs', {
+    params: buildQueryParams(params),
+    skipErrorToast: true,
+  })
+
+  const entries = unwrapRows(res.data)
+  const meta = parsePaginationMeta(res.data)
+  const perPage = params?.per_page ?? meta?.per_page ?? 20
+  const page = params?.page ?? meta?.current_page ?? 1
+
+  if (meta) {
+    return {
+      entries,
+      total: meta.total,
+      page: meta.current_page,
+      perPage: meta.per_page,
+      lastPage: meta.last_page,
+      from: meta.from,
+      to: meta.to,
+    }
+  }
+
+  const total = entries.length
+  const lastPage = Math.max(1, Math.ceil(total / perPage))
+
+  return {
+    entries,
+    total,
+    page,
+    perPage,
+    lastPage,
+    from: total === 0 ? null : (page - 1) * perPage + 1,
+    to: total === 0 ? null : Math.min(page * perPage, total),
+  }
+}
+
+export async function fetchAdminAuditLogStats(params?: AdminAuditLogQuery): Promise<AdminAuditLogStats> {
+  const res = await apiClient.get<unknown>('/admin/audit-logs/stats', {
+    params: buildQueryParams(params),
+    skipErrorToast: true,
+  })
+  const data = unwrapData<AdminAuditLogStats>(res.data)
+  return data ?? {
+    total: 0,
+    today: 0,
+    this_week: 0,
+    this_month: 0,
+    unique_users: 0,
+    failed_operations: 0,
+    successful_operations: 0,
+    top_entity: null,
+    most_active_user: null,
+    most_common_action: null,
+  }
+}
+
+export async function fetchAdminAuditLogDetail(id: string | number): Promise<AdminAuditLogEntry | null> {
+  const res = await apiClient.get<unknown>(`/admin/audit-logs/${id}`, { skipErrorToast: true })
+  const raw = unwrapData<unknown>(res.data)
+  const row = normalizeAdminAuditLogRow(raw)
+  if (!row || isImpersonationAuditEvent(row)) return null
+  return row
+}
+
+export async function exportAdminAuditLogs(
+  params: AdminAuditLogQuery | undefined,
+  format: ExportFormat,
+): Promise<void> {
+  const query = { ...buildQueryParams(params), format: format === 'xlsx' ? 'xlsx' : format }
+  const res = await apiClient.get<Blob>('/admin/audit-logs/export', {
+    params: query,
+    responseType: format === 'json' ? 'json' : 'blob',
+    skipErrorToast: true,
+  })
+
+  const ext = format === 'xlsx' ? 'xls' : format
+  const filename = `audit-logs-${new Date().toISOString().slice(0, 10)}.${ext}`
+
+  if (format === 'json') {
+    const json = JSON.stringify(res.data, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    triggerDownload(blob, filename)
+    return
+  }
+
+  triggerDownload(res.data as Blob, filename)
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }

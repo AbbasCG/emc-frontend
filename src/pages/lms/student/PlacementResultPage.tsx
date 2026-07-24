@@ -23,6 +23,7 @@ import {
   type PlacementAttempt,
 } from '@/api/placementApi'
 import { BackButton } from '@/components/shared/BackButton'
+import { fmtDate, formatStudentTimeFromIso, formatStudentDateTimeRange } from '@/components/lms/lmsFormatters'
 
 /* ── CEFR level ladder ──────────────────────────────────────────────────────── */
 
@@ -116,24 +117,6 @@ function LevelLadder({ activeKey, score, total }: { activeKey: string; score: nu
       )}
     </div>
   )
-}
-
-/* ── Date / time helpers ────────────────────────────────────────────────────── */
-
-function formatDateAr(iso: string | null): string {
-  if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleDateString('ar-SA', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-    })
-  } catch { return iso }
-}
-
-function formatTimeAr(iso: string | null): string {
-  if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-  } catch { return iso }
 }
 
 /* ── Gradient per level key ─────────────────────────────────────────────────── */
@@ -286,7 +269,7 @@ export default function PlacementResultPage() {
         <h1 className="text-[22px] font-black text-deepBlue">نتيجة اختبار تحديد المستوى</h1>
         {attempt.submitted_at && (
           <p className="mt-1 text-[12px] font-semibold text-deepBlue/45">
-            تاريخ الإكمال: {formatDateAr(attempt.submitted_at)}
+            تاريخ الإكمال: {fmtDate(attempt.submitted_at)}
           </p>
         )}
       </motion.div>
@@ -419,15 +402,16 @@ export default function PlacementResultPage() {
               {oralBooking.starts_at && (
                 <div className="flex items-center gap-2.5 text-[12px] font-semibold text-deepBlue/70">
                   <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                  <span>{formatDateAr(oralBooking.starts_at)}</span>
+                  <span>{fmtDate(oralBooking.starts_at)}</span>
                 </div>
               )}
               {(oralBooking.starts_at || oralBooking.ends_at) && (
                 <div className="flex items-center gap-2.5 text-[12px] font-semibold text-deepBlue/70">
                   <Clock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                  <span dir="ltr" className="font-mono tabular-nums">
-                    {formatTimeAr(oralBooking.starts_at)}
-                    {oralBooking.ends_at && ` — ${formatTimeAr(oralBooking.ends_at)}`}
+                  <span className="font-mono tabular-nums">
+                    {oralBooking.ends_at
+                      ? formatStudentDateTimeRange(oralBooking.starts_at, oralBooking.ends_at)
+                      : formatStudentTimeFromIso(oralBooking.starts_at)}
                   </span>
                 </div>
               )}

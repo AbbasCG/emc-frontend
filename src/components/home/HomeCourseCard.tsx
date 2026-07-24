@@ -2,14 +2,16 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Calendar, Clock, GraduationCap, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../../types'
-import { courseImages, formatPrice } from '../../utils/course'
+import { formatPrice } from '../../utils/course'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { formatPublicDate } from '@/utils/publicDetailFormat'
+import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
+import { resolveCourseIsEnded } from '@/utils/courseEnded'
 import { staggerItem } from '@/utils/animations'
 
-type Props = { course: Course; index: number }
+type Props = { course: Course; index?: number }
 
-export default function HomeCourseCard({ course, index }: Props) {
+export default function HomeCourseCard({ course }: Props) {
   const rawImg =
     course.course_image ||
     course.image_url ||
@@ -18,7 +20,6 @@ export default function HomeCourseCard({ course, index }: Props) {
     course.cover_image
 
   const imgSrc = rawImg ? (resolvePublicAssetUrl(rawImg) ?? rawImg) : null
-  const fallbackSrc = courseImages[index % courseImages.length]
 
   const isFree = course.type === 'free' || Boolean(course.is_free) || Number(course.price) === 0
   const isOnline = Boolean(course.is_online)
@@ -31,25 +32,28 @@ export default function HomeCourseCard({ course, index }: Props) {
   const startDate = formatPublicDate(course.start_date)
   const hours = course.training_hours ? Math.round(Number(course.training_hours)) : null
 
+  const isEnded = resolveCourseIsEnded(course)
+
   return (
     <motion.article
       variants={staggerItem}
       whileHover={{ y: -6 }}
-      className="group flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-deepBlue/[0.07] bg-white shadow-emc ring-1 ring-deepBlue/[0.03] transition-all duration-300 hover:border-customBlue/25 hover:shadow-emc-md"
+      aria-label={course.title}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)]"
     >
+      {/* Invisible cover link — makes entire card clickable while inner buttons keep their own events */}
+      <Link
+        to={`/courses/${course.slug}`}
+        className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
       {/* Cover image */}
-      <div className="relative aspect-[16/10] shrink-0 overflow-hidden">
+      <div className="relative z-10 aspect-[16/10] shrink-0 overflow-hidden">
         {imgSrc ? (
           <img
             src={imgSrc}
             alt={course.title}
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
-            loading="lazy"
-          />
-        ) : fallbackSrc ? (
-          <img
-            src={fallbackSrc}
-            alt=""
             className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
             loading="lazy"
           />
@@ -60,6 +64,12 @@ export default function HomeCourseCard({ course, index }: Props) {
         )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#06182C]/70 via-[#06182C]/8 to-transparent" />
+
+        {isEnded ?
+          <div className="absolute left-3 top-3 z-10">
+            <CourseStatusBadge isEnded placement="overlay" />
+          </div>
+        : null}
 
         {/* Badges — top-start (right in RTL) */}
         <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
@@ -77,7 +87,7 @@ export default function HomeCourseCard({ course, index }: Props) {
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-5 text-right">
+      <div className="relative z-10 flex flex-1 flex-col p-5 text-right">
         {/* Certificate label */}
         {course.certificate && (
           <p className="mb-1.5 text-[10px] font-bold tracking-wide text-customBlue">
@@ -99,7 +109,7 @@ export default function HomeCourseCard({ course, index }: Props) {
 
         {/* Instructor */}
         {instructorName && (
-          <div className="mt-3 flex items-center justify-end gap-2">
+          <div className="mt-3 flex items-center justify-start gap-2">
             {instructorAvatar ? (
               <img
                 src={instructorAvatar}

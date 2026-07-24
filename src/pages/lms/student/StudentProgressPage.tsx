@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { DashboardSection, ProgressCard } from '@/components/dashboard'
 import { LmsEmptyState, LmsPageSkeleton, ProgressRing } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentProgressPage() {
   const { loading, refreshing, loadError, refresh, progressMerged, registrations } = useStudentDashboardData()
@@ -34,8 +35,7 @@ export default function StudentProgressPage() {
         <div>
           <h1 className="text-xl font-black text-deepBlue">التقدّم</h1>
           <p className="mt-2 max-w-2xl text-[13px] font-semibold text-muted-700">
-            يدمج العرض بين <span className="font-mono text-[11px]">GET /student/progress</span> وجميع دوراتك المسجّلة حتى لا تُعرض
-            صفحة فارغة عند غياب صفوف التقدّم في الخادم.
+            متابعة تقدّمك في جميع الدورات والمسارات التعليمية المسجّلة.
           </p>
           {loadError ?
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
@@ -54,11 +54,13 @@ export default function StudentProgressPage() {
         </button>
       </header>
 
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
+
       <div className="flex flex-col items-center justify-between gap-8 rounded-[1.35rem] bg-white p-8 shadow-lg ring-1 ring-deepBlue/[0.05] lg:flex-row-reverse">
         <div className="text-center lg:text-right">
           <h2 className="text-2xl font-black text-deepBlue">مؤشرات موجزة</h2>
           <p className="mt-2 max-w-xl text-sm font-semibold leading-relaxed text-slate-600">
-            قيم مقتربة من الخادم؛ الدورات أدناه تُبنى من تسجيلاتك الفعلية.
+            نسبة إجمالية لحضورك وإتمام الواجبات عبر دوراتك.
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-10">

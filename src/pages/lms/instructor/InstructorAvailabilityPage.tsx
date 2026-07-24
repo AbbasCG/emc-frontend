@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  CalendarClock,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
@@ -19,6 +20,12 @@ import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import toast from '@/lib/toast'
 import { BackButton } from '@/components/shared/BackButton'
+import GoogleStyleTimePicker from '@/components/shared/GoogleStyleTimePicker'
+import { formatAmsterdamTime24 } from '@/utils/amsterdamTime'
+import { CEFR_MAP, InstructorBookingDetailModal } from '@/components/instructor'
+import { AvailabilityDatePicker } from '@/components/instructor/AvailabilityDatePicker'
+import { MessageCircle } from 'lucide-react'
+import { PLACEMENT_STATUS_META, resolvePlacementStatusKey } from '@/utils/placementStatusColors'
 
 /* ── Constants ───────────────────────────────────────────────────────────── */
 
@@ -49,18 +56,11 @@ function toDMY(iso: string): string {
   return `${d}/${m}/${y}`
 }
 
+// Renders in Europe/Amsterdam local time — slicing the raw ISO string here
+// previously read UTC clock digits verbatim, showing instructors their own
+// availability slots 1-2 hours off from what they actually set.
 function isoToHM(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  const part = iso.slice(11, 16)
-  if (/^\d{2}:\d{2}$/.test(part)) return part
-  const start = iso.slice(0, 5)
-  if (/^\d{2}:\d{2}$/.test(start)) return start
-  try {
-    const d = new Date(iso)
-    if (!isNaN(d.getTime()))
-      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  } catch { /* fall through */ }
-  return '—'
+  return formatAmsterdamTime24(iso) || '—'
 }
 
 function dateDayHeader(iso: string): string {
@@ -178,6 +178,7 @@ export default function InstructorAvailabilityPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [filter,     setFilter]     = useState<FilterMode>('upcoming')
   const [showPast,   setShowPast]   = useState(false)
+  const [detailSlot, setDetailSlot] = useState<InstructorAvailabilitySlot | null>(null)
 
   async function load() {
     setLoading(true)
@@ -330,6 +331,10 @@ export default function InstructorAvailabilityPage() {
 
   const upcomingFiltered = filterDates.filter(({ date }) => date >= TODAY)
   const pastFiltered     = filterDates.filter(({ date }) => date <  TODAY)
+  const availableSlots   = useMemo(
+    () => slots.filter((s) => s.is_available && s.starts_at.slice(0, 10) >= TODAY),
+    [slots],
+  )
 
   return (
     <div className="space-y-5 pb-16" dir="rtl">
@@ -414,7 +419,7 @@ export default function InstructorAvailabilityPage() {
                   count={upcomingFiltered.reduce((n, x) => n + x.slots.length, 0)} />
                 {upcomingFiltered.map(({ date, slots: ds }) => (
                   <DayCard key={date} date={date} slots={ds} courses={courses}
-                    onDelete={handleDelete} deletingId={deletingId} />
+                    onDelete={handleDelete} deletingId={deletingId} onOpenDetail={setDetailSlot} />
                 ))}
               </div>
             ) : (
@@ -437,7 +442,7 @@ export default function InstructorAvailabilityPage() {
                       exit={{ opacity: 0, height: 0 }} className="mt-3 space-y-3 overflow-hidden opacity-60">
                       {pastFiltered.map(({ date, slots: ds }) => (
                         <DayCard key={date} date={date} slots={ds} courses={courses}
-                          onDelete={handleDelete} deletingId={deletingId} />
+                          onDelete={handleDelete} deletingId={deletingId} onOpenDetail={setDetailSlot} />
                       ))}
                     </motion.div>
                   )}
@@ -494,6 +499,15 @@ export default function InstructorAvailabilityPage() {
           />
         )}
       </AnimatePresence>
+
+      {detailSlot && (
+        <InstructorBookingDetailModal
+          slot={detailSlot}
+          availableSlots={availableSlots}
+          onClose={() => setDetailSlot(null)}
+          onChanged={() => { setDetailSlot(null); void load() }}
+        />
+      )}
     </div>
   )
 }
@@ -511,12 +525,13 @@ function SectionLabel({ label, count }: { label: string; count: number }) {
 
 /* ── DayCard ─────────────────────────────────────────────────────────────── */
 
-function DayCard({ date, slots, courses, onDelete, deletingId }: {
+function DayCard({ date, slots, courses, onDelete, deletingId, onOpenDetail }: {
   date: string
   slots: InstructorAvailabilitySlot[]
   courses: TeachingCourseLms[]
   onDelete: (id: number) => Promise<void>
   deletingId: number | null
+  onOpenDetail: (slot: InstructorAvailabilitySlot) => void
 }) {
   const d         = new Date(`${date}T00:00:00`)
   const dayName   = DAYS_AR[d.getDay()]
@@ -542,39 +557,83 @@ function DayCard({ date, slots, courses, onDelete, deletingId }: {
 
       <div className="flex flex-wrap gap-2 p-3">
         {slots.map((slot) => {
-          const course     = courses.find((c) => c.id === slot.course_id)
-          const courseName = course?.title ?? (slot as { course_title?: string }).course_title
-          const isBooked   = !slot.is_available
-          const isDeleting = deletingId === slot.id
+          const course      = courses.find((c) => c.id === slot.course_id)
+          const courseName  = course?.title ?? slot.course_title
+          const isDeleting  = deletingId === slot.id
+          const statusKey   = resolvePlacementStatusKey(slot.booking_status, slot.ends_at)
+          const meta        = PLACEMENT_STATUS_META[statusKey]
+          const booking     = slot.booking
+          const StatusIcon  = statusKey === 'completed' ? CheckCircle2 : CalendarClock
 
+          // ── Booked/confirmed/completed/etc. slot — compact card with student identity ──
+          if (booking) {
+            const cefr = booking.placement?.estimated_level ? CEFR_MAP[booking.placement.estimated_level] : null
+            return (
+              <motion.button
+                key={slot.id}
+                type="button"
+                onClick={() => onOpenDetail(slot)}
+                whileHover={{ y: -1 }}
+                className={`flex w-full max-w-[280px] flex-col gap-1.5 rounded-xl border px-3 py-2.5 text-right transition-shadow hover:${meta.hoverGlow} sm:w-auto ${meta.border} ${meta.bg}`}
+              >
+                <div className="flex items-center gap-2">
+                  {booking.student?.avatar_url ? (
+                    <img src={booking.student.avatar_url} alt={booking.student.name} className="h-7 w-7 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-[10px] font-black text-deepBlue/60 ring-1 ring-black/5">
+                      {booking.student?.initials ?? '?'}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[11px] font-black text-deepBlue">{booking.student?.name ?? 'طالب'}</p>
+                    {cefr && <p className="text-[9px] font-bold text-deepBlue/45">{cefr.cefr}</p>}
+                  </div>
+                  <span className={`flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${meta.badgeBg} ${meta.text}`}>
+                    <StatusIcon className="h-2.5 w-2.5" />
+                    {meta.label}
+                  </span>
+                </div>
+                <p className={`font-mono text-[11px] font-black tabular-nums ${meta.text}`}>
+                  {statusKey === 'completed'
+                    ? toDMY(slot.starts_at)
+                    : <>{isoToHM(slot.starts_at)}<span className="opacity-40"> – </span>{isoToHM(slot.ends_at)}</>}
+                </p>
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <span className="flex items-center gap-1 rounded-lg bg-white/70 px-2 py-1 text-[9px] font-black text-deepBlue/60 ring-1 ring-black/5">
+                    عرض التفاصيل
+                  </span>
+                  <span className="flex items-center gap-1 rounded-lg bg-white/70 px-1.5 py-1 text-deepBlue/50 ring-1 ring-black/5">
+                    <MessageCircle className="h-3 w-3" />
+                  </span>
+                </div>
+              </motion.button>
+            )
+          }
+
+          // ── Available slot — unchanged compact layout ──
           return (
-            <div key={slot.id}
-              className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${
-                isBooked ? 'border-customOrange/20 bg-customOrange/[0.05]' : 'border-emerald-200 bg-emerald-50/60'
-              }`}>
+            <motion.div key={slot.id}
+              whileHover={{ y: -1 }}
+              className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-shadow hover:${meta.hoverGlow} ${meta.border} ${meta.bg}`}>
               <div>
-                <p className={`font-mono text-[12px] font-black tabular-nums ${isBooked ? 'text-customOrange' : 'text-emerald-700'}`}>
+                <p className={`font-mono text-[12px] font-black tabular-nums ${meta.text}`}>
                   {isoToHM(slot.starts_at)}<span className="opacity-40"> – </span>{isoToHM(slot.ends_at)}
                 </p>
                 {courseName && (
                   <p className="max-w-[110px] truncate text-[9px] font-semibold text-deepBlue/45">{courseName}</p>
                 )}
               </div>
-              <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${
-                isBooked ? 'bg-customOrange/15 text-customOrange' : 'bg-emerald-100 text-emerald-700'
-              }`}>
-                {isBooked ? 'محجوز' : 'متاح'}
+              <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[9px] font-black ${meta.badgeBg} ${meta.text}`}>
+                {meta.label}
               </span>
-              {!isBooked && (
-                <button type="button" onClick={() => void onDelete(slot.id)} disabled={isDeleting}
-                  title="حذف الموعد"
-                  className="shrink-0 rounded-lg p-1 text-slate-300 transition hover:bg-red-50 hover:text-red-400 disabled:opacity-40">
-                  {isDeleting
-                    ? <RefreshCw className="h-3 w-3 animate-spin" />
-                    : <Trash2 className="h-3 w-3" />}
-                </button>
-              )}
-            </div>
+              <button type="button" onClick={() => void onDelete(slot.id)} disabled={isDeleting}
+                title="حذف الموعد"
+                className="shrink-0 rounded-lg p-1 text-slate-300 transition hover:bg-red-50 hover:text-red-400 disabled:opacity-40">
+                {isDeleting
+                  ? <RefreshCw className="h-3 w-3 animate-spin" />
+                  : <Trash2 className="h-3 w-3" />}
+              </button>
+            </motion.div>
           )
         })}
       </div>
@@ -661,39 +720,26 @@ function AvailabilityModal({ form, errors, courses, saving, previews, onPatch, o
               </div>
 
               {form.dateMode === 'single' ? (
-                <div className="flex items-center gap-3">
-                  <input type="date" value={form.singleDate} min={TODAY} dir="ltr"
-                    className={fieldCls(!!errors.singleDate)}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      const dow = val ? new Date(`${val}T00:00:00`).getDay() : 0
-                      onPatch({ singleDate: val, days: [dow] })
-                    }} />
-                  {form.singleDate && (
-                    <span className="shrink-0 rounded-xl bg-slate-100 px-2.5 py-1 text-[11px] font-black text-deepBlue/60">
-                      {DAYS_AR[new Date(`${form.singleDate}T00:00:00`).getDay()]}
-                    </span>
-                  )}
-                </div>
+                <AvailabilityDatePicker
+                  mode="single"
+                  value={form.singleDate}
+                  minDate={TODAY}
+                  error={errors.singleDate}
+                  onChange={(val) => {
+                    const dow = val ? new Date(`${val}T00:00:00`).getDay() : 0
+                    onPatch({ singleDate: val, days: [dow] })
+                  }}
+                />
               ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="mb-1 text-[10px] font-black text-deepBlue/40">من</p>
-                    <input type="date" value={form.dateFrom} min={TODAY} dir="ltr"
-                      className={fieldCls(!!errors.dateFrom)}
-                      onChange={(e) => onPatch({ dateFrom: e.target.value })} />
-                    {errors.dateFrom && <FieldError msg={errors.dateFrom} />}
-                  </div>
-                  <div>
-                    <p className="mb-1 text-[10px] font-black text-deepBlue/40">إلى</p>
-                    <input type="date" value={form.dateTo} min={form.dateFrom || TODAY} dir="ltr"
-                      className={fieldCls(!!errors.dateTo)}
-                      onChange={(e) => onPatch({ dateTo: e.target.value })} />
-                    {errors.dateTo && <FieldError msg={errors.dateTo} />}
-                  </div>
-                </div>
+                <AvailabilityDatePicker
+                  mode="range"
+                  from={form.dateFrom}
+                  to={form.dateTo}
+                  minDate={TODAY}
+                  error={errors.dateFrom || errors.dateTo}
+                  onChange={({ from, to }) => onPatch({ dateFrom: from, dateTo: to })}
+                />
               )}
-              {errors.singleDate && <FieldError msg={errors.singleDate} />}
             </FieldSection>
 
             {/* C. Weekdays (range only) */}
@@ -733,20 +779,20 @@ function AvailabilityModal({ form, errors, courses, saving, previews, onPatch, o
 
               {isCustom && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="mb-1 text-[10px] font-black text-deepBlue/40">من</p>
-                    <input type="time" value={form.customStart} dir="ltr"
-                      className={fieldCls(!!errors.startTime)}
-                      onChange={(e) => onPatch({ customStart: e.target.value })} />
-                    {errors.startTime && <FieldError msg={errors.startTime} />}
-                  </div>
-                  <div>
-                    <p className="mb-1 text-[10px] font-black text-deepBlue/40">إلى</p>
-                    <input type="time" value={form.customEnd} dir="ltr"
-                      className={fieldCls(!!errors.endTime)}
-                      onChange={(e) => onPatch({ customEnd: e.target.value })} />
-                    {errors.endTime && <FieldError msg={errors.endTime} />}
-                  </div>
+                  <GoogleStyleTimePicker
+                    label="من"
+                    value={form.customStart || null}
+                    onChange={(v) => onPatch({ customStart: v })}
+                    error={errors.startTime}
+                    minuteStep={15}
+                  />
+                  <GoogleStyleTimePicker
+                    label="إلى"
+                    value={form.customEnd || null}
+                    onChange={(v) => onPatch({ customEnd: v })}
+                    error={errors.endTime}
+                    minuteStep={15}
+                  />
                 </div>
               )}
               {!isCustom && errors.endTime && <FieldError msg={errors.endTime} />}

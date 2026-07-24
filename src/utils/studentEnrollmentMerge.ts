@@ -53,6 +53,11 @@ function enrollmentFromRegistration(r: StudentRegistrationRow): Enrollment {
     course: skeletonCourse(r.course_id, r.course_title ?? '', r.slug, r.instructor_name ?? null, {
       start_date: r.start_date ?? undefined,
       start_time: r.start_time ?? undefined,
+      end_date: r.end_date ?? undefined,
+      end_time: r.end_time ?? undefined,
+      is_ended: r.is_ended ?? undefined,
+      computed_status: r.computed_status ?? undefined,
+      lifecycle_status: r.lifecycle_status ?? undefined,
       meeting_link: r.meeting_link ?? undefined,
       course_image: r.course_cover_url ?? undefined,
       image_url: r.course_cover_url ?? undefined,
@@ -65,6 +70,7 @@ function enrollmentFromRegistration(r: StudentRegistrationRow): Enrollment {
     status: mapBackendRegStatus(r.status),
     placement_status: r.placement_status ?? null,
     can_start_learning: r.can_start_learning ?? null,
+    access: r.access ?? null,
   }
 }
 
@@ -81,6 +87,11 @@ function enrollmentFromListedCourse(c: StudentListedCourse): Enrollment {
     course: skeletonCourse(c.id, c.title, c.slug, c.instructor_name ?? null, {
       start_date: c.start_date ?? undefined,
       start_time: c.start_time ?? undefined,
+      end_date: c.end_date ?? undefined,
+      end_time: c.end_time ?? undefined,
+      is_ended: c.is_ended ?? undefined,
+      computed_status: c.computed_status ?? undefined,
+      lifecycle_status: c.lifecycle_status ?? undefined,
       meeting_link: c.meeting_link ?? undefined,
       requires_placement_test: c.requires_placement_test,
       // Pass cover image through so card can display it
@@ -165,6 +176,12 @@ export function mergeStudentEnrollments(
         {
           start_date: c.start_date ?? prev.course.start_date ?? undefined,
           start_time: c.start_time ?? prev.course.start_time ?? undefined,
+          end_date: c.end_date ?? prev.course.end_date ?? undefined,
+          end_time: c.end_time ?? prev.course.end_time ?? undefined,
+          // Listed-course lifecycle wins when present (freshest computed status).
+          is_ended: c.is_ended ?? prev.course.is_ended ?? undefined,
+          computed_status: c.computed_status ?? prev.course.computed_status ?? undefined,
+          lifecycle_status: c.lifecycle_status ?? prev.course.lifecycle_status ?? undefined,
           meeting_link: c.meeting_link ?? prev.course.meeting_link ?? undefined,
           image_url: c.cover_url ?? prev.course.image_url ?? undefined,
           course_image: c.cover_url ?? prev.course.course_image ?? undefined,

@@ -26,7 +26,7 @@ export default function PremiumSchedule({ course, derived }: Props) {
   if (tracksCount && derived.itemType === 'program') {
     rows.push({ label: 'المسارات', value: formatPublicText(tracksCount) })
   }
-  if (derived.meetingLink) rows.push({ label: 'رابط الاجتماع', value: derived.meetingLink, link: true })
+  // meeting links are only visible to enrolled students/staff — not shown on public detail page
   if (derived.completionHint) {
     rows.push({ label: 'معايير الإكمال', value: derived.completionHint.split('\n')[0] ?? derived.completionHint })
   }

@@ -25,7 +25,12 @@
       "Bash(Get-ChildItem -Path \"D:\\\\xampp\\\\htdocs\\\\emc-frontend\" -Recurse -Force)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(python graphify_query.py \"super admin users CRUD page dashboard\")",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(git branch *)",
+      "Bash(grep -nE *)",
+      "Bash(grep -cE *)",
+      "Bash(npx eslint *)",
+      "Bash(grep -E 'error|\\\\.tsx?$|\\\\.ts$')"
     ]
   }
 }

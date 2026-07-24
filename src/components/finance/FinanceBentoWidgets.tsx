@@ -2,12 +2,12 @@ import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { BookOpen, LayoutGrid, RefreshCcw, Timer, Zap } from 'lucide-react'
 import FinanceSparkline from './FinanceSparkline'
-import { formatEuroInteger } from '@/utils/currency'
+import { formatFinanceCount, formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 import type { FinanceDashboardData } from '@/types/intelligence'
 import { gatewayTotalsFromPayments, pickTopCourse, pickTopTrack } from './financeDashboardDerivations'
 
 function fmt(n: number) {
-  return formatEuroInteger(n, 'ar')
+  return formatFinanceCurrencyInteger(n)
 }
 
 const PROVIDER_LABEL: Record<string, string> = {
@@ -123,7 +123,7 @@ export default function FinanceBentoWidgets({ data }: { data: FinanceDashboardDa
           : gateways.map((g) => (
               <li key={g.provider} className="text-right">
                 <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black text-deepBlue">
-                  <span className="font-latin tabular-nums text-slate-500">{Math.round((g.amount / gwMax) * 100)}٪</span>
+                  <span className="font-latin tabular-nums text-slate-500">{formatFinanceCount(Math.round((g.amount / gwMax) * 100))}%</span>
                   <span>{PROVIDER_LABEL[g.provider.toLowerCase()] ?? g.provider}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">

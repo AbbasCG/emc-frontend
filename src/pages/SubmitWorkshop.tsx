@@ -12,7 +12,7 @@ import {
   Loader2,
   RotateCcw,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -108,6 +108,10 @@ const stepAnimation = {
 }
 
 const glassCard = 'emc-glass-premium rounded-3xl'
+
+const helpCardHoverShadow = 'hover:shadow-[0_24px_56px_-14px_rgba(12,42,75,0.22)]'
+
+const GENERAL_CONTACT_PATH = '/contact#general-contact-form'
 
 const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
 const SUCCESS_DESCRIPTION =
@@ -268,6 +272,7 @@ function WorkshopSuccessCelebration({
 
 export default function SubmitWorkshop() {
   const [step, setStep] = useState(1)
+  const formTopRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState<WorkshopFormValues>(initialForm)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
@@ -276,6 +281,10 @@ export default function SubmitWorkshop() {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [apiError, setApiError] = useState('')
   const [submissionSuccess, setSubmissionSuccess] = useState(false)
+
+  useEffect(() => {
+    formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [step])
 
   useEffect(() => {
     if (!submissionSuccess) return
@@ -515,6 +524,7 @@ export default function SubmitWorkshop() {
 
         <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="lg:col-span-8">
+            <div ref={formTopRef} />
             <motion.div
               layout
               initial={{ opacity: 0, y: 14 }}
@@ -814,6 +824,7 @@ export default function SubmitWorkshop() {
                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <EmcDatePicker
                                   label="التاريخ"
+                                  layout="stacked"
                                   value={form[`proposed_date_${n}` as keyof WorkshopFormValues]}
                                   onChange={(v) => updateField(`proposed_date_${n}` as keyof WorkshopFormValues, v)}
                                   error={getError(`proposed_date_${n}`)}
@@ -998,19 +1009,33 @@ export default function SubmitWorkshop() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className={cn(glassCard, 'overflow-hidden')}
             >
-              <div className="flex items-start gap-4 bg-gradient-to-l from-[#F28C00]/15 via-white to-white p-6 text-right">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/15 text-[#0077B6] ring-1 ring-[#0077B6]/25">
-                  <Headphones className="h-6 w-6" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-[#0C2A4B]">تحتاج مساعدة؟</h3>
-                  <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
-                    فريق EMC سيراجع طلبك ويتواصل معك بعد الإرسال.
-                  </p>
-                </div>
-              </div>
+              <Link
+                to={GENERAL_CONTACT_PATH}
+                aria-label="الانتقال إلى نموذج التواصل العام"
+                className={cn(
+                  glassCard,
+                  'block cursor-pointer overflow-hidden transition-shadow duration-[250ms]',
+                  helpCardHoverShadow,
+                )}
+              >
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.99 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-start gap-4 bg-gradient-to-l from-[#F28C00]/15 via-white to-white p-6 text-right"
+                >
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/15 text-[#0077B6] ring-1 ring-[#0077B6]/25">
+                    <Headphones className="h-6 w-6" aria-hidden />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-[#0C2A4B]">تحتاج مساعدة؟</h3>
+                    <p className="mt-2 text-[13px] font-semibold leading-relaxed text-muted-700">
+                      فريق EMC سيراجع طلبك ويتواصل معك بعد الإرسال.
+                    </p>
+                  </div>
+                </motion.div>
+              </Link>
             </motion.div>
 
             <motion.div

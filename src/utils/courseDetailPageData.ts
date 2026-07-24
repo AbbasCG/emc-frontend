@@ -2,6 +2,7 @@ import type { Course } from '@/types'
 import type { CourseDetailDerived } from '@/utils/courseDetailDerived'
 import { formatPublicDate, formatPublicText, formatPublicTime } from '@/utils/publicDetailFormat'
 import { safeTrimUnknown } from '@/utils/publicCourseNormalize'
+import { hasProgramCertificate } from '@/utils/programCertificateAvailability'
 
 export type CourseReviewItem = {
   id: string
@@ -50,13 +51,7 @@ export function resolveCourseSeatMetrics(course: Course): CourseSeatMetrics {
 }
 
 export function courseHasCertificate(course: Course): boolean {
-  const x = course as Record<string, unknown>
-  if (x.has_certificate === true || `${x.has_certificate}` === '1') return true
-  if (safeTrimUnknown(x.certificate_title)) return true
-  if (safeTrimUnknown(x.certificate_type)) return true
-  if (x.certificate_available === true || `${x.certificate_available}` === '1') return true
-  if (course.certificate && String(course.certificate).trim() !== '') return true
-  return false
+  return hasProgramCertificate(course)
 }
 
 export function hasMeaningfulDuration(value: string | null | undefined): boolean {

@@ -171,7 +171,7 @@ export default function AttendanceTable({
                         <div className="min-w-0">
                           <p className="truncate text-[13px] font-black text-[#0C2A4B]">{row.student_name}</p>
                           {row.email ?
-                            <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500" dir="ltr">
+                            <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500">
                               <Mail className="h-3 w-3 shrink-0" />
                               {row.email}
                             </p>

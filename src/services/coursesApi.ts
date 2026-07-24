@@ -51,6 +51,8 @@ export type CourseItem = {
   start_time: string | null
   language: string | null
   program_kind_raw: string | null
+  /** True when course is published but its end_date has passed */
+  is_ended: boolean
   progress?: number
 }
 
@@ -127,6 +129,7 @@ const MOCK_CATALOG_ITEMS: CourseItem[] = [
     start_time: null,
     language: 'العربية',
     program_kind_raw: 'course',
+    is_ended: false,
   },
 ]
 
@@ -238,32 +241,34 @@ export async function fetchUpcomingWorkshops() {
   }
   try {
     const response = await apiClient.get('/workshops', { skipErrorToast: true })
-    const rows = unwrapData<
-      {
-        id: number
-        title: string
-        slug: string
-        date?: string
-        time?: string
-        duration_hours?: number
-        trainer_name?: string
-        is_online?: boolean
-        spots_remaining?: number
-        total_spots?: number
-      }[]
-    >(response.data)
-    const data: WorkshopItem[] = (rows ?? []).map((w) => ({
-      id: w.id,
-      title: w.title,
-      date: w.date ?? '',
-      time: w.time ?? '',
-      duration_hours: typeof w.duration_hours === 'number' ? w.duration_hours : 2,
-      trainer_name: w.trainer_name ?? 'فريق EMC',
-      is_online: Boolean(w.is_online),
-      spots_remaining: w.spots_remaining ?? 0,
-      total_spots: w.total_spots ?? 0,
-      slug: w.slug,
-    }))
+    const rows = unwrapData<Record<string, unknown>[]>(response.data)
+    const data: WorkshopItem[] = (rows ?? [])
+      .filter((w): w is Record<string, unknown> => Boolean(w?.id && w?.slug && w?.title))
+      .map((w) => ({
+        id: Number(w.id),
+        title: String(w.title),
+        slug: String(w.slug),
+        // date / start_date — backend returns both aliases
+        date: String(w.date ?? w.start_date ?? ''),
+        time: String(w.time ?? w.start_time ?? ''),
+        // duration — training_hours or duration_hours
+        duration_hours:
+          typeof w.duration_hours === 'number' ? w.duration_hours
+          : typeof w.training_hours === 'number' ? w.training_hours
+          : 0,
+        // instructor name — flat alias or nested object
+        trainer_name:
+          typeof w.trainer_name === 'string' && w.trainer_name
+            ? w.trainer_name
+            : (w.instructor as Record<string, unknown>)?.name
+              ? String((w.instructor as Record<string, unknown>).name)
+              : 'فريق EMC',
+        is_online: Boolean(w.is_online),
+        spots_remaining: typeof w.spots_remaining === 'number' ? w.spots_remaining : 0,
+        total_spots: typeof w.total_spots === 'number' ? w.total_spots
+          : typeof w.seats === 'number' ? w.seats
+          : 0,
+      }))
     return { data }
   } catch {
     return { data: [] }

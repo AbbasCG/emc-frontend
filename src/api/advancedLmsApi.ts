@@ -29,22 +29,82 @@ export async function submitQuizAnswers(
   return unwrapLms<QuizAttemptResult>(res.data)
 }
 
-export async function fetchAdminModules(): Promise<LmsModule[]> {
+export async function fetchAdminModules(params?: { course_id?: number }): Promise<LmsModule[]> {
   try {
-    const res = await apiClient.get<unknown>('/admin/lms/modules')
+    const res = await apiClient.get<unknown>('/admin/modules', { params })
     return asList<LmsModule>(res.data)
   } catch {
     return []
   }
 }
 
-export async function fetchAdminLessons(): Promise<LmsLesson[]> {
+export async function adminCreateModule(body: {
+  course_id: number
+  title: string
+  description?: string
+  sort_order?: number
+  status?: string
+}): Promise<LmsModule> {
+  const res = await apiClient.post<unknown>('/admin/modules', body)
+  return unwrapLms<LmsModule>(res.data)
+}
+
+export async function adminUpdateModule(id: number, body: {
+  title?: string
+  description?: string
+  sort_order?: number
+  status?: string
+}): Promise<LmsModule> {
+  const res = await apiClient.put<unknown>(`/admin/modules/${id}`, body)
+  return unwrapLms<LmsModule>(res.data)
+}
+
+export async function adminGetModule(id: number): Promise<LmsModule> {
+  const res = await apiClient.get<unknown>(`/admin/modules/${id}`)
+  return unwrapLms<LmsModule>(res.data)
+}
+
+export async function adminDeleteModule(id: number): Promise<void> {
+  await apiClient.delete(`/admin/modules/${id}`)
+}
+
+export async function fetchAdminLessons(params?: { module_id?: number }): Promise<LmsLesson[]> {
   try {
-    const res = await apiClient.get<unknown>('/admin/lms/lessons')
+    const res = await apiClient.get<unknown>('/admin/lessons', { params })
     return asList<LmsLesson>(res.data)
   } catch {
     return []
   }
+}
+
+export async function adminCreateLesson(body: {
+  module_id: number
+  title: string
+  description?: string
+  video_url?: string
+  duration_minutes?: number
+  sort_order?: number
+  status?: string
+}): Promise<LmsLesson> {
+  const res = await apiClient.post<unknown>('/admin/lessons', body)
+  return unwrapLms<LmsLesson>(res.data)
+}
+
+export async function adminUpdateLesson(id: number, body: {
+  module_id?: number
+  title?: string
+  description?: string
+  video_url?: string
+  duration_minutes?: number
+  sort_order?: number
+  status?: string
+}): Promise<LmsLesson> {
+  const res = await apiClient.put<unknown>(`/admin/lessons/${id}`, body)
+  return unwrapLms<LmsLesson>(res.data)
+}
+
+export async function adminDeleteLesson(id: number): Promise<void> {
+  await apiClient.delete(`/admin/lessons/${id}`)
 }
 
 export async function fetchAdminQuizzes(): Promise<LmsQuiz[]> {

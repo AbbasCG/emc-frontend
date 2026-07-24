@@ -1,14 +1,11 @@
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, GraduationCap, Route, Sparkles } from 'lucide-react'
+import { BookOpen, Sparkles } from 'lucide-react'
 
 type Props = {
   coursesCount: number
-  pathsCount: number
-  workshopsCount: number
 }
 
-export default function ProgramsHero({ coursesCount, pathsCount, workshopsCount }: Props) {
+export default function ProgramsHero({ coursesCount }: Props) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-ink-900 via-deepBlue to-[#1a2a3f] pt-28 pb-14">
       <div className="pointer-events-none absolute inset-0">
@@ -32,7 +29,7 @@ export default function ProgramsHero({ coursesCount, pathsCount, workshopsCount 
           transition={{ delay: 0.05 }}
           className="emc-title-arc is-center font-display text-4xl font-black leading-tight tracking-tight text-white md:text-5xl"
         >
-          استكشف جميع برامج EMC
+          الدورات التدريبية
         </motion.h1>
 
         <motion.p
@@ -41,50 +38,20 @@ export default function ProgramsHero({ coursesCount, pathsCount, workshopsCount 
           transition={{ delay: 0.1 }}
           className="mx-auto mt-4 max-w-2xl text-base leading-8 text-white/70 md:text-lg"
         >
-          دورات · مسارات احترافية · ورش عمل — كل ما تحتاجه في مكان واحد، من بيانات الكتالوج الحقيقية.
+          تصفح جميع الدورات المستقلة المتاحة — مع أدوات بحث وتصفية متقدمة.
         </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mt-8 grid grid-cols-3 gap-3 sm:mx-auto sm:max-w-lg"
+          className="mt-8 flex justify-center"
         >
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 shadow-emc backdrop-blur-sm transition duration-300 ease-emc hover:border-white/20 hover:bg-white/10">
-            <BookOpen className="mx-auto mb-2 h-5 w-5 text-sky" aria-hidden />
-            <p className="font-latin text-xl font-black tabular-nums text-white">{coursesCount.toLocaleString('ar-EG')}</p>
-            <p className="text-[11px] font-bold text-ice/70">دورة</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-8 py-4 shadow-emc backdrop-blur-sm">
+            <BookOpen className="mx-auto mb-2 h-5 w-5 text-brand-300" aria-hidden />
+            <p className="font-latin text-2xl font-black tabular-nums text-white">{coursesCount.toLocaleString('en-US')}</p>
+            <p className="text-[11px] font-bold text-white/60">دورة تدريبية مستقلة</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 shadow-emc backdrop-blur-sm transition duration-300 ease-emc hover:border-white/20 hover:bg-white/10">
-            <Route className="mx-auto mb-2 h-5 w-5 text-amber" aria-hidden />
-            <p className="font-latin text-xl font-black tabular-nums text-white">{pathsCount.toLocaleString('ar-EG')}</p>
-            <p className="text-[11px] font-bold text-ice/70">مسار</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 shadow-emc backdrop-blur-sm transition duration-300 ease-emc hover:border-white/20 hover:bg-white/10">
-            <GraduationCap className="mx-auto mb-2 h-5 w-5 text-emerald-300" aria-hidden />
-            <p className="font-latin text-xl font-black tabular-nums text-white">{workshopsCount.toLocaleString('ar-EG')}</p>
-            <p className="text-[11px] font-bold text-ice/70">ورشة</p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-        >
-          <a
-            href="#program-courses"
-            className="rounded-xl bg-brand-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600"
-          >
-            تصفح الدورات
-          </a>
-          <Link
-            to="/courses"
-            className="rounded-xl border-2 border-white/25 px-7 py-3.5 text-sm font-bold text-white/90 hover:bg-white/10"
-          >
-            كتالوج الدورات الكامل
-          </Link>
         </motion.div>
       </div>
     </section>

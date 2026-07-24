@@ -45,7 +45,12 @@ export type CourseLearnMaterial = {
   external_url?: string | null
   url?: string | null
   visibility?: 'public' | 'enrolled' | string | null
+  is_visible?: boolean | null
   updated_at?: string | null
+  size_human?: string | null
+  extension?: string | null
+  mime_type?: string | null
+  original_filename?: string | null
 }
 
 export type CourseLearnAssignmentSubmissionType = 'text' | 'file' | 'both' | string

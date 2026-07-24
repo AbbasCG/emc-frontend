@@ -27,6 +27,7 @@ export default function CoursesPage() {
   const [activeDelivery, setActiveDelivery] = useState('all')
   const [activeLevel, setActiveLevel] = useState<string>('all')
   const [activeProgramType, setActiveProgramType] = useState('all')
+  const [activeAvailability, setActiveAvailability] = useState('all')
   const [sortBy, setSortBy] = useState('popular')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
@@ -175,9 +176,18 @@ export default function CoursesPage() {
       result = result.filter((c) => c.catalog_type === activeProgramType)
     }
 
+    if (activeAvailability === 'ended') {
+      result = result.filter((c) => c.is_ended)
+    } else if (activeAvailability === 'active') {
+      result = result.filter((c) => !c.is_ended)
+    }
+
     switch (sortBy) {
       case 'popular':
-        result.sort((a, b) => b.registrations_count - a.registrations_count)
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return b.registrations_count - a.registrations_count
+        })
         break
       case 'newest':
         result.sort((a, b) => b.id - a.id)
@@ -207,6 +217,7 @@ export default function CoursesPage() {
     activeDelivery,
     activeLevel,
     activeProgramType,
+    activeAvailability,
     sortBy,
   ])
 
@@ -239,6 +250,8 @@ export default function CoursesPage() {
         activeProgramType={activeProgramType}
         onProgramTypeChange={setActiveProgramType}
         programTypeOptions={programTypeOptions}
+        activeAvailability={activeAvailability}
+        onAvailabilityChange={setActiveAvailability}
         sortBy={sortBy}
         onSortChange={setSortBy}
         viewMode={viewMode}

@@ -46,7 +46,7 @@ export default function LearningPathsPage() {
       level: level !== 'all' ? level : undefined,
       featured: featuredFilter === 'featured' ? true : undefined,
       page,
-      per_page: 12,
+      per_page: 100,
     })
       .then((res) => {
         if (cancelled) return

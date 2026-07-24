@@ -4,6 +4,7 @@ import {
   BookOpen,
   CheckCircle2,
   ClipboardCheck,
+  Layers,
   Mic,
   User,
 } from 'lucide-react'
@@ -53,6 +54,8 @@ interface Props {
   /** When true (or undefined), show placement test data (written score, oral, final level).
    *  When false, show normal enrollment data without placement UI. */
   showPlacement?: boolean
+  /** When provided (and a written attempt exists), shows a "View Test Answers" button. */
+  onViewAnswers?: () => void
 }
 
 /* ── Component ──────────────────────────────────────────────────────────── */
@@ -65,6 +68,7 @@ export function InstructorStudentCard({
   assessLabel = 'إتمام التقييم',
   assessed = false,
   showPlacement = true,
+  onViewAnswers,
 }: Props) {
   const pct = s.written_score != null && (s.total_questions ?? 70) > 0
     ? Math.round((s.written_score / (s.total_questions ?? 70)) * 100)
@@ -85,7 +89,7 @@ export function InstructorStudentCard({
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.03, 0.3) }}
-      className="group flex cursor-pointer flex-col gap-2.5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
+      className="group flex w-full max-w-[520px] cursor-pointer flex-col gap-2.5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#0077B6]/30 hover:shadow-md"
       onClick={onClick}
     >
       {/* Header: avatar + name + badges */}
@@ -197,6 +201,35 @@ export function InstructorStudentCard({
               </button>
             )}
           </div>
+
+          {/* Class assignment — visible whenever the student has at least reached final approval */}
+          {s.final_level && s.class_assignment && (
+            s.class_assignment.status === 'assigned' ? (
+              <div className="flex items-center gap-1.5 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-3 py-2">
+                <Layers className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] font-black text-[#0077B6]">تم التوزيع</p>
+                  <p className="truncate text-[11px] font-black text-[#0C2A4B]">{s.class_assignment.class_name}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 rounded-2xl border border-amber-200 bg-amber-50/70 px-3 py-2">
+                <Layers className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                <p className="text-[10px] font-black text-amber-700">بانتظار التوزيع على فصل</p>
+              </div>
+            )
+          )}
+
+          {onViewAnswers && s.written_score != null && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onViewAnswers() }}
+              className="flex items-center justify-center gap-1.5 rounded-2xl border border-[#0C2A4B]/10 bg-[#0C2A4B]/[0.03] py-2 text-[11px] font-black text-[#0C2A4B] transition hover:bg-[#0C2A4B]/[0.08]"
+            >
+              <ClipboardCheck className="h-3.5 w-3.5" />
+              عرض إجابات الاختبار
+            </button>
+          )}
         </>
       )}
 

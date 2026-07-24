@@ -13,8 +13,24 @@ import { asList, unwrapLms } from './lmsApi'
 import { normalizeLmsSessionRow, parseSessionsPayload } from '@/utils/lmsSession'
 import { unwrapData } from './unwrap'
 import type { ClassGroup } from './placementApi'
+import {
+  getCanonicalStudentIdentity,
+  getCanonicalCourse,
+  getCanonicalRegistration,
+  getCanonicalPlacement,
+  getCanonicalProgress,
+} from './normalizers/instructorStudentSummary'
 
 /* ── Instructor student row (enriched, across all courses) ───────────────── */
+
+export type InstructorClassAssignmentSummary = {
+  status: 'assigned' | 'waiting_class_assignment' | string
+  class_group_id: number | null
+  class_name: string | null
+  level_code: string | null
+  assigned_at: string | null
+  instructor_name: string | null
+}
 
 export type InstructorStudentRow = {
   id: number
@@ -34,11 +50,32 @@ export type InstructorStudentRow = {
   enrolled_at: string | null
   avatar_url: string | null
   attempt_id: number | null
+  class_assignment: InstructorClassAssignmentSummary | null
+  /** From the canonical Resource's `progress.is_assigned` (Ticket 2). */
+  is_assigned?: boolean
+}
+
+const EMPTY_CLASS_ASSIGNMENT: InstructorClassAssignmentSummary = {
+  status: 'waiting_class_assignment', class_group_id: null, class_name: null,
+  level_code: null, assigned_at: null, instructor_name: null,
+}
+
+function normalizeClassAssignment(raw: unknown): InstructorClassAssignmentSummary {
+  if (!raw || typeof raw !== 'object') return EMPTY_CLASS_ASSIGNMENT
+  const o = raw as Record<string, unknown>
+  return {
+    status:          o.status != null ? String(o.status) : 'waiting_class_assignment',
+    class_group_id:  o.class_group_id != null ? Number(o.class_group_id) : null,
+    class_name:      o.class_name != null ? String(o.class_name) : null,
+    level_code:      o.level_code != null ? String(o.level_code) : null,
+    assigned_at:     o.assigned_at != null ? String(o.assigned_at) : null,
+    instructor_name: o.instructor_name != null ? String(o.instructor_name) : null,
+  }
 }
 
 function normalizeInstructorStudentRow(r: unknown): InstructorStudentRow {
   if (!r || typeof r !== 'object') {
-    return { id: 0, name: '', email: '', course_id: null, course_title: null, enrollment_status: null, placement_status: null, written_score: null, total_questions: null, written_level: null, oral_booking_at: null, final_level: null, oral_score: null, instructor_notes: null, enrolled_at: null, avatar_url: null, attempt_id: null }
+    return { id: 0, name: '', email: '', course_id: null, course_title: null, enrollment_status: null, placement_status: null, written_score: null, total_questions: null, written_level: null, oral_booking_at: null, final_level: null, oral_score: null, instructor_notes: null, enrolled_at: null, avatar_url: null, attempt_id: null, class_assignment: EMPTY_CLASS_ASSIGNMENT }
   }
   const o = r as Record<string, unknown>
   const att =
@@ -50,20 +87,31 @@ function normalizeInstructorStudentRow(r: unknown): InstructorStudentRow {
       ? (o.oral_booking as Record<string, unknown>)
       : null
 
-  const score =
-    o.written_score  != null ? Number(o.written_score)  :
-    att?.written_score != null ? Number(att.written_score) :
-    att?.score         != null ? Number(att.score)         : null
+  // Canonical nested shape from InstructorStudentSummaryResource (Ticket 2),
+  // read through the shared compatibility adapter. Checked first; legacy
+  // flat/attempt-nested fallbacks below remain only as a defensive fallback
+  // when the canonical fields are absent.
+  const student = getCanonicalStudentIdentity(o)
+  const course = getCanonicalCourse(o)
+  const registration = getCanonicalRegistration(o)
+  const placement = getCanonicalPlacement(o)
+  const progress = getCanonicalProgress(o)
 
-  const total =
-    o.total_questions   != null ? Number(o.total_questions)   :
-    att?.total_questions != null ? Number(att.total_questions) : null
+  const score = placement.written_score ??
+    (o.written_score  != null ? Number(o.written_score)  :
+    att?.written_score != null ? Number(att.written_score) :
+    att?.score         != null ? Number(att.score)         : null)
+
+  const total = placement.written_total ??
+    (o.total_questions   != null ? Number(o.total_questions)   :
+    att?.total_questions != null ? Number(att.total_questions) : null)
 
   const courseTitle =
-    o.course_title != null ? String(o.course_title) :
+    course.title ??
+    (o.course_title != null ? String(o.course_title) :
     o.course != null && typeof o.course === 'object'
       ? String((o.course as Record<string, unknown>).title ?? '') || null
-      : null
+      : null)
 
   const oralBookingAt =
     oralObj != null
@@ -71,30 +119,38 @@ function normalizeInstructorStudentRow(r: unknown): InstructorStudentRow {
       : o.oral_booking_at != null ? String(o.oral_booking_at) : null
 
   return {
-    id:                Number(o.id ?? o.student_id ?? 0),
-    name:              String(o.name ?? o.student_name ?? ''),
-    email:             String(o.email ?? o.student_email ?? ''),
-    course_id:         o.course_id != null ? Number(o.course_id) : null,
+    id:                student.id ?? Number(o.id ?? o.student_id ?? 0),
+    name:              student.name ?? String(o.name ?? o.student_name ?? ''),
+    email:             student.email ?? String(o.email ?? o.student_email ?? ''),
+    course_id:         course.id ?? (o.course_id != null ? Number(o.course_id) : null),
     course_title:      courseTitle,
-    enrollment_status: o.enrollment_status != null ? String(o.enrollment_status) :
-                       o.status           != null ? String(o.status)            : null,
-    placement_status:  o.placement_status != null ? String(o.placement_status) :
-                       att?.status        != null ? String(att.status)         : null,
+    enrollment_status: registration.status ??
+                       (o.enrollment_status != null ? String(o.enrollment_status) :
+                       o.status           != null ? String(o.status)            : null),
+    placement_status:  placement.status ??
+                       (o.placement_status != null ? String(o.placement_status) :
+                       att?.status        != null ? String(att.status)         : null),
     written_score:     score,
     total_questions:   total,
-    written_level:     String(att?.written_level ?? att?.estimated_level ?? o.written_level ?? '') || null,
+    written_level:     placement.written_level ??
+                       (String(att?.written_level ?? att?.estimated_level ?? o.written_level ?? '') || null),
     oral_booking_at:   oralBookingAt,
-    final_level:       o.final_level  != null ? String(o.final_level)  :
-                       att?.final_level != null ? String(att.final_level) : null,
-    oral_score:        o.oral_score   != null ? Number(o.oral_score)   :
-                       att?.oral_score != null ? Number(att.oral_score) : null,
+    final_level:       placement.final_level ?? placement.oral_level ??
+                       (o.final_level  != null ? String(o.final_level)  :
+                       att?.final_level != null ? String(att.final_level) : null),
+    oral_score:        placement.oral_score ??
+                       (o.oral_score   != null ? Number(o.oral_score)   :
+                       att?.oral_score != null ? Number(att.oral_score) : null),
     instructor_notes:  o.instructor_notes != null ? String(o.instructor_notes) : null,
     enrolled_at:       o.enrolled_at  != null ? String(o.enrolled_at)  :
                        o.created_at   != null ? String(o.created_at)   : null,
-    avatar_url:        o.avatar_url  != null ? String(o.avatar_url)  :
-                       o.profile_photo_url != null ? String(o.profile_photo_url) : null,
+    avatar_url:        student.avatar_url ??
+                       (o.avatar_url  != null ? String(o.avatar_url)  :
+                       o.profile_photo_url != null ? String(o.profile_photo_url) : null),
     attempt_id:        o.attempt_id  != null ? Number(o.attempt_id)  :
                        att?.id       != null ? Number(att.id)        : null,
+    class_assignment:  normalizeClassAssignment(o.class_assignment),
+    is_assigned:       progress.is_assigned ?? (o.is_assigned != null ? Boolean(o.is_assigned) : undefined),
   }
 }
 
@@ -126,6 +182,7 @@ export type InstructorDashboardStats = {
   courses: TeachingCourseLms[]
   classes: ClassGroup[]
   sessions: LmsSession[]
+  submissions: InstructorSubmission[]
   studentsCount: number
   submissionsPending: number
   attendancePending: number
@@ -168,6 +225,7 @@ export async function fetchInstructorDashboardStats(): Promise<InstructorDashboa
     courses,
     classes,
     sessions,
+    submissions,
     studentsCount: dashboard?.student_count ?? students.length,
     submissionsPending,
     attendancePending: dashboard?.attendance_pending_count ?? 0,
@@ -245,6 +303,139 @@ export async function putInstructorAttendance(
   records: { student_id: number; status: string; notes?: string | null }[],
 ): Promise<void> {
   await apiClient.put(`/instructor/attendance/${sessionId}`, { attendances: records })
+}
+
+/* ── Ticket 6: attendance dashboard + export ──────────────────────────────── */
+
+export type AttendanceDashboardData = {
+  today_sessions: number
+  today_attendance_marked: number
+  week_present: number
+  week_absent: number
+  week_late: number
+  week_excused: number
+  month_present: number
+  month_absent: number
+  month_late: number
+  month_excused: number
+  current_attendance_percentage: number
+  at_risk_students: Array<{ user_id: number; name: string | null; attendance_percentage: number }>
+  top_attendance: Array<{ user_id: number; name: string | null; attendance_percentage: number }>
+  worst_attendance: Array<{ user_id: number; name: string | null; attendance_percentage: number }>
+}
+
+export async function fetchAttendanceDashboard(): Promise<AttendanceDashboardData> {
+  const res = await apiClient.get<unknown>('/instructor/attendance/dashboard', { skipErrorToast: true } as Record<string, unknown>)
+  const data = (res.data as Record<string, unknown>)?.data as AttendanceDashboardData | undefined
+  return data ?? {
+    today_sessions: 0, today_attendance_marked: 0,
+    week_present: 0, week_absent: 0, week_late: 0, week_excused: 0,
+    month_present: 0, month_absent: 0, month_late: 0, month_excused: 0,
+    current_attendance_percentage: 0, at_risk_students: [], top_attendance: [], worst_attendance: [],
+  }
+}
+
+export type AttendanceReportFilters = {
+  course_id?: number
+  class_group_id?: number
+  student_id?: number
+  status?: string
+  from?: string
+  to?: string
+  month?: number
+  year?: number
+  page?: number
+  per_page?: number
+}
+
+/** Downloads a file via the authenticated apiClient (a plain <a href> would
+ *  not carry the Authorization header) and triggers a browser save. */
+async function downloadAuthenticated(path: string, params: Record<string, unknown> | undefined, filename: string, mime: string): Promise<void> {
+  const res = await apiClient.get(path, { params, responseType: 'blob' } as Record<string, unknown>)
+  const blob = new Blob([res.data as BlobPart], { type: mime })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+export async function downloadAttendanceExport(params?: AttendanceReportFilters): Promise<void> {
+  await downloadAuthenticated('/instructor/attendance/export', params, `attendance-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;')
+}
+
+export async function downloadAttendanceExportPdf(params?: AttendanceReportFilters): Promise<void> {
+  await downloadAuthenticated('/instructor/attendance/export-pdf', params, `attendance-${new Date().toISOString().slice(0, 10)}.pdf`, 'application/pdf')
+}
+
+export async function downloadAttendanceExportExcel(params?: AttendanceReportFilters): Promise<void> {
+  await downloadAuthenticated('/instructor/attendance/export-excel', params, `attendance-${new Date().toISOString().slice(0, 10)}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+}
+
+export type AttendanceReportRow = {
+  id: number
+  student_name: string | null
+  student_email: string | null
+  course_title: string | null
+  session_title: string | null
+  date: string | null
+  status: string
+  status_label: string
+  notes: string | null
+}
+
+export type AttendanceReportSummary = {
+  total: number
+  present_count: number
+  absent_count: number
+  late_count: number
+  excused_count: number
+  attendance_percentage: number
+  current_attendance_streak: number
+  current_absence_streak: number
+  risk_level: 'low' | 'medium' | 'high'
+}
+
+export type AttendanceReportResult = {
+  summary: AttendanceReportSummary
+  data: AttendanceReportRow[]
+  meta: { total: number; per_page: number; current_page: number; last_page: number; from: string; to: string }
+}
+
+export async function fetchAttendanceReports(filters?: AttendanceReportFilters): Promise<AttendanceReportResult> {
+  const res = await apiClient.get<unknown>('/instructor/attendance/reports', { params: filters, skipErrorToast: true } as Record<string, unknown>)
+  const body = res.data as Record<string, unknown>
+  return {
+    summary: (body.summary as AttendanceReportSummary) ?? {
+      total: 0, present_count: 0, absent_count: 0, late_count: 0, excused_count: 0,
+      attendance_percentage: 0, current_attendance_streak: 0, current_absence_streak: 0, risk_level: 'low',
+    },
+    data: Array.isArray(body.data) ? body.data as AttendanceReportRow[] : [],
+    meta: (body.meta as AttendanceReportResult['meta']) ?? { total: 0, per_page: 25, current_page: 1, last_page: 1, from: '', to: '' },
+  }
+}
+
+export type AttendanceSettingsData = {
+  late_threshold_minutes: number
+  auto_absent_after_minutes: number
+  minimum_attendance_percentage: number
+  at_risk_percentage: number
+  repeated_absence_threshold: number
+  low_attendance_notification_threshold: number
+  certificate_attendance_percentage: number
+}
+
+export async function fetchAttendanceSettings(): Promise<AttendanceSettingsData> {
+  const res = await apiClient.get<unknown>('/instructor/attendance/settings', { skipErrorToast: true } as Record<string, unknown>)
+  return (res.data as Record<string, unknown>).data as AttendanceSettingsData
+}
+
+export async function updateAttendanceSettings(data: AttendanceSettingsData): Promise<AttendanceSettingsData> {
+  const res = await apiClient.put<unknown>('/admin/attendance-settings', data)
+  return (res.data as Record<string, unknown>).data as AttendanceSettingsData
 }
 
 function normalizeAttendanceStatus(raw: unknown): AttendanceStatus | null {
@@ -633,4 +824,54 @@ export async function reviewInstructorSubmission(
   const normalized = normalizeSubmissionDetail(inner ?? res.data)
   if (normalized) return normalized
   return fetchSubmissionDetail(submissionId)
+}
+
+/* ── Ticket 5 (remaining-gaps pass): dashboard, missing submissions, bulk review ── */
+
+export type AssignmentDashboardCounters = {
+  assignments_total: number
+  submissions_total: number
+  pending_review: number
+  graded: number
+  needs_revision: number
+  missing_submissions: number
+}
+
+export async function fetchAssignmentDashboard(): Promise<AssignmentDashboardCounters> {
+  const res = await apiClient.get<unknown>('/instructor/assignments/dashboard', { skipErrorToast: true } as Record<string, unknown>)
+  const payload = (res.data as Record<string, unknown>)?.data as Record<string, unknown> | undefined
+  return {
+    assignments_total: Number(payload?.assignments_total ?? 0),
+    submissions_total: Number(payload?.submissions_total ?? 0),
+    pending_review: Number(payload?.pending_review ?? 0),
+    graded: Number(payload?.graded ?? 0),
+    needs_revision: Number(payload?.needs_revision ?? 0),
+    missing_submissions: Number(payload?.missing_submissions ?? 0),
+  }
+}
+
+export type MissingSubmissionsRow = {
+  assignment_id: number
+  assignment_title: string
+  course_title: string | null
+  deadline: string | null
+  missing_count: number
+  students: Array<{ user_id: number; name: string | null; email: string | null }>
+}
+
+export async function fetchMissingSubmissions(): Promise<MissingSubmissionsRow[]> {
+  const res = await apiClient.get<unknown>('/instructor/assignments/missing-submissions', { skipErrorToast: true } as Record<string, unknown>)
+  const rows = (res.data as Record<string, unknown>)?.data
+  return Array.isArray(rows) ? rows as MissingSubmissionsRow[] : []
+}
+
+export async function bulkReviewSubmissions(payload: {
+  submission_ids: number[]
+  score?: number | null
+  feedback?: string | null
+  status: 'reviewed' | 'needs_revision' | 'graded'
+}): Promise<{ updated_count: number; skipped_count: number }> {
+  const res = await apiClient.put<unknown>('/instructor/submissions/bulk-review', payload)
+  const body = res.data as Record<string, unknown>
+  return { updated_count: Number(body.updated_count ?? 0), skipped_count: Number(body.skipped_count ?? 0) }
 }

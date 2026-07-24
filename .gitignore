@@ -51,3 +51,5 @@ graphify_inspect_schema.py
 graphify_merge.py
 graphify_query.py
 graphify_read_analysis.py
+# Thmanyah fonts — proprietary; do NOT commit until web license text is obtained (see MASTER_PLAN §7)
+public/fonts/thmanyah/

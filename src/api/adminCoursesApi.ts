@@ -87,6 +87,58 @@ export function countNewRegistrations(rows: AdminRegistrationRow[], days = 7): n
 }
 
 // ---------------------------------------------------------------------------
+// Active courses list — for course-select dropdowns across admin LMS forms
+// ---------------------------------------------------------------------------
+
+export type ActiveCourseOption = {
+  id: number
+  title: string
+  instructor_name: string | null
+  status: string | null
+}
+
+export async function fetchActiveCourses(): Promise<ActiveCourseOption[]> {
+  try {
+    const res = await apiClient.get<unknown>('/admin/courses', {
+      params: { per_page: 300 },
+      ...silent,
+    })
+    const raw = unwrapData<unknown>(res.data)
+    const list: unknown[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray((raw as Record<string, unknown>)?.data)
+        ? ((raw as Record<string, unknown>).data as unknown[])
+        : []
+    return list
+      .filter((r): r is Record<string, unknown> => !!r && typeof r === 'object')
+      .map((r) => {
+        const instr =
+          r.instructor && typeof r.instructor === 'object'
+            ? (r.instructor as Record<string, unknown>)
+            : null
+        const instrUser =
+          instr?.user && typeof instr.user === 'object'
+            ? (instr.user as Record<string, unknown>)
+            : null
+        const instructor_name =
+          (instrUser?.name as string | null) ??
+          (instr?.name as string | null) ??
+          (r.instructor_name as string | null) ??
+          null
+        return {
+          id: Number(r.id),
+          title: String(r.title ?? r.name ?? ''),
+          instructor_name,
+          status: (r.status as string | null) ?? null,
+        }
+      })
+      .filter((c) => c.id > 0 && c.title)
+  } catch {
+    return []
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Course upsert + instructor assignment (multiple backend conventions)
 // ---------------------------------------------------------------------------
 
@@ -138,6 +190,8 @@ export type CourseUpsertPayload = {
   learning_path_id?: number | null
   /** Optional WhatsApp community link — must start with https://chat.whatsapp.com/ */
   whatsapp_community_url?: string | null
+  requires_registration_code?: boolean
+  registration_code?: string | null
 }
 
 function unwrapCourse(res: unknown): Course {
@@ -338,11 +392,56 @@ export async function upsertCourse(
   )
 }
 
-export async function fetchAdminCourseDetail(courseId: number): Promise<Course> {
+/** Enriched admin course detail from GET /admin/courses/{id} */
+export type AdminCourseDetail = Course & {
+  is_published?: boolean
+  students_count?: number
+  sessions_count?: number
+  assignments_count?: number
+  materials_count?: number
+  average_progress?: number
+  computed_duration_label?: string | null
+  hours_count?: number | null
+  created_at?: string | null
+  updated_at?: string | null
+  registration_status?: string | null
+  certificate_available?: boolean
+  attendance_summary?: {
+    present_count: number
+    total: number
+    present_pct: number
+  }
+  category?: string | null
+  sessions?: Array<{
+    id: number
+    title: string | null
+    session_date: string | null
+    start_time: string | null
+    status: string
+    meeting_url: string | null
+  }>
+  assignments?: Array<{
+    id: number
+    title: string
+    due_date: string | null
+    status: string | null
+    created_at: string | null
+  }>
+  materials?: Array<{ id: number; title: string; type: string | null }>
+  registrations?: Array<{
+    id: number
+    student: string | null
+    email: string | null
+    status: string
+    submitted_at: string | null
+  }>
+}
+
+export async function fetchAdminCourseDetail(courseId: number): Promise<AdminCourseDetail> {
   return firstSuccessfulCourseRequest([
     () => apiClient.get<unknown>(`/admin/courses/${courseId}`, silent),
     () => apiClient.get<unknown>(`/courses/${courseId}`, silent),
-  ])
+  ]) as Promise<AdminCourseDetail>
 }
 
 export async function deleteCourse(courseId: number): Promise<void> {
@@ -483,8 +582,10 @@ export async function addStudentToCourse(
   return (raw.data ?? raw) as CourseParticipant
 }
 
-export async function removeStudentFromCourse(courseId: number, userId: number): Promise<void> {
-  await apiClient.delete(`/admin/courses/${courseId}/students/${userId}`, silent)
+export async function removeStudentFromCourse(courseId: number, userId: number): Promise<string> {
+  const res = await apiClient.delete<unknown>(`/admin/courses/${courseId}/students/${userId}`, silent)
+  const raw = (res.data ?? {}) as Record<string, unknown>
+  return typeof raw.message === 'string' ? raw.message : 'تمت إزالة الطالب من الدورة وإلغاء تسجيله بنجاح'
 }
 
 // ---------------------------------------------------------------------------

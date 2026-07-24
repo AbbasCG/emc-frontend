@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Bell,
   BookOpen,
@@ -22,6 +22,7 @@ import type { NotificationType, PlatformNotification } from '@/types/platform'
 import { isNotificationUnread } from '@/api/notificationsApi'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
 import { formatNotificationDate } from '@/utils/dateTime'
+import NotificationDetailModal from './NotificationDetailModal'
 
 const icons: Record<NotificationType, typeof Bell> = {
   registration:       UserPlus,
@@ -85,6 +86,7 @@ export default function NotificationDrawer({
   onMarkAll,
 }: Props) {
   const navigate = useNavigate()
+  const [detail, setDetail] = useState<PlatformNotification | null>(null)
 
   const grouped = useMemo(() => {
     const map = new Map<'today' | 'yesterday' | 'older', PlatformNotification[]>()
@@ -101,6 +103,13 @@ export default function NotificationDrawer({
 
   function activate(n: PlatformNotification) {
     onMarkRead(n.id)
+    // Notifications carrying an external link (e.g. an instructor's meeting
+    // link) open a detail view where that link is safely clickable — the
+    // list only ever shows preview text, never a raw/linkified URL.
+    if (n.meta_url) {
+      setDetail(n)
+      return
+    }
     if (n.href) {
       navigate(normalizeNotificationInternalPath(n.href))
       onClose()
@@ -198,7 +207,14 @@ export default function NotificationDrawer({
                                     {n.body ?
                                       <span className="mt-1 block text-xs font-medium leading-6 text-slate-500">{n.body}</span>
                                     : null}
-                                    <span className="mt-2 block text-[11px] font-bold text-slate-400">{formatNotificationDate(n.created_at)}</span>
+                                    <span className="mt-2 flex items-center justify-between gap-2">
+                                      <span className="text-[11px] font-bold text-slate-400">{formatNotificationDate(n.created_at)}</span>
+                                      {n.meta_url && (
+                                        <span className="rounded-lg bg-customBlue/10 px-2 py-1 text-[10px] font-black text-customBlue">
+                                          فتح الرابط
+                                        </span>
+                                      )}
+                                    </span>
                                   </span>
                                 </button>
                               </motion.div>
@@ -223,6 +239,7 @@ export default function NotificationDrawer({
           </motion.aside>
         </>
       )}
+      <NotificationDetailModal notification={detail} onClose={() => setDetail(null)} />
     </AnimatePresence>
   )
 }

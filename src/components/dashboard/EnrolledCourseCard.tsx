@@ -1,7 +1,7 @@
 import { BookOpen, CalendarClock, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { courseImages } from '../../utils/course'
+import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
 import type { ClassAssignment, Course, Enrollment } from '../../types'
 
 function hasScheduledDate(course: Course): boolean {
@@ -88,11 +88,16 @@ export default function EnrolledCourseCard({
     >
       {/* Course image */}
       <div className="relative h-32 overflow-hidden">
-        <img
-          src={course.course_image || courseImages[course.id % courseImages.length]}
-          alt={course.title}
-          className="h-full w-full object-cover transition duration-500 hover:scale-105"
-        />
+        {resolveCourseCoverImageUrl(course) ? (
+          <img
+            src={resolveCourseCoverImageUrl(course)!}
+            alt={course.title}
+            className="h-full w-full object-cover transition duration-500 hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue via-[#0E5A8A] to-customBlue" />
+        )}
         <div className="absolute inset-0 bg-deepBlue/25" />
         <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-black text-white ${badgeColor}`}>
           {badgeLabel}

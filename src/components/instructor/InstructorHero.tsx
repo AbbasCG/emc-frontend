@@ -16,6 +16,8 @@ interface Props {
   backTo?: string
   backLabel?: string
   children?: ReactNode
+  /** Extra buttons rendered before the refresh button, in the header row. */
+  actions?: ReactNode
 }
 
 export function InstructorHero({
@@ -28,6 +30,7 @@ export function InstructorHero({
   backTo,
   backLabel = 'الدورات',
   children,
+  actions,
 }: Props) {
   const navigate = useNavigate()
 
@@ -76,16 +79,21 @@ export function InstructorHero({
             <p className="mt-1 text-[12px] font-semibold text-white/55">{subtitle}</p>
           )}
         </div>
-        {onRefresh && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={refreshing}
-            className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-[11px] font-black text-white backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            تحديث
-          </button>
+        {(actions || onRefresh) && (
+          <div className="flex shrink-0 items-center gap-2">
+            {actions}
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={refreshing}
+                className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-[11px] font-black text-white backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                تحديث
+              </button>
+            )}
+          </div>
         )}
       </div>
 

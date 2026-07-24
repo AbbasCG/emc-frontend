@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   BookOpen,
   GraduationCap,
@@ -52,39 +52,6 @@ function cloneRows(rows: AttendanceRow[]): AttendanceRow[] {
   return rows.map((r) => ({ ...r }))
 }
 
-function SelectField({
-  label,
-  icon: Icon,
-  value,
-  onChange,
-  children,
-  disabled,
-}: {
-  label: string
-  icon: React.ElementType
-  value: string | number
-  onChange: (v: string) => void
-  children: React.ReactNode
-  disabled?: boolean
-}) {
-  return (
-    <label className="grid min-w-0 gap-1">
-      <span className="flex items-center gap-1.5 text-[10px] font-black text-[#0C2A4B]/70">
-        <Icon className="h-3.5 w-3.5 text-[#0077B6]" />
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        dir="rtl"
-        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-50"
-      >
-        {children}
-      </select>
-    </label>
-  )
-}
 
 export default function InstructorAttendancePage() {
   const [searchParams] = useSearchParams()
@@ -281,44 +248,69 @@ export default function InstructorAttendancePage() {
           { label: 'دورة',  value: fmt(courses.length)  },
           { label: 'جلسة', value: fmt(sessions.length) },
         ]}
+        actions={
+          <Link
+            to="/dashboard/instructor/attendance/dashboard"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-deepBlue/10 bg-white px-4 py-2 text-[12px] font-bold text-deepBlue/70 transition hover:border-[#0077B6]/30"
+          >
+            لوحة الحضور
+          </Link>
+        }
       />
 
       {/* Filters toolbar */}
       <div className="sticky top-16 z-20 rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-sm backdrop-blur-sm">
-        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+        <div className="flex flex-wrap items-end gap-3">
 
           {/* Course filter */}
-          <SelectField
-            label="الدورة"
-            icon={GraduationCap}
-            value={courseId}
-            onChange={(v) => {
-              setCourseId(v === '' ? '' : Number(v))
-              setSessionId('')
-            }}
-            disabled={loading}
-          >
-            <option value="">— كل الدورات —</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.title}</option>
-            ))}
-          </SelectField>
+          <label className="grid min-w-0 gap-1" style={{ width: 'min(100%, 300px)' }}>
+            <span className="flex items-center gap-1.5 text-[10px] font-black text-[#0C2A4B]/70">
+              <GraduationCap className="h-3.5 w-3.5 text-[#0077B6]" />
+              الدورة
+            </span>
+            <select
+              value={courseId}
+              onChange={(e) => {
+                setCourseId(e.target.value === '' ? '' : Number(e.target.value))
+                setSessionId('')
+              }}
+              disabled={loading}
+              dir="rtl"
+              className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-50"
+            >
+              <option value="">— اختر دورة —</option>
+              {courses.map((c) => {
+                const sessCount = sessions.filter((s) => s.course_id === c.id).length
+                return (
+                  <option key={c.id} value={c.id}>
+                    {c.title}{sessCount > 0 ? ` (${sessCount} جلسة)` : ''}
+                  </option>
+                )
+              })}
+            </select>
+          </label>
 
-          {/* Session filter */}
-          <SelectField
-            label="الجلسة"
-            icon={BookOpen}
-            value={sessionId}
-            onChange={(v) => setSessionId(v === '' ? '' : Number(v))}
-            disabled={loading || filteredSessions.length === 0}
-          >
-            <option value="">— اختر جلسة —</option>
-            {filteredSessions.map((s) => (
-              <option key={s.id} value={s.id}>
-                {formatSessionPickerLabel(s)}
-              </option>
-            ))}
-          </SelectField>
+          {/* Session filter — only active when course is selected */}
+          <label className={`grid min-w-0 gap-1 transition-opacity ${courseId === '' ? 'pointer-events-none opacity-40' : ''}`} style={{ width: 'min(100%, 300px)' }}>
+            <span className="flex items-center gap-1.5 text-[10px] font-black text-[#0C2A4B]/70">
+              <BookOpen className="h-3.5 w-3.5 text-[#0077B6]" />
+              الجلسة
+            </span>
+            <select
+              value={sessionId}
+              onChange={(e) => setSessionId(e.target.value === '' ? '' : Number(e.target.value))}
+              disabled={loading || courseId === '' || filteredSessions.length === 0}
+              dir="rtl"
+              className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-50"
+            >
+              <option value="">{courseId === '' ? '— اختر دورة أولاً —' : '— اختر جلسة —'}</option>
+              {filteredSessions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {formatSessionPickerLabel(s)}
+                </option>
+              ))}
+            </select>
+          </label>
 
           {lockInfo.is_locked ? (
             <div className="flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 text-[12px] font-black text-amber-700">

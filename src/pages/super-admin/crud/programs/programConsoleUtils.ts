@@ -76,6 +76,16 @@ export function isScheduledCourse(c: Course): boolean {
   return !missingCourseDate(c)
 }
 
+export function isEndedCourse(c: Course): boolean {
+  const x = c as Record<string, unknown>
+  if (x.is_ended === true || x.is_ended === 1) return true
+  const computed = String(x.computed_status ?? '').toLowerCase()
+  if (computed === 'ended') return true
+  const endDate = String(c.end_date ?? '').slice(0, 10)
+  if (!endDate) return false
+  return isPublishedCourse(c) && new Date(endDate + 'T23:59:59') < new Date()
+}
+
 export function countNewRegsForCourse(rows: AdminRegistrationRow[], courseId: number, days = 7): number {
   const cutoff = Date.now() - days * 86_400_000
   let n = 0

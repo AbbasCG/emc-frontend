@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
   Calendar,
   CalendarDays,
-  Check,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -35,6 +34,7 @@ import {
   emcWizardStepAnimation,
   type WizardStepMeta,
 } from '@/components/emc-form-wizard'
+import { FormStepper } from '@/components/emc-form-wizard/FormStepper'
 import { EMC_WIZARD_INPUT_BASE } from '@/components/emc-form-wizard/emcWizardTokens'
 import type { Course } from '@/types'
 import { getCourseInstructor } from '@/utils/courseInstructor'
@@ -236,41 +236,161 @@ type TimePickerProps = {
 
 function ModernTimePicker({ label, value, onChange, error }: TimePickerProps) {
   const [open, setOpen] = useState(false)
-  const [hour, minute] = (value || '09:00').split(':')
+  const [draft, setDraft] = useState(value || '')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const hourRef = useRef<HTMLDivElement>(null)
+  const minRef = useRef<HTMLDivElement>(null)
+
   const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
-  const minutes = ['00', '15', '30', '45']
+  const minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
+
+  const [selHour, selMin] = (draft || value || '09:00').split(':')
+
+  // Sync draft when value changes externally
+  useEffect(() => { setDraft(value || '') }, [value])
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setDraft(value || '')
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open, value])
+
+  // Scroll selected items into view
+  useEffect(() => {
+    if (!open) return
+    const scrollTo = (ref: React.RefObject<HTMLDivElement | null>, sel: string) => {
+      const el = ref.current?.querySelector(`[data-val="${sel}"]`)
+      el?.scrollIntoView({ block: 'nearest' })
+    }
+    setTimeout(() => {
+      scrollTo(hourRef, selHour ?? '09')
+      scrollTo(minRef, selMin ?? '00')
+    }, 30)
+  }, [open, selHour, selMin])
+
+  function pickHour(h: string) {
+    setDraft(`${h}:${selMin ?? '00'}`)
+  }
+  function pickMin(m: string) {
+    setDraft(`${selHour ?? '09'}:${m}`)
+  }
+  function apply() {
+    const [h, m] = draft.split(':')
+    const hh = String(Math.min(23, Math.max(0, Number(h) || 0))).padStart(2, '0')
+    const mm = String(Math.min(59, Math.max(0, Number(m) || 0))).padStart(2, '0')
+    onChange(`${hh}:${mm}`)
+    setOpen(false)
+  }
+  function cancel() {
+    setDraft(value || '')
+    setOpen(false)
+  }
+
   return (
-    <div className="relative text-[11px] font-black text-[#0C2A4B]">
+    <div ref={containerRef} className="relative text-[11px] font-black text-[#0C2A4B]">
       <span className="mb-1 block">{label}</span>
       <button
         type="button"
-        onClick={() => setOpen((x) => !x)}
+        onClick={() => { setDraft(value || ''); setOpen((x) => !x) }}
         className={`${EMC_WIZARD_INPUT_BASE} flex min-h-[46px] items-center justify-between gap-3 bg-white text-right`}
       >
         <span className={value ? 'font-mono tabular-nums text-[#0C2A4B]' : 'text-slate-400'}>{value || 'اختر الوقت'}</span>
         <Clock className="h-4 w-4 text-[#0077B6]" aria-hidden />
       </button>
+
       {open ? (
-        <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-3xl border border-white/80 bg-white/95 p-3 shadow-[0_24px_70px_-18px_rgba(15,23,42,.35)] backdrop-blur-xl">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid max-h-48 grid-cols-3 gap-1">
+        <div className="absolute inset-x-0 top-full z-[9999] mt-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.28)]">
+          {/* Keyboard input row */}
+          <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={() => {
+                if (/^\d{1,2}:\d{2}$/.test(draft.trim())) {
+                  const [h, m] = draft.split(':')
+                  const hh = String(Math.min(23, Math.max(0, Number(h)))).padStart(2, '0')
+                  const mm = String(Math.min(59, Math.max(0, Number(m)))).padStart(2, '0')
+                  setDraft(`${hh}:${mm}`)
+                }
+              }}
+              dir="ltr"
+              placeholder="HH:MM"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-[13px] font-black text-[#0C2A4B] outline-none focus:border-[#0077B6]/50 focus:ring-2 focus:ring-[#0077B6]/20"
+            />
+          </div>
+
+          {/* Hour + Minute columns */}
+          <div className="flex divide-x divide-x-reverse divide-slate-100">
+            {/* Hours */}
+            <div ref={hourRef} className="flex max-h-[220px] flex-1 flex-col overflow-y-auto py-1 scrollbar-thin">
               {hours.map((h) => (
-                <button key={h} type="button" onClick={() => onChange(`${h}:${minute ?? '00'}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${h === hour ? 'bg-[#0C2A4B] text-white' : 'bg-slate-50 text-[#0C2A4B]'}`}>
+                <button
+                  key={h}
+                  type="button"
+                  data-val={h}
+                  onClick={() => pickHour(h)}
+                  className={`flex-none px-4 py-2 text-center font-mono text-[13px] font-black transition ${
+                    h === selHour
+                      ? 'bg-[#0C2A4B] text-white'
+                      : 'text-[#0C2A4B] hover:bg-slate-50'
+                  }`}
+                >
                   {h}
                 </button>
               ))}
             </div>
-            <div className="grid content-start gap-1">
+
+            {/* Minutes */}
+            <div ref={minRef} className="flex max-h-[220px] flex-1 flex-col overflow-y-auto py-1 scrollbar-thin">
               {minutes.map((m) => (
-                <button key={m} type="button" onClick={() => onChange(`${hour ?? '09'}:${m}`)} className={`rounded-xl px-2 py-2 font-mono text-[12px] font-black ${m === minute ? 'bg-[#0077B6] text-white' : 'bg-slate-50 text-[#0C2A4B]'}`}>
+                <button
+                  key={m}
+                  type="button"
+                  data-val={m}
+                  onClick={() => pickMin(m)}
+                  className={`flex-none px-4 py-2 text-center font-mono text-[13px] font-black transition ${
+                    m === selMin
+                      ? 'bg-[#0077B6] text-white'
+                      : 'text-[#0C2A4B] hover:bg-slate-50'
+                  }`}
+                >
                   :{m}
                 </button>
               ))}
-              <button type="button" onClick={() => { onChange(''); setOpen(false) }} className="mt-2 rounded-xl bg-rose-50 px-2 py-2 text-[11px] font-black text-rose-600">
-                مسح
+            </div>
+          </div>
+
+          {/* Action row */}
+          <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2">
+            <button
+              type="button"
+              onClick={() => { onChange(''); setDraft(''); setOpen(false) }}
+              className="rounded-lg px-3 py-1.5 text-[11px] font-black text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
+            >
+              مسح
+            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={cancel}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-[12px] font-black text-slate-500 transition hover:bg-slate-50"
+              >
+                إلغاء
               </button>
-              <button type="button" onClick={() => setOpen(false)} className="rounded-xl bg-emerald-50 px-2 py-2 text-[11px] font-black text-emerald-700">
-                <Check className="mx-auto h-4 w-4" aria-hidden />
+              <button
+                type="button"
+                onClick={apply}
+                className="rounded-lg bg-[#0077B6] px-4 py-1.5 text-[12px] font-black text-white transition hover:bg-[#1a7aab]"
+              >
+                تطبيق
               </button>
             </div>
           </div>
@@ -346,6 +466,10 @@ type Props = {
   onCreateAnother?: () => void
   /** رابط صفحة قائمة البرامج في لوحة التحكم (زر العودة) */
   programsListPath?: string
+  /** overlay = modal فوق الصفحة؛ drawer = داخل لوحة التفاصيل (بدون تراكب) */
+  presentation?: 'overlay' | 'drawer'
+  /** في وضع drawer: العودة لعرض التفاصيل دون إغلاق اللوحة */
+  onCancelDrawer?: () => void
 }
 
 export function CourseProgramFormModal({
@@ -359,6 +483,8 @@ export function CourseProgramFormModal({
   onSaved,
   onCreateAnother,
   programsListPath,
+  presentation = 'overlay',
+  onCancelDrawer,
 }: Props) {
   const editing = initial != null
   const { user } = useAuth()
@@ -379,6 +505,7 @@ export function CourseProgramFormModal({
 
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [imageRemoved, setImageRemoved] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [title, setTitle] = useState('')
@@ -395,6 +522,8 @@ export function CourseProgramFormModal({
   const [capacity, setCapacity] = useState('')
   const [status, setStatus] = useState('draft')
   const [registrationOpen, setRegistrationOpen] = useState(true)
+  const [requiresRegistrationCode, setRequiresRegistrationCode] = useState(false)
+  const [registrationCode, setRegistrationCode] = useState('')
   const [isOnline, setIsOnline] = useState(true)
   const [locationType, setLocationType] = useState('online')
   const [locationText, setLocationText] = useState('')
@@ -436,6 +565,8 @@ export function CourseProgramFormModal({
       setCapacity('')
       setStatus('draft')
       setRegistrationOpen(true)
+      setRequiresRegistrationCode(false)
+      setRegistrationCode('')
       setIsOnline(true)
       setLocationType('online')
       setLocationText('')
@@ -466,6 +597,7 @@ export function CourseProgramFormModal({
         if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
         return null
       })
+      setImageRemoved(false)
       setFieldErrors({})
       return
     }
@@ -493,6 +625,8 @@ export function CourseProgramFormModal({
         initial.registration_open === 1
       : true,
     )
+    setRequiresRegistrationCode(Boolean((initial as Record<string, unknown>).requires_registration_code))
+    setRegistrationCode(String((initial as Record<string, unknown>).registration_code ?? ''))
     setIsOnline(Boolean(initial.is_online))
     setLocationType((initial.location_type as string) || (initial.delivery_type as string) || (initial.is_online ? 'online' : 'offline'))
     setLocationText(initial.location ?? '')
@@ -536,6 +670,7 @@ export function CourseProgramFormModal({
       if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
       return null
     })
+    setImageRemoved(false)
     setInstructorQuery('')
   }, [initial])
 
@@ -602,6 +737,8 @@ export function CourseProgramFormModal({
       capacity,
       status,
       registrationOpen,
+      requiresRegistrationCode,
+      registrationCode,
       isOnline,
       locationType,
       locationText,
@@ -704,6 +841,8 @@ export function CourseProgramFormModal({
       if (str(p.capacity)) setCapacity(str(p.capacity))
       if (str(p.status)) setStatus(normalizeCourseStatus(str(p.status)))
       if (bool(p.registrationOpen) !== undefined) setRegistrationOpen(bool(p.registrationOpen)!)
+      if (bool(p.requiresRegistrationCode) !== undefined) setRequiresRegistrationCode(bool(p.requiresRegistrationCode)!)
+      if (typeof p.registrationCode === 'string') setRegistrationCode(p.registrationCode)
       if (bool(p.isOnline) !== undefined) setIsOnline(bool(p.isOnline)!)
       if (str(p.locationType)) setLocationType(str(p.locationType))
       if (str(p.locationText)) setLocationText(str(p.locationText))
@@ -811,6 +950,7 @@ export function CourseProgramFormModal({
         return file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null
       })
       setImageFile(file && file.type.startsWith('image/') ? file : null)
+      if (file) setImageRemoved(false)
       clearField('course_image')
     },
     [clearField],
@@ -861,6 +1001,16 @@ export function CourseProgramFormModal({
         toast.warning('حقل الموقع مطلوب للحضوري أو الهجين')
         return false
       }
+      if (!endDate.trim()) {
+        setFieldErrors((prev) => ({ ...prev, end_date: 'تاريخ الانتهاء مطلوب' }))
+        toast.warning('تاريخ الانتهاء مطلوب')
+        return false
+      }
+      if (startDate.trim() && endDate.trim() && endDate < startDate) {
+        setFieldErrors((prev) => ({ ...prev, end_date: 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية' }))
+        toast.warning('يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية')
+        return false
+      }
       return true
     }
     if (step === 3) {
@@ -901,6 +1051,14 @@ export function CourseProgramFormModal({
           whatsapp_community_url: 'يجب أن يبدأ الرابط بـ https://chat.whatsapp.com/',
         }))
         toast.warning('يجب أن يبدأ الرابط بـ https://chat.whatsapp.com/')
+        return false
+      }
+      if (requiresRegistrationCode && !registrationCode.trim()) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          registration_code: 'رمز التسجيل مطلوب عند تفعيل القيد.',
+        }))
+        toast.warning('أدخل رمز التسجيل أو عطّل خيار «يتطلب رمز تسجيل».')
         return false
       }
       return true
@@ -959,7 +1117,9 @@ export function CourseProgramFormModal({
         {}
       : courseImage.trim()
         ? { course_image: courseImage.trim() }
-        : {}),
+        : imageRemoved
+          ? { course_image: null }
+          : {}),
       program_type: programTypeForPayload(kind, sessionFormat),
       ...(apiSessionFormat ? { session_format: apiSessionFormat } : {}),
       type: priceFree ? 'free' : 'paid',
@@ -972,8 +1132,10 @@ export function CourseProgramFormModal({
       capacity: capacityOk,
       status: lifecycle,
       registration_open: registrationOpen,
+      requires_registration_code: requiresRegistrationCode,
+      registration_code: requiresRegistrationCode ? registrationCode.trim() || undefined : null,
       start_date: startDate.trim() || undefined,
-      end_date: endDate.trim() || undefined,
+      end_date: endDate.trim() || null,
       start_time: tStart || undefined,
       end_time: tEnd || undefined,
       study_time: tStart || undefined,
@@ -1016,7 +1178,7 @@ export function CourseProgramFormModal({
         /* ignore */
       }
       setSavedCourse(course)
-      setLastSavedAsPublished(String(payload.status).toLowerCase() === 'published')
+      setLastSavedAsPublished(String((course as Record<string, unknown>).status).toLowerCase() === 'published')
       setSuccessOpen(true)
       onSaved()
     } catch (e) {
@@ -1048,6 +1210,7 @@ export function CourseProgramFormModal({
       { label: 'المقاعد', value: capacity.trim() || '—' },
       { label: 'حالة النشر', value: STATUS_OPTIONS.find((s) => s.v === status)?.label ?? status },
       { label: 'التسجيل', value: registrationOpen ? 'مفتوح' : 'مغلق' },
+      { label: 'رمز التسجيل', value: requiresRegistrationCode ? 'مطلوب' : 'غير مطلوب' },
       { label: 'جدولة', value: `${startDate || '—'} · ${endDate || '—'}` },
       { label: 'اختبار تحديد المستوى', value: requiresPlacementTest ? 'نعم' : 'لا' },
     ],
@@ -1066,6 +1229,8 @@ export function CourseProgramFormModal({
       capacity,
       status,
       registrationOpen,
+      requiresRegistrationCode,
+      registrationCode,
       startDate,
       endDate,
       requiresPlacementTest,
@@ -1173,6 +1338,7 @@ export function CourseProgramFormModal({
                     onClick={() => {
                       pickImageFile(null)
                       setCourseImage('')
+                      setImageRemoved(true)
                     }}
                     className="inline-flex items-center gap-1 rounded-xl bg-rose-600 px-3 py-1.5 text-[11px] font-black text-white shadow-md"
                   >
@@ -1201,6 +1367,7 @@ export function CourseProgramFormModal({
               value={courseImage}
               onChange={(e) => {
                 setCourseImage(e.target.value)
+                if (e.target.value.trim()) setImageRemoved(false)
                 clearField('course_image')
               }}
               dir="ltr"
@@ -1316,17 +1483,6 @@ export function CourseProgramFormModal({
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-[11px] font-black sm:col-span-2 text-[#0C2A4B]">
-              المسار
-              <select value={trackId} onChange={(e) => setTrackId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
-                <option value="">— اختياري —</option>
-                {tracks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
                   </option>
                 ))}
               </select>
@@ -1504,7 +1660,7 @@ export function CourseProgramFormModal({
               error={fieldErrors.start_time || fieldErrors.study_time}
             />
             <ModernDatePicker
-              label="تاريخ الانتهاء (اختياري)"
+              label="تاريخ الانتهاء *"
               value={endDate}
               onChange={(v) => {
                 setEndDate(v)
@@ -1833,6 +1989,42 @@ export function CourseProgramFormModal({
               التسجيل مفتوح
             </label>
           </div>
+          <div className="rounded-2xl border border-[#0077B6]/15 bg-[#0077B6]/[0.04] p-4">
+            <p className="text-[12px] font-black text-[#0C2A4B]">قيود التسجيل</p>
+            <label className="mt-3 flex items-center gap-3 text-[13px] font-black text-[#0C2A4B]">
+              <input
+                type="checkbox"
+                checked={requiresRegistrationCode}
+                onChange={(e) => {
+                  setRequiresRegistrationCode(e.target.checked)
+                  if (!e.target.checked) setRegistrationCode('')
+                  clearField('registration_code')
+                }}
+                className="size-4 rounded border-slate-300"
+              />
+              يتطلب رمز تسجيل
+            </label>
+            {requiresRegistrationCode ?
+              <label className="mt-3 block text-[11px] font-black text-[#0C2A4B]">
+                رمز التسجيل
+                <input
+                  value={registrationCode}
+                  onChange={(e) => {
+                    setRegistrationCode(e.target.value)
+                    clearField('registration_code')
+                  }}
+                  className={`${EMC_WIZARD_INPUT_BASE} mt-1 font-mono`}
+                  placeholder="أدخل الرمز الذي سيستخدمه الطلاب"
+                  maxLength={100}
+                />
+                {fieldErrorFor(fieldErrors, 'registration_code') ?
+                  <span className="mt-1 block text-[11px] font-bold text-rose-600">
+                    {fieldErrorFor(fieldErrors, 'registration_code')}
+                  </span>
+                : null}
+              </label>
+            : null}
+          </div>
           <label className="block text-[11px] font-black text-[#0C2A4B]">
             ملاحظات داخلية (لا تُعرض للزائر عادةً)
             <textarea
@@ -1939,14 +2131,126 @@ export function CourseProgramFormModal({
     imagePreviewUrl,
     coverPreviewSrc,
     imageFile,
+    imageRemoved,
   ])
 
   const successSlug = savedCourse?.slug
+  const _savedIsPaid = savedCourse
+    ? (String((savedCourse as Record<string, unknown>).finance_approval_status) === 'pending')
+    : false
   const successTitle = editing
     ? 'تم تحديث الدورة بنجاح'
     : lastSavedAsPublished
       ? 'تم إنشاء الدورة ونشرها بنجاح'
-      : 'تم إنشاء الدورة بنجاح'
+      : _savedIsPaid
+        ? 'تم إنشاء البرنامج وإرساله للمراجعة المالية'
+        : 'تم إنشاء الدورة بنجاح'
+
+  const validationSummary =
+    Object.keys(fieldErrors).length > 0 ?
+      <div className="mb-2 rounded-2xl border border-rose-200/90 bg-rose-50/90 px-4 py-3 text-right">
+        <p className="text-[11px] font-black text-rose-800">تأكّد من الحقول التالية:</p>
+        <ul className="mt-2 space-y-1 text-[12px] font-bold text-rose-700">
+          {Object.entries(fieldErrors).map(([k, msg]) => {
+            const base = k.split('.')[0] ?? k
+            return (
+              <li key={k}>
+                <span className="text-rose-900">{FIELD_LABEL_AR[base] ?? base}:</span> {msg}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    : null
+
+  const stepFields = (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={currentStep}
+        initial={emcWizardStepAnimation.initial}
+        animate={emcWizardStepAnimation.animate}
+        exit={emcWizardStepAnimation.exit}
+        transition={emcWizardStepAnimation.transition}
+        className="min-h-[240px]"
+      >
+        {mainFields}
+      </motion.div>
+    </AnimatePresence>
+  )
+
+  const formActions = (
+    <FormActions
+      showBack={currentStep > 1}
+      onBack={goBack}
+      showNext={currentStep < STEP_META.length}
+      onNext={goNext}
+      showSubmit={presentation === 'drawer' ? Boolean(editing) : currentStep === STEP_META.length}
+      onSubmit={() => void submit()}
+      busy={busy}
+      disableNext={busy}
+      disableSubmit={busy}
+      submitLabel={editing ? 'حفظ التغييرات' : 'حفظ ونشر في النظام'}
+      extras={
+        <>
+          <button
+            type="button"
+            onClick={() => (onCancelDrawer ?? onClose)()}
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[12px] font-black text-slate-700 shadow-sm"
+          >
+            إلغاء
+          </button>
+          {!editing ?
+            <button
+              type="button"
+              onClick={() => persistDraft()}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-[12px] font-black text-slate-700 shadow-sm"
+            >
+              حفظ مسودة
+            </button>
+          : null}
+        </>
+      }
+    />
+  )
+
+  if (presentation === 'drawer') {
+    if (!open && !successOpen) return null
+    return (
+      <>
+        {successOpen ?
+          <FormSuccessState
+            open
+            title={successTitle}
+            description="تم حفظ بيانات الدورة."
+            actions={
+              <button type="button" onClick={() => { setSuccessOpen(false); onSaved() }} className="rounded-xl bg-[#0C2A4B] px-4 py-2 text-sm font-black text-white">
+                العودة للتفاصيل
+              </button>
+            }
+          />
+        : (
+          <div className="flex min-h-[65vh] flex-col">
+            <div className="shrink-0 space-y-3 border-b border-slate-100 pb-4">
+              <FormStepper
+                steps={STEP_META}
+                currentStep={currentStep}
+                onStepSelect={(id) => { if (id < currentStep) setCurrentStep(id) }}
+                compact
+              />
+              <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]" style={{ width: `${progressPercent}%` }} />
+              </div>
+              {validationSummary}
+            </div>
+            <div className="flex-1 overflow-y-auto py-4">{stepFields}</div>
+            <div className="sticky bottom-0 shrink-0 border-t border-slate-200 bg-white/95 py-3 backdrop-blur-sm">
+              {formActions}
+            </div>
+          </div>
+        )}
+      </>
+    )
+  }
 
   return (
     <>

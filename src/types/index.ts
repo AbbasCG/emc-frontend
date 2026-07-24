@@ -24,6 +24,8 @@ export type User = {
   role?: UserRole | string | null
   /** Permission slugs granted to this user — populated from the auth response alongside `user`. */
   permissions?: string[]
+  /** True when user has at least one active TeamProfile with is_leader=true. Populated from /auth/me. */
+  is_department_leader?: boolean
 }
 
 export type Course = {
@@ -58,6 +60,10 @@ export type Course = {
   cover_image?: string | null
   /** Some APIs expose explicit free flag */
   is_free?: boolean | number | null
+  /** True when this course requires payment before enrollment */
+  is_paid?: boolean | null
+  /** ISO 4217 currency code, e.g. 'EUR' */
+  currency?: string | null
   seats_count?: number | null
   delivery_type?: string | null
 
@@ -122,6 +128,29 @@ export type Course = {
 
   /** Optional WhatsApp community link for the course (must start with https://chat.whatsapp.com/) */
   whatsapp_community_url?: string | null
+
+  /** When true, student must supply registration_code at enroll time (code itself is never public) */
+  requires_registration_code?: boolean
+  /** Admin-only — never exposed on public course APIs */
+  registration_code?: string | null
+
+  /** Computed ended fields — returned by CourseResource, never stored in DB */
+  is_ended?: boolean | null
+  computed_status?: 'draft' | 'published' | 'archived' | 'ended' | string | null
+  /** Timing-oriented lifecycle — cancelled/archived/upcoming/active/completed. Separate concept from computed_status. */
+  lifecycle_status?: 'cancelled' | 'archived' | 'upcoming' | 'active' | 'completed' | string | null
+  status_label_ar?: string | null
+
+  /** Effective instructor: course's own, or inherited from LP when course has none */
+  instructor_source?: 'course' | 'learning_path' | null
+  effective_instructor?: {
+    id: number
+    user_id?: number | null
+    name: string
+    email?: string | null
+    title?: string | null
+    profile_photo_url?: string | null
+  } | null
 }
 
 export type CourseFilter = 'all' | 'free' | 'paid' | 'online' | 'offline'
@@ -168,6 +197,8 @@ export type Enrollment = {
   can_start_learning?: boolean | null
   /** Class group assignment — set after instructor assigns the student */
   class_assignment?: ClassAssignment | null
+  /** Production hotfix — canonical backend payment/placement eligibility block. */
+  access?: import('@/api/studentApi').StudentCourseAccess | null
 }
 
 export type UpcomingSession = {

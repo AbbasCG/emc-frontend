@@ -25,22 +25,23 @@ function timeStr(d: Date, tz: string): string {
 
 export function formatDateTime(
   dateStr: string | null | undefined,
-  locale = 'ar',
+  _locale = 'ar',
   timezone = TZ,
 ): string {
   if (!dateStr) return '—'
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return '—'
   try {
-    return new Intl.DateTimeFormat(locale, {
+    const parts = new Intl.DateTimeFormat('en', {
       timeZone: timezone,
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      numberingSystem: 'latn',
-    }).format(date)
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date)
+    const y = parts.find((p) => p.type === 'year')?.value ?? '0000'
+    const mo = parts.find((p) => p.type === 'month')?.value ?? '00'
+    const dy = parts.find((p) => p.type === 'day')?.value ?? '00'
+    return `${dy}/${mo}/${y} ${timeStr(date, timezone)}`
   } catch {
     return dateStr.slice(0, 16)
   }
@@ -48,20 +49,23 @@ export function formatDateTime(
 
 export function formatDate(
   dateStr: string | null | undefined,
-  locale = 'ar',
+  _locale = 'ar',
   timezone = TZ,
 ): string {
   if (!dateStr) return '—'
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return '—'
   try {
-    return new Intl.DateTimeFormat(locale, {
+    const parts = new Intl.DateTimeFormat('en', {
       timeZone: timezone,
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      numberingSystem: 'latn',
-    }).format(date)
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date)
+    const y = parts.find((p) => p.type === 'year')?.value ?? '0000'
+    const mo = parts.find((p) => p.type === 'month')?.value ?? '00'
+    const dy = parts.find((p) => p.type === 'day')?.value ?? '00'
+    return `${dy}/${mo}/${y}`
   } catch {
     return dateStr.slice(0, 10)
   }
@@ -88,7 +92,9 @@ export function formatRelativeDate(
 
   if (diffDays === 0) return `اليوم، ${timeStr(date, timezone)}`
   if (diffDays === 1) return `أمس، ${timeStr(date, timezone)}`
-  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays === -1) return `غداً، ${timeStr(date, timezone)}`
+  if (diffDays > 1 && diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays < -1 && diffDays > -7) return `بعد ${String(Math.abs(diffDays))} أيام`
   return formatDate(dateStr, 'ar', timezone)
 }
 

@@ -2,26 +2,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNow } from '@/hooks/useNow'
 import axios, { type AxiosError } from 'axios'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft,
-  Award,
   BookOpen,
   Calendar,
-  CheckCircle2,
-  ChevronDown,
   ClipboardList,
+  CreditCard,
   ExternalLink,
   FolderOpen,
-  GraduationCap,
-  Layers,
-  Loader2,
+  Hourglass,
   RefreshCw,
-  Save,
   StickyNote,
   TrendingUp,
   Users,
   Video,
+  XCircle,
 } from 'lucide-react'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import {
@@ -32,22 +28,72 @@ import {
   mapLearnSessionToLms,
   saveCourseNotes,
 } from '@/api/courseLearnApi'
-import { STUDENT_SCOPE_REFRESH_EVENT, notifyStudentScopeRefresh } from '@/api/studentApi'
+import { STUDENT_SCOPE_REFRESH_EVENT, notifyStudentScopeRefresh, fetchStudentCoursesList } from '@/api/studentApi'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
-import { AssignmentCard, AssignmentSubmitModal, LmsEmptyState, MaterialCard, SessionCard } from '@/components/lms'
+import { AssignmentSubmitModal } from '@/components/lms'
 import type { StudentAssignment } from '@/types/lms'
-import type { StudentCourseLearnPayload } from '@/types/courseLearn'
+import type { CourseLearnAssignment, StudentCourseLearnPayload } from '@/types/courseLearn'
 import type { LmsModule } from '@/types/platform'
 import type { LmsSession } from '@/types/lms'
 import logo from '@/assets/logo.png'
 import { resolveCoursePkFromLikelyMisKey, studentLearnHref } from '@/utils/studentLearnNavigation'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
-import { formatDateTime } from '@/utils/dateTime'
 import { formatSessionSchedule, getSessionJoinState } from '@/utils/lmsSession'
+import UnitsTab from './learn-tabs/UnitsTab'
+import SessionsTab from './learn-tabs/SessionsTab'
+import MaterialsTab, { type MaterialEntry } from './learn-tabs/MaterialsTab'
+import AssignmentsTab, { type AssignmentEntry } from './learn-tabs/AssignmentsTab'
+import NotesTab from './learn-tabs/NotesTab'
+import ProgressTab from './learn-tabs/ProgressTab'
 
 const NOTES_KEY = (courseId: number) => `emc-student-learn-notes:${courseId}`
 
 type LearnTab = 'modules' | 'sessions' | 'materials' | 'assignments' | 'notes' | 'progress'
+
+type GateError =
+  | 'forbidden'
+  | 'forbidden_sync'
+  | 'missing'
+  | 'placement_required'
+  | 'placement_oral'
+  | 'payment_pending'
+  | 'payment_failed'
+  | 'payment_required'
+  | null
+
+/** Production hotfix — canonical backend access block attached to a 403, when present. */
+type LearnGateAccess = {
+  payment_url?: string | null
+  block_reason?: string | null
+} | null
+
+function parseLearnGateError(e: unknown): { gate: GateError; message: string | null; access: LearnGateAccess } {
+  if (!axios.isAxiosError(e)) return { gate: null, message: null, access: null }
+  const status = e.response?.status
+  const body = e.response?.data as { placement_status?: string; message?: string; access?: LearnGateAccess } | undefined
+  const access = body?.access ?? null
+  if (status === 404) return { gate: 'missing', message: body?.message ?? null, access }
+  if (status === 403) {
+    const ps = body?.placement_status
+    // Payment must be evaluated before placement state — these reason codes
+    // come straight from the backend's canonical access block, never
+    // re-derived here (production hotfix).
+    if (ps === 'payment_pending') return { gate: 'payment_pending', message: body?.message ?? null, access }
+    if (ps === 'payment_failed') return { gate: 'payment_failed', message: body?.message ?? null, access }
+    if (ps === 'payment_required' || ps === 'no_registration' || ps === 'registration_cancelled') {
+      return { gate: 'payment_required', message: body?.message ?? null, access }
+    }
+    if (ps === 'placement_required') return { gate: 'placement_required', message: body?.message ?? null, access }
+    if (ps === 'written_completed') return { gate: 'placement_oral', message: body?.message ?? null, access }
+    return { gate: 'forbidden', message: body?.message ?? null, access }
+  }
+  return { gate: null, message: null, access: null }
+}
+
+async function isCourseListedForStudent(courseId: number): Promise<boolean> {
+  const listed = await fetchStudentCoursesList()
+  return listed.some((c) => c.id === courseId)
+}
 
 function tsFromSession(s: LmsSession): number {
   const raw = s.starts_at ?? s.date
@@ -99,7 +145,8 @@ export default function StudentCourseLearnPage() {
   const [learnLoading, setLearnLoading] = useState(validId)
   const [refreshing, setRefreshing] = useState(false)
   const [learnError, setLearnError] = useState<string | null>(null)
-  const [gateError, setGateError] = useState<'forbidden' | 'missing' | null>(null)
+  const [gateError, setGateError] = useState<GateError>(null)
+  const [gatePaymentUrl, setGatePaymentUrl] = useState<string | null>(null)
   const [activeAssignment, setActiveAssignment] = useState<StudentAssignment | null>(null)
   const [activeTab, setActiveTab] = useState<LearnTab>('modules')
 
@@ -113,7 +160,7 @@ export default function StudentCourseLearnPage() {
   const [openModules, setOpenModules] = useState<Set<number>>(new Set())
   const modulesInitializedRef = useRef(false)
 
-  const { registrations, enrollmentsMerged, registeredCourseIds } = useStudentDashboardData()
+  const { registrations, enrollmentsMerged, registeredCourseIds, loading: dashboardLoading, refresh: refreshDashboard } = useStudentDashboardData()
 
   const redirectCoursePk = useMemo(
     () => (validId ? resolveCoursePkFromLikelyMisKey(courseId, registrations) : null),
@@ -132,43 +179,82 @@ export default function StudentCourseLearnPage() {
     return enrollmentsMerged.some((e) => e.course.id === courseId)
   }, [validId, courseId, registeredCourseIds, registrations, enrollmentsMerged])
 
-  const loadLearn = useCallback(async () => {
+  const loadLearn = useCallback(async (opts?: { refreshEnrollment?: boolean }) => {
     if (!validId) return
     setLearnError(null)
     setGateError(null)
+    setGatePaymentUrl(null)
     setLearnLoading(true)
+    if (opts?.refreshEnrollment) {
+      try { await refreshDashboard() } catch { /* non-fatal */ }
+    }
     try {
       const data = await fetchStudentCourseLearn(courseId)
       setLearn(data)
     } catch (e) {
       setLearn(null)
-      const status = axios.isAxiosError(e) ? e.response?.status : undefined
-      if (status === 403) setGateError('forbidden')
-      else if (status === 404) setGateError('missing')
-      else setLearnError(getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      const { gate, message, access } = parseLearnGateError(e)
+      if (gate === 'missing') {
+        setGateError('missing')
+      } else if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
+        setGateError(gate)
+        setGatePaymentUrl(access?.payment_url ?? null)
+        if (message) setLearnError(message)
+      } else if (gate === 'placement_required' || gate === 'placement_oral') {
+        setGateError(gate)
+        if (message) setLearnError(message)
+      } else if (gate === 'forbidden') {
+        let enrolledInList = registeredCourseIds.has(courseId)
+          || registrations.some((r) => r.course_id === courseId)
+          || enrollmentsMerged.some((en) => en.course.id === courseId)
+        if (!enrolledInList) {
+          try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
+        }
+        setGateError(enrolledInList ? 'forbidden_sync' : 'forbidden')
+      } else {
+        setLearnError(message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      }
     } finally {
       setLearnLoading(false)
     }
-  }, [courseId, validId])
+  }, [courseId, validId, registeredCourseIds, registrations, enrollmentsMerged, refreshDashboard])
 
   const softRefresh = useCallback(async () => {
     if (!validId) return
     setLearnError(null)
     setGateError(null)
+    setGatePaymentUrl(null)
     setRefreshing(true)
     try {
       const data = await fetchStudentCourseLearn(courseId)
       setLearn(data)
     } catch (e) {
       setLearn(null)
-      const status = axios.isAxiosError(e) ? e.response?.status : undefined
-      if (status === 403) setGateError('forbidden')
-      else if (status === 404) setGateError('missing')
-      else setLearnError(getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      const { gate, message, access } = parseLearnGateError(e)
+      if (gate === 'missing') setGateError('missing')
+      else if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
+        setGateError(gate)
+        setGatePaymentUrl(access?.payment_url ?? null)
+        if (message) setLearnError(message)
+      }
+      else if (gate === 'placement_required' || gate === 'placement_oral') {
+        setGateError(gate)
+        if (message) setLearnError(message)
+      } else if (gate === 'forbidden') {
+        let enrolledInList = registeredCourseIds.has(courseId)
+          || registrations.some((r) => r.course_id === courseId)
+          || enrollmentsMerged.some((en) => en.course.id === courseId)
+        if (!enrolledInList) {
+          try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
+        }
+        setGateError(enrolledInList ? 'forbidden_sync' : 'forbidden')
+      } else {
+        setLearnError(message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
+      }
     } finally {
       setRefreshing(false)
     }
-  }, [courseId, validId])
+  }, [courseId, validId, registeredCourseIds, registrations, enrollmentsMerged])
 
   useEffect(() => { void loadLearn() }, [loadLearn])
 
@@ -274,22 +360,61 @@ export default function StudentCourseLearnPage() {
     return raw.map((m) => mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle }))
   }, [ctx?.materials, courseId, courseTitle])
 
-  const assignments = useMemo(() => {
+  const materialEntries = useMemo((): MaterialEntry[] => {
+    const raw = ctx?.materials ?? []
+    return raw.map((m) => ({
+      material: mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle }),
+      moduleId: m.module_id ?? null,
+    }))
+  }, [ctx?.materials, courseId, courseTitle])
+
+  const moduleTitleById = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const m of ctx?.modules ?? []) map.set(m.id, m.title)
+    return map
+  }, [ctx?.modules])
+
+  const rawAssignmentsDeduped = useMemo((): CourseLearnAssignment[] => {
     const seen = new Set<number>()
-    const raw = [...(ctx?.assignments ?? [])]
+    const raw: CourseLearnAssignment[] = []
+
+    // Course-level assignments first — add their IDs to `seen` so module-level
+    // duplicates (same CA appearing in both buckets) are filtered out.
+    for (const a of ctx?.assignments ?? []) {
+      if (!seen.has(a.id)) {
+        seen.add(a.id)
+        raw.push(a)
+      }
+    }
+    // Module-level assignments, deduped against course-level AND each other.
     for (const mod of ctx?.modules ?? []) {
       for (const a of mod.assignments ?? []) {
         if (!seen.has(a.id)) {
-          raw.push(a)
           seen.add(a.id)
+          raw.push(a)
         }
       }
     }
-    return raw
-      .filter((a) => a.visible !== false)
-      .map((a) => mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle }))
-      .filter((a): a is StudentAssignment => a != null)
-  }, [ctx?.assignments, ctx?.modules, courseId, courseTitle])
+    return raw.filter((a) => a.visible !== false)
+  }, [ctx?.assignments, ctx?.modules])
+
+  const assignmentEntries = useMemo((): AssignmentEntry[] => {
+    const finalSeen = new Set<number>()
+    const out: AssignmentEntry[] = []
+    for (const a of rawAssignmentsDeduped) {
+      const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
+      if (!sa || finalSeen.has(sa.id)) continue
+      finalSeen.add(sa.id)
+      out.push({
+        assignment: sa,
+        moduleId: a.module_id ?? null,
+        required: a.is_required ?? a.required ?? true,
+      })
+    }
+    return out
+  }, [rawAssignmentsDeduped, courseId, courseTitle])
+
+  const assignments = useMemo(() => assignmentEntries.map((e) => e.assignment), [assignmentEntries])
 
   const progressPct = useMemo(() => (ctx ? deriveProgressPct(ctx) : 0), [ctx])
   const totalLessons = useMemo(() => modulesLms.reduce((s, m) => s + (m.lessons_count ?? 0), 0), [modulesLms])
@@ -322,7 +447,7 @@ export default function StudentCourseLearnPage() {
     )
   }
 
-  if (learnLoading && !ctx && redirectCoursePk == null) {
+  if ((learnLoading || dashboardLoading) && !ctx && redirectCoursePk == null) {
     return (
       <div className="animate-pulse space-y-6" dir="rtl">
         <div className="h-52 rounded-3xl bg-slate-200/90" />
@@ -332,24 +457,121 @@ export default function StudentCourseLearnPage() {
     )
   }
 
+  // Production hotfix — dedicated unpaid-course state. Payment is always
+  // evaluated before placement-test state (never shows the placement-test
+  // start/retry actions here), per the canonical backend access block.
+  if (gateError === 'payment_pending' || gateError === 'payment_failed' || gateError === 'payment_required') {
+    const Icon = gateError === 'payment_failed' ? XCircle : gateError === 'payment_pending' ? Hourglass : CreditCard
+    const iconColor = gateError === 'payment_failed' ? 'text-red-500' : 'text-customOrange'
+    const title =
+      gateError === 'payment_pending' ? 'الدفع قيد المراجعة'
+      : gateError === 'payment_failed' ? 'لم تكتمل عملية الدفع'
+      : 'يلزم إكمال الدفع أولاً'
+    const body =
+      gateError === 'payment_pending'
+        ? 'تم تسجيل عملية الدفع، وهي الآن قيد المراجعة. ستتمكن من بدء اختبار تحديد المستوى بعد اعتماد الدفع.'
+      : gateError === 'payment_failed'
+        ? 'تعذر تأكيد عملية الدفع. يرجى إعادة المحاولة للمتابعة إلى اختبار تحديد المستوى ومحتوى الدورة.'
+      : 'لا يمكنك بدء اختبار تحديد المستوى أو الوصول إلى محتوى هذه الدورة قبل إتمام عملية الدفع بنجاح.'
+
+    return (
+      <div className="rounded-3xl border border-[#0C2A4B]/10 bg-white/90 p-10 text-center shadow-xl" dir="rtl">
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 ${iconColor}`}>
+          <Icon className="h-7 w-7" aria-hidden />
+        </div>
+        <h1 className="mt-4 text-xl font-black text-[#0C2A4B]">{title}</h1>
+        <p className="mx-auto mt-2 max-w-lg text-[13px] font-semibold leading-relaxed text-[#0C2A4B]/60">
+          {body}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {gateError !== 'payment_pending' && (
+            gatePaymentUrl ? (
+              <a
+                href={gatePaymentUrl}
+                className="rounded-2xl bg-customOrange px-6 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
+              >
+                إكمال الدفع
+              </a>
+            ) : (
+              <Link
+                to="/dashboard/student/courses"
+                className="rounded-2xl bg-customOrange px-6 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
+              >
+                إكمال الدفع
+              </Link>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              notifyStudentScopeRefresh()
+              void loadLearn({ refreshEnrollment: true })
+            }}
+            className="rounded-2xl border border-[#0C2A4B]/15 px-6 py-2.5 text-[12px] font-black text-[#0C2A4B]"
+          >
+            إعادة التحقق من حالة الدفع
+          </button>
+          <Link to="/dashboard/student/courses" className="rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-[12px] font-black text-white">
+            العودة إلى دوراتي
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (gateError !== null) {
     const title =
       gateError === 'missing' ? 'لم يُعثر على هذه الدورة'
+      : gateError === 'placement_required' ? 'اختبار تحديد المستوى مطلوب'
+      : gateError === 'placement_oral' ? 'المقابلة الشفوية مطلوبة'
+      : gateError === 'forbidden_sync' ? 'تعذّر فتح محتوى الدورة مؤقتاً'
       : 'لا يمكنك الوصول إلى محتوى هذه الدورة'
+
+    const body =
+      gateError === 'placement_required'
+        ? 'أكمل اختبار تحديد المستوى الكتابي من صفحة دوراتي قبل الدخول إلى محتوى هذه الدورة.'
+      : gateError === 'placement_oral'
+        ? 'احجز موعد المقابلة الشفوية من صفحة دوراتي قبل الدخول إلى محتوى هذه الدورة.'
+      : gateError === 'forbidden_sync'
+        ? 'أنت مسجّل في هذه الدورة في دوراتي، لكن التحقق من الوصول لم ينجح بعد. جرّب إعادة المحاولة أو افتح الدورة من دوراتي مرة أخرى.'
+      : gateError === 'forbidden'
+        ? 'تأكّد من تسجيلك في هذه الدورة عبر مسارك التعليمي أو من صفحة دوراتي.'
+      : clientKnowsRegistered
+        ? 'يبدو أن الرابط لا يطابق الدورة المسجّلة. جرّب فتح الدورة من صفحة دوراتي.'
+        : 'تحقّق من الرابط أو تواصل مع الإدارة.'
 
     return (
       <div className="rounded-3xl border border-[#0C2A4B]/10 bg-white/90 p-10 text-center shadow-xl" dir="rtl">
         <BookOpen className="mx-auto h-12 w-12 text-[#0077B6]" aria-hidden />
         <h1 className="mt-4 text-xl font-black text-[#0C2A4B]">{title}</h1>
         <p className="mx-auto mt-2 max-w-lg text-[13px] font-semibold text-[#0C2A4B]/60">
-          {gateError === 'forbidden'
-            ? 'تأكّد من تسجيلك في هذه الدورة عبر مسارك التعليمي أو من صفحة دوراتي.'
-            : clientKnowsRegistered
-              ? 'يبدو أن الرابط لا يطابق الدورة المسجّلة. جرّب فتح الدورة من صفحة دوراتي.'
-              : 'تحقّق من الرابط أو تواصل مع الإدارة.'}
+          {body}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button type="button" onClick={() => void loadLearn()} className="rounded-2xl border border-[#0C2A4B]/15 px-6 py-2.5 text-[12px] font-black text-[#0C2A4B]">
+          {gateError === 'placement_required' && (
+            <Link
+              to={`/dashboard/student/courses/${courseId}/placement-test`}
+              className="rounded-2xl bg-amber-500 px-6 py-2.5 text-[12px] font-black text-white"
+            >
+              ابدأ اختبار تحديد المستوى
+            </Link>
+          )}
+          {gateError === 'placement_oral' && (
+            <Link
+              to={`/dashboard/student/courses/${courseId}/oral-booking`}
+              className="rounded-2xl bg-[#0077B6] px-6 py-2.5 text-[12px] font-black text-white"
+            >
+              حجز المقابلة الشفوية
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              notifyStudentScopeRefresh()
+              void loadLearn({ refreshEnrollment: true })
+            }}
+            className="rounded-2xl border border-[#0C2A4B]/15 px-6 py-2.5 text-[12px] font-black text-[#0C2A4B]"
+          >
             إعادة المحاولة
           </button>
           <Link to="/dashboard/student/courses" className="rounded-2xl bg-[#0C2A4B] px-6 py-2.5 text-[12px] font-black text-white">
@@ -565,643 +787,79 @@ export default function StudentCourseLearnPage() {
       </div>
 
       {/* ── Tab Content ──────────────────────────────────────────────────── */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18 }}
-        >
+      {/*
+        Deliberately NOT AnimatePresence mode="wait": that mode blocks the new
+        tab from mounting until the outgoing one's exit animation resolves.
+        Child tab components (Units/Sessions/Materials/etc.) each run their own
+        nested Framer Motion animations (skeletons, staggered lists), and a
+        nested animation's promise can prevent the parent's exit from ever
+        completing — which silently froze tab-switching entirely (verified
+        live: state updated correctly, DOM never re-rendered). A plain keyed
+        fade-in gives the same "tab content fade/slide" feel without the risk.
+      */}
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+      >
 
-          {/* ── المنهاج ─────────────────────────────────────────────────── */}
           {activeTab === 'modules' && (
-            <div className="space-y-5">
-              {/* Class group */}
-              {classGroup && (
-                <div className="rounded-2xl border border-[#F28C00]/20 bg-orange-50/60 p-5">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F28C00]/15 text-[#F28C00]">
-                      <Users className="h-4.5 w-4.5" />
-                    </span>
-                    <div>
-                      <p className="text-[13px] font-black text-[#0C2A4B]">فصلك الدراسي: {classGroup.name}</p>
-                      {classGroup.level_code && (
-                        <p className="text-[11px] font-semibold text-[#0C2A4B]/60">{classGroup.level_code}</p>
-                      )}
-                    </div>
-                    {classGroup.schedule_day && classGroup.schedule_time && (
-                      <span className="mr-auto rounded-xl border border-[#0C2A4B]/10 bg-white px-3 py-1 text-[11px] font-bold text-[#0C2A4B]/70">
-                        {classGroup.schedule_day} · {classGroup.schedule_time}
-                      </span>
-                    )}
-                    {classGroup.meeting_link && (
-                      <a
-                        href={classGroup.meeting_link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[11px] font-black text-white transition hover:opacity-90"
-                      >
-                        <Video className="h-3.5 w-3.5" />
-                        رابط الفصل
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <div className="mb-4 flex items-end justify-between">
-                  <div>
-                    <h2 className="text-xl font-black text-[#0C2A4B]">الوحدات والمنهاج</h2>
-                    <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]/50">
-                      {ctx.modules.length > 0
-                        ? `${ctx.modules.length} وحدة · ${totalLessons} درس`
-                        : 'سيظهر المنهاج بعد إضافة الوحدات من الإدارة'}
-                    </p>
-                  </div>
-                </div>
-
-                {ctx.modules.length === 0 ? (
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-[#0C2A4B]/[0.08] bg-white/70 p-6 text-center text-[13px] font-semibold text-[#0C2A4B]/60">
-                      لم تتم إضافة وحدات تعليمية لهذه الدورة بعد
-                    </div>
-                    {(() => {
-                      const nullMaterials = (ctx.materials ?? []).filter((m) => m.module_id == null)
-                      const nullSessions = (ctx.sessions ?? []).filter((s) => s.module_id == null)
-                      const nullAssignments = (ctx.assignments ?? []).filter((a) => a.module_id == null && a.visible !== false)
-                      const hasGeneral = nullMaterials.length > 0 || nullSessions.length > 0 || nullAssignments.length > 0
-                      if (!hasGeneral) return null
-                      return (
-                        <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
-                          <div className="flex items-center gap-3 p-4">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#F28C00]">
-                              <Layers className="h-4 w-4" />
-                            </span>
-                            <div>
-                              <h3 className="text-[14px] font-black text-[#0C2A4B]">محتوى عام للدورة</h3>
-                              <p className="text-[11px] font-medium text-[#0C2A4B]/55">جلسات ومواد وواجبات على مستوى الدورة</p>
-                            </div>
-                          </div>
-                          <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
-                            {nullSessions.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                  <Calendar className="h-3 w-3" /> الجلسات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullSessions.map((s) => (
-                                    <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullMaterials.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                  <FolderOpen className="h-3 w-3" /> المواد
-                                </h4>
-                                <div className="grid gap-2 sm:grid-cols-2">
-                                  {nullMaterials.map((m) => (
-                                    <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullAssignments.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                  <ClipboardList className="h-3 w-3" /> الواجبات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullAssignments.map((a) => {
-                                    const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
-                                    if (!sa) return null
-                                    return (
-                                      <AssignmentCard
-                                        key={a.id}
-                                        assignment={sa}
-                                        onSubmit={
-                                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
-                                            ? () => setActiveAssignment(sa)
-                                            : undefined
-                                        }
-                                      />
-                                    )
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {ctx.modules.map((mod, idx) => {
-                      const isOpen = openModules.has(mod.id)
-                      const pct =
-                        typeof mod.progress_percentage === 'number'
-                          ? Math.round(mod.progress_percentage)
-                          : Math.round((Math.max(0, mod.completed_lessons_count ?? mod.completed_lessons ?? 0) / Math.max(mod.lessons_count, 1)) * 100)
-                      const modLessons = mod.lessons ?? []
-                      const modMaterials = mod.materials ?? []
-                      const modSessions = mod.sessions ?? []
-                      const modAssignments = mod.assignments ?? []
-                      const hasChildren = modLessons.length > 0 || modMaterials.length > 0 || modSessions.length > 0 || modAssignments.length > 0
-                      return (
-                        <div key={mod.id} className="overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.08] bg-white/85 shadow-sm">
-                          <button
-                            type="button"
-                            onClick={() => toggleModule(mod.id)}
-                            className="flex w-full items-center gap-3 p-4 text-right transition hover:bg-slate-50/60"
-                          >
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[12px] font-black text-white tabular-nums">
-                              {idx + 1}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <h3 className="line-clamp-1 text-[14px] font-black leading-snug text-[#0C2A4B]">{mod.title}</h3>
-                                {mod.is_completed && (
-                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-700">✓ مكتملة</span>
-                                )}
-                              </div>
-                              <div className="mt-1.5 flex items-center gap-2">
-                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
-                                  <div className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00] transition-all" style={{ width: `${pct}%` }} />
-                                </div>
-                                <span className="shrink-0 text-[10px] font-black tabular-nums text-[#0C2A4B]/60">{pct}%</span>
-                              </div>
-                              <p className="mt-0.5 text-[10px] font-semibold text-[#0C2A4B]/45">
-                                {mod.lessons_count} درس
-                                {(mod.assignments_count ?? 0) > 0 ? ` · ${mod.assignments_count} واجب` : ''}
-                                {modMaterials.length > 0 ? ` · ${modMaterials.length} مادة` : ''}
-                              </p>
-                            </div>
-                            <ChevronDown className={`h-4 w-4 shrink-0 text-[#0C2A4B]/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                          </button>
-
-                          {isOpen && (
-                            <div className="space-y-4 border-t border-[#0C2A4B]/[0.06] px-4 pb-4 pt-4">
-                              {!hasChildren ? (
-                                <p className="py-4 text-center text-[12px] font-semibold text-[#0C2A4B]/45">
-                                  لا يوجد محتوى داخل هذه الوحدة بعد
-                                </p>
-                              ) : (
-                                <>
-                                  {modLessons.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                        <BookOpen className="h-3 w-3" /> الدروس
-                                      </h4>
-                                      <div className="space-y-1.5">
-                                        {modLessons.map((l) => (
-                                          <div key={l.id} className="flex items-center gap-3 rounded-xl border border-[#0C2A4B]/[0.06] bg-slate-50/60 px-3 py-2.5">
-                                            {l.video_url
-                                              ? <Video className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" />
-                                              : <BookOpen className="h-3.5 w-3.5 shrink-0 text-[#0C2A4B]/30" />
-                                            }
-                                            <span className="flex-1 text-[12px] font-semibold text-[#0C2A4B]">{l.title}</span>
-                                            {l.duration_minutes != null && (
-                                              <span className="text-[10px] font-bold tabular-nums text-[#0C2A4B]/45">{l.duration_minutes} د</span>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {modSessions.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                        <Calendar className="h-3 w-3" /> الجلسات
-                                      </h4>
-                                      <div className="space-y-2">
-                                        {modSessions.map((s) => (
-                                          <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {modMaterials.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                        <FolderOpen className="h-3 w-3" /> المواد
-                                      </h4>
-                                      <div className="grid gap-2 sm:grid-cols-2">
-                                        {modMaterials.map((m) => (
-                                          <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {modAssignments.length > 0 && (
-                                    <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                        <ClipboardList className="h-3 w-3" /> الواجبات
-                                      </h4>
-                                      <div className="space-y-2">
-                                        {modAssignments.map((a) => {
-                                          const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
-                                          if (!sa) return null
-                                          return (
-                                            <AssignmentCard
-                                              key={a.id}
-                                              assignment={sa}
-                                              onSubmit={
-                                                ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
-                                                  ? () => setActiveAssignment(sa)
-                                                  : undefined
-                                              }
-                                            />
-                                          )
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-
-                    {/* General course content: top-level items not linked to any module */}
-                    {(() => {
-                      const nullMaterials = (ctx.materials ?? []).filter((m) => m.module_id == null)
-                      const nullSessions = (ctx.sessions ?? []).filter((s) => s.module_id == null)
-                      const nullAssignments = (ctx.assignments ?? []).filter((a) => a.module_id == null)
-                      const hasGeneral = nullMaterials.length > 0 || nullSessions.length > 0 || nullAssignments.length > 0
-                      if (!hasGeneral) return null
-                      return (
-                        <div className="overflow-hidden rounded-2xl border border-amber-200/50 bg-amber-50/40 shadow-sm">
-                          <div className="flex items-center gap-3 p-4">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#F28C00]">
-                              <Layers className="h-4 w-4" />
-                            </span>
-                            <h3 className="text-[14px] font-black text-[#0C2A4B]">محتوى عام للدورة</h3>
-                          </div>
-                          <div className="space-y-4 border-t border-amber-200/40 px-4 pb-4 pt-4">
-                            {nullSessions.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                  <Calendar className="h-3 w-3" /> الجلسات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullSessions.map((s) => (
-                                    <SessionCard key={s.id} session={mapLearnSessionToLms(s, courseTitle)} showRecording joinMeetingLabel="انضم للجلسة" />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullMaterials.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                  <FolderOpen className="h-3 w-3" /> المواد
-                                </h4>
-                                <div className="grid gap-2 sm:grid-cols-2">
-                                  {nullMaterials.map((m) => (
-                                    <MaterialCard key={m.id} material={mapCourseLearnMaterialToLmsMaterial(m, { courseId, courseTitle })} />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {nullAssignments.length > 0 && (
-                              <div>
-                                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">
-                                  <ClipboardList className="h-3 w-3" /> الواجبات
-                                </h4>
-                                <div className="space-y-2">
-                                  {nullAssignments.map((a) => {
-                                    const sa = mapCourseLearnAssignmentToStudentAssignment(a, { courseId, courseTitle })
-                                    if (!sa) return null
-                                    return (
-                                      <AssignmentCard
-                                        key={a.id}
-                                        assignment={sa}
-                                        onSubmit={
-                                          ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(sa.status))
-                                            ? () => setActiveAssignment(sa)
-                                            : undefined
-                                        }
-                                      />
-                                    )
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </div>
-                )}
-              </div>
-            </div>
+            <UnitsTab
+              ctx={ctx}
+              courseId={courseId}
+              courseTitle={courseTitle}
+              totalLessons={totalLessons}
+              openModules={openModules}
+              onToggleModule={toggleModule}
+              onSubmitAssignment={setActiveAssignment}
+              loading={learnLoading}
+            />
           )}
 
-          {/* ── الجلسات ─────────────────────────────────────────────────── */}
           {activeTab === 'sessions' && (
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[#0C2A4B]/[0.06] bg-gradient-to-bl from-white/95 to-orange-50/20 p-6 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]">
-                <div>
-                  <h2 className="text-xl font-black text-[#0C2A4B]">الجلسات المباشرة</h2>
-                  <p className="mt-1 text-[13px] font-semibold text-[#0C2A4B]/55">
-                    {sessionsMapped.length > 0
-                      ? `${upcomingSorted.length} قادمة · ${sessionsMapped.length - upcomingSorted.length} مكتملة`
-                      : 'سيُضيف الفريق الجلسات وروابط الانضمام هنا'}
-                  </p>
-                </div>
-                <Calendar className="h-6 w-6 text-[#F28C00]/70" />
-              </div>
-
-              {sessionsMapped.length === 0 ? (
-                <div className="rounded-3xl border border-[#0C2A4B]/[0.06] bg-white/80 p-6">
-                  <LmsEmptyState
-                    icon={Calendar}
-                    title="لا جلسات حتى الآن"
-                    description="عندما تُنشأ الجلسات من لوحة المحتوى، ستظهر هنا مع الموعد والروابط."
-                  />
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {sessionsMapped.map((s) => (
-                    <SessionCard key={s.id} session={s} showRecording joinMeetingLabel="انضم للجلسة" />
-                  ))}
-                </div>
-              )}
-            </div>
+            <SessionsTab sessions={sessionsMapped} loading={learnLoading} />
           )}
 
-          {/* ── المواد ──────────────────────────────────────────────────── */}
           {activeTab === 'materials' && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-[#0C2A4B]">المقررات والمواد</h2>
-                {materials.length > 0 && (
-                  <Link to="/dashboard/student/materials" className="text-[12px] font-black text-[#0077B6] hover:underline">
-                    عرض كل المواد
-                  </Link>
-                )}
-              </div>
-
-              {materials.length === 0 ? (
-                <div className="rounded-3xl bg-white/80 p-4 ring-1 ring-[#0C2A4B]/[0.06]">
-                  <LmsEmptyState
-                    icon={FolderOpen}
-                    title="لا مواد لهذه الدورة بعد"
-                    description="بعد أن يرفع الفريق ملفاتاً أو روابط عبر لوحة المحتوى، ستظهر هنا مع أزرار التحميل."
-                  />
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {materials.map((m) => (
-                    <MaterialCard key={m.id} material={m} />
-                  ))}
-                </div>
-              )}
-            </div>
+            <MaterialsTab entries={materialEntries} moduleTitleById={moduleTitleById} loading={learnLoading} />
           )}
 
-          {/* ── الواجبات ────────────────────────────────────────────────── */}
           {activeTab === 'assignments' && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-black text-[#0C2A4B]">الواجبات والتكليفات</h2>
-                {assignments.length > 0 && (
-                  <span className="text-[12px] font-bold text-[#0C2A4B]/50">
-                    {doneAssignments} / {assignments.length} مُسلَّمة
-                  </span>
-                )}
-              </div>
-
-              {assignments.length === 0 ? (
-                <div className="rounded-3xl bg-white/80 ring-1 ring-[#0C2A4B]/[0.06]">
-                  <LmsEmptyState
-                    icon={ClipboardList}
-                    title="لا واجبات ظاهرة"
-                    description="عند إضافة واجبات من لوحة المحتوى، ستُعرض هنا مع الموعد وحالة التسليم."
-                  />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {assignments.map((a) => (
-                    <AssignmentCard
-                      key={a.id}
-                      assignment={a}
-                      onSubmit={
-                        ['pending', 'revision', 'late', 'needs_resubmission'].includes(String(a.status))
-                          ? () => setActiveAssignment(a)
-                          : undefined
-                      }
-                    />
-                  ))}
-                  <Link
-                    to="/dashboard/student/assignments"
-                    className="inline-flex items-center gap-2 text-[12px] font-black text-[#0077B6] hover:underline"
-                  >
-                    فتح كل الواجبات
-                    <ArrowLeft className="h-4 w-4 rotate-180" />
-                  </Link>
-                </div>
-              )}
-            </div>
+            <AssignmentsTab
+              entries={assignmentEntries}
+              moduleTitleById={moduleTitleById}
+              onSubmitAssignment={setActiveAssignment}
+              loading={learnLoading}
+            />
           )}
 
-          {/* ── ملاحظاتي ────────────────────────────────────────────────── */}
           {activeTab === 'notes' && (
-            <div className="rounded-3xl border border-[#0C2A4B]/[0.08] bg-white/85 p-6 shadow-sm">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2 text-xl font-black text-[#0C2A4B]">
-                  <StickyNote className="h-5 w-5 text-[#F28C00]" />
-                  ملاحظاتي الخاصة
-                </h2>
-                <div className="flex items-center gap-3">
-                  {notesSavedAt && !notesError && !notesSaving && (
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      محفوظة · {formatDateTime(notesSavedAt)}
-                    </span>
-                  )}
-                  {notesError && (
-                    <span className="text-[11px] font-bold text-rose-600">{notesError}</span>
-                  )}
-                  <button
-                    type="button"
-                    disabled={notesSaving || notesLoading}
-                    onClick={() => void handleSaveNotes()}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[12px] font-black text-white transition hover:opacity-90 disabled:opacity-55"
-                  >
-                    {notesSaving
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Save className="h-3.5 w-3.5" />}
-                    {notesSaving ? 'جارٍ الحفظ…' : 'حفظ الملاحظات'}
-                  </button>
-                </div>
-              </div>
-
-              {notesLoading ? (
-                <div className="flex items-center justify-center py-10 text-[13px] font-semibold text-[#0C2A4B]/50">
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جارٍ تحميل الملاحظات…
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => {
-                      setNotes(e.target.value)
-                      notesDirtyRef.current = true
-                    }}
-                    dir="rtl"
-                    rows={10}
-                    placeholder="دوّن أفكارك، روابط مهمة أو ما تريد متابعته قبل الجلسة القادمة..."
-                    className="w-full resize-y rounded-2xl border border-[#0C2A4B]/12 bg-slate-50/60 px-4 py-3.5 text-[13px] font-semibold text-[#0C2A4B] shadow-inner outline-none ring-1 ring-transparent transition focus:border-[#0077B6]/35 focus:ring-[#0077B6]/20"
-                  />
-                  <p className="mt-2 text-[11px] font-semibold text-[#0C2A4B]/40">
-                    ملاحظاتك خاصة ولا تظهر للمدرب أو الإدارة
-                  </p>
-                </>
-              )}
-            </div>
+            <NotesTab
+              notes={notes}
+              onChangeNotes={setNotes}
+              onSave={handleSaveNotes}
+              loading={notesLoading}
+              saving={notesSaving}
+              savedAt={notesSavedAt}
+              error={notesError}
+            />
           )}
 
-          {/* ── التقدم ──────────────────────────────────────────────────── */}
           {activeTab === 'progress' && (
-            <div className="space-y-6">
-              {/* Stats cards */}
-              <div>
-                <h2 className="mb-4 text-xl font-black text-[#0C2A4B]">تقدّمك في هذه الدورة</h2>
-                <div className="grid gap-4 md:grid-cols-3">
-                  {[
-                    {
-                      label: 'التقدّم الإجمالي',
-                      Icon: Layers,
-                      value: `${progressPct}%`,
-                      sub: totalLessons > 0 ? `${doneLessons} / ${totalLessons} درس مكتمل` : 'لا دروس مسجّلة بعد',
-                      color: 'text-[#0077B6]',
-                    },
-                    {
-                      label: 'الواجبات',
-                      Icon: ClipboardList,
-                      value: `${doneAssignments} / ${assignments.length}`,
-                      sub: assignments.length > 0 ? 'واجب تم تسليمه' : 'لا واجبات ظاهرة حتى الآن',
-                      color: 'text-[#F28C00]',
-                    },
-                    {
-                      label: 'الجلسات',
-                      Icon: Calendar,
-                      value: `${upcomingSorted.length}`,
-                      sub: upcomingSorted.length > 0
-                        ? 'جلسة قادمة أو نشطة'
-                        : `${sessionsMapped.filter((s) => s.status === 'completed').length} جلسة مكتملة`,
-                      color: 'text-emerald-600',
-                    },
-                  ].map(({ label, value, Icon, sub, color }) => (
-                    <motion.div
-                      key={label}
-                      whileHover={{ y: -2 }}
-                      className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]"
-                    >
-                      <Icon className={`mb-3 h-5 w-5 ${color}`} />
-                      <p className="text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50">{label}</p>
-                      <p className="mt-2 text-2xl font-black tabular-nums text-[#0C2A4B]">{value}</p>
-                      {sub && <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[#0C2A4B]/50">{sub}</p>}
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Instructor */}
-              {instructor && (
-                <div>
-                  <h2 className="mb-3 text-lg font-black text-[#0C2A4B]">المدرب المسؤول</h2>
-                  <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-lg font-black text-white">
-                      {instructor.charAt(0)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-black text-[#0C2A4B]">{instructor}</p>
-                      <p className="mt-0.5 text-[12px] font-semibold text-[#0C2A4B]/50">مدرب الدورة</p>
-                    </div>
-                    <Link
-                      to="/dashboard/student/sessions"
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[#0C2A4B]/12 px-4 py-2 text-[12px] font-black text-[#0C2A4B] transition hover:border-[#F28C00]/30"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      جلساتي مع المدرب
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Completion status */}
-              <div className={`rounded-3xl border p-6 ${
-                progressPct >= 100
-                  ? 'border-emerald-200/80 bg-gradient-to-bl from-emerald-50 to-teal-50/40'
-                  : progressPct > 0
-                    ? 'border-[#0077B6]/15 bg-gradient-to-bl from-blue-50/50 to-white/80'
-                    : 'border-[#0C2A4B]/[0.08] bg-white/80'
-              }`}>
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                    progressPct >= 100 ? 'bg-emerald-100 text-emerald-600'
-                    : progressPct > 0 ? 'bg-[#0077B6]/10 text-[#0077B6]'
-                    : 'bg-[#0C2A4B]/[0.06] text-[#0C2A4B]/40'
-                  }`}>
-                    {progressPct >= 100 ? <Award className="h-6 w-6" />
-                    : progressPct > 0 ? <GraduationCap className="h-6 w-6" />
-                    : <BookOpen className="h-6 w-6" />}
-                  </span>
-                  <div className="flex-1">
-                    <h3 className={`font-black ${progressPct >= 100 ? 'text-emerald-700' : 'text-[#0C2A4B]'}`}>
-                      {progressPct >= 100 ? 'أكملت الدورة بنجاح!'
-                      : progressPct > 0 ? `استمر في التعلّم — ${progressPct}% مكتمل`
-                      : 'ابدأ رحلة التعلّم'}
-                    </h3>
-                    <p className="mt-0.5 text-[12px] font-semibold text-[#0C2A4B]/50">
-                      {progressPct >= 100 ? 'يمكنك طلب شهادة إتمام الدورة من الإدارة.'
-                      : progressPct > 0 ? 'أكمل الدروس والواجبات للوصول إلى 100%.'
-                      : 'ابدأ بمراجعة الوحدات والدروس المتاحة.'}
-                    </p>
-                  </div>
-                  {progressPct >= 100 && (
-                    <Link
-                      to="/dashboard/student/certificates"
-                      className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-[12px] font-black text-white shadow-md shadow-emerald-200 transition hover:opacity-90"
-                    >
-                      <Award className="h-4 w-4" />
-                      شهاداتي
-                    </Link>
-                  )}
-                </div>
-
-                {progressPct > 0 && progressPct < 100 && (
-                  <div className="mt-4">
-                    <div className="mb-1 flex justify-between text-[11px] font-black text-[#0C2A4B]/50">
-                      <span>{progressPct}%</span>
-                      <span>100%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[#0C2A4B]/[0.06]">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-l from-[#0077B6] to-[#F28C00]"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progressPct}%` }}
-                        transition={{ duration: 1.1, ease: 'easeOut', delay: 0.2 }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ProgressTab
+              progressPct={progressPct}
+              totalLessons={totalLessons}
+              doneLessons={doneLessons}
+              doneAssignments={doneAssignments}
+              assignmentsCount={assignments.length}
+              upcomingCount={upcomingSorted.length}
+              completedSessionsCount={sessionsMapped.filter((s) => s.status === 'completed').length}
+              instructor={instructor}
+              modules={ctx.modules}
+            />
           )}
-        </motion.div>
-      </AnimatePresence>
+      </motion.div>
 
       <AssignmentSubmitModal
         assignment={activeAssignment}

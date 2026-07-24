@@ -11,6 +11,7 @@ import {
   Clock,
   MessageSquare,
   PlayCircle,
+  ShieldAlert,
   X,
 } from 'lucide-react'
 import {
@@ -26,6 +27,8 @@ import {
 } from '@/api/placementApi'
 import toast from '@/lib/toast'
 import { BackButton } from '@/components/shared/BackButton'
+import { useExamLockdown } from '@/hooks/useExamLockdown'
+import { bidiIsolateProps } from '@/utils/textDirection'
 
 function pad(n: number): string {
   return String(n).padStart(2, '0')
@@ -61,6 +64,16 @@ export default function PlacementTestPage() {
   const [submitting, setSubmitting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const submittingRef = useRef(false)
+
+  // ── Exam integrity lockdown — active only while a question is on screen ──
+  const lockdown = useExamLockdown({
+    active: phase === 'test',
+    courseId,
+    maxFullscreenExits: 3,
+    onMaxExitsReached: () => {
+      if (!submittingRef.current) void doSubmit('violations')
+    },
+  })
 
   // ── Step 1: check status on mount ───────────────────────────────
   useEffect(() => {
@@ -162,7 +175,7 @@ export default function PlacementTestPage() {
     timerRef.current = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          if (!submittingRef.current) void doSubmit(true)
+          if (!submittingRef.current) void doSubmit('timeout')
           return 0
         }
         return prev - 1
@@ -171,7 +184,7 @@ export default function PlacementTestPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [test, phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function doSubmit(auto = false) {
+  async function doSubmit(reason: 'manual' | 'timeout' | 'violations' = 'manual') {
     if (!courseId || !test || submittingRef.current) return
     submittingRef.current = true
     if (timerRef.current) clearInterval(timerRef.current)
@@ -179,7 +192,8 @@ export default function PlacementTestPage() {
     setShowConfirm(false)
     try {
       const result = await submitPlacementTest(courseId, answers)
-      if (auto) toast.warning('انتهى وقت الاختبار — تم الإرسال تلقائياً')
+      if (reason === 'timeout') toast.warning('انتهى وقت الاختبار — تم الإرسال تلقائياً')
+      else if (reason === 'violations') toast.error('تم إنهاء الاختبار تلقائياً بسبب تجاوز الحد المسموح من مخالفات الأمان.')
       else toast.success('تم تسليم الاختبار بنجاح')
       setSubmitResult(result)
       setPhase('result')
@@ -358,9 +372,24 @@ export default function PlacementTestPage() {
   const isLast = currentIdx === total - 1
 
   return (
-    <div className="min-h-screen pb-16" dir="rtl">
+    <div className="min-h-screen select-none pb-16" dir="rtl">
       {/* ── Sticky header ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-sm">
+        {!lockdown.isFullscreen && (
+          <div className="mx-auto mb-2 flex max-w-3xl items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2">
+            <div className="flex items-center gap-2 text-[11px] font-bold text-amber-700">
+              <ShieldAlert className="h-4 w-4 shrink-0" />
+              أنت خارج وضع ملء الشاشة — يُرجى العودة إليه لمتابعة الاختبار بأمان.
+            </div>
+            <button
+              type="button"
+              onClick={() => void lockdown.requestFullscreen()}
+              className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-[11px] font-black text-white transition hover:brightness-105"
+            >
+              العودة لملء الشاشة
+            </button>
+          </div>
+        )}
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-deepBlue/40">
@@ -431,7 +460,10 @@ export default function PlacementTestPage() {
             transition={{ duration: 0.2 }}
             className="rounded-3xl border border-deepBlue/[0.07] bg-white p-6 shadow-[0_8px_32px_-12px_rgba(12,42,75,0.16)] sm:p-8"
           >
-            <p className="text-[17px] font-black leading-relaxed text-deepBlue sm:text-[19px]">
+            <p
+              {...bidiIsolateProps(current.text)}
+              className="select-none text-[18px] font-semibold leading-relaxed text-deepBlue sm:text-[21px]"
+            >
               {current.text}
             </p>
 
@@ -445,7 +477,7 @@ export default function PlacementTestPage() {
                     onClick={() =>
                       setAnswers((prev) => ({ ...prev, [current.id]: opt.key }))
                     }
-                    className={`flex w-full items-center gap-4 rounded-2xl border-2 px-5 py-4 text-right transition ${
+                    className={`flex w-full select-none items-center gap-4 rounded-2xl border-2 px-5 py-4 text-right transition ${
                       selected
                         ? 'border-customBlue bg-customBlue/[0.06] shadow-md shadow-customBlue/10'
                         : 'border-slate-200 bg-white hover:border-customBlue/30 hover:bg-slate-50/80'
@@ -459,7 +491,8 @@ export default function PlacementTestPage() {
                       {opt.key}
                     </span>
                     <span
-                      className={`flex-1 text-[14px] font-semibold leading-relaxed ${
+                      {...bidiIsolateProps(opt.text)}
+                      className={`flex-1 text-[16px] font-semibold leading-relaxed ${
                         selected ? 'text-deepBlue' : 'text-deepBlue/75'
                       }`}
                     >

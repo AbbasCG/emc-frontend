@@ -43,7 +43,8 @@ export function mapCourseLearnMaterialToLmsMaterial(
   const raw = m.file_url ?? m.external_url ?? m.url ?? null
   const resolved = resolvePublicAssetUrl(raw) ?? (raw && String(raw).trim() !== '' ? String(raw).trim() : null)
   const kr = String(m.kind ?? 'other').toLowerCase()
-  const kind: LmsMaterial['kind'] = ['pdf', 'video', 'link', 'slides', 'document', 'other'].includes(kr) ? (kr as LmsMaterial['kind']) : 'other'
+  const kindNormalized = (kr === 'programming_project') ? 'zip' : kr
+  const kind: LmsMaterial['kind'] = ['pdf', 'video', 'link', 'slides', 'document', 'zip', 'other'].includes(kindNormalized) ? (kindNormalized as LmsMaterial['kind']) : 'other'
   return {
     id: m.id,
     course_id: m.course_id ?? ctx.courseId,
@@ -52,7 +53,11 @@ export function mapCourseLearnMaterialToLmsMaterial(
     url: resolved,
     description: m.description ?? null,
     course_name: ctx.courseTitle,
+    size_label: m.size_human ?? null,
     updated_at: m.updated_at ?? null,
+    original_filename: m.original_filename ?? null,
+    extension: m.extension ?? null,
+    mime_type: m.mime_type ?? null,
   }
 }
 
@@ -343,6 +348,7 @@ function normalizeLearnMaterials(rawList: unknown[]): CourseLearnMaterial[] {
       external_url: extUrl,
       url: urlLegacy ?? fileUrl ?? extUrl,
       visibility: o.visibility != null ? str(o.visibility) : undefined,
+      is_visible: o.is_visible != null ? Boolean(o.is_visible) : undefined,
       updated_at: str(o.updated_at ?? o.created_at) || undefined,
     })
   }
@@ -402,7 +408,7 @@ function normalizeLearnAssignments(rawList: unknown[]): CourseLearnAssignment[] 
 
       required: o.required !== undefined ? Boolean(o.required) : o.is_required !== undefined ? Boolean(o.is_required) : true,
 
-      visible: o.visible !== undefined ? Boolean(o.visible) : o.is_visible !== undefined ? Boolean(o.is_visible) : true,
+      visible: o.visible !== undefined ? Boolean(o.visible) : o.is_visible != null ? Boolean(o.is_visible) : true,
       status: str(o.status) || (mySub?.status != null ? str(mySub.status) : undefined),
 
       score,
@@ -509,6 +515,30 @@ export type CourseCmsContentBundle = {
   assignments: CourseLearnAssignment[]
 }
 
+/**
+ * The `/content` payload's flat `sessions`/`materials`/`assignments` lists only
+ * contain course-level items (module_id = null) — the CMS tabs are meant to
+ * browse *all* content though, so module-nested items are merged in here
+ * (deduped by id) while staying nested under their module too.
+ */
+function mergeModuleNestedById<T extends { id: number }>(
+  flat: T[],
+  modules: StudentLearnModule[],
+  pick: (m: StudentLearnModule) => T[] | undefined,
+): T[] {
+  const merged = [...flat]
+  const seenIds = new Set(flat.map((item) => item.id))
+  for (const mod of modules) {
+    for (const item of pick(mod) ?? []) {
+      if (!seenIds.has(item.id)) {
+        merged.push(item)
+        seenIds.add(item.id)
+      }
+    }
+  }
+  return merged
+}
+
 function normalizeCourseCmsContentEnvelope(payload: unknown, courseIdFallback: number): CourseCmsContentBundle {
   const wrapped = unwrapData<unknown>(payload)
   let root: Record<string, unknown> =
@@ -538,12 +568,16 @@ function normalizeCourseCmsContentEnvelope(payload: unknown, courseIdFallback: n
     course_id: m.course_id && m.course_id > 0 ? m.course_id : courseIdFallback,
   }))
 
+  const sessions = normalizeLearnSessions(firstArray(root, ['sessions', 'learn_sessions', 'course_sessions']))
+  const materials = normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents']))
+  const assignments = normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework']))
+
   return {
     course: courseOv,
     modules,
-    sessions: normalizeLearnSessions(firstArray(root, ['sessions', 'learn_sessions', 'course_sessions'])),
-    materials: normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents'])),
-    assignments: normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework'])),
+    sessions: mergeModuleNestedById(sessions, modules, (m) => m.sessions),
+    materials: mergeModuleNestedById(materials, modules, (m) => m.materials),
+    assignments: mergeModuleNestedById(assignments, modules, (m) => m.assignments),
   }
 }
 
@@ -783,7 +817,7 @@ export async function adminUpdateCourseMaterial(courseId: number, materialId: nu
   logLmsApiRequest('PUT', url, body)
   const res =
     body instanceof FormData ?
-      await apiClient.put<unknown>(url, body, {
+      await apiClient.post<unknown>(`${url}?_method=PATCH`, body, {
         ...silentLms,
         headers: { 'Content-Type': 'multipart/form-data' },
       })

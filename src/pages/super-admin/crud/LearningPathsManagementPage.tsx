@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
@@ -24,6 +24,9 @@ import {
   Mail,
   Phone,
   ChevronRight,
+  Archive,
+  Globe,
+  PauseCircle,
 } from 'lucide-react'
 import {
   fetchAdminLearningPaths,
@@ -32,6 +35,7 @@ import {
   createLearningPath,
   updateLearningPath,
   deleteLearningPath,
+  updateLearningPathStatus,
   fetchInstructorOptions,
   type LearningPath,
   type LearningPathStudent,
@@ -39,6 +43,12 @@ import {
 } from '../../../api/learningPathsApi'
 import CourseSelector from '../../../components/learning-paths/CourseSelector'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import type { Course } from '@/types'
+import { formatEuro } from '@/utils/currency'
+
+const CourseProgramFormModal = lazy(() =>
+  import('./programs/CourseProgramFormModal').then((m) => ({ default: m.CourseProgramFormModal })),
+)
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,7 +64,7 @@ function enPrice(n: number | string | null | undefined): string {
   if (n == null) return '—'
   const num = typeof n === 'number' ? n : Number(n)
   if (!Number.isFinite(num)) return '—'
-  return '€' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num)
+  return formatEuro(num, { locale: 'nl-NL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -262,6 +272,83 @@ function DeleteModal({
   )
 }
 
+// ─── Status Confirm Modal ─────────────────────────────────────────────────────
+
+type StatusAction = 'published' | 'draft' | 'archived'
+
+function StatusModal({
+  path,
+  action,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  path: LearningPath
+  action: StatusAction
+  onConfirm: () => void
+  onCancel: () => void
+  loading: boolean
+}) {
+  const config: Record<StatusAction, { title: string; desc: string; icon: React.ReactNode; btnCls: string; btnLabel: string }> = {
+    published: {
+      title:    'نشر المسار التعليمي',
+      desc:     `سيصبح المسار "${path.title}" مرئياً للطلاب بعد النشر.`,
+      icon:     <Globe className="h-7 w-7 text-emerald-500" />,
+      btnCls:   'bg-emerald-500 hover:bg-emerald-600',
+      btnLabel: 'نشر',
+    },
+    draft: {
+      title:    'إلغاء نشر المسار',
+      desc:     `سيتم إخفاء المسار "${path.title}" عن الطلاب وتحويله إلى مسودة.`,
+      icon:     <PauseCircle className="h-7 w-7 text-slate-500" />,
+      btnCls:   'bg-slate-600 hover:bg-slate-700',
+      btnLabel: 'إلغاء النشر',
+    },
+    archived: {
+      title:    'أرشفة المسار التعليمي',
+      desc:     `سيتم أرشفة المسار "${path.title}". يمكنك إعادة نشره لاحقاً.`,
+      icon:     <Archive className="h-7 w-7 text-amber-500" />,
+      btnCls:   'bg-amber-500 hover:bg-amber-600',
+      btnLabel: 'أرشفة',
+    },
+  }
+
+  const c = config[action]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl"
+        dir="rtl"
+      >
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">
+          {c.icon}
+        </div>
+        <h3 className="mb-2 text-xl font-black text-slate-800">{c.title}</h3>
+        <p className="mb-6 text-sm text-slate-500">{c.desc}</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          >
+            إلغاء
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-white transition disabled:opacity-60 ${c.btnCls}`}
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {c.btnLabel}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 // ─── Form Modal ───────────────────────────────────────────────────────────────
 
 type FormStep = 1 | 2 | 3 | 4
@@ -430,16 +517,18 @@ function FormModal({
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-3xl rounded-3xl bg-white shadow-2xl"
+        transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+        className="flex w-full max-w-3xl flex-col rounded-3xl bg-white shadow-2xl"
+        style={{ maxHeight: 'min(90vh, 820px)' }}
         dir="rtl"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 p-6">
-          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100">
+        {/* Header — sticky */}
+        <div className="shrink-0 flex items-center justify-between border-b border-slate-100 px-6 py-5">
+          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="h-5 w-5" />
           </button>
           <h2 className="text-xl font-black text-slate-800">
@@ -447,8 +536,8 @@ function FormModal({
           </h2>
         </div>
 
-        {/* Step tabs */}
-        <div className="flex border-b border-slate-100 px-6">
+        {/* Step tabs — sticky */}
+        <div className="shrink-0 flex border-b border-slate-100 px-6 bg-white">
           {steps.map((s) => (
             <button
               key={s.num}
@@ -472,7 +561,8 @@ function FormModal({
           ))}
         </div>
 
-        {/* Step content */}
+        {/* Step content — scrollable */}
+        <div className="flex-1 overflow-y-auto">
         <div className="space-y-5 p-6">
           {/* Step 1 — Basic info + Instructor */}
           {step === 1 && (
@@ -843,9 +933,10 @@ function FormModal({
             </div>
           )}
         </div>
+        </div>{/* end scrollable content */}
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 p-6">
+        <div className="shrink-0 flex items-center justify-between border-t border-slate-100 p-6">
           <div className="flex gap-3">
             {step > 1 && (
               <button
@@ -901,11 +992,14 @@ export default function LearningPathsManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState<LearningPath | null>(null)
   const [deleting, setDeleting]     = useState(false)
   const [toast, setToast]           = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [statusTarget, setStatusTarget] = useState<{ path: LearningPath; action: StatusAction } | null>(null)
+  const [statusLoading, setStatusLoading] = useState(false)
   const [detailPath, setDetailPath] = useState<LearningPath | null>(null)
   const [detailStudents, setDetailStudents] = useState<LearningPathStudent[]>([])
   const [detailCounts, setDetailCounts] = useState({ courses: 0, students: 0, active_students: 0, completed_students: 0 })
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailTab, setDetailTab]   = useState<'overview' | 'courses' | 'students'>('overview')
+  const [editCourse, setEditCourse] = useState<Course | null>(null)
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type })
@@ -945,6 +1039,26 @@ export default function LearningPathsManagementPage() {
       showToast('فشل حذف المسار', 'error')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleStatusChange = async () => {
+    if (!statusTarget) return
+    setStatusLoading(true)
+    try {
+      await updateLearningPathStatus(statusTarget.path.id, statusTarget.action)
+      const labels: Record<StatusAction, string> = {
+        published: 'تم نشر المسار بنجاح',
+        draft:     'تم إلغاء نشر المسار',
+        archived:  'تم أرشفة المسار',
+      }
+      showToast(labels[statusTarget.action])
+      setStatusTarget(null)
+      load()
+    } catch {
+      showToast('فشل تغيير حالة المسار', 'error')
+    } finally {
+      setStatusLoading(false)
     }
   }
 
@@ -1179,7 +1293,7 @@ export default function LearningPathsManagementPage() {
 
                     {/* Actions — stopPropagation prevents row click */}
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => { e.stopPropagation(); void openDetail(p) }}
                           className="rounded-xl p-2 text-slate-400 transition hover:bg-[#0077B6]/10 hover:text-[#0077B6]"
@@ -1194,6 +1308,33 @@ export default function LearningPathsManagementPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
+                        {p.status !== 'published' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusTarget({ path: p, action: 'published' }) }}
+                            className="rounded-xl p-2 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600"
+                            title="نشر"
+                          >
+                            <Globe className="h-4 w-4" />
+                          </button>
+                        )}
+                        {p.status === 'published' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusTarget({ path: p, action: 'draft' }) }}
+                            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            title="إلغاء النشر"
+                          >
+                            <PauseCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                        {p.status !== 'archived' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusTarget({ path: p, action: 'archived' }) }}
+                            className="rounded-xl p-2 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600"
+                            title="أرشفة"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); setDeleteTarget(p) }}
                           className="rounded-xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
@@ -1261,6 +1402,15 @@ export default function LearningPathsManagementPage() {
             deleting={deleting}
           />
         )}
+        {statusTarget && (
+          <StatusModal
+            path={statusTarget.path}
+            action={statusTarget.action}
+            onConfirm={() => void handleStatusChange()}
+            onCancel={() => setStatusTarget(null)}
+            loading={statusLoading}
+          />
+        )}
       </AnimatePresence>
 
       {/* Learning Path Detail Drawer */}
@@ -1275,9 +1425,27 @@ export default function LearningPathsManagementPage() {
             onTabChange={setDetailTab}
             onClose={() => { setDetailPath(null); setDetailStudents([]); setDetailCounts({ courses: 0, students: 0, active_students: 0, completed_students: 0 }) }}
             onEdit={() => { setDetailPath(null); void openEdit(detailPath) }}
+            onEditCourse={(course) => setEditCourse(course)}
           />
         )}
       </AnimatePresence>
+
+      <Suspense fallback={null}>
+        <CourseProgramFormModal
+          open={editCourse !== null}
+          initial={editCourse}
+          tracks={[]}
+          departments={[]}
+          learningPaths={[]}
+          existingCourses={[]}
+          onClose={() => setEditCourse(null)}
+          onSaved={() => {
+            setEditCourse(null)
+            if (detailPath) void openDetail(detailPath, detailTab)
+          }}
+          onCreateAnother={() => {}}
+        />
+      </Suspense>
     </div>
   )
 }
@@ -1311,7 +1479,7 @@ function ProgressBar({ pct }: { pct: number }) {
 }
 
 function LearningPathDetailDrawer({
-  path, students, counts, loading, tab, onTabChange, onClose, onEdit,
+  path, students, counts, loading, tab, onTabChange, onClose, onEdit, onEditCourse,
 }: {
   path: LearningPath
   students: LearningPathStudent[]
@@ -1321,6 +1489,7 @@ function LearningPathDetailDrawer({
   onTabChange: (t: 'overview' | 'courses' | 'students') => void
   onClose: () => void
   onEdit: () => void
+  onEditCourse?: (course: Course) => void
 }) {
   const TABS = [
     { id: 'overview' as const,  label: 'نظرة عامة' },
@@ -1333,7 +1502,7 @@ function LearningPathDetailDrawer({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] flex justify-end bg-black/40 backdrop-blur-sm"
+      className="fixed inset-x-0 bottom-0 top-16 z-[60] flex justify-end bg-black/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -1490,6 +1659,16 @@ function LearningPathDetailDrawer({
                           {c.level}
                         </span>
                       )}
+                      {onEditCourse && (
+                        <button
+                          type="button"
+                          onClick={() => onEditCourse(c as unknown as Course)}
+                          className="shrink-0 rounded-lg bg-[#0077B6]/10 p-1.5 text-[#0077B6] hover:bg-[#0077B6]/20 transition"
+                          title="تعديل الدورة"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1522,7 +1701,7 @@ function LearningPathDetailDrawer({
                               </div>
                               <div className="min-w-0">
                                 <p className="truncate font-black text-[#0C2A4B]">{s.name}</p>
-                                <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500 dir-ltr">
+                                <p className="flex items-center gap-1 truncate text-[10px] font-semibold text-slate-500">
                                   <Mail className="h-3 w-3 shrink-0" /> {s.email}
                                 </p>
                                 {s.phone && (

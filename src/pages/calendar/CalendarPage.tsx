@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import {
   X, Plus, CalendarClock, MapPin, Loader2,
@@ -100,7 +101,7 @@ function EventDrawer({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-      className="fixed inset-y-0 left-0 z-50 flex w-full max-w-md flex-col border-r border-slate-100 bg-white shadow-2xl"
+      className="fixed inset-y-0 left-0 z-modal-content flex w-full max-w-md flex-col border-r border-slate-100 bg-white shadow-2xl sm:max-w-sm md:max-w-md"
       dir="rtl"
     >
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -496,6 +497,22 @@ export default function CalendarPage() {
     }
   }
 
+  // Body scroll lock when event drawer is open
+  useEffect(() => {
+    if (!selected) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [selected])
+
+  // Escape key closes event drawer
+  useEffect(() => {
+    if (!selected) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelected(null) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [selected])
+
   const showCreateBtn = canCreateEvent(user?.role)
   const activeFilterLabel = filterTypeLabel(filter)
 
@@ -643,20 +660,23 @@ export default function CalendarPage() {
         )}
       </div>
 
-      <AnimatePresence>
-        {selected && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/20"
-              onClick={() => setSelected(null)}
-            />
-            <EventDrawer event={selected} role={user?.role} onClose={() => setSelected(null)} />
-          </>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {selected && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-modal-overlay bg-black/30"
+                onClick={() => setSelected(null)}
+              />
+              <EventDrawer event={selected} role={user?.role} onClose={() => setSelected(null)} />
+            </>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
 
       <AnimatePresence>
         {showCreate && (

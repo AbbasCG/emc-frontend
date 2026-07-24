@@ -1,5 +1,6 @@
 import apiClient from '@/api/axios'
 import { unwrapData } from '@/api/unwrap'
+import { normalizePublicCertificateName } from '@/utils/programCertificateAvailability'
 
 const silent = { skipErrorToast: true as const }
 
@@ -39,6 +40,11 @@ export type WorkshopsQuery = {
   search?: string
   location_type?: 'all' | 'online' | 'offline' | 'hybrid'
   status?: string
+  instructor_id?: number | null
+  department_id?: number | null
+  date_from?: string | null
+  date_to?: string | null
+  price_type?: 'all' | 'free' | 'paid'
 }
 
 export type WorkshopsPageResult = {
@@ -126,7 +132,9 @@ function normalizeWorkshopRow(raw: unknown): PublicWorkshop | null {
     seats_total: totalSpots,
     seats_remaining: remaining,
     duration_hours: toNum(o.duration_hours ?? o.hours ?? o.duration),
-    certificate_name: pickStr(o.certificate_name, o.certificate, course?.certificate_name),
+    certificate_name: normalizePublicCertificateName(
+      pickStr(o.certificate_name, o.certificate, course?.certificate_name, course?.certificate),
+    ),
     cover_image: pickStr(
       o.cover_image,
       o.image_url,
@@ -187,6 +195,11 @@ export async function fetchPublicWorkshopsPage(q: WorkshopsQuery = {}): Promise<
   }
   if (q.search?.trim()) params.search = q.search.trim()
   if (q.status?.trim()) params.status = q.status.trim()
+  if (q.instructor_id) params.instructor_id = q.instructor_id
+  if (q.department_id) params.department_id = q.department_id
+  if (q.date_from?.trim()) params.date_from = q.date_from.trim()
+  if (q.date_to?.trim()) params.date_to = q.date_to.trim()
+  if (q.price_type && q.price_type !== 'all') params.price_type = q.price_type
 
   try {
     const res = await apiClient.get<unknown>('/workshops', { ...silent, params })

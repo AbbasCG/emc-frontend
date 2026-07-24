@@ -5,9 +5,11 @@ export default function FinanceSubnav() {
   const { pathname } = useLocation()
   const base = financeSectionBase(pathname)
   const links = [
-    { to: base, label: 'لوحة المالية', end: true },
-    { to: `${base}/payments`, label: 'المدفوعات' },
-    { to: `${base}/transactions`, label: 'المعاملات' },
+    { to: base,                       label: 'لوحة المالية', end: true },
+    { to: `${base}/payments`,         label: 'المدفوعات' },
+    { to: `${base}/orders`,           label: 'الطلبات' },
+    { to: `${base}/invoices`,         label: 'الفواتير' },
+    { to: `${base}/transactions`,     label: 'المعاملات' },
   ]
 
   return (

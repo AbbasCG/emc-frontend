@@ -1,23 +1,25 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   Briefcase,
   Calendar,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Clock,
   HeartHandshake,
-  Loader2,
   RefreshCw,
   Search,
   Users,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import {
-  convertVolunteerToMember,
   fetchVolunteerRequests,
+  type FetchVolunteerRequestsResult,
   type VolunteerRequest,
+  type VolunteerRequestsPagination,
+  type VolunteerRequestsStatistics,
   type VolunteerRequestStatus,
 } from '@/api/volunteerApplicationApi'
 import VolunteerRequestDetailModal, { STATUS_CFG } from '@/components/volunteer/VolunteerRequestDetailModal'
@@ -25,7 +27,15 @@ import { formatDate } from '@/utils/dateTime'
 
 /* ── Status config (table badges) ──────────────────────────────────── */
 
-const ALL_STATUSES: VolunteerRequestStatus[] = ['pending', 'reviewed', 'accepted', 'rejected', 'contacted']
+const ALL_STATUSES: VolunteerRequestStatus[] = [
+  'pending',
+  'reviewing',
+  'reviewed',
+  'accepted',
+  'rejected',
+  'contacted',
+  'converted_to_member',
+]
 
 const DEPARTMENTS = [
   'البرامج والمسارات',
@@ -49,85 +59,96 @@ function StatusBadge({ status }: { status: VolunteerRequestStatus }) {
   )
 }
 
-function isAlreadyConverted(r: VolunteerRequest): boolean {
-  return r.can_convert_to_member !== true || r.converted_member_id !== null
-}
+/* ── Pagination bar ─────────────────────────────────────────────────── */
 
-/* ── Convert-to-member confirmation modal ─────────────────────────── */
+function PaginationBar({
+  meta,
+  onPage,
+  loading,
+}: {
+  meta: VolunteerRequestsPagination
+  onPage: (p: number) => void
+  loading: boolean
+}) {
+  if (meta.last_page <= 1) return null
 
-type ConvertModalProps = {
-  req: VolunteerRequest
-  onClose: () => void
-  onConverted: (updated: VolunteerRequest) => void
-}
+  const { current_page: cur, last_page: last, from, to, total } = meta
+  const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n)
 
-function ConvertToMemberModal({ req, onClose, onConverted }: ConvertModalProps) {
-  const [loading, setLoading] = useState(false)
-
-  async function handleConfirm() {
-    setLoading(true)
-    try {
-      const updated = await convertVolunteerToMember(req.id)
-      toast.success('تمت إضافة المتطوع إلى الأعضاء بنجاح')
-      onConverted(updated)
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 409 || status === 422) {
-        toast.warning('هذا المتطوع مضاف بالفعل إلى الأعضاء')
-        onClose()
-      } else {
-        toast.error('تعذّر تحويل المتطوع. تحقق من الاتصال وأعد المحاولة.')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Build page range: always show first, last, current ±1, with ellipsis
+  const pages: (number | '…')[] = []
+  const add = (p: number) => { if (!pages.includes(p)) pages.push(p) }
+  add(1)
+  if (cur > 3) pages.push('…')
+  for (let p = Math.max(2, cur - 1); p <= Math.min(last - 1, cur + 1); p++) add(p)
+  if (cur < last - 2) pages.push('…')
+  if (last > 1) add(last)
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 backdrop-blur-[2px]"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        dir="rtl"
-      >
-        <div className="h-1 bg-gradient-to-l from-emerald-500 to-teal-400" />
-        <div className="px-7 py-6 text-right">
-          <h2 className="text-[18px] font-black text-[#0C2A4B]">تحويل المتطوع إلى عضو</h2>
-          <p className="mt-3 text-[14px] font-semibold leading-relaxed text-slate-600">
-            <span className="font-black text-[#0C2A4B]">{req.full_name}</span> — هل تريد نقل بياناته إلى صفحة الأعضاء؟
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
+    <div className="flex flex-col items-center gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-4 sm:flex-row sm:justify-between">
+      <p className="text-[11px] font-semibold text-slate-400">
+        عرض {fmt(from)}–{fmt(to)} من أصل {fmt(total)} طلبًا
+      </p>
+
+      <div className="flex items-center gap-1" dir="ltr">
+        {/* Previous */}
+        <button
+          type="button"
+          disabled={cur === 1 || loading}
+          onClick={() => onPage(cur - 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-[#0077B6]/40 hover:bg-[#0077B6]/[0.06] disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="السابق"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+
+        {/* Page numbers */}
+        {pages.map((p, i) =>
+          p === '…' ? (
+            <span key={`ell-${String(i)}`} className="flex h-8 w-8 items-center justify-center text-[12px] text-slate-400">
+              …
+            </span>
+          ) : (
             <button
+              key={p}
               type="button"
-              onClick={() => void handleConfirm()}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-[14px] font-black text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700 disabled:opacity-50"
+              onClick={() => p !== cur && onPage(p as number)}
+              className={`flex h-8 min-w-[2rem] items-center justify-center rounded-lg border px-2 text-[12px] font-black transition ${
+                p === cur
+                  ? 'border-[#0C2A4B] bg-[#0C2A4B] text-white shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/40 hover:bg-[#0077B6]/[0.06]'
+              } disabled:cursor-not-allowed`}
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              نعم، إضافة إلى الأعضاء
+              {p}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="w-full rounded-2xl border border-slate-200 py-3 text-[13px] font-black text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
-            >
-              لا، لاحقًا
-            </button>
-          </div>
-        </div>
-      </motion.div>
+          ),
+        )}
+
+        {/* Next */}
+        <button
+          type="button"
+          disabled={cur === last || loading}
+          onClick={() => onPage(cur + 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-[#0077B6]/40 hover:bg-[#0077B6]/[0.06] disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="التالي"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   )
+}
+
+/* ── Defaults ───────────────────────────────────────────────────────── */
+
+const EMPTY_META: VolunteerRequestsPagination = {
+  current_page: 1, last_page: 1, per_page: 20, total: 0, from: 1, to: 0,
+}
+
+const EMPTY_STATS: VolunteerRequestsStatistics = {
+  total: 0, pending: 0, reviewing: 0, reviewed: 0,
+  accepted: 0, rejected: 0, contacted: 0, converted_to_member: 0,
 }
 
 /* ── Main page ─────────────────────────────────────────────────────── */
@@ -136,24 +157,51 @@ export default function VolunteerRequestsPage() {
   const { id: routeId } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const tableRef = useRef<HTMLDivElement>(null)
 
   const [items, setItems] = useState<VolunteerRequest[]>([])
+  const [meta, setMeta] = useState<VolunteerRequestsPagination>(EMPTY_META)
+  const [stats, setStats] = useState<VolunteerRequestsStatistics>(EMPTY_STATS)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Filters — all sent to server
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<VolunteerRequestStatus | 'all'>('all')
   const [filterDept, setFilterDept] = useState<string>(() => searchParams.get('department') ?? 'all')
-  const [selected, setSelected] = useState<VolunteerRequest | null>(null)
-  const [convertTarget, setConvertTarget] = useState<VolunteerRequest | null>(null)
+  const [page, setPage] = useState(1)
 
-  async function load() {
-    setLoadError(null)
+  // Debounced search value
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 350)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [search])
+
+  const [selected, setSelected] = useState<VolunteerRequest | null>(null)
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setPage(1) }, [debouncedSearch, filterStatus, filterDept])
+
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoadError(null)
     setLoading(true)
     try {
-      const data = await fetchVolunteerRequests()
-      setItems(data)
-      if (routeId) {
-        const match = data.find((r) => String(r.id) === routeId)
+      const result: FetchVolunteerRequestsResult = await fetchVolunteerRequests({
+        page,
+        per_page: 20,
+        status: filterStatus !== 'all' ? filterStatus : undefined,
+        search: debouncedSearch || undefined,
+        desired_department: filterDept !== 'all' ? filterDept : undefined,
+      })
+      setItems(result.data)
+      setMeta(result.meta)
+      setStats(result.statistics)
+
+      if (routeId && result.data.length) {
+        const match = result.data.find((r) => String(r.id) === routeId)
         if (match) setSelected(match)
       }
     } catch {
@@ -161,23 +209,28 @@ export default function VolunteerRequestsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, debouncedSearch, filterStatus, filterDept, routeId])
 
   useEffect(() => {
     void load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [load])
+
+  function handlePageChange(p: number) {
+    setPage(p)
+    // Scroll to table top (not window top)
+    setTimeout(() => {
+      tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
 
   function handleUpdated(updated: VolunteerRequest) {
     setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
     setSelected((prev) => (prev?.id === updated.id ? updated : prev))
-    if (updated.status === 'accepted' && !isAlreadyConverted(updated)) {
-      setConvertTarget(updated)
+    if (updated.status === 'accepted') {
+      toast.success('تم قبول طلب التطوع ونقله إلى قائمة المتطوعين المقبولين.')
     }
-  }
-
-  function handleConverted(updated: VolunteerRequest) {
-    setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-    setConvertTarget(null)
+    // Reload to get fresh statistics
+    void load(true)
   }
 
   function handleClose() {
@@ -185,37 +238,16 @@ export default function VolunteerRequestsPage() {
     if (routeId) navigate('/dashboard/super-admin/volunteer-requests', { replace: true })
   }
 
-  function openRow(r: VolunteerRequest) {
-    setSelected(r)
-  }
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return items.filter((r) => {
-      if (filterStatus !== 'all' && r.status !== filterStatus) return false
-      if (filterDept !== 'all' && r.desired_department !== filterDept) return false
-      if (q) {
-        const hay = `${r.full_name} ${r.email} ${r.phone ?? ''} ${r.city ?? ''} ${r.desired_department ?? ''}`.toLowerCase()
-        if (!hay.includes(q)) return false
-      }
-      return true
-    })
-  }, [items, filterStatus, filterDept, search])
-
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: items.length }
-    for (const s of ALL_STATUSES) c[s] = items.filter((r) => r.status === s).length
-    return c
-  }, [items])
-
   const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n)
 
-  const kpiIcons: Record<VolunteerRequestStatus, React.ReactNode> = {
-    pending: <Clock className="h-4 w-4 text-amber-500" />,
-    reviewed: <Clock className="h-4 w-4 text-sky-500" />,
-    accepted: <Users className="h-4 w-4 text-emerald-500" />,
-    rejected: <Clock className="h-4 w-4 text-red-500" />,
-    contacted: <Clock className="h-4 w-4 text-violet-500" />,
+  const kpiIcons: Partial<Record<VolunteerRequestStatus, React.ReactNode>> = {
+    pending:             <Clock className="h-4 w-4 text-amber-500" />,
+    reviewing:           <Clock className="h-4 w-4 text-orange-500" />,
+    reviewed:            <Clock className="h-4 w-4 text-sky-500" />,
+    accepted:            <Users className="h-4 w-4 text-emerald-500" />,
+    rejected:            <Clock className="h-4 w-4 text-red-500" />,
+    contacted:           <Clock className="h-4 w-4 text-violet-500" />,
+    converted_to_member: <Users className="h-4 w-4 text-teal-500" />,
   }
 
   return (
@@ -234,7 +266,7 @@ export default function VolunteerRequestsPage() {
             </div>
             <h1 className="text-[24px] font-black text-white">طلبات التطوع</h1>
             <p className="mt-1.5 text-[13px] font-semibold text-white/60">
-              {loading ? 'جاري التحميل...' : `${fmt(items.length)} طلب مستلم`}
+              {loading ? 'جاري التحميل...' : `${fmt(stats.total)} طلب مستلم`}
             </p>
           </div>
           <button
@@ -249,8 +281,9 @@ export default function VolunteerRequestsPage() {
         </div>
       </div>
 
-      {/* ── KPI Cards ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {/* ── KPI Cards — from server statistics ─────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
+        {/* All */}
         <button
           type="button"
           onClick={() => setFilterStatus('all')}
@@ -264,14 +297,16 @@ export default function VolunteerRequestsPage() {
             <Users className={`h-4 w-4 ${filterStatus === 'all' ? 'text-white' : 'text-[#0C2A4B]/60'}`} />
           </div>
           <p className={`text-[20px] font-black tabular-nums ${filterStatus === 'all' ? 'text-white' : 'text-[#0C2A4B]'}`} dir="ltr">
-            {fmt(counts.all)}
+            {fmt(stats.total)}
           </p>
           <p className={`text-[10px] font-black ${filterStatus === 'all' ? 'text-white/70' : 'text-slate-400'}`}>الكل</p>
         </button>
 
+        {/* Per-status cards */}
         {ALL_STATUSES.map((s) => {
           const cfg = STATUS_CFG[s]
           const active = filterStatus === s
+          const count = stats[s as keyof VolunteerRequestsStatistics] as number
           return (
             <button
               key={s}
@@ -285,7 +320,7 @@ export default function VolunteerRequestsPage() {
                 {kpiIcons[s]}
               </div>
               <p className="text-[20px] font-black tabular-nums" dir="ltr">
-                {fmt(counts[s] ?? 0)}
+                {fmt(count)}
               </p>
               <p className={`text-[10px] font-black ${active ? '' : 'text-slate-400'}`}>{cfg.label}</p>
             </button>
@@ -301,7 +336,7 @@ export default function VolunteerRequestsPage() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث بالاسم أو البريد أو المدينة..."
+            placeholder="بحث بالاسم أو البريد أو الجوال..."
             dir="rtl"
             aria-label="بحث في طلبات التطوع"
             className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-4 text-[13px] font-semibold text-[#0C2A4B] outline-none placeholder:text-slate-400 focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
@@ -317,9 +352,7 @@ export default function VolunteerRequestsPage() {
           >
             <option value="all">كل الأقسام</option>
             {DEPARTMENTS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
+              <option key={d} value={d}>{d}</option>
             ))}
           </select>
           <ChevronDown className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -335,112 +368,109 @@ export default function VolunteerRequestsPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="space-y-2.5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={String(i)} className="h-14 animate-pulse rounded-2xl bg-slate-100" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-50">
-            <HeartHandshake className="h-8 w-8 text-slate-300" />
+      {/* ── Table ───────────────────────────────────────────────────── */}
+      <div ref={tableRef}>
+        {loading ? (
+          <div className="space-y-2.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={String(i)} className="h-14 animate-pulse rounded-2xl bg-slate-100" />
+            ))}
           </div>
-          <p className="font-black text-[#0C2A4B]">لا توجد طلبات</p>
-          <p className="mt-1 text-[13px] text-slate-400">
-            {search || filterStatus !== 'all' || filterDept !== 'all'
-              ? 'لا نتائج تطابق الفلتر الحالي.'
-              : 'لم يتم استلام أي طلبات تطوع بعد.'}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-lg ring-1 ring-[#0C2A4B]/[0.04]">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right">
-              <thead>
-                <tr className="border-b border-slate-100 bg-gradient-to-l from-slate-50 to-slate-50/50">
-                  {['#', 'الاسم', 'البريد', 'الجوال', 'القسم', 'التوفر', 'الحالة', 'تاريخ التقديم'].map((h) => (
-                    <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-[#0C2A4B]/40">
-                      {h}
-                    </th>
-                  ))}
-                  <th className="px-5 py-3.5" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filtered.map((r, idx) => (
-                  <motion.tr
-                    key={r.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.18, delay: Math.min(idx * 0.03, 0.3) }}
-                    className="group cursor-pointer transition-colors hover:bg-[#0077B6]/[0.03]"
-                    onClick={() => openRow(r)}
-                  >
-                    <td className="px-5 py-4 text-[11px] font-black text-[#0C2A4B]/30 tabular-nums" dir="ltr">
-                      {fmt(r.id)}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[12px] font-black text-white">
-                          {r.full_name.charAt(0)}
-                        </div>
-                        <span className="text-[13px] font-black text-[#0C2A4B]">{r.full_name}</span>
-                      </div>
-                    </td>
-                    <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 md:table-cell" dir="ltr">
-                      {r.email}
-                    </td>
-                    <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 lg:table-cell" dir="ltr">
-                      {r.phone ?? '—'}
-                    </td>
-                    <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-600 xl:table-cell">
-                      <span className="inline-flex items-center gap-1">
-                        <Briefcase className="h-3 w-3 text-slate-300" />
-                        {r.desired_department ?? '—'}
-                      </span>
-                    </td>
-                    <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 xl:table-cell">
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-slate-300" />
-                        {r.availability ?? '—'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <StatusBadge status={r.status} />
-                    </td>
-                    <td className="hidden px-5 py-4 text-[11px] font-semibold text-slate-400 tabular-nums sm:table-cell">
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-slate-300" />
-                        {r.created_at ? formatDate(r.created_at) : '—'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openRow(r)
-                        }}
-                        className="inline-flex items-center gap-1 rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-3 py-1.5 text-[10px] font-black text-[#0077B6] opacity-0 transition group-hover:opacity-100 hover:bg-[#0077B6]/[0.12]"
-                      >
-                        مراجعة
-                        <ChevronLeft className="h-3 w-3" />
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3">
-            <p className="text-[11px] font-semibold text-slate-400">
-              {fmt(filtered.length)} طلب من أصل {fmt(items.length)}
+        ) : items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-50">
+              <HeartHandshake className="h-8 w-8 text-slate-300" />
+            </div>
+            <p className="font-black text-[#0C2A4B]">لا توجد طلبات</p>
+            <p className="mt-1 text-[13px] text-slate-400">
+              {search || filterStatus !== 'all' || filterDept !== 'all'
+                ? 'لا نتائج تطابق الفلتر الحالي.'
+                : 'لم يتم استلام أي طلبات تطوع بعد.'}
             </p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/[0.07] bg-white shadow-lg ring-1 ring-[#0C2A4B]/[0.04]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-right">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-gradient-to-l from-slate-50 to-slate-50/50">
+                    {['#', 'الاسم', 'البريد', 'الجوال', 'القسم', 'التوفر', 'الحالة', 'تاريخ التقديم'].map((h) => (
+                      <th key={h} className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-[#0C2A4B]/40">
+                        {h}
+                      </th>
+                    ))}
+                    <th className="px-5 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {items.map((r, idx) => (
+                    <motion.tr
+                      key={r.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.18, delay: Math.min(idx * 0.03, 0.3) }}
+                      className="group cursor-pointer transition-colors hover:bg-[#0077B6]/[0.03]"
+                      onClick={() => setSelected(r)}
+                    >
+                      <td className="px-5 py-4 text-[11px] font-black text-[#0C2A4B]/30 tabular-nums" dir="ltr">
+                        {fmt(r.id)}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] text-[12px] font-black text-white">
+                            {r.full_name.charAt(0)}
+                          </div>
+                          <span className="text-[13px] font-black text-[#0C2A4B]">{r.full_name}</span>
+                        </div>
+                      </td>
+                      <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 md:table-cell" dir="ltr">
+                        {r.email}
+                      </td>
+                      <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 lg:table-cell" dir="ltr">
+                        {r.phone ?? '—'}
+                      </td>
+                      <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-600 xl:table-cell">
+                        <span className="inline-flex items-center gap-1">
+                          <Briefcase className="h-3 w-3 text-slate-300" />
+                          {r.desired_department ?? '—'}
+                        </span>
+                      </td>
+                      <td className="hidden px-5 py-4 text-[12px] font-semibold text-slate-500 xl:table-cell">
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-slate-300" />
+                          {r.availability ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge status={r.status} />
+                      </td>
+                      <td className="hidden px-5 py-4 text-[11px] font-semibold text-slate-400 tabular-nums sm:table-cell">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar className="h-3 w-3 text-slate-300" />
+                          {r.created_at ? formatDate(r.created_at) : '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setSelected(r) }}
+                          className="inline-flex items-center gap-1 rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-3 py-1.5 text-[10px] font-black text-[#0077B6] opacity-0 transition group-hover:opacity-100 hover:bg-[#0077B6]/[0.12]"
+                        >
+                          مراجعة
+                          <ChevronLeft className="h-3 w-3" />
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Pagination ─────────────────────────────────────────── */}
+            <PaginationBar meta={meta} onPage={handlePageChange} loading={loading} />
+          </div>
+        )}
+      </div>
 
       <AnimatePresence>
         {selected && (
@@ -448,17 +478,7 @@ export default function VolunteerRequestsPage() {
             req={selected}
             onClose={handleClose}
             onUpdated={handleUpdated}
-            onOpenConvert={(req) => setConvertTarget(req)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {convertTarget && (
-          <ConvertToMemberModal
-            req={convertTarget}
-            onClose={() => setConvertTarget(null)}
-            onConverted={handleConverted}
+            onOpenConvert={() => {}}
           />
         )}
       </AnimatePresence>

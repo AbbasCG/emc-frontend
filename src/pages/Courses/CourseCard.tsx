@@ -15,6 +15,7 @@ import { formatEuroInteger } from '@/utils/currency'
 import { toLatinDigits } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { useAuth } from '@/contexts/AuthContext'
+import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import {
   buildCourseDetailEnrollHref,
   gatePublicEnrollClick,
@@ -103,13 +104,19 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-navy/65 via-navy/10 to-transparent" />
 
+        {course.is_ended ?
+          <div className="absolute left-3 top-3 z-10">
+            <CourseStatusBadge isEnded placement="overlay" />
+          </div>
+        : null}
+
         <div className="absolute right-3 top-3 flex flex-wrap items-center justify-end gap-1.5">
-          {statusBadge && (
+          {statusBadge && !course.is_ended ?
             <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue shadow-emc-xs backdrop-blur">
               {statusBadge}
             </span>
-          )}
-          <span className="rounded-full bg-navy/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+          : null}
+          <span className="rounded-full border border-white/30 bg-ink-900/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
             {course.catalog_type_label_ar ?? (course.catalog_type === 'workshop' ? 'ورشة' : 'دورة')}
           </span>
         </div>
@@ -191,7 +198,9 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
             </Link>
             <button
               type="button"
+              disabled={course.is_ended}
               onClick={() => {
+                if (course.is_ended) return
                 gatePublicEnrollClick({
                   isAuthenticated,
                   role: user?.role,
@@ -200,7 +209,11 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
                   onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
                 })
               }}
-              className="inline-flex items-center gap-1.5 rounded-2xl bg-brand-500 px-4 py-2.5 text-xs font-black text-white shadow-emc transition hover:bg-brand-600"
+              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black shadow-md transition ${
+                course.is_ended
+                  ? 'cursor-not-allowed bg-slate-200 text-slate-500 shadow-none'
+                  : 'bg-brand-500 text-white shadow-brand-500/25 hover:bg-brand-600'
+              }`}
             >
               <BookOpen className="h-3.5 w-3.5" />
               سجل الآن

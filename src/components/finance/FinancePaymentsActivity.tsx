@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { formatEuroInteger } from '@/utils/currency'
+import FinanceDate from '@/components/finance/FinanceDate'
+import { formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CreditCard, Search } from 'lucide-react'
@@ -13,16 +14,7 @@ const PROVIDER_LABEL: Record<string, string> = {
 }
 
 function fmt(n: number) {
-  return formatEuroInteger(n, 'ar')
-}
-
-function formatWhen(iso: string) {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat('ar-SA', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(d)
+  return formatFinanceCurrencyInteger(n)
 }
 
 const FILTERS: { id: 'all' | PaymentStatus; label: string }[] = [
@@ -149,12 +141,14 @@ export default function FinancePaymentsActivity({
                   {PROVIDER_LABEL[p.provider.toLowerCase()] ?? p.provider}
                 </span>
                 <PaymentStatusBadge status={p.status} />
-                <span className="min-w-[6.5rem] text-left font-latin text-sm font-black tabular-nums text-deepBlue md:text-end">
+                <span className="min-w-[6.5rem] text-left font-latin text-sm font-black tabular-nums whitespace-nowrap text-deepBlue md:text-end" dir="ltr">
                   {fmt(p.amount)}
                 </span>
               </div>
             </div>
-            <p className="mt-2 text-[10px] font-bold text-slate-400">{formatWhen(p.created_at)}</p>
+            <p className="mt-2 text-[10px] font-bold text-slate-400 whitespace-nowrap tabular-nums" dir="ltr">
+              <FinanceDate value={p.created_at} showTime />
+            </p>
           </motion.li>
         ))}
       </ul>

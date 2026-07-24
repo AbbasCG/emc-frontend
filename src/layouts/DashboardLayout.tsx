@@ -6,10 +6,12 @@ import {
   ChevronDown,
   ChevronLeft,
   LogOut,
+  Megaphone,
   Menu,
   Search,
   Settings,
   User,
+  Wallet,
   X,
 } from 'lucide-react'
 import logo from '../assets/logo.png'
@@ -17,6 +19,8 @@ import CommandPalette from '../components/ai/CommandPalette'
 import ImpersonationBanner from '../components/ImpersonationBanner'
 import NotificationBell from '../components/platform/NotificationBell'
 import NotificationDrawer from '../components/platform/NotificationDrawer'
+import { WhatsNewDrawer } from '../components/platform/WhatsNewDrawer'
+import { WhatsNewPopup } from '../components/platform/WhatsNewPopup'
 import {
   fetchNotifications,
   markAllNotificationsRead,
@@ -24,12 +28,14 @@ import {
   NOTIFICATIONS_REFRESH_EVENT,
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
+import { subscribeToUserNotifications } from '@/lib/echo'
 import type { PlatformNotification } from '../types/platform'
-import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
+import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
 import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
+import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
 import { infoToast } from '@/lib/toast'
 import { UserAvatar } from '@/components/UserAvatar'
@@ -58,10 +64,21 @@ const pageTitles: Record<string, string> = {
   '/dashboard/super-admin/crud/workshops': 'الورش — السوبر مشرف',
   '/dashboard/super-admin/crud/registrations': 'التسجيلات — السوبر مشرف',
   '/dashboard/super-admin/crud/partners': 'الشراكات — السوبر مشرف',
+  '/dashboard/super-admin/product-updates': 'تحديثات المنصة',
   '/dashboard/super-admin/volunteer-requests': 'طلبات التطوع',
   '/dashboard/executive': 'اللوحة التنفيذية',
   '/dashboard/finance': 'لوحة المالية',
-  '/dashboard/quality': 'مراجعة الجودة',
+  '/dashboard/quality':                    'لوحة الجودة — المركز القيادي',
+  '/dashboard/quality/reviews':            'مراجعات البرامج',
+  '/dashboard/quality/workshops':          'طلبات البرامج التدريبية',
+  '/dashboard/quality/incidents':          'الحوادث',
+  '/dashboard/quality/corrective-actions': 'إجراءات التحسين',
+  '/dashboard/quality/checklists':         'قوائم التحقق',
+  '/dashboard/quality/compliance':         'الامتثال',
+  '/dashboard/quality/governance':         'الحوكمة',
+  '/dashboard/quality/audit-logs':         'سجلات التدقيق',
+  '/dashboard/quality/reports':            'مركز التقارير',
+  '/dashboard/quality/team':               'فريق الجودة',
   '/dashboard/hr': 'لوحة الموارد البشرية',
   '/dashboard/partner': 'لوحة الشركاء',
   '/dashboard/marketing': 'التسويق',
@@ -204,9 +221,33 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const showRoleBadge = Boolean(user?.role != null && String(user.role).trim() !== '')
   const [sidebarQuery, setSidebarQuery] = useState('')
 
-  const groups = useMemo(() => {
-    return getSidebarByRole(user?.role)
-  }, [user?.role])
+  const { canCreate } = useFinancialRequestContext()
+
+  const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
+    const base = getSidebarByRole(user?.role)
+
+    // Backend is the single source of truth for who may submit financial requests.
+    // Inject the department link only when the backend says can_create=true AND
+    // the role's own sidebar doesn't already include that specific route
+    // (department_manager's sidebar already has it at /dashboard/department/financial-requests).
+    const hasDeptFinanceLink = base.some((g) =>
+      g.items.some((i) => i.href === '/dashboard/department/financial-requests'),
+    )
+
+    if (canCreate && !hasDeptFinanceLink) {
+      const leaderGroup: SidebarNavGroup = {
+        title: 'الإدارة المالية',
+        items: [{ label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet }],
+      }
+      return [
+        ...(base[0] ? [base[0]] : []),
+        leaderGroup,
+        ...base.slice(1),
+      ]
+    }
+
+    return base
+  }, [user?.role, canCreate])
 
   const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
 
@@ -464,11 +505,15 @@ function Topbar({
   onOpenSearch,
   unread,
   onOpenNotifications,
+  whatsNewUnread,
+  onOpenWhatsNew,
 }: {
   onMenuClick: () => void
   onOpenSearch: () => void
   unread: number
   onOpenNotifications: () => void
+  whatsNewUnread: number
+  onOpenWhatsNew: () => void
 }) {
   const { user, logout } = useAuth()
   const location = useLocation()
@@ -519,6 +564,21 @@ function Topbar({
           <kbd className="hidden rounded-md bg-white px-1.5 py-0.5 text-[10px] font-black text-deepBlue/45 ring-1 ring-deepBlue/[0.08] font-latin md:inline">
             Ctrl K
           </kbd>
+        </button>
+
+        {/* What's New button */}
+        <button
+          type="button"
+          onClick={onOpenWhatsNew}
+          aria-label="ما الجديد؟"
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] text-deepBlue/65 transition hover:border-customBlue/30 hover:bg-white hover:text-customBlue"
+        >
+          <Megaphone size={17} />
+          {whatsNewUnread > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-customBlue px-0.5 text-[9px] font-black text-white">
+              {whatsNewUnread > 9 ? '9+' : whatsNewUnread}
+            </span>
+          )}
         </button>
 
         <NotificationBell unread={unread} onClick={onOpenNotifications} />
@@ -612,12 +672,49 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [whatsNewUnread, setWhatsNewUnread] = useState(0)
   const [notifications, setNotifications] = useState<PlatformNotification[]>([])
   const location = useLocation()
+  const { user: currentUser } = useAuth()
 
   const refreshNotifications = useCallback(() => {
     void fetchNotifications().then((n) => setNotifications(n))
   }, [])
+
+  // Realtime (Ticket 8 completion pass) — when configured, new notifications
+  // prepend instantly instead of waiting for the 90s poll below, which
+  // remains as the graceful fallback when realtime is unavailable or the
+  // socket drops. Duplicate-safe: a broadcast that arrives for an id
+  // already in state (e.g. the REST poll won the race) is ignored.
+  useEffect(() => {
+    if (!currentUser?.id) return
+
+    const unsubscribe = subscribeToUserNotifications(currentUser.id, (payload) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === payload.id)) return prev
+        return [
+          {
+            id: payload.id,
+            type: payload.type as PlatformNotification['type'],
+            title: payload.title,
+            body: payload.message,
+            message: payload.message,
+            is_read: false,
+            read_at: null,
+            created_at: payload.created_at ?? new Date().toISOString(),
+            action_url: payload.action_url,
+            meta_url: payload.meta_url,
+            pinned: payload.pinned,
+            archived_at: null,
+          },
+          ...prev,
+        ]
+      })
+    })
+
+    return unsubscribe
+  }, [currentUser?.id])
 
   useEffect(() => {
     setSidebarOpen(false)
@@ -673,6 +770,7 @@ export default function DashboardLayout() {
   }
 
   return (
+    <FinancialRequestProvider>
     <StudentDashboardProvider>
     <div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]">
       {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
@@ -694,6 +792,8 @@ export default function DashboardLayout() {
           setDrawerOpen(true)
           refreshNotifications()
         }}
+        whatsNewUnread={whatsNewUnread}
+        onOpenWhatsNew={() => setWhatsNewOpen(true)}
       />
 
       <CommandPalette
@@ -707,6 +807,17 @@ export default function DashboardLayout() {
         items={notifications}
         onMarkRead={(id) => void handleMarkRead(id)}
         onMarkAll={() => void handleMarkAll()}
+      />
+
+      <WhatsNewDrawer
+        open={whatsNewOpen}
+        onClose={() => setWhatsNewOpen(false)}
+        onUnreadChange={setWhatsNewUnread}
+      />
+
+      <WhatsNewPopup
+        onOpen={() => setWhatsNewOpen(true)}
+        onUnreadChange={setWhatsNewUnread}
       />
 
       <Link
@@ -726,7 +837,7 @@ export default function DashboardLayout() {
       </Link>
 
       <main
-        className={`relative z-content isolate ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
+        className={`relative z-content ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
         id="dashboard-main-content"
         tabIndex={-1}
       >
@@ -737,5 +848,6 @@ export default function DashboardLayout() {
       </main>
     </div>
     </StudentDashboardProvider>
+    </FinancialRequestProvider>
   )
 }

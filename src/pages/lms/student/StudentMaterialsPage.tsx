@@ -2,6 +2,7 @@ import { FolderOpen, RefreshCw } from 'lucide-react'
 import { DashboardSection } from '@/components/dashboard'
 import { LmsEmptyState, LmsPageSkeleton, MaterialCard } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { StudentBackButton } from '@/components/shared/StudentBackButton'
 
 export default function StudentMaterialsPage() {
   const { loading, refreshing, loadError, refresh, materialsScoped, registrations } = useStudentDashboardData()
@@ -35,6 +36,8 @@ export default function StudentMaterialsPage() {
           تحديث
         </button>
       </header>
+
+      <StudentBackButton fallback="/dashboard/student" label="العودة إلى لوحة الطالب" />
 
       <DashboardSection title="مكتبة المواد" subtitle="ملفات وروابط وفيديوهات الدورات التي سجّلت فيها فقط.">
         {materialsScoped.length === 0 ?

@@ -13,19 +13,12 @@ import {
   Route,
 } from 'lucide-react'
 import { fetchStudentLearningPaths, type StudentEnrollment } from '../../../api/learningPathsApi'
+import { fmtDate } from '@/components/lms/lmsFormatters'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-US').format(n)
 }
 
-function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat('ar', {
-    numberingSystem: 'latn',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(iso))
-}
 
 export default function StudentLearningPathsPage() {
   const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([])

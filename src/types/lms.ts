@@ -19,11 +19,12 @@ export type LmsSession = {
   instructor_name?: string | null
   location?: string | null
   meeting_link?: string | null
+  meeting_url?: string | null
   recording_link?: string | null
   platform?: string | null
 }
 
-export type MaterialKind = 'pdf' | 'video' | 'link' | 'slides' | 'document' | 'other'
+export type MaterialKind = 'pdf' | 'video' | 'link' | 'slides' | 'document' | 'zip' | 'other'
 
 export type LmsMaterial = {
   id: number
@@ -35,6 +36,9 @@ export type LmsMaterial = {
   course_name?: string | null
   size_label?: string | null
   updated_at?: string | null
+  original_filename?: string | null
+  extension?: string | null
+  mime_type?: string | null
 }
 
 export type AssignmentStatus = 'pending' | 'submitted' | 'graded' | 'revision' | 'late' | 'needs_resubmission'
@@ -205,9 +209,28 @@ export type TeachingCourseLms = {
   status?: string
   start_date?: string | null
   end_date?: string | null
+  start_time?: string | null
+  end_time?: string | null
+  is_ended?: boolean | null
+  computed_status?: string | null
+  status_label_ar?: string | null
+  track?: { id: number; title: string; name?: string } | null
+  description?: string | null
+  sessions_count?: number | null
   meeting_link?: string | null
   thumbnail?: string | null
   image?: string | null
+  image_url?: string | null
+  // Ticket 2 canonical course counters — all backend-computed, never
+  // recalculated in the frontend.
+  assigned_students_count?: number | null
+  waiting_assignment_count?: number | null
+  completed_written_tests_count?: number | null
+  completed_oral_tests_count?: number | null
+  completed_placement_count?: number | null
+  classes_count?: number | null
+  active_classes_count?: number | null
+  completed_classes_count?: number | null
 }
 
 export type InstructorSubmission = {
