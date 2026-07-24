@@ -14,7 +14,12 @@
 > فرع الأمان: backup/pre-M4
 
 ### دفتر M4
-- [ ] A حرق دَين القواعد: إصلاح بقايا set-state-in-effect + تقسيم ملفات react-refresh ثم إعادة القاعدتين إلى error (commit مستقل موثَّق)
+- [ ] **A حرق دَين القواعد** — جرد الأساس (2026-07-25): **245 مخالفة set-state-in-effect في 184 ملفاً** · **51 react-refresh في 19 ملفاً**
+  - [x] A1 الأنماط القانونية + الطبقة المشتركة (`9e2d298`, `a3e5d8a`): `docs/04-references/effect-patterns.md` + 17 موقعاً في AuthContext/useFetch/useTasksWorkspace/DashboardLayout/Navbar/PartnerLayout/ui pickers/CoursesGrid/UserAvatar/FinancialRequestContext — **245→228**
+  - [ ] A2–A4 توزيع 171 ملفاً المتبقية على 12 حزمة ملكية حصرية (3 دفعات × 4 وكلاء)
+  - [ ] A5 تقسيم ملفات react-refresh (19 ملفاً)
+  - [ ] A6 رفع القاعدتين إلى `error` — **commit مستقل موثَّق (تقوية بوابة)**
+  - 📌 **قرار تقني موثَّق (A1):** المحلّل يشتكي من أي استدعاء مباشر لدالة تحوي setState داخل effect **حتى لو كان كل setState بعد `await`**؛ الأشكال المقبولة الوحيدة: async IIFE مكتوبة داخل جسم الـeffect · callbacks الاشتراك · التعديل أثناء الـrender. لذلك الإصلاح = **إعادة هيكلة حقيقية** لا تغليف؛ الحيل المُسكِتة (IIFE حول دالة تضبط الحالة متزامناً، `Promise.resolve().then(load)`، إخفاء الدالة خلف ref) **ممنوعة نصاً** في مرجع الأنماط.
 - [ ] B strictNullChecks تدريجياً (lib+hooks+i18n أولاً)
 - [ ] C رفع التغطية: اختبارات وحدات/مكوّنات للحرِج (auth/RBAC/enrollment/utils/primitives) نحو 40%
 - [ ] D axe في اختبارات المكوّنات
