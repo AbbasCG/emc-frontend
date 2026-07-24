@@ -662,7 +662,7 @@ export default function SuperAdminOverviewPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           رأس الصفحة
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="flex items-center justify-between py-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 py-1">
         <div>
           <h1 className="text-[18px] font-bold tracking-tight text-[#0C2A4B]">
             لوحة القيادة التنفيذية
@@ -943,7 +943,8 @@ export default function SuperAdminOverviewPage() {
           ) : departments.length === 0 ? (
             <EmptyState icon={Building2} text="لا توجد إدارات بعد" />
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
                   {[
@@ -1029,6 +1030,7 @@ export default function SuperAdminOverviewPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>
@@ -1235,13 +1237,13 @@ export default function SuperAdminOverviewPage() {
       {finance && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <Card noPad accent="#059669">
-            <div className="flex items-stretch divide-x divide-slate-100 rtl:divide-x-reverse">
+            <div className="flex flex-wrap items-stretch divide-x divide-slate-100 rtl:divide-x-reverse">
               {[
                 { labelAr: 'إجمالي الإيرادات', value: finance.total_revenue, color: '#059669' },
                 { labelAr: 'الإيرادات المؤكدة', value: finance.confirmed_revenue, color: '#0077B6' },
                 { labelAr: 'الإيرادات المعلقة', value: finance.pending_revenue, color: '#F28C00' },
               ].map((s) => (
-                <div key={s.labelAr} className="flex-1 px-5 py-4">
+                <div key={s.labelAr} className="min-w-[10rem] flex-1 px-5 py-4">
                   <p className="text-[11px] font-semibold text-slate-400">{s.labelAr}</p>
                   <p
                     className="mt-1 font-mono text-xl font-bold tabular-nums"

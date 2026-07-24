@@ -707,7 +707,7 @@ export default function TeacherDashboard() {
 
       {/* ── KPI Row ── */}
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white px-5 py-4">
               <Sk h="h-10" w="w-10" rounded="rounded-xl" />
@@ -716,7 +716,7 @@ export default function TeacherDashboard() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           <KpiCard i={0} label="الدورات النشطة"      value={activeCourseCount}   icon={BookOpen}     iconBg="bg-sky-50"     iconColor="text-sky-600" />
           <KpiCard i={1} label="الطلاب الملتحقون"    value={studentsCount}       icon={Users}        iconBg="bg-emerald-50" iconColor="text-emerald-600" hint="مدفوعون فقط" />
           <KpiCard i={2} label="جلسات اليوم"         value={todaySessions.length} icon={Calendar}    iconBg="bg-violet-50"  iconColor="text-violet-600" />

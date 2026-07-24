@@ -335,7 +335,7 @@ export default function AdminDashboard() {
           align="start"
           rule={false}
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {primaryTiles.map((t) => (
             <StatTile key={t.label} {...t} />
           ))}
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
           align="start"
           rule={false}
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {secondaryTiles.map((t) => (
             <StatTile key={t.label} {...t} />
           ))}
@@ -513,12 +513,12 @@ function AdminSkeleton() {
   return (
     <div className="space-y-8">
       <div className="h-32 emc-skeleton rounded-3xl" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-32 emc-skeleton rounded-2xl" />
         ))}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="h-28 emc-skeleton rounded-2xl" />
         ))}
