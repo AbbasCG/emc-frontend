@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BookOpen, CheckCircle2, Clock, RefreshCw, UserCheck, XCircle } from 'lucide-react'
 import { LmsEmptyState, LmsPageSkeleton } from '@/components/lms'
 import { fetchStudentAttendance, fetchStudentAttendanceSummary, type StudentAttendanceSummary } from '@/api/studentApi'
@@ -107,6 +107,19 @@ function AttendanceCard({ row }: { row: StudentAttendanceRecord }) {
   )
 }
 
+/** Pure I/O — kept outside the component so the mount effect and the refresh button
+ *  share it without either having to call a state-mutating function. */
+async function fetchAttendanceBundle(): Promise<{
+  attendance: StudentAttendanceRecord[]
+  summary: StudentAttendanceSummary
+}> {
+  const [attendance, summary] = await Promise.all([
+    fetchStudentAttendance(),
+    fetchStudentAttendanceSummary(),
+  ])
+  return { attendance, summary }
+}
+
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function StudentAttendancePage() {
@@ -116,27 +129,46 @@ export default function StudentAttendancePage() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
-  async function load(mode: 'initial' | 'refresh' = 'initial') {
-    if (mode === 'initial') setLoading(true)
-    else setRefreshing(true)
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const { attendance, summary: statsSummary } = await fetchAttendanceBundle()
+        if (!alive) return
+        setRows(attendance)
+        setSummary(statsSummary)
+      } catch {
+        if (!alive) return
+        setError('تعذّر تحميل سجل الحضور.')
+        setRows([])
+      } finally {
+        if (alive) {
+          setLoading(false)
+          setRefreshing(false)
+        }
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from the toolbar button — outside an effect, so the synchronous
+   *  state flip is allowed. */
+  const refresh = useCallback(async () => {
+    setRefreshing(true)
     setError(null)
     try {
-      const [attendance, statsSummary] = await Promise.all([
-        fetchStudentAttendance(),
-        fetchStudentAttendanceSummary(),
-      ])
+      const { attendance, summary: statsSummary } = await fetchAttendanceBundle()
       setRows(attendance)
       setSummary(statsSummary)
     } catch {
       setError('تعذّر تحميل سجل الحضور.')
       setRows([])
     } finally {
-      if (mode === 'initial') setLoading(false)
       setRefreshing(false)
     }
-  }
-
-  useEffect(() => { void load('initial') }, [])
+  }, [])
 
   const stats = useMemo(() => {
     const present = rows.filter((r) => statusLabel(String(r.status)) === 'حاضر').length
@@ -167,7 +199,7 @@ export default function StudentAttendancePage() {
         </div>
         <button
           type="button"
-          onClick={() => void load('refresh')}
+          onClick={() => void refresh()}
           disabled={refreshing}
           className="inline-flex items-center gap-2 rounded-2xl border border-[#0C2A4B]/10 bg-[#0C2A4B]/[0.04] px-4 py-2 text-[11px] font-black text-[#0C2A4B] transition hover:bg-[#0C2A4B]/[0.07] disabled:opacity-60"
         >

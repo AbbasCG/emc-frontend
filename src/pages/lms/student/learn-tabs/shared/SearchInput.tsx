@@ -18,7 +18,13 @@ export default function SearchInput({ value, onChange, placeholder, delay = 280 
   const [focused, setFocused] = useState(false)
   const timerRef = useRef<number | null>(null)
 
-  useEffect(() => setRaw(value), [value])
+  // Mirror an externally-changed value during render (react.dev "adjusting state when a
+  // prop changes") — an effect would paint one frame holding the stale draft.
+  const [seenValue, setSeenValue] = useState(value)
+  if (seenValue !== value) {
+    setSeenValue(value)
+    setRaw(value)
+  }
 
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current) }, [])
 

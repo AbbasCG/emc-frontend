@@ -43,13 +43,24 @@ export default function InstructorSessionDetailPage() {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', session_date: '', start_time: '', end_time: '', location: '', meeting_url: '', recording_url: '' })
 
-  function load() {
+  // Re-arm the loading state during render when the route changes (react.dev "adjusting
+  // state when a prop changes"); mount is covered by the initial values.
+  const [seenRoute, setSeenRoute] = useState({ groupId, sessionId })
+  if (seenRoute.groupId !== groupId || seenRoute.sessionId !== sessionId) {
+    setSeenRoute({ groupId, sessionId })
+    if (groupId && sessionId) {
+      setLoading(true)
+      setError(false)
+      setNotFound(false)
+    }
+  }
+
+  useEffect(() => {
     if (!groupId || !sessionId) return
-    setLoading(true)
-    setError(false)
-    setNotFound(false)
+    let alive = true
     fetchClassSessionDetail(Number(groupId), Number(sessionId))
       .then((s) => {
+        if (!alive) return
         if (!s) { setNotFound(true); return }
         setSession(s)
         setForm({
@@ -59,14 +70,14 @@ export default function InstructorSessionDetailPage() {
         })
       })
       .catch((err) => {
+        if (!alive) return
         const status = (err as { response?: { status?: number } })?.response?.status
         if (status === 403 || status === 404) setNotFound(true)
         else setError(true)
       })
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(load, [groupId, sessionId])
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [groupId, sessionId])
 
   async function handleTransition(status: string) {
     if (!groupId || !sessionId || busy) return

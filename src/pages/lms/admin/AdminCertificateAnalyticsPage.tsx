@@ -182,8 +182,9 @@ export default function AdminCertificateAnalyticsPage() {
   const [batches,       setBatches]       = useState<CertificateBatchAnalytics | null>(null)
   const [failures,      setFailures]      = useState<CertificateFailureInsight[]>([])
 
-  // Loading/error per section
-  const [loading, setLoading] = useState<Record<string, boolean>>({})
+  // Loading/error per section — the overview section starts loading, since its fetch is
+  // kicked off by the mount effect below.
+  const [loading, setLoading] = useState<Record<string, boolean>>({ overview: true })
   const [errors,  setErrors]  = useState<Record<string, string>>({})
 
   const [exporting, setExporting] = useState<string | null>(null)
@@ -199,6 +200,20 @@ export default function AdminCertificateAnalyticsPage() {
     if (on) setErrors(p => ({ ...p, [key]: '' }))
   }
   const err = (key: string, msg: string) => setErrors(p => ({ ...p, [key]: msg }))
+
+  // Re-arm the overview section's loading state during render when the query changes
+  // (react.dev "adjusting state when a prop changes"), so the reload effect below never
+  // has to flip it synchronously and no stale "settled" frame is painted.
+  const [seenQuery, setSeenQuery] = useState({ filters, granularity, dateFrom, dateTo })
+  if (
+    seenQuery.filters !== filters ||
+    seenQuery.granularity !== granularity ||
+    seenQuery.dateFrom !== dateFrom ||
+    seenQuery.dateTo !== dateTo
+  ) {
+    setSeenQuery({ filters, granularity, dateFrom, dateTo })
+    sec('overview', true)
+  }
 
   const buildFilters = useCallback((): CertificateAnalyticsFilters => {
     const f: CertificateAnalyticsFilters = { ...filters, granularity }
@@ -252,8 +267,24 @@ export default function AdminCertificateAnalyticsPage() {
     }
   }, [buildFilters])
 
-  // On filter change: reset cache, reload overview, reload current tab.
-  useEffect(() => { load() }, [load])
+  // On mount and on filter change: reset the section cache and reload the overview.
+  // The loading flag is armed during render (above), so nothing is set synchronously here.
+  useEffect(() => {
+    const f = buildFilters()
+    loadedRef.current = new Set(['overview'])
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchCertificateAnalyticsOverview(f)
+        if (alive) setOverview(data)
+      } catch {
+        if (alive) setErrors(p => ({ ...p, overview: 'تعذّر تحميل نظرة عامة' }))
+      } finally {
+        if (alive) setLoading(p => ({ ...p, overview: false }))
+      }
+    })()
+    return () => { alive = false }
+  }, [buildFilters])
   // On tab change (or after filter reset): lazy-load current tab's sections.
   useEffect(() => { loadTab(activeTab) }, [activeTab, loadTab])
 

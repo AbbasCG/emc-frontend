@@ -61,6 +61,8 @@ const STATUS_CLS: Record<string, string> = {
   revoked:            'bg-rose-50 text-rose-600 ring-1 ring-rose-200',
 }
 
+const LOAD_ERROR = 'تعذّر تحميل الشهادة. تحقق من الاتصال وأعد المحاولة.'
+
 const DOWNLOAD_ERR: Record<number, string> = {
   401: 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.',
   403: 'لا تملك صلاحية تحميل هذه الشهادة.',
@@ -101,12 +103,20 @@ function CertificatePreview({ certId }: { certId: number }) {
   const urlRef   = useRef<string | null>(null)
   const wrapRef  = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  // Re-arm the loading state during render when the certificate changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts true on mount.
+  const [seenCertId, setSeenCertId] = useState(certId)
+  if (seenCertId !== certId) {
+    setSeenCertId(certId)
     setLoading(true)
     setError(null)
-    fetchCertBlob(certId)
-      .then((blob) => {
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const blob = await fetchCertBlob(certId)
         if (cancelled) return
         const url = URL.createObjectURL(blob)
         urlRef.current = url
@@ -118,13 +128,14 @@ function CertificatePreview({ certId }: { certId: number }) {
             setZoom(Math.min(1, w / A4_W))
           }
         })
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
         if (cancelled) return
         const status = (err as { response?: { status?: number } })?.response?.status
         setError(DOWNLOAD_ERR[status ?? 0] ?? 'حدث خطأ غير متوقع أثناء تحميل الشهادة.')
-      })
-      .finally(() => { if (!cancelled) setLoading(false) })
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
 
     return () => {
       cancelled = true
@@ -369,24 +380,71 @@ export default function AdminCertificateDetailPage() {
   const [logs, setLogs]         = useState<CertificateLog[]>([])
   const [logsLoading, setLogsLoading] = useState(false)
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     if (!certId || isNaN(certId)) return
     setLoading(true)
     setError(null)
-    fetchCertificate(certId)
-      .then(c => {
-        setCert(c)
-        setLogsLoading(true)
-        fetchCertificateLogs(c.id)
-          .then(setLogs)
-          .catch(() => {/* non-critical */})
-          .finally(() => setLogsLoading(false))
-      })
-      .catch(() => setError('تعذّر تحميل الشهادة. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setLoading(false))
+    try {
+      const c = await fetchCertificate(certId)
+      setCert(c)
+      setLogsLoading(true)
+      setLoading(false)
+      try {
+        setLogs(await fetchCertificateLogs(c.id))
+      } catch {
+        /* non-critical */
+      } finally {
+        setLogsLoading(false)
+      }
+    } catch {
+      setError(LOAD_ERROR)
+      setLoading(false)
+    }
   }, [certId])
 
-  useEffect(() => { load() }, [load])
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts true on mount.
+  // Invalid ids are skipped, exactly as the loader below bails out on them.
+  const [seenCertId, setSeenCertId] = useState(certId)
+  if (!Object.is(seenCertId, certId)) {
+    setSeenCertId(certId)
+    if (certId && !isNaN(certId)) {
+      setLoading(true)
+      setError(null)
+    }
+  }
+
+  useEffect(() => {
+    if (!certId || isNaN(certId)) return
+    let alive = true
+    void (async () => {
+      let c: Certificate
+      try {
+        c = await fetchCertificate(certId)
+      } catch {
+        if (alive) {
+          setError(LOAD_ERROR)
+          setLoading(false)
+        }
+        return
+      }
+      if (!alive) return
+      setCert(c)
+      setLogsLoading(true)
+      setLoading(false)
+      try {
+        const rows = await fetchCertificateLogs(c.id)
+        if (alive) setLogs(rows)
+      } catch {
+        /* non-critical */
+      } finally {
+        if (alive) setLogsLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [certId])
 
   function wrapAction<T>(fn: () => Promise<T>, onSuccess: (v: T) => void, errMsg: string) {
     setActionBusy(true)

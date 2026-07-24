@@ -62,6 +62,8 @@ export function InstructorMaterialsTab({ courseId, classGroupId, canManage }: { 
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<ValidationErrors | null>(null)
 
+  /** Imperative reload after a save/delete — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   function load() {
     setLoading(true)
     setError(false)
@@ -71,7 +73,23 @@ export function InstructorMaterialsTab({ courseId, classGroupId, canManage }: { 
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [courseId])
+  // Re-arm the loading state during render when the course changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    Promise.all([fetchCourseMaterials(courseId), fetchCourseModules(courseId)])
+      .then(([m, mods]) => { if (alive) { setMaterials(m); setModules(mods) } })
+      .catch(() => { if (alive) setError(true) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [courseId])
 
   const filtered = useMemo(() => {
     return (materials ?? []).filter((m) => {

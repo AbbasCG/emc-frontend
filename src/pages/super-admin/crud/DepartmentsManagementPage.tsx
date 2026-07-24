@@ -345,6 +345,8 @@ export default function DepartmentsManagementPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceDepartment['status']>('all')
   const [detail, setDetail] = useState<WorkspaceDepartment | null>(null)
 
+  /** Manual retry/refresh from a button — outside any effect, so flipping to the
+   *  loading state synchronously is both allowed and required here. */
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
@@ -361,7 +363,27 @@ export default function DepartmentsManagementPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // Initial load — inlined so no state is set on the effect's synchronous path
+  // (`loading` already starts as `true` and `loadError` as `null`).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchWorkspaceDepartmentsForSuperAdmin()
+        if (alive) setRows(Array.isArray(list) ? list : [])
+      } catch (e) {
+        if (!alive) return
+        setRows([])
+        setLoadError(getApiErrorMessage(e))
+        errorToast('تعذر تحميل بيانات الإدارات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   // Derive health for each row so filters use computed status
   const rowsWithHealth = useMemo(

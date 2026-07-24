@@ -94,6 +94,51 @@ async function isCourseListedForStudent(courseId: number): Promise<boolean> {
   return listed.some((c) => c.id === courseId)
 }
 
+/** Resolved shape of one learn-workspace load — either the payload or the gate to show. */
+type LearnOutcome =
+  | { kind: 'ok'; data: StudentCourseLearnPayload }
+  | { kind: 'gate'; gate: GateError; paymentUrl: string | null; message: string | null }
+
+/**
+ * Pure I/O + error classification — kept outside the component so the mount effect,
+ * the imperative reload and the soft refresh all share it while each does its own
+ * state plumbing (none of them needs to call a state-mutating callback).
+ */
+async function loadLearnOutcome(courseId: number, knownEnrolled: boolean): Promise<LearnOutcome> {
+  try {
+    return { kind: 'ok', data: await fetchStudentCourseLearn(courseId) }
+  } catch (e) {
+    const { gate, message, access } = parseLearnGateError(e)
+    if (gate === 'missing') {
+      return { kind: 'gate', gate: 'missing', paymentUrl: null, message: null }
+    }
+    if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
+      return { kind: 'gate', gate, paymentUrl: access?.payment_url ?? null, message: message ?? null }
+    }
+    if (gate === 'placement_required' || gate === 'placement_oral') {
+      return { kind: 'gate', gate, paymentUrl: null, message: message ?? null }
+    }
+    if (gate === 'forbidden') {
+      let enrolledInList = knownEnrolled
+      if (!enrolledInList) {
+        try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
+      }
+      return {
+        kind: 'gate',
+        gate: enrolledInList ? 'forbidden_sync' : 'forbidden',
+        paymentUrl: null,
+        message: null,
+      }
+    }
+    return {
+      kind: 'gate',
+      gate: null,
+      paymentUrl: null,
+      message: message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.',
+    }
+  }
+}
+
 function tsFromSession(s: LmsSession): number {
   const raw = s.starts_at ?? s.date
   if (raw && String(raw).trim() !== '') {
@@ -151,7 +196,9 @@ export default function StudentCourseLearnPage() {
 
   // Notes state — server-persisted, with localStorage as offline fallback
   const [notes, setNotes] = useState('')
-  const [notesLoading, setNotesLoading] = useState(false)
+  // Starts loading whenever there is a course to load notes for, so the first painted
+  // frame is already correct and the fetch effect below needs no synchronous setState.
+  const [notesLoading, setNotesLoading] = useState(validId)
   const [notesSaving, setNotesSaving] = useState(false)
   const [notesSavedAt, setNotesSavedAt] = useState<string | null>(null)
   const [notesError, setNotesError] = useState<string | null>(null)
@@ -178,6 +225,20 @@ export default function StudentCourseLearnPage() {
     return enrollmentsMerged.some((e) => e.course.id === courseId)
   }, [validId, courseId, registeredCourseIds, registrations, enrollmentsMerged])
 
+  /** Commits one resolved outcome — shared by every caller below. */
+  const applyLearnOutcome = useCallback((outcome: LearnOutcome) => {
+    if (outcome.kind === 'ok') {
+      setLearn(outcome.data)
+      return
+    }
+    setLearn(null)
+    setGateError(outcome.gate)
+    setGatePaymentUrl(outcome.paymentUrl)
+    setLearnError(outcome.message)
+  }, [])
+
+  /** Imperative reload from an event handler — outside an effect, so the synchronous
+   *  reset of the gate/error state is allowed. */
   const loadLearn = useCallback(async (opts?: { refreshEnrollment?: boolean }) => {
     if (!validId) return
     setLearnError(null)
@@ -188,35 +249,11 @@ export default function StudentCourseLearnPage() {
       try { await refreshDashboard() } catch { /* non-fatal */ }
     }
     try {
-      const data = await fetchStudentCourseLearn(courseId)
-      setLearn(data)
-    } catch (e) {
-      setLearn(null)
-      const { gate, message, access } = parseLearnGateError(e)
-      if (gate === 'missing') {
-        setGateError('missing')
-      } else if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
-        setGateError(gate)
-        setGatePaymentUrl(access?.payment_url ?? null)
-        if (message) setLearnError(message)
-      } else if (gate === 'placement_required' || gate === 'placement_oral') {
-        setGateError(gate)
-        if (message) setLearnError(message)
-      } else if (gate === 'forbidden') {
-        let enrolledInList = registeredCourseIds.has(courseId)
-          || registrations.some((r) => r.course_id === courseId)
-          || enrollmentsMerged.some((en) => en.course.id === courseId)
-        if (!enrolledInList) {
-          try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
-        }
-        setGateError(enrolledInList ? 'forbidden_sync' : 'forbidden')
-      } else {
-        setLearnError(message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
-      }
+      applyLearnOutcome(await loadLearnOutcome(courseId, clientKnowsRegistered))
     } finally {
       setLearnLoading(false)
     }
-  }, [courseId, validId, registeredCourseIds, registrations, enrollmentsMerged, refreshDashboard])
+  }, [courseId, validId, clientKnowsRegistered, refreshDashboard, applyLearnOutcome])
 
   const softRefresh = useCallback(async () => {
     if (!validId) return
@@ -225,37 +262,51 @@ export default function StudentCourseLearnPage() {
     setGatePaymentUrl(null)
     setRefreshing(true)
     try {
-      const data = await fetchStudentCourseLearn(courseId)
-      setLearn(data)
-    } catch (e) {
-      setLearn(null)
-      const { gate, message, access } = parseLearnGateError(e)
-      if (gate === 'missing') setGateError('missing')
-      else if (gate === 'payment_pending' || gate === 'payment_failed' || gate === 'payment_required') {
-        setGateError(gate)
-        setGatePaymentUrl(access?.payment_url ?? null)
-        if (message) setLearnError(message)
-      }
-      else if (gate === 'placement_required' || gate === 'placement_oral') {
-        setGateError(gate)
-        if (message) setLearnError(message)
-      } else if (gate === 'forbidden') {
-        let enrolledInList = registeredCourseIds.has(courseId)
-          || registrations.some((r) => r.course_id === courseId)
-          || enrollmentsMerged.some((en) => en.course.id === courseId)
-        if (!enrolledInList) {
-          try { enrolledInList = await isCourseListedForStudent(courseId) } catch { /* ignore */ }
-        }
-        setGateError(enrolledInList ? 'forbidden_sync' : 'forbidden')
-      } else {
-        setLearnError(message ?? getApiErrorMessage(e as AxiosError) ?? 'تعذّر تحميل مساحة التعلّم.')
-      }
+      applyLearnOutcome(await loadLearnOutcome(courseId, clientKnowsRegistered))
     } finally {
       setRefreshing(false)
     }
-  }, [courseId, validId, registeredCourseIds, registrations, enrollmentsMerged])
+  }, [courseId, validId, clientKnowsRegistered, applyLearnOutcome])
 
-  useEffect(() => { void loadLearn() }, [loadLearn])
+  // Re-arm the loading state and clear the previous gate during render when the query
+  // changes (react.dev "adjusting state when a prop changes"). `learnLoading` already
+  // starts at `validId`, so the mount pass needs nothing and the effect below never
+  // touches state synchronously.
+  const [seenLearnQuery, setSeenLearnQuery] = useState({ courseId, validId, clientKnowsRegistered })
+  if (
+    seenLearnQuery.courseId !== courseId
+    || seenLearnQuery.validId !== validId
+    || seenLearnQuery.clientKnowsRegistered !== clientKnowsRegistered
+  ) {
+    setSeenLearnQuery({ courseId, validId, clientKnowsRegistered })
+    if (validId) {
+      setLearnError(null)
+      setGateError(null)
+      setGatePaymentUrl(null)
+      setLearnLoading(true)
+    }
+  }
+
+  useEffect(() => {
+    if (!validId) return
+    let alive = true
+    void (async () => {
+      const outcome = await loadLearnOutcome(courseId, clientKnowsRegistered)
+      if (!alive) return
+      if (outcome.kind === 'ok') {
+        setLearn(outcome.data)
+      } else {
+        setLearn(null)
+        setGateError(outcome.gate)
+        setGatePaymentUrl(outcome.paymentUrl)
+        setLearnError(outcome.message)
+      }
+      setLearnLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [courseId, validId, clientKnowsRegistered])
 
   useEffect(() => {
     const onRefresh = () => { void softRefresh() }
@@ -263,10 +314,17 @@ export default function StudentCourseLearnPage() {
     return () => window.removeEventListener(STUDENT_SCOPE_REFRESH_EVENT, onRefresh)
   }, [softRefresh])
 
+  // Re-arm the notes loading state during render when the course changes (react.dev
+  // "adjusting state when a prop changes").
+  const [seenNotesQuery, setSeenNotesQuery] = useState({ courseId, validId })
+  if (seenNotesQuery.courseId !== courseId || seenNotesQuery.validId !== validId) {
+    setSeenNotesQuery({ courseId, validId })
+    if (validId) setNotesLoading(true)
+  }
+
   // Load notes from server, fall back to localStorage
   useEffect(() => {
     if (!validId) return
-    setNotesLoading(true)
     fetchCourseNotes(courseId)
       .then(({ content, updated_at }) => {
         setNotes(content)

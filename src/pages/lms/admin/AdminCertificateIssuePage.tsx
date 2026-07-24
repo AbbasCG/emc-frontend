@@ -188,10 +188,17 @@ export default function AdminCertificateIssuePage() {
   const [step, setStep]             = useState(0)
   const [slideDir, setSlideDir]     = useState<'fwd' | 'bck'>('fwd')
 
-  // Step 1
-  const [certType, setCertType]         = useState<CertificateType>('course_completion')
+  // Step 1 — `certType` / `entityId` are pre-selected from the URL through lazy
+  // initialisers, so the first render already reflects the query string.
+  const [certType, setCertType]         = useState<CertificateType>(() => {
+    const urlType = searchParams.get('type') as CertificateType | null
+    return urlType && CERT_TYPES.some((c) => c.value === urlType) ? urlType : 'course_completion'
+  })
   const [entities, setEntities]         = useState<EntityOption[]>([])
-  const [entityId, setEntityId]         = useState<number | null>(null)
+  const [entityId, setEntityId]         = useState<number | null>(() => {
+    const urlEId = searchParams.get('related_id')
+    return urlEId ? Number(urlEId) : null
+  })
   const [entitySearch, setEntitySearch] = useState('')
   const [templates, setTemplates]       = useState<CertificateTemplate[]>([])
   const [templateId, setTemplateId]     = useState<number | null>(null)
@@ -219,66 +226,96 @@ export default function AdminCertificateIssuePage() {
   const needsEntity = ctMeta.needs_entity
   const relatedType = RELATED_TYPE_MAP[certType] ?? certType
 
-  // Pre-select from URL params
-  useEffect(() => {
-    const urlType = searchParams.get('type') as CertificateType | null
-    const urlEId  = searchParams.get('related_id')
-    if (urlType && CERT_TYPES.some((c) => c.value === urlType)) setCertType(urlType)
-    if (urlEId) setEntityId(Number(urlEId))
-  }, [])
+  // Arm the per-type loaders during render (react.dev "adjusting state when a prop
+  // changes"). Seeded with `null` so the first pass runs too, exactly as the effects
+  // below used to do on mount.
+  const [seenCertType, setSeenCertType] = useState<CertificateType | null>(null)
+  if (seenCertType !== certType) {
+    setSeenCertType(certType)
+    if (needsEntity) setLoadingEnt(true)
+    else setEntities([])
+    setLoadingTemplates(true)
+    setTemplateError(null)
+  }
+
+  // Same for the entity context: every branch but the course lookup is synchronous, so
+  // it is resolved during render and only the async branch is left to the effect.
+  const [seenEntitySel, setSeenEntitySel] =
+    useState<{ entityId: number | null; certType: CertificateType; entities: EntityOption[] } | null>(null)
+  if (
+    seenEntitySel === null ||
+    seenEntitySel.entityId !== entityId ||
+    seenEntitySel.certType !== certType ||
+    seenEntitySel.entities !== entities
+  ) {
+    setSeenEntitySel({ entityId, certType, entities })
+    if (!entityId || !needsEntity) setEntityContext(null)
+    else if (certType !== 'course_completion') {
+      setEntityContext({ title: entities.find((e) => e.id === entityId)?.label ?? '—' })
+    }
+    // course_completion keeps the previous context until the lookup below resolves
+  }
 
   // Load entities on type change
   useEffect(() => {
-    if (!needsEntity) { setEntities([]); return }
-    setLoadingEnt(true)
-    fetchEntities(certType).then((list) => {
-      setEntities(list)
-      const urlId = Number(searchParams.get('related_id') ?? 0)
-      if (urlId && list.some((e) => e.id === urlId)) setEntityId(urlId)
-    }).finally(() => setLoadingEnt(false))
+    if (!needsEntity) return
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchEntities(certType)
+        if (!alive) return
+        setEntities(list)
+        const urlId = Number(searchParams.get('related_id') ?? 0)
+        if (urlId && list.some((e) => e.id === urlId)) setEntityId(urlId)
+      } finally {
+        if (alive) setLoadingEnt(false)
+      }
+    })()
+    return () => { alive = false }
   }, [certType])
 
-  // Load course/workshop context when entity selected
+  // Load course context when a course is selected (the only async context branch)
   useEffect(() => {
-    if (!entityId || !needsEntity) {
-      setEntityContext(null)
-      return
-    }
+    if (!entityId || !needsEntity || certType !== 'course_completion') return
     const entityLabelFallback = entities.find((e) => e.id === entityId)?.label ?? '—'
-    if (certType === 'course_completion') {
-      fetchAdminCourseDetail(entityId)
-        .then((course) => {
-          const instructor = getCourseInstructor(course)
-          setEntityContext({
-            title: course.title ?? entityLabelFallback,
-            status: course.status ?? (course.is_published ? 'published' : 'draft'),
-            instructor: instructor?.displayName ?? null,
-            studentCount: course.students_count ?? null,
-          })
+    let alive = true
+    void (async () => {
+      try {
+        const course = await fetchAdminCourseDetail(entityId)
+        if (!alive) return
+        const instructor = getCourseInstructor(course)
+        setEntityContext({
+          title: course.title ?? entityLabelFallback,
+          status: course.status ?? (course.is_published ? 'published' : 'draft'),
+          instructor: instructor?.displayName ?? null,
+          studentCount: course.students_count ?? null,
         })
-        .catch(() => {
-          setEntityContext({ title: entityLabelFallback })
-        })
-    } else {
-      setEntityContext({ title: entityLabelFallback })
-    }
+      } catch {
+        if (alive) setEntityContext({ title: entityLabelFallback })
+      }
+    })()
+    return () => { alive = false }
   }, [entityId, certType, needsEntity, entities])
 
   // Load templates on type change
   useEffect(() => {
-    setLoadingTemplates(true)
-    setTemplateError(null)
-    fetchCertificateTemplates({ type: certType })
-      .then((list) => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchCertificateTemplates({ type: certType })
+        if (!alive) return
         setTemplates(list)
         setTemplateId(list.length === 1 ? list[0].id : null)
-      })
-      .catch(() => {
+      } catch {
+        if (!alive) return
         setTemplates([])
         setTemplateId(null)
         setTemplateError('تعذر تحميل بيانات الشهادات. تحقق من الاتصال وأعد المحاولة.')
-      })
-      .finally(() => setLoadingTemplates(false))
+      } finally {
+        if (alive) setLoadingTemplates(false)
+      }
+    })()
+    return () => { alive = false }
   }, [certType])
 
   const selectedEntity      = entities.find((e) => e.id === entityId)

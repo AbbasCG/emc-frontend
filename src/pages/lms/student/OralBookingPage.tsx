@@ -61,10 +61,20 @@ export default function OralBookingPage() {
   const [dateIdx, setDateIdx]       = useState(0)
   const [retryCount, setRetryCount] = useState(0)
 
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") — the initial state already carries the
+  // first pass's values, so the effect below never has to touch state synchronously.
+  const [seenQuery, setSeenQuery] = useState({ courseId, retryCount })
+  if (seenQuery.courseId !== courseId || seenQuery.retryCount !== retryCount) {
+    setSeenQuery({ courseId, retryCount })
+    if (courseId) {
+      setLoading(true)
+      setSlotsError(false)
+    }
+  }
+
   useEffect(() => {
     if (!courseId) return
-    setLoading(true)
-    setSlotsError(false)
 
     void (async () => {
       try {

@@ -456,6 +456,31 @@ function UpdateForm({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+/** Pure I/O — no state — shared by the list effect and the imperative `load`, so
+ *  neither has to call a state-mutating helper. */
+async function fetchProductUpdatesSnapshot(params: {
+  page: number
+  status?: ProductUpdateStatus
+  q?: string
+  withStats: boolean
+}) {
+  const [listRes, statsRes] = await Promise.allSettled([
+    fetchProductUpdates({ page: params.page, per_page: 20, status: params.status, q: params.q }),
+    params.withStats ? fetchProductUpdateStats() : Promise.resolve(null),
+  ])
+  return {
+    list:
+      listRes.status === 'fulfilled'
+        ? {
+            items: listRes.value.data,
+            total: listRes.value.meta.total,
+            lastPage: listRes.value.meta.last_page,
+          }
+        : null,
+    stats: statsRes.status === 'fulfilled' ? statsRes.value : null,
+  }
+}
+
 export default function ProductUpdatesPage() {
   const { user } = useAuth()
 
@@ -482,27 +507,67 @@ export default function ProductUpdatesPage() {
   const canManage = user?.role === 'super_admin' || user?.role === 'tech_admin'
     || user?.role === 'admin' || user?.role === 'marketing_manager'
 
+  /** Imperative reload after a mutation — called from handlers, so the synchronous
+   *  loading flip is allowed here. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [listRes, statsRes] = await Promise.allSettled([
-        fetchProductUpdates({ page, per_page: 20, status: (statusFilter as ProductUpdateStatus) || undefined, q: q || undefined }),
-        canManage ? fetchProductUpdateStats() : Promise.resolve(null),
-      ])
-      if (listRes.status === 'fulfilled') {
-        setItems(listRes.value.data)
-        setTotal(listRes.value.meta.total)
-        setLastPage(listRes.value.meta.last_page)
+      const snap = await fetchProductUpdatesSnapshot({
+        page,
+        status: (statusFilter as ProductUpdateStatus) || undefined,
+        q: q || undefined,
+        withStats: canManage,
+      })
+      if (snap.list) {
+        setItems(snap.list.items)
+        setTotal(snap.list.total)
+        setLastPage(snap.list.lastPage)
       }
-      if (statsRes.status === 'fulfilled' && statsRes.value) {
-        setStats(statsRes.value)
-      }
+      if (snap.stats) setStats(snap.stats)
     } finally {
       setLoading(false)
     }
   }, [page, statusFilter, q, canManage])
 
-  useEffect(() => { load() }, [load])
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts as `true`.
+  const listQuery = { page, statusFilter, q, canManage }
+  const [seenQuery, setSeenQuery] = useState(listQuery)
+  if (
+    seenQuery.page !== page ||
+    seenQuery.statusFilter !== statusFilter ||
+    seenQuery.q !== q ||
+    seenQuery.canManage !== canManage
+  ) {
+    setSeenQuery(listQuery)
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const snap = await fetchProductUpdatesSnapshot({
+          page,
+          status: (statusFilter as ProductUpdateStatus) || undefined,
+          q: q || undefined,
+          withStats: canManage,
+        })
+        if (!alive) return
+        if (snap.list) {
+          setItems(snap.list.items)
+          setTotal(snap.list.total)
+          setLastPage(snap.list.lastPage)
+        }
+        if (snap.stats) setStats(snap.stats)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [page, statusFilter, q, canManage])
 
   const handleCreate = async (payload: ProductUpdatePayload) => {
     setSavingId(-1)

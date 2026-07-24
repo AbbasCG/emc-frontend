@@ -35,6 +35,8 @@ export default function InstructorPlacementTestsPage() {
   const [drawerRow,         setDrawerRow]         = useState<InstructorPlacementTestRow | null>(null)
   const [drawerTab,         setDrawerTab]         = useState<DetailDrawerTab>('overview')
 
+  /** Imperative refresh from a button — outside any effect, so it may flip to the loading
+   *  state synchronously. */
   async function load() {
     setLoading(true)
     try { setRows(await fetchInstructorAllPlacementTests()) }
@@ -45,7 +47,23 @@ export default function InstructorPlacementTestsPage() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Runs once — `loading` already starts as `true`, so the effect only settles it.
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchInstructorAllPlacementTests()
+        if (alive) setRows(data)
+      } catch (err) {
+        if (!alive) return
+        toast.error('تعذّر تحميل نتائج اختبارات تحديد المستوى')
+        if (import.meta.env.DEV) console.error('[placement-tests] load failed:', err)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const courses = useMemo(() => {
     const map = new Map<number, string>()

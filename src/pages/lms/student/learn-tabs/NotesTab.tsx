@@ -15,24 +15,34 @@ type Props = {
 const AUTOSAVE_DELAY = 1200
 
 export default function NotesTab({ notes, onChangeNotes, onSave, loading, saving, savedAt, error }: Props) {
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  // Lazy initialiser so a remount with the save already settled shows the same badge the
+  // old mount-time effect produced.
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>(
+    () => (saving ? 'saving' : error ? 'error' : savedAt ? 'saved' : 'idle'),
+  )
   const timerRef = useRef<number | null>(null)
-  const dirtyRef = useRef(false)
+  // State rather than a ref: the badge is derived during render below, and reading
+  // `ref.current` while rendering is forbidden (`react-hooks/refs`).
+  const [dirty, setDirty] = useState(false)
 
-  useEffect(() => {
+  // Derive the badge during render when the save signals change (react.dev "adjusting
+  // state when a prop changes").
+  const [seenSave, setSeenSave] = useState({ saving, error, savedAt })
+  if (seenSave.saving !== saving || seenSave.error !== error || seenSave.savedAt !== savedAt) {
+    setSeenSave({ saving, error, savedAt })
     if (saving) setSaveState('saving')
     else if (error) setSaveState('error')
-    else if (dirtyRef.current === false && savedAt) setSaveState('saved')
-  }, [saving, error, savedAt])
+    else if (!dirty && savedAt) setSaveState('saved')
+  }
 
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current) }, [])
 
   function handleChange(v: string) {
     onChangeNotes(v)
-    dirtyRef.current = true
+    setDirty(true)
     if (timerRef.current) window.clearTimeout(timerRef.current)
     timerRef.current = window.setTimeout(() => {
-      dirtyRef.current = false
+      setDirty(false)
       void onSave()
     }, AUTOSAVE_DELAY)
   }

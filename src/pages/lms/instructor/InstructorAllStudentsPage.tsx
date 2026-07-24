@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Search, Users, XCircle } from 'lucide-react'
 import { fetchInstructorAllStudents, fetchInstructorCourses, type InstructorStudentRow } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
@@ -27,6 +27,12 @@ const selectCls =
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
+/** Pure I/O — shared by the mount effect and the hero's refresh button so neither has
+ *  to call a state-mutating callback. */
+function fetchAllStudentsPageData(): Promise<[InstructorStudentRow[], TeachingCourseLms[]]> {
+  return Promise.all([fetchInstructorAllStudents(), fetchInstructorCourses()])
+}
+
 export default function InstructorAllStudentsPage() {
   const [students, setStudents] = useState<InstructorStudentRow[]>([])
   const [courses,  setCourses]  = useState<TeachingCourseLms[]>([])
@@ -37,13 +43,32 @@ export default function InstructorAllStudentsPage() {
   const [filterPlacement, setFilterPlacement] = useState('')
   const [selected, setSelected] = useState<InstructorStudentRow | null>(null)
 
-  async function load() {
+  // `loading` starts true, so the mount fetch never has to arm it synchronously.
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const [s, c] = await fetchAllStudentsPageData()
+        if (!alive) return
+        setStudents(s)
+        setCourses(c)
+      } catch (err) {
+        if (!alive) return
+        toast.error('تعذّر تحميل الطلاب')
+        if (import.meta.env.DEV) console.error('[all-students] load failed:', err)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
+
+  /** Imperative refresh from the hero button — outside any effect, so it may arm the
+   *  loading state synchronously. */
+  const reload = useCallback(async () => {
     setLoading(true)
     try {
-      const [s, c] = await Promise.all([
-        fetchInstructorAllStudents(),
-        fetchInstructorCourses(),
-      ])
+      const [s, c] = await fetchAllStudentsPageData()
       setStudents(s)
       setCourses(c)
     } catch (err) {
@@ -52,9 +77,7 @@ export default function InstructorAllStudentsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   /** Map course_id → course data, for determining placement requirement */
   const courseMap = useMemo(() => {
@@ -98,7 +121,7 @@ export default function InstructorAllStudentsPage() {
         subtitle="كل الطلاب المسجلين في دوراتك — اضغط على أي طالب للتفاصيل"
         backTo="/dashboard/instructor/courses"
         backLabel="الدورات"
-        onRefresh={load}
+        onRefresh={reload}
         refreshing={loading}
         pills={loading ? [] : [
           { label: 'إجمالي الطلاب',  value: stats.total    },

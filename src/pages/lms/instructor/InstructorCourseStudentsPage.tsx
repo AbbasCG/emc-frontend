@@ -38,6 +38,8 @@ export default function InstructorCourseStudentsPage() {
   const [filterPlacement, setFilterPlacement] = useState('')
   const [selected, setSelected] = useState<InstructorStudentRow | null>(null)
 
+  /** Imperative refresh from the hero button — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   async function load() {
     if (!courseId) return
     setLoading(true)
@@ -52,7 +54,31 @@ export default function InstructorCourseStudentsPage() {
     }
   }
 
-  useEffect(() => { void load() }, [courseId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Re-arm the loading state during render when the route param changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by `useState(true)`.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    if (courseId) setLoading(true)
+  }
+
+  useEffect(() => {
+    if (!courseId) return
+    let alive = true
+    void (async () => {
+      try {
+        const s = await fetchInstructorCourseStudents(courseId)
+        if (alive) setStudents(s)
+      } catch (err) {
+        if (!alive) return
+        toast.error('تعذّر تحميل الطلاب')
+        if (import.meta.env.DEV) console.error('[course-students] load failed:', err)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [courseId])
 
   const courseTitle = students[0]?.course_title ?? ''
 

@@ -258,36 +258,61 @@ export default function AdminCertificateDesignerPage() {
 
   const debouncedCfg = useDebounce(cfg, 600)
 
-  // ── Load template (with NaN guard) ────────────────────────────────────────
-  useEffect(() => {
+  // Re-arm the loading state during render when the route param changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts true on mount.
+  // `Object.is` so the NaN placeholder compares equal to itself.
+  const [seenParamId, setSeenParamId] = useState(paramId)
+  if (!Object.is(seenParamId, paramId)) {
+    setSeenParamId(paramId)
     setLoading(true)
     setLoadErr(null)
+  }
 
-    const load = Number.isNaN(paramId)
-      ? fetchDefaultCertificateTemplate()
-      : fetchCertificateTemplate(paramId)
+  // Same for the preview: seeded with `null` so the very first render also arms
+  // `refreshing`, exactly as the effect below used to do on mount.
+  const [seenPreviewCfg, setSeenPreviewCfg] = useState<Required<DesignerCfg> | null>(null)
+  if (seenPreviewCfg !== debouncedCfg) {
+    setSeenPreviewCfg(debouncedCfg)
+    setRefreshing(true)
+  }
 
-    load
-      .then((t) => {
+  // ── Load template (with NaN guard) ────────────────────────────────────────
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const t = Number.isNaN(paramId)
+          ? await fetchDefaultCertificateTemplate()
+          : await fetchCertificateTemplate(paramId)
+        if (!alive) return
         setTemplate(t)
         setCfg(templateToCfg(t))
         // If we loaded via default but the URL has NaN/missing, fix the URL
         if (Number.isNaN(paramId)) {
           navigate(`/dashboard/admin/certificates/templates/${t.id}/designer`, { replace: true })
         }
-      })
-      .catch(() => setLoadErr('تعذّر تحميل بيانات القالب.'))
-      .finally(() => setLoading(false))
+      } catch {
+        if (alive) setLoadErr('تعذّر تحميل بيانات القالب.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
   }, [paramId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Live preview ──────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-    setRefreshing(true)
-    previewDesigner(debouncedCfg)
-      .then((html) => { if (!cancelled) setPreviewHtml(html) })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setRefreshing(false) })
+    void (async () => {
+      try {
+        const html = await previewDesigner(debouncedCfg)
+        if (!cancelled) setPreviewHtml(html)
+      } catch {
+        /* keep the previous preview */
+      } finally {
+        if (!cancelled) setRefreshing(false)
+      }
+    })()
     return () => { cancelled = true }
   }, [debouncedCfg])
 

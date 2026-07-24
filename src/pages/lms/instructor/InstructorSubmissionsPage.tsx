@@ -131,14 +131,39 @@ export default function InstructorSubmissionsPage() {
     }
   }, [])
 
+  // Re-arm the loading state during render when the filters change (react.dev
+  // "adjusting state when a prop changes"), so the queue never paints the previous
+  // filter's rows as if they were settled.
+  const [seenFilters, setSeenFilters] = useState({ courseFilter, statusFilter })
+  if (seenFilters.courseFilter !== courseFilter || seenFilters.statusFilter !== statusFilter) {
+    setSeenFilters({ courseFilter, statusFilter })
+    setLoading(true)
+    setLoadError(null)
+  }
+
   useEffect(() => {
     const filters: SubmissionsQueueFilters = { per_page: 100 }
     if (courseFilter !== 'all') filters.course_id = courseFilter
     if (statusFilter !== 'all' && statusFilter !== 'not_submitted') {
       filters.status = statusFilter
     }
-    void load(filters)
-  }, [courseFilter, statusFilter, load])
+    let alive = true
+    void (async () => {
+      try {
+        const rows = await fetchInstructorAssignmentsQueue(filters)
+        if (alive) setList(rows)
+      } catch (err) {
+        if (!alive || axios.isCancel(err)) return
+        setLoadError('تعذّر تحميل التسليمات. تحقق من اتصال الخادم.')
+        setList([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [courseFilter, statusFilter])
 
   const courseOptions = useMemo(() => {
     const map = new Map<number, string>()
@@ -194,14 +219,39 @@ export default function InstructorSubmissionsPage() {
     }
   }, [])
 
-  useEffect(() => {
-    const targetRaw = submissionIdParam ?? searchParams.get('submission')
-    if (!targetRaw || list.length === 0) return
+  // Row named by the URL (`/…/:submissionId` or `?submission=`), once the queue is loaded.
+  const targetRaw = submissionIdParam ?? searchParams.get('submission')
+  const targetRow = useMemo(() => {
+    if (!targetRaw || list.length === 0) return null
     const targetId = Number(targetRaw)
-    if (!Number.isFinite(targetId)) return
+    if (!Number.isFinite(targetId)) return null
     const row = list.find((r) => r.id === targetId)
-    if (!row || row.status === 'not_submitted') return
-    void openRow(row)
+    return row && row.status !== 'not_submitted' ? row : null
+  }, [targetRaw, list])
+
+  // Open the panel on the row snapshot during render (react.dev "adjusting state when a
+  // prop changes"); the effect below only swaps in the full detail once it arrives.
+  const [seenTarget, setSeenTarget] = useState<InstructorSubmission | null>(null)
+  if (targetRow && seenTarget !== targetRow) {
+    setSeenTarget(targetRow)
+    setDetail({ ...targetRow, body_text: targetRow.body_preview ?? null })
+    setDetailLoading(true)
+  }
+
+  useEffect(() => {
+    if (!targetRow) return
+    // Deliberately un-cancelled: the URL marker is cleared right below, which drops
+    // `targetRow` back to null, and the panel still needs this result to land.
+    void (async () => {
+      try {
+        setDetail(await fetchSubmissionDetail(targetRow.id))
+      } catch (err) {
+        if (import.meta.env.DEV) console.error('[submissions] detail load failed:', err)
+        toast.error('تعذّر تحميل تفاصيل التسليم.')
+      } finally {
+        setDetailLoading(false)
+      }
+    })()
     if (submissionIdParam) {
       setSearchParams({}, { replace: true })
     } else {
@@ -211,7 +261,7 @@ export default function InstructorSubmissionsPage() {
         return next
       }, { replace: true })
     }
-  }, [submissionIdParam, searchParams, list, openRow, setSearchParams])
+  }, [targetRow, submissionIdParam, setSearchParams])
 
   async function handleReview(payload: Parameters<typeof reviewInstructorSubmission>[1]) {
     if (!detail) return

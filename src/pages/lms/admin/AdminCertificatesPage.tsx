@@ -159,6 +159,24 @@ const EMPTY_FILTERS: Filters = {
   pdf_status: '', issued_from: '', issued_to: '', created_from: '', created_to: '',
 }
 
+const LIST_ERROR = 'تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure mapping — kept outside the component so the list effect and the imperative
+ *  reload build the very same query. */
+function buildListParams(filters: Filters, pg: number): CertificateFilters {
+  const params: CertificateFilters = { page: pg }
+  if (filters.search)           params.search           = filters.search
+  if (filters.status)           params.status           = filters.status as CertificateFilters['status']
+  if (filters.certificate_type) params.certificate_type = filters.certificate_type as CertificateType
+  if (filters.approval_status)  params.approval_status  = filters.approval_status
+  if (filters.pdf_status)       params.pdf_status       = filters.pdf_status as CertificateFilters['pdf_status']
+  if (filters.issued_from)      params.issued_from      = filters.issued_from
+  if (filters.issued_to)        params.issued_to        = filters.issued_to
+  if (filters.created_from)     params.created_from     = filters.created_from
+  if (filters.created_to)       params.created_to       = filters.created_to
+  return params
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminCertificatesPage() {
@@ -183,39 +201,70 @@ export default function AdminCertificatesPage() {
 
   const searchRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
+  // Re-arm the loading states during render when the query changes (react.dev
+  // "adjusting state when a prop changes"); both already start true on mount.
+  const [seenLocationKey, setSeenLocationKey] = useState(location.key)
+  if (seenLocationKey !== location.key) {
+    setSeenLocationKey(location.key)
     setStatsLoading(true)
-    fetchCertificateStats()
-      .then(setStats)
-      .catch(() => {/* non-critical */})
-      .finally(() => setStatsLoading(false))
-  }, [location.key])
+  }
 
-  const loadList = useCallback((filters: Filters, pg: number) => {
+  const [seenQuery, setSeenQuery] = useState({ applied, page })
+  if (seenQuery.applied !== applied || seenQuery.page !== page) {
+    setSeenQuery({ applied, page })
     setListLoading(true)
     setListError(null)
-    const params: CertificateFilters = { page: pg }
-    if (filters.search)           params.search           = filters.search
-    if (filters.status)           params.status           = filters.status as CertificateFilters['status']
-    if (filters.certificate_type) params.certificate_type = filters.certificate_type as CertificateType
-    if (filters.approval_status)  params.approval_status  = filters.approval_status
-    if (filters.pdf_status)       params.pdf_status       = filters.pdf_status as CertificateFilters['pdf_status']
-    if (filters.issued_from)      params.issued_from      = filters.issued_from
-    if (filters.issued_to)        params.issued_to        = filters.issued_to
-    if (filters.created_from)     params.created_from     = filters.created_from
-    if (filters.created_to)       params.created_to       = filters.created_to
+  }
 
-    fetchAdminCertificateList(params)
-      .then(({ data, meta }) => {
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const s = await fetchCertificateStats()
+        if (alive) setStats(s)
+      } catch {
+        /* non-critical */
+      } finally {
+        if (alive) setStatsLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [location.key])
+
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const loadList = useCallback(async (filters: Filters, pg: number) => {
+    setListLoading(true)
+    setListError(null)
+    try {
+      const { data, meta } = await fetchAdminCertificateList(buildListParams(filters, pg))
+      setCerts(data)
+      setTotal(meta.total)
+      setLastPage(meta.last_page)
+    } catch {
+      setListError(LIST_ERROR)
+    } finally {
+      setListLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const { data, meta } = await fetchAdminCertificateList(buildListParams(applied, page))
+        if (!alive) return
         setCerts(data)
         setTotal(meta.total)
         setLastPage(meta.last_page)
-      })
-      .catch(() => setListError('تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setListLoading(false))
-  }, [])
-
-  useEffect(() => { loadList(applied, page) }, [applied, page, loadList])
+      } catch {
+        if (alive) setListError(LIST_ERROR)
+      } finally {
+        if (alive) setListLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [applied, page])
 
   function applyFilters() { setApplied(draft); setPage(1); setFiltersOpen(false) }
   function resetFilters()  { setDraft(EMPTY_FILTERS); setApplied(EMPTY_FILTERS); setPage(1); setFiltersOpen(false) }

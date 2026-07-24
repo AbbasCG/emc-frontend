@@ -639,6 +639,42 @@ export default function AmbassadorApplicationDetailPage() {
   const [confirmAction, setConfirmAction] = useState<'reject' | 'approve' | null>(null)
 
   // ── Load
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the effect below never sets state on
+  // its synchronous path. `loading` already starts as `true` for the first pass.
+  const [seenAppId, setSeenAppId] = useState(appId)
+  if (seenAppId !== appId) {
+    setSeenAppId(appId)
+    if (appId && !isNaN(appId)) {
+      setLoading(true)
+      setLoadError(null)
+    }
+  }
+
+  useEffect(() => {
+    if (!appId || isNaN(appId)) return
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchAmbassadorApplication(appId)
+        if (!alive) return
+        setApp(data)
+        setSelectedStatus(data.status)
+        setInterviewAt(data.interview_scheduled_at?.slice(0, 16) ?? '')
+        setDirty(false)
+      } catch {
+        if (alive) setLoadError('تعذّر تحميل بيانات الطلب. يرجى المحاولة مرة أخرى.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [appId])
+
+  /** Retry from a button — outside any effect, so flipping to the loading state
+   *  synchronously is both allowed and required here. */
   const loadApp = useCallback(async () => {
     if (!appId || isNaN(appId)) return
     setLoading(true)
@@ -655,8 +691,6 @@ export default function AmbassadorApplicationDetailPage() {
       setLoading(false)
     }
   }, [appId])
-
-  useEffect(() => { void loadApp() }, [loadApp])
 
   // ── Derived
   const timeline = useMemo(() => (app ? buildTimeline(app) : []), [app])

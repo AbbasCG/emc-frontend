@@ -19,9 +19,17 @@ export default function StudentSessionDetailPage() {
   const [session, setSession] = useState<LmsSessionEvent | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Re-arm the loading state during render when the session changes (react.dev
+  // "adjusting state when a prop changes") — the initial state is already `true`, so the
+  // effect below never touches state synchronously.
+  const [seenSessionId, setSeenSessionId] = useState(sessionId)
+  if (seenSessionId !== sessionId) {
+    setSeenSessionId(sessionId)
+    if (sessionId) setLoading(true)
+  }
+
   useEffect(() => {
     if (!sessionId) return
-    setLoading(true)
     fetchStudentSessionDetail(Number(sessionId)).then(setSession).finally(() => setLoading(false))
   }, [sessionId])
 

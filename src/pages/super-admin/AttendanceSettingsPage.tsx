@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, ClipboardCheck, CheckCircle, AlertCircle } from 'lucide-react'
 import { fetchAttendanceSettings, updateAttendanceSettings, type AttendanceSettingsData } from '@/api/instructorApi'
 
@@ -25,20 +25,26 @@ export default function AttendanceSettingsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true)
-      const data = await fetchAttendanceSettings()
-      setSettings(data)
-      setForm(Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])))
-    } catch {
-      showToast('error', 'فشل تحميل إعدادات الحضور')
-    } finally {
-      setLoading(false)
+  // Initial load — inlined in the effect so no state is set on its synchronous path
+  // (`loading` already starts as `true`).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchAttendanceSettings()
+        if (!alive) return
+        setSettings(data)
+        setForm(Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])))
+      } catch {
+        if (alive) showToast('error', 'فشل تحميل إعدادات الحضور')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
     }
   }, [])
-
-  useEffect(() => { void load() }, [load])
 
   async function handleSave() {
     setSaving(true)

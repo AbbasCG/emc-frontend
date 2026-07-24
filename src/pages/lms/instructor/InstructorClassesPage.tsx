@@ -73,6 +73,22 @@ function emptyGroupForm(): GroupForm {
   }
 }
 
+/** Pure I/O — kept outside the component so the load effect and the imperative
+ *  refreshers share it without either having to call a state-mutating callback. */
+async function fetchStudentsForCourse(
+  courseId: number,
+  course: TeachingCourseLms | undefined,
+): Promise<ClassAssignmentStudent[]> {
+  if (course?.requires_placement_test) {
+    try {
+      return await fetchClassAssignmentStudents(courseId)
+    } catch {
+      return await fetchCourseEnrolledStudents(courseId)
+    }
+  }
+  return fetchCourseEnrolledStudents(courseId)
+}
+
 function todayWeekdayKey(): string {
   const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
   return keys[new Date().getDay()] ?? 'sunday'
@@ -94,7 +110,7 @@ export default function InstructorClassesPage() {
   const [groupSearch, setGroupSearch] = useState('')
   const [queueSearch, setQueueSearch] = useState('')
   const [loading, setLoading] = useState(true)
-  const [studentsLoading, setStudentsLoading] = useState(false)
+  const [studentsLoading, setStudentsLoading] = useState(initCourseId !== null)
   const [showCreate, setShowCreate] = useState(false)
   const [editGroup, setEditGroup] = useState<ClassGroup | null>(null)
   const [groupForm, setGroupForm] = useState<GroupForm>(emptyGroupForm())
@@ -131,18 +147,7 @@ export default function InstructorClassesPage() {
     }
     setStudentsLoading(true)
     try {
-      const course = courses.find((c) => c.id === selectedCourse)
-      let data: ClassAssignmentStudent[] = []
-      if (course?.requires_placement_test) {
-        try {
-          data = await fetchClassAssignmentStudents(selectedCourse)
-        } catch {
-          data = await fetchCourseEnrolledStudents(selectedCourse)
-        }
-      } else {
-        data = await fetchCourseEnrolledStudents(selectedCourse)
-      }
-      setStudents(data)
+      setStudents(await fetchStudentsForCourse(selectedCourse, courses.find((c) => c.id === selectedCourse)))
     } catch {
       toast.error('تعذّر تحميل الطلاب')
     } finally {
@@ -150,12 +155,52 @@ export default function InstructorClassesPage() {
     }
   }, [selectedCourse, courses])
 
+  // Re-arm the loading states during render when the query changes (react.dev
+  // "adjusting state when a prop changes"), so a newly selected course never paints the
+  // previous course's rows as if they were settled. Mount is covered by the initial values.
+  const [seenQuery, setSeenQuery] = useState({ selectedCourse, courses })
+  if (seenQuery.selectedCourse !== selectedCourse || seenQuery.courses !== courses) {
+    if (seenQuery.selectedCourse !== selectedCourse) setLoading(true)
+    if (selectedCourse) {
+      setStudentsLoading(true)
+    } else {
+      setStudents([])
+      setStudentsLoading(false)
+    }
+    setSeenQuery({ selectedCourse, courses })
+  }
+
   useEffect(() => {
-    void loadGroups()
-  }, [loadGroups])
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchInstructorClasses(selectedCourse ?? undefined)
+        if (alive) setGroups(list)
+      } catch {
+        if (alive) toast.error('تعذّر تحميل المجموعات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [selectedCourse])
+
   useEffect(() => {
-    void loadStudents()
-  }, [loadStudents])
+    if (!selectedCourse) return
+    const course = courses.find((c) => c.id === selectedCourse)
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchStudentsForCourse(selectedCourse, course)
+        if (alive) setStudents(data)
+      } catch {
+        if (alive) toast.error('تعذّر تحميل الطلاب')
+      } finally {
+        if (alive) setStudentsLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [selectedCourse, courses])
 
   const filteredStudents = useMemo(() => {
     const q = search.trim().toLowerCase()

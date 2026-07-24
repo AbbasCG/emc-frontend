@@ -41,6 +41,8 @@ export default function InstructorPlacementStudentsPage() {
   const [activeTab,         setActiveTab]        = useState<AssessmentTab>('summary')
   const [mobileListOpen,    setMobileListOpen]  = useState(false)
 
+  /** Imperative refresh from a button (and after saving) — outside any effect, so it may
+   *  flip to the loading state synchronously. */
   async function load() {
     if (!courseId) return
     setLoading(true)
@@ -65,11 +67,53 @@ export default function InstructorPlacementStudentsPage() {
     }
   }
 
-  useEffect(() => { void load() }, [courseId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Re-arm the loading state during render when the route param changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    if (courseId) {
+      setLoading(true)
+      setNoPlacementCourse(false)
+    }
+  }
 
   useEffect(() => {
+    if (!courseId) return
+    let alive = true
+    void (async () => {
+      try {
+        const rows = await fetchInstructorPlacementStudents(courseId)
+        if (!alive) return
+        setStudents(rows)
+        setSelected((prev) => {
+          if (!prev) return rows[0] ?? null
+          return rows.find((r) => r.student_id === prev.student_id) ?? rows[0] ?? null
+        })
+      } catch (err: unknown) {
+        if (!alive) return
+        const status = (err as { response?: { status?: number } })?.response?.status
+        if (status === 422) {
+          setNoPlacementCourse(true)
+        } else {
+          toast.error('تعذّر تحميل قائمة الطلاب')
+          if (import.meta.env.DEV) console.error('[placement-students] load failed:', err)
+        }
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [courseId])
+
+  // Hydrate the oral form during render when the selected student changes, instead of
+  // from an effect (react.dev "adjusting state when a prop changes").
+  const selectedStudentId = selected?.student_id
+  const [seenStudentId, setSeenStudentId] = useState(selectedStudentId)
+  if (seenStudentId !== selectedStudentId) {
+    setSeenStudentId(selectedStudentId)
     if (selected) setForm(emptyOralForm(selected))
-  }, [selected?.student_id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   const totalOralScore = useMemo(() => {
     const parts = ORAL_SCORES.map((s) => form[s.key])

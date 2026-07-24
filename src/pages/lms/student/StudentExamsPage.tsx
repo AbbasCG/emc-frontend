@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Award, CheckCircle, ClipboardCheck, MessageSquare } from 'lucide-react'
@@ -40,36 +40,48 @@ export default function StudentExamsPage() {
   const [rows, setRows]       = useState<AttemptRow[]>([])
   const [loading, setLoading] = useState(true)
 
+  const placementCourses = useMemo(
+    () => enrollmentsMerged.filter((e) => {
+      const cx = e.course as Record<string, unknown>
+      return !!(cx.requires_placement_test || cx.requires_placement)
+    }),
+    [enrollmentsMerged],
+  )
+
+  // Re-arm the loading state during render when the enrollment set changes (react.dev
+  // "adjusting state when a prop changes") — the initial state is already `true`, so the
+  // effect below never touches state synchronously.
+  const [seenQuery, setSeenQuery] = useState({ enrollLoading, placementCourses })
+  if (seenQuery.enrollLoading !== enrollLoading || seenQuery.placementCourses !== placementCourses) {
+    setSeenQuery({ enrollLoading, placementCourses })
+    if (!enrollLoading && placementCourses.length > 0) setLoading(true)
+  }
+
   useEffect(() => {
     // Wait for enrollments to arrive
     if (enrollLoading) return
 
-    const placementCourses = enrollmentsMerged.filter((e) => {
-      const cx = e.course as Record<string, unknown>
-      return !!(cx.requires_placement_test || cx.requires_placement)
-    })
-
-    if (placementCourses.length === 0) {
-      setLoading(false)
-      return
-    }
-
-    setLoading(true)
-    void Promise.all(
-      placementCourses.map(async (e) => {
-        const { attempt } = await fetchPlacementStatus(e.course.id)
-        if (!attempt || !DONE_STATUSES.has(attempt.status)) return null
-        return {
-          courseId:    e.course.id,
-          courseTitle: e.course.title,
-          attempt,
-        } satisfies AttemptRow
-      }),
-    ).then((results) => {
+    let alive = true
+    void (async () => {
+      const results = await Promise.all(
+        placementCourses.map(async (e) => {
+          const { attempt } = await fetchPlacementStatus(e.course.id)
+          if (!attempt || !DONE_STATUSES.has(attempt.status)) return null
+          return {
+            courseId:    e.course.id,
+            courseTitle: e.course.title,
+            attempt,
+          } satisfies AttemptRow
+        }),
+      )
+      if (!alive) return
       setRows(results.filter((r): r is AttemptRow => r !== null))
       setLoading(false)
-    })
-  }, [enrollmentsMerged, enrollLoading])
+    })()
+    return () => {
+      alive = false
+    }
+  }, [placementCourses, enrollLoading])
 
   return (
     <div className="space-y-6 pb-16 text-right" dir="rtl">

@@ -23,10 +23,20 @@ export default function StudentClassAnnouncementsPage() {
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
 
+  // Re-arm the loading state during render when the class changes (react.dev
+  // "adjusting state when a prop changes") — the initial state already carries the
+  // first pass's values, so the effect below never touches state synchronously.
+  const [seenGroupId, setSeenGroupId] = useState(groupId)
+  if (seenGroupId !== groupId) {
+    setSeenGroupId(groupId)
+    if (groupId) {
+      setLoading(true)
+      setForbidden(false)
+    }
+  }
+
   useEffect(() => {
     if (!groupId) return
-    setLoading(true)
-    setForbidden(false)
     fetchStudentClassAnnouncements(Number(groupId))
       .then(setAnnouncements)
       .catch((err) => {

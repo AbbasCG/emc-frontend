@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useNow } from '@/hooks/useNow'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -413,50 +413,64 @@ export default function SuperAdminOverviewPage() {
   const [refreshTs, setRefreshTs] = useState(new Date())
   const [stats, setStats] = useState<SuperAdminStats | null>(null)
 
-  const load = useCallback(async () => {
+  /** Bumped by the refresh button to re-run the load effect below, so the two-phase
+   *  body lives in exactly one place. */
+  const [reloadToken, setReloadToken] = useState(0)
+
+  const reload = () => {
     setKpiLoading(true)
     setDetailLoading(true)
+    setReloadToken((t) => t + 1)
+  }
 
-    // Phase 1 — critical KPIs: users, registrations, courses (show fast)
-    const [uR, rR, cR, stR] = await Promise.allSettled([
-      fetchAdminUsers(),
-      fetchAdminRegistrations(),
-      fetchCoursesStrict(),
-      fetchSuperAdminStats(),
-    ])
-    if (uR.status === 'fulfilled') setUsers(uR.value)
-    if (rR.status === 'fulfilled') setRegistrations(rR.value)
-    if (cR.status === 'fulfilled' && cR.value.ok) setCourses(cR.value.rows)
-    if (stR.status === 'fulfilled' && stR.value) setStats(stR.value)
-    setKpiLoading(false)
-
-    // Phase 2 — secondary: volunteers, instructors, departments, finance
-    const [vR, iR, dR, vsR] = await Promise.allSettled([
-      fetchVolunteers(),
-      fetchAdminInstructorsDirectory(),
-      fetchWorkspaceDepartmentsForSuperAdmin(),
-      fetchVolunteerRequestsStats(),
-    ])
-    if (vR.status === 'fulfilled') setVolunteers(vR.value)
-    if (iR.status === 'fulfilled') setInstructors(iR.value.rows)
-    if (dR.status === 'fulfilled') setDepartments(dR.value)
-    if (vsR.status === 'fulfilled') {
-      setVolunteerRequestsTotal(vsR.value.total)
-      setPendingVolRequestsCount(vsR.value.pending)
-    }
-    try {
-      const fin = await fetchFinanceDashboard()
-      if (fin && typeof fin.total_revenue === 'number') setFinance(fin)
-    } catch {
-      /* مالية اختيارية */
-    }
-    setRefreshTs(new Date())
-    setDetailLoading(false)
-  }, [])
-
+  // Single load, inlined in the effect so no state is set on its synchronous path —
+  // `kpiLoading`/`detailLoading` already start as `true`, and `reload` re-arms them.
   useEffect(() => {
-    load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      // Phase 1 — critical KPIs: users, registrations, courses (show fast)
+      const [uR, rR, cR, stR] = await Promise.allSettled([
+        fetchAdminUsers(),
+        fetchAdminRegistrations(),
+        fetchCoursesStrict(),
+        fetchSuperAdminStats(),
+      ])
+      if (!alive) return
+      if (uR.status === 'fulfilled') setUsers(uR.value)
+      if (rR.status === 'fulfilled') setRegistrations(rR.value)
+      if (cR.status === 'fulfilled' && cR.value.ok) setCourses(cR.value.rows)
+      if (stR.status === 'fulfilled' && stR.value) setStats(stR.value)
+      setKpiLoading(false)
+
+      // Phase 2 — secondary: volunteers, instructors, departments, finance
+      const [vR, iR, dR, vsR] = await Promise.allSettled([
+        fetchVolunteers(),
+        fetchAdminInstructorsDirectory(),
+        fetchWorkspaceDepartmentsForSuperAdmin(),
+        fetchVolunteerRequestsStats(),
+      ])
+      if (!alive) return
+      if (vR.status === 'fulfilled') setVolunteers(vR.value)
+      if (iR.status === 'fulfilled') setInstructors(iR.value.rows)
+      if (dR.status === 'fulfilled') setDepartments(dR.value)
+      if (vsR.status === 'fulfilled') {
+        setVolunteerRequestsTotal(vsR.value.total)
+        setPendingVolRequestsCount(vsR.value.pending)
+      }
+      try {
+        const fin = await fetchFinanceDashboard()
+        if (alive && fin && typeof fin.total_revenue === 'number') setFinance(fin)
+      } catch {
+        /* مالية اختيارية */
+      }
+      if (!alive) return
+      setRefreshTs(new Date())
+      setDetailLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [reloadToken])
 
   /* ── مشتقات ──────────────────────────────────────────────────── */
   const students = users.filter((u) => normalizeRole(u.role) === 'student')
@@ -680,7 +694,7 @@ export default function SuperAdminOverviewPage() {
             النظام يعمل
           </span>
           <button
-            onClick={load}
+            onClick={reload}
             disabled={loading}
             className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
           >

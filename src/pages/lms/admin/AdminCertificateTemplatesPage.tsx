@@ -137,6 +137,17 @@ function CardMenu({
   )
 }
 
+const LOAD_ERROR = 'تعذّر تحميل القوالب. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback.
+ *  Falls back to auto-creating the default template when none exist. */
+async function fetchTemplateList(): Promise<CertificateTemplate[]> {
+  const list = await fetchCertificateTemplates()
+  if (list.length > 0) return list
+  return [await fetchDefaultCertificateTemplate()]
+}
+
 export default function AdminCertificateTemplatesPage() {
   const navigate = useNavigate()
   const [templates, setTemplates] = useState<CertificateTemplate[]>([])
@@ -154,25 +165,34 @@ export default function AdminCertificateTemplatesPage() {
   const [previewHtml, setPreviewHtml] = useState('')
   const [loadingPreview, setLoadingPreview] = useState(false)
 
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      let list = await fetchCertificateTemplates()
-      // Auto-create default if empty
-      if (list.length === 0) {
-        const def = await fetchDefaultCertificateTemplate()
-        list = [def]
-      }
-      setTemplates(list)
+      setTemplates(await fetchTemplateList())
     } catch {
-      setError('تعذّر تحميل القوالب. تحقق من الاتصال وأعد المحاولة.')
+      setError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchTemplateList()
+        if (alive) setTemplates(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   // ESC closes modals
   useEffect(() => {

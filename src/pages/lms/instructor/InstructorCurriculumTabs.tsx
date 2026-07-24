@@ -59,6 +59,8 @@ export function UnitsTab({ courseId, canManage }: { courseId: number; canManage:
   const [errors, setErrors] = useState<ValidationErrors | null>(null)
   const [reordering, setReordering] = useState(false)
 
+  /** Imperative reload from an event handler — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   const load = () => {
     setLoading(true)
     setError(false)
@@ -68,7 +70,23 @@ export function UnitsTab({ courseId, canManage }: { courseId: number; canManage:
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [courseId])
+  // Re-arm the loading state during render when the course changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    fetchCourseModules(courseId)
+      .then((rows) => { if (alive) setModules(rows.sort((a, b) => a.sort_order - b.sort_order)) })
+      .catch(() => { if (alive) setError(true) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [courseId])
 
   function openCreate() {
     setEditing(null); setTitle(''); setDescription(''); setStatus('active'); setErrors(null); setShowForm(true)
@@ -243,6 +261,8 @@ export function LessonsTab({ courseId, canManage }: { courseId: number; canManag
   const [errors, setErrors] = useState<ValidationErrors | null>(null)
   const [reordering, setReordering] = useState(false)
 
+  /** Imperative reload from an event handler — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   const load = () => {
     setLoading(true)
     setError(false)
@@ -255,7 +275,28 @@ export function LessonsTab({ courseId, canManage }: { courseId: number; canManag
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [courseId])
+  // Re-arm the loading state during render when the course changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    fetchCourseModules(courseId)
+      .then((rows) => {
+        if (!alive) return
+        setModules(rows)
+        // Updater form so the effect does not have to close over `selectedModuleId`.
+        if (rows.length > 0) setSelectedModuleId((prev) => prev ?? rows[0].id)
+      })
+      .catch(() => { if (alive) setError(true) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [courseId])
 
   const activeModule = modules?.find((m) => m.id === selectedModuleId) ?? null
   const lessons = (activeModule?.lessons ?? []).slice().sort((a, b) => a.sort_order - b.sort_order)
@@ -448,13 +489,31 @@ export function CurriculumOverviewTab({ courseId }: { courseId: number }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+  /** Retry from the error state — outside any effect, so it may flip to the loading
+   *  state synchronously. */
   const load = () => {
     setLoading(true)
     setError(false)
     fetchCourseModules(courseId).then(setModules).catch(() => setError(true)).finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [courseId])
+  // Re-arm the loading state during render when the course changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    fetchCourseModules(courseId)
+      .then((rows) => { if (alive) setModules(rows) })
+      .catch(() => { if (alive) setError(true) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [courseId])
 
   if (loading) return <div className="space-y-2">{[1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100" />)}</div>
   if (error) {

@@ -17,7 +17,7 @@ import {
   Users2,
   X,
 } from 'lucide-react'
-import { fetchAdminUsers } from '@/api/adminUsersApi'
+import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
 import { RoleDetailDrawer } from '@/components/super-admin/RoleDetailDrawer'
 import { SUPER_ADMIN_ROLE_CATALOG_ROWS } from '@/pages/super-admin/users/assignableRoles'
 import { CAPABILITIES, roleHasCapabilitySlug } from '@/pages/super-admin/users/roleScopeHints'
@@ -276,6 +276,17 @@ function CapabilityMatrix({ roles, usageCounts, onDetail }: {
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
+/** Pure shaping — no state — shared by the mount effect and the imperative refresh. */
+function countUsersByRole(rows: AdminManagedUser[]): Record<string, number> {
+  const counts: Record<string, number> = {}
+  rows.forEach((u) => {
+    const slug = normalizeRole(u.role ?? null)
+    if (!slug) return
+    counts[slug] = (counts[slug] ?? 0) + 1
+  })
+  return counts
+}
+
 export default function RolesPermissionsPage() {
   const matrixRef = useRef<HTMLDivElement>(null)
   const [q, setQ] = useState('')
@@ -286,23 +297,26 @@ export default function RolesPermissionsPage() {
   const [usageLoading, setUsageLoading] = useState(true)
   const [showMatrix, setShowMatrix] = useState(false)
 
+  /** Manual refresh from the toolbar button — outside any effect, so flipping to the
+   *  loading state synchronously is both allowed and required here. */
   const loadUsers = useCallback(() => {
     setUsageLoading(true)
     fetchAdminUsers()
-      .then((rows) => {
-        const counts: Record<string, number> = {}
-        rows.forEach((u) => {
-          const slug = normalizeRole(u.role ?? null)
-          if (!slug) return
-          counts[slug] = (counts[slug] ?? 0) + 1
-        })
-        setUsageCounts(counts)
-      })
+      .then((rows) => setUsageCounts(countUsersByRole(rows)))
       .catch(() => { /* silent — matrix still works */ })
       .finally(() => setUsageLoading(false))
   }, [])
 
-  useEffect(() => { loadUsers() }, [loadUsers])
+  // Initial load — inlined so no state is set on the effect's synchronous path
+  // (`usageLoading` already starts as `true`).
+  useEffect(() => {
+    let alive = true
+    fetchAdminUsers()
+      .then((rows) => { if (alive) setUsageCounts(countUsersByRole(rows)) })
+      .catch(() => { /* silent — matrix still works */ })
+      .finally(() => { if (alive) setUsageLoading(false) })
+    return () => { alive = false }
+  }, [])
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()

@@ -54,6 +54,8 @@ export default function EmailSettingsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
+  /** Re-read after a save — called from a handler, so the synchronous loading flip
+   *  is allowed here. */
   const load = useCallback(async () => {
     try {
       setLoading(true)
@@ -68,7 +70,27 @@ export default function EmailSettingsPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // Initial load — inlined so no state is set on the effect's synchronous path
+  // (`loading` already starts as `true`).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchEmailSettings()
+        if (!alive) return
+        setSettings(data)
+        setSenderName(data.sender_name ?? '')
+        setSenderEmail(data.sender_email ?? '')
+      } catch {
+        if (alive) showToast('error', 'فشل تحميل الإعدادات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const getEnabled = (key: string): boolean => {
     if (key in overrides) return overrides[key]

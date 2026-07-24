@@ -185,10 +185,17 @@ function DetailDrawer({ log, onClose, onRetry, retrying }: {
   log: EmailLog; onClose: () => void; onRetry: (id: number) => void; retrying: boolean
 }) {
   const [detail, setDetail] = useState<EmailLog>(log)
-  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [loadingDetail, setLoadingDetail] = useState(true)
+
+  // Re-arm the loading bar during render when the drawer switches log (react.dev
+  // "adjusting state when a prop changes"); the initial `true` covers the first pass.
+  const [seenLogId, setSeenLogId] = useState(log.id)
+  if (seenLogId !== log.id) {
+    setSeenLogId(log.id)
+    setLoadingDetail(true)
+  }
 
   useEffect(() => {
-    setLoadingDetail(true)
     fetchEmailLog(log.id)
       .then(d => setDetail(d))
       .catch(() => {/* use log as fallback */})
@@ -377,6 +384,35 @@ function Skeleton() {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
+type EmailDashboardQuery = {
+  status?: string
+  type?: string
+  search?: string
+  date_from?: string
+  date_to?: string
+  page: number
+  chartDays: number
+}
+
+/** Pure I/O — no state — shared by the dashboard effect and the imperative `loadAll`,
+ *  so neither has to call a state-mutating helper. */
+async function fetchEmailDashboard(q: EmailDashboardQuery) {
+  const [logsRes, statsRes, chartRes, queueRes] = await Promise.all([
+    fetchEmailLogs({
+      status: q.status || undefined,
+      type: q.type || undefined,
+      search: q.search || undefined,
+      date_from: q.date_from || undefined,
+      date_to: q.date_to || undefined,
+      page: q.page,
+    }),
+    fetchEmailLogStats(),
+    fetchEmailLogChart(q.chartDays),
+    fetchEmailQueueStats(),
+  ])
+  return { logsRes, statsRes, chartRes, queueRes }
+}
+
 export default function EmailLogsPage() {
   const [logs, setLogs]             = useState<EmailLog[]>([])
   const [stats, setStats]           = useState<EmailLogStats | null>(null)
@@ -401,22 +437,20 @@ export default function EmailLogsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
+  /** Imperative (re)load from an event handler — outside any effect, so flipping to
+   *  the loading state synchronously is both allowed and required here. */
   const loadAll = useCallback(async (page = 1) => {
     setLoading(true)
     try {
-      const [logsRes, statsRes, chartRes, queueRes] = await Promise.all([
-        fetchEmailLogs({
-          status: statusFilter || undefined,
-          type: typeFilter || undefined,
-          search: search || undefined,
-          date_from: dateFrom || undefined,
-          date_to: dateTo || undefined,
-          page,
-        }),
-        fetchEmailLogStats(),
-        fetchEmailLogChart(chartDays),
-        fetchEmailQueueStats(),
-      ])
+      const { logsRes, statsRes, chartRes, queueRes } = await fetchEmailDashboard({
+        status: statusFilter,
+        type: typeFilter,
+        search,
+        date_from: dateFrom,
+        date_to: dateTo,
+        page,
+        chartDays,
+      })
       setLogs(logsRes.data)
       setMeta(logsRes.meta)
       setStats(statsRes)
@@ -429,7 +463,51 @@ export default function EmailLogsPage() {
     }
   }, [statusFilter, typeFilter, search, dateFrom, dateTo, chartDays])
 
-  useEffect(() => { void loadAll(1) }, [loadAll])
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts as `true`.
+  const query = { statusFilter, typeFilter, search, dateFrom, dateTo, chartDays }
+  const [seenQuery, setSeenQuery] = useState(query)
+  if (
+    seenQuery.statusFilter !== statusFilter ||
+    seenQuery.typeFilter !== typeFilter ||
+    seenQuery.search !== search ||
+    seenQuery.dateFrom !== dateFrom ||
+    seenQuery.dateTo !== dateTo ||
+    seenQuery.chartDays !== chartDays
+  ) {
+    setSeenQuery(query)
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const { logsRes, statsRes, chartRes, queueRes } = await fetchEmailDashboard({
+          status: statusFilter,
+          type: typeFilter,
+          search,
+          date_from: dateFrom,
+          date_to: dateTo,
+          page: 1,
+          chartDays,
+        })
+        if (!alive) return
+        setLogs(logsRes.data)
+        setMeta(logsRes.meta)
+        setStats(statsRes)
+        setChart(chartRes)
+        setQueue(queueRes)
+      } catch {
+        if (alive) showToast('error', 'فشل تحميل البيانات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [statusFilter, typeFilter, search, dateFrom, dateTo, chartDays])
 
   const handleRetry = async (id: number) => {
     setRetryingId(id)

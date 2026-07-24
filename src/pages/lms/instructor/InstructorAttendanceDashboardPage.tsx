@@ -42,8 +42,8 @@ export default function InstructorAttendanceDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
 
+  // Runs once — `loading` already starts as `true`, so the effect only settles it.
   useEffect(() => {
-    setLoading(true)
     fetchAttendanceDashboard()
       .then(setData)
       .catch(() => toast.error('تعذّر تحميل لوحة الحضور'))

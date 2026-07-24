@@ -52,6 +52,33 @@ function cloneRows(rows: AttendanceRow[]): AttendanceRow[] {
   return rows.map((r) => ({ ...r }))
 }
 
+type AttendanceSessionState = {
+  lock: Pick<AttendanceSessionResult, 'is_locked' | 'locked_at' | 'locked_by'>
+  rows: AttendanceRow[]
+}
+
+/** Pure I/O — kept outside the component so the load effect and the post-save refresh
+ *  share it without either having to call a state-mutating callback. */
+async function fetchAttendanceSessionState(sid: number): Promise<AttendanceSessionState> {
+  const sessionResult = await fetchInstructorAttendanceSession(sid)
+
+  // Backend show() returns ALL enrolled students with attendance merged.
+  // If rows came back (even with null status), use them as the authoritative roster.
+  // Only fall back to mergeAttendanceRows if rows is completely empty (no enrollment data).
+  const merged = sessionResult.rows.length > 0
+    ? sessionResult.rows
+    : mergeAttendanceRows([], [])
+
+  return {
+    lock: {
+      is_locked: sessionResult.is_locked,
+      locked_at: sessionResult.locked_at,
+      locked_by: sessionResult.locked_by,
+    },
+    rows: merged,
+  }
+}
+
 
 export default function InstructorAttendancePage() {
   const [searchParams] = useSearchParams()
@@ -59,6 +86,9 @@ export default function InstructorAttendancePage() {
   const paramSessionId = searchParams.get('session_id') ? Number(searchParams.get('session_id')) : null
 
   const [sessions,    setSessions]    = useState<LmsSession[]>([])
+  /** Clock read once, when the session list lands — lets the auto-select below stay a
+   *  pure render adjustment instead of calling `Date.now()` during render. */
+  const [sessionsLoadedAt, setSessionsLoadedAt] = useState(0)
   const [courseId,    setCourseId]    = useState<number | ''>('')
   const [sessionId,   setSessionId]   = useState<number | ''>('')
   const [rows,        setRows]        = useState<AttendanceRow[]>([])
@@ -70,14 +100,15 @@ export default function InstructorAttendancePage() {
   const [loadingRows, setLoadingRows] = useState(false)
   const [saving,      setSaving]      = useState(false)
 
-  // Load all sessions on mount (or for specific course if URL param present)
+  // Load all sessions on mount (or for specific course if URL param present).
+  // `loading` already starts as `true`, so the effect only has to settle it.
   useEffect(() => {
     let alive = true
-    setLoading(true)
     fetchInstructorSessions(paramCourseId ? { course_id: paramCourseId } : undefined)
       .then((sess) => {
         if (!alive) return
         setSessions(sess)
+        setSessionsLoadedAt(Date.now())
         // Apply URL param pre-selections after sessions load
         if (paramSessionId) {
           setSessionId(paramSessionId)
@@ -116,39 +147,31 @@ export default function InstructorAttendancePage() {
     [sessions, sessionId],
   )
 
-  // Auto-select nearest upcoming session when course changes
-  useEffect(() => {
-    if (courseId === '' || filteredSessions.length === 0) return
+  // Auto-select nearest upcoming session when course changes — adjusted during render
+  // (react.dev "adjusting state when a prop changes") instead of from an effect, so the
+  // picker never paints one frame with no session selected.
+  const [seenPick, setSeenPick] = useState({ courseId, filteredSessions })
+  if (seenPick.courseId !== courseId || seenPick.filteredSessions !== filteredSessions) {
+    setSeenPick({ courseId, filteredSessions })
     // Don't auto-select if a session from URL param is already selected for this course
-    if (sessionId !== '' && filteredSessions.some((s) => s.id === Number(sessionId))) return
+    const alreadySelected =
+      sessionId !== '' && filteredSessions.some((s) => s.id === Number(sessionId))
+    if (courseId !== '' && filteredSessions.length > 0 && !alreadySelected) {
+      const upcoming = filteredSessions
+        .filter((s) => s.starts_at && Date.parse(s.starts_at) > sessionsLoadedAt)
+        .sort((a, b) => Date.parse(a.starts_at!) - Date.parse(b.starts_at!))
+      const nearest = upcoming[0] ?? filteredSessions[filteredSessions.length - 1]
+      if (nearest) setSessionId(nearest.id)
+    }
+  }
 
-    const now = Date.now()
-    const upcoming = filteredSessions
-      .filter((s) => s.starts_at && Date.parse(s.starts_at) > now)
-      .sort((a, b) => Date.parse(a.starts_at!) - Date.parse(b.starts_at!))
-    const nearest = upcoming[0] ?? filteredSessions[filteredSessions.length - 1]
-    if (nearest) setSessionId(nearest.id)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, filteredSessions])
-
-  // Load attendance rows when session changes
+  /** Imperative reload from an event handler (post-save refresh) — outside any effect,
+   *  so it may flip to the loading state synchronously. */
   const loadAttendanceRows = useCallback(async (sid: number) => {
     setLoadingRows(true)
     try {
-      const sessionResult = await fetchInstructorAttendanceSession(sid)
-      setLockInfo({
-        is_locked: sessionResult.is_locked,
-        locked_at: sessionResult.locked_at,
-        locked_by: sessionResult.locked_by,
-      })
-
-      // Backend show() returns ALL enrolled students with attendance merged.
-      // If rows came back (even with null status), use them as the authoritative roster.
-      // Only fall back to mergeAttendanceRows if rows is completely empty (no enrollment data).
-      const merged = sessionResult.rows.length > 0
-        ? sessionResult.rows
-        : mergeAttendanceRows([], [])
-
+      const { lock, rows: merged } = await fetchAttendanceSessionState(sid)
+      setLockInfo(lock)
       setRows(cloneRows(merged))
       setBaseline(cloneRows(merged))
     } catch (err) {
@@ -160,14 +183,43 @@ export default function InstructorAttendancePage() {
     }
   }, [])
 
-  useEffect(() => {
+  // Re-arm (or clear) the roster during render when the session changes, so the new
+  // session never paints the previous session's rows as if they were settled.
+  const [seenSessionId, setSeenSessionId] = useState(sessionId)
+  if (seenSessionId !== sessionId) {
+    setSeenSessionId(sessionId)
     if (sessionId === '') {
       setRows([])
       setBaseline([])
-      return
+      setLoadingRows(false)
+    } else {
+      setLoadingRows(true)
     }
-    void loadAttendanceRows(Number(sessionId))
-  }, [sessionId, loadAttendanceRows])
+  }
+
+  // Load attendance rows when session changes
+  useEffect(() => {
+    if (sessionId === '') return
+    const sid = Number(sessionId)
+    let alive = true
+    void (async () => {
+      try {
+        const { lock, rows: merged } = await fetchAttendanceSessionState(sid)
+        if (!alive) return
+        setLockInfo(lock)
+        setRows(cloneRows(merged))
+        setBaseline(cloneRows(merged))
+      } catch (err) {
+        if (!alive) return
+        if (import.meta.env.DEV) console.error('[attendance] rows load failed:', err)
+        setRows([])
+        setBaseline([])
+      } finally {
+        if (alive) setLoadingRows(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [sessionId])
 
   function updateRow(studentId: number, patch: { status?: AttendanceRow['status']; notes?: string | null }) {
     setRows((prev) => prev.map((r) => (r.student_id === studentId ? { ...r, ...patch } : r)))

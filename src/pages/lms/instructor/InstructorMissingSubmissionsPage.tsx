@@ -9,8 +9,8 @@ export default function InstructorMissingSubmissionsPage() {
   const [rows, setRows] = useState<MissingSubmissionsRow[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Runs once — `loading` already starts as `true`, so the effect only settles it.
   useEffect(() => {
-    setLoading(true)
     fetchMissingSubmissions()
       .then(setRows)
       .catch(() => toast.error('تعذّر تحميل التسليمات المفقودة'))

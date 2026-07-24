@@ -83,6 +83,8 @@ export default function InstructorLearningPathDetailPage() {
   const [forbidden,  setForbidden]  = useState(false)
   const [accessMessage, setAccessMessage] = useState<string | null>(null)
 
+  /** Imperative refresh from the hero button — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   const load = useCallback(async () => {
     if (!id) return
     setLoading(true)
@@ -106,16 +108,54 @@ export default function InstructorLearningPathDetailPage() {
     setLoading(false)
   }, [id, navigate])
 
-  const loadStudents = useCallback(async () => {
-    if (!id) return
-    setStudents(await fetchInstructorPathStudents(Number(id)))
-  }, [id])
-
-  useEffect(() => { void load() }, [load])
+  // Re-arm the loading state during render when the route param changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenId, setSeenId] = useState(id)
+  if (seenId !== id) {
+    setSeenId(id)
+    if (id) {
+      setLoading(true)
+      setForbidden(false)
+      setAccessMessage(null)
+    }
+  }
 
   useEffect(() => {
-    if (tab === 'students') void loadStudents()
-  }, [tab, loadStudents])
+    if (!id) return
+    const pathId = Number(id)
+    let alive = true
+    void (async () => {
+      const result = await fetchInstructorLearningPath(pathId)
+      if (!alive) return
+      if (result.forbidden) {
+        setPath(null)
+        setForbidden(true)
+        setAccessMessage(result.message ?? null)
+        setLoading(false)
+        return
+      }
+      if (!result.path) {
+        navigate('/dashboard/instructor/learning-paths', { replace: true })
+        return
+      }
+      setPath(result.path)
+      const pathSessions = await fetchInstructorPathSessions(pathId)
+      if (!alive) return
+      setSessions(pathSessions)
+      setLoading(false)
+    })()
+    return () => { alive = false }
+  }, [id, navigate])
+
+  useEffect(() => {
+    if (tab !== 'students' || !id) return
+    let alive = true
+    void (async () => {
+      const rows = await fetchInstructorPathStudents(Number(id))
+      if (alive) setStudents(rows)
+    })()
+    return () => { alive = false }
+  }, [tab, id])
 
   if (loading) {
     return (

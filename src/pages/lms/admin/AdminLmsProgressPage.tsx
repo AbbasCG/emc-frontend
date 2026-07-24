@@ -328,13 +328,28 @@ function StudentDrawer({
   const [loading, setLoading] = useState(true)
   const [drawerError, setDrawerError] = useState<string | null>(null)
 
-  useEffect(() => {
+  // Re-arm the loading state during render when the drawer switches student (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts true on mount.
+  const [seenUserId, setSeenUserId] = useState(userId)
+  if (seenUserId !== userId) {
+    setSeenUserId(userId)
     setLoading(true)
     setDrawerError(null)
-    adminFetchStudentDetail(userId)
-      .then(setDetail)
-      .catch(() => setDrawerError('تعذّر تحميل بيانات الطالب.'))
-      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const d = await adminFetchStudentDetail(userId)
+        if (alive) setDetail(d)
+      } catch {
+        if (alive) setDrawerError('تعذّر تحميل بيانات الطالب.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
   }, [userId])
 
   useEffect(() => {
@@ -429,6 +444,15 @@ function StudentDrawer({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+const LOAD_ERROR = 'تعذّر تحميل بيانات التقدم. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback. */
+async function fetchProgressRows(): Promise<ProgressRow[]> {
+  const list = await adminListProgress()
+  return (list as ProgressRow[]).map(normRow)
+}
+
 export default function AdminLmsProgressPage() {
   const [rows, setRows] = useState<ProgressRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -441,16 +465,34 @@ export default function AdminLmsProgressPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [selectedUserName, setSelectedUserName] = useState('')
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    adminListProgress()
-      .then((list) => setRows((list as ProgressRow[]).map(normRow)))
-      .catch(() => setError('تعذّر تحميل بيانات التقدم. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setLoading(false))
+    try {
+      setRows(await fetchProgressRows())
+    } catch {
+      setError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchProgressRows()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const courseOptions = useMemo(() => {
     const seen = new Set<string>()

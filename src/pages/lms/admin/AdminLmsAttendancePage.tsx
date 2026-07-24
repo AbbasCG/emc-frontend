@@ -56,6 +56,15 @@ const statusLabel: Record<string, string> = {
   excused: 'معذور',
 }
 
+const LOAD_ERROR = 'تعذّر تحميل سجلات الحضور. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback. */
+async function fetchAttendanceRows(): Promise<AttendanceRecord[]> {
+  const list = await adminListAttendance()
+  return (list as AttendanceRecord[]).map(normRecord)
+}
+
 export default function AdminLmsAttendancePage() {
   const [rows, setRows] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,16 +75,34 @@ export default function AdminLmsAttendancePage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    adminListAttendance()
-      .then((list) => setRows((list as AttendanceRecord[]).map(normRecord)))
-      .catch(() => setError('تعذّر تحميل سجلات الحضور. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setLoading(false))
+    try {
+      setRows(await fetchAttendanceRows())
+    } catch {
+      setError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchAttendanceRows()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const courseOptions = useMemo(() => {
     const seen = new Set<string>()

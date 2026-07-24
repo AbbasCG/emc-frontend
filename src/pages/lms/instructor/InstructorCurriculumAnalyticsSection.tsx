@@ -16,13 +16,31 @@ export function InstructorCurriculumAnalyticsSection({ groupId }: { groupId: num
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+  /** Retry from the error state — outside any effect, so it may flip to the loading
+   *  state synchronously. */
   function load() {
     setLoading(true)
     setError(false)
     fetchCurriculumAnalytics(groupId).then(setData).catch(() => setError(true)).finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [groupId])
+  // Re-arm the loading state during render when the group changes (react.dev
+  // "adjusting state when a prop changes"); mount is covered by the initial values.
+  const [seenGroupId, setSeenGroupId] = useState(groupId)
+  if (seenGroupId !== groupId) {
+    setSeenGroupId(groupId)
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    fetchCurriculumAnalytics(groupId)
+      .then((d) => { if (alive) setData(d) })
+      .catch(() => { if (alive) setError(true) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [groupId])
 
   if (loading) {
     return <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[1, 2, 3, 4].map((i) => <div key={i} className="h-20 animate-pulse rounded-2xl bg-slate-100" />)}</div>

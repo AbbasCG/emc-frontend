@@ -174,17 +174,44 @@ export default function StudentCertificatesPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load(1) }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchStudentCertificateList({ page: 1, per_page: 20 })
+        if (!alive) return
+        setCerts(res.data)
+        setLastPage(res.meta.last_page)
+        setTotal(res.meta.total)
+        setPage(1)
+      } catch {
+        if (alive) setError('تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // Reset the preview surface during render when the selected certificate changes
+  // (react.dev "adjusting state when a prop changes"), so the modal never paints a
+  // frame holding the previous certificate's blob.
+  const [seenPreviewCert, setSeenPreviewCert] = useState(previewCert)
+  if (seenPreviewCert !== previewCert) {
+    setSeenPreviewCert(previewCert)
+    setPreviewUrl(null)
+    setPreviewLoading(previewCert !== null)
+  }
 
   // Preview blob lifecycle
   useEffect(() => {
     const prev = prevUrlRef.current
     if (prev) { URL.revokeObjectURL(prev); prevUrlRef.current = null }
-    setPreviewUrl(null)
 
     if (!previewCert) return
 
-    setPreviewLoading(true)
     buildPreviewUrl(previewCert.id)
       .then((url) => { prevUrlRef.current = url; setPreviewUrl(url) })
       .catch(() => setPreviewUrl(null))

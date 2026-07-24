@@ -22,12 +22,20 @@ export default function InstructorAssignmentDashboardPage() {
   const [data, setData] = useState<AssignmentDashboardCounters | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // `loading` starts true, so the mount fetch never has to arm it synchronously.
   useEffect(() => {
-    setLoading(true)
-    fetchAssignmentDashboard()
-      .then(setData)
-      .catch(() => toast.error('تعذّر تحميل لوحة الواجبات'))
-      .finally(() => setLoading(false))
+    let alive = true
+    void (async () => {
+      try {
+        const counters = await fetchAssignmentDashboard()
+        if (alive) setData(counters)
+      } catch {
+        if (alive) toast.error('تعذّر تحميل لوحة الواجبات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
   }, [])
 
   return (

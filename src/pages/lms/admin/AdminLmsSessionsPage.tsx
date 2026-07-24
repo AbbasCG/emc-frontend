@@ -623,6 +623,19 @@ function DetailsDrawer({ row, onClose }: { row: AdminSession; onClose: () => voi
 
 /* ── Main page ─────────────────────────────────────────────────────── */
 
+const LOAD_ERROR = 'تعذّر تحميل الجلسات. تحقق من الاتصال وحاول مرة أخرى.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback. */
+async function fetchSessionRows(): Promise<AdminSession[]> {
+  const list = await adminListSessions()
+  return list.map((r) => ({
+    ...r,
+    meeting_link: r.meeting_link ?? r.meeting_url ?? null,
+    course_name: normCourseTitle(r.course_title ?? r.course_name),
+  }))
+}
+
 export default function AdminLmsSessionsPage() {
   const [rows, setRows] = useState<AdminSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -649,20 +662,34 @@ export default function AdminLmsSessionsPage() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<number | null>(null)
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    adminListSessions()
-      .then((list) => setRows(list.map((r) => ({
-        ...r,
-        meeting_link: r.meeting_link ?? r.meeting_url ?? null,
-        course_name: normCourseTitle(r.course_title ?? r.course_name),
-      }))))
-      .catch(() => setError('تعذّر تحميل الجلسات. تحقق من الاتصال وحاول مرة أخرى.'))
-      .finally(() => setLoading(false))
+    try {
+      setRows(await fetchSessionRows())
+    } catch {
+      setError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchSessionRows()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const courseOptions = useMemo(() => {
     const seen = new Set<string>()
@@ -753,7 +780,7 @@ export default function AdminLmsSessionsPage() {
         toast.success('تم إضافة الجلسة بنجاح')
       }
       setModal(null)
-      load()
+      void load()
     } catch {
       toast.error('تعذّر حفظ الجلسة')
     } finally {

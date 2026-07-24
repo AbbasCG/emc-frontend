@@ -131,6 +131,26 @@ const ALL_STATUSES: AmbassadorStatus[] = [
   'new', 'under_review', 'interview_scheduled', 'approved', 'rejected', 'waitlisted', 'cancelled',
 ]
 
+/** Pure I/O + shaping — no state — shared by the list effect and the imperative `load`,
+ *  so neither has to call a state-mutating helper. */
+async function loadApplications(params: AmbassadorListParams) {
+  const res = await fetchAmbassadorApplications(params)
+  const s = res.statistics
+  const stats: Stats | null =
+    s && Object.keys(s).length > 0
+      ? {
+          total: s.total ?? res.meta.total,
+          new: s.new ?? 0,
+          under_review: s.under_review ?? 0,
+          interview_scheduled: s.interview_scheduled ?? 0,
+          approved: s.approved ?? 0,
+          rejected: s.rejected ?? 0,
+          waitlisted: s.waitlisted ?? 0,
+        }
+      : null
+  return { rows: res.data, meta: res.meta, stats }
+}
+
 export default function AmbassadorApplicationsPage() {
   const { id: routeId } = useParams<{ id?: string }>()
   const navigate = useNavigate()
@@ -151,23 +171,15 @@ export default function AmbassadorApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState<AmbassadorStatus | 'all'>((searchParams.get('status') as AmbassadorStatus) ?? 'all')
   const [page, setPage] = useState(Number(searchParams.get('page') ?? 1))
 
+  /** Imperative (re)load from an event handler — outside any effect, so flipping to
+   *  the loading state synchronously is both allowed and required here. */
   const load = useCallback(async (params: AmbassadorListParams) => {
     setLoading(true)
     try {
-      const res = await fetchAmbassadorApplications(params)
-      setApplications(res.data)
-      setPagination(res.meta)
-      if (res.statistics && Object.keys(res.statistics).length > 0) {
-        setStats({
-          total: res.statistics.total ?? res.meta.total,
-          new: res.statistics.new ?? 0,
-          under_review: res.statistics.under_review ?? 0,
-          interview_scheduled: res.statistics.interview_scheduled ?? 0,
-          approved: res.statistics.approved ?? 0,
-          rejected: res.statistics.rejected ?? 0,
-          waitlisted: res.statistics.waitlisted ?? 0,
-        })
-      }
+      const { rows, meta, stats: next } = await loadApplications(params)
+      setApplications(rows)
+      setPagination(meta)
+      if (next) setStats(next)
     } catch {
       toast.error('فشل تحميل الطلبات')
     } finally {
@@ -175,38 +187,77 @@ export default function AmbassadorApplicationsPage() {
     }
   }, [])
 
-  useEffect(() => {
-    load({ page, per_page: 20, search: search || undefined, status: statusFilter })
-  }, [page, statusFilter, load])
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts as `true`.
+  const [seenQuery, setSeenQuery] = useState({ page, statusFilter })
+  if (seenQuery.page !== page || seenQuery.statusFilter !== statusFilter) {
+    setSeenQuery({ page, statusFilter })
+    setLoading(true)
+  }
 
   useEffect(() => {
-    if (!routeId) return
-    const numericId = Number(routeId)
-    if (!Number.isFinite(numericId)) return
-
-    const fromList = applications.find((a) => a.id === numericId)
-    if (fromList) {
-      setSelected(fromList)
-      return
+    let alive = true
+    void (async () => {
+      try {
+        const { rows, meta, stats: next } = await loadApplications({
+          page,
+          per_page: 20,
+          search: search || undefined,
+          status: statusFilter,
+        })
+        if (!alive) return
+        setApplications(rows)
+        setPagination(meta)
+        if (next) setStats(next)
+      } catch {
+        if (alive) toast.error('فشل تحميل الطلبات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
     }
+  }, [page, statusFilter])
+
+  // ── Detail modal driven by the route id
+  const numericRouteId = routeId !== undefined ? Number(routeId) : Number.NaN
+  const routeMatch =
+    Number.isFinite(numericRouteId)
+      ? (applications.find((a) => a.id === numericRouteId) ?? null)
+      : null
+
+  // Adopting a row that is already in the list, and arming the detail spinner when it
+  // is not, both happen during render — so the effect below only sets state after an
+  // await. `seenRoute` starts as `null` so the very first pass still runs.
+  const [seenRoute, setSeenRoute] = useState<
+    { routeId: string | undefined; match: AmbassadorApplication | null } | null
+  >(null)
+  if (seenRoute === null || seenRoute.routeId !== routeId || seenRoute.match !== routeMatch) {
+    setSeenRoute({ routeId, match: routeMatch })
+    if (routeMatch) setSelected(routeMatch)
+    else if (Number.isFinite(numericRouteId)) setDetailLoading(true)
+  }
+
+  useEffect(() => {
+    if (!Number.isFinite(numericRouteId) || routeMatch) return
 
     let cancelled = false
-    setDetailLoading(true)
-    fetchAmbassadorApplication(numericId)
-      .then((app) => {
+    void (async () => {
+      try {
+        const app = await fetchAmbassadorApplication(numericRouteId)
         if (!cancelled) setSelected(app)
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) toast.error('تعذّر تحميل تفاصيل الطلب')
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setDetailLoading(false)
-      })
+      }
+    })()
 
     return () => {
       cancelled = true
     }
-  }, [routeId, applications])
+  }, [numericRouteId, routeMatch])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

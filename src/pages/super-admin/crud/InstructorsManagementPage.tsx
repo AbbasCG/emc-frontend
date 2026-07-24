@@ -99,6 +99,8 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
   const [view, setView] = useState<AdminInstructorDirectoryRow | null>(null)
   const [togglingId, setTogglingId] = useState<number | null>(null)
 
+  /** Manual refresh / post-mutation reload from a handler — outside any effect, so
+   *  flipping to the loading state synchronously is both allowed and required here. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -112,9 +114,26 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
     }
   }, [])
 
+  // Initial load — inlined so no state is set on the effect's synchronous path
+  // (`loading` already starts as `true`).
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const { rows: list } = await fetchAdminInstructorsDirectory()
+        if (alive) setRows(Array.isArray(list) ? list : [])
+      } catch {
+        if (!alive) return
+        toast.error('تعذّر تحميل المدربين من /api/admin/instructors')
+        setRows([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const expertiseTags = useMemo(() => {
     const s = new Set<string>()

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   Calendar,
@@ -237,6 +237,20 @@ function SessionSection({
   )
 }
 
+/** Pure I/O — kept outside the component so the effect and the refresh button share it
+ *  without either having to call a state-mutating function. */
+async function fetchSessionsBundle(): Promise<{
+  sessions: LmsSession[]
+  paths: LearningPath[]
+}> {
+  const [rawSessions, paths] = await Promise.all([
+    fetchInstructorSessions(),
+    fetchInstructorLearningPaths().then((r) => r.paths).catch(() => [] as LearningPath[]),
+  ])
+  // Re-enrich all sessions with live timestamp-based status
+  return { sessions: rawSessions.map((s) => enrichSessionTiming(s)), paths }
+}
+
 type Tab = 'all' | 'live' | 'scheduled' | 'completed' | 'cancelled'
 
 const TABS: { key: Tab; label: string }[] = [
@@ -256,16 +270,36 @@ export default function InstructorSessionsPage() {
   const [activeTab,  setActiveTab] = useState<Tab>('all')
   const [, setApiMissing] = useState(false)
 
-  async function load() {
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const bundle = await fetchSessionsBundle()
+        if (!alive) return
+        setSessions(bundle.sessions)
+        setLpPaths(bundle.paths)
+        setApiMissing(false)
+      } catch (err) {
+        if (!alive || axios.isCancel(err)) return
+        setApiMissing(true)
+        if (import.meta.env.DEV) console.error('[sessions] load failed:', err)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from the toolbar button — outside an effect, so the synchronous
+   *  loading flip is allowed. */
+  const reload = useCallback(async () => {
     setLoading(true)
     try {
-      const [rawSessions, paths] = await Promise.all([
-        fetchInstructorSessions(),
-        fetchInstructorLearningPaths().then((r) => r.paths).catch(() => [] as LearningPath[]),
-      ])
-      // Re-enrich all sessions with live timestamp-based status
-      setSessions(rawSessions.map((s) => enrichSessionTiming(s)))
-      setLpPaths(paths)
+      const bundle = await fetchSessionsBundle()
+      setSessions(bundle.sessions)
+      setLpPaths(bundle.paths)
       setApiMissing(false)
     } catch (err) {
       if (!axios.isCancel(err)) {
@@ -275,9 +309,7 @@ export default function InstructorSessionsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void load() }, [])
+  }, [])
 
   /**
    * Build a map: course_id → learning_path_title
@@ -329,7 +361,7 @@ export default function InstructorSessionsPage() {
       >
         <button
           type="button"
-          onClick={() => void load()}
+          onClick={() => void reload()}
           disabled={loading}
           className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-black text-white/80 transition hover:bg-white/20 disabled:opacity-50"
         >

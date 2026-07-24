@@ -143,10 +143,20 @@ export default function PlacementResultPage() {
   const [error, setError]                 = useState(false)
   const [retryCount, setRetryCount]       = useState(0)
 
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") — the initial state already carries the
+  // first pass's values, so the effect below never touches state synchronously.
+  const [seenQuery, setSeenQuery] = useState({ courseId, retryCount })
+  if (seenQuery.courseId !== courseId || seenQuery.retryCount !== retryCount) {
+    setSeenQuery({ courseId, retryCount })
+    if (courseId) {
+      setLoading(true)
+      setError(false)
+    }
+  }
+
   useEffect(() => {
     if (!courseId) return
-    setLoading(true)
-    setError(false)
     void (async () => {
       try {
         const { status, attempt: a, oral_booking: ob, can_start_learning: csl, can_take_written_test: canTake } =

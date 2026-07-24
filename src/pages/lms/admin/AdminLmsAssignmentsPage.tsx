@@ -58,6 +58,15 @@ function normRow(r: AdminAssignmentListItem): AssignmentRow {
   }
 }
 
+const LOAD_ERROR = 'تعذّر تحميل الواجبات. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback. */
+async function fetchAssignmentRows(): Promise<AssignmentRow[]> {
+  const list = await adminListAssignments()
+  return (list as AdminAssignmentListItem[]).map(normRow)
+}
+
 const STATUS_OPTIONS = [
   { value: '', label: 'كل الحالات' },
   { value: 'active', label: 'نشط' },
@@ -380,16 +389,34 @@ export default function AdminLmsAssignmentsPage() {
   const [deleting, setDeleting] = useState<number | null>(null)
   const [confirmDeleteRow, setConfirmDeleteRow] = useState<AssignmentRow | null>(null)
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    adminListAssignments()
-      .then((list) => setRows((list as AdminAssignmentListItem[]).map(normRow)))
-      .catch(() => setError('تعذّر تحميل الواجبات. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setLoading(false))
+    try {
+      setRows(await fetchAssignmentRows())
+    } catch {
+      setError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchAssignmentRows()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const courseOptions = useMemo(() => {
     const seen = new Set<string>()
@@ -472,7 +499,7 @@ export default function AdminLmsAssignmentsPage() {
         toast.success('تم إنشاء الواجب بنجاح')
       }
       setModal(null)
-      load()
+      void load()
     } catch {
       toast.error('تعذّر حفظ الواجب')
     } finally {

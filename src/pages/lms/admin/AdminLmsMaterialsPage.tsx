@@ -529,6 +529,15 @@ function MaterialCard({
   )
 }
 
+const LOAD_ERROR = 'تعذّر تحميل المواد. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback. */
+async function fetchMaterialRows(): Promise<MaterialRow[]> {
+  const list = await adminListMaterials()
+  return (list as MaterialRow[]).map(normMaterial)
+}
+
 export default function AdminLmsMaterialsPage() {
   const [rows, setRows] = useState<MaterialRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -555,16 +564,34 @@ export default function AdminLmsMaterialsPage() {
     setPreview({ kind: 'idle' })
   }, [])
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    adminListMaterials()
-      .then((list) => setRows((list as MaterialRow[]).map(normMaterial)))
-      .catch(() => setError('تعذّر تحميل المواد. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setLoading(false))
+    try {
+      setRows(await fetchMaterialRows())
+    } catch {
+      setError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchMaterialRows()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
   useEffect(() => () => { if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current) }, [])
 
   const handlePreview = useCallback(async (m: MaterialRow) => {

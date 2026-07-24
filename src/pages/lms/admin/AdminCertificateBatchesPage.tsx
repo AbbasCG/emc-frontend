@@ -47,6 +47,16 @@ const CERT_STATUS_CLS: Record<string, string> = {
   revoked: 'bg-rose-50 text-rose-600',
 }
 
+const LOAD_ERROR = 'تعذّر تحميل الإصدارات الجماعية. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative reload
+ *  share it without either having to call a state-mutating callback.
+ *  Handles both paginated `{ data: [...] }` and plain array responses. */
+async function fetchBatchList(): Promise<CertificateBatch[]> {
+  const res = await fetchCertificateBatches()
+  return Array.isArray(res) ? res : (res as { data: CertificateBatch[] }).data
+}
+
 export default function AdminCertificateBatchesPage() {
   const { batchId } = useParams<{ batchId?: string }>()
   const navigate = useNavigate()
@@ -59,20 +69,34 @@ export default function AdminCertificateBatchesPage() {
   const [drawerCerts, setDrawerCerts] = useState<Certificate[]>([])
   const [loadingDrawer, setLoadingDrawer] = useState(false)
 
-  const load = useCallback(() => {
+  /** Imperative refresh/retry from a button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    fetchCertificateBatches()
-      .then(res => {
-        // handle both paginated { data: [...] } and plain array
-        const list = Array.isArray(res) ? res : (res as { data: CertificateBatch[] }).data
-        setBatches(list)
-      })
-      .catch(() => setError('تعذّر تحميل الإصدارات الجماعية. تحقق من الاتصال وأعد المحاولة.'))
-      .finally(() => setLoading(false))
+    try {
+      setBatches(await fetchBatchList())
+    } catch {
+      setError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchBatchList()
+        if (alive) setBatches(list)
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   // Auto-open drawer if batchId in URL
   useEffect(() => {

@@ -92,15 +92,22 @@ function InstructorSelect({
 }) {
   const [search, setSearch]           = useState('')
   const [options, setOptions]         = useState<InstructorOption[]>([])
-  const [loading, setLoading]         = useState(false)
+  const [loading, setLoading]         = useState(true)
   const [open, setOpen]               = useState(false)
   const [selectedLabel, setSelectedLabel] = useState<string>('')
   const wrapRef = useRef<HTMLDivElement>(null)
 
+  // Re-arm the spinner during render when the query changes (react.dev "adjusting
+  // state when a prop changes"); the initial `true` covers the first pass.
+  const [seenSearch, setSeenSearch] = useState(search)
+  if (seenSearch !== search) {
+    setSeenSearch(search)
+    setLoading(true)
+  }
+
   // Load options (debounced on search change)
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     const timer = setTimeout(() => {
       fetchInstructorOptions(search || undefined)
         .then((opts) => { if (!cancelled) setOptions(opts) })
@@ -110,12 +117,20 @@ function InstructorSelect({
     return () => { cancelled = true; clearTimeout(timer) }
   }, [search])
 
-  // Sync label from options when value changes
-  useEffect(() => {
-    if (!value) { setSelectedLabel(''); return }
-    const found = options.find((o) => String(o.id) === value)
-    if (found) setSelectedLabel(found.name)
-  }, [value, options])
+  // Sync label from options when the value changes — done during render, not from an
+  // effect. `seenLabelSrc` starts as `null` so the very first pass still runs.
+  const [seenLabelSrc, setSeenLabelSrc] = useState<
+    { value: string; options: InstructorOption[] } | null
+  >(null)
+  if (seenLabelSrc === null || seenLabelSrc.value !== value || seenLabelSrc.options !== options) {
+    setSeenLabelSrc({ value, options })
+    if (!value) {
+      setSelectedLabel('')
+    } else {
+      const found = options.find((o) => String(o.id) === value)
+      if (found) setSelectedLabel(found.name)
+    }
+  }
 
   const select = (opt: InstructorOption) => {
     onChange(String(opt.id), opt.name)
@@ -1006,6 +1021,8 @@ export default function LearningPathsManagementPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
+  /** Imperative reload after a mutation — called from handlers, so the synchronous
+   *  loading flip is allowed here. */
   const load = useCallback(() => {
     setLoading(true)
     fetchAdminLearningPaths({
@@ -1019,7 +1036,32 @@ export default function LearningPathsManagementPage() {
       .finally(() => setLoading(false))
   }, [search, statusFilter, page])
 
-  useEffect(() => { load() }, [load])
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts as `true`.
+  const listQuery = { search, statusFilter, page }
+  const [seenListQuery, setSeenListQuery] = useState(listQuery)
+  if (
+    seenListQuery.search !== search ||
+    seenListQuery.statusFilter !== statusFilter ||
+    seenListQuery.page !== page
+  ) {
+    setSeenListQuery(listQuery)
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    fetchAdminLearningPaths({
+      search:   search || undefined,
+      status:   statusFilter || undefined,
+      page,
+      per_page: 20,
+    })
+      .then((res) => { if (alive) { setPaths(res.data); setMeta(res.meta) } })
+      .catch(() => { if (alive) showToast('فشل تحميل المسارات', 'error') })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [search, statusFilter, page])
 
   const openEdit = async (p: LearningPath) => {
     const full = await fetchAdminLearningPath(p.id)

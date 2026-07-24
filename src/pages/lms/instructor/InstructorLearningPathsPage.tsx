@@ -187,6 +187,8 @@ export default function InstructorLearningPathsPage() {
   const [search,   setSearch]  = useState('')
   const [filter,   setFilter]  = useState<StatusFilter>('all')
 
+  /** Imperative refresh/retry from a button — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   const load = () => {
     setLoading(true)
     setForbidden(false)
@@ -203,7 +205,22 @@ export default function InstructorLearningPathsPage() {
       })
       .finally(() => setLoading(false))
   }
-  useEffect(() => { load() }, [])
+  // Runs once — the initial state already carries the first loading/empty values, so the
+  // effect only has to commit the result.
+  useEffect(() => {
+    let alive = true
+    fetchInstructorLearningPaths()
+      .then(({ paths: list, forbidden: denied, message, loadError: err, notFound: nf }) => {
+        if (!alive) return
+        setPaths(list)
+        setForbidden(denied)
+        setLoadError(Boolean(err))
+        setNotFound(Boolean(nf))
+        setAccessMessage(message ?? null)
+      })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [])
 
   const stats = useMemo(() => ({
     total:    paths.length,

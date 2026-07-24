@@ -182,9 +182,21 @@ export default function VolunteerRequestsPage() {
 
   const [selected, setSelected] = useState<VolunteerRequest | null>(null)
 
-  // Reset to page 1 whenever filters change
-  useEffect(() => { setPage(1) }, [debouncedSearch, filterStatus, filterDept])
+  // Reset to page 1 whenever filters change — done during render (react.dev
+  // "adjusting state when a prop changes") rather than from an effect.
+  const filters = { debouncedSearch, filterStatus, filterDept }
+  const [seenFilters, setSeenFilters] = useState(filters)
+  if (
+    seenFilters.debouncedSearch !== debouncedSearch ||
+    seenFilters.filterStatus !== filterStatus ||
+    seenFilters.filterDept !== filterDept
+  ) {
+    setSeenFilters(filters)
+    setPage(1)
+  }
 
+  /** Silent/imperative reload from a handler — outside any effect, so flipping to the
+   *  loading state synchronously is allowed here. */
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoadError(null)
     setLoading(true)
@@ -211,9 +223,52 @@ export default function VolunteerRequestsPage() {
     }
   }, [page, debouncedSearch, filterStatus, filterDept, routeId])
 
+  // Re-arm loading/error during render when the query changes; the initial
+  // `loading = true` / `loadError = null` cover the first pass.
+  const query = { page, debouncedSearch, filterStatus, filterDept, routeId }
+  const [seenQuery, setSeenQuery] = useState(query)
+  if (
+    seenQuery.page !== page ||
+    seenQuery.debouncedSearch !== debouncedSearch ||
+    seenQuery.filterStatus !== filterStatus ||
+    seenQuery.filterDept !== filterDept ||
+    seenQuery.routeId !== routeId
+  ) {
+    setSeenQuery(query)
+    setLoading(true)
+    setLoadError(null)
+  }
+
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const result: FetchVolunteerRequestsResult = await fetchVolunteerRequests({
+          page,
+          per_page: 20,
+          status: filterStatus !== 'all' ? filterStatus : undefined,
+          search: debouncedSearch || undefined,
+          desired_department: filterDept !== 'all' ? filterDept : undefined,
+        })
+        if (!alive) return
+        setItems(result.data)
+        setMeta(result.meta)
+        setStats(result.statistics)
+
+        if (routeId && result.data.length) {
+          const match = result.data.find((r) => String(r.id) === routeId)
+          if (match) setSelected(match)
+        }
+      } catch {
+        if (alive) setLoadError('تعذّر تحميل قائمة طلبات التطوع.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [page, debouncedSearch, filterStatus, filterDept, routeId])
 
   function handlePageChange(p: number) {
     setPage(p)

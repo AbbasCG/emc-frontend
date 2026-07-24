@@ -19,6 +19,8 @@ export default function SuperAdminFinancialRequestsPage() {
   const [selected, setSelected] = useState<FinancialRequest | null>(null)
   const [statusFilter, setStatusFilter] = useState('')
 
+  /** Manual refresh from the toolbar button — outside any effect, so flipping to the
+   *  loading state synchronously is both allowed and required here. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -27,7 +29,30 @@ export default function SuperAdminFinancialRequestsPage() {
     } catch { toast.error('فشل تحميل الطلبات') } finally { setLoading(false) }
   }, [statusFilter])
 
-  useEffect(() => { void load() }, [load])
+  // Re-arm the loading state during render when the filter changes (react.dev
+  // "adjusting state when a prop changes"); `loading` already starts as `true`.
+  const [seenStatus, setSeenStatus] = useState(statusFilter)
+  if (seenStatus !== statusFilter) {
+    setSeenStatus(statusFilter)
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchFinancialRequests({ status: statusFilter || undefined, per_page: 50 })
+        if (alive) setRequests(res.data ?? [])
+      } catch {
+        if (alive) toast.error('فشل تحميل الطلبات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [statusFilter])
 
   function handleUpdate(updated: FinancialRequest) {
     setRequests(r => r.map(x => x.id === updated.id ? updated : x))

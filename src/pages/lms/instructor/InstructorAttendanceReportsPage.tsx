@@ -38,6 +38,8 @@ export default function InstructorAttendanceReportsPage() {
   const [error, setError] = useState(false)
   const [exporting, setExporting] = useState<'csv' | 'pdf' | 'excel' | null>(null)
 
+  /** Imperative refresh from the toolbar — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   const load = useCallback(() => {
     setLoading(true)
     setError(false)
@@ -47,7 +49,24 @@ export default function InstructorAttendanceReportsPage() {
       .finally(() => setLoading(false))
   }, [filters])
 
-  useEffect(() => { load() }, [load])
+  // Re-arm the loading state during render when the filters change (react.dev
+  // "adjusting state when a prop changes") instead of from the fetch effect below, so
+  // the new filters never paint the previous result as if it were settled.
+  const [seenFilters, setSeenFilters] = useState(filters)
+  if (seenFilters !== filters) {
+    setSeenFilters(filters)
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    fetchAttendanceReports(filters)
+      .then((res) => { if (alive) setResult(res) })
+      .catch(() => { if (alive) setError(true) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [filters])
 
   function updateFilter<K extends keyof AttendanceReportFilters>(key: K, value: AttendanceReportFilters[K]) {
     setFilters((f) => ({ ...f, [key]: value, page: 1 }))

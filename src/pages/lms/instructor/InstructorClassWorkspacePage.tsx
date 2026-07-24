@@ -78,6 +78,11 @@ const TABS: Array<{ id: Tab; label: string; icon: typeof Users }> = [
 
 const VALID_TABS: Tab[] = TABS.map((t) => t.id)
 
+/** Tabs whose content is fetched on entry — the others render from `detail` alone. */
+const FETCHED_TABS: ReadonlySet<Tab> = new Set<Tab>([
+  'students', 'progress', 'sessions', 'attendance', 'assignments', 'announcements',
+])
+
 const PRIORITY_LABEL: Record<string, string> = { normal: 'عادي', important: 'مهم', urgent: 'عاجل' }
 const PRIORITY_CLS: Record<string, string> = {
   normal: 'bg-slate-100 text-slate-600', important: 'bg-amber-50 text-amber-700', urgent: 'bg-red-50 text-red-700',
@@ -103,7 +108,7 @@ export default function InstructorClassWorkspacePage() {
   const [attendance, setAttendance] = useState<ClassGroupAttendanceRow[]>([])
   const [assignments, setAssignments] = useState<ClassGroupAssignmentRow[]>([])
   const [announcements, setAnnouncements] = useState<ClassAnnouncementRow[]>([])
-  const [tabLoading, setTabLoading] = useState(false)
+  const [tabLoading, setTabLoading] = useState(() => Boolean(groupId) && FETCHED_TABS.has(tab))
   const [assessmentStudent, setAssessmentStudent] = useState<ClassAssignmentStudent | null>(null)
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
   const [announcementTitle, setAnnouncementTitle] = useState('')
@@ -115,9 +120,20 @@ export default function InstructorClassWorkspacePage() {
   const [settingsForm, setSettingsForm] = useState({ name: '', capacity: 0 })
   const [settingsBusy, setSettingsBusy] = useState(false)
 
+  // Re-arm the loading states during render when the route changes (react.dev
+  // "adjusting state when a prop changes"), so a new group/tab never paints the previous
+  // one's data as if it were settled. The initial values above already cover mount.
+  const [seenRoute, setSeenRoute] = useState({ groupId, tab })
+  if (seenRoute.groupId !== groupId || seenRoute.tab !== tab) {
+    if (groupId) {
+      if (seenRoute.groupId !== groupId) setLoading(true)
+      setTabLoading(FETCHED_TABS.has(tab))
+    }
+    setSeenRoute({ groupId, tab })
+  }
+
   useEffect(() => {
     if (!groupId) return
-    setLoading(true)
     fetchClassGroupDetail(Number(groupId))
       .then((d) => {
         setDetail(d)
@@ -145,14 +161,13 @@ export default function InstructorClassWorkspacePage() {
   useEffect(() => {
     if (!groupId) return
     const id = Number(groupId)
-    setTabLoading(true)
+    // `tabLoading` was already armed for this tab during render (see above).
     const done = () => setTabLoading(false)
     if (tab === 'students' || tab === 'progress') fetchClassGroupStudents(id).then(setStudents).catch(() => setStudents([])).finally(done)
     else if (tab === 'sessions') fetchClassGroupSessions(id).then(setSessions).catch(() => setSessions([])).finally(done)
     else if (tab === 'attendance') fetchClassGroupAttendance(id).then(setAttendance).catch(() => setAttendance([])).finally(done)
     else if (tab === 'assignments') fetchClassGroupAssignments(id).then(setAssignments).catch(() => setAssignments([])).finally(done)
     else if (tab === 'announcements') fetchClassGroupAnnouncements(id).then(setAnnouncements).catch(() => setAnnouncements([])).finally(done)
-    else done()
   }, [groupId, tab])
 
   function reloadAnnouncements() {

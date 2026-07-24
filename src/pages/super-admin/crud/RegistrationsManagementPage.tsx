@@ -117,6 +117,41 @@ function CreateAccountButton({
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 
+/** Pure I/O — no state — shared by the list effect and the imperative `load`, so
+ *  neither has to call a state-mutating helper. */
+async function fetchAppliedRegistrations(
+  applied: AdminRegistrationListFilters & { accountTab: AccountFilter },
+): Promise<AdminRegistrationListRow[]> {
+  const course_id =
+    applied.course_id != null && Number.isFinite(Number(applied.course_id))
+      ? Number(applied.course_id)
+      : undefined
+
+  const has_account: AdminRegistrationListFilters['has_account'] =
+    applied.accountTab === 'linked'
+      ? 'linked'
+      : applied.accountTab === 'guest'
+        ? 'guest'
+        : undefined
+
+  const list = await fetchAdminRegistrations({
+    search: applied.search || undefined,
+    status: applied.status || undefined,
+    course_id,
+    date_from: applied.date_from || undefined,
+    date_to: applied.date_to || undefined,
+    has_account,
+  })
+  return Array.isArray(list) ? list : []
+}
+
+/** Load-failure copy — shared so the effect and `load` can never drift apart. */
+function registrationsLoadErrorMessage(e: unknown): string {
+  return axios.isAxiosError(e) && e.response?.status === 403
+    ? 'صلاحيات غير كافية لقراءة التسجيلات الإدارية.'
+    : getApiErrorMessage(e)
+}
+
 export default function RegistrationsManagementPage() {
   const [loading,     setLoading]     = useState(true)
   const [rows,        setRows]        = useState<AdminRegistrationListRow[]>([])
@@ -136,46 +171,48 @@ export default function RegistrationsManagementPage() {
     accountTab: 'all',
   })
 
+  /** Imperative reload from a handler — outside any effect, so flipping to the
+   *  loading state synchronously is both allowed and required here. */
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const course_id =
-        applied.course_id != null && Number.isFinite(Number(applied.course_id))
-          ? Number(applied.course_id)
-          : undefined
-
-      const has_account: AdminRegistrationListFilters['has_account'] =
-        applied.accountTab === 'linked'
-          ? 'linked'
-          : applied.accountTab === 'guest'
-            ? 'guest'
-            : undefined
-
-      const list = await fetchAdminRegistrations({
-        search: applied.search || undefined,
-        status: applied.status || undefined,
-        course_id,
-        date_from: applied.date_from || undefined,
-        date_to: applied.date_to || undefined,
-        has_account,
-      })
-      setRows(Array.isArray(list) ? list : [])
+      setRows(await fetchAppliedRegistrations(applied))
     } catch (e) {
       setRows([])
-      if (axios.isAxiosError(e) && e.response?.status === 403) {
-        setError('صلاحيات غير كافية لقراءة التسجيلات الإدارية.')
-      } else {
-        setError(getApiErrorMessage(e))
-      }
+      setError(registrationsLoadErrorMessage(e))
     } finally {
       setLoading(false)
     }
   }, [applied])
 
+  // Re-arm loading/error during render when the applied filters change (react.dev
+  // "adjusting state when a prop changes"); the initial values cover the first pass.
+  const [seenApplied, setSeenApplied] = useState(applied)
+  if (seenApplied !== applied) {
+    setSeenApplied(applied)
+    setLoading(true)
+    setError(null)
+  }
+
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchAppliedRegistrations(applied)
+        if (alive) setRows(list)
+      } catch (e) {
+        if (!alive) return
+        setRows([])
+        setError(registrationsLoadErrorMessage(e))
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [applied])
 
   const kpis = useMemo(() => {
     const total = rows.length
