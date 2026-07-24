@@ -9,16 +9,12 @@ import {
   GraduationCap,
   LayoutDashboard,
   LayoutGrid,
-  Layers,
   LogIn,
   LogOut,
   Mail,
-  MapPinned,
   Menu,
   Monitor,
-  ShieldCheck,
   Sparkles,
-  Target,
   TrendingUp,
   User,
   UserCircle,
@@ -36,45 +32,37 @@ import { UserAvatar } from '@/components/UserAvatar'
 
 const aboutItems: MegaDropdownItem[] = [
   { href: '/about', label: 'من نحن', description: 'تعريف بالمنصة وأسلوب عملها', icon: Users },
-  { href: '/about#vision-mission', label: 'الرؤية والرسالة', description: 'ما نسعى إليه وكيف نخدم المتعلم', icon: Target },
-  { href: '/about#roadmap', label: 'خارطة الطريق', description: 'مراحل تطوير المنظومة والأولويات', icon: MapPinned },
-  { href: '/about#leadership', label: 'رسالة القيادة', description: 'التزام مؤسسي بالجودة والشفافية', icon: Sparkles },
   { href: '/impact', label: 'الأثر والإنجازات', description: 'اتجاهات أثر واقعية وشفافة', icon: TrendingUp },
   { href: '/ar/team', label: 'الفريق', description: 'الهيكل والأدوار والقيم', icon: UserCircle },
+  { href: '/departments', label: 'الإدارات والحوكمة', description: 'الهيكل التنظيمي وسياسات الجودة والامتثال', icon: Building2 },
+  { href: '/platform', label: 'المنصة', description: 'التجربة الرقمية والخدمات', icon: Monitor },
 ]
 
 const programsItems: MegaDropdownItem[] = [
   { href: '/courses', label: 'البرامج والدورات', description: 'استعرض البرامج وسجّل مباشرة', icon: BookOpen },
   { href: '/workshops', label: 'الورش', description: 'ورش تدريبية قصيرة ومجتمعية', icon: Sparkles },
   { href: '/learning-paths', label: 'مسارات التعلم', description: 'مسارات تعليمية مترابطة مع شهادات', icon: Waypoints },
-  { href: '/programs', label: 'البرامج', description: 'عرض البرامج والمسارات المؤسسية', icon: Layers },
   { href: '/tracks', label: 'المجالات والمحاور', description: 'المجالات الاثنا عشر والمحاور التفصيلية', icon: LayoutGrid },
   { href: '/instructors', label: 'المدربون', description: 'تعرّف على خبراء التدريب', icon: UserCircle },
-  { href: '/submit-workshop', label: 'تقديم ورشة', description: 'طلب ورشة أو برنامج عبر النموذج الرسمي', icon: CalendarPlus },
-]
-
-const centerItems: MegaDropdownItem[] = [
-  { href: '/departments', label: 'الإدارات', description: 'الهيكل التنظيمي لـ EMC', icon: Building2 },
-  { href: '/departments#governance', label: 'الحوكمة والجودة', description: 'سياسات الجودة والامتثال', icon: ShieldCheck },
-  { href: '/platform', label: 'المنصة', description: 'التجربة الرقمية والخدمات', icon: Monitor },
 ]
 
 const joinItems: MegaDropdownItem[] = [
+  { href: '/partnerships', label: 'الشراكات — نظرة عامة', description: 'تعرّف على شراكات EMC المؤسسية والخدمية', icon: Handshake },
   { href: '/signup', label: 'انضم كطالب', description: 'إنشاء حساب للتعلّم والتسجيل في البرامج', icon: UserCircle },
   { href: '/contact#trainer', label: 'انضم كمدرب', description: 'تواصل للانضمام كمدّرب مع EMC', icon: GraduationCap },
   { href: '/partnerships/apply', label: 'انضم كشريك', description: 'تقديم طلب شراكة مؤسسية أو خدمية', icon: Handshake },
   { href: '/volunteer', label: 'انضم كمتطوّع', description: 'شارك مهاراتك وفق أطر EMC التطوعية', icon: HeartHandshake },
   { href: '/ambassador', label: 'سفير التحول الرقمي', description: 'برنامج سفراء EMC في الجامعات العربية', icon: Sparkles },
+  { href: '/submit-workshop', label: 'تقديم ورشة', description: 'طلب ورشة أو برنامج عبر النموذج الرسمي', icon: CalendarPlus },
   { href: '/contact', label: 'تواصل معنا', description: 'قنوات التواصل والاستفسارات العامّة', icon: Mail },
 ]
 
-type MegaId = 'about' | 'programs' | 'center' | 'join'
+type MegaId = 'about' | 'programs' | 'join'
 
 const megaPrefixes: Record<MegaId, readonly string[]> = {
-  about: ['/about', '/impact', '/ar/impact', '/team', '/ar/team'],
-  programs: ['/courses', '/workshops', '/learning-paths', '/paths', '/tracks', '/programs', '/instructors', '/submit-workshop'],
-  center: ['/departments', '/platform'],
-  join: ['/signup', '/contact', '/volunteer', '/partnerships/apply', '/ambassador'],
+  about: ['/about', '/impact', '/ar/impact', '/team', '/ar/team', '/departments', '/platform'],
+  programs: ['/courses', '/workshops', '/learning-paths', '/paths', '/tracks', '/programs', '/instructors'],
+  join: ['/signup', '/contact', '/volunteer', '/partnerships', '/partnerships/apply', '/ambassador', '/submit-workshop'],
 }
 
 function pathActive(pathname: string, mega: MegaId): boolean {
@@ -198,23 +186,6 @@ export default function Navbar() {
               pathname={pathname}
               locationHash={hash}
             />
-            <MegaDropdown
-              label="المركز"
-              items={centerItems}
-              isOpen={openMega === 'center'}
-              onToggle={() => toggleMega('center')}
-              isActive={pathActive(pathname, 'center')}
-              pathname={pathname}
-              locationHash={hash}
-            />
-
-            <NavLink
-              to="/partnerships"
-              className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}
-            >
-              الشراكات
-            </NavLink>
-
             <MegaDropdown
               label="انضم إلينا"
               items={joinItems}
@@ -351,7 +322,6 @@ export default function Navbar() {
                 [
                   ['about', 'عن EMC', aboutItems],
                   ['programs', 'البرامج', programsItems],
-                  ['center', 'المركز', centerItems],
                   ['join', 'انضم إلينا', joinItems],
                 ] as const
               ).map(([id, label, items]) => (
@@ -412,19 +382,6 @@ export default function Navbar() {
                   </AnimatePresence>
                 </div>
               ))}
-
-              <NavLink
-                to="/partnerships"
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  [
-                    'block rounded-2xl px-4 py-3.5 text-sm font-black',
-                    isActive ? 'bg-customBlue/[0.1] text-customBlue ring-1 ring-customBlue/20' : 'text-deepBlue hover:bg-[#F8FBFE]',
-                  ].join(' ')
-                }
-              >
-                الشراكات
-              </NavLink>
 
               {!isLoading && (
                 <div className="grid gap-3 border-t border-deepBlue/[0.07] pt-4">

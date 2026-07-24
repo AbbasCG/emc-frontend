@@ -99,10 +99,11 @@ function membersNavItem(): SidebarNavItem {
   return { label: 'الأعضاء', href: '/dashboard/members', icon: UserCheck }
 }
 
-function communicationsBlock(): SidebarNavGroup[] {
+function communicationsBlock(opts: { collapsible?: boolean } = {}): SidebarNavGroup[] {
   return [
     {
       title: 'التواصل والمعرفة',
+      ...(opts.collapsible ? { collapsible: true, defaultOpen: false } : {}),
       items: [
         { label: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
         { label: 'تفضيلات الإشعارات', href: '/dashboard/settings/notifications', icon: SlidersHorizontal },
@@ -186,7 +187,6 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'الدعم / التذاكر',         href: '/dashboard/admin/support-tickets',      icon: ShieldQuestion },
         { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
-        { label: 'المتطوعون',               href: '/dashboard/admin/volunteers',            icon: Users          },
         { label: 'الشركاء',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
         { label: 'النماذج',                 href: '/dashboard/admin/forms',                 icon: FileText       },
@@ -232,6 +232,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
     {
       title: 'إدارة الكيانات (CRUD)',
       collapsible: true,
+      defaultOpen: true,
       items: [
         { label: 'المستخدمون', href: '/dashboard/super-admin/crud/users', icon: Users },
         { label: 'الأدوار والصلاحيات', href: '/dashboard/super-admin/crud/roles', icon: ShieldCheck },
@@ -252,6 +253,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
     },
     {
       title: 'لوحات الأدوار (وصول كامل)',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'الإدارة العامة',          href: '/dashboard/admin',              icon: LayoutDashboard },
         { label: 'الطالب',                  href: '/dashboard/student',             icon: GraduationCap   },
@@ -273,6 +276,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
     },
     {
       title: 'العمليات والإيرادات',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: Wallet },
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
@@ -282,12 +287,14 @@ function superMasterSidebar(): SidebarNavGroup[] {
     },
     {
       title: 'المنصّة',
+      collapsible: true,
+      defaultOpen: false,
       items: [
         { label: 'الإعدادات', href: '/dashboard/settings/notifications', icon: Settings },
         { label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog },
       ],
     },
-    ...communicationsBlock(),
+    ...communicationsBlock({ collapsible: true }),
   ]
 }
 
@@ -417,6 +424,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       { items: [{ label: 'اللوحة التنفيذية', href: '/dashboard/executive', icon: LayoutDashboard }] },
       {
         title: 'القرار والمتابعة',
+        collapsible: true,
+        defaultOpen: true,
         items: [
           { label: 'لوحة العمليات', href: '/dashboard/executive/operations', icon: Sparkles },
           { label: 'مؤشرات الأداء', href: '/dashboard/executive/kpi', icon: PieChart },
@@ -427,7 +436,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           membersNavItem(),
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock({ collapsible: true }),
     ]
   }
 
@@ -436,6 +445,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       { items: [{ label: 'لوحة المالية', href: '/dashboard/finance', icon: Wallet }] },
       {
         title: 'العمليات المالية',
+        collapsible: true,
+        defaultOpen: true,
         items: [
           { label: 'المدفوعات',           href: '/dashboard/finance/payments',        icon: Receipt       },
           { label: 'المدفوعات اليدوية',  href: '/dashboard/finance/manual-payments', icon: ClipboardCheck },
@@ -449,7 +460,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           membersNavItem(),
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock({ collapsible: true }),
     ]
   }
 
@@ -462,6 +473,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'المراجعة والتقييم',
+        collapsible: true,
+        defaultOpen: true,
         items: [
           { label: 'مراجعات البرامج', href: '/dashboard/quality/reviews', icon: ClipboardCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
@@ -469,6 +482,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'الإدارة والمتابعة',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'الحوادث', href: '/dashboard/quality/incidents', icon: ShieldAlert },
           { label: 'إجراءات التحسين', href: '/dashboard/quality/corrective-actions', icon: TrendingUp },
@@ -477,6 +492,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'الحوكمة والامتثال',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'الامتثال', href: '/dashboard/quality/compliance', icon: ShieldCheck },
           { label: 'الحوكمة', href: '/dashboard/quality/governance', icon: FolderLock },
@@ -485,12 +502,14 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'التحليل والفريق',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'التقارير', href: '/dashboard/quality/reports', icon: BarChart3 },
           { label: 'الفريق', href: '/dashboard/quality/team', icon: Users },
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock({ collapsible: true }),
     ]
   }
 
@@ -499,6 +518,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       { items: [{ label: 'لوحة الموارد البشرية', href: '/dashboard/hr', icon: LayoutDashboard }] },
       {
         title: 'الفريق والأعضاء',
+        collapsible: true,
+        defaultOpen: true,
         items: [
           { label: 'الأعضاء',      href: '/dashboard/members',  icon: Users      },
           { label: 'أعضاء الفريق', href: '/dashboard/hr/team',  icon: UserCheck  },
@@ -506,6 +527,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'التوظيف والمتطوعين',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'طلبات التطوع',          href: '/dashboard/hr/volunteer-requests',          icon: HeartHandshake },
           { label: 'سفراء التحول الرقمي',   href: '/dashboard/hr/ambassador-applications',      icon: Star           },
@@ -515,6 +538,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'التشغيل والموارد',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'الإدارات والأدوار',       href: '/dashboard/hr/departments', icon: Building2    },
           { label: 'التأهيل والانضمام',        href: '/dashboard/hr/onboarding',  icon: Rocket       },
@@ -522,7 +547,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'ملفات الموارد البشرية',    href: '/dashboard/hr/documents',   icon: FolderLock   },
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock({ collapsible: true }),
     ]
   }
 
@@ -638,6 +663,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       {
         title: 'لوحة البرامج',
+        collapsible: true,
+        defaultOpen: true,
         items: [
           { label: 'لوحة التحكم',     href: '/dashboard/programs-manager', icon: LayoutDashboard },
           { label: 'مؤشرات البرامج',  href: '/dashboard/admin/kpi',        icon: PieChart        },
@@ -646,6 +673,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'البرامج والمسارات',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'الدورات والبرامج',       href: '/dashboard/admin/programs',                  icon: GraduationCap },
           { label: 'المسارات التعليمية',   href: '/dashboard/programs-manager/learning-paths', icon: Layers        },
@@ -655,6 +684,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'إدارة التعلم',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'الجلسات',    href: '/dashboard/admin/lms/sessions',    icon: Calendar      },
           { label: 'الواجبات',   href: '/dashboard/admin/lms/assignments',  icon: ClipboardList },
@@ -666,6 +697,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       },
       {
         title: 'التواصل',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'التقويم',       href: '/dashboard/admin/calendar',      icon: CalendarDays },
           { label: 'الإشعارات',     href: '/dashboard/notifications',        icon: Bell         },

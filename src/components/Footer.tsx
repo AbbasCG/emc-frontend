@@ -23,6 +23,8 @@ const NAV_PROGRAMS = [
   { label: 'البرامج', href: '/programs' },
   { label: 'المنصة', href: '/platform' },
   { label: 'تقديم ورشة', href: '/submit-workshop' },
+  { label: 'الدعم', href: '/support' },
+  { label: 'قاعدة المعرفة', href: '/knowledge' },
 ] as const
 
 const BOTTOM_LEGAL = [
