@@ -53,3 +53,7 @@ graphify_query.py
 graphify_read_analysis.py
 # Thmanyah fonts — proprietary; do NOT commit until web license text is obtained (see MASTER_PLAN §7)
 public/fonts/thmanyah/
+
+# Playwright generated output — the belt's tracked artefacts are e2e/__screenshots__ only
+/playwright-report/
+/test-results/
