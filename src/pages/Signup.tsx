@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, Phone, UserPlus, UserRound } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
@@ -11,6 +12,7 @@ import CountrySelector, { type Country, COUNTRIES } from '../components/ui/Count
 import { countryFromPhone } from '@/lib/countryFromPhone'
 
 export default function Signup() {
+  const { t } = useTranslation()
   const { registerAccount } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -56,17 +58,17 @@ export default function Signup() {
   function validateEmailField() {
     const value = email.trim()
     if (!value) return
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) setFieldError('email', 'البريد الإلكتروني غير صحيح')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) setFieldError('email', t('auth.signup.validation.emailInvalid'))
   }
 
   function validatePasswordField() {
     if (!password) return
-    if (password.length < 8) setFieldError('password', 'كلمة المرور يجب ألا تقل عن 8 أحرف')
+    if (password.length < 8) setFieldError('password', t('auth.signup.validation.passwordMin'))
   }
 
   function validatePasswordConfirmationField() {
     if (!passwordConfirmation) return
-    if (passwordConfirmation !== password) setFieldError('password_confirmation', 'كلمتا المرور غير متطابقتين')
+    if (passwordConfirmation !== password) setFieldError('password_confirmation', t('auth.signup.validation.passwordMismatch'))
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -74,14 +76,14 @@ export default function Signup() {
     setError('')
 
     const newErrors: Record<string, string> = {}
-    if (!name.trim()) newErrors.name = 'الاسم الكامل مطلوب'
-    if (!email.trim()) newErrors.email = 'البريد الإلكتروني مطلوب'
-    if (!password) newErrors.password = 'كلمة المرور مطلوبة'
-    if (!passwordConfirmation) newErrors.password_confirmation = 'تأكيد كلمة المرور مطلوب'
-    if (!selectedCountry) newErrors.country_code = 'يرجى اختيار الدولة'
-    if (!localPhone.trim()) newErrors.phone = 'رقم الجوال مطلوب'
-    if (!city.trim()) newErrors.city = 'المدينة مطلوبة'
-    if (!gender) newErrors.gender = 'الجنس مطلوب'
+    if (!name.trim()) newErrors.name = t('auth.signup.validation.nameRequired')
+    if (!email.trim()) newErrors.email = t('auth.signup.validation.emailRequired')
+    if (!password) newErrors.password = t('auth.signup.validation.passwordRequired')
+    if (!passwordConfirmation) newErrors.password_confirmation = t('auth.signup.validation.passwordConfirmationRequired')
+    if (!selectedCountry) newErrors.country_code = t('auth.signup.validation.countryRequired')
+    if (!localPhone.trim()) newErrors.phone = t('auth.signup.validation.phoneRequired')
+    if (!city.trim()) newErrors.city = t('auth.signup.validation.cityRequired')
+    if (!gender) newErrors.gender = t('auth.signup.validation.genderRequired')
 
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors)
@@ -133,10 +135,10 @@ export default function Signup() {
   return (
     <div className="bg-paper pt-20">
       <PageHeader
-        title="إنشاء حساب"
+        title={t('auth.signup.title')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'تسجيل جديد' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('auth.signup.breadcrumbCurrent') },
         ]}
       />
 
@@ -152,17 +154,17 @@ export default function Signup() {
             <div className="relative flex h-full flex-col justify-end p-10 text-white">
               <span className="emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
                 <UserPlus size={15} />
-                EMC OS
+                {t('auth.signup.side.eyebrow')}
               </span>
-              <h2 className="font-display text-3xl font-black leading-tight tracking-tight">انضم إلى منظومة EMC الرقمية</h2>
+              <h2 className="font-display text-3xl font-black leading-tight tracking-tight">{t('auth.signup.side.title')}</h2>
               <p className="mt-5 max-w-md text-sm leading-8 text-ice/90">
-                حساب واحد للوصول إلى لوحة الطالب، التسجيل في البرامج، ومتابعة نشاطك التعليمي.
+                {t('auth.signup.side.body')}
               </p>
             </div>
           </div>
 
           <div className="p-6 text-right sm:p-10">
-            <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">إنشاء حساب جديد</h1>
+            <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">{t('auth.signup.heading')}</h1>
 
             {error && (
               <div className="mt-7 flex items-start gap-3 rounded-2xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
@@ -174,7 +176,7 @@ export default function Signup() {
             <form onSubmit={handleSubmit} className="mt-9 grid gap-6">
               {/* الاسم الكامل */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                الاسم الكامل
+                {t('auth.signup.form.name')}
                 <span className="relative block">
                   <UserRound size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
@@ -188,7 +190,7 @@ export default function Signup() {
 
               {/* البريد الإلكتروني */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                البريد الإلكتروني
+                {t('auth.signup.form.email')}
                 <span className="relative block">
                   <Mail size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
@@ -205,7 +207,7 @@ export default function Signup() {
 
               {/* كلمة المرور */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                كلمة المرور
+                {t('auth.signup.form.password')}
                 <span className="relative block">
                   <LockKeyhole size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
@@ -223,7 +225,7 @@ export default function Signup() {
 
               {/* تأكيد كلمة المرور */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                تأكيد كلمة المرور
+                {t('auth.signup.form.passwordConfirmation')}
                 <span className="relative block">
                   <LockKeyhole size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <input
@@ -241,7 +243,7 @@ export default function Signup() {
 
               {/* الدولة */}
               <div className="grid gap-2 text-sm font-black text-deepBlue">
-                الدولة
+                {t('auth.signup.form.country')}
                 <CountrySelector
                   value={selectedCountry}
                   onChange={(c) => { setSelectedCountry(c); clearField('country_code') }}
@@ -252,7 +254,7 @@ export default function Signup() {
 
               {/* رقم الجوال */}
               <div className="grid gap-2 text-sm font-black text-deepBlue">
-                رقم الجوال
+                {t('auth.signup.form.phone')}
                 <div
                   dir="ltr"
                   className={`flex h-14 w-full overflow-hidden rounded-xl border bg-paper2 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-100 ${fieldErrors.phone ? 'border-red-400' : 'border-line focus-within:border-customBlue'}`}
@@ -273,7 +275,7 @@ export default function Signup() {
                     value={localPhone}
                     onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
                     onBlur={autofillCountryFromPhone}
-                    placeholder="000 000 0000"
+                    placeholder={t('auth.signup.form.phonePlaceholder')}
                     className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-muted-400"
                   />
                 </div>
@@ -283,7 +285,7 @@ export default function Signup() {
               {/* المدينة + الجنس */}
               <div className="grid grid-cols-2 gap-5">
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
-                  المدينة
+                  {t('auth.signup.form.city')}
                   <span className="relative block">
                     <MapPin size={20} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-400" />
                     <input
@@ -296,7 +298,7 @@ export default function Signup() {
                 </label>
 
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
-                  الجنس
+                  {t('auth.signup.form.gender')}
                   <span className="relative block">
                     <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-400" />
                     <select
@@ -304,9 +306,9 @@ export default function Signup() {
                       onChange={(e) => { setGender(e.target.value); clearField('gender') }}
                       className={`h-14 w-full cursor-pointer appearance-none rounded-xl border bg-paper2 px-4 pl-10 text-right font-semibold outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${fieldErrors.gender ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'} ${gender ? 'text-deepBlue' : 'text-muted-400'}`}
                     >
-                      <option value="" disabled>اختر الجنس</option>
-                      <option value="male" className="text-deepBlue">ذكر</option>
-                      <option value="female" className="text-deepBlue">أنثى</option>
+                      <option value="" disabled>{t('auth.signup.form.genderPlaceholder')}</option>
+                      <option value="male" className="text-deepBlue">{t('auth.signup.form.genderMale')}</option>
+                      <option value="female" className="text-deepBlue">{t('auth.signup.form.genderFemale')}</option>
                     </select>
                   </span>
                   {fieldErrors.gender && <p className="text-xs font-semibold text-red-600">{fieldErrors.gender}</p>}
@@ -315,7 +317,7 @@ export default function Signup() {
 
               {/* كيف عرفت عنا؟ */}
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                كيف عرفت عنا؟ <span className="font-semibold text-muted-400">(اختياري)</span>
+                {t('auth.signup.form.howHeard')} <span className="font-semibold text-muted-400">{t('auth.signup.form.optional')}</span>
                 <span className="relative block">
                   <ChevronDown size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-400" />
                   <select
@@ -323,15 +325,17 @@ export default function Signup() {
                     onChange={(e) => setHowHeard(e.target.value)}
                     className={`h-14 w-full cursor-pointer appearance-none rounded-xl border border-line bg-paper2 px-4 pl-10 text-right font-semibold outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100 ${howHeard ? 'text-deepBlue' : 'text-muted-400'}`}
                   >
-                    <option value="">اختر...</option>
-                    <option value="صديق أو قريب">صديق أو قريب</option>
-                    <option value="وسائل التواصل الاجتماعي">وسائل التواصل الاجتماعي</option>
-                    <option value="إعلان">إعلان</option>
-                    <option value="فعالية أو ورشة">فعالية أو ورشة</option>
-                    <option value="بحث Google">بحث Google</option>
-                    <option value="طالب سابق">طالب سابق</option>
-                    <option value="شريك أو مؤسسة">شريك أو مؤسسة</option>
-                    <option value="أخرى">أخرى</option>
+                    {/* NOTE: option VALUES stay as the Arabic literals — they are the API
+                        payload (how_did_you_hear_about_us); only the visible labels are translated. */}
+                    <option value="">{t('auth.signup.form.howHeardPlaceholder')}</option>
+                    <option value="صديق أو قريب">{t('auth.signup.howHeardOptions.friend')}</option>
+                    <option value="وسائل التواصل الاجتماعي">{t('auth.signup.howHeardOptions.social')}</option>
+                    <option value="إعلان">{t('auth.signup.howHeardOptions.ad')}</option>
+                    <option value="فعالية أو ورشة">{t('auth.signup.howHeardOptions.event')}</option>
+                    <option value="بحث Google">{t('auth.signup.howHeardOptions.google')}</option>
+                    <option value="طالب سابق">{t('auth.signup.howHeardOptions.alumni')}</option>
+                    <option value="شريك أو مؤسسة">{t('auth.signup.howHeardOptions.partner')}</option>
+                    <option value="أخرى">{t('auth.signup.howHeardOptions.other')}</option>
                   </select>
                 </span>
               </label>
@@ -348,12 +352,12 @@ export default function Signup() {
                 ) : (
                   <UserPlus size={20} />
                 )}
-                {isLoading ? 'جارٍ الإنشاء...' : 'إنشاء الحساب'}
+                {isLoading ? t('auth.signup.form.submitting') : t('auth.signup.form.submit')}
               </motion.button>
             </form>
 
             <p className="mt-9 text-center text-sm font-bold text-muted-500">
-              لديك حساب بالفعل؟{' '}
+              {t('auth.signup.haveAccount')}{' '}
               <Link
                 to={
                   redirectTo ?
@@ -362,7 +366,7 @@ export default function Signup() {
                 }
                 className="text-customBlue transition hover:text-accent-700"
               >
-                تسجيل الدخول
+                {t('auth.signup.loginLink')}
               </Link>
             </p>
           </div>

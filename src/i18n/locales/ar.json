@@ -562,5 +562,152 @@
       "secondary": "تحدّث مع الفريق",
       "footnote": "انضمام مجاني · دعم عربي · بدء فوري"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "breadcrumbCurrent": "تسجيل الدخول",
+      "side": {
+        "eyebrow": "EMC للاستشارات والتدريب",
+        "title": "مرحباً بعودتك",
+        "body": "تابع رحلتك التعليمية وادخل إلى حسابك للوصول إلى دوراتك وطلبات التسجيل."
+      },
+      "form": {
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "showPassword": "إظهار كلمة المرور",
+        "hidePassword": "إخفاء كلمة المرور",
+        "forgot": "نسيت كلمة المرور؟",
+        "submit": "تسجيل الدخول",
+        "submitting": "جارٍ تسجيل الدخول..."
+      },
+      "noAccount": "ليس لديك حساب؟",
+      "signupLink": "أنشئ حساباً",
+      "reasons": {
+        "session": "انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى",
+        "suspended": "تم تعطيل الحساب، يرجى التواصل مع الإدارة",
+        "impersonationExpired": "انتهت جلسة المعاينة — تم استعادة حسابك الإداري.",
+        "resetSuccess": "تم إعادة تعيين كلمة المرور، يمكنك تسجيل الدخول الآن."
+      }
+    },
+    "signup": {
+      "title": "إنشاء حساب",
+      "breadcrumbCurrent": "تسجيل جديد",
+      "heading": "إنشاء حساب جديد",
+      "side": {
+        "eyebrow": "EMC OS",
+        "title": "انضم إلى منظومة EMC الرقمية",
+        "body": "حساب واحد للوصول إلى لوحة الطالب، التسجيل في البرامج، ومتابعة نشاطك التعليمي."
+      },
+      "form": {
+        "name": "الاسم الكامل",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "passwordConfirmation": "تأكيد كلمة المرور",
+        "country": "الدولة",
+        "phone": "رقم الجوال",
+        "phonePlaceholder": "000 000 0000",
+        "city": "المدينة",
+        "gender": "الجنس",
+        "genderPlaceholder": "اختر الجنس",
+        "genderMale": "ذكر",
+        "genderFemale": "أنثى",
+        "howHeard": "كيف عرفت عنا؟",
+        "optional": "(اختياري)",
+        "howHeardPlaceholder": "اختر...",
+        "submit": "إنشاء الحساب",
+        "submitting": "جارٍ الإنشاء..."
+      },
+      "howHeardOptions": {
+        "friend": "صديق أو قريب",
+        "social": "وسائل التواصل الاجتماعي",
+        "ad": "إعلان",
+        "event": "فعالية أو ورشة",
+        "google": "بحث Google",
+        "alumni": "طالب سابق",
+        "partner": "شريك أو مؤسسة",
+        "other": "أخرى"
+      },
+      "validation": {
+        "nameRequired": "الاسم الكامل مطلوب",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "emailInvalid": "البريد الإلكتروني غير صحيح",
+        "passwordRequired": "كلمة المرور مطلوبة",
+        "passwordMin": "كلمة المرور يجب ألا تقل عن 8 أحرف",
+        "passwordConfirmationRequired": "تأكيد كلمة المرور مطلوب",
+        "passwordMismatch": "كلمتا المرور غير متطابقتين",
+        "countryRequired": "يرجى اختيار الدولة",
+        "phoneRequired": "رقم الجوال مطلوب",
+        "cityRequired": "المدينة مطلوبة",
+        "genderRequired": "الجنس مطلوب"
+      },
+      "haveAccount": "لديك حساب بالفعل؟",
+      "loginLink": "تسجيل الدخول"
+    },
+    "forgot": {
+      "title": "نسيت كلمة المرور",
+      "breadcrumbCurrent": "نسيت كلمة المرور",
+      "eyebrow": "استعادة الوصول",
+      "heading": "نسيت كلمة المرور؟",
+      "intro": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.",
+      "form": {
+        "email": "البريد الإلكتروني",
+        "submit": "إرسال رابط التعيين",
+        "submitting": "جارٍ الإرسال..."
+      },
+      "success": {
+        "title": "تم إرسال الرابط",
+        "body": "إذا كان البريد مرتبطاً بحساب، ستصلك رسالة تحتوي رابط إعادة التعيين خلال دقائق."
+      },
+      "backToLogin": "العودة لتسجيل الدخول"
+    },
+    "reset": {
+      "title": "إعادة تعيين كلمة المرور",
+      "breadcrumbCurrent": "إعادة تعيين كلمة المرور",
+      "eyebrow": "أمان الحساب",
+      "invalid": {
+        "message": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
+        "requestNew": "طلب رابط جديد"
+      },
+      "form": {
+        "newPassword": "كلمة المرور الجديدة",
+        "passwordConfirmation": "تأكيد كلمة المرور",
+        "submit": "تعيين كلمة المرور",
+        "submitting": "جارٍ التغيير..."
+      },
+      "strength": {
+        "weak": "ضعيفة",
+        "medium": "متوسطة",
+        "strong": "قوية"
+      },
+      "validation": {
+        "tooShort": "كلمة المرور يجب ألا تقل عن {{min}} أحرف",
+        "tooShortInline": "يجب ألا تقل عن {{min}} أحرف",
+        "mismatch": "كلمتا المرور غير متطابقتين"
+      },
+      "backToLogin": "العودة لتسجيل الدخول"
+    },
+    "thankYou": {
+      "title": "صفحة الشكر",
+      "breadcrumbRegistration": "التسجيل",
+      "breadcrumbCurrent": "شكراً لك",
+      "eyebrow": "تم بنجاح",
+      "heading": "تم استلام تسجيلك بنجاح!",
+      "body": "شكراً لك، تم استلام طلبك بنجاح. سيتم مراجعة بياناتك والتواصل معك خلال 24-48 ساعة.",
+      "detailsTitle": "تفاصيل طلبك",
+      "details": {
+        "courseName": "اسم الدورة",
+        "registeredAt": "تاريخ التسجيل",
+        "orderNumber": "رقم الطلب"
+      },
+      "fallback": {
+        "courseName": "برنامج تدريبي",
+        "orderNumber": "EMC-4567"
+      },
+      "backHome": "العودة للرئيسية"
+    }
+  },
+  "seo": {
+    "defaultDescription": "منصة EMC التعليمية: دورات، ورش، ومسارات تعلم بالعربية من هولندا — تعليم احترافي وتطوير مهارات."
   }
 }

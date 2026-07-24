@@ -1,8 +1,15 @@
 import { Helmet } from 'react-helmet-async'
+import { useTranslation } from 'react-i18next'
+import { LANGS, type LangCode } from '@/i18n'
+import { useLanguage } from '@/i18n/LanguageProvider'
 
 const SITE_NAME = 'EMC — مركز ماستر التعليمي'
-const DEFAULT_DESC =
-  'منصة EMC التعليمية: دورات، ورش، ومسارات تعلم بالعربية من هولندا — تعليم احترافي وتطوير مهارات.'
+
+/** M3 i18n: og:locale per supported language — Arabic remains the default. */
+const OG_LOCALES: Record<LangCode, string> = {
+  ar: 'ar_AR',
+  en: 'en_US',
+}
 
 export type PublicSeoProps = {
   title: string
@@ -22,34 +29,46 @@ function absoluteUrl(path: string): string {
 
 export default function PublicSeo({
   title,
-  description = DEFAULT_DESC,
+  description,
   path = '/',
   image,
   type = 'website',
   noIndex = false,
 }: PublicSeoProps) {
+  const { t } = useTranslation()
+  const { lang } = useLanguage()
   const fullTitle = `${title} | ${SITE_NAME}`
   const url = absoluteUrl(path)
+  // Locale-aware default: the historical Arabic description when lang=ar,
+  // the catalog draft otherwise. An explicit `description` prop always wins.
+  const metaDescription = description ?? t('seo.defaultDescription')
+  const ogLocale = OG_LOCALES[lang] ?? OG_LOCALES.ar
   const ogImage = image && image.startsWith('http') ? image : image ? absoluteUrl(image) : absoluteUrl('/favicon.svg')
 
   return (
     <Helmet>
       <title>{fullTitle}</title>
-      <meta name="description" content={description} />
+      <meta name="description" content={metaDescription} />
       {noIndex ?
         <meta name="robots" content="noindex,nofollow" />
       : null}
       <link rel="canonical" href={url} />
+      {/* M3 i18n: language is client-side for now, so every hreflang points at the
+          same canonical URL — the forward-compatible baseline for per-locale URLs. */}
+      {LANGS.map((l) => (
+        <link key={l.code} rel="alternate" hrefLang={l.code} href={url} />
+      ))}
+      <link rel="alternate" hrefLang="x-default" href={url} />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:description" content={metaDescription} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
-      <meta property="og:locale" content="ar_AR" />
+      <meta property="og:locale" content={ogLocale} />
       <meta property="og:image" content={ogImage} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={ogImage} />
     </Helmet>
   )

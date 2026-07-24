@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 
 type ThankYouState = {
@@ -11,6 +12,7 @@ type ThankYouState = {
 }
 
 export default function ThankYou() {
+  const { t, i18n } = useTranslation()
   const { state } = useLocation()
   const navigate = useNavigate()
 
@@ -22,26 +24,27 @@ export default function ThankYou() {
   }, [state, navigate])
 
   const details = (state ?? {}) as ThankYouState
-  const currentDate = new Intl.DateTimeFormat('ar', {
+  // M3 i18n: format the date in the active language (ar stays the default).
+  const currentDate = new Intl.DateTimeFormat(i18n.language, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   }).format(new Date())
 
   const orderDetails = [
-    { label: 'اسم الدورة', value: details.courseName || 'برنامج تدريبي' },
-    { label: 'تاريخ التسجيل', value: details.registeredAt || currentDate },
-    { label: 'رقم الطلب', value: details.orderNumber || 'EMC-4567' },
+    { label: t('auth.thankYou.details.courseName'), value: details.courseName || t('auth.thankYou.fallback.courseName') },
+    { label: t('auth.thankYou.details.registeredAt'), value: details.registeredAt || currentDate },
+    { label: t('auth.thankYou.details.orderNumber'), value: details.orderNumber || t('auth.thankYou.fallback.orderNumber') },
   ]
 
   return (
     <main className="bg-paper pt-20">
       <PageHeader
-        title="صفحة الشكر"
+        title={t('auth.thankYou.title')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'التسجيل' },
-          { label: 'شكراً لك' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('auth.thankYou.breadcrumbRegistration') },
+          { label: t('auth.thankYou.breadcrumbCurrent') },
         ]}
       />
 
@@ -61,17 +64,16 @@ export default function ThankYou() {
             <CheckCircle size={54} />
           </motion.div>
 
-          <span className="emc-eyebrow-accent mt-6">تم بنجاح</span>
+          <span className="emc-eyebrow-accent mt-6">{t('auth.thankYou.eyebrow')}</span>
           <h1 className="emc-title-arc mt-3 inline-block font-display text-3xl font-black leading-tight tracking-tight text-deepBlue">
-            تم استلام تسجيلك بنجاح!
+            {t('auth.thankYou.heading')}
           </h1>
           <p className="mt-4 leading-8 text-slate-600">
-            شكراً لك، تم استلام طلبك بنجاح. سيتم مراجعة بياناتك والتواصل معك خلال
-            24-48 ساعة.
+            {t('auth.thankYou.body')}
           </p>
 
           <div className="mt-8 rounded-2xl bg-paper2 p-5 text-right ring-1 ring-line">
-            <h2 className="font-display text-xl font-black tracking-tight text-deepBlue">تفاصيل طلبك</h2>
+            <h2 className="font-display text-xl font-black tracking-tight text-deepBlue">{t('auth.thankYou.detailsTitle')}</h2>
             <span className="mt-3 block h-1 w-16 rounded-full bg-customOrange" />
             <div className="mt-5 grid gap-4">
               {orderDetails.map((item) => (
@@ -88,7 +90,7 @@ export default function ThankYou() {
               to="/"
               className="emc-focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
             >
-              العودة للرئيسية
+              {t('auth.thankYou.backHome')}
               <ArrowLeft size={20} />
             </Link>
           </motion.div>

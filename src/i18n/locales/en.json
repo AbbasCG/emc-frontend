@@ -565,5 +565,152 @@
       "secondary": "Talk to the Team",
       "footnote": "Free to join · Arabic support · Instant start"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "breadcrumbCurrent": "Log In",
+      "side": {
+        "eyebrow": "EMC Consulting & Training",
+        "title": "Welcome back",
+        "body": "Continue your learning journey and sign in to access your courses and enrollment requests."
+      },
+      "form": {
+        "email": "Email address",
+        "password": "Password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "forgot": "Forgot your password?",
+        "submit": "Log In",
+        "submitting": "Logging in..."
+      },
+      "noAccount": "Don't have an account?",
+      "signupLink": "Create an account",
+      "reasons": {
+        "session": "Your session has expired, please log in again",
+        "suspended": "This account has been suspended, please contact the administration",
+        "impersonationExpired": "The preview session has ended — your admin account has been restored.",
+        "resetSuccess": "Your password has been reset, you can log in now."
+      }
+    },
+    "signup": {
+      "title": "Create an Account",
+      "breadcrumbCurrent": "Sign Up",
+      "heading": "Create a New Account",
+      "side": {
+        "eyebrow": "EMC OS",
+        "title": "Join the EMC digital ecosystem",
+        "body": "One account to access the student dashboard, enroll in programs, and track your learning activity."
+      },
+      "form": {
+        "name": "Full name",
+        "email": "Email address",
+        "password": "Password",
+        "passwordConfirmation": "Confirm password",
+        "country": "Country",
+        "phone": "Mobile number",
+        "phonePlaceholder": "000 000 0000",
+        "city": "City",
+        "gender": "Gender",
+        "genderPlaceholder": "Select gender",
+        "genderMale": "Male",
+        "genderFemale": "Female",
+        "howHeard": "How did you hear about us?",
+        "optional": "(optional)",
+        "howHeardPlaceholder": "Choose...",
+        "submit": "Create Account",
+        "submitting": "Creating..."
+      },
+      "howHeardOptions": {
+        "friend": "A friend or relative",
+        "social": "Social media",
+        "ad": "An advertisement",
+        "event": "An event or workshop",
+        "google": "Google search",
+        "alumni": "A former student",
+        "partner": "A partner or organization",
+        "other": "Other"
+      },
+      "validation": {
+        "nameRequired": "Full name is required",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Email address is invalid",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordConfirmationRequired": "Password confirmation is required",
+        "passwordMismatch": "The passwords do not match",
+        "countryRequired": "Please choose a country",
+        "phoneRequired": "Mobile number is required",
+        "cityRequired": "City is required",
+        "genderRequired": "Gender is required"
+      },
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log In"
+    },
+    "forgot": {
+      "title": "Forgot Password",
+      "breadcrumbCurrent": "Forgot Password",
+      "eyebrow": "Restore Access",
+      "heading": "Forgot your password?",
+      "intro": "Enter your email address and we will send you a reset link.",
+      "form": {
+        "email": "Email address",
+        "submit": "Send Reset Link",
+        "submitting": "Sending..."
+      },
+      "success": {
+        "title": "Link Sent",
+        "body": "If the email is linked to an account, you will receive a message with the reset link within minutes."
+      },
+      "backToLogin": "Back to Login"
+    },
+    "reset": {
+      "title": "Reset Password",
+      "breadcrumbCurrent": "Reset Password",
+      "eyebrow": "Account Security",
+      "invalid": {
+        "message": "The reset link is invalid or has expired.",
+        "requestNew": "Request a New Link"
+      },
+      "form": {
+        "newPassword": "New password",
+        "passwordConfirmation": "Confirm password",
+        "submit": "Set Password",
+        "submitting": "Updating..."
+      },
+      "strength": {
+        "weak": "Weak",
+        "medium": "Medium",
+        "strong": "Strong"
+      },
+      "validation": {
+        "tooShort": "Password must be at least {{min}} characters",
+        "tooShortInline": "Must be at least {{min}} characters",
+        "mismatch": "The passwords do not match"
+      },
+      "backToLogin": "Back to Login"
+    },
+    "thankYou": {
+      "title": "Thank You",
+      "breadcrumbRegistration": "Registration",
+      "breadcrumbCurrent": "Thank You",
+      "eyebrow": "Success",
+      "heading": "Your registration has been received!",
+      "body": "Thank you, your request has been received successfully. Your details will be reviewed and we will contact you within 24-48 hours.",
+      "detailsTitle": "Your Request Details",
+      "details": {
+        "courseName": "Course name",
+        "registeredAt": "Registration date",
+        "orderNumber": "Order number"
+      },
+      "fallback": {
+        "courseName": "Training program",
+        "orderNumber": "EMC-4567"
+      },
+      "backHome": "Back to Home"
+    }
+  },
+  "seo": {
+    "defaultDescription": "The EMC learning platform: courses, workshops, and Arabic-language learning paths from the Netherlands — professional education and skills development."
   }
 }

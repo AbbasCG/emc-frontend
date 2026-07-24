@@ -3,16 +3,18 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AlertCircle, ArrowRight, LockKeyhole } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 import { resetPassword } from '@/api/authApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 
 const MIN_LENGTH = 8
 
-type Strength = { score: 0 | 1 | 2 | 3; label: string; className: string }
+/** M3 i18n: `labelKey` is a catalog key (auth.reset.strength.*) resolved with t() at render. */
+type Strength = { score: 0 | 1 | 2 | 3; labelKey: string; className: string }
 
 function evaluateStrength(password: string): Strength {
-  if (!password) return { score: 0, label: '', className: '' }
+  if (!password) return { score: 0, labelKey: '', className: '' }
   let points = 0
   if (password.length >= MIN_LENGTH) points++
   if (password.length >= 12) points++
@@ -20,12 +22,13 @@ function evaluateStrength(password: string): Strength {
   if (/\d/.test(password)) points++
   if (/[^A-Za-z0-9]/.test(password)) points++
 
-  if (points <= 1) return { score: 1, label: 'ضعيفة', className: 'bg-red-500' }
-  if (points <= 3) return { score: 2, label: 'متوسطة', className: 'bg-amber-500' }
-  return { score: 3, label: 'قوية', className: 'bg-emerald-500' }
+  if (points <= 1) return { score: 1, labelKey: 'auth.reset.strength.weak', className: 'bg-red-500' }
+  if (points <= 3) return { score: 2, labelKey: 'auth.reset.strength.medium', className: 'bg-amber-500' }
+  return { score: 3, labelKey: 'auth.reset.strength.strong', className: 'bg-emerald-500' }
 }
 
 export default function ResetPassword() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -47,11 +50,11 @@ export default function ResetPassword() {
     e.preventDefault()
     setTouched(true)
     if (password.length < MIN_LENGTH) {
-      setError(`كلمة المرور يجب ألا تقل عن ${MIN_LENGTH} أحرف`)
+      setError(t('auth.reset.validation.tooShort', { min: MIN_LENGTH }))
       return
     }
     if (password !== passwordConfirmation) {
-      setError('كلمتا المرور غير متطابقتين')
+      setError(t('auth.reset.validation.mismatch'))
       return
     }
     setError('')
@@ -74,12 +77,12 @@ export default function ResetPassword() {
             <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-50 text-red-500 ring-1 ring-red-100">
               <AlertCircle size={34} />
             </span>
-            <p className="mt-6 text-lg font-black text-deepBlue">رابط إعادة التعيين غير صالح أو منتهي الصلاحية.</p>
+            <p className="mt-6 text-lg font-black text-deepBlue">{t('auth.reset.invalid.message')}</p>
             <Link
               to="/forgot-password"
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
             >
-              طلب رابط جديد
+              {t('auth.reset.invalid.requestNew')}
             </Link>
           </div>
         </section>
@@ -90,11 +93,11 @@ export default function ResetPassword() {
   return (
     <div className="bg-paper pt-20">
       <PageHeader
-        title="إعادة تعيين كلمة المرور"
+        title={t('auth.reset.title')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'تسجيل الدخول', href: '/login' },
-          { label: 'إعادة تعيين كلمة المرور' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('auth.login.breadcrumbCurrent'), href: '/login' },
+          { label: t('auth.reset.breadcrumbCurrent') },
         ]}
       />
 
@@ -107,9 +110,9 @@ export default function ResetPassword() {
         >
           <span className="emc-eyebrow-accent mb-4">
             <LockKeyhole size={15} />
-            أمان الحساب
+            {t('auth.reset.eyebrow')}
           </span>
-          <h1 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">إعادة تعيين كلمة المرور</h1>
+          <h1 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">{t('auth.reset.title')}</h1>
 
           {error && (
             <div className="mt-5 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-red-700 ring-1 ring-red-100">
@@ -120,7 +123,7 @@ export default function ResetPassword() {
 
           <form onSubmit={handleSubmit} className="mt-7 grid gap-5" noValidate>
             <label className="grid gap-2 text-sm font-black text-deepBlue">
-              كلمة المرور الجديدة
+              {t('auth.reset.form.newPassword')}
               <span className="relative block">
                 <LockKeyhole
                   size={20}
@@ -158,14 +161,14 @@ export default function ResetPassword() {
                             : 'text-emerald-600'
                     }`}
                   >
-                    {tooShort ? `يجب ألا تقل عن ${MIN_LENGTH} أحرف` : strength.label}
+                    {tooShort ? t('auth.reset.validation.tooShortInline', { min: MIN_LENGTH }) : t(strength.labelKey)}
                   </p>
                 </div>
               )}
             </label>
 
             <label className="grid gap-2 text-sm font-black text-deepBlue">
-              تأكيد كلمة المرور
+              {t('auth.reset.form.passwordConfirmation')}
               <span className="relative block">
                 <LockKeyhole
                   size={20}
@@ -185,7 +188,7 @@ export default function ResetPassword() {
                   }`}
                 />
               </span>
-              {mismatch && <p className="mt-1 text-[11px] font-bold text-red-600">كلمتا المرور غير متطابقتين</p>}
+              {mismatch && <p className="mt-1 text-[11px] font-bold text-red-600">{t('auth.reset.validation.mismatch')}</p>}
             </label>
 
             <motion.button
@@ -198,10 +201,10 @@ export default function ResetPassword() {
               {isLoading ? (
                 <>
                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  جارٍ التغيير...
+                  {t('auth.reset.form.submitting')}
                 </>
               ) : (
-                'تعيين كلمة المرور'
+                t('auth.reset.form.submit')
               )}
             </motion.button>
 
@@ -210,7 +213,7 @@ export default function ResetPassword() {
               className="flex items-center justify-center gap-1 text-sm font-black text-slate-500 transition hover:text-customBlue"
             >
               <ArrowRight size={14} />
-              العودة لتسجيل الدخول
+              {t('auth.reset.backToLogin')}
             </Link>
           </form>
         </motion.div>

@@ -3,11 +3,13 @@ import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { AlertCircle, ArrowRight, CheckCircle2, Mail } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
 import { forgotPassword } from '@/api/authApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 
 export default function ForgotPassword() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -30,11 +32,11 @@ export default function ForgotPassword() {
   return (
     <div className="bg-paper pt-20">
       <PageHeader
-        title="نسيت كلمة المرور"
+        title={t('auth.forgot.title')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'تسجيل الدخول', href: '/login' },
-          { label: 'نسيت كلمة المرور' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('auth.login.breadcrumbCurrent'), href: '/login' },
+          { label: t('auth.forgot.breadcrumbCurrent') },
         ]}
       />
 
@@ -50,27 +52,27 @@ export default function ForgotPassword() {
               <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-50 text-emerald-500 ring-1 ring-emerald-100">
                 <CheckCircle2 size={46} />
               </span>
-              <h2 className="emc-title-arc mt-6 inline-block font-display text-2xl font-black tracking-tight text-deepBlue">تم إرسال الرابط</h2>
+              <h2 className="emc-title-arc mt-6 inline-block font-display text-2xl font-black tracking-tight text-deepBlue">{t('auth.forgot.success.title')}</h2>
               <p className="mt-4 text-sm font-semibold leading-8 text-slate-600">
-                إذا كان البريد مرتبطاً بحساب، ستصلك رسالة تحتوي رابط إعادة التعيين خلال دقائق.
+                {t('auth.forgot.success.body')}
               </p>
               <Link
                 to="/login"
                 className="mt-7 inline-flex items-center gap-2 text-sm font-black text-customBlue transition hover:text-accent-700"
               >
                 <ArrowRight size={15} />
-                العودة لتسجيل الدخول
+                {t('auth.forgot.backToLogin')}
               </Link>
             </div>
           ) : (
             <>
               <span className="emc-eyebrow-accent mb-4">
                 <Mail size={15} />
-                استعادة الوصول
+                {t('auth.forgot.eyebrow')}
               </span>
-              <h1 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">نسيت كلمة المرور؟</h1>
+              <h1 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">{t('auth.forgot.heading')}</h1>
               <p className="mt-4 text-sm font-semibold leading-8 text-slate-500">
-                أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.
+                {t('auth.forgot.intro')}
               </p>
 
               {error && (
@@ -82,7 +84,7 @@ export default function ForgotPassword() {
 
               <form onSubmit={handleSubmit} className="mt-7 grid gap-5" noValidate>
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
-                  البريد الإلكتروني
+                  {t('auth.forgot.form.email')}
                   <span className="relative block">
                     <Mail
                       size={20}
@@ -109,10 +111,10 @@ export default function ForgotPassword() {
                   {isLoading ? (
                     <>
                       <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      جارٍ الإرسال...
+                      {t('auth.forgot.form.submitting')}
                     </>
                   ) : (
-                    'إرسال رابط التعيين'
+                    t('auth.forgot.form.submit')
                   )}
                 </motion.button>
 
@@ -121,7 +123,7 @@ export default function ForgotPassword() {
                   className="flex items-center justify-center gap-1 text-sm font-black text-slate-500 transition hover:text-customBlue"
                 >
                   <ArrowRight size={14} />
-                  العودة لتسجيل الدخول
+                  {t('auth.forgot.backToLogin')}
                 </Link>
               </form>
             </>

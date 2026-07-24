@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { motion } from 'framer-motion'
 import { AlertCircle, Eye, EyeOff, LockKeyhole, LogIn, Mail } from 'lucide-react'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
@@ -12,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { getPostLoginRedirect } from '@/utils/dashboardAccess'
 
 export default function Login() {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -41,10 +43,10 @@ export default function Login() {
     if (!reason) return
 
     const MESSAGES: Record<string, { msg: string; kind: 'warning' | 'error' }> = {
-      session:              { msg: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى', kind: 'warning' },
-      suspended:            { msg: 'تم تعطيل الحساب، يرجى التواصل مع الإدارة', kind: 'error' },
-      impersonation_expired:{ msg: 'انتهت جلسة المعاينة — تم استعادة حسابك الإداري.', kind: 'warning' },
-      reset_success:        { msg: 'تم إعادة تعيين كلمة المرور، يمكنك تسجيل الدخول الآن.', kind: 'warning' },
+      session:              { msg: t('auth.login.reasons.session'), kind: 'warning' },
+      suspended:            { msg: t('auth.login.reasons.suspended'), kind: 'error' },
+      impersonation_expired:{ msg: t('auth.login.reasons.impersonationExpired'), kind: 'warning' },
+      reset_success:        { msg: t('auth.login.reasons.resetSuccess'), kind: 'warning' },
     }
 
     const entry = MESSAGES[reason]
@@ -60,7 +62,7 @@ export default function Login() {
       },
       { replace: true },
     )
-  }, [searchParams, setSearchParams])
+  }, [searchParams, setSearchParams, t])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -79,7 +81,7 @@ export default function Login() {
       if (axios.isAxiosError(err) && err.response?.status === 403) {
         const msg = (err.response.data as { message?: string } | undefined)?.message ?? ''
         if (msg === 'Account is suspended.' || msg.toLowerCase().includes('suspended')) {
-          setError('تم تعطيل الحساب، يرجى التواصل مع الإدارة')
+          setError(t('auth.login.reasons.suspended'))
           return
         }
       }
@@ -92,10 +94,10 @@ export default function Login() {
   return (
     <div className="bg-paper pt-20">
       <PageHeader
-        title="تسجيل الدخول"
+        title={t('auth.login.title')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'تسجيل الدخول' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('auth.login.breadcrumbCurrent') },
         ]}
       />
 
@@ -118,18 +120,18 @@ export default function Login() {
             <div className="absolute bottom-8 right-8 max-w-sm text-right text-white">
               <span className="emc-eyebrow mb-4 border-white/25 bg-white/10 text-ice">
                 <LogIn size={15} />
-                EMC للاستشارات والتدريب
+                {t('auth.login.side.eyebrow')}
               </span>
-              <h2 className="font-display text-3xl font-black leading-tight tracking-tight">مرحباً بعودتك</h2>
+              <h2 className="font-display text-3xl font-black leading-tight tracking-tight">{t('auth.login.side.title')}</h2>
               <p className="mt-3 leading-8 text-ice/90">
-                تابع رحلتك التعليمية وادخل إلى حسابك للوصول إلى دوراتك وطلبات التسجيل.
+                {t('auth.login.side.body')}
               </p>
             </div>
           </div>
 
           {/* ── Right panel — form ── */}
           <div className="p-6 text-right sm:p-10">
-            <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">تسجيل الدخول</h1>
+            <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">{t('auth.login.title')}</h1>
 
             {/* Error alert */}
             {error && (
@@ -142,7 +144,7 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="mt-8 grid gap-5" noValidate>
               {/* Email */}
               <label htmlFor="login-email" className="grid gap-2 text-sm font-black text-deepBlue">
-                البريد الإلكتروني
+                {t('auth.login.form.email')}
                 <span className="relative block">
                   <Mail
                     size={20}
@@ -163,7 +165,7 @@ export default function Login() {
 
               {/* Password */}
               <label htmlFor="login-password" className="grid gap-2 text-sm font-black text-deepBlue">
-                كلمة المرور
+                {t('auth.login.form.password')}
                 <span className="relative block">
                   <LockKeyhole
                     size={20}
@@ -181,7 +183,7 @@ export default function Login() {
                   />
                   <button
                     type="button"
-                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    aria-label={showPassword ? t('auth.login.form.hidePassword') : t('auth.login.form.showPassword')}
                     onClick={() => setShowPassword((s) => !s)}
                     className="absolute left-4 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-deepBlue"
                     tabIndex={-1}
@@ -195,7 +197,7 @@ export default function Login() {
                 to="/forgot-password"
                 className="text-right text-sm font-black text-customBlue hover:text-accent-700"
               >
-                نسيت كلمة المرور؟
+                {t('auth.login.form.forgot')}
               </Link>
 
               {/* Submit */}
@@ -209,21 +211,21 @@ export default function Login() {
                 {isLoading ? (
                   <>
                     <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    جارٍ تسجيل الدخول...
+                    {t('auth.login.form.submitting')}
                   </>
                 ) : (
                   <>
                     <LogIn size={20} />
-                    تسجيل الدخول
+                    {t('auth.login.form.submit')}
                   </>
                 )}
               </motion.button>
             </form>
 
             <p className="mt-7 text-center text-sm font-bold text-slate-500">
-              ليس لديك حساب؟{' '}
+              {t('auth.login.noAccount')}{' '}
               <Link to={signupHref} className="text-customBlue transition hover:text-accent-700">
-                أنشئ حساباً
+                {t('auth.login.signupLink')}
               </Link>
             </p>
           </div>
