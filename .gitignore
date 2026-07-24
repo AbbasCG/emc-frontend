@@ -40,8 +40,8 @@ dist-ssr
 codebase_analysis.md
 CLAUDE.md
 /.claude/settings.local.json
-docs/
-workflows/
+# docs/ tracked since M1.5 — governance hub (MASTER_PLAN/STATE/reports) must be version-controlled
+/workflows/
 
 /graphify-out/
 # Graphify tools

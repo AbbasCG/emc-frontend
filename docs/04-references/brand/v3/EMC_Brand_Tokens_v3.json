@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "name": "EMC — Educational Mastar Central",
+    "version": "3.1",
+    "date": "2026-07-02",
+    "supersedes": "2.2",
+    "authority": "Founder & GM — Tareq Tuaayman",
+    "note": "Typeface family switched to Thmanyah (exclusive). Serif Display for headings adopted 07/2026. Pattern & corner mark rebuilt from logo 'flying pages' motif (extracted from LOGO_FINAL.pdf vector); wings deprecated. Light & Dark identity modes formalized."
+  },
+  "color": {
+    "sea": {
+      "navy": "#0C2A4B",
+      "deep": "#06182C",
+      "sky": "#089FE0",
+      "blueDark": "#0077B6",
+      "ice": "#A6D6F2"
+    },
+    "fire": {
+      "orange": "#F28C00",
+      "amber": "#FFA733",
+      "ember": "#C97208"
+    },
+    "neutral": {
+      "paper": "#FBFAF7",
+      "ink": "#27384B",
+      "gray": "#5E6C7D",
+      "hairline": "#E7E3DA"
+    },
+    "functional": {
+      "success": "#1B7F4B",
+      "warning": "#FFA733",
+      "error": "#B3401E"
+    },
+    "rules": {
+      "ratio": "60 neutral / 30 sea / 10 fire",
+      "noCrossFamilyGradients": true,
+      "textOnLight": [
+        "navy AAA",
+        "ink AAA",
+        "blueDark AA",
+        "ember AA-large-only"
+      ],
+      "textOnNavy": [
+        "white AAA",
+        "ice AAA",
+        "amber AA",
+        "sky AA-medium+"
+      ],
+      "neverText": [
+        "sky-on-light",
+        "orange-on-light"
+      ]
+    }
+  },
+  "gradient": {
+    "dawn": "linear-gradient(152deg,#06182C 0%,#0C2A4B 50%,#10456E 100%) + orange ellipse rgba(242,140,0,.46) bottom + sky glow top + noise layer (mandatory)",
+    "depth": "linear-gradient(135deg,#06182C,#0C2A4B,#0E5A8A)",
+    "fireOnly": "#F28C00 -> #FFA733 (within family only)"
+  },
+  "typography": {
+    "family": "Thmanyah (exclusive)",
+    "roles": {
+      "display": "Thmanyah Serif Display — headings, covers, quotes (300/400/500/700/900)",
+      "sans": "Thmanyah Sans — body, UI, labels, ALL numerals (300/400/500/700/900)",
+      "serifText": "Thmanyah Serif Text — long-form booklet body (400/500)"
+    },
+    "scaleA4px": {
+      "coverTitle": "56-64 Disp900",
+      "pageTitle": "36 Disp900",
+      "subhead": "20 Disp700",
+      "kicker": "11 Sans700 tracking4",
+      "body": "12-13 Sans400 lh1.9",
+      "label": "10-11 Sans500",
+      "heroNumber": "48-56 Sans900",
+      "ghostNumber": "132-150 Sans900 rgba(12,42,75,.05)"
+    },
+    "social45px": {
+      "title": ">=72 Disp900 max2lines",
+      "kicker": "22 tracking6",
+      "body": ">=32",
+      "cta": "44"
+    },
+    "rules": {
+      "numerals": "Latin 0-9 always, isolated LTR",
+      "arrows": "RTL flow arrows point LEFT (←)",
+      "latinTerms": "isolate dir=ltr",
+      "rtlFlex": "use row (never row-reverse) inside RTL body"
+    }
+  },
+  "signature": {
+    "arc": {
+      "path": "M2 8 Q54 -3 106 8",
+      "stroke": 3,
+      "style": "orange over sky .45 underlayer"
+    },
+    "tricolorBar": {
+      "orange": "0-22%",
+      "sky": "22-58%",
+      "light": "58-100%",
+      "height": "3-4px"
+    },
+    "ghostNumbers": "Sans Black, rgba(12,42,75,.05)",
+    "dawnRings": "concentric from one corner: sky .26/.18, amber .5-.6, sky .10-.13, widths 12-15",
+    "footerDots": [
+      "#F28C00",
+      "#089FE0",
+      "#0C2A4B"
+    ],
+    "maxPerScene": 2,
+    "pagesCornerMark": "logo flying-pages motif, navy .055 on paper / white .06 on navy — bottom-LEFT corner, ~330px",
+    "monogramPattern": {
+      "motif": "flying pages only (letters removed)",
+      "tile": "520x460",
+      "stampH": 130,
+      "tilt": -8,
+      "variants": {
+        "light": "navy .05 on paper",
+        "dark": "white .05 on navy",
+        "gold": "amber .085 on dawn (luxury covers/certificates)"
+      }
+    }
+  },
+  "logo": {
+    "status": "FINAL & LOCKED by founder (2x, 06/2026) — no redesign, no critique",
+    "versions": [
+      "full-color on light",
+      "full-white on navy/dawn",
+      "icon-only min 44px"
+    ],
+    "clearSpace": "height of letter E on all sides",
+    "minSize": {
+      "printFull": "28mm",
+      "screenFull": "130px",
+      "icon": "10mm/44px"
+    },
+    "social45": {
+      "width": "195px",
+      "pos": "top-left 64,60"
+    },
+    "source": "LOGO_FINAL.pdf (vector master) — all renders regenerated from vector; cropped raster extraction prohibited",
+    "lockups": [
+      "icon",
+      "horizontal (primary)",
+      "tagline lockup"
+    ]
+  },
+  "seal": {
+    "variants": [
+      "color",
+      "navy",
+      "ember(certificates)",
+      "white"
+    ],
+    "min": "22mm/180px",
+    "tilt": "~-8deg optional",
+    "arabicNameIncluded": false
+  },
+  "certificates": {
+    "archive": "EMC_Certificate_Templates_v3_FINAL.zip",
+    "count": 9,
+    "prefixes": [
+      "EMC-WS",
+      "EMC-CR",
+      "EMC-TR",
+      "EMC-SC",
+      "EMC-VL",
+      "EMC-AP",
+      "EMC-PT",
+      "EMC-SP",
+      "EMC-IT"
+    ],
+    "sealStyle": "ember/gold",
+    "paper": "200-250g matte"
+  },
+  "layout": {
+    "social": "1080x1350 @2x, margins 64, bar y=52",
+    "story": "1080x1920 safe 250 top/bottom",
+    "a4": "margins 56, header top 64, footer bottom 34, body top 172",
+    "deck": "41 slides: dawn title, paper content w/ tricolor, ghost dividers"
+  },
+  "prohibited": [
+    "cross-family gradients",
+    "drop shadows",
+    "bordered boxes / drawn buttons",
+    "emoji in designs",
+    "Arabic-Indic numerals for stats",
+    "relaunch/rebirth narrative",
+    "logo alterations of any kind",
+    "publishing unconfirmed placeholders"
+  ],
+  "governance": {
+    "finalAuthority": "Tareq Tuaayman",
+    "updateBy": "founder decision only",
+    "prePublish": "all numbers/dates/links/contacts confirmed by founder"
+  },
+  "modes": {
+    "light": {
+      "bg": "paper/#FBFAF7 or white",
+      "headings": "navy Disp",
+      "body": "ink Sans/SerifText",
+      "logo": "color/navy",
+      "pattern": "light"
+    },
+    "dark": {
+      "bg": "dawn gradient or solid navy (noise mandatory on gradients)",
+      "headings": "white Disp",
+      "body": "ice",
+      "accents": "amber",
+      "logo": "white",
+      "pattern": "gold/dark"
+    }
+  },
+  "audience": {
+    "campRegistrants": "9,000+",
+    "centerBeneficiaries": "13,000+",
+    "countries": "50+",
+    "mobileOnly": "~40%",
+    "confirmedBy": "Tareq 2026-07-02"
+  }
+}

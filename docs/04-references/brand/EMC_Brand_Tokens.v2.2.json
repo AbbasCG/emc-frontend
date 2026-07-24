@@ -1,0 +1,45 @@
+{
+  "$schema_note": "EMC — Educational Mastar Central · Brand Tokens · V2.2 · June 2026 (GOVERNING REFERENCE — takes precedence over any earlier doc)",
+  "brand": "EMC — Educational Mastar Central",
+  "version": "2.2",
+  "slogan": { "en": "Guiding Minds, Building Futures.", "ar": "نُرشد العقول، ونبني المستقبل.", "rule": "single official slogan" },
+  "colorFamilies": {
+    "seaOfKnowledge": { "ar": "بحر المعرفة", "mood": "depth & trust",
+      "ramp": [
+        { "ar": "الليل", "hex": "#06182C" }, { "ar": "الكحلي", "hex": "#0C2A4B" },
+        { "ar": "المحيط", "hex": "#0E5A8A" }, { "ar": "الأزرق", "hex": "#0077B6" },
+        { "ar": "السماوي", "hex": "#089FE0" }, { "ar": "الجليد", "hex": "#A6D6F2" }
+      ] },
+    "fireOfPassion": { "ar": "نار الشغف", "mood": "energy & guidance",
+      "ramp": [
+        { "ar": "الجمر", "hex": "#C97208" }, { "ar": "البرتقالي", "hex": "#F28C00" },
+        { "ar": "العنبر", "hex": "#FFA733" }, { "ar": "الرمل", "hex": "#FCE9D2" }
+      ],
+      "law": "orange family is never gradiented with the sea family; orange stays solid" },
+    "neutral": { "paper": "#FBFAF7", "paper2": "#F3F1EA", "body": "#27384B", "muted": "#5E6C7D", "line": "#E7E3DA", "white": "#FFFFFF" },
+    "usageRatio": { "paper": 55, "seaFamily": 30, "sky": 9, "orange": 6 }
+  },
+  "gradients": {
+    "depth": { "ar": "العمق", "css": "linear-gradient(135deg, #06182C 0%, #0C2A4B 55%, #0E5A8A 100%)", "use": "dividers, hero fields" },
+    "dawn": { "ar": "الفجر", "structure": "depth base + sky glow top corner (radial rgba(8,159,224,.34-.38)) + orange horizon (radial ellipse rgba(242,140,0,.46-.52) rising from bottom edge)", "use": "covers & openings — the signature treatment" },
+    "daylight": { "ar": "الصحو", "css": "linear-gradient(to left, #089FE0 0%, #A6D6F2 100%)", "use": "charts, bars, indicators on light" },
+    "law": "blue-family blends only; sky-to-orange direct gradients forbidden"
+  },
+  "typography": {
+    "display": { "family": "Tajawal", "weights": [500, 700, 800, 900] },
+    "text": { "family": "IBM Plex Sans Arabic", "weights": [400, 500, 600, 700], "latinPair": "IBM Plex Sans" },
+    "fallback": "Cairo (emergency only)"
+  },
+  "motion": {
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)", "titleEnter": "24px rise + fade, 0.85s", "stagger": "0.12s",
+    "arcWipe": "0.6s right-to-left after title settles", "sceneCrossfade": "0.7s", "kenBurnsMax": "4%",
+    "forbidden": ["bounce", "elastic", "flicker", "logo flight"], "logoOutro": "fade in, hold static >= 2s", "dawnBreath": "glow cycle >= 8s"
+  },
+  "accessibility": {
+    "onLight": { "navy#0C2A4B": "AAA all sizes (~12.5:1)", "blue#0077B6": "AA body+ (~4.8:1)", "ember#C97208": "headlines >=18px (~3.6:1)", "sky#089FE0": "NOT for text (~2.6:1)", "orange#F28C00": "NOT for text (~2.3:1)" },
+    "onNavy": { "white": "AAA", "ice#A6D6F2": "AAA (~8:1)", "amber#FFA733": "AA headings (~5.5:1)", "sky#089FE0": "AA medium+ (~4.5:1)" },
+    "minText": "10pt print / 14px screen", "rule": "no text over pattern/photo without AA overlay; color never sole carrier of meaning"
+  },
+  "contactPlaceholders": { "website": "edumc.nl", "email": "info@edumc.nl", "location": "The Netherlands", "warning": "PLACEHOLDERS — confirm with founder before any publish" },
+  "logo": { "decision": "Original mark retained by founder decision (June 2026); faithful vector trace = official master. Redesign forbidden." }
+}
