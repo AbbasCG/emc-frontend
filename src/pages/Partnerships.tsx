@@ -9,10 +9,16 @@ import {
   School,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { CTASection, PublicPageHero } from '@/components/public'
 import { partnershipTypes } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
+
+/** M3 i18n: copy lives in the catalogs under partnerships.*. */
+const BENEFIT_KEYS = ['design', 'coordination', 'visibility', 'review'] as const
+const PROCESS_STEP_KEYS = ['initial', 'proposal', 'execution', 'evaluation'] as const
+const EXAMPLE_KEYS = ['university', 'corporate', 'community'] as const
 
 function TypeIcon({ name }: { name: string }) {
   const map: Record<string, LucideIcon> = {
@@ -28,15 +34,16 @@ function TypeIcon({ name }: { name: string }) {
 }
 
 export default function Partnerships() {
+  const { t } = useTranslation()
   return (
     <main className="bg-paper pt-20">
       <PublicPageHero
-        eyebrow="نموذج تعاون مسؤول"
-        title="الشراكات"
-        subtitle="نرحب بالجامعات، المدارس، الشركات، المدربين، المبادرات المجتمعية، والجهات الداعمة — بشروط وضوح وهدف مشترك."
+        eyebrow={t('partnerships.hero.eyebrow')}
+        title={t('partnerships.hero.title')}
+        subtitle={t('partnerships.hero.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'الشراكات' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('partnerships.hero.breadcrumbCurrent') },
         ]}
       />
 
@@ -44,8 +51,8 @@ export default function Partnerships() {
         <div className="mx-auto max-w-7xl">
           <SectionHeader
             align="right"
-            title="لماذا تتعاون مع EMC؟"
-            description="لأننا نعمل على ربط التعليم الجيد باحتياجات حقيقية: أفراد يبحثون عن مسار، ومؤسسات تبحث عن أثر — ضمن إطار جودة واحترام للمتعلم."
+            title={t('partnerships.why.title')}
+            description={t('partnerships.why.description')}
           />
           <motion.div
             variants={fadeUp}
@@ -56,8 +63,7 @@ export default function Partnerships() {
             className="rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line lg:p-10"
           >
             <p className="text-lg leading-9 text-slate-600">
-              نؤمن بأن الشراكة الناجحة تُبنى على أهداف محددة، أدوار واضحة، ومخرجات قابلة للقياس.
-              لا نعد بـ«نتائج فورية ضخمة» — بل نلتزم بمهنية في التصميم والتنفيذ والمتابعة.
+              {t('partnerships.why.body')}
             </p>
           </motion.div>
         </div>
@@ -65,7 +71,7 @@ export default function Partnerships() {
 
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader title="أنواع الشراكات" />
+          <SectionHeader title={t('partnerships.typesTitle')} />
           <motion.div
             className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
             variants={staggerContainer}
@@ -96,18 +102,13 @@ export default function Partnerships() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="ماذا يحصل الشركاء؟"
-            description="قيمة عملية: وصول لمجتمع متعلم، جودة في التنفيذ، وهوية محتوى واضحة."
+            title={t('partnerships.benefits.title')}
+            description={t('partnerships.benefits.description')}
           />
           <div className="grid gap-4 md:grid-cols-2">
-            {[
-              'تصميم مشترك للبرامج وفق احتياجات الجهة والجمهور المستهدف.',
-              'تنسيق تشغيلي وإعلامي يحافظ على تجربة احترافية للمشاركين.',
-              'إمكانية إبراز الشريك ضمن أطر أخلاقية وشفافة.',
-              'مراجعة جودة ومتابعة بعد التنفيذ لتحسين الدورات القادمة.',
-            ].map((line, i) => (
+            {BENEFIT_KEYS.map((key, i) => (
               <motion.div
-                key={line}
+                key={key}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -116,7 +117,7 @@ export default function Partnerships() {
                 className="flex gap-3 rounded-3xl bg-white p-6 text-right shadow-emc ring-1 ring-line"
               >
                 <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-customBlue" />
-                <p className="font-semibold leading-8 text-slate-700">{line}</p>
+                <p className="font-semibold leading-8 text-slate-700">{t(`partnerships.benefits.items.${key}`)}</p>
               </motion.div>
             ))}
           </div>
@@ -126,8 +127,8 @@ export default function Partnerships() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="مسار التعاون"
-            description="خطوات بسيطة تقلل الالتباس وتسرّع الانطلاق — مع مرونة حسب نوع الشريك."
+            title={t('partnerships.process.title')}
+            description={t('partnerships.process.description')}
           />
           <motion.ol
             className="grid gap-4 md:grid-cols-2"
@@ -136,20 +137,15 @@ export default function Partnerships() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
           >
-            {[
-              { t: 'تواصل أولي', d: 'نحدد الهدف، الجمهور، والجدول الزمني المتوقع.' },
-              { t: 'عرض مقترح', d: 'نقدّم خطة برنامج أو شراكة مع مخرجات ومسؤوليات.' },
-              { t: 'اعتماد وتنفيذ', d: 'اعتماد نطاق العمل ثم التشغيل مع متابعة جودة.' },
-              { t: 'تقييم وتحسين', d: 'ملاحظات المشاركين والشريك تدخل دورة التحسين.' },
-            ].map((step, i) => (
+            {PROCESS_STEP_KEYS.map((key, i) => (
               <motion.li
-                key={step.t}
+                key={key}
                 variants={staggerItem}
                 className="rounded-3xl bg-white p-6 text-right shadow-emc ring-1 ring-line"
               >
-                <span className="emc-num text-xs font-black tabular-nums text-accent-700">المرحلة {i + 1}</span>
-                <p className="mt-2 text-lg font-black text-deepBlue">{step.t}</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{step.d}</p>
+                <span className="emc-num text-xs font-black tabular-nums text-accent-700">{t('partnerships.process.stageBadge', { num: i + 1 })}</span>
+                <p className="mt-2 text-lg font-black text-deepBlue">{t(`partnerships.process.steps.${key}.title`)}</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{t(`partnerships.process.steps.${key}.description`)}</p>
               </motion.li>
             ))}
           </motion.ol>
@@ -159,17 +155,13 @@ export default function Partnerships() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="أمثلة لفرص تعاون"
-            description="عناوين واقعية يمكن تخصيصها لاحقاً حسب توفر البرامج والجهات."
+            title={t('partnerships.examples.title')}
+            description={t('partnerships.examples.description')}
           />
           <div className="grid gap-4 lg:grid-cols-3">
-            {[
-              'سلسلة ورش لطلاب الجامعة حول المهارات المهنية ومسار التخصص.',
-              'برنامج لغة وتوجيه للموظفين الجدد ضمن شركة أو مؤسسة.',
-              'شراكة مجتمعية لدعم فئة محددة عبر منح جزئية أو تطوع خبراء.',
-            ].map((ex) => (
+            {EXAMPLE_KEYS.map((key) => (
               <motion.div
-                key={ex}
+                key={key}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -177,7 +169,7 @@ export default function Partnerships() {
                 transition={{ duration: 0.45 }}
                 className="rounded-3xl border border-dashed border-customBlue/25 bg-white/80 p-6 text-right leading-8 text-slate-700 shadow-emc-sm"
               >
-                {ex}
+                {t(`partnerships.examples.items.${key}`)}
               </motion.div>
             ))}
           </div>
@@ -193,20 +185,19 @@ export default function Partnerships() {
           transition={{ duration: 0.5 }}
           className="mx-auto max-w-7xl rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line lg:p-10"
         >
-          <h2 className="emc-title-arc text-2xl font-black text-deepBlue">كتلة التواصل والشراكة</h2>
+          <h2 className="emc-title-arc text-2xl font-black text-deepBlue">{t('partnerships.contactBlock.title')}</h2>
           <p className="mt-4 max-w-3xl text-lg leading-9 text-slate-600">
-            أرسل لنا فكرة الشراكة، نوع المؤسسة، والفئة المستهدفة. سنرد برسالة توضح إمكانية
-            التعاون والخطوة التالية — دون التزام قبل الاتفاق المتبادل.
+            {t('partnerships.contactBlock.body')}
           </p>
         </motion.div>
       </section>
 
       <CTASection
-        title="ابدأ حوار الشراكة"
-        description="تواصل معنا عبر صفحة التواصل، واختر موضوعاً متعلقاً بالشراكات ليتم توجيه رسالتك للفريق المناسب."
-        primaryLabel="تواصل معنا"
+        title={t('partnerships.cta.title')}
+        description={t('partnerships.cta.description')}
+        primaryLabel={t('partnerships.cta.primary')}
         primaryHref="/contact"
-        secondaryLabel="تقديم ورشة أو برنامج"
+        secondaryLabel={t('partnerships.cta.secondary')}
         secondaryHref="/submit-workshop"
       />
     </main>

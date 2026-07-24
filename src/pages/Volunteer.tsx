@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -9,86 +10,126 @@ import {
   Heart,
   Sparkles,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { PublicPageHero } from '@/components/public'
 import { departments10, volunteerLead } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
-const journey = [
-  {
-    step: '01',
-    title: 'تقديم اهتمام',
-    description: 'أرسل لنا نبذة عن خبرتك ومجالك والوقت المتاح — دون التزام.',
-  },
-  {
-    step: '02',
-    title: 'مقابلة موجزة',
-    description: 'جلسة تعارف قصيرة لتوضيح الأدوار المتاحة وتوقعات الطرفين.',
-  },
-  {
-    step: '03',
-    title: 'تجربة منضبطة',
-    description: 'تبدأ بمهام محددة مع إشراف من إدارة البرامج أو التشغيل.',
-  },
-  {
-    step: '04',
-    title: 'تقييم وتطوير',
-    description: 'ملاحظات دورية لتحسين التجربة وربما الانتقال لدور أوسع.',
-  },
-]
+/** M3 i18n: copy lives in the catalogs under volunteer.*. */
+const JOURNEY_STEP_DEFS = [
+  { key: 'interest', step: '01' },
+  { key: 'interview', step: '02' },
+  { key: 'trial', step: '03' },
+  { key: 'growth', step: '04' },
+] as const
 
-const whyItems = [
+function buildJourney(t: TFunction) {
+  return JOURNEY_STEP_DEFS.map(({ key, step }) => ({
+    key,
+    step,
+    title: t(`volunteer.journey.steps.${key}.title`),
+    description: t(`volunteer.journey.steps.${key}.description`),
+  }))
+}
+
+const WHY_ITEM_DEFS: readonly {
+  key: string
+  icon: LucideIcon
+  accentBg: string
+  accentBorder: string
+  accentIcon: string
+  accentBar: string
+}[] = [
   {
+    key: 'impact',
     icon: Heart,
     accentBg: 'bg-rose-50',
     accentBorder: 'border-rose-100',
     accentIcon: 'text-rose-500',
     accentBar: 'bg-rose-400',
-    title: 'أثر حقيقي',
-    description: 'مساهمة في تجارب تعلم يستفيد منها أفراد من خلفيات متنوعة.',
   },
   {
+    key: 'experience',
     icon: Compass,
     accentBg: 'bg-customBlue/[0.08]',
     accentBorder: 'border-customBlue/20',
     accentIcon: 'text-customBlue',
     accentBar: 'bg-customBlue',
-    title: 'خبرة مهنية',
-    description: 'تعرّف على تنظيم البرامج، التشغيل، والجودة من الداخل.',
   },
   {
+    key: 'community',
     icon: Users,
     accentBg: 'bg-emerald-50',
     accentBorder: 'border-emerald-100',
     accentIcon: 'text-emerald-600',
     accentBar: 'bg-emerald-500',
-    title: 'مجتمع داعم',
-    description: 'بيئة عمل تطوعية محترمة بحدود واضحة للوقت والمهام.',
   },
 ]
 
-const skills = [
-  'تواصل واضح بالعربية (والإنجليزية ميزة عند الحاجة).',
-  'انضباط في المواعيد والوثائق.',
-  'احترام خصوصية المشاركين وسياسات المنصة.',
-  'خبرة في التدريب، التحرير، التصميم، أو التشغيل — حسب الدور.',
-  'رغبة في التعلم والاستفادة من التوجيه.',
-  'روح تعاون داخل فريق متنوع.',
+function buildWhyItems(t: TFunction) {
+  return WHY_ITEM_DEFS.map((def) => ({
+    ...def,
+    title: t(`volunteer.why.items.${def.key}.title`),
+    description: t(`volunteer.why.items.${def.key}.description`),
+  }))
+}
+
+const SKILL_KEYS = ['communication', 'punctuality', 'privacy', 'expertise', 'learning', 'teamwork'] as const
+
+const COMMITMENT_BLOCK_DEFS: readonly {
+  key: string
+  icon: LucideIcon
+  accentBg: string
+  accentIcon: string
+  lineKeys: readonly string[]
+}[] = [
+  {
+    key: 'time',
+    icon: Clock,
+    accentBg: 'bg-customOrange/10',
+    accentIcon: 'text-customOrange',
+    lineKeys: ['range', 'scheduling'],
+  },
+  {
+    key: 'discipline',
+    icon: Sparkles,
+    accentBg: 'bg-customBlue/[0.08]',
+    accentIcon: 'text-customBlue',
+    lineKeys: ['deadlines', 'notice'],
+  },
 ]
 
+function buildCommitmentBlocks(t: TFunction) {
+  return COMMITMENT_BLOCK_DEFS.map(({ key, icon, accentBg, accentIcon, lineKeys }) => ({
+    key,
+    icon,
+    accentBg,
+    accentIcon,
+    title: t(`volunteer.commitment.blocks.${key}.title`),
+    lines: lineKeys.map((lineKey) => t(`volunteer.commitment.blocks.${key}.lines.${lineKey}`)),
+  }))
+}
+
 export default function Volunteer() {
+  const { t } = useTranslation()
+  const journey = useMemo(() => buildJourney(t), [t])
+  const whyItems = useMemo(() => buildWhyItems(t), [t])
+  const commitmentBlocks = useMemo(() => buildCommitmentBlocks(t), [t])
   return (
     <main className="bg-paper pt-20">
       <PublicPageHero
-        eyebrow="انضم إلى الأثر"
-        title="التطوع والانضمام لفريق EMC"
-        subtitle="فرصة للمساهمة في برامج تعليمية بجودة عالية — مع تعلم عملي وتجربة فريق منضبطة."
+        eyebrow={t('volunteer.hero.eyebrow')}
+        title={t('volunteer.hero.title')}
+        subtitle={t('volunteer.hero.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'التطوع' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('volunteer.hero.breadcrumbCurrent') },
         ]}
-        primaryAction={{ label: 'تقديم طلب التطوع', href: '/volunteer/apply' }}
-        secondaryAction={{ label: 'التعرف على الفريق', href: '/team' }}
+        primaryAction={{ label: t('volunteer.hero.primaryCta'), href: '/volunteer/apply' }}
+        secondaryAction={{ label: t('volunteer.hero.secondaryCta'), href: '/team' }}
       />
 
       {/* ── Why Join ── */}
@@ -96,7 +137,7 @@ export default function Volunteer() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customBlue/[0.08] px-4 py-1.5 text-xs font-black text-customBlue">
             <span className="h-1.5 w-1.5 rounded-full bg-customBlue" />
-            لماذا تنضم إلى EMC؟
+            {t('volunteer.why.badge')}
           </div>
           <p className="mb-10 mt-4 max-w-2xl text-sm leading-8 text-slate-600">{volunteerLead.ar}</p>
 
@@ -111,7 +152,7 @@ export default function Volunteer() {
               const Icon = item.icon
               return (
                 <motion.div
-                  key={item.title}
+                  key={item.key}
                   variants={staggerItem}
                   className="group relative overflow-hidden rounded-3xl bg-white p-8 text-right shadow-[0_4px_24px_-4px_rgba(12,42,75,0.08)] ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_48px_-12px_rgba(12,42,75,0.14)]"
                 >
@@ -135,13 +176,13 @@ export default function Volunteer() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customOrange/10 px-4 py-1.5 text-xs font-black text-accent-700">
             <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
-            المجالات المتاحة
+            {t('volunteer.roles.badge')}
           </div>
           <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">
-            أدوار ومجالات يمكن المساهمة فيها
+            {t('volunteer.roles.title')}
           </h2>
           <p className="mb-10 max-w-2xl text-sm leading-8 text-slate-600">
-            لا نعد بآلاف الساعات «السحرية» — نحدد أدواراً مرتبطة بإداراتنا حسب الحاجة الفعلية للبرامج.
+            {t('volunteer.roles.description')}
           </p>
 
           <motion.div
@@ -184,11 +225,11 @@ export default function Volunteer() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-deepBlue/[0.07] px-4 py-1.5 text-xs font-black text-deepBlue">
             <span className="h-1.5 w-1.5 rounded-full bg-deepBlue" />
-            رحلتك معنا
+            {t('volunteer.journey.badge')}
           </div>
-          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">رحلة المتطوع</h2>
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">{t('volunteer.journey.title')}</h2>
           <p className="mb-12 max-w-2xl text-sm leading-8 text-slate-600">
-            خطوات واضحة تقلل الالتباس وتبني التزاماً صحيحاً من الطرفين.
+            {t('volunteer.journey.description')}
           </p>
 
           <div className="relative">
@@ -227,40 +268,19 @@ export default function Volunteer() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customBlue/[0.08] px-4 py-1.5 text-xs font-black text-customBlue">
             <span className="h-1.5 w-1.5 rounded-full bg-customBlue" />
-            توقعاتنا منك
+            {t('volunteer.commitment.badge')}
           </div>
-          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">التزام متوقع</h2>
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">{t('volunteer.commitment.title')}</h2>
           <p className="mb-10 max-w-2xl text-sm leading-8 text-slate-600">
-            نحترم وقتك؛ لذلك نطلب توقعات واقعية يمكن الالتزام بها.
+            {t('volunteer.commitment.description')}
           </p>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {[
-              {
-                icon: Clock,
-                accentBg: 'bg-customOrange/10',
-                accentIcon: 'text-customOrange',
-                title: 'وقت محدد أسبوعياً',
-                lines: [
-                  'غالباً بين 2—6 ساعات حسب الدور والمرحلة.',
-                  'جدولة مسبقة مع مساحة للتعديل المعقول.',
-                ],
-              },
-              {
-                icon: Sparkles,
-                accentBg: 'bg-customBlue/[0.08]',
-                accentIcon: 'text-customBlue',
-                title: 'انضباط وتواصل',
-                lines: [
-                  'الالتزام بالمواعيد النهائية المتفق عليها.',
-                  'إبلاغ مبكر عند تعارض لإعادة التنسيق.',
-                ],
-              },
-            ].map((block) => {
+            {commitmentBlocks.map((block) => {
               const Icon = block.icon
               return (
                 <motion.div
-                  key={block.title}
+                  key={block.key}
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="visible"
@@ -294,11 +314,11 @@ export default function Volunteer() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-customOrange/10 px-4 py-1.5 text-xs font-black text-accent-700">
             <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
-            ما نبحث عنه
+            {t('volunteer.skills.badge')}
           </div>
-          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">مهارات نبحث عنها</h2>
+          <h2 className="emc-title-arc mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">{t('volunteer.skills.title')}</h2>
           <p className="mb-8 max-w-2xl text-sm leading-8 text-slate-600">
-            تختلف حسب الدور، لكن هذه أساسيات شائعة تساعدنا على العمل بسلاسة.
+            {t('volunteer.skills.description')}
           </p>
 
           <motion.ul
@@ -308,14 +328,14 @@ export default function Volunteer() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
           >
-            {skills.map((skill) => (
+            {SKILL_KEYS.map((skill) => (
               <motion.li
                 key={skill}
                 variants={staggerItem}
                 className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-emc-sm ring-1 ring-line"
               >
                 <Check className="h-4 w-4 shrink-0 text-customBlue" />
-                {skill}
+                {t(`volunteer.skills.items.${skill}`)}
               </motion.li>
             ))}
           </motion.ul>
@@ -339,28 +359,27 @@ export default function Volunteer() {
           <div className="relative px-8 py-12 lg:px-14 lg:py-14">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.08] px-4 py-1.5 text-xs font-black text-white/90 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
-              هل أنت مستعد للانضمام؟
+              {t('volunteer.cta.badge')}
             </span>
             <h2 className="mt-5 text-2xl font-black sm:text-3xl lg:text-[2.25rem] lg:leading-tight">
-              ابدأ رحلتك التطوعية مع EMC
+              {t('volunteer.cta.title')}
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-9 text-slate-300">
-              قدّم طلبك عبر النموذج المخصص — أدخل بياناتك، اختر قسمك، وشارك خبرتك. سنراجع طلبك ونتواصل معك
-              قريبًا.
+              {t('volunteer.cta.description')}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 to="/volunteer/apply"
                 className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg shadow-orange-900/30 transition hover:brightness-110"
               >
-                تقديم طلب التطوع
+                {t('volunteer.cta.primary')}
                 <ArrowLeft size={16} />
               </Link>
               <Link
                 to="/team"
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/[0.08] px-7 py-4 text-sm font-extrabold text-white backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.14]"
               >
-                التعرف على الفريق
+                {t('volunteer.cta.secondary')}
               </Link>
             </div>
           </div>

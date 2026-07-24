@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // Floating particles
 function Particle({ x, y, size, delay, opacity }: { x: string; y: string; size: number; delay: number; opacity: number }) {
@@ -26,6 +27,7 @@ const particles = [
 ] as const
 
 export default function HomeGrandCTA() {
+  const { t } = useTranslation()
   return (
     <section dir="rtl" className="relative isolate overflow-hidden px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
       {/* Main gradient card */}
@@ -79,7 +81,7 @@ export default function HomeGrandCTA() {
               viewport={{ once: true }}
               transition={{ duration: 0.4 }}
             >
-              <span className="emc-eyebrow border-white/15 bg-white/10 text-ice">ابدأ رحلتك</span>
+              <span className="emc-eyebrow border-white/15 bg-white/10 text-ice">{t('home.grandCta.eyebrow')}</span>
             </motion.p>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
@@ -88,10 +90,10 @@ export default function HomeGrandCTA() {
               transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 0.61, 0.36, 1] }}
               className="mt-5 font-display text-[2.4rem] font-black leading-tight tracking-tight sm:text-5xl lg:text-[3.2rem]"
             >
-              جاهز لتحويل{' '}
-              <span className="text-customOrange">طموحك</span>
+              {t('home.grandCta.titlePrefix')}{' '}
+              <span className="text-customOrange">{t('home.grandCta.titleHighlight')}</span>
               <br />
-              إلى مسيرة حقيقية؟
+              {t('home.grandCta.titleSuffix')}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -100,7 +102,7 @@ export default function HomeGrandCTA() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="mt-6 max-w-lg text-lg font-medium leading-9 text-white/60"
             >
-              انضم لأكثر من 9000 متعلّم يبنون مهاراتهم يومياً على منصة EMC — ورشتك الأولى تبدأ اليوم.
+              {t('home.grandCta.description')}
             </motion.p>
           </div>
 
@@ -118,7 +120,7 @@ export default function HomeGrandCTA() {
                 className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white shadow-emc-glow-accent transition-all hover:brightness-105"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/15 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
-                استعرض البرامج والدورات
+                {t('home.grandCta.primary')}
                 <ArrowLeft size={19} className="transition-transform group-hover:-translate-x-1" aria-hidden />
               </Link>
             </motion.div>
@@ -127,11 +129,11 @@ export default function HomeGrandCTA() {
                 to="/contact"
                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-8 py-4 text-base font-extrabold text-white backdrop-blur-md transition hover:border-white/35 hover:bg-white/18"
               >
-                تحدّث مع الفريق
+                {t('home.grandCta.secondary')}
               </Link>
             </motion.div>
             <p className="text-center text-xs font-semibold text-white/35">
-              انضمام مجاني · دعم عربي · بدء فوري
+              {t('home.grandCta.footnote')}
             </p>
           </motion.div>
         </div>

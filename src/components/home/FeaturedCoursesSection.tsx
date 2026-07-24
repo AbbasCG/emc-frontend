@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useInView } from 'framer-motion'
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import HomeCourseCard from './HomeCourseCard'
 import type { Course } from '../../types'
 import { fetchCoursesFromApi } from '../../api/coursesApi.public'
@@ -48,6 +49,7 @@ function CardSkeleton() {
 }
 
 export default function FeaturedCoursesSection() {
+  const { t } = useTranslation()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
@@ -98,9 +100,9 @@ export default function FeaturedCoursesSection() {
           className="mb-10 flex items-end justify-between gap-4"
         >
           <div className="text-right">
-            <span className="emc-eyebrow">الدورات المتاحة</span>
+            <span className="emc-eyebrow">{t('home.featured.eyebrow')}</span>
             <h2 className="emc-title-arc mt-4 font-display text-2xl font-black tracking-tight text-deepBlue sm:text-3xl">
-              برامجنا المميّزة
+              {t('home.featured.title')}
             </h2>
           </div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="shrink-0">
@@ -108,7 +110,7 @@ export default function FeaturedCoursesSection() {
               to="/courses"
               className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-5 py-2.5 text-sm font-black text-white shadow-emc transition hover:brightness-105"
             >
-              عرض جميع الدورات
+              {t('home.featured.viewAll')}
               <ArrowLeft size={15} aria-hidden />
             </Link>
           </motion.div>
@@ -146,7 +148,7 @@ export default function FeaturedCoursesSection() {
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                     disabled={clamped === 0}
                     className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-customBlue/5 disabled:cursor-not-allowed disabled:opacity-35"
-                    aria-label="السابق"
+                    aria-label={t('home.featured.aria.prev')}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -156,7 +158,7 @@ export default function FeaturedCoursesSection() {
                         key={i}
                         type="button"
                         onClick={() => setPage(i)}
-                        aria-label={`صفحة ${String(i + 1)}`}
+                        aria-label={t('home.featured.aria.page', { num: i + 1 })}
                         className={`h-2 rounded-full transition-all duration-300 ${
                           i === clamped
                             ? 'w-7 bg-customBlue'
@@ -170,13 +172,13 @@ export default function FeaturedCoursesSection() {
                     onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                     disabled={clamped === totalPages - 1}
                     className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-customBlue/5 disabled:cursor-not-allowed disabled:opacity-35"
-                    aria-label="التالي"
+                    aria-label={t('home.featured.aria.next')}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
                 <p className="mt-2 text-center text-[11px] text-foreground/40" dir="rtl">
-                  {from}–{to} من {courses.length} برنامج
+                  {t('home.featured.range', { from, to, total: courses.length })}
                 </p>
               </>
             )}
@@ -184,9 +186,9 @@ export default function FeaturedCoursesSection() {
         ) : (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/[0.1] bg-slate-50 py-16 text-center">
             <BookOpen size={40} className="text-customBlue/30" aria-hidden />
-            <p className="text-sm font-black text-deepBlue">البرامج تُحمَّل من الخادم</p>
+            <p className="text-sm font-black text-deepBlue">{t('home.featured.emptyTitle')}</p>
             <Link to="/courses" className="text-xs font-black text-customBlue hover:underline">
-              فتح الكتالوج
+              {t('home.featured.emptyCta')}
             </Link>
           </div>
         )}

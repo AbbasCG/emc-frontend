@@ -1,4 +1,7 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import DepartmentsBentoMetrics from '@/components/departments/DepartmentsBentoMetrics'
 import DepartmentsFaqAccordion from '@/components/departments/DepartmentsFaqAccordion'
@@ -8,34 +11,36 @@ import DepartmentsTimelineStrip from '@/components/departments/DepartmentsTimeli
 import { CTASection, PublicPageHero } from '@/components/public'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
-const flowPhases = [
-  {
-    title: 'تصميم واعتماد',
-    body: 'إدارة البرامج تبني المسار، والجودة تضمن الالتزام بالمعايير قبل الإطلاق.',
-    tone: 'blue' as const,
-  },
-  {
-    title: 'تنفيذ وتجربة',
-    body: 'التشغيل يدير الجداول والخدمات، والتسويق يوصل الرسالة بشفافية.',
-    tone: 'orange' as const,
-  },
-  {
-    title: 'استدامة وتطوير',
-    body: 'المالية والموارد البشرية تدعمان الاستمرارية، والتقنية تحافظ على الأمان.',
-    tone: 'navy' as const,
-  },
+/** M3 i18n: copy lives in the catalogs under departments.flow.phases.<key>. */
+const FLOW_PHASE_DEFS = [
+  { key: 'design', tone: 'blue' as const },
+  { key: 'execute', tone: 'orange' as const },
+  { key: 'sustain', tone: 'navy' as const },
 ]
 
+function buildFlowPhases(t: TFunction) {
+  return FLOW_PHASE_DEFS.map(({ key, tone }) => ({
+    key,
+    tone,
+    title: t(`departments.flow.phases.${key}.title`),
+    body: t(`departments.flow.phases.${key}.body`),
+  }))
+}
+
+const GOVERNANCE_POINT_KEYS = ['policies', 'review', 'documentation', 'transparency'] as const
+
 export default function Departments() {
+  const { t } = useTranslation()
+  const flowPhases = useMemo(() => buildFlowPhases(t), [t])
   return (
     <main className="bg-emcBg pt-20">
       <PublicPageHero
-        eyebrow="الهيكل المؤسسي"
-        title="إدارات EMC"
-        subtitle="هيكل إداري يضمن جودة البرامج، سلاسة التشغيل، واستدامة الشراكات — مع حوكمة واضحة ومساءلة مهنية."
+        eyebrow={t('departments.hero.eyebrow')}
+        title={t('departments.hero.title')}
+        subtitle={t('departments.hero.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'الإدارات' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('departments.hero.breadcrumbCurrent') },
         ]}
       />
 
@@ -44,9 +49,9 @@ export default function Departments() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="لماذا نحتاج إدارات متخصصة؟"
-            title="تنظيم يخدم جودة التعلم"
-            description="البرامج التعليمية تحتاج تخطيطاً، تشغيلاً، تقنية، وشراكات — وكل ذلك يتطلب فرقاً متخصصة تتعاون تحت رؤية موحدة."
+            eyebrow={t('departments.why.eyebrow')}
+            title={t('departments.why.title')}
+            description={t('departments.why.description')}
           />
           <motion.div
             variants={fadeUp}
@@ -59,8 +64,7 @@ export default function Departments() {
             <div className="pointer-events-none absolute -left-24 top-0 h-56 w-56 rounded-full bg-customBlue/[0.07] blur-3xl" />
             <div className="pointer-events-none absolute -right-16 bottom-0 h-48 w-48 rounded-full bg-customOrange/[0.08] blur-3xl" />
             <p className="relative text-lg font-medium leading-9 text-deepBlue/75">
-              تقسيم العمل إلى إدارات لا يعني التعقيد — بل يعني أن كل قرار مرتبط بمسؤولية واضحة: من تصميم البرنامج إلى تجربة
-              المشارك، ومن الاتصال المؤسسي إلى الجودة والامتثال.
+              {t('departments.why.body')}
             </p>
           </motion.div>
         </div>
@@ -77,8 +81,8 @@ export default function Departments() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            title="كيف تعمل الإدارات معاً؟"
-            description="نموذج تعاون مؤسسي: البرامج تصمم المحتوى، التشغيل ينفّذ، التقنية تدعم، والجودة تراجع — والشراكات توسّع الأثر."
+            title={t('departments.flow.title')}
+            description={t('departments.flow.description')}
           />
           <motion.div
             className="mt-10 grid gap-5 lg:grid-cols-3"
@@ -102,7 +106,7 @@ export default function Departments() {
                     : 'bg-deepBlue/[0.06] text-deepBlue ring-deepBlue/15'
               return (
                 <motion.div
-                  key={b.title}
+                  key={b.key}
                   variants={staggerItem}
                   className={[
                     'relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-emcBg p-7 text-right shadow-emc transition-shadow hover:shadow-emc-md',
@@ -110,7 +114,7 @@ export default function Departments() {
                   ].join(' ')}
                 >
                   <span className={['inline-flex rounded-full px-3 py-1 text-[10px] font-black ring-1', badge].join(' ')}>
-                    المرحلة {i + 1}
+                    {t('departments.flow.phaseBadge', { num: i + 1 })}
                   </span>
                   <h3 className="mt-4 text-lg font-black text-deepBlue">{b.title}</h3>
                   <p className="mt-3 leading-8 text-deepBlue/70">{b.body}</p>
@@ -128,8 +132,8 @@ export default function Departments() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            title="الحوكمة والجودة"
-            description="إدارة الجودة والحوكمة ليست شعاراً — بل آلية لمراجعة السياسات، إدارة المخاطر، وتحسين التجربة بناءً على ملاحظات المشاركين والشركاء."
+            title={t('departments.governance.title')}
+            description={t('departments.governance.description')}
           />
           <motion.div
             variants={fadeUp}
@@ -142,15 +146,10 @@ export default function Departments() {
             <div className="pointer-events-none absolute left-0 top-0 h-40 w-40 rounded-full bg-customBlue/15 blur-3xl" />
             <div className="pointer-events-none absolute bottom-0 right-0 h-36 w-36 rounded-full bg-customOrange/10 blur-3xl" />
             <ul className="relative grid gap-3 text-sm font-semibold leading-8 text-white/90 sm:grid-cols-2">
-              {[
-                'سياسات واضحة للخصوصية والسلامة والشكاوى.',
-                'مراجعة دورية لجودة المحتوى وتجربة التعلم.',
-                'توثيق الإجراءات لضمان الاستمرارية حتى مع تغير الفريق.',
-                'شفافية في التعامل مع الشركاء والرعاة ضمن أطر أخلاقية.',
-              ].map((line) => (
-                <li key={line} className="flex gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+              {GOVERNANCE_POINT_KEYS.map((key) => (
+                <li key={key} className="flex gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
                   <span className="text-customOrange">•</span>
-                  {line}
+                  {t(`departments.governance.points.${key}`)}
                 </li>
               ))}
             </ul>
@@ -161,11 +160,11 @@ export default function Departments() {
       <DepartmentsFaqAccordion />
 
       <CTASection
-        title="انضم إلى فريق EMC"
-        description="إذا كنت تمتلك خبرة في التدريب، التشغيل، التقنية، أو التسويق — يمكن أن يكون لك دور ضمن إحدى الإدارات."
-        primaryLabel="صفحة التطوع والانضمام"
+        title={t('departments.cta.title')}
+        description={t('departments.cta.description')}
+        primaryLabel={t('departments.cta.primary')}
         primaryHref="/volunteer"
-        secondaryLabel="تواصل بشأن وظيفة/تعاون"
+        secondaryLabel={t('departments.cta.secondary')}
         secondaryHref="/contact"
       />
     </main>

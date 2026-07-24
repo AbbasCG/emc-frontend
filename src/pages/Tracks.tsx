@@ -15,6 +15,7 @@ import {
   Rocket,
   Wallet,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '@/components/PageHeader'
 import TracksPageContinued from '@/components/tracks/TracksPageContinued'
 import { themes12 } from '@/data/publicPages'
@@ -52,14 +53,15 @@ function accentForIndex(i: number) {
 }
 
 export default function Tracks() {
+  const { t } = useTranslation()
   return (
     <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
       <PageHeader
-        title="المحاور الاثنا عشر"
-        subtitle="محاور EMC الرسمية — مصفوفة واحدة تجمع التعليم الأكاديمي والعالمي والرقمي والمهني ضمن تجربة عربية فاخرة."
+        title={t('tracks.header.title')}
+        subtitle={t('tracks.header.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'المحاور' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('tracks.header.breadcrumbCurrent') },
         ]}
       />
 
@@ -77,11 +79,9 @@ export default function Tracks() {
             transition={{ duration: 0.45 }}
             className="mb-12 max-w-3xl text-right"
           >
-            <span className="emc-eyebrow mb-4">المحاور</span>
+            <span className="emc-eyebrow mb-4">{t('tracks.eyebrow')}</span>
             <p className="mt-3 text-[1.05rem] font-medium leading-8 text-foreground/73">
-              تجربة محاور حديثة ومنظمة: نفس المنظومة الاثني عشر، وبطاقات مصمّمة لتسهيل القراءة والانتقال السريع إلى
-              البرامج. اختر المحور الذي ينطلق من احتياجك الحالي؛ كل بطاقة تربطك مباشرة بكتالوج البرامج والدورات دون
-              مغادرة أسلوب EMC المؤسسي.
+              {t('tracks.intro')}
             </p>
           </motion.div>
 
@@ -150,7 +150,7 @@ export default function Tracks() {
                         to="/courses"
                         className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1c6f98] py-3.5 text-sm font-black text-white shadow-[0_12px_32px_-12px_rgba(0,119,182,0.55)] ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
                       >
-                        استكشف البرامج
+                        {t('tracks.exploreCta')}
                         <ArrowLeft size={17} aria-hidden />
                       </Link>
                     </motion.div>

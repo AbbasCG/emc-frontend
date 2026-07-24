@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   AlertCircle,
   CheckCircle2,
@@ -27,55 +29,65 @@ import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 import { loadingToast, successToast, errorToast } from '@/lib/toast'
 import { ContactFaqSection } from '@/components/contact/ContactFaqSection'
 
-const optionCards = [
-  {
-    icon: MessageCircle,
-    title: 'تواصل عام',
-    body: 'استفسارات عن البرامج، الخدمات، أو معلومات عامة عن EMC.',
-    hint: 'استخدم النموذج أدناه واختر «استفسار عام».',
-  },
-  {
-    icon: Mail,
-    title: 'طلب برنامج أو ورشة',
-    body: 'للمؤسسات والأفراد الذين يريدون اقتراح برنامج أو ورشة عمل منظمة.',
-    hint: (
-      <Link to="/submit-workshop" className="font-bold text-accent-700 hover:underline">
-        انتقل إلى نموذج تقديم الورشة
-      </Link>
-    ),
-  },
-  {
-    icon: Handshake,
-    title: 'شراكة',
-    body: 'للجامعات، الشركات، المدربين، والمبادرات المجتمعية.',
-    hint: (
-      <Link to="/partnerships" className="font-bold text-customBlue hover:underline">
-        صفحة الشراكات
-      </Link>
-    ),
-  },
-  {
-    icon: HeartHandshake,
-    title: 'تطوع',
-    body: 'للانضمام كمساهم في إحدى الإدارات أو الأنشطة.',
-    hint: (
-      <Link to="/volunteer" className="font-bold text-customBlue hover:underline">
-        صفحة التطوع
-      </Link>
-    ),
-  },
-  {
-    icon: Wrench,
-    title: 'دعم فني',
-    body: 'مشاكل في الدخول، الروابط، أو تجربة المنصة.',
-    hint: `بريد الدعم: ${siteContact.supportEmail}`,
-  },
-]
+/** M3 i18n: copy lives in the catalogs under contact.options.cards.<key>. */
+function buildOptionCards(t: TFunction) {
+  return [
+    {
+      key: 'general',
+      icon: MessageCircle,
+      title: t('contact.options.cards.general.title'),
+      body: t('contact.options.cards.general.body'),
+      hint: t('contact.options.cards.general.hint'),
+    },
+    {
+      key: 'program',
+      icon: Mail,
+      title: t('contact.options.cards.program.title'),
+      body: t('contact.options.cards.program.body'),
+      hint: (
+        <Link to="/submit-workshop" className="font-bold text-accent-700 hover:underline">
+          {t('contact.options.cards.program.hint')}
+        </Link>
+      ),
+    },
+    {
+      key: 'partnership',
+      icon: Handshake,
+      title: t('contact.options.cards.partnership.title'),
+      body: t('contact.options.cards.partnership.body'),
+      hint: (
+        <Link to="/partnerships" className="font-bold text-customBlue hover:underline">
+          {t('contact.options.cards.partnership.hint')}
+        </Link>
+      ),
+    },
+    {
+      key: 'volunteer',
+      icon: HeartHandshake,
+      title: t('contact.options.cards.volunteer.title'),
+      body: t('contact.options.cards.volunteer.body'),
+      hint: (
+        <Link to="/volunteer" className="font-bold text-customBlue hover:underline">
+          {t('contact.options.cards.volunteer.hint')}
+        </Link>
+      ),
+    },
+    {
+      key: 'support',
+      icon: Wrench,
+      title: t('contact.options.cards.support.title'),
+      body: t('contact.options.cards.support.body'),
+      hint: t('contact.options.cards.support.hint', { email: siteContact.supportEmail }),
+    },
+  ]
+}
 
 const GENERAL_CONTACT_HASH = '#general-contact-form'
 const CONTACT_SCROLL_OFFSET = 100
 
 export default function Contact() {
+  const { t } = useTranslation()
+  const optionCards = useMemo(() => buildOptionCards(t), [t])
   const location = useLocation()
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isFormHighlighted, setIsFormHighlighted] = useState(false)
@@ -198,14 +210,14 @@ export default function Contact() {
   return (
     <main className="bg-paper pt-20">
       <PublicPageHero
-        eyebrow="نحن هنا لمساعدتك"
-        title="تواصل معنا"
-        subtitle="اختر مسار التواصل المناسب: عام، برنامج، شراكة، تطوع، أو دعم فني — ثم أرسل رسالتك."
+        eyebrow={t('contact.hero.eyebrow')}
+        title={t('contact.hero.title')}
+        subtitle={t('contact.hero.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'تواصل معنا' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('contact.hero.breadcrumbCurrent') },
         ]}
-        secondaryAction={{ label: 'الأسئلة الشائعة', href: '#faq' }}
+        secondaryAction={{ label: t('contact.hero.faqCta'), href: '#faq' }}
       />
 
       <section id="trainer" className="scroll-mt-28 border-b border-line bg-white px-4 py-12 sm:px-6 lg:px-8">
@@ -215,10 +227,9 @@ export default function Contact() {
               <GraduationCap size={24} />
             </div>
             <div>
-              <h2 className="font-display text-lg font-black tracking-tight text-deepBlue">كن مدرباً مع EMC</h2>
+              <h2 className="font-display text-lg font-black tracking-tight text-deepBlue">{t('contact.trainer.title')}</h2>
               <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-foreground/70">
-                إذا كنت تمتلك خبرة تدريبية وتتوافق مع معايير الجودة لدينا، أرسل لنا عبر النموذج
-                أدناه مع اختيار الموضوع المناسب، وسيتم التواصل معك.
+                {t('contact.trainer.body')}
               </p>
             </div>
           </div>
@@ -228,8 +239,8 @@ export default function Contact() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="خيارات التواصل"
-            description="توصية سريعة: إن كان طلبك يتعلق بتقديم ورشة رسمية، فالنموذج المخصص يضمن جمع الحقول الكاملة."
+            title={t('contact.options.title')}
+            description={t('contact.options.description')}
           />
           <motion.div
             className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
@@ -242,7 +253,7 @@ export default function Contact() {
               const Icon = card.icon
               return (
                 <motion.article
-                  key={card.title}
+                  key={card.key}
                   variants={staggerItem}
                   className="rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition duration-250 ease-emc hover:shadow-emc-md"
                 >
@@ -273,9 +284,9 @@ export default function Contact() {
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">نموذج التواصل العام</h2>
+            <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">{t('contact.form.title')}</h2>
             <p className="mt-5 text-sm leading-7 text-muted-500">
-              أرسل رسالتك مباشرة لفريق EMC. للطلبات الرسمية للورش استخدم صفحة التقديم المخصصة.
+              {t('contact.form.intro')}
             </p>
 
             {serverError && (
@@ -290,14 +301,14 @@ export default function Contact() {
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={22} className="mt-1 shrink-0" />
                   <p className="font-bold leading-7">
-                    تم إرسال رسالتك بنجاح. سيتواصل الفريق معك قريباً.
+                    {t('contact.form.successMessage')}
                   </p>
                 </div>
                 {ticketData?.ticket_number && (
                   <div className="mt-3 rounded-xl bg-white/70 px-4 py-2.5 text-center">
-                    <p className="text-xs font-semibold text-slate-500">رقم تذكرتك</p>
+                    <p className="text-xs font-semibold text-slate-500">{t('contact.form.ticketLabel')}</p>
                     <p className="mt-0.5 font-extrabold text-deepBlue">{ticketData.ticket_number}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-400">احتفظ بهذا الرقم للمتابعة</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">{t('contact.form.ticketKeep')}</p>
                   </div>
                 )}
               </div>
@@ -308,12 +319,12 @@ export default function Contact() {
               <input name="_honey" type="text" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" aria-hidden="true" />
 
               <div className="grid gap-5 sm:grid-cols-2">
-                <FormField label="الاسم الكامل" name="name" value={form.name} onChange={v => setField('name', v)} error={fieldErrors.name} maxLength={100} required />
-                <FormField label="البريد الإلكتروني" name="email" type="email" value={form.email} onChange={v => setField('email', v)} error={fieldErrors.email} maxLength={150} required />
+                <FormField label={t('contact.form.fields.name')} name="name" value={form.name} onChange={v => setField('name', v)} error={fieldErrors.name} maxLength={100} required />
+                <FormField label={t('contact.form.fields.email')} name="email" type="email" value={form.email} onChange={v => setField('email', v)} error={fieldErrors.email} maxLength={150} required />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className="grid gap-1.5 text-sm font-black text-deepBlue">
-                  رقم الجوال
+                  {t('contact.form.fields.phone')}
                   <input
                     name="phone"
                     type="tel"
@@ -327,22 +338,22 @@ export default function Contact() {
                   {fieldErrors.phone && <FieldError msg={fieldErrors.phone} />}
                 </label>
                 <label className="grid gap-1.5 text-sm font-black text-deepBlue">
-                  نوع الطلب
+                  {t('contact.form.fields.category')}
                   <select
                     name="category"
                     value={form.category}
                     onChange={e => setField('category', e.target.value)}
                     className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-right font-semibold text-deepBlue outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-sky-100"
                   >
-                    <option value="general">استفسار عام</option>
-                    <option value="partnership">شراكة</option>
-                    <option value="volunteer">تطوع</option>
-                    <option value="tech">دعم فني</option>
+                    <option value="general">{t('contact.form.categories.general')}</option>
+                    <option value="partnership">{t('contact.form.categories.partnership')}</option>
+                    <option value="volunteer">{t('contact.form.categories.volunteer')}</option>
+                    <option value="tech">{t('contact.form.categories.tech')}</option>
                   </select>
                 </label>
               </div>
-              <FormField label="الموضوع" name="subject" value={form.subject} onChange={v => setField('subject', v)} error={fieldErrors.subject} maxLength={150} required />
-              <TextareaField label="الرسالة" name="message" value={form.message} onChange={v => setField('message', v)} error={fieldErrors.message} maxLength={2000} rows={6} required />
+              <FormField label={t('contact.form.fields.subject')} name="subject" value={form.subject} onChange={v => setField('subject', v)} error={fieldErrors.subject} maxLength={150} required />
+              <TextareaField label={t('contact.form.fields.message')} name="message" value={form.message} onChange={v => setField('message', v)} error={fieldErrors.message} maxLength={2000} rows={6} required />
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
@@ -350,7 +361,7 @@ export default function Contact() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
               >
                 <Send size={20} />
-                {isSubmitting ? 'جارٍ الإرسال...' : 'إرسال الرسالة'}
+                {isSubmitting ? t('contact.form.submitting') : t('contact.form.submit')}
               </motion.button>
             </form>
           </motion.article>
@@ -364,7 +375,7 @@ export default function Contact() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="emc-title-arc font-display text-xl font-black tracking-tight text-deepBlue">بيانات التواصل</h2>
+              <h2 className="emc-title-arc font-display text-xl font-black tracking-tight text-deepBlue">{t('contact.info.title')}</h2>
               <ul className="mt-7 grid gap-4 text-foreground/70">
                 <li className="flex items-start gap-3">
                   <Phone size={18} className="mt-0.5 shrink-0 text-customBlue" />
@@ -378,7 +389,7 @@ export default function Contact() {
                     <a href={`mailto:${siteContact.email}`} className="block font-semibold hover:text-customBlue">
                       {siteContact.email}
                     </a>
-                    <span className="text-xs text-slate-400">عام · قانوني · شكاوى</span>
+                    <span className="text-xs text-slate-400">{t('contact.info.emailNote')}</span>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -387,7 +398,7 @@ export default function Contact() {
                     <a href={`mailto:${siteContact.supportEmail}`} className="block font-semibold hover:text-accent-700">
                       {siteContact.supportEmail}
                     </a>
-                    <span className="text-xs text-slate-400">دعم فني · تذاكر</span>
+                    <span className="text-xs text-slate-400">{t('contact.info.supportNote')}</span>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -412,17 +423,16 @@ export default function Contact() {
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-ice ring-1 ring-white/15">
                 <Headphones size={24} />
               </div>
-              <h2 className="font-display text-2xl font-black tracking-tight">طلب ورشة أو برنامج</h2>
+              <h2 className="font-display text-2xl font-black tracking-tight">{t('contact.workshopCard.title')}</h2>
               <p className="mt-4 leading-8 text-ice/90">
-                لضمان استلام كامل التفاصيل (الفئة، الوقت، المكان، السعر…) استخدم نموذج التقديم
-                المخصص — دون كسر تكامل الـ API.
+                {t('contact.workshopCard.body')}
               </p>
               <motion.div whileHover={{ scale: 1.03 }} className="mt-7">
                 <Link
                   to="/submit-workshop"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
                 >
-                  الانتقال إلى نموذج الورشة
+                  {t('contact.workshopCard.cta')}
                 </Link>
               </motion.div>
             </motion.article>
@@ -432,7 +442,7 @@ export default function Contact() {
 
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader title="القنوات الاجتماعية" description="سيتم إضافة الروابط الرسمية هنا عند اعتمادها — يرجى الرجوع إلى البريد الرسمي حتى ذلك الحين." />
+          <SectionHeader title={t('contact.social.title')} description={t('contact.social.description')} />
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -442,7 +452,7 @@ export default function Contact() {
             className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
           >
             <p className="text-foreground/70 leading-8">
-              لمزيد من الأمان، تفضّل التواصل عبر البريد المعتمد{' '}
+              {t('contact.social.notePrefix')}{' '}
               <a href={`mailto:${siteContact.email}`} className="font-bold text-customBlue hover:underline">
                 {siteContact.email}
               </a>
@@ -455,7 +465,7 @@ export default function Contact() {
       <section className="px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="الموقع ونطاق الخدمة"
+            title={t('contact.location.title')}
             description={siteContact.location.ar}
           />
           <motion.div
@@ -468,10 +478,9 @@ export default function Contact() {
           >
             <div className="px-6 py-10">
               <MapPin size={40} className="mx-auto text-customBlue" />
-              <p className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">نطاق الخدمة</p>
+              <p className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">{t('contact.location.serviceTitle')}</p>
               <p className="mt-2 max-w-lg text-sm font-semibold leading-7 text-muted-500">
-                برامج أونلاين مع مجتمعات عربية وهولندية، وفعاليات حضورية عند الإعلان عنها في
-                الصفحات الرسمية.
+                {t('contact.location.serviceBody')}
               </p>
             </div>
           </motion.div>
@@ -482,7 +491,7 @@ export default function Contact() {
 
       <section className="px-4 pb-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader title="إرشادات سريعة" />
+          <SectionHeader title={t('contact.guidelines.title')} />
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -492,18 +501,12 @@ export default function Contact() {
             className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
           >
             <ul className="space-y-4 text-sm font-semibold leading-8 text-foreground/80">
-              <li className="flex gap-3">
-                <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-customOrange" />
-                إن لم تكن متأكداً من نوع الطلب، اختر «استفسار عام» ووضّح تفاصيلك وسنعيد التوجيه.
-              </li>
-              <li className="flex gap-3">
-                <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-customOrange" />
-                للدعم الفني، اذكر المتصفح، الجهاز، ووقت حدوث المشكلة إن أمكن.
-              </li>
-              <li className="flex gap-3">
-                <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-customOrange" />
-                لا تشارك كلمات مرور أو معلومات حساسة عبر نموذج عام.
-              </li>
+              {(['unsure', 'techDetails', 'noSensitive'] as const).map((key) => (
+                <li key={key} className="flex gap-3">
+                  <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-customOrange" />
+                  {t(`contact.guidelines.items.${key}`)}
+                </li>
+              ))}
             </ul>
           </motion.div>
         </div>

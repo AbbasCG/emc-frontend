@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -11,7 +12,10 @@ import {
   Sparkles,
   Target,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import {
   CTASection,
@@ -25,93 +29,81 @@ import {
 import { aboutPlatformLead } from '@/data/publicPages'
 import { fadeUp } from '@/utils/animations'
 
-const differentiators = [
-  {
-    icon: Layers,
-    title: 'منظومة وليس كتالوج',
-    description: 'نربط بين اللغة، المسار، المهارات، والتمكين الرقمي في تجربة متسلسلة قابلة للقياس.',
-    iconClassName: 'bg-sky-50 text-customBlue',
-  },
-  {
-    icon: Users,
-    title: 'جمهور واسع باحتياجات حقيقية',
-    description: 'طلاب، مهاجرون، مهنيون، وباحثون عن تطوير — نصمم لهم مسارات عملية لا شعارات فارغة.',
-    iconClassName: 'bg-orange-50 text-customOrange',
-  },
-  {
-    icon: Brain,
-    title: 'ذكاء اصطناعي بمسؤولية',
-    description: 'نستخدم الأدوات الرقمية لتسريع التعلم مع ضوابط وضوح وأخلاقيات استخدام.',
-    iconClassName: 'bg-sky-50 text-customBlue',
-  },
-  {
-    icon: Target,
-    title: 'توجيه عملي',
-    description: 'ورش، استشارات، ومتابعة تساعدك على ترجمة التعلم إلى قرارات وخطوات.',
-    iconClassName: 'bg-orange-50 text-customOrange',
-  },
+/** M3 i18n: copy lives in the catalogs under about.*. */
+const DIFFERENTIATOR_DEFS: readonly { key: string; icon: LucideIcon; iconClassName: string }[] = [
+  { key: 'ecosystem', icon: Layers, iconClassName: 'bg-sky-50 text-customBlue' },
+  { key: 'audience', icon: Users, iconClassName: 'bg-orange-50 text-customOrange' },
+  { key: 'ai', icon: Brain, iconClassName: 'bg-sky-50 text-customBlue' },
+  { key: 'guidance', icon: Target, iconClassName: 'bg-orange-50 text-customOrange' },
 ]
 
-const roadmapMilestones = [
-  {
-    title: 'توحيد التجربة الرقمية',
-    description: 'ربط الكتالوج، التسجيل، والمتابعة في مسار واحد يفهمه المتعلم ويُسهّل على الفريق التشغيلي العمل.',
-  },
-  {
-    title: 'توسيع الشراكات المؤسسية',
-    description: 'اتفاقيات واضحة مع جامعات ومؤسسات ومدربين — بمعايير جودة وحوكمة موثّقة.',
-  },
-  {
-    title: 'تقارير أثر دورية',
-    description: 'نشر ملخصات أثر واقعية للمجتمع والشركاء، مع احترام خصوصية المشاركين.',
-  },
-  {
-    title: 'تطوير المسارات بين المجالات الاثنا عشر',
-    description: 'ربط أقوى بين المجالات والمسارات بحيث يتحرك المتعلم بثقة عبر خطوات متوقعة.',
-  },
+function buildDifferentiators(t: TFunction) {
+  return DIFFERENTIATOR_DEFS.map(({ key, icon, iconClassName }) => ({
+    key,
+    icon,
+    iconClassName,
+    title: t(`about.differentiators.items.${key}.title`),
+    description: t(`about.differentiators.items.${key}.description`),
+  }))
+}
+
+const ROADMAP_MILESTONE_KEYS = ['unify', 'partnerships', 'impact', 'tracks'] as const
+
+function buildRoadmapMilestones(t: TFunction) {
+  return ROADMAP_MILESTONE_KEYS.map((key) => ({
+    title: t(`about.roadmap.milestones.${key}.title`),
+    description: t(`about.roadmap.milestones.${key}.description`),
+  }))
+}
+
+const JOURNEY_STEP_DEFS: readonly { key: string; icon: LucideIcon }[] = [
+  { key: 'explore', icon: Compass },
+  { key: 'choose', icon: Layers },
+  { key: 'apply', icon: Brain },
+  { key: 'grow', icon: Sparkles },
 ]
 
-const journeySteps = [
-  {
-    title: 'استكشاف',
-    description: 'تحديد احتياجك عبر البرامج أو التواصل الموجز.',
-    icon: Compass,
-  },
-  {
-    title: 'اختيار مسار',
-    description: 'دورة، ورشة، أو مسار تعلم يتوافق مع مرحلتك.',
-    icon: Layers,
-  },
-  {
-    title: 'تعلم وتطبيق',
-    description: 'جلسات عملية وموارد تدعم التطبيق لا الحفظ فقط.',
-    icon: Brain,
-  },
-  {
-    title: 'متابعة وتطوير',
-    description: 'تغذية راجعة وخطوات تالية ضمن منظومة EMC.',
-    icon: Sparkles,
-  },
+function buildJourneySteps(t: TFunction) {
+  return JOURNEY_STEP_DEFS.map(({ key, icon }) => ({
+    icon,
+    title: t(`about.journey.steps.${key}.title`),
+    description: t(`about.journey.steps.${key}.description`),
+  }))
+}
+
+const GLANCE_ITEM_DEFS: readonly { key: string; icon: LucideIcon }[] = [
+  { key: 'academic', icon: GraduationCap },
+  { key: 'digital', icon: Cpu },
+  { key: 'community', icon: Users },
+  { key: 'lifelong', icon: Brain },
 ]
+
+const DIGITAL_POINT_KEYS = ['intro', 'skills', 'safety', 'alignment'] as const
+
+const AUDIENCE_CARD_KEYS = ['students', 'newcomers', 'professionals', 'families', 'organizations', 'trainers'] as const
 
 export default function About() {
+  const { t } = useTranslation()
+  const differentiators = useMemo(() => buildDifferentiators(t), [t])
+  const roadmapMilestones = useMemo(() => buildRoadmapMilestones(t), [t])
+  const journeySteps = useMemo(() => buildJourneySteps(t), [t])
   return (
     <main className="bg-[#f4f7fb] pt-20">
       <PublicPageHero
         variant="split"
-        badge="عن EMC"
-        title="عن المركز"
-        subtitle="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة، المهارة، والفرص — بلغة عربية احترافية ومعايير عالمية."
+        badge={t('about.hero.badge')}
+        title={t('about.hero.title')}
+        subtitle={t('about.hero.subtitle')}
         breadcrumbs={[
-          { label: 'الرئيسية', href: '/' },
-          { label: 'عن EMC' },
+          { label: t('nav.home'), href: '/' },
+          { label: t('about.hero.breadcrumbCurrent') },
         ]}
-        primaryAction={{ label: 'استكشف البرامج', href: '/courses' }}
-        secondaryAction={{ label: 'تواصل معنا', href: '/contact' }}
+        primaryAction={{ label: t('about.hero.primaryCta'), href: '/courses' }}
+        secondaryAction={{ label: t('about.hero.secondaryCta'), href: '/contact' }}
         stats={[
-          { value: '12', label: 'مجال تعلم ضمن منظومة EMC' },
-          { value: 'متنوعة', label: 'برامج وورش وفق الكتالوج' },
-          { value: 'شفافية', label: 'أثر وبيانات دون مبالغة' },
+          { value: t('about.hero.stats.fields.value'), label: t('about.hero.stats.fields.label') },
+          { value: t('about.hero.stats.programs.value'), label: t('about.hero.stats.programs.label') },
+          { value: t('about.hero.stats.transparency.value'), label: t('about.hero.stats.transparency.label') },
         ]}
       />
 
@@ -129,13 +121,12 @@ export default function About() {
             >
               <span className="emc-eyebrow mb-4">
                 <Sparkles size={15} />
-                من نحن
+                {t('about.who.eyebrow')}
               </span>
-              <h2 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">منصة تمكين عبر التعليم</h2>
+              <h2 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">{t('about.who.title')}</h2>
               <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{aboutPlatformLead.ar}</p>
               <p className="mt-5 text-base font-medium leading-8 text-slate-600">
-                نعمل على دعم الأفراد في مراحل الانتقال — دراسة، عمل، هجرة، أو إعادة ترتيب أولويات
-                — عبر برامج ومسارات تُحدَّث باستمرار لتعكس احتياج السوق والمجتمع.
+                {t('about.who.paragraph')}
               </p>
             </motion.div>
 
@@ -147,23 +138,18 @@ export default function About() {
               transition={{ duration: 0.5 }}
             >
               <div className="rounded-2xl bg-gradient-to-br from-[#f4f7fb] to-white p-6 sm:p-8">
-                <p className="text-right text-sm font-black text-customBlue">لمحة سريعة</p>
+                <p className="text-right text-sm font-black text-customBlue">{t('about.who.glanceTitle')}</p>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {[
-                    { icon: GraduationCap, label: 'مسارات أكاديمية ومهنية', sub: 'تخطيط وتوجيه' },
-                    { icon: Cpu, label: 'تمكين رقمي', sub: 'أدوات ومهارات' },
-                    { icon: Users, label: 'مجتمع متعلم', sub: 'دعم وشراكات' },
-                    { icon: Brain, label: 'تعلم مستمر', sub: 'ورش وبرامج' },
-                  ].map((item) => {
+                  {GLANCE_ITEM_DEFS.map((item) => {
                     const Icon = item.icon
                     return (
                       <div
-                        key={item.label}
+                        key={item.key}
                         className="rounded-2xl border border-slate-100 bg-white p-5 text-right shadow-sm transition hover:border-customBlue/20 hover:shadow-md"
                       >
                         <Icon className="text-customBlue" size={26} />
-                        <p className="mt-3 font-black text-deepBlue">{item.label}</p>
-                        <p className="mt-1 text-sm font-medium text-slate-500">{item.sub}</p>
+                        <p className="mt-3 font-black text-deepBlue">{t(`about.who.glance.${item.key}.label`)}</p>
+                        <p className="mt-1 text-sm font-medium text-slate-500">{t(`about.who.glance.${item.key}.sub`)}</p>
                       </div>
                     )
                   })}
@@ -178,8 +164,8 @@ export default function About() {
       <section className="border-y border-slate-200/60 bg-white py-16 sm:py-20">
         <PageShell>
           <ProcessSteps
-            title="رحلتك مع EMC"
-            subtitle="من أول خطوة إلى تطوير مستمر — بإيقاع واضح دون تعقيد."
+            title={t('about.journey.title')}
+            subtitle={t('about.journey.subtitle')}
             steps={journeySteps}
           />
         </PageShell>
@@ -189,9 +175,9 @@ export default function About() {
       <section id="vision-mission" className="scroll-mt-28 py-16 sm:py-20">
         <PageShell>
           <SectionHeader
-            eyebrow="التوجه المؤسسي"
-            title="الرؤية والرسالة"
-            subtitle="رؤية واضحة ورسالة عملية: التمكين عبر تعليم جيد، وإرشاد صادق، وتجربة محترمة للمتعلم."
+            eyebrow={t('about.visionMission.eyebrow')}
+            title={t('about.visionMission.title')}
+            subtitle={t('about.visionMission.subtitle')}
           />
           <div className="grid gap-6 md:grid-cols-2">
             <motion.div
@@ -203,10 +189,9 @@ export default function About() {
               className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-sky-100/50 blur-2xl" />
-              <h3 className="relative text-xl font-black text-deepBlue">الرؤية</h3>
+              <h3 className="relative text-xl font-black text-deepBlue">{t('about.visionMission.visionTitle')}</h3>
               <p className="relative mt-4 leading-9 text-slate-600">
-                أن نكون مرجعاً موثوقاً في بناء المسارات التعليمية والمهنية للأفراد والمؤسسات، مع
-                الحفاظ على جودة المحتوى وأثره الإنساني.
+                {t('about.visionMission.visionBody')}
               </p>
             </motion.div>
             <motion.div
@@ -218,10 +203,9 @@ export default function About() {
               className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-orange-100/40 blur-2xl" />
-              <h3 className="relative text-xl font-black text-deepBlue">الرسالة</h3>
+              <h3 className="relative text-xl font-black text-deepBlue">{t('about.visionMission.missionTitle')}</h3>
               <p className="relative mt-4 leading-9 text-slate-600">
-                تقديم برامج تدريبية واستشارية ومسارات تعلم تساعد المتعلم على اتخاذ قرارات أوضح،
-                وتطوير مهاراته، والاندماج بثقة في بيئات متعددة.
+                {t('about.visionMission.missionBody')}
               </p>
             </motion.div>
           </div>
@@ -234,9 +218,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="نحو المستقبل"
-            title="خارطة طريق EMC"
-            description="مراحل تطوير المنظومة بصدق مهني — نحدّث الأولويات مع تعلّمنا من المجتمع والشركاء."
+            eyebrow={t('about.roadmap.eyebrow')}
+            title={t('about.roadmap.title')}
+            description={t('about.roadmap.description')}
           />
           <TimelineSteps steps={roadmapMilestones} />
         </PageShell>
@@ -248,9 +232,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="من الإدارة"
-            title="كلمة للمجتمع التعليمي"
-            description="التزام مؤسسي بالجودة والشفافية — دون أسماء وهمية؛ التحديثات البشرية الرسمية تُعلن عبر القنوات المعتمدة."
+            eyebrow={t('about.leadership.eyebrow')}
+            title={t('about.leadership.title')}
+            description={t('about.leadership.description')}
           />
           <motion.div
             variants={fadeUp}
@@ -263,12 +247,10 @@ export default function About() {
             <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-customOrange/15 blur-3xl" />
             <Quote className="relative text-customOrange" size={36} aria-hidden />
             <blockquote className="relative mt-6 text-lg font-medium leading-10 text-ice/95 sm:text-xl sm:leading-[2.15rem]">
-              نؤمن أن التعليم الجيد يبدأ من احترام المتعلم: وضوح في التوقعات، محتوى يُحدَّث، وفريق
-              يتحمّل المسؤولية أمام المجتمع. هدفنا ليس «الأكبر بأسرع وقت» — بل بناء مرجعية عربية
-              مهنية تدوم.
+              {t('about.leadership.quote')}
             </blockquote>
             <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-sky/90">
-              الإدارة العليا — Educational Master Central (EMC)
+              {t('about.leadership.attribution')}
             </footer>
           </motion.div>
         </PageShell>
@@ -280,14 +262,14 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow="التميز"
-            title="ما الذي يميّز EMC؟"
-            subtitle="نميز أنفسنا بالربط بين المحتوى، التوجيه، والشراكات — لا بالوعود السريعة أو الوصف الزائف."
+            eyebrow={t('about.differentiators.eyebrow')}
+            title={t('about.differentiators.title')}
+            subtitle={t('about.differentiators.subtitle')}
           />
           <FeatureGrid>
             {differentiators.map((item) => (
               <FeatureCard
-                key={item.title}
+                key={item.key}
                 icon={item.icon}
                 title={item.title}
                 description={item.description}
@@ -306,9 +288,9 @@ export default function About() {
             <SectionHeader
               align="right"
               className="!mb-0 !mr-0 !max-w-none !text-right"
-              eyebrow="المستقبل الرقمي"
-              title="التعليم، الذكاء الاصطناعي، والتحول الرقمي"
-              subtitle="نؤمن أن التحول الرقمي فرصة للمتعلم عندما يُقدَّم بلغة مفهومة وبأدوات آمنة."
+              eyebrow={t('about.digital.eyebrow')}
+              title={t('about.digital.title')}
+              subtitle={t('about.digital.subtitle')}
             />
             <motion.div
               variants={fadeUp}
@@ -319,18 +301,13 @@ export default function About() {
               className="rounded-3xl bg-[#f4f7fb] p-6 ring-1 ring-slate-200/80 sm:p-8"
             >
               <ul className="grid gap-3 text-slate-700 sm:grid-cols-2">
-                {[
-                  'مقدمات عملية في الذكاء الاصطناعي واستخداماته اليومية والمهنية.',
-                  'مهارات رقمية تدعم الإنتاجية والتعلم مدى الحياة.',
-                  'مبادئ خصوصية وأمان ومسؤولية عند استخدام الأدوات.',
-                  'ربط التقنية بأهدافك الأكاديمية أو المهنية لا كغاية بحد ذاتها.',
-                ].map((line) => (
+                {DIGITAL_POINT_KEYS.map((key) => (
                   <li
-                    key={line}
+                    key={key}
                     className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-7 shadow-sm ring-1 ring-slate-100/80"
                   >
                     <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-customOrange" />
-                    {line}
+                    {t(`about.digital.points.${key}`)}
                   </li>
                 ))}
               </ul>
@@ -343,38 +320,13 @@ export default function About() {
       <section className="py-16 sm:py-20">
         <PageShell>
           <SectionHeader
-            title="من نخدم؟"
-            subtitle="مجتمع متنوع يتقاطع حول هدف واحد: بناء مسار أوضح عبر التعلم الجيد."
+            title={t('about.audience.title')}
+            subtitle={t('about.audience.subtitle')}
           />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: 'الطلاب والخريجون',
-                body: 'تخطيط أكاديمي، لغات، واستعداد للمرحلة التالية.',
-              },
-              {
-                title: 'المهاجرون والوافدون الجدد',
-                body: 'دعم لغوي ومهني ومجتمعي يراعي واقع الانتقال.',
-              },
-              {
-                title: 'المهنيون والباحثون عن تطوير',
-                body: 'مهارات عملية، ريادة، وتمكين رقمي بمسؤولية.',
-              },
-              {
-                title: 'الأسر والناشئة',
-                body: 'برامج مناسبة للأعمار بإشراف وتصميم آمن.',
-              },
-              {
-                title: 'المؤسسات والفرق',
-                body: 'ورش وشراكات تدريبية بأهداف محددة.',
-              },
-              {
-                title: 'المدربون والخبراء',
-                body: 'شراكات محتوى ضمن معايير الجودة والحوكمة.',
-              },
-            ].map((card, i) => (
+            {AUDIENCE_CARD_KEYS.map((key, i) => (
               <motion.div
-                key={card.title}
+                key={key}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -383,8 +335,8 @@ export default function About() {
                 whileHover={{ y: -3 }}
                 className="min-h-[160px] rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition-shadow hover:shadow-emc-md"
               >
-                <h3 className="text-lg font-black text-deepBlue">{card.title}</h3>
-                <p className="mt-3 leading-8 text-slate-600">{card.body}</p>
+                <h3 className="text-lg font-black text-deepBlue">{t(`about.audience.cards.${key}.title`)}</h3>
+                <p className="mt-3 leading-8 text-slate-600">{t(`about.audience.cards.${key}.body`)}</p>
               </motion.div>
             ))}
           </div>
@@ -403,9 +355,9 @@ export default function About() {
             transition={{ duration: 0.5 }}
           >
             <div>
-              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">جاهز للخطوة التالية؟</h2>
+              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">{t('about.midCta.title')}</h2>
               <p className="mt-3 max-w-xl font-medium leading-9 text-slate-600">
-                اختر البرنامج المناسب، أو تواصل معنا لاستشارة موجزة حول مسارك.
+                {t('about.midCta.body')}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -414,7 +366,7 @@ export default function About() {
                   to="/courses"
                   className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg"
                 >
-                  البرامج والدورات
+                  {t('about.midCta.primary')}
                   <ArrowLeft size={18} />
                 </Link>
               </motion.div>
@@ -423,7 +375,7 @@ export default function About() {
                   to="/contact"
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-7 py-4 text-sm font-extrabold text-deepBlue transition hover:border-customBlue"
                 >
-                  تواصل معنا
+                  {t('about.midCta.secondary')}
                 </Link>
               </motion.div>
             </div>
@@ -432,11 +384,11 @@ export default function About() {
       </section>
 
       <CTASection
-        title="انضم إلى مجتمع EMC"
-        description="سواء كنت متعلماً، شريكاً، أو متطوعاً — هناك مسار يناسبك ضمن منظومتنا."
-        primaryLabel="استكشف المجالات"
+        title={t('about.cta.title')}
+        description={t('about.cta.description')}
+        primaryLabel={t('about.cta.primary')}
         primaryHref="/tracks"
-        secondaryLabel="شراكة"
+        secondaryLabel={t('about.cta.secondary')}
         secondaryHref="/partnerships"
       />
     </main>

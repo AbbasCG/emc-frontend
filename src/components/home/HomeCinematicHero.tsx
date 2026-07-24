@@ -1,20 +1,27 @@
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // ── Orbital ecosystem visual ──────────────────────────────────────────────────
 
-const ORBIT_ITEMS = [
-  { label: 'ورش', angle: 0, r: 120, color: '#0077B6', size: 42 },
-  { label: 'دورات', angle: 72, r: 140, color: '#F28C00', size: 46 },
-  { label: 'مسارات', angle: 144, r: 128, color: '#0C2A4B', size: 44 },
-  { label: 'ذكاء اصطناعي', angle: 216, r: 138, color: '#0077B6', size: 50 },
-  { label: 'مجتمع', angle: 288, r: 118, color: '#F28C00', size: 40 },
+/** M3 i18n: labels live in the catalogs under home.hero.orbit.<key>. */
+const ORBIT_ITEM_DEFS = [
+  { key: 'workshops', angle: 0, r: 120, color: '#0077B6', size: 42 },
+  { key: 'courses', angle: 72, r: 140, color: '#F28C00', size: 46 },
+  { key: 'paths', angle: 144, r: 128, color: '#0C2A4B', size: 44 },
+  { key: 'ai', angle: 216, r: 138, color: '#0077B6', size: 50 },
+  { key: 'community', angle: 288, r: 118, color: '#F28C00', size: 40 },
 ] as const
 
 function OrbitalVisual() {
+  const { t } = useTranslation()
   const shouldReduce = useReducedMotion()
+  const orbitItems = useMemo(
+    () => ORBIT_ITEM_DEFS.map((def) => ({ ...def, label: t(`home.hero.orbit.${def.key}`) })),
+    [t],
+  )
   return (
     <div className="relative flex h-[340px] w-[340px] items-center justify-center sm:h-[420px] sm:w-[420px] lg:h-[480px] lg:w-[480px]">
       {/* Orbit ring */}
@@ -49,13 +56,13 @@ function OrbitalVisual() {
       </motion.div>
 
       {/* Orbiting items */}
-      {ORBIT_ITEMS.map((item, i) => {
+      {orbitItems.map((item, i) => {
         const rad = (item.angle * Math.PI) / 180
         const cx = Math.cos(rad) * item.r
         const cy = Math.sin(rad) * item.r
         return (
           <motion.div
-            key={item.label}
+            key={item.key}
             aria-hidden
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -162,6 +169,7 @@ function StatPill({ value, label }: { value: string; label: string }) {
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 export default function HomeCinematicHero() {
+  const { t } = useTranslation()
   return (
     <section
       dir="rtl"
@@ -200,7 +208,7 @@ export default function HomeCinematicHero() {
           >
             <span className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.08] px-5 py-2.5 text-xs font-black tracking-wide text-white/80 backdrop-blur-md">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-customOrange" aria-hidden />
-              منصة تعليمية متكاملة · LMS · AI · مجتمع
+              {t('home.hero.badge')}
             </span>
           </motion.div>
 
@@ -209,16 +217,16 @@ export default function HomeCinematicHero() {
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 0.61, 0.36, 1] } } }}
             className="font-display text-[2.6rem] font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.8rem] xl:text-[4.2rem]"
           >
-            ابنِ مسيرتك
+            {t('home.hero.titleLine1')}
             <br />
             <span
               className="bg-clip-text text-transparent"
               style={{ backgroundImage: 'linear-gradient(135deg, #FFFFFF 0%, #A6D6F2 45%, #089FE0 100%)' }}
             >
-              بمنهج يقود للعمق
+              {t('home.hero.titleLine2')}
             </span>
             <br />
-            لا مجرد محتوى
+            {t('home.hero.titleLine3')}
           </motion.h1>
 
           {/* Subheadline */}
@@ -226,7 +234,7 @@ export default function HomeCinematicHero() {
             variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] } } }}
             className="mt-7 max-w-lg text-lg font-medium leading-9 text-white/60 lg:text-xl"
           >
-            ورش تنفيذية، دورات معتمدة، مسارات متكاملة — بإشراف مدربين متخصصين ومنصة LMS احترافية تتابع كل خطوة.
+            {t('home.hero.subtitle')}
           </motion.p>
 
           {/* CTAs */}
@@ -240,7 +248,7 @@ export default function HomeCinematicHero() {
                 className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(0,119,182,0.6)] transition-all duration-300 hover:bg-brand-600 hover:shadow-[0_24px_50px_-14px_rgba(0,119,182,0.7)]"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
-                استكشف البرامج والمسارات
+                {t('home.hero.ctaPrimary')}
                 <ArrowLeft size={19} className="transition-transform group-hover:-translate-x-1" aria-hidden />
               </Link>
             </motion.div>
@@ -249,7 +257,7 @@ export default function HomeCinematicHero() {
                 to="/signup"
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.08] px-7 py-4 text-base font-extrabold text-white backdrop-blur-md transition-all hover:border-white/30 hover:bg-white/[0.14]"
               >
-                إنشاء حساب مجاني
+                {t('home.hero.ctaSecondary')}
               </Link>
             </motion.div>
           </motion.div>
@@ -259,9 +267,10 @@ export default function HomeCinematicHero() {
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.1 } } }}
             className="mt-12 flex flex-wrap justify-start gap-3 border-t border-white/[0.08] pt-10"
           >
-            <StatPill value="+13,000" label="مستفيد" />
-            <StatPill value="+9,000" label="مسجّل مخيمات" />
-            <StatPill value="+50" label="دولة" />
+            {/* e2e-pinned: ar values are verbatim; numbers stay Latin digits inside the dir=ltr span */}
+            <StatPill value={t('home.hero.stats.beneficiaries.value')} label={t('home.hero.stats.beneficiaries.label')} />
+            <StatPill value={t('home.hero.stats.campRegistrants.value')} label={t('home.hero.stats.campRegistrants.label')} />
+            <StatPill value={t('home.hero.stats.countries.value')} label={t('home.hero.stats.countries.label')} />
           </motion.div>
         </motion.div>
 
