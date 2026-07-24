@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import CoursesHero from './CoursesHero'
 import FilterBar from './FilterBar'
 import CoursesGrid from './CoursesGrid'
@@ -8,18 +8,27 @@ import CoursesCTA from './CoursesCTA'
 import { fetchCourses, fetchUpcomingWorkshops } from '@/services/coursesApi'
 import type { CourseItem, CourseLevel, WorkshopItem } from '@/services/coursesApi'
 import { fetchPublicLearningPaths, type LearningPath } from '@/api/learningPathsApi'
+import { useFetch } from '@/hooks/useFetch'
 import PublicSeo from '@/components/public/PublicSeo'
 
+const EMPTY_COURSES: CourseItem[] = []
+const EMPTY_PATHS: LearningPath[] = []
+const EMPTY_WORKSHOPS: WorkshopItem[] = []
+
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<CourseItem[]>([])
-  const [learningPaths, setLearningPaths] = useState<LearningPath[]>([])
-  const [workshops, setWorkshops] = useState<WorkshopItem[]>([])
+  const coursesQ = useFetch(() => fetchCourses(), [])
+  const pathsQ = useFetch(() => fetchPublicLearningPaths({ per_page: 3 }), [])
+  const workshopsQ = useFetch(() => fetchUpcomingWorkshops(), [])
 
-  const [coursesLoading, setCoursesLoading] = useState(true)
-  const [pathsLoading, setPathsLoading] = useState(true)
-  const [workshopsLoading, setWorkshopsLoading] = useState(true)
+  const courses = coursesQ.data?.data ?? EMPTY_COURSES
+  const learningPaths = pathsQ.data?.data ?? EMPTY_PATHS
+  const workshops = workshopsQ.data?.data ?? EMPTY_WORKSHOPS
 
-  const [loadError, setLoadError] = useState(false)
+  const coursesLoading = coursesQ.loading
+  const pathsLoading = pathsQ.loading
+  const workshopsLoading = workshopsQ.loading
+
+  const loadError = coursesQ.error != null
 
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
@@ -30,48 +39,6 @@ export default function CoursesPage() {
   const [activeAvailability, setActiveAvailability] = useState('all')
   const [sortBy, setSortBy] = useState('popular')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-
-  useEffect(() => {
-    let alive = true
-
-    fetchCourses()
-      .then((res) => {
-        if (alive) setCourses(res.data)
-      })
-      .catch(() => {
-        if (alive) {
-          setCourses([])
-          setLoadError(true)
-        }
-      })
-      .finally(() => {
-        if (alive) setCoursesLoading(false)
-      })
-
-    fetchPublicLearningPaths({ per_page: 3 })
-      .then((res) => {
-        if (alive) setLearningPaths(res.data)
-      })
-      .catch(() => {
-        if (alive) setLearningPaths([])
-      })
-      .finally(() => {
-        if (alive) setPathsLoading(false)
-      })
-
-    fetchUpcomingWorkshops()
-      .then((res) => {
-        if (alive) setWorkshops(res.data)
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (alive) setWorkshopsLoading(false)
-      })
-
-    return () => {
-      alive = false
-    }
-  }, [])
 
   const categoryOptions = useMemo(() => {
     const m = new Map<string, string>()

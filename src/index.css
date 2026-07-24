@@ -368,15 +368,16 @@ a {
   .emc-daylight {
     background-image: linear-gradient(to left, #089fe0 0%, #a6d6f2 100%);
   }
-  /* Layered arc under a section title — a solid orange rule (brand signature). */
+  /* V3 signature: the double arc under section titles — orange over a .45 sky underlayer.
+     One rule re-skins every title site (was a solid orange bar in V2.2). */
   .emc-title-arc::after {
     content: "";
     display: block;
-    height: 4px;
-    width: 4.5rem;
-    margin-top: 0.9rem;
-    border-radius: 999px;
-    background: #f28c00;
+    height: 12px;
+    width: 108px;
+    margin-top: 0.7rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='108' height='12' viewBox='0 0 108 12'%3E%3Cpath d='M2 10 Q54 -1 106 10' fill='none' stroke='%23089FE0' stroke-opacity='0.45' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M2 8 Q54 -3 106 8' fill='none' stroke='%23F28C00' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
   }
   .emc-title-arc.is-center::after { margin-inline: auto; }
   /* Premium glass surface — refined depth + saturation. */

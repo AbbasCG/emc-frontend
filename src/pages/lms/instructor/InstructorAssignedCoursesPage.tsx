@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -20,7 +20,10 @@ import {
 import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'
 import { useAuth } from '@/contexts/AuthContext'
+import { useFetch } from '@/hooks/useFetch'
 import { formatInstructorDateRange, formatInstructorTimeRange } from '@/utils/instructorScheduleFormat'
+
+const EMPTY_ROWS: TeachingCourseLms[] = []
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -60,27 +63,15 @@ function groupCourse(c: TeachingCourseLms, today: string): 'active' | 'upcoming'
 
 export default function InstructorAssignedCoursesPage() {
   const { user } = useAuth()
-  const [rows, setRows]       = useState<TeachingCourseLms[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(false)
   const [search, setSearch]   = useState('')
   const [tab, setTab]         = useState<TabKey>('all')
 
-  async function load() {
-    setLoading(true)
-    setError(false)
-    try {
-      const list = await fetchInstructorCourses()
-      setRows(Array.isArray(list) ? list : [])
-    } catch {
-      setError(true)
-      setRows([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: rowsData, loading, error: loadFailure, refetch } = useFetch(
+    () => fetchInstructorCourses(),
+    [],
+  )
+  const rows = Array.isArray(rowsData) ? rowsData : EMPTY_ROWS
+  const error = loadFailure != null
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
 
@@ -152,7 +143,7 @@ export default function InstructorAssignedCoursesPage() {
             </div>
             <button
               type="button"
-              onClick={() => void load()}
+              onClick={() => void refetch()}
               disabled={loading}
               className="flex items-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 px-3.5 py-2 text-[11px] font-black text-white backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-50"
             >
@@ -268,7 +259,7 @@ export default function InstructorAssignedCoursesPage() {
           <p className="mt-3 font-black text-deepBlue">تعذّر تحميل الدورات</p>
           <button
             type="button"
-            onClick={() => void load()}
+            onClick={() => void refetch()}
             className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[#0077B6] px-5 py-2.5 text-[12px] font-black text-white transition hover:brightness-105"
           >
             <RefreshCw className="h-3.5 w-3.5" />

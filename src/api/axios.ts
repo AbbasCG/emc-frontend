@@ -26,6 +26,7 @@ if (!apiBaseUrl && !import.meta.env.DEV) {
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
+  timeout: 20000,
   headers: {
     Accept: 'application/json',
   },

@@ -32,6 +32,7 @@ const iconMap = {
   time: Clock,
 }
 
+/** @deprecated Prefer the canonical <FormField> (`@/components/ui`) — label/hint/error/leadingIcon supported; native input props + onChange event instead of onChange(value). */
 export default function AppInput({
   label,
   name,

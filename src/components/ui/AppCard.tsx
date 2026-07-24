@@ -8,6 +8,7 @@ type AppCardProps = {
   hoverable?: boolean
 }
 
+/** @deprecated Prefer the canonical <Surface> (`@/components/ui`) — hoverable→interactive. */
 export default function AppCard({ children, className = '', hoverable = false }: AppCardProps) {
   return (
     <motion.div

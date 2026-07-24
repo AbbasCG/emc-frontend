@@ -47,6 +47,7 @@ import {
   Presentation,
 } from 'lucide-react'
 import { normalizeRole } from '@/utils/dashboardAccess'
+import { isHidden } from '@/lib/featureFlags'
 
 export type SidebarNavItem = { label: string; href: string; icon: ElementType }
 export type SidebarNavGroup = {
@@ -154,8 +155,16 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       defaultOpen: true,
       items: [
         { label: 'قائمة الطلاب', href: '/dashboard/students',                      icon: GraduationCap },
-        { label: 'التسجيلات',    href: '/dashboard/registrations',                  icon: ClipboardList },
-        { label: 'المستخدمون',   href: '/dashboard/users',                          icon: UserCog       },
+        // Hide-before-delete (M2b): «التسجيلات» و«المستخدمون» point at AdminComingSoonPage
+        // placeholder routes (/dashboard/registrations, /dashboard/users) — see the orphan
+        // list in docs/01-assessment/route-map.md §6.2. Routes stay reachable by URL; links
+        // reappear by flipping LEGACY_HIDDEN.comingSoonAdminLinks. Deletion gated later.
+        ...(isHidden('comingSoonAdminLinks')
+          ? []
+          : [
+              { label: 'التسجيلات',  href: '/dashboard/registrations', icon: ClipboardList },
+              { label: 'المستخدمون', href: '/dashboard/users',         icon: UserCog       },
+            ]),
         { label: 'المدرسون',     href: '/dashboard/super-admin/crud/instructors',   icon: UserCheck     },
       ],
     },

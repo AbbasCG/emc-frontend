@@ -26,6 +26,7 @@ import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import { deriveCourseDetail } from '@/utils/courseDetailDerived'
 import { fetchStudentRegistrations, type StudentCourseAccess } from '@/api/studentApi'
 import { fetchCoursesFromApi } from '@/api/coursesApi.public'
+import { useFetch } from '@/hooks/useFetch'
 import { formatPublicDate, formatPublicText, formatPublicTime, formatPublicCount } from '@/utils/publicDetailFormat'
 import {
   averageRatingFromReviews,
@@ -54,6 +55,7 @@ const CourseDetailRelatedCarousel = lazy(
 const PAGE_TOP = 'pt-[calc(4rem+1rem)] sm:pt-[calc(4.25rem+1.25rem)]'
 const STICKY_TOP = 'lg:top-[calc(4.25rem+0.75rem)]'
 const WISHLIST_KEY = 'emc_course_wishlist'
+const EMPTY_RELATED: Course[] = []
 
 function levelLabel(raw: unknown): string | null {
   const s = safeTrimUnknown(raw)
@@ -134,7 +136,6 @@ export default function CourseDetails() {
   const { isAuthenticated, user } = useAuth()
 
   const [course, setCourse] = useState<Course | null>(null)
-  const [relatedCourses, setRelatedCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [notFound, setNotFound] = useState(false)
@@ -190,17 +191,9 @@ export default function CourseDetails() {
     return () => controller.abort()
   }, [slug])
 
-  useEffect(() => {
-    let alive = true
-    void fetchCoursesFromApi()
-      .then((list) => {
-        if (alive) setRelatedCourses(list)
-      })
-      .catch(() => {})
-    return () => {
-      alive = false
-    }
-  }, [])
+  // Errors intentionally ignored (as before): the carousel simply stays empty.
+  const { data: relatedCoursesData } = useFetch(() => fetchCoursesFromApi(), [])
+  const relatedCourses = relatedCoursesData ?? EMPTY_RELATED
 
   useEffect(() => {
     if (!isAuthenticated || !course || user?.role !== 'student') return

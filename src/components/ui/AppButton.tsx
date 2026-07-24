@@ -15,6 +15,7 @@ type AppButtonProps = {
   'aria-label'?: string
 }
 
+/** @deprecated Prefer the canonical <EmcButton> (`@/components/ui`) — variant map: primary→accent, secondary→dark, outline→secondary, ghost→ghost; isLoading→loading. */
 export default function AppButton({
   children,
   type = 'button',

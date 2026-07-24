@@ -1,5 +1,12 @@
-import { motion } from 'framer-motion'
-import { fadeUp } from '@/utils/animations'
+import SectionHeading from '@/components/ui/SectionHeading'
+import { cn } from '@/lib/utils'
+
+/**
+ * Thin adapter over the canonical `<SectionHeading />` (`@/components/ui`).
+ * Preserves the legacy sections API (`description`, `align: 'right'`, fade-up
+ * entrance) so the existing call sites stay untouched. New code should import
+ * `SectionHeading` directly.
+ */
 
 type SectionHeaderProps = {
   eyebrow?: string
@@ -20,31 +27,16 @@ export default function SectionHeader({
   align = 'center',
   className = '',
 }: SectionHeaderProps) {
-  const body = subtitle ?? description
-  const alignClass = align === 'center' ? 'text-center mx-auto' : 'text-right mr-0 ml-auto'
-
   return (
-    <motion.div
-      className={`mb-8 max-w-2xl md:max-w-3xl ${alignClass} ${className}`}
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.35 }}
-      transition={{ duration: 0.5 }}
-    >
-      {eyebrow && (
-        <span className="emc-eyebrow-accent mb-4">
-          {eyebrow}
-        </span>
-      )}
-      <h2
-        className={`emc-title-arc font-display text-3xl font-black leading-[1.15] tracking-tight text-deepBlue md:text-4xl ${align === 'center' ? 'is-center' : ''}`}
-      >
-        {title}
-      </h2>
-      {body && (
-        <p className="mt-4 text-base font-medium leading-relaxed text-deepBlue/70 md:text-lg md:leading-relaxed">{body}</p>
-      )}
-    </motion.div>
+    <SectionHeading
+      eyebrow={eyebrow}
+      eyebrowTone="accent"
+      title={title}
+      subtitle={subtitle}
+      description={description}
+      align={align}
+      animate
+      className={cn('mb-8 max-w-2xl md:max-w-3xl', className)}
+    />
   )
 }

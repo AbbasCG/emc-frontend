@@ -33,6 +33,7 @@ export default function PublicCatalogHero({
         aria-hidden
         className="pointer-events-none absolute -start-24 top-0 h-72 w-72 rounded-full bg-[#0077B6]/20 blur-[100px]"
       />
+      <div aria-hidden className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
         {breadcrumbs && breadcrumbs.length > 0 ?
           <PublicBreadcrumbs items={breadcrumbs} />

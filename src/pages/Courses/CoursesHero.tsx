@@ -97,7 +97,7 @@ export default function CoursesHero({
   ]
 
   return (
-    <section ref={sectionRef} className="emc-dawn relative overflow-hidden pt-28 pb-16">
+    <section ref={sectionRef} className="emc-dawn emc-corner-pages emc-corner-pages-white relative overflow-hidden pt-28 pb-16">
       <div className="absolute inset-0 pointer-events-none select-none">
         <svg className="absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
           <defs>

@@ -108,7 +108,7 @@ export default function Footer() {
     <footer className="relative isolate overflow-hidden bg-[#0C2A4B] text-white" dir="rtl">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-[#0077B6]/45 to-transparent"
+        className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0"
       />
       <div
         aria-hidden

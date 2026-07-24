@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { useFetch } from '@/hooks/useFetch'
 import { Link } from 'react-router-dom'
 import { Eye, PenLine, Plus } from 'lucide-react'
 import toast from '@/lib/toast'
@@ -53,39 +54,26 @@ function matchesFilter(u: AdminManagedUser, filter: FilterKey): boolean {
   return true
 }
 
+const EMPTY_USERS: AdminManagedUser[] = []
+
 export default function SuperAdminUsersListPage() {
   const { user: currentUser } = useAuth()
   const meta = SUPER_ADMIN_CRUD.users
-  const [rows, setRows] = useState<AdminManagedUser[] | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [forbidden, setForbidden] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setForbidden(false)
-    setLoadError(null)
-    try {
-      const list = await fetchAdminUsers()
-      setRows(list)
-    } catch (e: unknown) {
-      if (axios.isAxiosError(e) && e.response?.status === 403) {
-        setForbidden(true)
-        setRows([])
-        toast.warning(ADMIN_USER_FORBIDDEN_AR)
-      } else {
-        setRows(null)
-        setLoadError(getApiErrorMessage(e))
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const { data, loading, error, refetch } = useFetch(() => fetchAdminUsers(), [])
 
+  const forbidden = axios.isAxiosError(error) && error.response?.status === 403
+  const loadError = error != null && !forbidden ? getApiErrorMessage(error) : null
+  // `null` = not loaded / failed (as before); `[]` = forbidden.
+  const rows = forbidden ? EMPTY_USERS : (data ?? null)
+
+  // Same warning the hand-rolled loader emitted on every 403 attempt.
   useEffect(() => {
-    void load()
-  }, [load])
+    if (error != null && axios.isAxiosError(error) && error.response?.status === 403) {
+      toast.warning(ADMIN_USER_FORBIDDEN_AR)
+    }
+  }, [error])
 
   const filteredRows = useMemo(() => {
     if (!rows) return null
@@ -107,7 +95,7 @@ export default function SuperAdminUsersListPage() {
           <button
             type="button"
             className="rounded-2xl border border-deepBlue/[0.12] px-4 py-2 text-[11px] font-black text-deepBlue hover:bg-slate-50 disabled:opacity-50"
-            onClick={() => void load()}
+            onClick={() => void refetch()}
             disabled={loading}
           >
             إعادة التحميل

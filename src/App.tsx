@@ -1,7 +1,8 @@
-﻿import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
+﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
+import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -295,6 +296,20 @@ function RedirectPathsToLearningPaths() {
   return <Navigate to={slug ? `/learning-paths/${slug}` : '/learning-paths'} replace />
 }
 
+/**
+ * Pathless layout route that isolates a cluster of lazy routes: if one chunk
+ * fails to load or render, only this region degrades (calm Arabic fallback +
+ * retry) instead of blanking the whole app. Suspense boundaries stay where
+ * they are; suspension bubbles past this boundary untouched.
+ */
+function SectionBoundary() {
+  return (
+    <SectionErrorBoundary title="تعذّر تحميل هذه الصفحة">
+      <Outlet />
+    </SectionErrorBoundary>
+  )
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -324,6 +339,8 @@ function App() {
               ))}
               <Route path="*" element={<NotFound />} />
 
+              {/* ── SectionErrorBoundary: public catalog cluster ── */}
+              <Route element={<SectionBoundary />}>
               <Route path="/courses" element={<Suspense fallback={<RouteFallback />}><Courses /></Suspense>} />
               <Route path="/courses/:slug" element={<Suspense fallback={<RouteFallback />}><CourseDetails /></Suspense>} />
               <Route path="/workshops" element={<Suspense fallback={<RouteFallback />}><Workshops /></Suspense>} />
@@ -367,6 +384,7 @@ function App() {
               <Route path="/403" element={<Suspense fallback={<RouteFallback />}><ForbiddenPage /></Suspense>} />
               <Route path="/404" element={<NotFound />} />
               <Route path="/500" element={<Suspense fallback={<RouteFallback />}><ServerErrorPage /></Suspense>} />
+              </Route>
             </Route>
 
             {/* ── Protected dashboard routes — sidebar + topbar layout ── */}
@@ -400,6 +418,9 @@ function App() {
                   <Route path="/dashboard/teacher/*" element={<span className="sr-only" />} />
 
                   <Route path="/dashboard" element={<RoleRedirect />} />
+
+                  {/* ── SectionErrorBoundary: super-admin cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/super-admin" element={<SuperAdminOverviewPage />} />
                   <Route path="/dashboard/super-admin/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
@@ -442,7 +463,10 @@ function App() {
                   <Route path="/dashboard/super-admin/email-logs" element={<Suspense fallback={<RouteFallback />}><EmailLogsPage /></Suspense>} />
 
                   <Route path="/dashboard/admin/programs" element={<ProgramsManagementPage />} />
+                  </Route>
 
+                  {/* ── SectionErrorBoundary: student LMS cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/student" element={<Dashboard />} />
                   <Route path="/dashboard/student/learning-paths" element={<Suspense fallback={<RouteFallback />}><StudentLearningPathsPage /></Suspense>} />
                   <Route path="/dashboard/student/learning-paths/:id" element={<Suspense fallback={<RouteFallback />}><StudentLearningPathDetailPage /></Suspense>} />
@@ -467,6 +491,10 @@ function App() {
                   <Route path="/dashboard/student/course-rating" element={<Navigate to="/dashboard/student/evaluation" replace />} />
                   <Route path="/dashboard/student/orders" element={<Suspense fallback={<RouteFallback />}><StudentOrdersPage /></Suspense>} />
                   <Route path="/dashboard/student/payment-success" element={<Suspense fallback={<RouteFallback />}><PaymentSuccessPage /></Suspense>} />
+                  </Route>
+
+                  {/* ── SectionErrorBoundary: instructor cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
                   <Route path="/dashboard/instructor/learning-paths" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathsPage /></Suspense>} />
                   <Route path="/dashboard/instructor/learning-paths/:id" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathDetailPage /></Suspense>} />
@@ -483,6 +511,10 @@ function App() {
                   <Route path="/dashboard/instructor/calendar" element={<Suspense fallback={<RouteFallback />}><InstructorCalendarPage /></Suspense>} />
                   <Route path="/dashboard/instructor/classes/:groupId/sessions/:sessionId" element={<Suspense fallback={<RouteFallback />}><InstructorSessionDetailPage /></Suspense>} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
+                  </Route>
+
+                  {/* ── SectionErrorBoundary: admin home / executive / partner / finance cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/dashboard/executive" element={<OperationsDashboardPage />} />
 
@@ -505,6 +537,10 @@ function App() {
                   <Route path="/dashboard/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
                   <Route path="/dashboard/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
                   <Route path="/dashboard/finance/program-approvals" element={<Suspense fallback={<RouteFallback />}><ProgramApprovalsPage /></Suspense>} />
+                  </Route>
+
+                  {/* ── SectionErrorBoundary: quality cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/quality" element={<QualityDashboardPage />} />
                   <Route path="/dashboard/quality/reviews" element={<QualityReviewsPage />} />
                   <Route path="/dashboard/quality/workshops" element={<Navigate to="/dashboard/admin/workshop-requests" replace />} />
@@ -517,6 +553,10 @@ function App() {
                   <Route path="/dashboard/quality/audit-logs" element={<QualityAuditLogsPage />} />
                   <Route path="/dashboard/quality/reports" element={<QualityReportsPage />} />
                   <Route path="/dashboard/quality/team" element={<QualityTeamPage />} />
+                  </Route>
+
+                  {/* ── SectionErrorBoundary: HR / marketing / support / ops cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
@@ -535,7 +575,10 @@ function App() {
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
+                  </Route>
 
+                  {/* ── SectionErrorBoundary: tech-admin / manager dashboards cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   {/* ── Tech Admin dedicated dashboard ── */}
                   <Route path="/dashboard/tech-admin" element={<Suspense fallback={<RouteFallback />}><TechAdminDashboardPage /></Suspense>} />
                   <Route path="/dashboard/tech-admin/learning-paths" element={<Suspense fallback={<RouteFallback />}><LearningPathsManagementPage /></Suspense>} />
@@ -549,7 +592,10 @@ function App() {
                   <Route path="/dashboard/section-lead" element={<SectionLeadDashboardPage />} />
 
                   <Route path="/dashboard/members" element={<Suspense fallback={<RouteFallback />}><MembersPage /></Suspense>} />
+                  </Route>
 
+                  {/* ── SectionErrorBoundary: shared platform pages cluster ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/notifications" element={<NotificationsCenterPage />} />
                   <Route path="/dashboard/profile" element={<ProfilePage />} />
                   <Route path="/dashboard/settings" element={<Navigate to="/dashboard/settings/notifications" replace />} />
@@ -557,7 +603,10 @@ function App() {
                   <Route path="/documents" element={<DocumentsPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/ai" element={<AiWorkspacePage />} />
+                  </Route>
 
+                  {/* ── SectionErrorBoundary: student LMS cluster (continued) ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/student/sessions" element={<StudentSessionsPage />} />
                   <Route path="/dashboard/student/attendance" element={<StudentAttendancePage />} />
                   <Route path="/dashboard/student/materials" element={<StudentMaterialsPage />} />
@@ -572,7 +621,10 @@ function App() {
                   <Route path="/dashboard/admin/lms/courses/:courseId/content" element={<CourseContentManagerPage />} />
                   <Route path="/dashboard/lessons/:lessonId" element={<LessonPlayerPage />} />
                   <Route path="/dashboard/quizzes/:quizId" element={<QuizTakePage />} />
+                  </Route>
 
+                  {/* ── SectionErrorBoundary: instructor cluster (continued) ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/instructor/sessions" element={<InstructorSessionsPage />} />
                   <Route path="/dashboard/instructor/attendance" element={<InstructorAttendancePage />} />
                   <Route path="/dashboard/instructor/attendance/dashboard" element={<Suspense fallback={<RouteFallback />}><InstructorAttendanceDashboardPage /></Suspense>} />
@@ -580,7 +632,10 @@ function App() {
                   <Route path="/dashboard/instructor/submissions/:submissionId?" element={<InstructorSubmissionsPage />} />
                   <Route path="/dashboard/instructor/assignments/dashboard" element={<Suspense fallback={<RouteFallback />}><InstructorAssignmentDashboardPage /></Suspense>} />
                   <Route path="/dashboard/instructor/assignments/missing-submissions" element={<Suspense fallback={<RouteFallback />}><InstructorMissingSubmissionsPage /></Suspense>} />
+                  </Route>
 
+                  {/* ── SectionErrorBoundary: admin cluster (LMS / ops / finance / certificates / integrations) ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/admin/lms/sessions" element={<AdminLmsSessionsPage />} />
                   <Route path="/dashboard/admin/lms/attendance" element={<AdminLmsAttendancePage />} />
                   <Route path="/dashboard/admin/lms/assignments" element={<AdminLmsAssignmentsPage />} />
@@ -657,6 +712,7 @@ function App() {
                   <Route path="/dashboard/admin/ai/usage" element={<AdminAiUsagePage />} />
                   <Route path="/dashboard/admin/workshop-requests" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestsPage /></Suspense>} />
                   <Route path="/dashboard/admin/workshop-requests/:id" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestDetailPage /></Suspense>} />
+                  </Route>
 
                   {/* ── Admin alias routes (requirement list) — redirect to canonical paths ── */}
                   <Route path="/dashboard/admin/sessions" element={<Navigate to="/dashboard/admin/lms/sessions" replace />} />
@@ -690,7 +746,11 @@ function App() {
                   <Route path="/dashboard/admin/profile" element={<Navigate to="/dashboard/profile" replace />} />
                   <Route path="/dashboard/admin/members" element={<Navigate to="/dashboard/members" replace />} />
 
-                  {/* ── Admin placeholder — pages visible in sidebar but not yet implemented ── */}
+                  {/* ── Admin placeholder routes — sidebar links hidden behind
+                      LEGACY_HIDDEN.comingSoonAdminLinks (src/lib/featureFlags.ts, applied in
+                      dashboardSidebar.tsx); routes stay reachable by URL. Deletion gated later. ── */}
+                  {/* ── SectionErrorBoundary: admin placeholder / shortcut pages ── */}
+                  <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/admin/users" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
 
                   {/* ── Admin-wide sidebar shortcut paths (no /admin/ prefix) ── */}
@@ -701,6 +761,7 @@ function App() {
                   <Route path="/dashboard/registrations" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                   <Route path="/dashboard/schedule" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                   <Route path="/dashboard/users" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
+                  </Route>
                 </Route>
 
               </Route>

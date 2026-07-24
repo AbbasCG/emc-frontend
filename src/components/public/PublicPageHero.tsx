@@ -142,7 +142,7 @@ export default function PublicPageHero({
 
   return (
     <motion.section
-      className="relative isolate overflow-hidden bg-deepBlue px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-20 lg:px-8 lg:pt-32"
+      className="emc-corner-pages emc-corner-pages-white relative isolate overflow-hidden bg-deepBlue px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-20 lg:px-8 lg:pt-32"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.45 }}
@@ -154,7 +154,7 @@ export default function PublicPageHero({
       <div className="pointer-events-none absolute -left-28 top-1/4 h-72 w-72 rounded-full bg-customBlue/15 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-customOrange/12 blur-3xl" />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-customBlue/35 to-transparent" />
+      <div aria-hidden className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0" />
 
       <div className="relative mx-auto max-w-7xl">
         {isSplit ? (

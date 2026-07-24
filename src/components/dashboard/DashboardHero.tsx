@@ -24,6 +24,7 @@ export default function DashboardHero({ greeting, name, role, subtitle, quickSta
       className="emc-dawn relative overflow-hidden rounded-[1.75rem] border border-white/10 shadow-emc-lg ring-1 ring-white/10"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-emc-dots bg-dots-22 opacity-[0.06]" />
+      <div aria-hidden className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0" />
 
       <div className="relative px-7 py-8">
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">

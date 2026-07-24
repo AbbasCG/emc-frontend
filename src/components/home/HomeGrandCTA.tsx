@@ -35,6 +35,12 @@ export default function HomeGrandCTA() {
           background: 'linear-gradient(135deg, #0C2A4B 0%, #1a4f78 40%, #0077B6 75%, #1e6a9a 100%)',
         }}
       >
+        {/* V3 flying-pages gold pattern (luxury layer) */}
+        <div
+          aria-hidden
+          className="emc-pages-gold pointer-events-none absolute inset-0 opacity-[0.05]"
+        />
+
         {/* Grid overlay */}
         <div
           aria-hidden
