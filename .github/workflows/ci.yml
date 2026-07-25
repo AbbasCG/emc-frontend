@@ -38,6 +38,13 @@ jobs:
       - name: Typecheck (strictNullChecks, foundation layers)
         run: npm run typecheck:strict
 
+      # M4.5: no credentials in the bundle or source, and no unguarded console.* —
+      # several API helpers log full request/response bodies, so an unguarded call
+      # would put user PII into every visitor's browser console. Runs after the build
+      # because it scans dist/ as well as src/.
+      - name: Production leak scan (secrets + console)
+        run: npm run check:secrets
+
       - name: Test
         run: npm test
 

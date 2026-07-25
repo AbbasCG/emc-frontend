@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
+    "check:secrets": "node scripts/check-secrets.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
