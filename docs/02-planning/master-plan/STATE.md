@@ -14,11 +14,14 @@
 > فرع الأمان: backup/pre-M4
 
 ### دفتر M4
-- [ ] **A حرق دَين القواعد** — جرد الأساس (2026-07-25): **245 مخالفة set-state-in-effect في 184 ملفاً** · **51 react-refresh في 19 ملفاً**
-  - [x] A1 الأنماط القانونية + الطبقة المشتركة (`9e2d298`, `a3e5d8a`): `docs/04-references/effect-patterns.md` + 17 موقعاً في AuthContext/useFetch/useTasksWorkspace/DashboardLayout/Navbar/PartnerLayout/ui pickers/CoursesGrid/UserAvatar/FinancialRequestContext — **245→228**
-  - [ ] A2–A4 توزيع 171 ملفاً المتبقية على 12 حزمة ملكية حصرية (3 دفعات × 4 وكلاء)
-  - [ ] A5 تقسيم ملفات react-refresh (19 ملفاً)
-  - [ ] A6 رفع القاعدتين إلى `error` — **commit مستقل موثَّق (تقوية بوابة)**
+- [x] **A حرق دَين القواعد — مكتمل ✅** — جرد الأساس (2026-07-25): **245 مخالفة set-state-in-effect في 184 ملفاً** · **51 react-refresh في 19 ملفاً** → **0 و0**
+  - [x] A1 الأنماط القانونية + الطبقة المشتركة (`9e2d298`, `a3e5d8a`, `92c9475`): `docs/04-references/effect-patterns.md` + 17 موقعاً في AuthContext/useFetch/useTasksWorkspace/DashboardLayout/Navbar/PartnerLayout/ui pickers/CoursesGrid/UserAvatar/FinancialRequestContext — **245→228**
+  - [x] A2 (`38bfcf8`) 57 ملفاً — lms/admin + lms/instructor + super-admin — **228→149**
+  - [x] A3 (`65202da`) 58 ملفاً — super-admin/crud + operations + intelligence + finance — **149→68**
+  - [x] A4 (`dde8561`) 56 ملفاً — quality + finance + مكوّنات lms/public/admin/student والبقية — **68→0**
+  - [x] A5 (`8ec19bf`) react-refresh: 19 ملفاً → 12 وحدة شقيقة جديدة للثوابت/المساعدات/الخطّافات — **51→0**
+  - [x] A6 (`05a2b91`) رفع القاعدتين إلى `error` — **commit مستقل موثَّق (تقوية بوابة، §2.4)**؛ `npx eslint .` = 0 أخطاء و0 تحذيرات للقاعدتين
+  - المتبقي من التحذيرات: **14 exhaustive-deps فقط** (خارج نطاق M4.a)
   - 📌 **قرار تقني موثَّق (A1):** المحلّل يشتكي من أي استدعاء مباشر لدالة تحوي setState داخل effect **حتى لو كان كل setState بعد `await`**؛ الأشكال المقبولة الوحيدة: async IIFE مكتوبة داخل جسم الـeffect · callbacks الاشتراك · التعديل أثناء الـrender. لذلك الإصلاح = **إعادة هيكلة حقيقية** لا تغليف؛ الحيل المُسكِتة (IIFE حول دالة تضبط الحالة متزامناً، `Promise.resolve().then(load)`، إخفاء الدالة خلف ref) **ممنوعة نصاً** في مرجع الأنماط.
 - [ ] B strictNullChecks تدريجياً (lib+hooks+i18n أولاً)
 - [ ] C رفع التغطية: اختبارات وحدات/مكوّنات للحرِج (auth/RBAC/enrollment/utils/primitives) نحو 40%
