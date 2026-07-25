@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -18,6 +18,9 @@ import {
 import { fetchAdminDepartmentById } from '@/api/superAdminOpsApi'
 import type { AdminDepartment } from '@/types/operations'
 import { errorToast } from '@/lib/toast'
+
+const LOAD_ERROR = 'تعذّر تحميل بيانات الإدارة. تحقق من الاتصال وأعد المحاولة.'
+const LOAD_TOAST = 'تعذّر تحميل بيانات الإدارة'
 
 /* ── Status helpers ─────────────────────────────────────────────────────── */
 
@@ -136,22 +139,49 @@ export default function OpsDepartmentDetailPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  async function load() {
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously — and the new department never paints the old one's
+  // data as if it were settled.
+  const [seenId, setSeenId] = useState(id)
+  if (seenId !== id) {
+    setSeenId(id)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  useEffect(() => {
+    if (!id) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const data = await fetchAdminDepartmentById(id)
+        if (!cancelled) setDept(data)
+      } catch {
+        if (cancelled) return
+        setLoadError(LOAD_ERROR)
+        errorToast(LOAD_TOAST)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [id])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
     if (!id) return
     setLoadError(null)
     setLoading(true)
     try {
-      const data = await fetchAdminDepartmentById(id)
-      setDept(data)
+      setDept(await fetchAdminDepartmentById(id))
     } catch {
-      setLoadError('تعذّر تحميل بيانات الإدارة. تحقق من الاتصال وأعد المحاولة.')
-      errorToast('تعذّر تحميل بيانات الإدارة')
+      setLoadError(LOAD_ERROR)
+      errorToast(LOAD_TOAST)
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void load() }, [id])
+  }, [id])
 
   if (loading) {
     return (
@@ -174,7 +204,7 @@ export default function OpsDepartmentDetailPage() {
         <p className="mt-3 font-black text-rose-800">{loadError}</p>
         <button
           type="button"
-          onClick={() => void load()}
+          onClick={() => void retry()}
           className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0C2A4B] px-6 py-2.5 text-sm font-black text-white"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />

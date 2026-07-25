@@ -18,16 +18,34 @@ type Props = {
 export function AssignInstructorModal({ open, course, onClose, onAssigned }: Props) {
   const [q, setQ] = useState('')
   const [rows, setRows] = useState<AdminInstructorOption[]>([])
-  const [loading, setLoading] = useState(false)
+  // Mounted already open ⇒ the effect below fetches straight away, so start loading.
+  const [loading, setLoading] = useState(open)
   const [assigningId, setAssigningId] = useState<number | null>(null)
+
+  // Flip back to the loading state during render when the modal opens
+  // (react.dev "adjusting state when a prop changes"), not from the effect.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) setLoading(true)
+  }
 
   useEffect(() => {
     if (!open) return
-    setLoading(true)
-    fetchAdminInstructors()
-      .then(setRows)
-      .catch(() => setRows([]))
-      .finally(() => setLoading(false))
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchAdminInstructors()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setRows([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [open])
 
   const filtered = useMemo(() => {

@@ -246,8 +246,13 @@ function ModernTimePicker({ label, value, onChange, error }: TimePickerProps) {
 
   const [selHour, selMin] = (draft || value || '09:00').split(':')
 
-  // Sync draft when value changes externally
-  useEffect(() => { setDraft(value || '') }, [value])
+  // Sync draft when value changes externally — adjusted during render (react.dev
+  // "adjusting state when a prop changes"); the initial state already mirrors `value`.
+  const [seenValue, setSeenValue] = useState(value)
+  if (seenValue !== value) {
+    setSeenValue(value)
+    setDraft(value || '')
+  }
 
   // Close on outside click
   useEffect(() => {
@@ -549,58 +554,83 @@ export function CourseProgramFormModal({
   const [learningPathId, setLearningPathId] = useState('')
   const [whatsappCommunityUrl, setWhatsappCommunityUrl] = useState('')
 
-  const resetFromInitial = useCallback(() => {
-    if (!initial) {
-      setTitle('')
-      setSlug('')
-      setDescription('')
-      setShortDescription('')
-      setCourseImage('')
-      setKind('course')
-      setTrackId('')
-      setDepartmentId('')
-      setInstructorId('')
-      setPriceFree(true)
-      setPrice('0')
-      setCapacity('')
-      setStatus('draft')
-      setRegistrationOpen(true)
-      setRequiresRegistrationCode(false)
-      setRegistrationCode('')
-      setIsOnline(true)
-      setLocationType('online')
-      setLocationText('')
-      setStartDate('')
-      setStartTime('')
-      setEndDate('')
-      setEndTime('')
-      setMeetingLink('')
-      setDurationText('')
-      setTrainingHours('')
-      setLanguage('عربي')
-      setLevel('')
-      setTargetAudience('')
-      setCertificate('شهادة حضور')
-      setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
-      setLearnText('')
-      setPrerequisites('')
-      setLearningOutcomes('')
-      setOutline('')
-      setKeywords('')
-      setAdminNotes('')
-      setRequiresPlacementTest(false)
-      setLearningPathId('')
-      setWhatsappCommunityUrl('')
-      setInstructorQuery('')
-      setImageFile(null)
-      setImagePreviewUrl((u) => {
-        if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
-        return null
-      })
-      setImageRemoved(false)
-      setFieldErrors({})
-      return
-    }
+  // Re-seed the whole form during render when the modal opens or its target changes —
+  // react.dev "adjusting state when a prop changes". This used to be a `resetFromInitial`
+  // callback invoked from an effect; inlining it keeps every setter a direct, guarded
+  // render-phase call, and the form no longer paints one frame of the previous program.
+  // `seenTarget` starts as `null` so an instance mounted already open still resets, which
+  // is what the effect did on mount.
+  const [seenTarget, setSeenTarget] = useState<{
+    open: boolean
+    initial: Course | null
+    editing: boolean
+  } | null>(null)
+  const resetTarget =
+    seenTarget === null ||
+    seenTarget.open !== open ||
+    seenTarget.initial !== initial ||
+    seenTarget.editing !== editing
+  if (resetTarget) {
+    setSeenTarget({ open, initial, editing })
+  }
+  if (resetTarget && open) {
+    setCurrentStep(1)
+    setSuccessOpen(false)
+    setSavedCourse(null)
+    setLastSavedAsPublished(false)
+    setLocalDraftSavedAt(null)
+  }
+  if (resetTarget && open && !initial) {
+    setTitle('')
+    setSlug('')
+    setDescription('')
+    setShortDescription('')
+    setCourseImage('')
+    setKind('course')
+    setTrackId('')
+    setDepartmentId('')
+    setInstructorId('')
+    setPriceFree(true)
+    setPrice('0')
+    setCapacity('')
+    setStatus('draft')
+    setRegistrationOpen(true)
+    setRequiresRegistrationCode(false)
+    setRegistrationCode('')
+    setIsOnline(true)
+    setLocationType('online')
+    setLocationText('')
+    setStartDate('')
+    setStartTime('')
+    setEndDate('')
+    setEndTime('')
+    setMeetingLink('')
+    setDurationText('')
+    setTrainingHours('')
+    setLanguage('عربي')
+    setLevel('')
+    setTargetAudience('')
+    setCertificate('شهادة حضور')
+    setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
+    setLearnText('')
+    setPrerequisites('')
+    setLearningOutcomes('')
+    setOutline('')
+    setKeywords('')
+    setAdminNotes('')
+    setRequiresPlacementTest(false)
+    setLearningPathId('')
+    setWhatsappCommunityUrl('')
+    setInstructorQuery('')
+    setImageFile(null)
+    setImagePreviewUrl((u) => {
+      if (u?.startsWith('blob:')) URL.revokeObjectURL(u)
+      return null
+    })
+    setImageRemoved(false)
+    setFieldErrors({})
+  }
+  if (resetTarget && open && initial) {
     setTitle(initial.title ?? '')
     setSlug(initial.slug ?? '')
     setDescription(initial.description ?? '')
@@ -672,16 +702,8 @@ export function CourseProgramFormModal({
     })
     setImageRemoved(false)
     setInstructorQuery('')
-  }, [initial])
-
-  useEffect(() => {
-    if (!open) return
-    setCurrentStep(1)
-    setSuccessOpen(false)
-    setSavedCourse(null)
-    setLastSavedAsPublished(false)
-    setLocalDraftSavedAt(null)
-    resetFromInitial()
+  }
+  if (resetTarget && open) {
     const k = draftKey(editing, initial?.id)
     try {
       const raw = localStorage.getItem(k)
@@ -689,7 +711,7 @@ export function CourseProgramFormModal({
     } catch {
       setDraftHint(false)
     }
-  }, [open, initial, editing, resetFromInitial])
+  }
 
   useEffect(() => {
     if (!open) return
@@ -959,19 +981,27 @@ export function CourseProgramFormModal({
   const isWorkshop = kind === 'workshop'
   const isOneSession = isWorkshop || sessionFormat === ONE_SESSION_WORKSHOP_UI
 
-  useEffect(() => {
+  // Keep the session format in step with the program kind, and force the one-session
+  // duration, during render (react.dev "adjusting state when a prop changes"). Both
+  // `seen…` values start as `null` so the first pass still runs, exactly as the mount
+  // run of the effects they replace did.
+  const [seenKind, setSeenKind] = useState<ProgramKind | null>(null)
+  if (seenKind !== kind) {
+    setSeenKind(kind)
     if (kind === 'workshop') {
       setSessionFormat(ONE_SESSION_WORKSHOP_UI)
     } else if (sessionFormat === ONE_SESSION_WORKSHOP_UI) {
       setSessionFormat(SESSION_FORMAT_OPTIONS[0].v)
     }
-  }, [kind]) // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
-  useEffect(() => {
+  const [seenOneSession, setSeenOneSession] = useState<boolean | null>(null)
+  if (seenOneSession !== isOneSession) {
+    setSeenOneSession(isOneSession)
     if (isOneSession) {
       setDurationText(ONE_SESSION_WORKSHOP_DURATION_AR)
     }
-  }, [isOneSession])
+  }
 
   const showLocationField = locationType === 'offline' || locationType === 'hybrid'
 

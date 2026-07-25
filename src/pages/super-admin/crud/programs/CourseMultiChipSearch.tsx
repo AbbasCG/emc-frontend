@@ -33,22 +33,43 @@ export function CourseMultiChipSearch({ chips, onAdd, onRemove, className = '' }
 
   const debouncedText = useDebounce(text, 300)
 
-  useEffect(() => {
-    if (!debouncedText.trim()) {
+  // Re-arm the lookup state during render when the query (or the excluded chips)
+  // change — react.dev "adjusting state when a prop changes". The effect below then
+  // only performs I/O, so nothing is set synchronously inside it.
+  const [seenQuery, setSeenQuery] = useState<{ text: string; chips: ChipItem[] }>({
+    text: debouncedText,
+    chips,
+  })
+  if (seenQuery.text !== debouncedText || seenQuery.chips !== chips) {
+    setSeenQuery({ text: debouncedText, chips })
+    if (debouncedText.trim()) {
+      setBusy(true)
+    } else {
       setSuggestions([])
       setOpen(false)
-      return
+      setBusy(false)
     }
-    setBusy(true)
-    fetchAdminCoursesPage({ search: debouncedText.trim(), per_page: 8 })
-      .then((result) => {
+  }
+
+  useEffect(() => {
+    if (!debouncedText.trim()) return
+    let alive = true
+    void (async () => {
+      try {
+        const result = await fetchAdminCoursesPage({ search: debouncedText.trim(), per_page: 8 })
+        if (!alive) return
         const rows = result?.rows ?? []
         const filtered = rows.filter((r) => !chips.find((c) => c.id === r.id))
         setSuggestions(filtered)
         setOpen(filtered.length > 0)
         setActive(-1)
-      })
-      .finally(() => setBusy(false))
+      } finally {
+        if (alive) setBusy(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [debouncedText, chips])
 
   // Close dropdown on outside click

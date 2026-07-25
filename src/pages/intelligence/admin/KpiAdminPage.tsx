@@ -96,10 +96,23 @@ export default function KpiAdminPage() {
   const [highlights, setHighlights] = useState<string[]>([])
   const [dashboard, setDashboard] = useState<ProgramsManagerDashboardPayload | null>(null)
 
-  useEffect(() => {
-    if (!tabs.find((t) => t.slug === tab)) setTab('overview')
-  }, [tabs, tab])
+  // Fall back to the always-visible "overview" tab when the current role cannot see the
+  // selected one. Done during render (react.dev "adjusting state when a prop changes")
+  // so the forbidden tab never paints for a frame.
+  if (!tabs.some((t) => t.slug === tab)) setTab('overview')
 
+  // Re-arm the loading state during render when the tab changes, so the new tab never
+  // shows the previous tab's metrics as if they were settled. The initial state already
+  // carries `loading: true`, so the first run needs no adjustment.
+  const [seenTab, setSeenTab] = useState(tab)
+  if (seenTab !== tab) {
+    setSeenTab(tab)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  /** Imperative refresh/retry from a button — outside the effect, so it may flip to the
+   *  loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
@@ -121,8 +134,30 @@ export default function KpiAdminPage() {
   }, [tab])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const [kpi, dash] = await Promise.all([
+          fetchKpiDashboard(tab),
+          fetchProgramsManagerDashboard().catch(() => null),
+        ])
+        if (!alive) return
+        setMetrics(Array.isArray(kpi.metrics) ? kpi.metrics : [])
+        setHighlights(Array.isArray(kpi.highlights) ? kpi.highlights : [])
+        setDashboard(dash)
+      } catch {
+        if (!alive) return
+        setMetrics([])
+        setHighlights([])
+        setLoadError('تعذّر تحميل مؤشرات الأداء. تحقق من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [tab])
 
   const summaryCards = useMemo(() => {
     if (!dashboard?.summary) return []

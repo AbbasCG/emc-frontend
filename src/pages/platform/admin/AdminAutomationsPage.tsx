@@ -17,6 +17,12 @@ import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import type { AutomationActionKind, AutomationRule, AutomationRun, AutomationTrigger } from '@/types/platform'
 import type { NotificationChannelKey } from '@/types/phase7'
 
+/** Pure I/O — kept outside the component so the mount effect and the handlers share it
+ *  without either having to call a state-mutating function. */
+function fetchAutomationsSnapshot(): Promise<[AutomationRule[], AutomationRun[]]> {
+  return Promise.all([fetchAutomationRules(), fetchAutomationRuns()])
+}
+
 export default function AdminAutomationsPage() {
   const [rules, setRules] = useState<AutomationRule[]>([])
   const [runs, setRuns] = useState<AutomationRun[]>([])
@@ -31,13 +37,22 @@ export default function AdminAutomationsPage() {
   })
 
   async function refresh() {
-    const [nextRules, nextRuns] = await Promise.all([fetchAutomationRules(), fetchAutomationRuns()])
+    const [nextRules, nextRuns] = await fetchAutomationsSnapshot()
     setRules(nextRules)
     setRuns(nextRuns)
   }
 
   useEffect(() => {
-    void refresh()
+    let alive = true
+    void (async () => {
+      const [nextRules, nextRuns] = await fetchAutomationsSnapshot()
+      if (!alive) return
+      setRules(nextRules)
+      setRuns(nextRuns)
+    })()
+    return () => {
+      alive = false
+    }
   }, [])
 
   async function addRule() {

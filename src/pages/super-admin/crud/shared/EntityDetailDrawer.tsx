@@ -100,11 +100,24 @@ export function EntityDetailDrawer({
     return orderedTabs.find((t) => t.id === active)?.content ?? orderedTabs[0]?.content ?? children
   }, [orderedTabs, active, children])
 
-  useEffect(() => {
-    if (!open) return
-    const list = tabs ?? []
-    setActive(defaultTabId ?? list[0]?.id ?? '')
-  }, [open, title, defaultTabId, tabs])
+  // Reset to the default tab during render when the drawer opens or the entity behind
+  // it changes — react.dev "adjusting state when a prop changes". The `active` initial
+  // value above already covers the first pass, so `seenTarget` starts at the current
+  // props and only later changes trigger a reset (same trigger set as the effect this
+  // replaces, `tabs` compared by identity exactly as its dep array did).
+  const [seenTarget, setSeenTarget] = useState({ open, title, defaultTabId, tabs })
+  if (
+    seenTarget.open !== open ||
+    seenTarget.title !== title ||
+    seenTarget.defaultTabId !== defaultTabId ||
+    seenTarget.tabs !== tabs
+  ) {
+    setSeenTarget({ open, title, defaultTabId, tabs })
+    if (open) {
+      const list = tabs ?? []
+      setActive(defaultTabId ?? list[0]?.id ?? '')
+    }
+  }
 
   useEffect(() => {
     if (!open) return

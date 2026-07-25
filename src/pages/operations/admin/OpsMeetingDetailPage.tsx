@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, ExternalLink, Video } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
@@ -12,6 +12,8 @@ import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 import type { OpsMeetingDetail } from '@/types/operations'
 import type { AiMeetingIntelligence } from '@/types/ai'
 
+const LOAD_ERROR = 'تعذّر تحميل تفاصيل الاجتماع. تحقق من الاتصال وأعد المحاولة.'
+
 export default function OpsMeetingDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -22,20 +24,45 @@ export default function OpsMeetingDetailPage() {
   const [convertMsg, setConvertMsg] = useState('')
   const [aiSummary, setAiSummary] = useState<AiMeetingIntelligence | null>(null)
 
-  async function loadDetail() {
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenMid, setSeenMid] = useState(mid)
+  if (!Object.is(seenMid, mid)) {
+    setSeenMid(mid)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  useEffect(() => {
+    if (!Number.isFinite(mid)) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const data = await fetchMeeting(mid)
+        if (!cancelled) setDetail(data)
+      } catch {
+        if (!cancelled) setLoadError(LOAD_ERROR)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [mid])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
     if (!Number.isFinite(mid)) return
     setLoadError(null)
     setLoading(true)
     try {
       setDetail(await fetchMeeting(mid))
     } catch {
-      setLoadError('تعذّر تحميل تفاصيل الاجتماع. تحقق من الاتصال وأعد المحاولة.')
+      setLoadError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void loadDetail() }, [mid])
+  }, [mid])
 
   useEffect(() => {
     if (!Number.isFinite(mid)) return
@@ -67,7 +94,7 @@ export default function OpsMeetingDetailPage() {
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
       <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void loadDetail()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
     </div>
   )
   if (!detail) return <OpsPageSkeleton />

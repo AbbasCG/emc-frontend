@@ -524,12 +524,17 @@ function UserAccountModal({
   const [copied, setCopied] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  /* Clearing the box empties the hit list during render — react.dev "adjusting state
+     when a prop changes"; the effect below only schedules I/O. */
+  const [seenSearchQ, setSeenSearchQ] = useState(searchQ)
+  if (seenSearchQ !== searchQ) {
+    setSeenSearchQ(searchQ)
+    if (!searchQ.trim()) setResults([])
+  }
+
   /* Debounced search */
   useEffect(() => {
-    if (!searchQ.trim()) {
-      setResults([])
-      return
-    }
+    if (!searchQ.trim()) return
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
@@ -1303,24 +1308,43 @@ export default function TeamManagementPage() {
   const [accountProfile, setAccountProfile] = useState<AdminTeamProfile | null>(null)
   const [accountLoading, setAccountLoading] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getAdminTeam()
-      setDepts(data)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'تعذّر تحميل بيانات الفريق'
-      setError(msg)
-      errorToast('تعذّر تحميل بيانات الفريق. تحقق من الاتصال وأعد المحاولة.')
-    } finally {
-      setLoading(false)
-    }
+  // Bumped by `load()` so an imperative refresh re-runs the fetch effect below — the
+  // effect stays the single owner of the request.
+  const [reloadToken, setReloadToken] = useState(0)
+
+  /** Imperative refresh from an event handler (toolbar buttons, post-save). */
+  const load = useCallback(() => {
+    setReloadToken((n) => n + 1)
   }, [])
 
+  // Re-arm the request state during render on refresh — react.dev "adjusting state when
+  // a prop changes". The initial `loading: true` / `error: null` carries the first pass.
+  const [seenToken, setSeenToken] = useState(reloadToken)
+  if (seenToken !== reloadToken) {
+    setSeenToken(reloadToken)
+    setLoading(true)
+    setError(null)
+  }
+
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const data = await getAdminTeam()
+        if (alive) setDepts(data)
+      } catch (e) {
+        if (!alive) return
+        const msg = e instanceof Error ? e.message : 'تعذّر تحميل بيانات الفريق'
+        setError(msg)
+        errorToast('تعذّر تحميل بيانات الفريق. تحقق من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [reloadToken])
 
   /* Flattened rows */
   const allRows = useMemo<FlatRow[]>(() => {

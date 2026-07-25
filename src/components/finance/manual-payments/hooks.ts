@@ -49,9 +49,14 @@ export function useManualPaymentFilters() {
   const [filters, setFilters] = useState<ManualPaymentFilterState>(() => parseFiltersFromUrl(searchParams))
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search)
 
-  useEffect(() => {
+  // Re-read the filters from the URL during render (react.dev "adjusting state when a
+  // prop changes") instead of after commit, so a back/forward navigation never paints
+  // the previous query's filters. The lazy initial state covers the first render.
+  const [seenParams, setSeenParams] = useState(searchParams)
+  if (seenParams !== searchParams) {
+    setSeenParams(searchParams)
     setFilters(parseFiltersFromUrl(searchParams))
-  }, [searchParams])
+  }
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(filters.search), 320)
@@ -117,7 +122,31 @@ export function useManualPaymentFilters() {
   }
 }
 
-export function useManualPayments(apiFilters: Pick<ManualPaymentFilterState, 'from' | 'to' | 'status' | 'paymentMethod' | 'accountId' | 'search'>) {
+type ManualPaymentApiFilters = Pick<
+  ManualPaymentFilterState,
+  'from' | 'to' | 'status' | 'paymentMethod' | 'accountId' | 'search'
+>
+
+/** Pure I/O — no state — shared by the mount effect and the imperative `reload`. */
+function fetchManualPaymentsFor(f: ManualPaymentApiFilters): Promise<ManualPayment[]> {
+  return fetchAllManualPayments({
+    status: f.status !== 'all' ? f.status : undefined,
+    payment_method: f.paymentMethod !== 'all' ? f.paymentMethod : undefined,
+    finance_account_id: f.accountId !== 'all' ? Number(f.accountId) : undefined,
+    date_from: f.from || undefined,
+    date_to: f.to || undefined,
+    search: f.search.trim() || undefined,
+  })
+}
+
+/** Pure classification of a load failure, so both call sites below produce identical
+ *  state without duplicating the axios check. */
+function classifyLoadFailure(e: unknown): { forbidden: boolean; message: string | null } {
+  if (axios.isAxiosError(e) && e.response?.status === 403) return { forbidden: true, message: null }
+  return { forbidden: false, message: 'تعذر تحميل المدفوعات اليدوية' }
+}
+
+export function useManualPayments(apiFilters: ManualPaymentApiFilters) {
   const [rows, setRows] = useState<ManualPayment[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -125,44 +154,72 @@ export function useManualPayments(apiFilters: Pick<ManualPaymentFilterState, 'fr
   const [forbidden, setForbidden] = useState(false)
   const [lastSync, setLastSync] = useState<Date | null>(null)
 
-  const load = useCallback(
-    async (mode: 'initial' | 'refresh' = 'initial') => {
-      if (mode === 'initial') setLoading(true)
-      else setRefreshing(true)
-      setError(null)
-      setForbidden(false)
+  // Re-arm the loading state during render when the query changes (react.dev "adjusting
+  // state when a prop changes"), so the new filters never paint the previous result set
+  // as settled. The initial state already covers the first run.
+  const { from, to, status, paymentMethod, accountId, search } = apiFilters
+  const [seenQuery, setSeenQuery] = useState({ from, to, status, paymentMethod, accountId, search })
+  if (
+    seenQuery.from !== from
+    || seenQuery.to !== to
+    || seenQuery.status !== status
+    || seenQuery.paymentMethod !== paymentMethod
+    || seenQuery.accountId !== accountId
+    || seenQuery.search !== search
+  ) {
+    setSeenQuery({ from, to, status, paymentMethod, accountId, search })
+    setLoading(true)
+    setError(null)
+    setForbidden(false)
+  }
+
+  /** Imperative refresh from an event handler — outside the effect, so it may flip to
+   *  the refreshing state synchronously. */
+  const reload = useCallback(async () => {
+    setRefreshing(true)
+    setError(null)
+    setForbidden(false)
+    try {
+      setRows(await fetchManualPaymentsFor({ from, to, status, paymentMethod, accountId, search }))
+      setLastSync(new Date())
+    } catch (e) {
+      const failure = classifyLoadFailure(e)
+      setForbidden(failure.forbidden)
+      setError(failure.message)
+      setRows([])
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [from, to, status, paymentMethod, accountId, search])
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
       try {
-        const items = await fetchAllManualPayments({
-          status: apiFilters.status !== 'all' ? apiFilters.status : undefined,
-          payment_method: apiFilters.paymentMethod !== 'all' ? apiFilters.paymentMethod : undefined,
-          finance_account_id: apiFilters.accountId !== 'all' ? Number(apiFilters.accountId) : undefined,
-          date_from: apiFilters.from || undefined,
-          date_to: apiFilters.to || undefined,
-          search: apiFilters.search.trim() || undefined,
-        })
+        const items = await fetchManualPaymentsFor({ from, to, status, paymentMethod, accountId, search })
+        if (!alive) return
         setRows(items)
         setLastSync(new Date())
       } catch (e) {
-        if (axios.isAxiosError(e) && e.response?.status === 403) {
-          setForbidden(true)
-          setRows([])
-        } else {
-          setError('تعذر تحميل المدفوعات اليدوية')
-          setRows([])
-        }
+        if (!alive) return
+        const failure = classifyLoadFailure(e)
+        setForbidden(failure.forbidden)
+        setError(failure.message)
+        setRows([])
       } finally {
-        setLoading(false)
-        setRefreshing(false)
+        if (alive) {
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
-    },
-    [apiFilters.from, apiFilters.to, apiFilters.status, apiFilters.paymentMethod, apiFilters.accountId, apiFilters.search],
-  )
+    })()
+    return () => {
+      alive = false
+    }
+  }, [from, to, status, paymentMethod, accountId, search])
 
-  useEffect(() => {
-    void load('initial')
-  }, [load])
-
-  return { rows, loading, refreshing, error, forbidden, lastSync, reload: () => load('refresh') }
+  return { rows, loading, refreshing, error, forbidden, lastSync, reload }
 }
 
 export function useFinanceAccountsList() {
@@ -185,11 +242,17 @@ export function useStudentSearch(query: string) {
   const [results, setResults] = useState<StudentSearchResult[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Drop stale results during render as soon as the query becomes too short to search
+  // (react.dev "adjusting state when a prop changes") — the initial state is already
+  // empty, so the first render needs no adjustment.
+  const [seenQuery, setSeenQuery] = useState(query)
+  if (seenQuery !== query) {
+    setSeenQuery(query)
+    if (query.trim().length < 2) setResults([])
+  }
+
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([])
-      return
-    }
+    if (query.trim().length < 2) return
     const timer = window.setTimeout(async () => {
       setLoading(true)
       try {
@@ -222,11 +285,17 @@ export function usePurchasableSearch(type: ManualPaymentPurchasableType, query: 
   const [results, setResults] = useState<PurchasableOption[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Drop stale results during render as soon as the query becomes too short to search
+  // (react.dev "adjusting state when a prop changes") — the initial state is already
+  // empty, so the first render needs no adjustment.
+  const [seenSearch, setSeenSearch] = useState({ type, query })
+  if (seenSearch.type !== type || seenSearch.query !== query) {
+    setSeenSearch({ type, query })
+    if (query.trim().length < 2) setResults([])
+  }
+
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([])
-      return
-    }
+    if (query.trim().length < 2) return
     const q = query.trim().toLowerCase()
     const timer = window.setTimeout(async () => {
       setLoading(true)

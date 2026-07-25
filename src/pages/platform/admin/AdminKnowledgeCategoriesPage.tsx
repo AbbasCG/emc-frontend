@@ -66,24 +66,43 @@ function CategoryCard({ cat, index }: { cat: AdminKnowledgeCategory; index: numb
   )
 }
 
+const LOAD_ERROR = 'تعذّر تحميل فئات المعرفة. تحقق من الاتصال وأعد المحاولة.'
+
 export default function AdminKnowledgeCategoriesPage() {
   const [cats, setCats] = useState<AdminKnowledgeCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  /** Imperative retry from the button — outside the effect, so the synchronous flip to
+   *  the loading state is allowed and wanted. */
   const load = useCallback(async () => {
     setLoadError(null)
     setLoading(true)
     try {
       setCats(await fetchAdminKnowledgeCategories())
     } catch {
-      setLoadError('تعذّر تحميل فئات المعرفة. تحقق من الاتصال وأعد المحاولة.')
+      setLoadError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const rows = await fetchAdminKnowledgeCategories()
+        if (alive) setCats(rows)
+      } catch {
+        if (alive) setLoadError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   if (loading) {
     return (

@@ -43,9 +43,15 @@ export function PlacementTestDetailDrawer({ row, initialTab = 'overview', onClos
   const triggerRef = useRef<Element | null>(null)
   const reduceMotion = useReducedMotion()
 
-  useEffect(() => {
+  // Re-select the requested tab during render whenever the drawer is pointed at a
+  // different student or opened on a different tab (react.dev "adjusting state when a
+  // prop changes") — the initial `useState(initialTab)` already covers mount.
+  const studentId = row?.student_id
+  const [seenTabKey, setSeenTabKey] = useState({ studentId, initialTab })
+  if (seenTabKey.studentId !== studentId || seenTabKey.initialTab !== initialTab) {
+    setSeenTabKey({ studentId, initialTab })
     if (row) setTab(initialTab)
-  }, [row?.student_id, initialTab]) // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   // Open/close side effects: remember the triggering element, lock body
   // scroll, trap focus, restore focus to the card on close.

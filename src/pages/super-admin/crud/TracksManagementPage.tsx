@@ -63,6 +63,26 @@ export default function TracksManagementPage() {
   const [view, setView] = useState<CatalogTrackRow | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
 
+  // Initial load — inlined in the effect so no state is touched synchronously
+  // (the initial `loading: true` / `failed: false` already carry the first frame).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const pack = await fetchTracksStrict()
+      if (!alive) return
+      if (!pack.ok) {
+        setFailed(true)
+        setRows([])
+      } else setRows(pack.rows)
+      setLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from the toolbar button — outside any effect, so it may
+   *  flip back to the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setFailed(false)
@@ -73,10 +93,6 @@ export default function TracksManagementPage() {
     } else setRows(pack.rows)
     setLoading(false)
   }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()

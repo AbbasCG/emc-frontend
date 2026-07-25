@@ -21,6 +21,8 @@ export default function ScholarshipsAdminPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
 
+  /** Imperative (re)load from an event handler or a failed decision — outside any
+   *  effect, so flipping to the loading state synchronously is allowed. */
   async function load() {
     setLoadError(null)
     setLoading(true)
@@ -33,8 +35,25 @@ export default function ScholarshipsAdminPage() {
     }
   }
 
+  // First load — the initial state already carries `loading: true`, so every state
+  // update here happens after the await (no cascading render from the effect body).
   useEffect(() => {
-    load()
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchScholarships()
+        if (!alive) return
+        setRows(data)
+        setLoadError(null)
+      } catch {
+        if (alive) setLoadError('تعذّر تحميل المنح. تحقق من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [])
 
   async function onDecision(id: number, status: ScholarshipStatus) {

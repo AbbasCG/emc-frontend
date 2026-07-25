@@ -38,9 +38,14 @@ export function useTransactionFilters() {
   const [filters, setFilters] = useState<TransactionFilterState>(() => parseFiltersFromUrl(searchParams))
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search)
 
-  useEffect(() => {
+  // Re-read the filters from the URL during render (react.dev "adjusting state when a
+  // prop changes") instead of after commit, so a back/forward navigation never paints
+  // the previous query's filters. The lazy initial state covers the first render.
+  const [seenParams, setSeenParams] = useState(searchParams)
+  if (seenParams !== searchParams) {
+    setSeenParams(searchParams)
     setFilters(parseFiltersFromUrl(searchParams))
-  }, [searchParams])
+  }
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(filters.search), 320)
@@ -102,7 +107,26 @@ export function useTransactionFilters() {
   }
 }
 
-export function useTransactions(apiFilters: Pick<TransactionFilterState, 'from' | 'to' | 'status' | 'type'>) {
+type TransactionApiFilters = Pick<TransactionFilterState, 'from' | 'to' | 'status' | 'type'>
+
+/** Pure I/O — no state — shared by the mount effect and the imperative `reload`. */
+function fetchTransactionsFor(f: TransactionApiFilters): Promise<FinancialTransaction[]> {
+  return fetchAllFinanceTransactions({
+    from: f.from || undefined,
+    to: f.to || undefined,
+    status: f.status !== 'all' && f.status !== 'refunded' ? f.status : undefined,
+    type: f.type !== 'all' ? f.type : undefined,
+  })
+}
+
+/** Pure classification of a load failure, so both call sites below produce identical
+ *  state without duplicating the axios check. */
+function classifyLoadFailure(e: unknown): { forbidden: boolean; message: string | null } {
+  if (axios.isAxiosError(e) && e.response?.status === 403) return { forbidden: true, message: null }
+  return { forbidden: false, message: 'تعذّر تحميل المعاملات المالية. تحقق من الاتصال وأعد المحاولة.' }
+}
+
+export function useTransactions(apiFilters: TransactionApiFilters) {
   const [rows, setRows] = useState<FinancialTransaction[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -110,42 +134,68 @@ export function useTransactions(apiFilters: Pick<TransactionFilterState, 'from' 
   const [forbidden, setForbidden] = useState(false)
   const [lastSync, setLastSync] = useState<Date | null>(null)
 
-  const load = useCallback(
-    async (mode: 'initial' | 'refresh' = 'initial') => {
-      if (mode === 'initial') setLoading(true)
-      else setRefreshing(true)
-      setError(null)
-      setForbidden(false)
+  // Re-arm the loading state during render when the query changes (react.dev "adjusting
+  // state when a prop changes"), so the new filters never paint the previous result set
+  // as settled. The initial state already covers the first run.
+  const { from, to, status, type } = apiFilters
+  const [seenQuery, setSeenQuery] = useState({ from, to, status, type })
+  if (
+    seenQuery.from !== from
+    || seenQuery.to !== to
+    || seenQuery.status !== status
+    || seenQuery.type !== type
+  ) {
+    setSeenQuery({ from, to, status, type })
+    setLoading(true)
+    setError(null)
+    setForbidden(false)
+  }
+
+  /** Imperative refresh from an event handler — outside the effect, so it may flip to
+   *  the refreshing state synchronously. */
+  const reload = useCallback(async () => {
+    setRefreshing(true)
+    setError(null)
+    setForbidden(false)
+    try {
+      setRows(await fetchTransactionsFor({ from, to, status, type }))
+      setLastSync(new Date())
+    } catch (e) {
+      const failure = classifyLoadFailure(e)
+      setForbidden(failure.forbidden)
+      setError(failure.message)
+      setRows([])
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [from, to, status, type])
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
       try {
-        const apiStatus = apiFilters.status !== 'all' && apiFilters.status !== 'refunded' ? apiFilters.status : undefined
-        const apiType = apiFilters.type !== 'all' ? apiFilters.type : undefined
-        const items = await fetchAllFinanceTransactions({
-          from: apiFilters.from || undefined,
-          to: apiFilters.to || undefined,
-          status: apiStatus,
-          type: apiType,
-        })
+        const items = await fetchTransactionsFor({ from, to, status, type })
+        if (!alive) return
         setRows(items)
         setLastSync(new Date())
       } catch (e) {
-        if (axios.isAxiosError(e) && e.response?.status === 403) {
-          setForbidden(true)
-          setRows([])
-        } else {
-          setError('تعذّر تحميل المعاملات المالية. تحقق من الاتصال وأعد المحاولة.')
-          setRows([])
-        }
+        if (!alive) return
+        const failure = classifyLoadFailure(e)
+        setForbidden(failure.forbidden)
+        setError(failure.message)
+        setRows([])
       } finally {
-        setLoading(false)
-        setRefreshing(false)
+        if (alive) {
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
-    },
-    [apiFilters.from, apiFilters.to, apiFilters.status, apiFilters.type],
-  )
+    })()
+    return () => {
+      alive = false
+    }
+  }, [from, to, status, type])
 
-  useEffect(() => {
-    void load('initial')
-  }, [load])
-
-  return { rows, loading, refreshing, error, forbidden, lastSync, reload: () => load('refresh') }
+  return { rows, loading, refreshing, error, forbidden, lastSync, reload }
 }

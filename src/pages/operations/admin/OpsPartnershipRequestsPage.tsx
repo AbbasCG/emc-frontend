@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
@@ -8,24 +8,41 @@ import type { PartnershipRequest } from '@/types/operations'
 
 const PIPELINE = ['قيد المراجعة', 'بانتظار الرد', 'مقبول مبدئياً', 'مرفوض', 'مكتمل']
 
+const LOAD_ERROR = 'تعذّر تحميل طلبات الشراكة. تحقق من الاتصال وأعد المحاولة.'
+
 export default function OpsPartnershipRequestsPage() {
   const [items, setItems] = useState<PartnershipRequest[]>([])
+  // Starts in the loading state, so the mount effect never has to flip it synchronously.
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  async function load() {
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const rows = await fetchPartnershipRequests()
+        if (!cancelled) setItems(rows)
+      } catch {
+        if (!cancelled) setLoadError(LOAD_ERROR)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
     setLoadError(null)
     setLoading(true)
     try {
       setItems(await fetchPartnershipRequests())
     } catch {
-      setLoadError('تعذّر تحميل طلبات الشراكة. تحقق من الاتصال وأعد المحاولة.')
+      setLoadError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void load() }, [])
+  }, [])
 
   async function changeStatus(id: number, status: string) {
     setItems((list) => list.map((x) => (x.id === id ? { ...x, status } : x)))
@@ -40,7 +57,7 @@ export default function OpsPartnershipRequestsPage() {
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
       <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
     </div>
   )
 

@@ -982,8 +982,16 @@ function ActivityLogCard({ ticketId }: { ticketId: number }) {
   const [log, setLog] = useState<TicketActivity[] | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  // Re-arm the loading state during render when the ticket changes (react.dev
+  // "adjusting state when a prop changes"), so the effect below never touches state
+  // synchronously.
+  const [seenTicketId, setSeenTicketId] = useState(ticketId)
+  if (seenTicketId !== ticketId) {
+    setSeenTicketId(ticketId)
     setLoading(true)
+  }
+
+  useEffect(() => {
     fetchTicketActivity(ticketId)
       .then(setLog)
       .catch(() => setLog([]))
@@ -1194,6 +1202,8 @@ function ThreadCard({
    Main page
 ───────────────────────────────────────────────────────────────────────── */
 
+const TICKET_LOAD_ERROR = 'تعذّر تحميل التذكرة. تحقق من الاتصال وأعد المحاولة.'
+
 export default function OpsSupportTicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
@@ -1221,16 +1231,41 @@ export default function OpsSupportTicketDetailPage() {
   const statusCardRef = useRef<HTMLDivElement>(null)
   const moreMenuTriggerRef = useRef<HTMLDivElement>(null)
 
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenTid, setSeenTid] = useState(tid)
+  if (!Object.is(seenTid, tid)) {
+    setSeenTid(tid)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  useEffect(() => {
+    if (!Number.isFinite(tid)) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const t = await fetchSupportTicket(tid)
+        if (!cancelled) setTicket(t)
+      } catch {
+        if (!cancelled) setLoadError(TICKET_LOAD_ERROR)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [tid])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
   const loadTicket = useCallback(async () => {
     if (!Number.isFinite(tid)) return
     setLoadError(null)
     setLoading(true)
     try { setTicket(await fetchSupportTicket(tid)) }
-    catch { setLoadError('تعذّر تحميل التذكرة. تحقق من الاتصال وأعد المحاولة.') }
+    catch { setLoadError(TICKET_LOAD_ERROR) }
     finally { setLoading(false) }
   }, [tid])
-
-  useEffect(() => { void loadTicket() }, [loadTicket])
 
   /*
    * Reset the page's own scroll position whenever a (possibly different)

@@ -46,6 +46,29 @@ export default function WorkshopsManagementPage() {
   const [tab, setTab] = useState<Tab>('upcoming')
   const [view, setView] = useState<CatalogWorkshopRow | null>(null)
 
+  // Initial load — inlined in the effect so no state is touched synchronously
+  // (the initial `loading: true` / `failed: false` already carry the first frame).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const pack = await fetchWorkshopRequestsStrict()
+      if (!alive) return
+      if (!pack.ok) {
+        setFailed(true)
+        setFetchStatus(pack.status)
+        setRows([])
+      } else {
+        setRows(pack.rows)
+      }
+      setLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from the toolbar button — outside any effect, so it may
+   *  flip back to the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setFailed(false)
@@ -60,10 +83,6 @@ export default function WorkshopsManagementPage() {
     }
     setLoading(false)
   }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   const nowMs = useNow()
 

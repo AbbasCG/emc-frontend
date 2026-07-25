@@ -164,23 +164,34 @@ export default function CreateManualPaymentModal({
     }
   }, [open, saving, onClose])
 
-  useEffect(() => {
-    if (!open) return
-    setSection('recipient')
-    setForm(emptyManualPaymentForm())
-    setFieldErrors({})
-    setProofError(null)
-    setStudentQuery('')
-    setRelationQuery('')
-    setStudentResults([])
-    setRelationResults([])
-  }, [open])
+  // Reset the wizard during render when the drawer opens (react.dev "adjusting state
+  // when a prop changes"), so the previous draft is never painted for a frame. A fresh
+  // mount already starts from these very values, so only the transition needs handling.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) {
+      setSection('recipient')
+      setForm(emptyManualPaymentForm())
+      setFieldErrors({})
+      setProofError(null)
+      setStudentQuery('')
+      setRelationQuery('')
+      setStudentResults([])
+      setRelationResults([])
+    }
+  }
+
+  // Drop stale student matches during render as soon as the query is too short or the
+  // wizard leaves the recipient step — the initial state is already empty.
+  const [seenStudentQuery, setSeenStudentQuery] = useState({ studentQuery, section })
+  if (seenStudentQuery.studentQuery !== studentQuery || seenStudentQuery.section !== section) {
+    setSeenStudentQuery({ studentQuery, section })
+    if (section !== 'recipient' || studentQuery.trim().length < 2) setStudentResults([])
+  }
 
   useEffect(() => {
-    if (section !== 'recipient' || studentQuery.trim().length < 2) {
-      setStudentResults([])
-      return
-    }
+    if (section !== 'recipient' || studentQuery.trim().length < 2) return
     const timer = window.setTimeout(() => {
       setStudentLoading(true)
       void searchStudents(studentQuery.trim())
@@ -203,11 +214,16 @@ export default function CreateManualPaymentModal({
     return () => window.clearTimeout(timer)
   }, [relationQuery, section, form.recipient_id])
 
-  useEffect(() => {
-    if (!form.destination_account_id) return
-    const acc = accounts.find((a) => a.id === form.destination_account_id)
-    if (acc?.currency) patchForm({ currency: acc.currency })
-  }, [form.destination_account_id, accounts, patchForm])
+  // Follow the destination account's currency during render, so the amount is never
+  // painted with the previous account's currency label.
+  const [seenAccount, setSeenAccount] = useState({ id: form.destination_account_id, accounts })
+  if (seenAccount.id !== form.destination_account_id || seenAccount.accounts !== accounts) {
+    setSeenAccount({ id: form.destination_account_id, accounts })
+    if (form.destination_account_id) {
+      const acc = accounts.find((a) => a.id === form.destination_account_id)
+      if (acc?.currency && acc.currency !== form.currency) patchForm({ currency: acc.currency })
+    }
+  }
 
   const selectRecipient = (user: StudentSearchResult) => {
     const recipient = normalizeRecipient(user)

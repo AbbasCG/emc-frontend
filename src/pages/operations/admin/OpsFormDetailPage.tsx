@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import FormBuilder from '@/components/operations/FormBuilder'
@@ -11,6 +11,8 @@ import {
 } from '@/api/formsApi'
 import type { FormSubmissionRow, OpsFormDefinition } from '@/types/operations'
 
+const LOAD_ERROR = 'تعذّر تحميل النموذج. تحقق من الاتصال وأعد المحاولة.'
+
 export default function OpsFormDetailPage() {
   const { id } = useParams<{ id: string }>()
   const fid = id ? Number(id) : NaN
@@ -20,7 +22,36 @@ export default function OpsFormDetailPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  async function loadForm() {
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenFid, setSeenFid] = useState(fid)
+  if (!Object.is(seenFid, fid)) {
+    setSeenFid(fid)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  useEffect(() => {
+    if (!Number.isFinite(fid)) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
+        if (cancelled) return
+        setForm(f)
+        setRows(s)
+      } catch {
+        if (!cancelled) setLoadError(LOAD_ERROR)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [fid])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
     if (!Number.isFinite(fid)) return
     setLoadError(null)
     setLoading(true)
@@ -29,20 +60,18 @@ export default function OpsFormDetailPage() {
       setForm(f)
       setRows(s)
     } catch {
-      setLoadError('تعذّر تحميل النموذج. تحقق من الاتصال وأعد المحاولة.')
+      setLoadError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void loadForm() }, [fid])
+  }, [fid])
 
   if (!Number.isFinite(fid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
   if (loading) return <OpsPageSkeleton />
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
       <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void loadForm()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
     </div>
   )
   if (!form) return <OpsPageSkeleton />

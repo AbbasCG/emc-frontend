@@ -21,16 +21,21 @@ export default function AuditLogDetailDrawer({
   entry: AdminAuditLogEntry | null
   onClose: () => void
 }) {
-  const [detail, setDetail] = useState<AdminAuditLogEntry | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [detail, setDetail] = useState<AdminAuditLogEntry | null>(entry)
+  const [loading, setLoading] = useState(entry != null)
+
+  // Swap in the row snapshot during render when the drawer points at another entry
+  // (react.dev "adjusting state when a prop changes"), so the previous entry's detail
+  // never paints for one frame while the full record loads.
+  const [seenEntry, setSeenEntry] = useState(entry)
+  if (seenEntry !== entry) {
+    setSeenEntry(entry)
+    setDetail(entry)
+    if (entry) setLoading(true)
+  }
 
   useEffect(() => {
-    if (!entry) {
-      setDetail(null)
-      return
-    }
-    setDetail(entry)
-    setLoading(true)
+    if (!entry) return
     void fetchAdminAuditLogDetail(entry.id)
       .then((row) => { if (row) setDetail(row) })
       .finally(() => setLoading(false))

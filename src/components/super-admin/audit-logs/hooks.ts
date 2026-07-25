@@ -12,6 +12,7 @@ import {
   DEFAULT_PER_PAGE,
   EMPTY_STATS,
   type AuditLogFilterState,
+  type AuditLogsPageResult,
 } from './constants'
 import { datePresetToRange } from './formatters'
 
@@ -91,9 +92,14 @@ export function useAuditLogFilters() {
   const [filters, setFilters] = useState<AuditLogFilterState>(() => parseFilters(searchParams))
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search)
 
-  useEffect(() => {
+  // Re-read the filters from the URL during render (react.dev "adjusting state when a
+  // prop changes") — the lazy initialiser above already covers the first pass, so this
+  // only reacts to later navigations.
+  const [seenParams, setSeenParams] = useState(searchParams)
+  if (seenParams !== searchParams) {
+    setSeenParams(searchParams)
     setFilters(parseFilters(searchParams))
-  }, [searchParams])
+  }
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(filters.search), 350)
@@ -154,6 +160,24 @@ export function useAuditLogFilters() {
   return { filters, debouncedSearch, patchFilters, resetFilters, hasActiveFilters }
 }
 
+type AuditLogsOutcome =
+  | { ok: true; page: AuditLogsPageResult; stats: AdminAuditLogStats }
+  | { ok: false; error: string }
+
+/** Pure I/O — kept outside the hook so the effect and `reload` share it without either
+ *  having to call a state-mutating callback. */
+async function loadAuditLogsOutcome(query: AdminAuditLogQuery): Promise<AuditLogsOutcome> {
+  try {
+    const [pageResult, statsResult] = await Promise.all([
+      fetchAdminAuditLogsPage(query),
+      fetchAdminAuditLogStats(query),
+    ])
+    return { ok: true, page: pageResult, stats: statsResult }
+  } catch (e) {
+    return { ok: false, error: getApiErrorMessage(e) }
+  }
+}
+
 export function useAuditLogsData(apiQuery: AdminAuditLogQuery) {
   const [entries, setEntries] = useState<AdminAuditLogEntry[]>([])
   const [stats, setStats] = useState<AdminAuditLogStats>(EMPTY_STATS)
@@ -169,38 +193,66 @@ export function useAuditLogsData(apiQuery: AdminAuditLogQuery) {
 
   const queryKey = useMemo(() => JSON.stringify(apiQuery), [apiQuery])
 
-  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
-    if (mode === 'initial') setLoading(true)
-    else setRefreshing(true)
+  // Return to the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"), so the new query never paints the previous
+  // query's rows as if they were settled. `loading` already starts `true` on mount.
+  const [seenQueryKey, setSeenQueryKey] = useState(queryKey)
+  if (seenQueryKey !== queryKey) {
+    setSeenQueryKey(queryKey)
+    setLoading(true)
     setError(null)
-
-    try {
-      const [pageResult, statsResult] = await Promise.all([
-        fetchAdminAuditLogsPage(apiQuery),
-        fetchAdminAuditLogStats(apiQuery),
-      ])
-
-      setEntries(pageResult.entries)
-      setTotal(pageResult.total)
-      setPage(pageResult.page)
-      setPerPage(pageResult.perPage)
-      setLastPage(pageResult.lastPage)
-      setFrom(pageResult.from)
-      setTo(pageResult.to)
-      setStats(statsResult)
-    } catch (e) {
-      setEntries([])
-      setStats(EMPTY_STATS)
-      setError(getApiErrorMessage(e))
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [apiQuery])
+  }
 
   useEffect(() => {
-    void load('initial')
-  }, [queryKey, load])
+    let alive = true
+    void (async () => {
+      const outcome = await loadAuditLogsOutcome(apiQuery)
+      if (!alive) return
+      if (outcome.ok) {
+        setEntries(outcome.page.entries)
+        setTotal(outcome.page.total)
+        setPage(outcome.page.page)
+        setPerPage(outcome.page.perPage)
+        setLastPage(outcome.page.lastPage)
+        setFrom(outcome.page.from)
+        setTo(outcome.page.to)
+        setStats(outcome.stats)
+      } else {
+        setEntries([])
+        setStats(EMPTY_STATS)
+        setError(outcome.error)
+      }
+      setLoading(false)
+      setRefreshing(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [queryKey, apiQuery])
+
+  /** Imperative refresh from an event handler — outside the effect, so it may flip to
+   *  the refreshing state synchronously. */
+  const reload = useCallback(async () => {
+    setRefreshing(true)
+    setError(null)
+    const outcome = await loadAuditLogsOutcome(apiQuery)
+    if (outcome.ok) {
+      setEntries(outcome.page.entries)
+      setTotal(outcome.page.total)
+      setPage(outcome.page.page)
+      setPerPage(outcome.page.perPage)
+      setLastPage(outcome.page.lastPage)
+      setFrom(outcome.page.from)
+      setTo(outcome.page.to)
+      setStats(outcome.stats)
+    } else {
+      setEntries([])
+      setStats(EMPTY_STATS)
+      setError(outcome.error)
+    }
+    setLoading(false)
+    setRefreshing(false)
+  }, [apiQuery])
 
   return {
     entries,
@@ -214,6 +266,6 @@ export function useAuditLogsData(apiQuery: AdminAuditLogQuery) {
     loading,
     refreshing,
     error,
-    reload: () => load('refresh'),
+    reload,
   }
 }

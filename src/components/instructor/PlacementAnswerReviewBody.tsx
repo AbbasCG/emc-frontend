@@ -24,22 +24,33 @@ export function PlacementAnswerReviewBody({
   /** When true, renders the premium written-exam summary banner above stats */
   showOverview?: boolean
 }) {
+  const attemptId = subject.attemptId
+
   const [answers, setAnswers] = useState<PlacementTestAnswerRow[] | null>(null)
-  const [loading, setLoading] = useState(false)
+  // Starts loading whenever there is an attempt to fetch on mount — the effect below
+  // no longer flips it synchronously.
+  const [loading, setLoading] = useState(Boolean(attemptId))
   const [filter, setFilter] = useState<AnswerFilter>('all')
   const [search, setSearch] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
 
-  const attemptId = subject.attemptId
+  // Reset the review state during render when the reviewed attempt changes
+  // (react.dev "adjusting state when a prop changes") instead of one commit later.
+  const [seenAttemptId, setSeenAttemptId] = useState(attemptId)
+  if (seenAttemptId !== attemptId) {
+    setSeenAttemptId(attemptId)
+    if (attemptId) {
+      setAnswers(null)
+      setFilter('all')
+      setSearch('')
+      setActiveIdx(0)
+      setLoading(true)
+    }
+  }
 
   useEffect(() => {
     if (!attemptId) return
     let cancelled = false
-    setAnswers(null)
-    setFilter('all')
-    setSearch('')
-    setActiveIdx(0)
-    setLoading(true)
     fetchPlacementTestAnswers(attemptId)
       .then((data) => { if (!cancelled) setAnswers(data) })
       .catch(() => { if (!cancelled) setAnswers([]) })
@@ -72,11 +83,18 @@ export function PlacementAnswerReviewBody({
       .map(({ i }) => i)
   }, [answers, filter, search])
 
-  useEffect(() => {
-    if (filteredIndices.length === 0) return
-    if (!filteredIndices.includes(activeIdx)) setActiveIdx(filteredIndices[0])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredIndices.join(',')])
+  // Snap the active question back into the visible set whenever the filter/search
+  // result changes — adjusted during render (react.dev) rather than from an effect.
+  // `seen` starts as `null` so the very first pass still runs, matching the effect
+  // that used to fire on mount.
+  const filteredKey = filteredIndices.join(',')
+  const [seenFilteredKey, setSeenFilteredKey] = useState<string | null>(null)
+  if (seenFilteredKey !== filteredKey) {
+    setSeenFilteredKey(filteredKey)
+    if (filteredIndices.length > 0 && !filteredIndices.includes(activeIdx)) {
+      setActiveIdx(filteredIndices[0])
+    }
+  }
 
   const posInFiltered = filteredIndices.indexOf(activeIdx)
   const current = answers && activeIdx >= 0 ? answers[activeIdx] : null

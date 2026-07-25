@@ -57,13 +57,19 @@ export default function ManualPaymentDetailDrawer({
   const [reviewerNote, setReviewerNote] = useState('')
   const [proofLoading, setProofLoading] = useState(false)
 
+  // Hydrate from the row snapshot during render whenever the drawer switches payment
+  // (react.dev "adjusting state when a prop changes"), so the previous payment's details
+  // are never painted under the new header. `seenTarget` starts as `null` so the first
+  // pass still runs, matching the mount behaviour of the effect this replaced.
+  const [seenTarget, setSeenTarget] = useState<{ paymentId: number | null; initial: ManualPayment | null } | null>(null)
+  if (!seenTarget || seenTarget.paymentId !== paymentId || seenTarget.initial !== initial) {
+    setSeenTarget({ paymentId, initial })
+    setPayment(paymentId ? initial : null)
+    setLoadingDetail(Boolean(paymentId))
+  }
+
   useEffect(() => {
-    if (!paymentId) {
-      setPayment(null)
-      return
-    }
-    setPayment(initial)
-    setLoadingDetail(true)
+    if (!paymentId) return
     void fetchManualPayment(paymentId)
       .then(setPayment)
       .catch(() => toast.error('تعذر تحميل تفاصيل الدفعة'))

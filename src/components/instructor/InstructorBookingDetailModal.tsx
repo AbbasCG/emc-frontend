@@ -36,8 +36,12 @@ type Props = {
 }
 
 export function InstructorBookingDetailModal({ slot, availableSlots, onClose, onChanged }: Props) {
+  const bookingId = slot?.booking?.id ?? null
+
   const [detail, setDetail]         = useState<OralBookingDetail | null>(null)
-  const [loading, setLoading]       = useState(false)
+  // Starts in the loading state whenever there is a booking to fetch on mount — the
+  // effect below no longer flips it synchronously.
+  const [loading, setLoading]       = useState(bookingId !== null)
   const [busy, setBusy]             = useState(false)
   const [messageOpen, setMessageOpen] = useState(false)
   const [messageBody, setMessageBody] = useState('')
@@ -47,17 +51,27 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
   const dialogRef = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
 
-  const bookingId = slot?.booking?.id ?? null
+  // Re-arm the panel for a different booking during render (react.dev "adjusting
+  // state when a prop changes") — same resets the effect used to perform, one commit
+  // earlier, so the composer/confirmation of the previous booking never paints.
+  const [seenBookingId, setSeenBookingId] = useState(bookingId)
+  if (seenBookingId !== bookingId) {
+    setSeenBookingId(bookingId)
+    if (bookingId === null) {
+      setDetail(null)
+    } else {
+      setLoading(true)
+      setMessageOpen(false)
+      setMessageBody('')
+      setConfirming(null)
+      setRescheduleOpen(false)
+      setRescheduleSlotId(null)
+    }
+  }
 
   useEffect(() => {
-    if (!bookingId) { setDetail(null); return }
+    if (!bookingId) return
     let cancelled = false
-    setLoading(true)
-    setMessageOpen(false)
-    setMessageBody('')
-    setConfirming(null)
-    setRescheduleOpen(false)
-    setRescheduleSlotId(null)
     fetchOralBookingDetail(bookingId)
       .then((d) => { if (!cancelled) setDetail(d) })
       .catch(() => { if (!cancelled) setDetail(slot?.booking ?? null) })

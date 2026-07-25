@@ -58,6 +58,38 @@ function mergeCatalogWithRoleKeys(
   return sortPermissionGroups(merged)
 }
 
+const CATALOG_EMPTY_ERROR = 'لم يُرجع الخادم أي صلاحيات — تحقق من GET /admin/permissions.'
+
+type CatalogOutcome =
+  | { ok: true; groups: AdminPermissionGroup[]; error: string | null }
+  | { ok: false; error: string }
+
+type RoleKeysOutcome = { ok: true; keys: string[] } | { ok: false; error: string }
+
+/** Pure I/O — kept outside the component so the effects and the retry button share the
+ *  request without either having to call a state-mutating callback. */
+async function loadCatalogOutcome(): Promise<CatalogOutcome> {
+  try {
+    const cat = await fetchAdminPermissionsCatalog()
+    return {
+      ok: true,
+      groups: sortPermissionGroups(cat.groups),
+      error: cat.allKeys.length === 0 ? CATALOG_EMPTY_ERROR : null,
+    }
+  } catch (err) {
+    return { ok: false, error: permissionsApiErrorMessage(err) }
+  }
+}
+
+/** Pure I/O — see `loadCatalogOutcome`. */
+async function loadRoleKeysOutcome(slug: string): Promise<RoleKeysOutcome> {
+  try {
+    return { ok: true, keys: await fetchRolePermissions(slug) }
+  } catch (err) {
+    return { ok: false, error: permissionsApiErrorMessage(err) }
+  }
+}
+
 function setsEqual(a: Set<string>, b: Set<string>): boolean {
   if (a.size !== b.size) return false
   for (const k of a) if (!b.has(k)) return false
@@ -75,47 +107,85 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [baseline, setBaseline] = useState<Set<string>>(new Set())
 
-  const loadCatalog = useCallback(async () => {
+  /** Imperative re-run from the retry button — outside an effect, so it may flip to
+   *  the loading state synchronously. */
+  const reloadCatalog = useCallback(async () => {
     setCatalogLoading(true)
-    try {
-      const cat = await fetchAdminPermissionsCatalog()
-      setCatalogGroups(sortPermissionGroups(cat.groups))
-      setApiError(cat.allKeys.length === 0 ? 'لم يُرجع الخادم أي صلاحيات — تحقق من GET /admin/permissions.' : null)
-    } catch (err) {
-      setCatalogGroups([])
-      setApiError(permissionsApiErrorMessage(err))
-    } finally {
-      setCatalogLoading(false)
-    }
+    const outcome = await loadCatalogOutcome()
+    setCatalogGroups(outcome.ok ? outcome.groups : [])
+    setApiError(outcome.error)
+    setCatalogLoading(false)
   }, [])
 
-  const loadRolePermissions = useCallback(async (slug: string) => {
+  /** Imperative re-run from the retry button — see `reloadCatalog`. */
+  const reloadRolePermissions = useCallback(async (slug: string) => {
     setRoleLoading(true)
-    try {
-      const keys = await fetchRolePermissions(slug)
-      const next = new Set(keys)
-      setSelected(next)
-      setBaseline(new Set(keys))
-      setRoleKeysForMerge(keys)
-      onGrantedCountChange?.(keys.length)
+    const outcome = await loadRoleKeysOutcome(slug)
+    if (outcome.ok) {
+      setSelected(new Set(outcome.keys))
+      setBaseline(new Set(outcome.keys))
+      setRoleKeysForMerge(outcome.keys)
+      onGrantedCountChange?.(outcome.keys.length)
       setApiError(null)
-    } catch (err) {
+    } else {
       setSelected(new Set())
       setBaseline(new Set())
       onGrantedCountChange?.(0)
-      setApiError(permissionsApiErrorMessage(err))
-    } finally {
-      setRoleLoading(false)
+      setApiError(outcome.error)
     }
+    setRoleLoading(false)
   }, [onGrantedCountChange])
 
-  useEffect(() => { void loadCatalog() }, [loadCatalog])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const outcome = await loadCatalogOutcome()
+      if (!alive) return
+      setCatalogGroups(outcome.ok ? outcome.groups : [])
+      setApiError(outcome.error)
+      setCatalogLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // Clear the search and return to the loading state during render when the drawer
+  // opens on another role (react.dev "adjusting state when a prop changes") — both
+  // states already start correct on mount, so no first-pass run is needed.
+  const [seenRole, setSeenRole] = useState({ roleSlug, open })
+  if (seenRole.roleSlug !== roleSlug || seenRole.open !== open) {
+    setSeenRole({ roleSlug, open })
+    if (roleSlug && open) {
+      setSearch('')
+      setRoleLoading(true)
+    }
+  }
 
   useEffect(() => {
     if (!roleSlug || !open) return
-    setSearch('')
-    void loadRolePermissions(roleSlug)
-  }, [roleSlug, open, loadRolePermissions])
+    let alive = true
+    void (async () => {
+      const outcome = await loadRoleKeysOutcome(roleSlug)
+      if (!alive) return
+      if (outcome.ok) {
+        setSelected(new Set(outcome.keys))
+        setBaseline(new Set(outcome.keys))
+        setRoleKeysForMerge(outcome.keys)
+        onGrantedCountChange?.(outcome.keys.length)
+        setApiError(null)
+      } else {
+        setSelected(new Set())
+        setBaseline(new Set())
+        onGrantedCountChange?.(0)
+        setApiError(outcome.error)
+      }
+      setRoleLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [roleSlug, open, onGrantedCountChange])
 
   const dirty = useMemo(() => !setsEqual(selected, baseline), [selected, baseline])
 
@@ -214,7 +284,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
         <p className="mt-3 text-[13px] font-black text-amber-900">{apiError}</p>
         <button
           type="button"
-          onClick={() => { void loadCatalog(); void loadRolePermissions(roleSlug) }}
+          onClick={() => { void reloadCatalog(); void reloadRolePermissions(roleSlug) }}
           className="mt-4 rounded-xl bg-[#0C2A4B] px-4 py-2 text-[12px] font-black text-white"
         >
           إعادة المحاولة

@@ -11,10 +11,18 @@ export default function PublicFormPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Re-arm the loading state during render when the slug changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    setLoading(true)
+    setLoadError(null)
+  }
+
   useEffect(() => {
     if (!slug) return
-    setLoadError(null)
-    setLoading(true)
     let cancelled = false
     ;(async () => {
       try {

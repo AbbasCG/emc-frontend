@@ -57,6 +57,42 @@ export default function SuperAdminUsersDetail({ userId }: Props) {
   const [deleting, setDeleting] = useState(false)
   const [restoring, setRestoring] = useState(false)
 
+  // Re-arm the loading state during render when the route's user changes (react.dev
+  // "adjusting state when a prop changes"), so the previous user's card is never shown
+  // as settled under the new id.
+  const [seenUserId, setSeenUserId] = useState(userId)
+  if (seenUserId !== userId) {
+    setSeenUserId(userId)
+    setLoading(true)
+    setForbidden(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const u = await fetchAdminUser(userId)
+        if (alive) setRow(u)
+      } catch (e) {
+        if (!alive) return
+        setRow(null)
+        if (axios.isAxiosError(e) && e.response?.status === 403) {
+          setForbidden(true)
+          toast.warning(ADMIN_USER_FORBIDDEN_AR)
+        } else {
+          toast.error(getAdminUserMutationMessage(e))
+        }
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [userId])
+
+  /** Imperative refresh from an event handler — outside any effect, so it may flip
+   *  back to the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setForbidden(false)
@@ -75,10 +111,6 @@ export default function SuperAdminUsersDetail({ userId }: Props) {
       setLoading(false)
     }
   }, [userId])
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   const actorId = currentUser?.id ?? 0
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -96,7 +96,9 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
   const [tab, setTab] = useState<TabId>('overview')
   const [grantedCount, setGrantedCount] = useState(0)
   const [roleUsers, setRoleUsers] = useState<AdminManagedUser[]>([])
-  const [usersLoading, setUsersLoading] = useState(false)
+  // Starts loading when the drawer mounts already open — the effect below no longer
+  // flips it synchronously.
+  const [usersLoading, setUsersLoading] = useState(open)
 
   const type = classifyRole(slug)
   const risk = riskLevel(slug)
@@ -110,24 +112,37 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
     [slug],
   )
 
-  const loadUsers = useCallback(() => {
-    setUsersLoading(true)
-    fetchAdminUsers()
-      .then((rows) => {
-        setRoleUsers(rows.filter((u) => normalizeRole(u.role ?? null) === slug))
-      })
-      .catch(() => setRoleUsers([]))
-      .finally(() => setUsersLoading(false))
-  }, [slug])
+  // Re-arm the drawer during render when it opens or switches role (react.dev
+  // "adjusting state when a prop changes") instead of one commit later.
+  const [seenRole, setSeenRole] = useState({ open, slug })
+  if (seenRole.open !== open || seenRole.slug !== slug) {
+    setSeenRole({ open, slug })
+    if (open) {
+      setTab('overview')
+      setUsersLoading(true)
+    }
+  }
 
   useEffect(() => {
     if (!open) return
-    setTab('overview')
-    loadUsers()
+    let alive = true
+    void (async () => {
+      try {
+        const rows = await fetchAdminUsers()
+        if (alive) setRoleUsers(rows.filter((u) => normalizeRole(u.role ?? null) === slug))
+      } catch {
+        if (alive) setRoleUsers([])
+      } finally {
+        if (alive) setUsersLoading(false)
+      }
+    })()
     fetchRolePermissions(slug)
-      .then((keys) => setGrantedCount(keys.length))
-      .catch(() => setGrantedCount(0))
-  }, [open, slug, loadUsers])
+      .then((keys) => { if (alive) setGrantedCount(keys.length) })
+      .catch(() => { if (alive) setGrantedCount(0) })
+    return () => {
+      alive = false
+    }
+  }, [open, slug])
 
   const statusLabel = isSystem ? 'محمي — نظام' : 'نشط'
 

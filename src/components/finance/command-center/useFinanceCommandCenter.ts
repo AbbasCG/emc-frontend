@@ -22,47 +22,81 @@ import { monthOverMonthGrowthPct } from '../financeDashboardDerivations'
 
 export type FinanceDateRange = { from: string; to: string }
 
+const LOAD_ERROR = 'تعذّر تحميل بيانات مركز التحكم المالي. تحقق من الاتصال وأعد المحاولة.'
+
+/** Pure I/O — no state — so the mount effect and the imperative `reload` can share the
+ *  request without either calling a state-mutating helper. */
+async function fetchCommandCenterData(range: FinanceDateRange): Promise<FinanceCommandCenterData> {
+  const [dashboard, accountsSummary, paymentsRes, transactions, invoicesRes, manualRes] =
+    await Promise.all([
+      fetchFinanceDashboard({ from: range.from, to: range.to }),
+      fetchFinanceAccountsSummary(),
+      fetchFinancePayments({ from: range.from, to: range.to }),
+      fetchFinanceTransactionsLegacy({ from: range.from, to: range.to }),
+      fetchFinanceInvoices({ from: range.from, to: range.to }),
+      fetchManualPayments({ status: 'pending_review', date_from: range.from, date_to: range.to }),
+    ])
+
+  return {
+    dashboard,
+    accounts: accountsSummary.accounts,
+    totalCash: accountsSummary.total_cash,
+    payments: paymentsRes.data.length ? paymentsRes.data : dashboard.latest_payments,
+    transactions,
+    invoices: invoicesRes.data,
+    manualPayments: manualRes.data,
+  }
+}
+
 export function useFinanceCommandCenter(range: FinanceDateRange, formatCurrency: (n: number) => string) {
   const [data, setData] = useState<FinanceCommandCenterData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastSync, setLastSync] = useState<Date | null>(null)
 
+  // Re-arm the loading state during render when the range changes (react.dev "adjusting
+  // state when a prop changes"), so the new range never paints the previous range's
+  // numbers as settled. The initial state already covers the first run.
+  const [seenRange, setSeenRange] = useState({ from: range.from, to: range.to })
+  if (seenRange.from !== range.from || seenRange.to !== range.to) {
+    setSeenRange({ from: range.from, to: range.to })
+    setLoading(true)
+    setError(null)
+  }
+
+  /** Imperative refresh from an event handler — outside the effect, so it may flip to
+   *  the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const [dashboard, accountsSummary, paymentsRes, transactions, invoicesRes, manualRes] =
-        await Promise.all([
-          fetchFinanceDashboard({ from: range.from, to: range.to }),
-          fetchFinanceAccountsSummary(),
-          fetchFinancePayments({ from: range.from, to: range.to }),
-          fetchFinanceTransactionsLegacy({ from: range.from, to: range.to }),
-          fetchFinanceInvoices({ from: range.from, to: range.to }),
-          fetchManualPayments({ status: 'pending_review', date_from: range.from, date_to: range.to }),
-        ])
-
-      const payload: FinanceCommandCenterData = {
-        dashboard,
-        accounts: accountsSummary.accounts,
-        totalCash: accountsSummary.total_cash,
-        payments: paymentsRes.data.length ? paymentsRes.data : dashboard.latest_payments,
-        transactions,
-        invoices: invoicesRes.data,
-        manualPayments: manualRes.data,
-      }
-      setData(payload)
+      setData(await fetchCommandCenterData({ from: range.from, to: range.to }))
       setLastSync(new Date())
     } catch {
-      setError('تعذّر تحميل بيانات مركز التحكم المالي. تحقق من الاتصال وأعد المحاولة.')
+      setError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
   }, [range.from, range.to])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const payload = await fetchCommandCenterData({ from: range.from, to: range.to })
+        if (!alive) return
+        setData(payload)
+        setLastSync(new Date())
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [range.from, range.to])
 
   const derived = useMemo(() => {
     if (!data) return null

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
@@ -6,6 +6,8 @@ import { fetchVolunteer, updateVolunteer } from '@/api/volunteersApi'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
 import { VOLUNTEER_STATUS_AR } from '@/data/operationsLabels'
 import type { OpsVolunteer, VolunteerStatus, WorkspaceDepartment } from '@/types/operations'
+
+const LOAD_ERROR = 'تعذّر تحميل بيانات المتطوع. تحقق من الاتصال وأعد المحاولة.'
 
 export default function OpsVolunteerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,7 +22,39 @@ export default function OpsVolunteerDetailPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [notes] = useState('مساحة الملاحظات الداخلية — قيد ربط الـ API.')
 
-  async function load() {
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenVid, setSeenVid] = useState(vid)
+  if (!Object.is(seenVid, vid)) {
+    setSeenVid(vid)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  useEffect(() => {
+    if (!Number.isFinite(vid)) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const [vData, dData] = await Promise.all([
+          fetchVolunteer(vid),
+          fetchWorkspaceDepartments(),
+        ])
+        if (cancelled) return
+        setV(vData)
+        setDepts(dData.items)
+      } catch {
+        if (!cancelled) setLoadError(LOAD_ERROR)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [vid])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
     if (!Number.isFinite(vid)) return
     setLoadError(null)
     setLoading(true)
@@ -32,13 +66,11 @@ export default function OpsVolunteerDetailPage() {
       setV(vData)
       setDepts(dData.items)
     } catch {
-      setLoadError('تعذّر تحميل بيانات المتطوع. تحقق من الاتصال وأعد المحاولة.')
+      setLoadError(LOAD_ERROR)
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => { void load() }, [vid])
+  }, [vid])
 
   async function patchStatus(status: VolunteerStatus) {
     if (!v) return
@@ -68,7 +100,7 @@ export default function OpsVolunteerDetailPage() {
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
       <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
     </div>
   )
   if (!v) return <OpsPageSkeleton />

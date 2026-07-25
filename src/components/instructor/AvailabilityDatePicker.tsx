@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Calendar, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -64,14 +64,18 @@ export function AvailabilityDatePicker(props: Props) {
   const [viewYear, setViewYear] = useState(initial.y)
   const [viewMonth, setViewMonth] = useState(initial.m)
 
-  useEffect(() => {
-    if (!open) return
-    setPendingFrom(null)
-    const p = parseIso(anchorIso) ?? parseIso(todayIso())!
-    setViewYear(p.y)
-    setViewMonth(p.m)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  // Re-centre the calendar on the current selection every time the popover opens —
+  // done during render (react.dev "adjusting state when a prop changes") instead of
+  // from an effect, so the first painted frame already shows the right month.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) {
+      setPendingFrom(null)
+      setViewYear(initial.y)
+      setViewMonth(initial.m)
+    }
+  }
 
   function prevMonth() {
     if (viewMonth === 1) { setViewMonth(12); setViewYear((y) => y - 1) } else setViewMonth((m) => m - 1)

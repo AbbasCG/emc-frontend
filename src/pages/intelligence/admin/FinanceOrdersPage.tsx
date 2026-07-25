@@ -292,6 +292,8 @@ export default function FinanceOrdersPage() {
   const [selected, setSelected] = useState<FinanceOrder | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
 
+  /** Imperative refresh from the toolbar button — outside the effect, so it may flip to
+   *  the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -304,7 +306,24 @@ export default function FinanceOrdersPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // First load — `loading` already starts at `true`, so the effect only commits state
+  // after the await instead of re-rendering synchronously from the effect body.
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchFinanceOrders()
+        if (alive) setOrders(res.data)
+      } catch {
+        toast.error('تعذّر تحميل الطلبات.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

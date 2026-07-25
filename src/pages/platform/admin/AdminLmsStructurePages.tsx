@@ -417,11 +417,21 @@ function ModuleDrawer({
 }) {
   const [tab, setTab] = useState<DrawerTab>('overview')
   const [detail, setDetail] = useState<ModuleRow>(initial)
-  const [loading, setLoading] = useState(false)
+  // Starts loading — the effect below fetches the full module on mount and no longer
+  // flips this synchronously.
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  // Swap in the row snapshot during render when the drawer is pointed at another module
+  // (react.dev "adjusting state when a prop changes"), so the previous module's detail
+  // never paints while the full record loads.
+  const [seenModuleId, setSeenModuleId] = useState(initial.id)
+  if (seenModuleId !== initial.id) {
+    setSeenModuleId(initial.id)
     setDetail(initial)
     setLoading(true)
+  }
+
+  useEffect(() => {
     adminGetModule(initial.id)
       .then((d) => setDetail(d as ModuleRow))
       .catch(() => {})
@@ -671,6 +681,8 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 
 // ── AdminModulesPage ─────────────────────────────────────────────────────────
 
+const MODULES_LOAD_ERROR = 'تعذّر تحميل الوحدات. تحقق من الاتصال وأعد المحاولة.'
+
 export function AdminModulesPage() {
   const [rows, setRows] = useState<ModuleRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -685,18 +697,33 @@ export function AdminModulesPage() {
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<ModuleRow | null>(null)
   const [drawerModule, setDrawerModule] = useState<ModuleRow | null>(null)
 
+  /** Imperative refetch from event handlers (retry, refresh, after save) — outside the
+   *  effect, so the synchronous flip to the loading state is allowed and wanted. */
   const load = useCallback(() => {
     setLoading(true)
     setError(null)
     fetchAdminModules()
       .then((list) => setRows(list as ModuleRow[]))
-      .catch(() => setError('تعذّر تحميل الوحدات. تحقق من الاتصال وأعد المحاولة.'))
+      .catch(() => setError(MODULES_LOAD_ERROR))
       .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchAdminModules()
+        if (alive) setRows(list as ModuleRow[])
+      } catch {
+        if (alive) setError(MODULES_LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   async function handleDelete(m: ModuleRow) {
     setDeleting(m.id)
@@ -1231,6 +1258,8 @@ function LessonCard({
   )
 }
 
+const LESSONS_LOAD_ERROR = 'تعذّر تحميل الدروس'
+
 export function AdminLessonsPage() {
   const [rows, setRows] = useState<LessonRow[]>([])
   const [modules, setModules] = useState<LmsModule[]>([])
@@ -1245,6 +1274,8 @@ export function AdminLessonsPage() {
   const [modal, setModal] = useState<'create' | LessonRow | null>(null)
   const [deleting, setDeleting] = useState<number | null>(null)
 
+  /** Imperative refetch from event handlers (retry, refresh, after save) — outside the
+   *  effect, so the synchronous flip to the loading state is allowed and wanted. */
   const load = useCallback(() => {
     setLoading(true)
     setError(null)
@@ -1253,11 +1284,29 @@ export function AdminLessonsPage() {
         setRows(lessons as LessonRow[])
         setModules(mods)
       })
-      .catch(() => setError('تعذّر تحميل الدروس'))
+      .catch(() => setError(LESSONS_LOAD_ERROR))
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const [lessons, mods] = await Promise.all([fetchAdminLessons(), fetchAdminModules()])
+        if (alive) {
+          setRows(lessons as LessonRow[])
+          setModules(mods)
+        }
+      } catch {
+        if (alive) setError(LESSONS_LOAD_ERROR)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

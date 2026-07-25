@@ -43,13 +43,36 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
 
   useFocusTrap(panelRef, { active: true, onEscape: onClose })
 
+  // Re-arm the search state during render when the debounced term changes
+  // (react.dev "adjusting state when a prop changes") — the previous hits stay on
+  // screen while the new request is in flight, exactly as before.
+  const [seenQ, setSeenQ] = useState(debouncedQ)
+  if (seenQ !== debouncedQ) {
+    setSeenQ(debouncedQ)
+    if (debouncedQ.trim()) {
+      setSearching(true)
+    } else {
+      setResults([])
+      setSearching(false)
+    }
+  }
+
   useEffect(() => {
-    if (!debouncedQ.trim()) { setResults([]); return }
-    setSearching(true)
-    searchAdminUsers(debouncedQ)
-      .then(setResults)
-      .catch(() => setResults([]))
-      .finally(() => setSearching(false))
+    if (!debouncedQ.trim()) return
+    let alive = true
+    void (async () => {
+      try {
+        const hits = await searchAdminUsers(debouncedQ)
+        if (alive) setResults(hits)
+      } catch {
+        if (alive) setResults([])
+      } finally {
+        if (alive) setSearching(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [debouncedQ])
 
   const [email, setEmail]             = useState('')

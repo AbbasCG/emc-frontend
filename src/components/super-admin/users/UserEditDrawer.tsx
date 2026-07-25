@@ -109,25 +109,31 @@ export function UserEditDrawer({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showPw, setShowPw] = useState(false)
   const [showPwConf, setShowPwConf] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  useEffect(() => {
+  // Clear the validation/reveal state during render when the drawer closes or points at
+  // another user (react.dev "adjusting state when a prop changes") — every one of these
+  // already starts at its cleared value, so no first-pass run is needed.
+  const [seenUser, setSeenUser] = useState({ open, userId })
+  if (seenUser.open !== open || seenUser.userId !== userId) {
+    setSeenUser({ open, userId })
     if (!open) {
       setErrors({})
       setShowPw(false)
       setShowPwConf(false)
     }
-  }, [open, userId])
+  }
 
+  // The preview is a derived resource, not state: build it from the picked file during
+  // render and revoke the previous URL from an effect keyed on it (same cleanup the
+  // previous effect performed).
+  const previewUrl = useMemo(
+    () => (editAvatarFile ? URL.createObjectURL(editAvatarFile) : null),
+    [editAvatarFile],
+  )
   useEffect(() => {
-    if (!editAvatarFile) {
-      setPreviewUrl(null)
-      return
-    }
-    const url = URL.createObjectURL(editAvatarFile)
-    setPreviewUrl(url)
-    return () => URL.revokeObjectURL(url)
-  }, [editAvatarFile])
+    if (!previewUrl) return
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [previewUrl])
 
   function validate(): boolean {
     const next: Record<string, string> = {}

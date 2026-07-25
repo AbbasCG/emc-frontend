@@ -240,13 +240,25 @@ function ClassPreviewDrawerInner({ group, onClose }: Props) {
   const [detail, setDetail] = useState<ClassGroupDetail | null>(null)
   const [students, setStudents] = useState<ClassAssignmentStudent[]>([])
   const [sessions, setSessions] = useState<ClassGroupSessionRow[]>([])
-  const [loading, setLoading] = useState(false)
+  // Starts loading whenever there is a group to fetch on mount — the effect below no
+  // longer flips it synchronously.
+  const [loading, setLoading] = useState(group !== null)
+
+  // Re-arm the drawer for a different group during render (react.dev "adjusting state
+  // when a prop changes"), so the previous group's tab never paints for one frame.
+  const groupId = group?.id
+  const [seenGroupId, setSeenGroupId] = useState(groupId)
+  if (seenGroupId !== groupId) {
+    setSeenGroupId(groupId)
+    if (group) {
+      setTab('overview')
+      setLoading(true)
+    }
+  }
 
   useEffect(() => {
     if (!group) return
-    setTab('overview')
     let alive = true
-    setLoading(true)
     Promise.all([
       fetchClassGroupDetail(group.id),
       fetchClassGroupStudents(group.id),

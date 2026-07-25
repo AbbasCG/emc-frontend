@@ -56,21 +56,38 @@ function formatStorageLabel(data: ScaleView): string {
   return `${formatEnglishNumber(data.storage_used_gb)} GB`
 }
 
+const LOAD_ERROR = 'تعذّر تحميل بيانات المنصة.'
+
 export default function PlatformScaleDashboardPage() {
   const [data, setData] = useState<ScaleView | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  /** Imperative retry from the button — outside the effect, so clearing the error
+   *  synchronously is allowed. */
   const load = useCallback(async () => {
     setError(null)
     try {
       const raw = await fetchPlatformScale()
       setData(norm(raw))
     } catch {
-      setError('تعذّر تحميل بيانات المنصة.')
+      setError(LOAD_ERROR)
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const raw = await fetchPlatformScale()
+        if (alive) setData(norm(raw))
+      } catch {
+        if (alive) setError(LOAD_ERROR)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   if (error) {
     return (

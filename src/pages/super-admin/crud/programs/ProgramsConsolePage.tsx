@@ -352,26 +352,48 @@ export default function ProgramsConsolePage() {
     no_date: 0, no_instructor: 0, ended: 0, scheduled: 0,
   }
 
-  // ── Load (called whenever params change) ─────────────────
-  const load = useCallback(async (p: ServerParams) => {
-    setLoading(true)
-    setFailed(false)
-    const result = await fetchAdminCoursesPage(buildApiParams(p))
-    if (result) {
-      setRows(result.rows)
-      setMeta(result.meta)
-      if (result.summary) setSummary(result.summary)
-      setFailed(false)
-    } else {
-      setFailed(true)
-      setRows([])
-      setMeta(null)
-    }
-    setLoading(false)
+  // ── Load ─────────────────────────────────────────────────
+  // Bumped by `load()` so an imperative refresh re-runs the fetch effect below with the
+  // current params — the effect stays the single owner of the request.
+  const [reloadToken, setReloadToken] = useState(0)
+
+  /** Imperative refresh from an event handler (toolbar, post-save, post-delete). */
+  const load = useCallback(() => {
+    setReloadToken((n) => n + 1)
   }, [])
 
-  // Re-load whenever params change
-  useEffect(() => { void load(params) }, [params, load])
+  // Re-arm the request state during render whenever the params (or the refresh token)
+  // change — react.dev "adjusting state when a prop changes". The initial
+  // `loading: true` / `failed: false` already carry the first pass.
+  const [seenQuery, setSeenQuery] = useState({ params, reloadToken })
+  if (seenQuery.params !== params || seenQuery.reloadToken !== reloadToken) {
+    setSeenQuery({ params, reloadToken })
+    setLoading(true)
+    setFailed(false)
+  }
+
+  // Re-load whenever params change or a refresh is requested
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const result = await fetchAdminCoursesPage(buildApiParams(params))
+      if (!alive) return
+      if (result) {
+        setRows(result.rows)
+        setMeta(result.meta)
+        if (result.summary) setSummary(result.summary)
+        setFailed(false)
+      } else {
+        setFailed(true)
+        setRows([])
+        setMeta(null)
+      }
+      setLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [params, reloadToken])
 
   // Aux data — one-time on mount
   useEffect(() => {
@@ -444,7 +466,7 @@ export default function ProgramsConsolePage() {
     try {
       await patchCoursePublishState(c.id, next)
       toast.success(next ? 'تم نشر الدورة' : 'أُعيدت الدورة كمسودة')
-      void load(params)
+      void load()
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
@@ -452,7 +474,7 @@ export default function ProgramsConsolePage() {
     try {
       await programFinanceApi.submitCourse(c.id)
       toast.success('تم إرسال الدورة للمراجعة المالية')
-      void load(params)
+      void load()
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
@@ -463,7 +485,7 @@ export default function ProgramsConsolePage() {
     try {
       await patchCourseStatus(c.id, status)
       toast.success(labels[status] ?? 'تم تحديث الحالة')
-      void load(params)
+      void load()
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
 
@@ -474,7 +496,7 @@ export default function ProgramsConsolePage() {
     try {
       await deleteCourse(c.id)
       toast.success('تم حذف الدورة')
-      void load(params)
+      void load()
       setDrawer(null)
     } catch (e) { toast.error(getApiErrorMessage(e)) }
   }
@@ -506,7 +528,7 @@ export default function ProgramsConsolePage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => void load(params)}
+                onClick={() => void load()}
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-4 py-2.5 text-xs font-black backdrop-blur-md transition hover:bg-white/15"
               >
                 <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
@@ -908,7 +930,7 @@ export default function ProgramsConsolePage() {
         mode={drawer?.mode ?? 'details'}
         onClose={() => setDrawer(null)}
         onModeChange={(m) => setDrawer((prev) => (prev ? { ...prev, mode: m } : null))}
-        onSaved={() => void load(params)}
+        onSaved={() => void load()}
         onAssignInstructor={drawer ? () => { setAssignCourse(drawer.course) } : undefined}
         tracks={tracks}
         departments={departments}
@@ -925,7 +947,7 @@ export default function ProgramsConsolePage() {
           learningPaths={learningPaths}
           existingCourses={rows}
           onClose={() => setFormOpen(false)}
-          onSaved={() => void load(params)}
+          onSaved={() => void load()}
           onCreateAnother={() => setFormCourse(null)}
         />
       </Suspense>
@@ -954,7 +976,7 @@ export default function ProgramsConsolePage() {
           open={scheduleCourse !== null}
           course={scheduleCourse}
           onClose={() => setScheduleCourse(null)}
-          onSaved={() => void load(params)}
+          onSaved={() => void load()}
         />
       </Suspense>
 
@@ -1221,7 +1243,13 @@ function CourseInstructorTableCell({
   const displayEmail = resolved.email || effectiveIns?.email || ''
   const avatarUrl    = resolved.avatarUrl || effectiveIns?.profile_photo_url || null
 
-  useEffect(() => { setImgFailed(false) }, [avatarUrl])
+  // Clear the broken-image flag during render when the URL changes — react.dev
+  // "adjusting state when a prop changes" (it already starts `false` on mount).
+  const [seenAvatarUrl, setSeenAvatarUrl] = useState(avatarUrl)
+  if (seenAvatarUrl !== avatarUrl) {
+    setSeenAvatarUrl(avatarUrl)
+    setImgFailed(false)
+  }
 
   if (!hasInstructor(course) && !effectiveIns) {
     return <span className="font-bold text-amber-700">بدون مدرب</span>

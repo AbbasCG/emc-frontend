@@ -11,10 +11,9 @@ export default function CertificateVerifyPage() {
   const [verifyError, setVerifyError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!code) {
-      setLoading(false)
-      return
-    }
+    // Without a code there is nothing to verify; the render below short-circuits on
+    // `!code` before it ever reads `loading`, so no state update is needed here.
+    if (!code) return
     let cancelled = false
     ;(async () => {
       try {

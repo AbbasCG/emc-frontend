@@ -82,6 +82,27 @@ const REQUEST_TYPE_AR: Record<string, string> = {
    Utilities
 ───────────────────────────────────────────────────────────────────────── */
 
+const EMPTY_STATS = { total: 0, open: 0, unassigned: 0, resolved: 0, high: 0 }
+
+type TicketQuery = {
+  page: number
+  search: string
+  status: string
+  priority: string
+  requestType: string
+}
+
+/** Pure query-string builder — kept outside the component so the fetch effect and the
+ *  silent refresh handler share it without either calling a state-mutating callback. */
+function buildTicketParams(q: TicketQuery): Record<string, string> {
+  const params: Record<string, string> = { page: String(q.page) }
+  if (q.search) params.search = q.search
+  if (q.status) params.status = q.status
+  if (q.priority) params.priority = q.priority
+  if (q.requestType) params.request_type = q.requestType
+  return params
+}
+
 function fmtDate(d?: string | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -107,9 +128,19 @@ function timeAgo(d?: string | null): string {
 function useCountUp(target: number, duration = 1000): number {
   const [val, setVal] = useState(0)
   const raf = useRef<number>(0)
+
+  // Snap back to zero during render when the target does (react.dev "adjusting state
+  // when a prop changes") — doing it from the effect would paint the previous number
+  // for one frame first.
+  const [seenTarget, setSeenTarget] = useState(target)
+  if (seenTarget !== target) {
+    setSeenTarget(target)
+    if (target === 0) setVal(0)
+  }
+
   useEffect(() => {
     cancelAnimationFrame(raf.current)
-    if (target === 0) { setVal(0); return }
+    if (target === 0) return
     const t0 = Date.now()
     const tick = () => {
       const p = Math.min((Date.now() - t0) / duration, 1)
@@ -525,18 +556,55 @@ export default function OpsSupportTicketsPage() {
   const [page, setPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
 
-  const load = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true)
-    else setRefreshing(true)
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously — and the new query never paints the previous result
+  // set as if it were settled.
+  const [seenQuery, setSeenQuery] = useState({ page, search, status, priority, requestType })
+  if (
+    seenQuery.page !== page ||
+    seenQuery.search !== search ||
+    seenQuery.status !== status ||
+    seenQuery.priority !== priority ||
+    seenQuery.requestType !== requestType
+  ) {
+    setSeenQuery({ page, search, status, priority, requestType })
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetchSupportTickets(
+          buildTicketParams({ page, search, status, priority, requestType }),
+        )
+        if (cancelled) return
+        setTickets(res.data)
+        setStats(res.stats ?? EMPTY_STATS)
+        setMeta(res.meta ?? {})
+      } catch {
+        /* silent */
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+          setRefreshing(false)
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [page, search, status, priority, requestType])
+
+  // Silent background refresh from an event handler — outside the effect, so flipping
+  // the refreshing flag synchronously is legitimate here.
+  const refresh = useCallback(async () => {
+    setRefreshing(true)
     try {
-      const params: Record<string, string> = { page: String(page) }
-      if (search) params.search = search
-      if (status) params.status = status
-      if (priority) params.priority = priority
-      if (requestType) params.request_type = requestType
-      const res = await fetchSupportTickets(params)
+      const res = await fetchSupportTickets(
+        buildTicketParams({ page, search, status, priority, requestType }),
+      )
       setTickets(res.data)
-      setStats(res.stats ?? { total: 0, open: 0, unassigned: 0, resolved: 0, high: 0 })
+      setStats(res.stats ?? EMPTY_STATS)
       setMeta(res.meta ?? {})
     } catch {
       /* silent */
@@ -545,8 +613,6 @@ export default function OpsSupportTicketsPage() {
       setRefreshing(false)
     }
   }, [page, search, status, priority, requestType])
-
-  useEffect(() => { void load() }, [load])
 
   const activeFilters = [search, status, priority, requestType].filter(Boolean).length
 
@@ -561,7 +627,7 @@ export default function OpsSupportTicketsPage() {
       toast.success('تم تحديث الحالة')
     } catch {
       toast.error('فشل التحديث')
-      void load(true)
+      void refresh()
     }
   }
 
@@ -572,7 +638,7 @@ export default function OpsSupportTicketsPage() {
       toast.success('تم تحديث الأولوية')
     } catch {
       toast.error('فشل التحديث')
-      void load(true)
+      void refresh()
     }
   }
 
@@ -583,7 +649,7 @@ export default function OpsSupportTicketsPage() {
       toast.success('تم حل التذكرة')
     } catch {
       toast.error('فشل التحديث')
-      void load(true)
+      void refresh()
     }
   }
 
@@ -631,7 +697,7 @@ export default function OpsSupportTicketsPage() {
                 type="button"
                 whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => void load(true)}
+                onClick={() => void refresh()}
                 disabled={refreshing}
                 className="flex h-10 items-center gap-2 rounded-xl bg-white/10 px-4 text-[13px] font-bold text-white/80 ring-1 ring-white/10 transition hover:bg-white/15 disabled:opacity-50"
               >
@@ -812,7 +878,7 @@ export default function OpsSupportTicketsPage() {
               )}
               <button
                 type="button"
-                onClick={() => void load(true)}
+                onClick={() => void refresh()}
                 className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-bold text-slate-600 transition hover:bg-slate-50"
               >
                 <RefreshCw size={13} />

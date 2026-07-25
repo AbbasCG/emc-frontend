@@ -56,6 +56,8 @@ export default function NotificationsCenterPage() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [searchInput])
 
+  /** Imperative refetch from an event handler (retry button, post-mutation refresh) —
+   *  outside the effect, so the synchronous flip to the loading state is allowed. */
   const load = useCallback((targetPage: number = page) => {
     setLoading(true)
     setError(false)
@@ -71,7 +73,48 @@ export default function NotificationsCenterPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, archivedFilter, unreadOnly, pinnedOnly])
 
-  useEffect(() => { load(page) }, [search, archivedFilter, unreadOnly, pinnedOnly, page]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Return to the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") — `loading` already starts `true` on mount,
+  // so this only covers later filter/page changes.
+  const [seenQuery, setSeenQuery] = useState({ search, archivedFilter, unreadOnly, pinnedOnly, page })
+  if (
+    seenQuery.search !== search ||
+    seenQuery.archivedFilter !== archivedFilter ||
+    seenQuery.unreadOnly !== unreadOnly ||
+    seenQuery.pinnedOnly !== pinnedOnly ||
+    seenQuery.page !== page
+  ) {
+    setSeenQuery({ search, archivedFilter, unreadOnly, pinnedOnly, page })
+    setLoading(true)
+    setError(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchNotificationsPage({
+          search: search || undefined,
+          archived: archivedFilter,
+          unread_only: unreadOnly,
+          pinned_only: pinnedOnly,
+          page,
+        })
+        if (!alive) return
+        setItems(res.data)
+        setMeta(res.meta)
+        setUnreadCount(res.unread_count)
+        setSelected(new Set())
+      } catch {
+        if (alive) setError(true)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [search, archivedFilter, unreadOnly, pinnedOnly, page])
 
   function resetToPageOne() {
     setPage(1)

@@ -155,9 +155,13 @@ function StudentSearchDropdown({
     return (t ? students.filter((s) => `${s.name} ${s.email} ${s.phone ?? ''}`.toLowerCase().includes(t)) : students).slice(0, 50)
   }, [students, q])
 
-  useEffect(() => {
+  // Collapse the dropdown during render when the route changes — react.dev
+  // "adjusting state when a prop changes" (it already starts closed on mount).
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
     setOpen(false)
-  }, [location.pathname])
+  }
 
   return (
     <div ref={anchorRef} className="relative w-full max-w-xl" dir="rtl">
@@ -388,12 +392,29 @@ function StudentCoursesTab({ userId }: { userId: number }) {
   const [courses, setCourses] = useState<StudentCourseRow[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  // Re-arm the loading state during render when the student changes, so the previous
+  // student's rows are never shown as settled under the new id.
+  const [seenUserId, setSeenUserId] = useState(userId)
+  if (seenUserId !== userId) {
+    setSeenUserId(userId)
     setLoading(true)
-    fetchStudentCourses(userId)
-      .then(setCourses)
-      .catch(() => setCourses([]))
-      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const rows = await fetchStudentCourses(userId)
+        if (alive) setCourses(rows)
+      } catch {
+        if (alive) setCourses([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [userId])
 
   if (loading) {
@@ -662,32 +683,57 @@ export default function StudentsManagementPage({ pageTitle }: { pageTitle?: stri
   const [status,     setStatus]     = useState<'all' | 'active' | 'inactive'>('all')
   const [selected,   setSelected]   = useState<AdminManagedUser | null>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true); setError(null); setForbidden(false)
-    try {
-      // Fetch all students server-side (role filter + all pages)
-      const first = await fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: 1 })
-      let allUsers = [...first.users]
-      if (first.serverPaginated && first.lastPage > 1) {
-        const rest = await Promise.all(
-          Array.from({ length: first.lastPage - 1 }, (_, i) =>
-            fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: i + 2 })
-          )
-        )
-        for (const p of rest) allUsers = allUsers.concat(p.users)
-      }
-      // Use server total for KPI accuracy; fall back to loaded count
-      setServerTotal(first.serverPaginated ? first.total : null)
-      setUsers(allUsers.filter((u) => normalizeRole(u.role) === 'student'))
-    } catch (e) {
-      setUsers([])
-      setServerTotal(null)
-      if (axios.isAxiosError(e) && e.response?.status === 403) { setForbidden(true); toast.warning(ADMIN_USER_FORBIDDEN_AR) }
-      else setError(getApiErrorMessage(e))
-    } finally { setLoading(false) }
+  // Bumped by `load()` so an imperative refresh re-runs the fetch effect below — the
+  // effect stays the single owner of the request.
+  const [reloadToken, setReloadToken] = useState(0)
+
+  /** Imperative refresh from the toolbar button. */
+  const load = useCallback(() => {
+    setReloadToken((n) => n + 1)
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // Re-arm the request state during render on refresh — react.dev "adjusting state when
+  // a prop changes". The initial `loading: true` / `error: null` / `forbidden: false`
+  // already carry the first pass.
+  const [seenToken, setSeenToken] = useState(reloadToken)
+  if (seenToken !== reloadToken) {
+    setSeenToken(reloadToken)
+    setLoading(true)
+    setError(null)
+    setForbidden(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        // Fetch all students server-side (role filter + all pages)
+        const first = await fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: 1 })
+        let allUsers = [...first.users]
+        if (first.serverPaginated && first.lastPage > 1) {
+          const rest = await Promise.all(
+            Array.from({ length: first.lastPage - 1 }, (_, i) =>
+              fetchAdminUsersPage({ role: 'student', status: 'all', per_page: 100, page: i + 2 })
+            )
+          )
+          for (const p of rest) allUsers = allUsers.concat(p.users)
+        }
+        if (!alive) return
+        // Use server total for KPI accuracy; fall back to loaded count
+        setServerTotal(first.serverPaginated ? first.total : null)
+        setUsers(allUsers.filter((u) => normalizeRole(u.role) === 'student'))
+      } catch (e) {
+        if (!alive) return
+        setUsers([])
+        setServerTotal(null)
+        if (axios.isAxiosError(e) && e.response?.status === 403) { setForbidden(true); toast.warning(ADMIN_USER_FORBIDDEN_AR) }
+        else setError(getApiErrorMessage(e))
+      } finally { if (alive) setLoading(false) }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [reloadToken])
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()

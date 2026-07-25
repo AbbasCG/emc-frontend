@@ -115,57 +115,134 @@ export default function UsersManagementPage() {
 
   const [editLoading, setEditLoading] = useState(false)
 
-  const load = useCallback(async () => {
+  // Bumped by `load()` so an imperative refresh re-runs the fetch effect below with the
+  // very same query — the effect is the single owner of the request.
+  const [reloadToken, setReloadToken] = useState(0)
+
+  /** Imperative refresh from an event handler (toolbar button, post-mutation). */
+  const load = useCallback(() => {
+    setReloadToken((n) => n + 1)
+  }, [])
+
+  // Re-arm the request state during render whenever the query (or the refresh token)
+  // changes — react.dev "adjusting state when a prop changes". Doing it here instead of
+  // at the top of the fetch effect keeps the effect free of synchronous state writes and
+  // costs no extra committed render.
+  const [seenQuery, setSeenQuery] = useState({
+    page,
+    perPage,
+    debouncedQuery,
+    roleFilter,
+    statusFilter,
+    departmentFilter,
+    verifiedFilter,
+    reloadToken,
+  })
+  if (
+    seenQuery.page !== page ||
+    seenQuery.perPage !== perPage ||
+    seenQuery.debouncedQuery !== debouncedQuery ||
+    seenQuery.roleFilter !== roleFilter ||
+    seenQuery.statusFilter !== statusFilter ||
+    seenQuery.departmentFilter !== departmentFilter ||
+    seenQuery.verifiedFilter !== verifiedFilter ||
+    seenQuery.reloadToken !== reloadToken
+  ) {
+    setSeenQuery({
+      page,
+      perPage,
+      debouncedQuery,
+      roleFilter,
+      statusFilter,
+      departmentFilter,
+      verifiedFilter,
+      reloadToken,
+    })
     setLoading(true)
     setForbidden(false)
     setLoadErr(null)
-    try {
-      const result = await fetchAdminUsersPage({
-        page,
-        per_page: perPage,
-        search: debouncedQuery,
-        role: roleFilter,
-        status: statusFilter,
-        department: departmentFilter,
-        verified: verifiedFilter,
-      })
-      setPageUsers(result.users)
-      setTotal(result.total)
-      setLastPage(result.lastPage)
-      setServerPaginated(result.serverPaginated)
-      setSummary(result.summary)
-      if (!result.serverPaginated) {
-        const depts = new Set<string>()
-        result.users.forEach((u) => {
-          const d = u.department?.trim()
-          if (d) depts.add(d)
-        })
-        setDepartmentOptions((prev) => [...new Set([...prev, ...depts])].sort((a, b) => a.localeCompare(b, 'ar')))
-      }
-    } catch (e) {
-      setPageUsers([])
-      setTotal(0)
-      if (axios.isAxiosError(e) && e.response?.status === 403) {
-        setForbidden(true)
-        toast.warning(ADMIN_USER_FORBIDDEN_AR)
-      } else setLoadErr(getApiErrorMessage(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter])
+  }
 
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const result = await fetchAdminUsersPage({
+          page,
+          per_page: perPage,
+          search: debouncedQuery,
+          role: roleFilter,
+          status: statusFilter,
+          department: departmentFilter,
+          verified: verifiedFilter,
+        })
+        if (!alive) return
+        setPageUsers(result.users)
+        setTotal(result.total)
+        setLastPage(result.lastPage)
+        setServerPaginated(result.serverPaginated)
+        setSummary(result.summary)
+        if (!result.serverPaginated) {
+          const depts = new Set<string>()
+          result.users.forEach((u) => {
+            const d = u.department?.trim()
+            if (d) depts.add(d)
+          })
+          setDepartmentOptions((prev) => [...new Set([...prev, ...depts])].sort((a, b) => a.localeCompare(b, 'ar')))
+        }
+      } catch (e) {
+        if (!alive) return
+        setPageUsers([])
+        setTotal(0)
+        if (axios.isAxiosError(e) && e.response?.status === 403) {
+          setForbidden(true)
+          toast.warning(ADMIN_USER_FORBIDDEN_AR)
+        } else setLoadErr(getApiErrorMessage(e))
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [page, perPage, debouncedQuery, roleFilter, statusFilter, departmentFilter, verifiedFilter, reloadToken])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 300)
     return () => clearTimeout(t)
   }, [query])
 
-  useEffect(() => {
+  // Back to page 1 during render when any filter changes (the initial `page` is already
+  // 1, so the first pass needs no adjustment).
+  const [seenFilters, setSeenFilters] = useState({
+    debouncedQuery,
+    roleFilter,
+    statusFilter,
+    departmentFilter,
+    joinedFilter,
+    verifiedFilter,
+    perPage,
+  })
+  if (
+    seenFilters.debouncedQuery !== debouncedQuery ||
+    seenFilters.roleFilter !== roleFilter ||
+    seenFilters.statusFilter !== statusFilter ||
+    seenFilters.departmentFilter !== departmentFilter ||
+    seenFilters.joinedFilter !== joinedFilter ||
+    seenFilters.verifiedFilter !== verifiedFilter ||
+    seenFilters.perPage !== perPage
+  ) {
+    setSeenFilters({
+      debouncedQuery,
+      roleFilter,
+      statusFilter,
+      departmentFilter,
+      joinedFilter,
+      verifiedFilter,
+      perPage,
+    })
     setPage(1)
-  }, [debouncedQuery, roleFilter, statusFilter, departmentFilter, joinedFilter, verifiedFilter, perPage])
+  }
 
   const impersonatePreview = useCallback(
     async (target: AdminManagedUser) => {

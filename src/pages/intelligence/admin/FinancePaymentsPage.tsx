@@ -251,10 +251,18 @@ export default function FinancePaymentsPage() {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<FinancePaymentRow | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  // Re-arm the loading state during render when the applied range changes (react.dev
+  // "adjusting state when a prop changes"), so the new range never paints the previous
+  // range's rows as settled. The initial state already covers the first run.
+  const [seenApplied, setSeenApplied] = useState(applied)
+  if (seenApplied !== applied) {
+    setSeenApplied(applied)
     setLoading(true)
     setLoadErr(false)
+  }
+
+  useEffect(() => {
+    let cancelled = false
     void (async () => {
       try {
         const d = await fetchFinancePayments({ from: applied.from, to: applied.to })
