@@ -41,6 +41,12 @@ jobs:
       - name: Test
         run: npm test
 
+      # M4.c: per-directory coverage ratchet on the critical layers. Fails the build if
+      # any of them drops below its threshold (see vitest.config.ts for why there is no
+      # global floor yet).
+      - name: Coverage thresholds (critical layers)
+        run: npm run test:coverage
+
   e2e:
     name: E2E (Playwright, serverless mocks, desktop+mobile)
     runs-on: ubuntu-latest

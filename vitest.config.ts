@@ -24,6 +24,20 @@ export default defineConfig({
         'src/types/**',
         'src/i18n/locales/**',
       ],
+      // M4.c ratchet. Thresholds are set per-directory on the critical layers the
+      // master plan names, a few points under the measured value so ordinary churn
+      // does not trip them while a real regression does. There is deliberately NO
+      // global threshold: app-wide coverage is 8% because ~30k of the 33.7k lines are
+      // presentational dashboards, and those are M7's scope (plan §3, M7 "expanding
+      // M4.c to the dashboards and API mappers"). Raise these as coverage grows.
+      thresholds: {
+        'src/utils/**': { lines: 40 },
+        'src/lib/**': { lines: 65 },
+        'src/contexts/**': { lines: 65 },
+        'src/components/enrollment/**': { lines: 42 },
+        'src/components/ui/**': { lines: 24 },
+        'src/hooks/**': { lines: 18 },
+      },
     },
   },
   resolve: {
