@@ -56,9 +56,10 @@ export default function ConfirmDeleteModal({
                 type="button"
                 onClick={onClose}
                 disabled={busy}
+                aria-label="إغلاق النافذة"
                 className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden />
               </button>
             </div>
             <div className="px-6 py-5 text-right">
