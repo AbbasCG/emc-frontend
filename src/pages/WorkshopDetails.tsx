@@ -98,16 +98,30 @@ export default function WorkshopDetailsPage() {
   const enrollRef = useRef<HTMLDivElement>(null)
 
   const [workshop, setWorkshop] = useState<PublicWorkshop | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  // Seeded from the initial slug so the "missing slug" case is already settled on the
+  // first render, exactly as the old mount effect left it.
+  const [loading, setLoading] = useState(() => Boolean(slug))
+  const [notFound, setNotFound] = useState(() => !slug)
   const [loadError, setLoadError] = useState(false)
   const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
 
+  // Re-arm the load state during render when the slug changes (react.dev "adjusting
+  // state when a prop changes") instead of from the fetch effect below.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    if (slug) {
+      setLoading(true)
+      setLoadError(false)
+    } else {
+      setNotFound(true)
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    if (!slug) { setNotFound(true); setLoading(false); return }
+    if (!slug) return
     let alive = true
-    setLoading(true)
-    setLoadError(false)
     void fetchPublicWorkshopBySlug(slug).then((res) => {
       if (!alive) return
       if (!res.workshop) {
@@ -123,15 +137,27 @@ export default function WorkshopDetailsPage() {
     return () => { alive = false }
   }, [slug])
 
+  // Clear the enrolment flag during render when the viewer signs out or the workshop
+  // loses its course, then let the effect below only handle the fetching case.
+  const enrolledCourseId = workshop?.course_id
+  const [seenEnrollment, setSeenEnrollment] = useState({ isAuthenticated, enrolledCourseId })
+  if (
+    seenEnrollment.isAuthenticated !== isAuthenticated ||
+    seenEnrollment.enrolledCourseId !== enrolledCourseId
+  ) {
+    setSeenEnrollment({ isAuthenticated, enrolledCourseId })
+    if (!isAuthenticated || !enrolledCourseId) setAlreadyEnrolled(false)
+  }
+
   useEffect(() => {
-    if (!isAuthenticated || !workshop?.course_id) { setAlreadyEnrolled(false); return }
+    if (!isAuthenticated || !enrolledCourseId) return
     let alive = true
     void fetchStudentRegistrations().then((regs) => {
       if (!alive) return
-      setAlreadyEnrolled(regs.some((r) => r.course_id === workshop.course_id))
+      setAlreadyEnrolled(regs.some((r) => r.course_id === enrolledCourseId))
     })
     return () => { alive = false }
-  }, [isAuthenticated, workshop?.course_id])
+  }, [isAuthenticated, enrolledCourseId])
 
   const coverUrl = useMemo(
     () => resolvePublicAssetUrl(workshop?.cover_image ?? null) ?? EMC_COURSE_COVER_PLACEHOLDER,

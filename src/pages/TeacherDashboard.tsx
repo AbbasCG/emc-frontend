@@ -110,8 +110,19 @@ function hourGreeting(): string {
 function useCountUp(target: number, duration = 800): number {
   const [val, setVal] = useState(0)
   const cur = useRef(0)
+
+  // Snap back to zero during render when the target becomes zero (react.dev
+  // "adjusting state when a prop changes") — the animation effect below now only
+  // handles non-zero targets. On mount `seenTarget === target`, so nothing runs,
+  // matching the old effect whose `setVal(0)` was a no-op on a fresh `val = 0`.
+  const [seenTarget, setSeenTarget] = useState(target)
+  if (!Object.is(seenTarget, target)) {
+    setSeenTarget(target)
+    if (target === 0) setVal(0)
+  }
+
   useEffect(() => {
-    if (target === 0) { setVal(0); return }
+    if (target === 0) return
     const start = performance.now()
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / duration)

@@ -408,12 +408,16 @@ export default function AmbassadorApplicationDetailModal({
   const [confirmAction, setConfirmAction] = useState<'reject' | 'approve' | null>(null)
   const [downloadingAll, setDownloadingAll] = useState(false)
 
-  useEffect(() => {
+  // Re-seed the editing form whenever a different application object arrives
+  // (adjust state during render — react.dev's "adjusting state when a prop changes").
+  const [seenApp, setSeenApp] = useState(app)
+  if (seenApp !== app) {
+    setSeenApp(app)
     setSelectedStatus(app.status)
     setInterviewAt(app.interview_scheduled_at?.slice(0, 16) ?? '')
     setStatusReason('')
     setDirty(false)
-  }, [app])
+  }
 
   const whatsappUrl = buildWhatsAppUrl(app.mobile_phone)
   const timeline = useMemo(() => buildTimeline(app), [app])

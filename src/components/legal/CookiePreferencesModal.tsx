@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Cookie, Shield, BarChart3, Megaphone, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -17,18 +17,28 @@ export default function CookiePreferencesModal() {
     withdrawAll,
   } = useCookieConsent()
 
-  const [analytics, setAnalytics] = useState(DEFAULT_PREFS.analytics)
-  const [marketing, setMarketing] = useState(DEFAULT_PREFS.marketing)
+  // Seeded exactly as the old mount-time effect left it: hydrated from `consent` when the
+  // modal is already open on mount, otherwise the defaults.
+  const [analytics, setAnalytics] = useState(
+    preferencesOpen ? (consent?.analytics ?? false) : DEFAULT_PREFS.analytics,
+  )
+  const [marketing, setMarketing] = useState(
+    preferencesOpen ? (consent?.marketing ?? false) : DEFAULT_PREFS.marketing,
+  )
   const panelRef = useRef<HTMLDivElement>(null)
 
   useFocusTrap(panelRef, { active: preferencesOpen, onEscape: closePreferences })
 
-  useEffect(() => {
+  // Re-hydrate the toggles during render when the modal opens or the stored consent
+  // changes (react.dev "adjusting state when a prop changes").
+  const [seenSource, setSeenSource] = useState({ preferencesOpen, consent })
+  if (seenSource.preferencesOpen !== preferencesOpen || seenSource.consent !== consent) {
+    setSeenSource({ preferencesOpen, consent })
     if (preferencesOpen) {
       setAnalytics(consent?.analytics ?? false)
       setMarketing(consent?.marketing ?? false)
     }
-  }, [preferencesOpen, consent])
+  }
 
   return (
     <AnimatePresence>

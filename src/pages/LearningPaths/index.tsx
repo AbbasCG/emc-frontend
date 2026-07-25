@@ -36,10 +36,23 @@ export default function LearningPathsPage() {
     return () => window.clearTimeout(t)
   }, [search])
 
-  useEffect(() => {
-    let cancelled = false
+  // Re-arm the loading state during render when the query changes (react.dev "adjusting
+  // state when a prop changes"). On mount the effect only re-set the already-initial
+  // values, so seeding `seen` with the current query keeps behaviour identical.
+  const [seenQuery, setSeenQuery] = useState({ debouncedSearch, level, featuredFilter, page })
+  if (
+    seenQuery.debouncedSearch !== debouncedSearch ||
+    seenQuery.level !== level ||
+    seenQuery.featuredFilter !== featuredFilter ||
+    seenQuery.page !== page
+  ) {
+    setSeenQuery({ debouncedSearch, level, featuredFilter, page })
     setLoading(true)
     setLoadError(false)
+  }
+
+  useEffect(() => {
+    let cancelled = false
 
     void fetchPublicLearningPaths({
       search: debouncedSearch || undefined,
@@ -65,11 +78,17 @@ export default function LearningPathsPage() {
     }
   }, [debouncedSearch, level, featuredFilter, page])
 
+  // Clearing the enrolled set on sign-out / role change is a state adjustment, not an
+  // effect — do it during render for the same reason as above.
+  const viewerRole = user?.role
+  const [seenViewer, setSeenViewer] = useState({ isAuthenticated, viewerRole })
+  if (seenViewer.isAuthenticated !== isAuthenticated || seenViewer.viewerRole !== viewerRole) {
+    setSeenViewer({ isAuthenticated, viewerRole })
+    if (!isAuthenticated || normalizeRole(viewerRole) !== 'student') setEnrolledIds(new Set())
+  }
+
   useEffect(() => {
-    if (!isAuthenticated || normalizeRole(user?.role) !== 'student') {
-      setEnrolledIds(new Set())
-      return
-    }
+    if (!isAuthenticated || normalizeRole(user?.role) !== 'student') return
     let alive = true
     void fetchStudentLearningPaths().then((rows) => {
       if (!alive) return

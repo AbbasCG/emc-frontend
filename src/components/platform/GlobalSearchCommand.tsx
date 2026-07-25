@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Loader2, Search, Sparkles, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -20,28 +20,42 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
 
   useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
-  const run = useCallback(async (query: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await globalSearch(query)
-      setGroups(res.groups)
-    } catch {
-      setError('تعذر تحميل النتائج')
-      setGroups([])
-    } finally {
-      setLoading(false)
+  // Adjust state during render when the panel opens/closes or the query changes:
+  // clear the box on close, and arm the loading state before the effect below runs, so
+  // the fetch never has to set it synchronously. `null` seed keeps the first pass live,
+  // matching the mount run of the effects this replaces.
+  const [seenSearch, setSeenSearch] = useState<{ open: boolean; q: string } | null>(null)
+  if (!seenSearch || seenSearch.open !== open || seenSearch.q !== q) {
+    setSeenSearch({ open, q })
+    if (open) {
+      setLoading(true)
+      setError(null)
+    } else {
+      setQ('')
     }
-  }, [])
+  }
 
   useEffect(() => {
     if (!open) return
-    void run(q || ' ')
-  }, [open, q, run])
-
-  useEffect(() => {
-    if (!open) setQ('')
-  }, [open])
+    const query = q || ' '
+    let alive = true
+    void (async () => {
+      try {
+        const res = await globalSearch(query)
+        if (!alive) return
+        setGroups(res.groups)
+      } catch {
+        if (!alive) return
+        setError('تعذر تحميل النتائج')
+        setGroups([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [open, q])
 
   const hint = useMemo(
     () =>

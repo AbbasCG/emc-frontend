@@ -463,6 +463,8 @@ export default function CalendarPage() {
     persistCalendarView(mode)
   }
 
+  /** Imperative refresh from event handlers (refresh buttons, delete, create) — outside
+   *  any effect, so the synchronous flip to the loading state is fine here. */
   const load = useCallback(async () => {
     setLoading(true)
     const { events: list, ok } = await fetchCalendarEvents(filter === 'all' ? undefined : filter)
@@ -471,9 +473,25 @@ export default function CalendarPage() {
     setLoading(false)
   }, [filter])
 
+  // Re-arm the loading state during render when the filter changes (react.dev "adjusting
+  // state when a prop changes"), so the effect below stays pure I/O.
+  const [seenFilter, setSeenFilter] = useState(filter)
+  if (seenFilter !== filter) {
+    setSeenFilter(filter)
+    setLoading(true)
+  }
+
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      const { events: list, ok } = await fetchCalendarEvents(filter === 'all' ? undefined : filter)
+      if (!alive) return
+      setFetchOk(ok)
+      setEvents(list)
+      setLoading(false)
+    })()
+    return () => { alive = false }
+  }, [filter])
 
   const handleSelectDay = (date: Date) => {
     setFocusDate(date)

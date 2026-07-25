@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -96,8 +96,11 @@ export default function CourseEnrollmentCard({
   compact = false,
 }: Props) {
   const { user, isAuthenticated, refreshUser } = useAuth()
+  const shouldLoadProfile = isAuthenticated && Boolean(user)
   const [profile, setProfile] = useState<ProfileSnapshot | null>(null)
-  const [profileLoading, setProfileLoading] = useState(false)
+  // Starts already loading when there is an identity to hydrate — the fetch effect
+  // below never has to flip this flag synchronously.
+  const [profileLoading, setProfileLoading] = useState(shouldLoadProfile)
   const [submitting, setSubmitting] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [apiError, setApiError] = useState('')
@@ -115,54 +118,65 @@ export default function CourseEnrollmentCard({
     (import.meta.env.VITE_WHATSAPP_COMMUNITY_URL as string | undefined)?.trim() ||
     ''
 
-  const loadProfile = useCallback(async () => {
-    if (!isAuthenticated || !user) {
-      setProfile(null)
-      return
-    }
-    setProfileLoading(true)
-    try {
-      let fullName = user.name?.trim() && user.name !== '—' ? user.name.trim() : ''
-      let email = user.email?.trim() && user.email !== '—' ? user.email.trim() : ''
-      let phone = user.phone?.trim() ?? ''
-      let city = user.city?.trim() ?? ''
-      let gender = user.gender?.trim() ?? ''
-      let countryCode = user.country?.trim().toUpperCase() ?? ''
-
-      try {
-        const p = await fetchProfileUser()
-        if (p.name && p.name !== '—') fullName = p.name.trim()
-        if (p.email && p.email !== '—') email = p.email.trim()
-        if (p.phone) phone = String(p.phone).trim()
-        if (p.city) city = String(p.city).trim()
-        if (p.gender) gender = String(p.gender).trim()
-        if (p.country) countryCode = String(p.country).trim().toUpperCase()
-      } catch {
-        /* session fallback */
-      }
-
-      const { country, local } = parsePhoneCountry(phone)
-      const resolvedCountry =
-        country ?? (countryCode ? COUNTRIES.find((c) => c.code === countryCode) ?? null : null)
-      const resolvedPhone =
-        resolvedCountry && local ? `${resolvedCountry.dialCode}${local}` : phone
-
-      setProfile({
-        fullName,
-        email,
-        phone: resolvedPhone,
-        city,
-        gender,
-        country: resolvedCountry,
-      })
-    } finally {
-      setProfileLoading(false)
-    }
-  }, [isAuthenticated, user])
+  // Re-arm the loading state during render when the signed-in identity changes, so the
+  // card never paints the previous user's snapshot (react.dev "adjusting state").
+  const [seenAuthenticated, setSeenAuthenticated] = useState(isAuthenticated)
+  const [seenUser, setSeenUser] = useState(user)
+  if (seenAuthenticated !== isAuthenticated || seenUser !== user) {
+    setSeenAuthenticated(isAuthenticated)
+    setSeenUser(user)
+    setProfileLoading(shouldLoadProfile)
+    if (!shouldLoadProfile) setProfile(null)
+  }
 
   useEffect(() => {
-    void loadProfile()
-  }, [loadProfile])
+    if (!isAuthenticated || !user) return
+    let alive = true
+    void (async () => {
+      try {
+        let fullName = user.name?.trim() && user.name !== '—' ? user.name.trim() : ''
+        let email = user.email?.trim() && user.email !== '—' ? user.email.trim() : ''
+        let phone = user.phone?.trim() ?? ''
+        let city = user.city?.trim() ?? ''
+        let gender = user.gender?.trim() ?? ''
+        let countryCode = user.country?.trim().toUpperCase() ?? ''
+
+        try {
+          const p = await fetchProfileUser()
+          if (p.name && p.name !== '—') fullName = p.name.trim()
+          if (p.email && p.email !== '—') email = p.email.trim()
+          if (p.phone) phone = String(p.phone).trim()
+          if (p.city) city = String(p.city).trim()
+          if (p.gender) gender = String(p.gender).trim()
+          if (p.country) countryCode = String(p.country).trim().toUpperCase()
+        } catch {
+          /* session fallback */
+        }
+
+        if (!alive) return
+
+        const { country, local } = parsePhoneCountry(phone)
+        const resolvedCountry =
+          country ?? (countryCode ? COUNTRIES.find((c) => c.code === countryCode) ?? null : null)
+        const resolvedPhone =
+          resolvedCountry && local ? `${resolvedCountry.dialCode}${local}` : phone
+
+        setProfile({
+          fullName,
+          email,
+          phone: resolvedPhone,
+          city,
+          gender,
+          country: resolvedCountry,
+        })
+      } finally {
+        if (alive) setProfileLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [isAuthenticated, user])
 
   const missing = useMemo((): MissingField[] => {
     if (profile) return missingFields(profile)

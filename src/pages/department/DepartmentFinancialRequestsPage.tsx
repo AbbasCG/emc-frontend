@@ -15,6 +15,8 @@ export default function DepartmentFinancialRequestsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editTarget, setEditTarget] = useState<FinancialRequest | undefined>()
 
+  /** Imperative refresh from the toolbar button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -23,7 +25,21 @@ export default function DepartmentFinancialRequestsPage() {
     } catch { toast.error('فشل تحميل الطلبات') } finally { setLoading(false) }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // Mount load — `loading` already starts at `true`, so no synchronous reset is needed.
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchFinancialRequests()
+        if (alive) setRequests(res.data ?? [])
+      } catch {
+        if (alive) toast.error('فشل تحميل الطلبات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   function handleUpdate(updated: FinancialRequest) {
     setRequests(r => r.map(x => x.id === updated.id ? updated : x))

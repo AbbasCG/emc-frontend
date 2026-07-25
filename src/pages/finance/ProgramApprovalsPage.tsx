@@ -117,10 +117,40 @@ export default function ProgramApprovalsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
   const [items, setItems] = useState<FinanceApprovalItem[]>([]);
   const [summary, setSummary] = useState<FinanceApprovalSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Starts loading — the effect below fetches on mount unconditionally.
+  const [isLoading, setIsLoading] = useState(true);
   const [approveItem, setApproveItem] = useState<FinanceApprovalItem | null>(null);
   const [rejectItem, setRejectItem] = useState<FinanceApprovalItem | null>(null);
 
+  // Re-arm the loading state during render when the filter changes (react.dev
+  // "adjusting state when a prop changes") instead of from the effect below.
+  const [seenStatusFilter, setSeenStatusFilter] = useState<StatusFilter>(statusFilter);
+  if (seenStatusFilter !== statusFilter) {
+    setSeenStatusFilter(statusFilter);
+    setIsLoading(true);
+  }
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await programFinanceApi.list({ status: statusFilter, per_page: 50 });
+        if (!alive) return;
+        setItems(res.data.data);
+        setSummary(res.data.summary);
+      } catch {
+        if (alive) toast.error("تعذر تحميل البيانات");
+      } finally {
+        if (alive) setIsLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [statusFilter]);
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -133,8 +163,6 @@ export default function ProgramApprovalsPage() {
       setIsLoading(false);
     }
   }, [statusFilter]);
-
-  useEffect(() => { void load(); }, [load]);
 
   const handleApprove = async (id: number, note?: string) => {
     try {

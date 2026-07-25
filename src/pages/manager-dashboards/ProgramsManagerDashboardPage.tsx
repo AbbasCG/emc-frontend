@@ -45,9 +45,25 @@ export default function ProgramsManagerDashboardPage() {
     }
   }, [])
 
+  // Mount load — `loading`/`error` already start in the right state, so the effect does
+  // no synchronous reset (the refresh/retry buttons still call `load` directly).
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const result = await fetchProgramsManagerDashboard()
+        if (alive) setData(result)
+      } catch {
+        if (alive) {
+          setError('تعذّر تحميل لوحة مدير البرامج. تحقق من الاتصال بالخادم وأعد المحاولة.')
+          setData(null)
+        }
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   if (loading && !data) return <DashboardSkeleton />
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -56,21 +56,32 @@ export function WhatsNewDrawer({ open, onClose, onUnreadChange }: Props) {
   const [loading,  setLoading]  = useState(false)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await fetchWhatsNew()
-      setItems(data)
-      const unread = data.filter(d => !d.is_read).length
-      onUnreadChange?.(unread)
-    } finally {
-      setLoading(false)
-    }
-  }, [onUnreadChange])
+  // Arm the loading state during render when the drawer opens, so the fetch effect
+  // below never sets it synchronously. `null` seed keeps the first pass live.
+  const [seenOpen, setSeenOpen] = useState<boolean | null>(null)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) setLoading(true)
+  }
 
   useEffect(() => {
-    if (open) load()
-  }, [open, load])
+    if (!open) return
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchWhatsNew()
+        if (!alive) return
+        setItems(data)
+        const unread = data.filter(d => !d.is_read).length
+        onUnreadChange?.(unread)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [open, onUnreadChange])
 
   // Mark visible unread non-mandatory items as read after 1.5 s
   useEffect(() => {

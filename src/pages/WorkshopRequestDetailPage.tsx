@@ -21,7 +21,7 @@ import {
   Users,
   XCircle,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -338,6 +338,42 @@ function ActionModal({
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 
+/** Pure I/O — no state plumbing, so the mount effect and the imperative `load` below
+ *  can share it without either calling a state-mutating callback. */
+type RequestLoad =
+  | { ok: true; detail: WorkshopRequestDetail; history: WorkflowHistoryResponse | null }
+  | { ok: false; forbidden: boolean; message: string }
+
+async function loadWorkshopRequest(numId: number): Promise<RequestLoad> {
+  try {
+    const detail = await fetchAdminWorkshopRequestDetail(numId)
+    let history: WorkflowHistoryResponse | null = null
+    try {
+      history = await fetchWorkshopWorkflowHistory(numId)
+    } catch {
+      history = null
+    }
+    return { ok: true, detail, history }
+  } catch (e) {
+    const status = axios.isAxiosError(e) ? e.response?.status : undefined
+    if (status === 403) {
+      return {
+        ok: false,
+        forbidden: true,
+        message: getApiErrorMessage(e) || 'غير مصرح لك بالوصول لهذا الطلب.',
+      }
+    }
+    if (status === 404) {
+      return { ok: false, forbidden: false, message: 'الطلب غير موجود.' }
+    }
+    return {
+      ok: false,
+      forbidden: false,
+      message: getApiErrorMessage(e) || 'تعذّر تحميل بيانات الطلب.',
+    }
+  }
+}
+
 export default function WorkshopRequestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
@@ -353,36 +389,53 @@ export default function WorkshopRequestDetailPage() {
 
   const numId = Number(id)
 
-  async function load() {
+  /** Imperative refresh from an event handler — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
+  const load = useCallback(async () => {
     setLoading(true)
     setError('')
     setForbidden(false)
-    try {
-      const det = await fetchAdminWorkshopRequestDetail(numId)
-      setDetail(det)
-      try {
-        const hist = await fetchWorkshopWorkflowHistory(numId)
-        setHistory(hist)
-      } catch {
-        setHistory(null)
-      }
-    } catch (e) {
-      const status = axios.isAxiosError(e) ? e.response?.status : undefined
-      if (status === 403) {
-        setForbidden(true)
-        setError(getApiErrorMessage(e) || 'غير مصرح لك بالوصول لهذا الطلب.')
-      } else if (status === 404) {
-        setError('الطلب غير موجود.')
-      } else {
-        setError(getApiErrorMessage(e) || 'تعذّر تحميل بيانات الطلب.')
-      }
-    } finally {
-      setLoading(false)
+    const res = await loadWorkshopRequest(numId)
+    if (res.ok) {
+      setDetail(res.detail)
+      setHistory(res.history)
+    } else {
+      setForbidden(res.forbidden)
+      setError(res.message)
+    }
+    setLoading(false)
+  }, [numId])
+
+  // Re-arm the load state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"); the effect below then only does I/O.
+  // `Object.is` (not `!==`) because `numId` is `NaN` for a non-numeric route id, and
+  // `NaN !== NaN` would re-trigger this branch on every render.
+  const [seenId, setSeenId] = useState(numId)
+  if (!Object.is(seenId, numId)) {
+    setSeenId(numId)
+    if (numId > 0) {
+      setLoading(true)
+      setError('')
+      setForbidden(false)
     }
   }
 
   useEffect(() => {
-    if (numId > 0) void load()
+    if (!(numId > 0)) return
+    let alive = true
+    void (async () => {
+      const res = await loadWorkshopRequest(numId)
+      if (!alive) return
+      if (res.ok) {
+        setDetail(res.detail)
+        setHistory(res.history)
+      } else {
+        setForbidden(res.forbidden)
+        setError(res.message)
+      }
+      setLoading(false)
+    })()
+    return () => { alive = false }
   }, [numId])
 
   async function handleApprove(notes: string, selectedDateOption?: number | null) {

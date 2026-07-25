@@ -60,10 +60,18 @@ export default function SessionCalendar({
     return { from: toISODate(start), to: toISODate(end) }
   }, [anchor, view])
 
-  useEffect(() => {
-    let cancelled = false
+  // Re-arm the loading state during render when the visible range (or the fetcher)
+  // changes — react.dev "adjusting state when a prop changes". On mount the effect only
+  // re-set the already-initial values, so seeding `seen` here keeps behaviour identical.
+  const [seenRange, setSeenRange] = useState({ from, to, fetchEvents })
+  if (seenRange.from !== from || seenRange.to !== to || seenRange.fetchEvents !== fetchEvents) {
+    setSeenRange({ from, to, fetchEvents })
     setLoading(true)
     setError(false)
+  }
+
+  useEffect(() => {
+    let cancelled = false
     fetchEvents(from, to)
       .then((rows) => { if (!cancelled) setEvents(rows) })
       .catch(() => { if (!cancelled) { setError(true); toast.error('تعذّر تحميل التقويم') } })

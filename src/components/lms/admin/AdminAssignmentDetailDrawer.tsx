@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   Calendar,
@@ -148,25 +148,41 @@ export default function AdminAssignmentDetailDrawer({
   const [studentFilter, setStudentFilter] = useState<'' | 'submitted' | 'not_submitted' | 'late'>('')
   const [reviewRow, setReviewRow] = useState<AdminAssignmentSubmissionRow | null>(null)
 
-  const load = useCallback(() => {
-    if (!assignmentId) return
-    setLoading(true)
-    setError(null)
-    adminGetAssignmentDetail(assignmentId)
-      .then(setDetail)
-      .catch(() => setError('تعذّر تحميل تفاصيل الواجب.'))
-      .finally(() => setLoading(false))
-  }, [assignmentId])
-
-  useEffect(() => {
-    if (!open || !assignmentId) {
+  // Adjust state during render when the drawer's target changes (react.dev
+  // "adjusting state when a prop changes"): clear the panel when it closes, and
+  // arm the loading state when a new assignment is about to be fetched below.
+  // `seenTarget` starts at `null` so a drawer mounted already open still arms.
+  const target = open && assignmentId ? assignmentId : null
+  const [seenTarget, setSeenTarget] = useState<number | null>(null)
+  if (seenTarget !== target) {
+    setSeenTarget(target)
+    if (target === null) {
       setDetail(null)
       setReviewRow(null)
       setActiveTab('overview')
-      return
+    } else {
+      setLoading(true)
+      setError(null)
     }
-    load()
-  }, [open, assignmentId, load])
+  }
+
+  useEffect(() => {
+    if (!open || !assignmentId) return
+    let alive = true
+    void (async () => {
+      try {
+        const data = await adminGetAssignmentDetail(assignmentId)
+        if (alive) setDetail(data)
+      } catch {
+        if (alive) setError('تعذّر تحميل تفاصيل الواجب.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [open, assignmentId])
 
   const filteredSubmissions = useMemo(() => {
     const list = detail?.submissions ?? []

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 export type CourseDetailTabId =
@@ -65,11 +65,16 @@ export default function CourseDetailTabs({ tabs, panels, defaultTab = 'overview'
     [focusTab, visible],
   )
 
-  useEffect(() => {
+  // Keep the stored tab valid when the visible set changes (adjust state during render).
+  // `seenVisible` starts as `null` so the very first pass still runs, matching the
+  // mount run of the effect this replaces.
+  const [seenVisible, setSeenVisible] = useState<TabDef[] | null>(null)
+  if (seenVisible !== visible) {
+    setSeenVisible(visible)
     if (!visible.some((t) => t.id === active) && visible[0]) {
       setActive(visible[0].id)
     }
-  }, [active, visible])
+  }
 
   return (
     <section className="overflow-hidden rounded-[1.5rem] border border-line bg-white/80 shadow-emc-md backdrop-blur-xl">

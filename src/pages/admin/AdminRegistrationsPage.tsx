@@ -122,10 +122,20 @@ function DetailDrawer({
   const [updating, setUpdating] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
 
+  // Clear the previous record and arm the loading state during render when the drawer
+  // opens on a different registration, so the effect below only commits from callbacks.
+  // `null` seed keeps the first pass live, matching the mount run of the effect.
+  const [seenTarget, setSeenTarget] = useState<{ open: boolean; id: number | null } | null>(null)
+  if (!seenTarget || seenTarget.open !== open || seenTarget.id !== registrationId) {
+    setSeenTarget({ open, id: registrationId })
+    if (open && registrationId) {
+      setDetail(null)
+      setLoading(true)
+    }
+  }
+
   useEffect(() => {
     if (!open || !registrationId) return
-    setDetail(null)
-    setLoading(true)
     fetchAdminRegistrationDetail(registrationId)
       .then(setDetail)
       .catch(() => {/* ignore — show whatever we have */})
@@ -412,6 +422,29 @@ const STATUS_STRIPE: Record<string, string> = {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+/** Server-side query for the registrations list. */
+type RegistrationsQuery = {
+  search: string
+  status: string
+  dateFrom: string
+  dateTo: string
+  courseId: number | undefined
+}
+
+/**
+ * Pure I/O — no state plumbing, so both the fetch effect and the search / retry
+ * handlers can call it and do their own `setState` around it.
+ */
+function requestAdminRegistrations(query: RegistrationsQuery) {
+  const filters: AdminRegistrationListFilters = {}
+  if (query.search.trim())    filters.search    = query.search.trim()
+  if (query.status.trim())    filters.status    = query.status.trim()
+  if (query.dateFrom.trim())  filters.date_from = query.dateFrom.trim()
+  if (query.dateTo.trim())    filters.date_to   = query.dateTo.trim()
+  if (query.courseId != null) filters.course_id = query.courseId
+  return fetchAdminRegistrations(filters)
+}
+
 export default function AdminRegistrationsPage() {
   const { user } = useAuth()
   const isAdmin = ['admin', 'super_admin', 'tech_admin'].includes(user?.role ?? '')
@@ -429,25 +462,52 @@ export default function AdminRegistrationsPage() {
   const [drawerOpen, setDrawerOpen]   = useState(false)
   const [activeId, setActiveId]       = useState<number | null>(null)
 
+  const query = useMemo<RegistrationsQuery>(
+    () => ({ search, status, dateFrom, dateTo, courseId }),
+    [search, status, dateFrom, dateTo, courseId],
+  )
+
+  // Return to the loading state during render when the query changes, so the effect
+  // below never has to set it synchronously (react.dev "adjusting state").
+  const [seenQuery, setSeenQuery] = useState(query)
+  if (seenQuery !== query) {
+    setSeenQuery(query)
+    setLoading(true)
+    setError(null)
+  }
+
+  // Imperative re-run from the search / retry buttons — outside an effect, so it may
+  // flip to the loading state synchronously.
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const filters: AdminRegistrationListFilters = {}
-      if (search.trim())    filters.search    = search.trim()
-      if (status.trim())    filters.status    = status.trim()
-      if (dateFrom.trim())  filters.date_from = dateFrom.trim()
-      if (dateTo.trim())    filters.date_to   = dateTo.trim()
-      if (courseId != null) filters.course_id = courseId
-      setRows(await fetchAdminRegistrations(filters))
+      setRows(await requestAdminRegistrations(query))
     } catch {
       setError('تعذّر تحميل التسجيلات. تحقق من الاتصال وأعد المحاولة.')
     } finally {
       setLoading(false)
     }
-  }, [search, status, dateFrom, dateTo, courseId])
+  }, [query])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await requestAdminRegistrations(query)
+        if (!alive) return
+        setRows(data)
+      } catch {
+        if (!alive) return
+        setError('تعذّر تحميل التسجيلات. تحقق من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [query])
 
   function resetFilters() {
     setSearch('')

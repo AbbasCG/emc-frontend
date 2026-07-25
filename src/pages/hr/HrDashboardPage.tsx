@@ -120,7 +120,22 @@ export default function HrDashboardPage() {
     }
   }
 
-  useEffect(() => { void load() }, [])
+  // Mount load — `loading`/`error` already start in the right state, so the effect does
+  // no synchronous reset (the refresh/retry buttons still call `load` directly).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const result = await fetchHrDashboard()
+        if (alive) setData(result)
+      } catch {
+        if (alive) setError('تعذّر تحميل بيانات الموارد البشرية.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const s = data?.stats
 

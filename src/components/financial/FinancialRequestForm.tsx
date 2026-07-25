@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Upload, FileText, Trash2, Building2, Crown, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -71,19 +71,31 @@ export default function FinancialRequestForm({ initial, onClose, onSaved }: Prop
   const [saving, setSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const loadCtx = useCallback(async () => {
-    try {
-      const data = await fetchMyFinancialContext()
-      setCtx(data)
-      if (!departmentId && data.primary_department) {
-        setDepartmentId(data.primary_department.id)
+  // Mount fetch — inlined in the effect so no state is set on its synchronous path.
+  // `ctxLoading` already starts as `true`.
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchMyFinancialContext()
+        if (!alive) return
+        setCtx(data)
+        if (!departmentId && data.primary_department) {
+          setDepartmentId(data.primary_department.id)
+        }
+      } catch {
+        if (!alive) return
+        toast.error('فشل تحميل بيانات القسم')
+      } finally {
+        if (alive) setCtxLoading(false)
       }
-    } catch {
-      toast.error('فشل تحميل بيانات القسم')
-    } finally { setCtxLoading(false) }
+    })()
+    return () => {
+      alive = false
+    }
+    // Mount-only, exactly as the previous `useCallback(…, [])` loader: `departmentId`
+    // is read at mount and only used as an "unset?" check.
   }, [])
-
-  useEffect(() => { void loadCtx() }, [loadCtx])
 
   function handleFileAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])

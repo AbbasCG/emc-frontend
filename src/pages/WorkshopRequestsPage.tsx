@@ -143,6 +143,18 @@ function QuickRejectModal({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
+/** Pure I/O — shared by the mount/dep effect and the imperative `load` below, so
+ *  neither has to call a state-mutating callback. */
+function fetchRequestsPage(page: number, filterStatus: string, search: string): Promise<WRPage> {
+  return fetchAdminWorkshopRequests({
+    page, per_page: 15,
+    ...(filterStatus ? { workflow_status: filterStatus } : {}),
+    ...(search ? { search } : {}),
+  })
+}
+
+const LOAD_ERROR_MSG = 'تعذّر تحميل الطلبات. يرجى المحاولة مرة أخرى.'
+
 export default function WorkshopRequestsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -157,23 +169,46 @@ export default function WorkshopRequestsPage() {
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  /** Imperative refresh from an event handler — outside any effect, so the synchronous
+   *  flip to the loading state is fine here. */
   const load = useCallback(async () => {
     setLoading(true); setError('')
     try {
-      const result = await fetchAdminWorkshopRequests({
-        page, per_page: 15,
-        ...(filterStatus ? { workflow_status: filterStatus } : {}),
-        ...(search ? { search } : {}),
-      })
-      setData(result)
+      setData(await fetchRequestsPage(page, filterStatus, search))
     } catch {
-      setError('تعذّر تحميل الطلبات. يرجى المحاولة مرة أخرى.')
+      setError(LOAD_ERROR_MSG)
     } finally {
       setLoading(false)
     }
   }, [page, filterStatus, search])
 
-  useEffect(() => { void load() }, [load])
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes"), so the effect below stays pure I/O.
+  const [seenQuery, setSeenQuery] = useState({ page, filterStatus, search })
+  if (
+    seenQuery.page !== page ||
+    seenQuery.filterStatus !== filterStatus ||
+    seenQuery.search !== search
+  ) {
+    setSeenQuery({ page, filterStatus, search })
+    setLoading(true)
+    setError('')
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const result = await fetchRequestsPage(page, filterStatus, search)
+        if (alive) setData(result)
+      } catch {
+        if (alive) setError(LOAD_ERROR_MSG)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [page, filterStatus, search])
 
   // Debounce search
   function handleSearchInput(val: string) {

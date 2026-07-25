@@ -34,6 +34,14 @@ export default function DashboardRouteSearchModal({
 
   useFocusTrap(panelRef, { active: open, onEscape: onClose })
 
+  // Clear the box when the modal closes (adjust state during render — react.dev's
+  // "adjusting state when a prop changes"); the effect below keeps the DOM side effects.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (!open) setQuery('')
+  }
+
   const allEntries = useMemo(
     () => flattenSidebarForSearch(getSidebarByRole(user?.role)),
     [user?.role],
@@ -47,10 +55,7 @@ export default function DashboardRouteSearchModal({
   const grouped = useMemo(() => groupResults(filtered), [filtered])
 
   useEffect(() => {
-    if (!open) {
-      setQuery('')
-      return
-    }
+    if (!open) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const t = window.setTimeout(() => inputRef.current?.focus(), 50)

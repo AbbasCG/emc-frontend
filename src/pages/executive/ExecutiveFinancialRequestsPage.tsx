@@ -14,6 +14,8 @@ export default function ExecutiveFinancialRequestsPage() {
   const [selected, setSelected] = useState<FinancialRequest | null>(null)
   const [statusFilter, setStatusFilter] = useState('')
 
+  /** Imperative refresh from the toolbar button — outside any effect, so flipping to the
+   *  loading state synchronously is fine here. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -22,7 +24,28 @@ export default function ExecutiveFinancialRequestsPage() {
     } catch { toast.error('فشل تحميل الطلبات') } finally { setLoading(false) }
   }, [statusFilter])
 
-  useEffect(() => { void load() }, [load])
+  // Re-arm the loading state during render when the filter changes (react.dev "adjusting
+  // state when a prop changes"), so the effect below stays pure I/O.
+  const [seenStatusFilter, setSeenStatusFilter] = useState(statusFilter)
+  if (seenStatusFilter !== statusFilter) {
+    setSeenStatusFilter(statusFilter)
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchFinancialRequests({ status: statusFilter || undefined })
+        if (alive) setRequests(res.data ?? [])
+      } catch {
+        if (alive) toast.error('فشل تحميل الطلبات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [statusFilter])
 
   function handleUpdate(updated: FinancialRequest) {
     setRequests(r => r.map(x => x.id === updated.id ? updated : x))

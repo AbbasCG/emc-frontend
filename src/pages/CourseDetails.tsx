@@ -136,27 +136,37 @@ export default function CourseDetails() {
   const { isAuthenticated, user } = useAuth()
 
   const [course, setCourse] = useState<Course | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Seeded exactly as the old mount-time effect left it: a missing slug resolves straight
+  // to the not-found state instead of loading.
+  const [isLoading, setIsLoading] = useState(Boolean(slug))
   const [error, setError] = useState('')
-  const [notFound, setNotFound] = useState(false)
+  const [notFound, setNotFound] = useState(!slug)
   const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
   const [courseAccess, setCourseAccess] = useState<StudentCourseAccess | null>(null)
   const [wishlisted, setWishlisted] = useState(false)
 
-  useEffect(() => {
-    if (!slug) {
+  // Re-arm the loading/error state during render when the route slug changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never writes state
+  // synchronously.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    if (slug) {
+      setIsLoading(true)
+      setError('')
+      setNotFound(false)
+    } else {
       setIsLoading(false)
       setNotFound(true)
-      return
     }
+  }
+
+  useEffect(() => {
+    const slugKey = slug
+    if (!slugKey) return
     const controller = new AbortController()
-    async function fetchCourse() {
-      const slugKey = slug
-      if (!slugKey) return
+    void (async () => {
       try {
-        setIsLoading(true)
-        setError('')
-        setNotFound(false)
         const response = await api.get<Course | { data?: Course }>(
           `/courses/${encodeURIComponent(slugKey)}`,
           { signal: controller.signal, skipErrorToast: true },
@@ -186,8 +196,7 @@ export default function CourseDetails() {
       } finally {
         setIsLoading(false)
       }
-    }
-    void fetchCourse()
+    })()
     return () => controller.abort()
   }, [slug])
 

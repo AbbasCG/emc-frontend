@@ -271,6 +271,25 @@ export default function FinanceOrdersPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [selected, setSelected]       = useState<FinanceOrder | null>(null)
 
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const r = await api.get('/finance/orders')
+        if (alive) setOrders(r.data.data ?? [])
+      } catch {
+        if (alive) toast.error('تعذّر تحميل الطلبات.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(() => {
     setLoading(true)
     api.get('/finance/orders')
@@ -278,8 +297,6 @@ export default function FinanceOrdersPage() {
       .catch(() => toast.error('تعذّر تحميل الطلبات.'))
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => { load() }, [load])
 
   const filtered = useMemo(() => orders.filter((o) => {
     const q = search.toLowerCase()

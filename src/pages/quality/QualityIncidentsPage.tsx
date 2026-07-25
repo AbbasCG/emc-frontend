@@ -93,6 +93,25 @@ const EMPTY_FORM = {
   assignee_id: '',
 }
 
+interface IncidentsQuery {
+  page: number
+  search: string
+  status: string
+  severity: string
+  priority: string
+}
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative
+ *  refresh share it without either having to call a state-mutating callback. */
+function fetchIncidentsPage(query: IncidentsQuery) {
+  const params: Record<string, string> = { page: String(query.page) }
+  if (query.search) params.search = query.search
+  if (query.status) params.status = query.status
+  if (query.severity) params.severity = query.severity
+  if (query.priority) params.priority = query.priority
+  return fetchQualityIncidents(params)
+}
+
 export default function QualityIncidentsPage() {
   const [incidents, setIncidents] = useState<QualityIncident[]>([])
   const [meta, setMeta] = useState<IncidentsMeta>({})
@@ -109,15 +128,46 @@ export default function QualityIncidentsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
 
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") instead of from the effect below.
+  const [seenQuery, setSeenQuery] = useState({ page, search, status, severity, priority })
+  if (
+    seenQuery.page !== page ||
+    seenQuery.search !== search ||
+    seenQuery.status !== status ||
+    seenQuery.severity !== severity ||
+    seenQuery.priority !== priority
+  ) {
+    setSeenQuery({ page, search, status, severity, priority })
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchIncidentsPage({ page, search, status, severity, priority })
+        if (!alive) return
+        setIncidents(res.data ?? [])
+        setMeta(res.meta ?? {})
+        setStats(res.stats ?? {})
+      } catch {
+        if (alive) toast.error('تعذّر تحميل الحوادث')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [page, search, status, severity, priority])
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const params: Record<string, string> = { page: String(page) }
-      if (search) params.search = search
-      if (status) params.status = status
-      if (severity) params.severity = severity
-      if (priority) params.priority = priority
-      const res = await fetchQualityIncidents(params)
+      const res = await fetchIncidentsPage({ page, search, status, severity, priority })
       setIncidents(res.data ?? [])
       setMeta(res.meta ?? {})
       setStats(res.stats ?? {})
@@ -127,8 +177,6 @@ export default function QualityIncidentsPage() {
       setLoading(false)
     }
   }, [page, search, status, severity, priority])
-
-  useEffect(() => { load() }, [load])
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()

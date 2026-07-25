@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ScrollText, ChevronLeft, ChevronRight } from 'lucide-react'
 import { fetchQualityAuditLogs } from '@/api/qualityApi'
@@ -77,25 +77,43 @@ export default function QualityAuditLogsPage() {
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<QualityAuditLog | null>(null)
 
-  const load = useCallback(async () => {
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") instead of from the effect below.
+  const [seenQuery, setSeenQuery] = useState({ page, search, action, from, to })
+  if (
+    seenQuery.page !== page ||
+    seenQuery.search !== search ||
+    seenQuery.action !== action ||
+    seenQuery.from !== from ||
+    seenQuery.to !== to
+  ) {
+    setSeenQuery({ page, search, action, from, to })
     setLoading(true)
-    try {
-      const params: Record<string, string> = { page: String(page) }
-      if (search) params.search = search
-      if (action) params.action = action
-      if (from) params.from = from
-      if (to) params.to = to
-      const res = await fetchQualityAuditLogs(params)
-      setLogs(res.data ?? [])
-      setMeta(res.meta ?? {})
-    } catch {
-      toast.error('تعذّر تحميل سجلات التدقيق')
-    } finally {
-      setLoading(false)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const params: Record<string, string> = { page: String(page) }
+        if (search) params.search = search
+        if (action) params.action = action
+        if (from) params.from = from
+        if (to) params.to = to
+        const res = await fetchQualityAuditLogs(params)
+        if (!alive) return
+        setLogs(res.data ?? [])
+        setMeta(res.meta ?? {})
+      } catch {
+        if (alive) toast.error('تعذّر تحميل سجلات التدقيق')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
     }
   }, [page, search, action, from, to])
-
-  useEffect(() => { load() }, [load])
 
   return (
     <div dir="rtl" className="min-h-screen bg-slate-50 p-6">

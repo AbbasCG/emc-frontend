@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, Loader2, MapPin, Phone, X } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -33,6 +33,35 @@ type Props = {
   onSubmit: (values: EnrollmentFieldValues) => void
 }
 
+/** Splits the incoming phone into (country, national part) exactly as the form stores it. */
+function hydratePhone(initial?: Partial<EnrollmentFieldValues>): {
+  country: Country | null
+  localPhone: string
+} {
+  const phoneRaw = initial?.phone?.trim() ?? ''
+  const country =
+    initial?.country_code ? COUNTRIES.find((c) => c.code === initial.country_code) ?? null : null
+
+  if (phoneRaw && initial?.phone_country_code) {
+    return {
+      country,
+      localPhone:
+        phoneRaw.startsWith(initial.phone_country_code) ?
+          phoneRaw.slice(initial.phone_country_code.length)
+        : phoneRaw,
+    }
+  }
+  if (phoneRaw) {
+    for (const co of COUNTRIES) {
+      if (phoneRaw.startsWith(co.dialCode)) {
+        return { country: co, localPhone: phoneRaw.slice(co.dialCode.length).trim() }
+      }
+    }
+    return { country, localPhone: phoneRaw }
+  }
+  return { country, localPhone: '' }
+}
+
 const inputCls = (err?: string) =>
   `h-12 w-full rounded-xl border bg-paper2 px-4 text-right font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${err ? 'border-red-400' : 'border-line focus:border-customBlue'}`
 
@@ -61,37 +90,27 @@ export default function CourseEnrollmentFieldsModal({
 
   const requiresRegistrationCode = Boolean(course.requires_registration_code)
 
-  useEffect(() => {
-    if (!open) return
-    setCity(initial?.city ?? '')
-    setGender(initial?.gender ?? '')
-    setNotes(initial?.notes ?? '')
-    setRegistrationCode(initial?.registration_code ?? '')
-    setPaymentProvider(initial?.payment_provider ?? 'stripe')
+  // Hydrate the form from `initial` during render whenever the modal opens or the
+  // incoming values change (react.dev "adjusting state when a prop changes").
+  // `seenOpen` starts as `null` so the first pass still runs, matching the mount run
+  // of the effect this replaces.
+  const [seenOpen, setSeenOpen] = useState<boolean | null>(null)
+  const [seenInitial, setSeenInitial] = useState(initial)
+  if (seenOpen !== open || seenInitial !== initial) {
+    setSeenOpen(open)
+    setSeenInitial(initial)
+    if (open) {
+      setCity(initial?.city ?? '')
+      setGender(initial?.gender ?? '')
+      setNotes(initial?.notes ?? '')
+      setRegistrationCode(initial?.registration_code ?? '')
+      setPaymentProvider(initial?.payment_provider ?? 'stripe')
 
-    const phoneRaw = initial?.phone?.trim() ?? ''
-    if (initial?.country_code) {
-      const co = COUNTRIES.find((c) => c.code === initial.country_code) ?? null
-      setSelectedCountry(co)
-    } else {
-      setSelectedCountry(null)
+      const hydrated = hydratePhone(initial)
+      setSelectedCountry(hydrated.country)
+      setLocalPhone(hydrated.localPhone)
     }
-
-    if (phoneRaw && initial?.phone_country_code) {
-      setLocalPhone(phoneRaw.startsWith(initial.phone_country_code) ? phoneRaw.slice(initial.phone_country_code.length) : phoneRaw)
-    } else if (phoneRaw) {
-      for (const co of COUNTRIES) {
-        if (phoneRaw.startsWith(co.dialCode)) {
-          setSelectedCountry(co)
-          setLocalPhone(phoneRaw.slice(co.dialCode.length).trim())
-          return
-        }
-      }
-      setLocalPhone(phoneRaw)
-    } else {
-      setLocalPhone('')
-    }
-  }, [open, initial])
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()

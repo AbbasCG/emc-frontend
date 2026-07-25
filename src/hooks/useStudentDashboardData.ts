@@ -192,6 +192,83 @@ const FALLBACK_CONTEXT: StudentDashboardContextValue = {
 
 const StudentDashboardContext = createContext<StudentDashboardContextValue | null>(null)
 
+type StudentDashboardSnapshot = {
+  lmsDashboard: StudentLmsDashboard
+  envelope: unknown | null
+  lmsOk: boolean
+  registrations: StudentRegistrationRow[]
+  listedCourses: StudentListedCourse[]
+  apiAvailable: Course[]
+  publicCatalog: Course[]
+  sessionsUpcoming: LmsSession[]
+  sessionsCompleted: LmsSession[]
+  materials: LmsMaterial[]
+  assignments: StudentAssignment[]
+  progress: StudentProgressPayload
+  notificationsUnread: number
+  reviews: StudentReviewRow[]
+}
+
+/**
+ * Pure I/O — kept outside the hook so both the mount effect and the imperative refresh can
+ * await it and then do their own state plumbing. Resolves to `null` when the payload could
+ * not be assembled at all (the individual endpoints already degrade to fallbacks).
+ */
+async function fetchStudentDashboardSnapshot(): Promise<StudentDashboardSnapshot | null> {
+  try {
+    const results = await Promise.allSettled([
+      fetchStudentLmsDashboardWithEnvelope(),
+      fetchStudentRegistrations(),
+      fetchStudentCoursesList(),
+      fetchStudentAvailableCourses(),
+      fetchCoursesFromApi(),
+      fetchStudentSessions(),
+      fetchStudentMaterials(),
+      fetchStudentAssignments(),
+      fetchStudentProgress(),
+      fetchNotifications(),
+      fetchStudentReviews(),
+    ])
+
+    const unwrap = <T,>(i: number, fallback: T): T => {
+      const r = results[i]
+      if (r?.status === 'fulfilled') return r.value as T
+      return fallback
+    }
+
+    const lmsPacked = unwrap(0, EMPTY_LMS_ENVELOPED)
+    const apiRegs = unwrap<StudentRegistrationRow[]>(1, [])
+    const regExtrasFromApi = extractExtraRegistrationRows(lmsPacked.envelope)
+    const sess = unwrap(5, { upcoming: [] as LmsSession[], completed: [] as LmsSession[] })
+    const notifs = unwrap<PlatformNotification[]>(9, [])
+
+    return {
+      lmsDashboard: lmsPacked.dashboard,
+      envelope: lmsPacked.envelope ?? null,
+      lmsOk: lmsPacked.ok,
+      registrations: mergeRegistrationRows(apiRegs, regExtrasFromApi),
+      listedCourses: unwrap<StudentListedCourse[]>(2, []),
+      apiAvailable: unwrap<Course[]>(3, []),
+      publicCatalog: unwrap<Course[]>(4, []),
+      sessionsUpcoming: sess.upcoming ?? [],
+      sessionsCompleted: sess.completed ?? [],
+      materials: unwrap<LmsMaterial[]>(6, []),
+      assignments: unwrap<StudentAssignment[]>(7, []),
+      progress: unwrap<StudentProgressPayload>(
+        8,
+        mergeProgressWithRegistrations(
+          { course_progress: [], attendance_percent: 0, overall_assignment_completion: 0 },
+          [],
+        ),
+      ),
+      notificationsUnread: notifs.filter((n) => isNotificationUnread(n)).length,
+      reviews: unwrap<StudentReviewRow[]>(10, []),
+    }
+  } catch {
+    return null
+  }
+}
+
 function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDashboardContextValue {
   const [loading, setLoading] = useState(enabled)
   const [refreshing, setRefreshing] = useState(false)
@@ -220,75 +297,42 @@ function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDas
   const [reviews, setReviews] = useState<StudentReviewRow[]>([])
   const [notificationsUnread, setNotificationsUnread] = useState(0)
 
-  // Runs the fetch without touching state synchronously, so the mount effect below can
-  // call it directly. Each caller arms the flags first: the render adjustment for the
-  // initial load, the handler itself for a refresh.
+  // Commits a resolved snapshot. Shared by the mount effect and by `load`, so neither has
+  // to duplicate the (long) state plumbing.
+  const applySnapshot = useCallback((snapshot: StudentDashboardSnapshot | null) => {
+    if (!snapshot) {
+      setLoadError('تعذّر مزامنة بيانات الطالب.')
+      return
+    }
+
+    setLmsDashboard(snapshot.lmsDashboard)
+    setStudentDashboardEnvelope(snapshot.envelope)
+    if (!snapshot.lmsOk) {
+      setLoadError('تعذّر تحميل لوحة الطالب.')
+    }
+
+    setRegistrations(snapshot.registrations)
+    setListedCourses(snapshot.listedCourses)
+    setApiAvailable(snapshot.apiAvailable)
+    setPublicCatalog(snapshot.publicCatalog)
+    setSessionsUpcomingRaw(snapshot.sessionsUpcoming)
+    setSessionsCompletedRaw(snapshot.sessionsCompleted)
+    setMaterialsRaw(snapshot.materials)
+    setAssignmentsRaw(snapshot.assignments)
+    setProgressPayload(snapshot.progress)
+    setNotificationsUnread(snapshot.notificationsUnread)
+    setReviews(snapshot.reviews)
+  }, [])
+
+  // Imperative re-run from the refresh handler / the cross-app refresh event — both are
+  // outside an effect's synchronous path, so arming the flags there stays legal.
   const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (!enabled) return
-
-    try {
-      const results = await Promise.allSettled([
-        fetchStudentLmsDashboardWithEnvelope(),
-        fetchStudentRegistrations(),
-        fetchStudentCoursesList(),
-        fetchStudentAvailableCourses(),
-        fetchCoursesFromApi(),
-        fetchStudentSessions(),
-        fetchStudentMaterials(),
-        fetchStudentAssignments(),
-        fetchStudentProgress(),
-        fetchNotifications(),
-        fetchStudentReviews(),
-      ])
-
-      const unwrap = <T,>(i: number, fallback: T): T => {
-        const r = results[i]
-        if (r?.status === 'fulfilled') return r.value as T
-        return fallback
-      }
-
-      const lmsPacked = unwrap(0, EMPTY_LMS_ENVELOPED)
-      setLmsDashboard(lmsPacked.dashboard)
-      setStudentDashboardEnvelope(lmsPacked.envelope ?? null)
-      if (!lmsPacked.ok) {
-        setLoadError('تعذّر تحميل لوحة الطالب.')
-      }
-
-      const apiRegs = unwrap(1, []) as StudentRegistrationRow[]
-      const regExtrasFromApi = extractExtraRegistrationRows(lmsPacked.envelope)
-      setRegistrations(mergeRegistrationRows(apiRegs, regExtrasFromApi))
-      setListedCourses(unwrap(2, []))
-      setApiAvailable(unwrap(3, []))
-      setPublicCatalog(unwrap(4, []))
-
-      const sess = unwrap(5, { upcoming: [] as LmsSession[], completed: [] as LmsSession[] })
-      setSessionsUpcomingRaw(sess.upcoming ?? [])
-      setSessionsCompletedRaw(sess.completed ?? [])
-
-      setMaterialsRaw(unwrap(6, []))
-      setAssignmentsRaw(unwrap(7, []))
-      setProgressPayload(
-        unwrap(
-          8,
-          mergeProgressWithRegistrations(
-            { course_progress: [], attendance_percent: 0, overall_assignment_completion: 0 },
-            [],
-          ),
-        ),
-      )
-
-      const notifs = unwrap(9, []) as PlatformNotification[]
-      setNotificationsUnread(notifs.filter((n) => isNotificationUnread(n)).length)
-
-      setReviews(unwrap(10, []))
-
-    } catch {
-      setLoadError('تعذّر مزامنة بيانات الطالب.')
-    } finally {
-      if (mode === 'initial') setLoading(false)
-      setRefreshing(false)
-    }
-  }, [enabled, userId])
+    const snapshot = await fetchStudentDashboardSnapshot()
+    applySnapshot(snapshot)
+    if (mode === 'initial') setLoading(false)
+    setRefreshing(false)
+  }, [enabled, userId, applySnapshot])
 
   // Re-arm for a new scope during render (react.dev "adjusting state when a prop
   // changes") so a switched student never paints the previous one's data as settled.
@@ -301,8 +345,18 @@ function useStudentDashboardLoader(enabled: boolean, userId: number): StudentDas
 
   useEffect(() => {
     if (!enabled) return
-    void load('initial')
-  }, [enabled, userId, load])
+    let alive = true
+    void (async () => {
+      const snapshot = await fetchStudentDashboardSnapshot()
+      if (!alive) return
+      applySnapshot(snapshot)
+      setLoading(false)
+      setRefreshing(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [enabled, userId, applySnapshot])
 
   useEffect(() => {
     if (!enabled) return

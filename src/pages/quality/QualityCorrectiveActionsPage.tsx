@@ -68,6 +68,23 @@ function Skeleton() {
 
 const EMPTY_FORM = { title: '', description: '', priority: 'medium', due_date: '', assignee_id: '', notes: '' }
 
+interface CorrectiveActionsQuery {
+  page: number
+  search: string
+  status: string
+  priority: string
+}
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative
+ *  refresh share it without either having to call a state-mutating callback. */
+function fetchActionsPage(query: CorrectiveActionsQuery) {
+  const params: Record<string, string> = { page: String(query.page) }
+  if (query.search) params.search = query.search
+  if (query.status) params.status = query.status
+  if (query.priority) params.priority = query.priority
+  return fetchCorrectiveActions(params)
+}
+
 export default function QualityCorrectiveActionsPage() {
   const [actions, setActions] = useState<CorrectiveAction[]>([])
   const [meta, setMeta] = useState<CorrectiveActionsMeta>({})
@@ -85,14 +102,45 @@ export default function QualityCorrectiveActionsPage() {
   const [drawerNotes, setDrawerNotes] = useState('')
   const [updating, setUpdating] = useState(false)
 
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") instead of from the effect below.
+  const [seenQuery, setSeenQuery] = useState({ page, search, status, priority })
+  if (
+    seenQuery.page !== page ||
+    seenQuery.search !== search ||
+    seenQuery.status !== status ||
+    seenQuery.priority !== priority
+  ) {
+    setSeenQuery({ page, search, status, priority })
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchActionsPage({ page, search, status, priority })
+        if (!alive) return
+        setActions(res.data ?? [])
+        setMeta(res.meta ?? {})
+        setStats(res.stats ?? {})
+      } catch {
+        if (alive) toast.error('تعذّر تحميل الإجراءات التصحيحية')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [page, search, status, priority])
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const params: Record<string, string> = { page: String(page) }
-      if (search) params.search = search
-      if (status) params.status = status
-      if (priority) params.priority = priority
-      const res = await fetchCorrectiveActions(params)
+      const res = await fetchActionsPage({ page, search, status, priority })
       setActions(res.data ?? [])
       setMeta(res.meta ?? {})
       setStats(res.stats ?? {})
@@ -103,14 +151,16 @@ export default function QualityCorrectiveActionsPage() {
     }
   }, [page, search, status, priority])
 
-  useEffect(() => { load() }, [load])
-
-  useEffect(() => {
+  // Hydrate the drawer's editable fields during render whenever the selected row
+  // changes, instead of from an effect.
+  const [seenSelected, setSeenSelected] = useState<CorrectiveAction | null>(null)
+  if (seenSelected !== selected) {
+    setSeenSelected(selected)
     if (selected) {
       setProgressVal(selected.progress ?? 0)
       setDrawerNotes('')
     }
-  }, [selected])
+  }
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()

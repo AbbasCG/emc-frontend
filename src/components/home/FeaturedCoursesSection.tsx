@@ -75,9 +75,14 @@ export default function FeaturedCoursesSection() {
     }
   }, [])
 
-  useEffect(() => {
+  // Reset to the first page during render when the page size changes (react.dev
+  // "adjusting state when a prop changes"). On mount the effect only re-set the
+  // already-initial 0, so seeding `seen` with the current value keeps behaviour identical.
+  const [seenItemsPerPage, setSeenItemsPerPage] = useState(itemsPerPage)
+  if (seenItemsPerPage !== itemsPerPage) {
+    setSeenItemsPerPage(itemsPerPage)
     setPage(0)
-  }, [itemsPerPage])
+  }
 
   const totalPages = Math.max(1, Math.ceil(courses.length / itemsPerPage))
   const clamped = Math.min(page, totalPages - 1)

@@ -253,6 +253,27 @@ export default function QualityDashboardPage() {
   const [drawerItem, setDrawerItem] = useState<ProgramDrawerItem | null>(null)
   const [dismissed, setDismissed]   = useState<Set<number>>(new Set())
 
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const d = await fetchQualityDashboard()
+        if (!alive) return
+        setData(d)
+        setError(null)
+      } catch {
+        if (alive) setError('تعذّر تحميل البيانات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Retry from the error banner — outside any effect, so the synchronous
+   *  loading flip is allowed. */
   const load = useCallback(() => {
     setLoading(true)
     fetchQualityDashboard()
@@ -260,8 +281,6 @@ export default function QualityDashboardPage() {
       .catch(() => setError('تعذّر تحميل البيانات'))
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => { load() }, [load])
 
   const stats: QualityStats = data?.stats ?? {}
   const alerts   = (data?.alerts  ?? []).filter((_, i) => !dismissed.has(i))

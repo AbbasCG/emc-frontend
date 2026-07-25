@@ -237,6 +237,17 @@ export default function AmbassadorApplicationFiles({
   const [preview, setPreview] = useState<LmsPreviewState>({ kind: 'idle' })
   const objectUrlRef = useRef<string | null>(null)
 
+  // Return to the loading state during render when the application changes, so the
+  // list never paints the previous application's files (react.dev "adjusting state").
+  const [seenApplicationId, setSeenApplicationId] = useState(applicationId)
+  if (seenApplicationId !== applicationId) {
+    setSeenApplicationId(applicationId)
+    setLoading(true)
+    setError(null)
+  }
+
+  // Imperative re-run from event handlers (retry button, post-delete refresh) —
+  // outside an effect, so it may flip to the loading state synchronously.
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -251,8 +262,24 @@ export default function AmbassadorApplicationFiles({
   }, [applicationId])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      try {
+        const data = await getApplicationFiles(applicationId)
+        if (!alive) return
+        setFiles(data)
+        setError(null)
+      } catch {
+        if (!alive) return
+        setError('فشل تحميل الملفات. يرجى المحاولة مرة أخرى.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [applicationId])
 
   useEffect(
     () => () => {

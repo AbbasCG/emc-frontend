@@ -74,19 +74,36 @@ function isInstructor(role: string | null | undefined): boolean {
   return role === 'teacher' || role === 'instructor'
 }
 
+/** Editable form values derived from the merged profile — used both to seed the fields on
+ *  mount and to re-sync them when the merged profile changes. */
+function formValuesFrom(merged: User) {
+  return {
+    name: (merged.name && merged.name !== '—' ? merged.name : '').trim(),
+    email: getUserDisplayEmail(merged) || '',
+    phone: (merged.phone ?? '').toString(),
+    city: (merged.city ?? '').toString(),
+    country: (merged.country ?? '').toString(),
+    instructorBio: (merged.instructor_bio ?? '').toString(),
+  }
+}
+
 export default function ProfilePage() {
   const { user: authUser, refreshUser, logout } = useAuth()
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const merged = useMemo(() => mergeFromSession(profile, authUser ?? null), [profile, authUser])
+
+  // Seeded from the session exactly as the old hydration effect left the fields on mount,
+  // then re-synced during render further below.
+  const [name, setName] = useState(() => formValuesFrom(merged).name)
+  const [email, setEmail] = useState(() => formValuesFrom(merged).email)
   const [emailTouched, setEmailTouched] = useState(false)
-  const [phone, setPhone] = useState('')
-  const [city, setCity] = useState('')
-  const [country, setCountry] = useState('')
-  const [instructorBio, setInstructorBio] = useState('')
+  const [phone, setPhone] = useState(() => formValuesFrom(merged).phone)
+  const [city, setCity] = useState(() => formValuesFrom(merged).city)
+  const [country, setCountry] = useState(() => formValuesFrom(merged).country)
+  const [instructorBio, setInstructorBio] = useState(() => formValuesFrom(merged).instructorBio)
 
   const [saving, setSaving] = useState(false)
   const [avatarBusy, setAvatarBusy] = useState(false)
@@ -97,8 +114,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let alive = true
-    setLoading(true)
-    setError(false)
     fetchProfileUser()
       .then((u) => {
         if (!alive) return
@@ -118,17 +133,44 @@ export default function ProfilePage() {
     }
   }, [])
 
-  const merged = useMemo(() => mergeFromSession(profile, authUser ?? null), [profile, authUser])
-
-  useEffect(() => {
-    setName((merged.name && merged.name !== '—' ? merged.name : '').trim())
-    setEmail(getUserDisplayEmail(merged) || '')
+  // Re-sync the form during render when the merged profile changes — react.dev "adjusting
+  // state when a prop changes". Same trigger set as the old effect's dependency list.
+  const [seenProfile, setSeenProfile] = useState({
+    id: merged.id,
+    name: merged.name,
+    email: merged.email,
+    phone: merged.phone,
+    city: merged.city,
+    country: merged.country,
+    instructor_bio: merged.instructor_bio,
+  })
+  if (
+    seenProfile.id !== merged.id ||
+    seenProfile.name !== merged.name ||
+    seenProfile.email !== merged.email ||
+    seenProfile.phone !== merged.phone ||
+    seenProfile.city !== merged.city ||
+    seenProfile.country !== merged.country ||
+    seenProfile.instructor_bio !== merged.instructor_bio
+  ) {
+    setSeenProfile({
+      id: merged.id,
+      name: merged.name,
+      email: merged.email,
+      phone: merged.phone,
+      city: merged.city,
+      country: merged.country,
+      instructor_bio: merged.instructor_bio,
+    })
+    const next = formValuesFrom(merged)
+    setName(next.name)
+    setEmail(next.email)
     setEmailTouched(false)
-    setPhone((merged.phone ?? '').toString())
-    setCity((merged.city ?? '').toString())
-    setCountry((merged.country ?? '').toString())
-    setInstructorBio((merged.instructor_bio ?? '').toString())
-  }, [merged.id, merged.name, merged.email, merged.phone, merged.city, merged.country, merged.instructor_bio])
+    setPhone(next.phone)
+    setCity(next.city)
+    setCountry(next.country)
+    setInstructorBio(next.instructorBio)
+  }
 
   const roleSlug = normalizeRole(authUser?.role ?? null)
   const isInstructorUser = isInstructor(authUser?.role ?? merged.role)

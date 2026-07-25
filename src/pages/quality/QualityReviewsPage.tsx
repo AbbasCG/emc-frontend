@@ -180,6 +180,21 @@ function mapFieldErrors(errors: Record<string, string[]>): FieldErrors {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+interface ReviewsQuery {
+  page: number
+  search: string
+  status: string
+}
+
+/** Pure I/O — kept outside the component so the mount effect and the imperative
+ *  refresh share it without either having to call a state-mutating callback. */
+function fetchReviewsPage(query: ReviewsQuery) {
+  const params: Record<string, string> = { page: String(query.page) }
+  if (query.search) params.search = query.search
+  if (query.status) params.status = query.status
+  return fetchQualityReviews(params)
+}
+
 export default function QualityReviewsPage() {
   const [reviews, setReviews] = useState<QualityReview[]>([])
   const [meta, setMeta]       = useState<ReviewsMeta>({})
@@ -194,13 +209,39 @@ export default function QualityReviewsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [approving, setApproving]   = useState(false)
 
+  // Re-arm the loading state during render when the query changes (react.dev
+  // "adjusting state when a prop changes") instead of from the effect below.
+  const [seenQuery, setSeenQuery] = useState({ page, search, status })
+  if (seenQuery.page !== page || seenQuery.search !== search || seenQuery.status !== status) {
+    setSeenQuery({ page, search, status })
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchReviewsPage({ page, search, status })
+        if (!alive) return
+        setReviews(res.data ?? [])
+        setMeta(res.meta ?? {})
+      } catch {
+        if (alive) toast.error('تعذّر تحميل المراجعات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [page, search, status])
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const params: Record<string, string> = { page: String(page) }
-      if (search) params.search = search
-      if (status) params.status = status
-      const res = await fetchQualityReviews(params)
+      const res = await fetchReviewsPage({ page, search, status })
       setReviews(res.data ?? [])
       setMeta(res.meta ?? {})
     } catch {
@@ -209,8 +250,6 @@ export default function QualityReviewsPage() {
       setLoading(false)
     }
   }, [page, search, status])
-
-  useEffect(() => { load() }, [load])
 
   // Close on ESC
   useEffect(() => {

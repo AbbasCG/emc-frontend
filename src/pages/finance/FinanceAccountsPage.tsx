@@ -429,6 +429,25 @@ export default function FinanceAccountsPage() {
   const [filterActive, setFilterActive] = useState('')
   const [modalAccount, setModalAccount] = useState<FinanceAccount | null | 'new'>(null)
 
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchFinanceAccounts()
+        if (alive) setAccounts(data)
+      } catch {
+        if (alive) toast.error('فشل تحميل الحسابات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -440,8 +459,6 @@ export default function FinanceAccountsPage() {
       setLoading(false)
     }
   }, [])
-
-  useEffect(() => { load() }, [load])
 
   const filtered = accounts.filter(a => {
     if (filterType && a.type !== filterType) return false

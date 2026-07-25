@@ -20,17 +20,28 @@ export function CourseSelectField({
   placeholder = 'اختر دورة…',
 }: Props) {
   const [courses, setCourses] = useState<ActiveCourseOption[]>([])
-  const [loadState, setLoadState] = useState<'idle' | 'loading' | 'error'>('idle')
+  // Starts in the loading state — the fetch below is fired on mount unconditionally.
+  const [loadState, setLoadState] = useState<'idle' | 'loading' | 'error'>('loading')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setLoadState('loading')
-    fetchActiveCourses()
-      .then((list) => { setCourses(list); setLoadState('idle') })
-      .catch(() => setLoadState('error'))
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchActiveCourses()
+        if (!alive) return
+        setCourses(list)
+        setLoadState('idle')
+      } catch {
+        if (alive) setLoadState('error')
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [])
 
   useEffect(() => {

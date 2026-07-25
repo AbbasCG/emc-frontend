@@ -80,13 +80,24 @@ export default function GoogleStyleTimePicker({
 
   const options = buildOptions(minuteStep, minTime, maxTime)
 
+  // Hydrate the popup's editing state during render when it opens (react.dev
+  // "adjusting state when a prop changes"). `open` starts closed, so the old effect did
+  // nothing on mount and seeding `seen` with the current value matches that exactly.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) {
+      setRawInput(value ?? '')
+      setInputMode(false)
+      const openIdx = value ? options.indexOf(value) : -1
+      setFocusIdx(openIdx >= 0 ? openIdx : 0)
+    }
+  }
+
   // scroll selected item into view on open
   useEffect(() => {
     if (!open) return
-    setRawInput(value ?? '')
-    setInputMode(false)
     const idx = value ? options.indexOf(value) : -1
-    setFocusIdx(idx >= 0 ? idx : 0)
     // give portal a tick to render
     requestAnimationFrame(() => {
       if (!listRef.current) return

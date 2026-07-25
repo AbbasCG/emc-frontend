@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
 import PublicCatalogHero from '@/components/public/PublicCatalogHero'
 import PublicSeo from '@/components/public/PublicSeo'
@@ -34,20 +34,23 @@ export default function WorkshopsPage() {
     return () => window.clearTimeout(t)
   }, [searchInput])
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setLoadError(false)
-    const res = await fetchPublicWorkshopsPage({ page: 1, per_page: PER_PAGE })
-    if (!res.ok) {
-      setLoadError(true)
-      setAllWorkshops([])
-    } else {
-      setAllWorkshops(res.workshops)
-    }
-    setLoading(false)
+  // Loads once on mount; `loading`/`loadError` already start in the right state, so no
+  // synchronous reset is needed here.
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const res = await fetchPublicWorkshopsPage({ page: 1, per_page: PER_PAGE })
+      if (!alive) return
+      if (!res.ok) {
+        setLoadError(true)
+        setAllWorkshops([])
+      } else {
+        setAllWorkshops(res.workshops)
+      }
+      setLoading(false)
+    })()
+    return () => { alive = false }
   }, [])
-
-  useEffect(() => { void load() }, [load])
 
   // Instructor options from loaded data
   const instructorOptions = useMemo(() => {
@@ -96,8 +99,21 @@ export default function WorkshopsPage() {
     return rows
   }, [allWorkshops, search, locationFilter, priceFilter, statusFilter, instructorFilter])
 
-  // Reset page on filter change
-  useEffect(() => { setPage(1) }, [search, locationFilter, priceFilter, statusFilter, instructorFilter])
+  // Reset page on filter change — done during render (react.dev "adjusting state when a
+  // prop changes") so no stale page is painted before the reset lands.
+  const [seenFilters, setSeenFilters] = useState({
+    search, locationFilter, priceFilter, statusFilter, instructorFilter,
+  })
+  if (
+    seenFilters.search !== search ||
+    seenFilters.locationFilter !== locationFilter ||
+    seenFilters.priceFilter !== priceFilter ||
+    seenFilters.statusFilter !== statusFilter ||
+    seenFilters.instructorFilter !== instructorFilter
+  ) {
+    setSeenFilters({ search, locationFilter, priceFilter, statusFilter, instructorFilter })
+    setPage(1)
+  }
 
   const totalFiltered = filtered.length
   const lastPage = Math.max(1, Math.ceil(totalFiltered / CLIENT_PER_PAGE))

@@ -166,19 +166,41 @@ function ListPanel({
 
 // ── Certificates Tab ──────────────────────────────────────────────────────────
 
+/** Pure I/O — shared by the mount effect and the retry button, neither touching state. */
+function fetchCourseEligibility(courseId: number): Promise<EligibilityResponse> {
+  return fetchEligibility({ related_type: 'course', related_id: courseId, certificate_type: 'course_completion' })
+}
+
 function CourseCertificatesTab({ courseId }: { courseId: number }) {
   const navigate = useNavigate()
   const [data, setData]       = useState<EligibilityResponse | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(Boolean(courseId))
   const [error, setError]     = useState<string | null>(null)
+
+  // Re-arm the loading state during render when the course changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    if (courseId) setLoading(true)
+  }
 
   useEffect(() => {
     if (!courseId) return
-    setLoading(true)
-    fetchEligibility({ related_type: 'course', related_id: courseId, certificate_type: 'course_completion' })
-      .then(setData)
-      .catch(() => setError('تعذر تحميل بيانات الشهادات'))
-      .finally(() => setLoading(false))
+    let alive = true
+    void (async () => {
+      try {
+        const res = await fetchCourseEligibility(courseId)
+        if (alive) setData(res)
+      } catch {
+        if (alive) setError('تعذر تحميل بيانات الشهادات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [courseId])
 
   const issuePath = `/dashboard/admin/certificates/issue?type=course_completion&related_type=course&related_id=${courseId}`
@@ -198,7 +220,7 @@ function CourseCertificatesTab({ courseId }: { courseId: number }) {
         <button type="button" onClick={() => {
           setError(null)
           setLoading(true)
-          fetchEligibility({ related_type: 'course', related_id: courseId, certificate_type: 'course_completion' })
+          fetchCourseEligibility(courseId)
             .then(setData).catch(() => setError('تعذر تحميل بيانات الشهادات')).finally(() => setLoading(false))
         }} className="mt-3 rounded-lg bg-red-100 px-3 py-1.5 text-[11px] font-black text-red-600 hover:bg-red-200">
           إعادة المحاولة
@@ -306,11 +328,25 @@ export function CourseManagementDrawer({
   learningPaths,
   existingCourses,
 }: Props) {
+  const shouldLoadDetail = open && course !== null && (mode === 'details' || mode === 'edit')
+
   const [detail, setDetail] = useState<AdminCourseDetail | null>(null)
-  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [loadingDetail, setLoadingDetail] = useState(shouldLoadDetail)
   const [addStudentOpen, setAddStudentOpen] = useState(false)
   const [studentsRefreshKey, setStudentsRefreshKey] = useState(0)
 
+  // Re-arm the loading state (and drop the add-student modal on close) during render when
+  // the drawer's inputs change — react.dev "adjusting state when a prop changes". Keeps the
+  // fetch effect below free of synchronous state writes.
+  const [seenSource, setSeenSource] = useState({ open, course, mode })
+  if (seenSource.open !== open || seenSource.course !== course || seenSource.mode !== mode) {
+    setSeenSource({ open, course, mode })
+    if (shouldLoadDetail) setLoadingDetail(true)
+    if (!open) setAddStudentOpen(false)
+  }
+
+  /** Imperative refresh from event handlers — outside any effect, so it may flip to the
+   *  loading state synchronously. */
   const loadDetail = useCallback(async () => {
     if (!course?.id) return
     setLoadingDetail(true)
@@ -324,12 +360,23 @@ export function CourseManagementDrawer({
   }, [course])
 
   useEffect(() => {
-    if (open && course && (mode === 'details' || mode === 'edit')) void loadDetail()
-  }, [open, course?.id, mode, loadDetail])
-
-  useEffect(() => {
-    if (!open) setAddStudentOpen(false)
-  }, [open])
+    if (!open || !course || (mode !== 'details' && mode !== 'edit')) return
+    const courseId = course.id
+    let alive = true
+    void (async () => {
+      try {
+        const next = await fetchAdminCourseDetail(courseId)
+        if (alive) setDetail(next)
+      } catch {
+        if (alive) setDetail(course as AdminCourseDetail)
+      } finally {
+        if (alive) setLoadingDetail(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [open, course, mode])
 
   if (!course) return null
 

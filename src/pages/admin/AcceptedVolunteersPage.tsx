@@ -92,6 +92,32 @@ function hashStr(s: string): number {
 
 const getDeptColor = (d: string) => DEPT_COLORS[hashStr(d) % DEPT_COLORS.length]
 
+/** Server-side query for the accepted-volunteers list. */
+type VolunteersQuery = {
+  sort: string
+  dept: string
+  city: string
+  availability: string
+  hasCv: string
+  dateFrom: string
+  dateTo: string
+}
+
+/**
+ * Pure I/O — no state plumbing, so both the fetch effect and the "refresh"/"retry"
+ * handlers can call it and do their own `setState` around it.
+ */
+function requestAcceptedVolunteers(query: VolunteersQuery) {
+  const params: Record<string, string> = { sort: query.sort, per_page: '200' }
+  if (query.dept)         params.desired_department = query.dept
+  if (query.city)         params.city               = query.city
+  if (query.availability) params.availability       = query.availability
+  if (query.hasCv)        params.has_cv             = query.hasCv
+  if (query.dateFrom)     params.date_from          = query.dateFrom
+  if (query.dateTo)       params.date_to            = query.dateTo
+  return fetchAcceptedVolunteers(params)
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
    CountUp hook
 ───────────────────────────────────────────────────────────────────────── */
@@ -102,7 +128,7 @@ function useCountUp(target: number, duration = 1200): number {
 
   useEffect(() => {
     cancelAnimationFrame(raf.current)
-    if (target === 0) { setVal(0); return }
+    if (target === 0) return
     const t0 = Date.now()
     const tick = () => {
       const p = Math.min((Date.now() - t0) / duration, 1)
@@ -113,7 +139,9 @@ function useCountUp(target: number, duration = 1200): number {
     return () => cancelAnimationFrame(raf.current)
   }, [target, duration])
 
-  return val
+  // A zero target has nothing to animate — derive it during render instead of
+  // resetting the animated value from the effect.
+  return target === 0 ? 0 : val
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -395,20 +423,36 @@ export default function AcceptedVolunteersPage() {
   const [selected, setSelected] = useState<VolunteerRequest | null>(null)
   const [convertTarget, setConvertTarget] = useState<VolunteerRequest | null>(null)
 
-  /* ── Data loading — unchanged ─────────────────────────────────────── */
+  /* ── Data loading ─────────────────────────────────────────────────── */
+  const query = useMemo<VolunteersQuery>(
+    () => ({
+      sort,
+      dept: filterDept,
+      city: filterCity,
+      availability: filterAvailability,
+      hasCv: filterHasCv,
+      dateFrom: filterDateFrom,
+      dateTo: filterDateTo,
+    }),
+    [sort, filterDept, filterCity, filterAvailability, filterHasCv, filterDateFrom, filterDateTo],
+  )
+
+  // Return to the loading state during render when the server-side query changes, so
+  // the effect below never has to set it synchronously (react.dev "adjusting state").
+  const [seenQuery, setSeenQuery] = useState(query)
+  if (seenQuery !== query) {
+    setSeenQuery(query)
+    setLoading(true)
+    setLoadError(null)
+  }
+
+  // Imperative re-run from the refresh / retry buttons — outside an effect, so it may
+  // flip to the loading state synchronously.
   const load = useCallback(async () => {
     setLoadError(null)
     setLoading(true)
     try {
-      const params: Record<string, string> = { sort, per_page: '200' }
-      if (filterDept)         params.desired_department = filterDept
-      if (filterCity)         params.city               = filterCity
-      if (filterAvailability) params.availability       = filterAvailability
-      if (filterHasCv)        params.has_cv             = filterHasCv
-      if (filterDateFrom)     params.date_from          = filterDateFrom
-      if (filterDateTo)       params.date_to            = filterDateTo
-
-      const result = await fetchAcceptedVolunteers(params)
+      const result = await requestAcceptedVolunteers(query)
       setItems(result.data)
       setMeta(result.meta)
     } catch {
@@ -416,9 +460,27 @@ export default function AcceptedVolunteersPage() {
     } finally {
       setLoading(false)
     }
-  }, [sort, filterDept, filterCity, filterAvailability, filterHasCv, filterDateFrom, filterDateTo])
+  }, [query])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const result = await requestAcceptedVolunteers(query)
+        if (!alive) return
+        setItems(result.data)
+        setMeta(result.meta)
+      } catch {
+        if (!alive) return
+        setLoadError('تعذّر تحميل قائمة المتطوعين المقبولين.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [query])
 
   /* ── Client-side search — unchanged ──────────────────────────────── */
   const filtered = useMemo(() => {

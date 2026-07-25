@@ -49,7 +49,24 @@ function QuietHoursAndPushPanel() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // Mount load — `loading`/`error` already start in the right state, so the effect does
+  // no synchronous reset (the retry button still calls `load` directly).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const [qh, subscribed] = await Promise.all([fetchQuietHours(), fetchPushSubscriptionState()])
+        if (!alive) return
+        setQuietHours({ ...qh, start_time: qh.start_time?.slice(0, 5) ?? null, end_time: qh.end_time?.slice(0, 5) ?? null })
+        setPushSubscribed(subscribed)
+      } catch {
+        if (alive) setError(true)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   async function saveQuietHours(next: QuietHoursSettings) {
     setQuietHours(next)
@@ -452,7 +469,24 @@ export default function NotificationPreferencesPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // Mount load — `loading` already starts at `true`, so the effect does no synchronous
+  // reset (the refresh button still calls `load` directly).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const backendRows = await fetchNotificationPreferences()
+        if (!alive) return
+        const built = buildRows(backendRows as unknown as BackendRow[])
+        setRows(built)
+        originalRef.current = built
+        setDirty(false)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   function handleChange(next: NotificationPreferenceRow) {
     setRows((prev) => prev.map((r) => (r.key === next.key ? next : r)))

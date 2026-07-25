@@ -58,9 +58,17 @@ export default function LearningPathDetail() {
   const [enrolling, setEnrolling] = useState(false)
   const [enrollMsg, setEnrollMsg] = useState<string | null>(null)
 
+  // Re-arm the loading state during render when the route slug changes (react.dev
+  // "adjusting state when a prop changes"). On mount the effect only re-set the already
+  // initial `true`, so seeding `seen` with the current slug keeps behaviour identical.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    if (slug) setLoading(true)
+  }
+
   useEffect(() => {
     if (!slug) return
-    setLoading(true)
     fetchPublicLearningPath(slug).then((data) => {
       if (!data) navigate('/learning-paths', { replace: true })
       else setPath(data)
@@ -68,13 +76,24 @@ export default function LearningPathDetail() {
     })
   }, [slug, navigate])
 
+  /** Imperative re-check after enrolling — called from an event handler. */
   const refreshEnrollStatus = useCallback(async () => {
     if (!slug || !user || user.role !== 'student') return
     const status = await fetchEnrollmentStatus(slug)
     setEnrollStatus(status)
   }, [slug, user])
 
-  useEffect(() => { void refreshEnrollStatus() }, [refreshEnrollStatus])
+  useEffect(() => {
+    if (!slug || !user || user.role !== 'student') return
+    let alive = true
+    void (async () => {
+      const status = await fetchEnrollmentStatus(slug)
+      if (alive) setEnrollStatus(status)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [slug, user])
 
   const handleEnroll = async () => {
     if (!slug) return

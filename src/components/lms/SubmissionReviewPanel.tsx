@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
@@ -136,13 +136,36 @@ export default function SubmissionReviewPanel({
     }
   }
 
-  useEffect(() => {
-    if (!submission) return
+  // Hydrate the review form during render whenever the reviewed submission changes
+  // (react.dev "adjusting state when a prop changes"). `seenSubmission` is cleared
+  // while the panel is closed so reopening the same submission re-hydrates it,
+  // exactly as the previous effect (keyed on the same four fields) did.
+  const [seenSubmission, setSeenSubmission] = useState<{
+    id: SubmissionDetail['id']
+    score: SubmissionDetail['score']
+    feedback: SubmissionDetail['feedback']
+    status: SubmissionDetail['status']
+  } | null>(null)
+  if (!submission) {
+    if (seenSubmission !== null) setSeenSubmission(null)
+  } else if (
+    seenSubmission === null ||
+    seenSubmission.id !== submission.id ||
+    seenSubmission.score !== submission.score ||
+    seenSubmission.feedback !== submission.feedback ||
+    seenSubmission.status !== submission.status
+  ) {
+    setSeenSubmission({
+      id: submission.id,
+      score: submission.score,
+      feedback: submission.feedback,
+      status: submission.status,
+    })
     setScore(submission.score != null ? String(submission.score) : '')
     setFeedback(submission.feedback ?? '')
     setStatus(submission.status === 'needs_revision' ? 'needs_revision' : 'reviewed')
     setError('')
-  }, [submission?.id, submission?.score, submission?.feedback, submission?.status])
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()

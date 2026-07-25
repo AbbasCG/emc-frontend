@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -51,7 +51,13 @@ export default function PremiumHero({
   cta,
 }: Props) {
   const [activeImg, setActiveImg] = useState(coverUrl)
-  useEffect(() => { setActiveImg(coverUrl) }, [coverUrl])
+
+  // Re-sync the previewed image when the course cover changes (adjust state during render).
+  const [seenCoverUrl, setSeenCoverUrl] = useState(coverUrl)
+  if (seenCoverUrl !== coverUrl) {
+    setSeenCoverUrl(coverUrl)
+    setActiveImg(coverUrl)
+  }
 
   const cert = resolveCertificateAvailability(course)
   const showCert = cert.hasCertificate && Boolean(cert.badgeLabel)

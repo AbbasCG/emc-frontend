@@ -200,32 +200,63 @@ function StatCard({ label, value, icon: Icon, color, active, onClick }: StatProp
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+/** Pure I/O — kept outside the component so the mount effect and the imperative
+ *  refresh share it without either having to call a state-mutating callback. */
+async function fetchRequestsList(statusFilter: string): Promise<FinancialRequest[]> {
+  const res = await fetchFinancialRequests({ status: statusFilter || undefined })
+  // Backend returns Laravel paginator wrapped in { data: paginatorObj }
+  // fetchFinancialRequests returns paginatorObj — items are in .data
+  const items: FinancialRequest[] = Array.isArray(res)
+    ? res
+    : Array.isArray(res?.data)
+      ? res.data
+      : []
+  return items
+}
+
 export default function FinanceFinancialRequestsPage() {
   const [requests, setRequests] = useState<FinancialRequest[]>([])
   const [loading, setLoading]   = useState(true)
   const [selected, setSelected] = useState<FinancialRequest | null>(null)
   const [statusFilter, setStatusFilter] = useState('')
 
+  // Re-arm the loading state during render when the filter changes (react.dev
+  // "adjusting state when a prop changes") instead of from the effect below.
+  const [seenStatusFilter, setSeenStatusFilter] = useState(statusFilter)
+  if (seenStatusFilter !== statusFilter) {
+    setSeenStatusFilter(statusFilter)
+    setLoading(true)
+  }
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const items = await fetchRequestsList(statusFilter)
+        if (alive) setRequests(items)
+      } catch {
+        if (alive) toast.error('فشل تحميل الطلبات')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [statusFilter])
+
+  /** Imperative refresh from an event handler — outside any effect, so the
+   *  synchronous loading flip is allowed. */
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetchFinancialRequests({ status: statusFilter || undefined })
-      // Backend returns Laravel paginator wrapped in { data: paginatorObj }
-      // fetchFinancialRequests returns paginatorObj — items are in .data
-      const items: FinancialRequest[] = Array.isArray(res)
-        ? res
-        : Array.isArray(res?.data)
-          ? res.data
-          : []
-      setRequests(items)
+      setRequests(await fetchRequestsList(statusFilter))
     } catch {
       toast.error('فشل تحميل الطلبات')
     } finally {
       setLoading(false)
     }
   }, [statusFilter])
-
-  useEffect(() => { void load() }, [load])
 
   function handleUpdate(updated: FinancialRequest) {
     setRequests(r => r.map(x => x.id === updated.id ? updated : x))

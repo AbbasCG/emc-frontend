@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, Calendar, CheckCircle2, ClipboardList, Loader2, RefreshCw, Send, Star, X } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -33,7 +33,11 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
     },
   })
 
-  useEffect(() => {
+  // Clear the draft during render when the modal closes (react.dev "adjusting state
+  // when a prop changes") — no extra committed render, same reset as before.
+  const [seenAssignment, setSeenAssignment] = useState(assignment)
+  if (seenAssignment !== assignment) {
+    setSeenAssignment(assignment)
     if (!assignment) {
       setText('')
       setNotes('')
@@ -41,7 +45,7 @@ export default function AssignmentSubmitModal({ assignment, onClose, onSuccess }
       setSubmitError(null)
       setSubmitting(false)
     }
-  }, [assignment])
+  }
 
   const isResubmission = isNeedsResubmission(assignment?.status)
 

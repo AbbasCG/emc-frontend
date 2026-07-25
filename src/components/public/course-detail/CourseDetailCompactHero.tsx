@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Heart, Play, Share2, Star } from 'lucide-react'
@@ -50,9 +50,12 @@ export default function CourseDetailCompactHero({
   const thumbs = gallery.slice(0, 4)
   const [activeImage, setActiveImage] = useState(coverUrl)
 
-  useEffect(() => {
+  // Re-sync the previewed image when the course cover changes (adjust state during render).
+  const [seenCoverUrl, setSeenCoverUrl] = useState(coverUrl)
+  if (seenCoverUrl !== coverUrl) {
+    setSeenCoverUrl(coverUrl)
     setActiveImage(coverUrl)
-  }, [coverUrl])
+  }
 
   return (
     <motion.section

@@ -13,11 +13,12 @@ export default function PaymentSuccessPage() {
   const [invoiceId, setInvoiceId] = useState<number | null>(null)
   const attemptsRef = useRef(0)
 
+  // Without a session id there is nothing to poll and the outcome can only be a
+  // failure — derive it during render instead of setting it from the effect below.
+  const displayStatus: Status = sessionId ? status : 'failed'
+
   useEffect(() => {
-    if (!sessionId) {
-      setStatus('failed')
-      return
-    }
+    if (!sessionId) return
 
     let cancelled = false
 
@@ -60,7 +61,7 @@ export default function PaymentSuccessPage() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl text-center"
       >
-        {status === 'loading' && (
+        {displayStatus === 'loading' && (
           <>
             <Loader2 className="mx-auto mb-4 size-12 animate-spin text-customBlue" />
             <h1 className="text-xl font-black text-deepBlue">جاري التحقق من الدفع…</h1>
@@ -68,7 +69,7 @@ export default function PaymentSuccessPage() {
           </>
         )}
 
-        {status === 'pending' && (
+        {displayStatus === 'pending' && (
           <>
             <Clock className="mx-auto mb-4 size-12 text-amber-500" />
             <h1 className="text-xl font-black text-deepBlue">جاري تأكيد الدفع</h1>
@@ -79,7 +80,7 @@ export default function PaymentSuccessPage() {
           </>
         )}
 
-        {status === 'paid' && (
+        {displayStatus === 'paid' && (
           <>
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -113,7 +114,7 @@ export default function PaymentSuccessPage() {
           </>
         )}
 
-        {status === 'failed' && (
+        {displayStatus === 'failed' && (
           <>
             <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-rose-50">
               <span className="text-3xl">✕</span>

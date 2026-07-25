@@ -1076,7 +1076,28 @@ export default function MembersPage() {
     }
   }
 
-  useEffect(() => { void load() }, [])
+  // Mount load — `loading`/`loadError` already start in the right state, so the effect
+  // performs no synchronous reset (the refresh buttons still call `load` directly).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchMembers()
+        if (alive) setMembers(data)
+      } catch {
+        if (alive) {
+          setMembers([])
+          setLoadError(true)
+        }
+      } finally {
+        if (alive) {
+          setRefreshTs(new Date())
+          setLoading(false)
+        }
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   function handleMemberUpdated(updated: InternalMember) {
     setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)))

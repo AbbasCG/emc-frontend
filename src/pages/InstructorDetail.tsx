@@ -73,11 +73,25 @@ function PathItem({ path }: { path: { id: number; slug: string; title: string } 
 export default function InstructorDetail() {
   const { slug } = useParams<{ slug: string }>()
   const [ins,     setIns]     = useState<InstructorPublic | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [err,     setErr]     = useState('')
+  // Seeded exactly as the old mount-time effect left it: a missing slug resolves straight
+  // to the invalid-link message instead of loading.
+  const [loading, setLoading] = useState(Boolean(slug))
+  const [err,     setErr]     = useState(slug ? '' : 'رابط المدرب غير صحيح.')
+
+  // Same handling during render when the route slug disappears (react.dev "adjusting state
+  // when a prop changes"). A slug change to another instructor keeps the previous
+  // behaviour: only the effect below re-runs, the flags stay as they are.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    if (!slug) {
+      setErr('رابط المدرب غير صحيح.')
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    if (!slug) { setErr('رابط المدرب غير صحيح.'); setLoading(false); return }
+    if (!slug) return
     let alive = true
     fetchInstructor(slug)
       .then((row) => {

@@ -252,11 +252,16 @@ export default function VolunteerRequestDetailModal({
 
   useFocusTrap(panelRef, { active: true, onEscape: onClose })
 
-  useEffect(() => {
+  // Re-hydrate the form during render when a different request is shown (react.dev
+  // "adjusting state when a prop changes"). On mount the effect only re-set the initial
+  // values, so seeding `seen` with the current request keeps behaviour identical.
+  const [seenReq, setSeenReq] = useState(req)
+  if (seenReq !== req) {
+    setSeenReq(req)
     setAdminNotes(req.admin_notes ?? '')
     setSelectedStatus(req.status)
     setDirty(false)
-  }, [req])
+  }
 
   const skills = useMemo(() => parseSkills(req.skills), [req.skills])
   const cvViewUrl = req.cv_view_url ?? req.cv_file_url ?? null

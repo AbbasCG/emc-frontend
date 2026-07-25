@@ -219,7 +219,22 @@ export default function TechAdminDashboardPage() {
     }
   }
 
-  useEffect(() => { load() }, [])
+  // Mount load — `loading`/`error` already start in the right state, so the effect does
+  // no synchronous reset (the retry button still calls `load` directly).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      try {
+        const result = await fetchTechAdminDashboard()
+        if (alive) setData(result)
+      } catch {
+        if (alive) setError('تعذّر تحميل بيانات اللوحة. تأكد من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const counts  = data?.counts
   const security = data?.security

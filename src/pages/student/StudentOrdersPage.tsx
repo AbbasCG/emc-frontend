@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, FileText, Loader2, Receipt, ShoppingBag, TrendingUp, X, XCircle } from 'lucide-react'
 import { getStudentOrders, type Order } from '@/api/checkoutApi'
@@ -38,15 +38,13 @@ export default function StudentOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Order | null>(null)
 
-  const load = useCallback(() => {
-    setLoading(true)
+  // `loading` starts as `true`, so the mount fetch never has to set it synchronously.
+  useEffect(() => {
     getStudentOrders()
       .then(setOrders)
       .catch(() => toast.error('تعذّر تحميل الطلبات.'))
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => { load() }, [load])
 
   const paid      = orders.filter((o) => o.status === 'paid')
   const totalPaid = paid.reduce((s, o) => s + Number(o.total), 0)

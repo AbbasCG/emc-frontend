@@ -142,12 +142,20 @@ export default function AdminDashboard() {
 
   const retry = useCallback(() => setReloadKey((k) => k + 1), [])
 
-  useEffect(() => {
-    let cancelled = false
+  // Re-arm the loading/error state during render when a retry bumps the key (react.dev
+  // "adjusting state when a prop changes"). On mount the effect only re-set the initial
+  // values, so seeding `seen` with the current key keeps behaviour identical.
+  const [seenReloadKey, setSeenReloadKey] = useState(reloadKey)
+  if (seenReloadKey !== reloadKey) {
+    setSeenReloadKey(reloadKey)
     setIsLoading(true)
     setErrorKind(null)
     setErrorMessage(null)
     setShowingDemo(false)
+  }
+
+  useEffect(() => {
+    let cancelled = false
 
     fetchAdminDashboard()
       .then((remote) => {

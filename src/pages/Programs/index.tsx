@@ -33,8 +33,8 @@ export default function ProgramsPage() {
   }, [search])
 
   useEffect(() => {
+    // `loading` already starts as `true`, so this mount-only fetch never has to arm it.
     let alive = true
-    setLoading(true)
     fetchCourses()
       .then((res) => {
         if (alive) {
