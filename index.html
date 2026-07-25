@@ -4,16 +4,37 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/brand/logos/logo_icon_color.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Thmanyah (V3 exclusive) is self-hosted via @font-face; preload the two hottest weights. -->
-    <link rel="preload" href="/fonts/thmanyah/thmanyahsans-Regular.otf" as="font" type="font/otf" crossorigin />
-    <link rel="preload" href="/fonts/thmanyah/thmanyahserifdisplay-Black.otf" as="font" type="font/otf" crossorigin />
+    <!--
+      Thmanyah (V3 exclusive) is self-hosted via @font-face in index.css with
+      `font-display: swap`.
+
+      M5.d: the two hottest weights used to be preloaded here. Until the web-license
+      gate closes they are unsubset OTF at ~245KB each, so those two tags put ~490KB of
+      render-critical fetches in front of the JS and CSS the first paint actually needs —
+      while `swap` means text renders in the fallback face regardless. Dropping the
+      preloads removes the competition; the faces still load and swap in.
+      Re-introduce a preload for the two hottest weights once they are subset to woff2.
+    -->
     <!-- IBM Plex = sanctioned institutional fallback while the Thmanyah web-license gate is open. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Loaded non-blocking: this is the *fallback* family, so it must not hold up first
+      paint. `media="print"` keeps it out of the render-blocking set, and the onload
+      handler promotes it once it has arrived.
+    -->
     <link
       rel="stylesheet"
+      media="print"
+      onload="this.media='all';this.onload=null"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&display=swap"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&display=swap"
+      />
+    </noscript>
     <title>مركز ماستر التعليمي — EMC</title>
   </head>
   <body>

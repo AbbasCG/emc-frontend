@@ -45,6 +45,12 @@ jobs:
       - name: Production leak scan (secrets + console)
         run: npm run check:secrets
 
+      # M5.c: fails if the largest modulepreloaded chunk exceeds the 250KB gzip budget
+      # in the master-plan M5 DoD. Reports the whole initial payload, since that — not
+      # the per-chunk list vite prints — is what a first-time mobile visitor pays.
+      - name: Bundle budget (initial payload)
+        run: npm run check:bundle
+
       - name: Test
         run: npm test
 

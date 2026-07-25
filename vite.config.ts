@@ -3,6 +3,19 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
 
+/**
+ * Top-level package name for a module id, or `null` for first-party source.
+ *
+ * Matching on the path boundary rather than with `id.includes(...)` matters: a
+ * substring rule like `id.includes('react/')` also catches `react-smooth` and friends,
+ * which pulled recharts' dependency tree into the eagerly-preloaded react chunk and made
+ * every visitor download the charting library on first paint.
+ */
+function packageOf(id: string): string | null {
+  const m = /node_modules[\\/](?:\.pnpm[\\/])?((?:@[^\\/]+[\\/])?[^\\/]+)/.exec(id)
+  return m ? m[1].replace(/\\/g, '/') : null
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -25,20 +38,21 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined
+          const pkg = packageOf(id)
+          if (pkg === null) return undefined
 
-          if (id.includes('react-dom') || id.includes('react/')) return 'vendor-react'
-          if (id.includes('react-router')) return 'vendor-router'
-          if (id.includes('framer-motion')) return 'vendor-motion'
-          if (id.includes('lucide-react')) return 'vendor-icons'
-          if (id.includes('axios')) return 'vendor-http'
-          if (id.includes('sonner')) return 'vendor-toast'
-          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) return 'vendor-charts'
-          if (id.includes('pdfjs') || id.includes('pdf-lib') || id.includes('docx')) return 'vendor-docs'
-          if (id.includes('dompurify')) return 'vendor-sanitize'
-          if (id.includes('@sentry')) return 'vendor-sentry'
+          // Only the always-needed core is hand-chunked. Everything else returns
+          // `undefined` so rolldown places it with the lazy route chunks that import
+          // it — a manual name would instead pin it into one shared chunk that
+          // index.html modulepreloads, making every visitor pay for it on first paint.
+          if (pkg === 'react' || pkg === 'react-dom' || pkg === 'scheduler') return 'vendor-react'
+          if (pkg === 'react-router') return 'vendor-router'
+          if (pkg === 'framer-motion' || pkg === 'motion-dom' || pkg === 'motion-utils') {
+            return 'vendor-motion'
+          }
+          if (pkg === 'axios') return 'vendor-http'
 
-          return 'vendor'
+          return undefined
         },
       },
     },
