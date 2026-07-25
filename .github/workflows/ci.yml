@@ -32,6 +32,12 @@ jobs:
       - name: Typecheck + Build
         run: npm run build
 
+      # M4.b: strictNullChecks on the foundation layers (lib, hooks, i18n, api, types),
+      # widened folder by folder until `strict: true` app-wide in M7. Separate step so a
+      # regression here is distinguishable from a plain build break.
+      - name: Typecheck (strictNullChecks, foundation layers)
+        run: npm run typecheck:strict
+
       - name: Test
         run: npm test
 

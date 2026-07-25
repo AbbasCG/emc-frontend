@@ -1,0 +1,23 @@
+/*
+ * M4.b — incremental `strict` adoption.
+ *
+ * `strictNullChecks` is switched on for the foundation layers first (lib, hooks, i18n,
+ * api) and widened folder by folder; the end state is `strict: true` across the app in
+ * M7. Kept as a separate project so `npm run build` stays the fast, unchanged gate and
+ * this runs as its own CI step — a file only has to satisfy it once it is in scope.
+ *
+ * NOTE: TypeScript type-checks every file reachable from `include`, not just the listed
+ * folders. `checkJs` stays off and the diagnostics are filtered to the in-scope paths by
+ * `npm run typecheck:strict`, so out-of-scope callers do not fail this gate before their
+ * own folder is migrated.
+ */
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.strict.tsbuildinfo",
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src/lib", "src/hooks", "src/i18n", "src/api", "src/types", "src/vite-env.d.ts"]
+}
