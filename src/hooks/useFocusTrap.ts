@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -22,6 +22,15 @@ export function useFocusTrap(
   panelRef: React.RefObject<HTMLElement | null>,
   { active, onEscape }: UseFocusTrapOptions,
 ) {
+  // Latest-callback ref so an inline `onEscape={() => …}` (what every consumer passes)
+  // does not re-run the trap effect on each parent render — that would restore focus to
+  // the opener and re-focus the first control while the user is still inside the panel.
+  // Updated in an effect declared before the trap effect below, matching `useFetch`.
+  const onEscapeRef = useRef(onEscape)
+  useEffect(() => {
+    onEscapeRef.current = onEscape
+  })
+
   useEffect(() => {
     if (!active) return
     const panel = panelRef.current
@@ -43,7 +52,7 @@ export function useFocusTrap(
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onEscape?.()
+        onEscapeRef.current?.()
         return
       }
       if (e.key !== 'Tab') return
@@ -57,15 +66,17 @@ export function useFocusTrap(
 
       const first = items[0]!
       const last = items[items.length - 1]!
+      // The listener lives on `panel`, so a real key event can only come from the panel
+      // or a descendant: focus is always inside the trap here.
       const activeEl = document.activeElement
 
       if (e.shiftKey) {
-        if (activeEl === first || !panel.contains(activeEl)) {
+        if (activeEl === first) {
           e.preventDefault()
           last.focus()
         }
       } else {
-        if (activeEl === last || !panel.contains(activeEl)) {
+        if (activeEl === last) {
           e.preventDefault()
           first.focus()
         }
@@ -78,5 +89,5 @@ export function useFocusTrap(
       panel.removeEventListener('keydown', onKeyDown)
       opener?.focus?.()
     }
-  }, [active, onEscape, panelRef])
+  }, [active, panelRef])
 }

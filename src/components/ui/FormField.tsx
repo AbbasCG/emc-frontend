@@ -60,7 +60,10 @@ export default function FormField({
   size = 'md',
   ...inputProps
 }: Props) {
-  const hintId = hint ? `${id}-hint` : undefined
+  // The error replaces the hint, so only reference the paragraph that is actually
+  // rendered — a described-by pointing at an absent id is a dangling IDREF.
+  const showHint = Boolean(hint) && !error
+  const hintId = showHint ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
 
@@ -120,7 +123,7 @@ export default function FormField({
         {adornment}
       </div>
 
-      {hint && !error && (
+      {showHint && (
         <p id={hintId} className="text-xs font-medium text-deepBlue/55">
           {hint}
         </p>

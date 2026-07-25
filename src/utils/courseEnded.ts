@@ -26,8 +26,14 @@ function endTimestamp(c: EndedLike): number | null {
   const date = String(c.end_date ?? '').slice(0, 10)
   if (!date) return null
   const time = String(c.end_time ?? '').trim()
-  const iso = time && /^\d{1,2}:\d{2}/.test(time)
-    ? `${date}T${time.length === 5 ? `${time}:59` : time}`
+  // A single-digit hour ("9:00") is accepted by the API but is not valid ISO —
+  // pad it to two digits before assembling, otherwise Date.parse is undefined
+  // behaviour and the course can silently read as not-ended.
+  const parts = /^(\d{1,2})(:\d{2}.*)$/.exec(time)
+  const hour = (parts?.[1] ?? '').padStart(2, '0')
+  const rest = parts?.[2] ?? ''
+  const iso = parts
+    ? `${date}T${hour}${rest.length === 3 ? `${rest}:59` : rest}`
     : `${date}T23:59:59`
   const ts = Date.parse(iso)
   return Number.isFinite(ts) ? ts : null

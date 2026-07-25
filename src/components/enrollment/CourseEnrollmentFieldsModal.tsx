@@ -184,28 +184,28 @@ export default function CourseEnrollmentFieldsModal({
                       error={fieldErrors.phone}
                     />
                   </div>
-                  <div className="grid gap-2 text-sm font-black text-deepBlue">
+                  <label className="grid gap-2 text-sm font-black text-deepBlue">
                     رقم الجوال
-                    <div
+                    <span
                       dir="ltr"
                       className={`flex h-12 w-full overflow-hidden rounded-xl border bg-paper2 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-100 ${fieldErrors.phone ? 'border-red-400' : 'border-line focus-within:border-customBlue'}`}
                     >
-                      <div className="flex shrink-0 items-center gap-1.5 border-r border-line bg-paper2 px-3 text-sm font-bold text-deepBlue">
+                      <span className="flex shrink-0 items-center gap-1.5 border-r border-line bg-paper2 px-3 text-sm font-bold text-deepBlue">
                         {selectedCountry ?
                           <>
                             <span>{selectedCountry.flag}</span>
                             <span className="font-latin tabular-nums">{selectedCountry.dialCode}</span>
                           </>
                         : <Phone size={16} className="text-muted-400" />}
-                      </div>
+                      </span>
                       <input
                         type="tel"
                         value={localPhone}
                         onChange={(e) => setLocalPhone(e.target.value)}
                         className="min-w-0 flex-1 bg-transparent px-3 text-left font-semibold text-deepBlue outline-none"
                       />
-                    </div>
-                  </div>
+                    </span>
+                  </label>
                 </>
               )}
 

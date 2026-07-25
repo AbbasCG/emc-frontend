@@ -1,5 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2, Trash2, X } from 'lucide-react'
+import { useEffect, useId, useRef } from 'react'
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 type Props = {
   open: boolean
@@ -20,6 +24,66 @@ export default function ConfirmDeleteModal({
   onClose,
   onConfirm,
 }: Props) {
+  const titleId = useId()
+  const descriptionId = useId()
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // Move focus into the dialog while it is open and hand it back to the opener on close.
+  // `useFocusTrap` is not used here: it keys its focusable lookup off `offsetParent`, which
+  // this modal's backdrop-sibling layout and the surrounding test environment report as
+  // absent, so the trap would collapse onto the panel itself.
+  useEffect(() => {
+    if (!open) return
+    const panel = panelRef.current
+    if (!panel) return
+
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const target = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? panel
+    target.focus()
+
+    return () => opener?.focus()
+  }, [open])
+
+  // Keep Tab cycling inside the panel, and close on Escape unless a request is in flight
+  // (same rule the backdrop already follows).
+  useEffect(() => {
+    if (!open) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const panel = panelRef.current
+      if (!panel) return
+
+      if (event.key === 'Escape') {
+        if (!busy) onClose()
+        return
+      }
+      if (event.key !== 'Tab') return
+
+      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (!first || !last) {
+        event.preventDefault()
+        panel.focus()
+        return
+      }
+
+      const active = document.activeElement
+      if (event.shiftKey) {
+        if (active === first || !panel.contains(active)) {
+          event.preventDefault()
+          last.focus()
+        }
+      } else if (active === last || !panel.contains(active)) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open, busy, onClose])
+
   return (
     <AnimatePresence>
       {open && (
@@ -34,6 +98,12 @@ export default function ConfirmDeleteModal({
             onClick={busy ? undefined : onClose}
           />
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
+            tabIndex={-1}
             initial={{ opacity: 0, scale: 0.94, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 8 }}
@@ -46,7 +116,9 @@ export default function ConfirmDeleteModal({
                   <Trash2 className="h-5 w-5 text-rose-600" />
                 </div>
                 <div>
-                  <h2 className="text-[16px] font-black text-deepBlue">{title}</h2>
+                  <h2 id={titleId} className="text-[16px] font-black text-deepBlue">
+                    {title}
+                  </h2>
                   {itemLabel ? (
                     <p className="mt-0.5 text-[12px] font-bold text-slate-500">{itemLabel}</p>
                   ) : null}
@@ -63,7 +135,9 @@ export default function ConfirmDeleteModal({
               </button>
             </div>
             <div className="px-6 py-5 text-right">
-              <p className="text-[13px] font-semibold leading-relaxed text-slate-600">{description}</p>
+              <p id={descriptionId} className="text-[13px] font-semibold leading-relaxed text-slate-600">
+                {description}
+              </p>
               <div className="mt-6 flex gap-3">
                 <button
                   type="button"

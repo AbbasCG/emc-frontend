@@ -14,7 +14,7 @@ export const VIEW_OPTIONS: { id: CalendarViewMode; label: string }[] = [
   { id: 'day', label: 'يوم' },
 ]
 
-export const WEEKDAY_LABELS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الربيعاء', 'الخميس', 'الجمعة', 'السبت']
+export const WEEKDAY_LABELS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
 export function readStoredCalendarView(): CalendarViewMode {
   try {

@@ -431,8 +431,13 @@ describe('usePickerKeyboard — month paging and commit keys', () => {
       />,
     )
 
+    // The hook's documented invariant is that `activeIndex` always points at a
+    // selectable cell, so the roving index moves OFF the newly-disabled day rather
+    // than sitting on it and refusing to commit. Enter therefore still commits —
+    // just never the disabled cell.
     fireEvent.keyDown(grid(), { key: 'Enter' })
-    expect(onSelect).not.toHaveBeenCalled()
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(onSelect).not.toHaveBeenCalledWith(dayIndexA(8))
   })
 
   it('commits nothing when the grid holds no selectable day at all', () => {

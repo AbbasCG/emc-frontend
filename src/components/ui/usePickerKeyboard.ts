@@ -75,11 +75,17 @@ export function usePickerKeyboard({
     isSelectable(selectedIndex) ? selectedIndex : firstSelectable(),
   )
 
-  // Keep the roving index valid as the visible month / selection changes. Adjusted
-  // during render so the grid never exposes a stale `aria-activedescendant` for a frame.
+  // Keep the roving index valid as the visible month / selection / date constraints
+  // change. Adjusted during render so the grid never exposes a stale
+  // `aria-activedescendant` for a frame.
+  // `isDisabled` is typically a fresh closure on every render, so it cannot be compared
+  // by reference here; the derived selectability of the current index is the stable
+  // signal — it flips exactly when the roving cell stops (or starts) being reachable.
   const [seenGrid, setSeenGrid] = useState({ cells, selectedIndex })
-  if (seenGrid.cells !== cells || seenGrid.selectedIndex !== selectedIndex) {
-    setSeenGrid({ cells, selectedIndex })
+  const gridChanged = seenGrid.cells !== cells || seenGrid.selectedIndex !== selectedIndex
+  const activeStale = activeIndex >= 0 ? !isSelectable(activeIndex) : firstSelectable() >= 0
+  if (gridChanged || activeStale) {
+    if (gridChanged) setSeenGrid({ cells, selectedIndex })
     setActiveIndex((prev) => {
       if (isSelectable(selectedIndex)) return selectedIndex
       if (isSelectable(prev)) return prev

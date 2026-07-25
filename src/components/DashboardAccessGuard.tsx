@@ -38,6 +38,14 @@ export default function DashboardAccessGuard() {
   }
 
   if (!canAccessDashboardPath(role, pathname)) {
+    // `home` is this guard's designated fallback, so it has to be reachable. A user
+    // whose payload carries no role resolves `home` to /dashboard/profile, which
+    // `canAccessDashboardPath` *also* rejects — its `authenticated` sentinel is
+    // evaluated against the role rather than the session — so redirecting there would
+    // bounce forever and lock the app up with "Maximum update depth exceeded". This
+    // guard only ever mounts inside ProtectedRoute, so the session is already
+    // established by this point and rendering the fallback is safe.
+    if (pathname === home) return <Outlet />
     return <Navigate to={home} replace state={{ from: pathname }} />
   }
 

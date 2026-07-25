@@ -115,8 +115,10 @@ export function formatLastLogin(
 
   if (diffDays === 0) return `اليوم، ${timeStr(date, timezone)}`
   if (diffDays === 1) return `أمس، ${timeStr(date, timezone)}`
-  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
-  if (diffDays < 30) return `منذ ${String(diffDays)} يوماً`
+  if (diffDays === -1) return `غداً، ${timeStr(date, timezone)}`
+  if (diffDays > 1 && diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays >= 7 && diffDays < 30) return `منذ ${String(diffDays)} يوماً`
+  if (diffDays < -1 && diffDays > -7) return `بعد ${String(Math.abs(diffDays))} أيام`
   return formatDate(dateStr, 'ar', timezone)
 }
 
@@ -138,7 +140,9 @@ export function formatNotificationDate(
 
   if (diffDays === 0) return timeStr(date, timezone)
   if (diffDays === 1) return 'أمس'
-  if (diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays === -1) return 'غداً'
+  if (diffDays > 1 && diffDays < 7) return `منذ ${String(diffDays)} أيام`
+  if (diffDays < -1 && diffDays > -7) return `بعد ${String(Math.abs(diffDays))} أيام`
   try {
     return new Intl.DateTimeFormat('ar', {
       timeZone: timezone,

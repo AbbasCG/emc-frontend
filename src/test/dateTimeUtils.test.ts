@@ -171,12 +171,10 @@ describe('formatLastLogin', () => {
     expect(formatLastLogin('garbage')).toBe('—')
   })
 
-  it('KNOWN DEFECT: a future timestamp leaks a negative day count into the label', () => {
-    // `diffDays < 7` also catches negative diffs, so a clock-skewed or
-    // seeded-in-the-future last_login_at renders as "‑3 days ago".
-    // formatRelativeDate handles the same case correctly (بعد 3 أيام).
-    // Asserted as-is so the suite stays green; reported in bugsFound.
-    expect(formatLastLogin('2026-07-19T08:00:00Z')).toBe('منذ -3 أيام')
+  it('renders a future timestamp forwards instead of as a negative day count', () => {
+    // Regression: `diffDays < 7` also matched negative diffs, so a clock-skewed
+    // last_login_at rendered as "منذ -3 أيام". Mirrors formatRelativeDate.
+    expect(formatLastLogin('2026-07-19T08:00:00Z')).toBe('بعد 3 أيام')
   })
 })
 
@@ -205,9 +203,9 @@ describe('formatNotificationDate', () => {
     expect(formatNotificationDate('2026-06-10T10:00:00Z')).toBe('10 يونيو')
   })
 
-  it('KNOWN DEFECT: a future notification renders a negative day count', () => {
-    // Same `diffDays < 7` branch as formatLastLogin. Reported in bugsFound.
-    expect(formatNotificationDate('2026-07-18T08:00:00Z')).toBe('منذ -2 أيام')
+  it('renders a future notification forwards instead of as a negative day count', () => {
+    // Regression: same unguarded `diffDays < 7` branch as formatLastLogin.
+    expect(formatNotificationDate('2026-07-18T08:00:00Z')).toBe('بعد 2 أيام')
   })
 })
 

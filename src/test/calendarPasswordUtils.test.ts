@@ -74,11 +74,13 @@ describe('calendar constants', () => {
     expect(WEEKDAY_LABELS[6]).toBe('السبت')
   })
 
-  it('KNOWN DEFECT: the Wednesday header is misspelled "الربيعاء"', () => {
-    // Correct Arabic for Wednesday is "الأربعاء"; "الربيعاء" is not a word and
-    // is rendered verbatim in every month/week calendar header.
-    // Asserted as-is so the suite stays green; reported in bugsFound.
-    expect(WEEKDAY_LABELS[3]).toBe('الربيعاء')
+  it('spells every weekday header correctly', () => {
+    // Regression: WEEKDAY_LABELS[3] used to read "الربيعاء", which is not a word.
+    // These labels are rendered verbatim as column headers on every calendar view.
+    expect(WEEKDAY_LABELS[3]).toBe('الأربعاء')
+    expect(WEEKDAY_LABELS).toEqual([
+      'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت',
+    ])
   })
 
   it('covers a 06:00–22:00 timeline', () => {

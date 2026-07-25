@@ -13,6 +13,7 @@ import CourseEnrollmentFieldsModal, {
 } from '@/components/enrollment/CourseEnrollmentFieldsModal'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Course } from '@/types'
+import { isPaidCourse } from './isPaidCourse'
 import type { PublicItemType } from '@/utils/publicCourseDisplay'
 import { enrollActionLabel } from '@/utils/enrollmentRedirect'
 import { buildPublicLoginHref, isStudentUser, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
@@ -223,7 +224,7 @@ export default function CourseEnrollmentCard({
         ...(course.requires_registration_code && extra?.registration_code ?
           { registration_code: extra.registration_code.trim() }
         : {}),
-        ...(course.is_paid && extra?.payment_provider ?
+        ...(isPaidCourse(course) && extra?.payment_provider ?
           { payment_provider: extra.payment_provider }
         : {}),
       })
@@ -309,7 +310,7 @@ export default function CourseEnrollmentCard({
       toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
       return
     }
-    if (missing.length === 0 && !course.is_paid && !course.requires_registration_code) {
+    if (missing.length === 0 && !isPaidCourse(course) && !course.requires_registration_code) {
       void submitEnrollment()
       return
     }

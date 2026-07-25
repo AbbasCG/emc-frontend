@@ -1,10 +1,19 @@
 import { toLatinDigits } from '@/utils/publicDetailFormat'
 
+const TZ = 'Europe/Amsterdam'
+
 export const formatEnglishNumber = (
   value: number | string | null | undefined,
   options?: Intl.NumberFormatOptions,
 ): string => {
   if (value === null || value === undefined || value === '') {
+    return '—'
+  }
+
+  // A genuine NaN is not renderable — it gets the same placeholder as null/''
+  // (see formatEnglishPercent). Non-numeric *strings* still fall through to the
+  // digit-normalising branch below so Arabic copy passes through untouched.
+  if (typeof value === 'number' && Number.isNaN(value)) {
     return '—'
   }
 
@@ -46,6 +55,7 @@ export function formatEnglishDate(
   if (Number.isNaN(d.getTime())) return toLatinDigits(String(value).slice(0, 10))
   try {
     return new Intl.DateTimeFormat('ar', {
+      timeZone: TZ,
       day: 'numeric',
       month,
       year: 'numeric',

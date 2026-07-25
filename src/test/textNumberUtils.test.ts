@@ -72,11 +72,11 @@ describe('formatEnglishNumber', () => {
     expect(formatEnglishNumber(Infinity)).toBe('∞')
   })
 
-  it('KNOWN DEFECT: NaN leaks the literal string "NaN" into the UI', () => {
-    // `Number(NaN)` is NaN, so the guard routes to `toLatinDigits(String(value))`
-    // which yields "NaN" rather than the '—' placeholder used for every other
-    // non-renderable value. Reported in bugsFound.
-    expect(formatEnglishNumber(Number.NaN)).toBe('NaN')
+  it('renders a numeric NaN as the placeholder, not the literal "NaN"', () => {
+    // Regression: NaN fell through to toLatinDigits(String(value)) and printed
+    // "NaN" into KPI tiles. Non-numeric *strings* still pass through unchanged
+    // (asserted above), so the guard is numeric-only.
+    expect(formatEnglishNumber(Number.NaN)).toBe('—')
   })
 })
 

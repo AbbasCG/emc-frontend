@@ -14,6 +14,18 @@ type AppAlertProps = {
 export default function AppAlert({ type, title, message, dismissible = false, onDismiss }: AppAlertProps) {
   const [isVisible, setIsVisible] = useState(true)
 
+  // A dismissed alert has to come back when the same instance is handed a *different*
+  // alert — e.g. a form that reuses one <AppAlert> for every server error. Adjusted
+  // during render (react.dev "adjusting state when a prop changes"), never in an effect.
+  // A ReactNode message is a new object on every render, so only string messages take
+  // part in the identity; otherwise such an alert could never stay dismissed.
+  const identity = JSON.stringify([type, title, typeof message === 'string' ? message : null])
+  const [seenIdentity, setSeenIdentity] = useState(identity)
+  if (seenIdentity !== identity) {
+    setSeenIdentity(identity)
+    setIsVisible(true)
+  }
+
   if (!isVisible) return null
 
   const styles = {
