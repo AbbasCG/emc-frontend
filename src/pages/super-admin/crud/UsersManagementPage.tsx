@@ -35,7 +35,7 @@ import { UsersFilterPanel } from '@/components/super-admin/users/UsersFilterPane
 import { UsersKpiStrip } from '@/components/super-admin/users/UsersKpiStrip'
 import { UsersPaginationBar } from '@/components/super-admin/users/UsersPaginationBar'
 import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
-import { isDeletedUser, userVerifiedKey } from '@/components/super-admin/users/UserBadges'
+import { isDeletedUser, userVerifiedKey } from '@/components/super-admin/users/userBadgeStatus'
 import { cn } from '@/lib/utils'
 import { getDashboardPathByRole, normalizeRole } from '@/utils/dashboardAccess'
 import { adminRoleLabelAr, getAssignableRoleOptions } from '@/pages/super-admin/users/assignableRoles'

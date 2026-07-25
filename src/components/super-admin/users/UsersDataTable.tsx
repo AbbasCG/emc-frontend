@@ -2,11 +2,11 @@ import { memo } from 'react'
 import type { AdminManagedUser } from '@/api/adminUsersApi'
 import { UserAvatarCell } from '@/components/super-admin/users/UserAvatarCell'
 import {
-  isDeletedUser,
   UserRoleBadge,
   UserStatusBadge,
   UserVerifiedBadge,
 } from '@/components/super-admin/users/UserBadges'
+import { isDeletedUser } from '@/components/super-admin/users/userBadgeStatus'
 import { EmptyPanel } from '@/pages/super-admin/crud/shared/States'
 import { CrudCardTable, CrudTable, Td, Th, Tr } from '@/pages/super-admin/crud/shared/TableChrome'
 import { RowActionsMenu, type MenuAction } from '@/pages/super-admin/crud/shared/RowActions'

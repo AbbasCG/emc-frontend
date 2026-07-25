@@ -1,7 +1,7 @@
 import type { ChangeEvent, ReactNode } from 'react'
 import { ChevronDown, Search, SlidersHorizontal, XCircle } from 'lucide-react'
 import type { PlacementStatus } from '@/api/placementApi'
-import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP } from '@/components/instructor/instructorStudentFormats'
 import { STATUS_AR, SORT_OPTIONS, type AssignmentFilter, type SortKey } from './constants'
 
 type Props = {

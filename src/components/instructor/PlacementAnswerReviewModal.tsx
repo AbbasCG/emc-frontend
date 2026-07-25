@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
-import { CEFR_MAP, toDMY } from './InstructorStudentDrawer'
+import { CEFR_MAP, toDMY } from './instructorStudentFormats'
 import { PlacementAnswerReviewBody } from './PlacementAnswerReviewBody'
 
 import type { PlacementStudentRow } from '@/api/placementApi'

@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -10,7 +8,6 @@ import {
 import {
   acceptAllConsent,
   applyConsentScripts,
-  DEFAULT_PREFS,
   hasConsentRecord,
   readStoredConsent,
   rejectNonEssentialConsent,
@@ -19,20 +16,10 @@ import {
   type CookiePreferences,
   type StoredConsent,
 } from '@/lib/cookieConsent'
-
-type CookieConsentContextValue = {
-  consent: StoredConsent | null
-  bannerVisible: boolean
-  preferencesOpen: boolean
-  openPreferences: () => void
-  closePreferences: () => void
-  acceptAll: () => void
-  rejectNonEssential: () => void
-  savePreferences: (prefs: Pick<CookiePreferences, 'analytics' | 'marketing'>) => void
-  withdrawAll: () => void
-}
-
-const CookieConsentContext = createContext<CookieConsentContextValue | null>(null)
+import {
+  CookieConsentContext,
+  type CookieConsentContextValue,
+} from './useCookieConsent'
 
 export function CookieConsentProvider({ children }: { children: ReactNode }) {
   const [consent, setConsent] = useState<StoredConsent | null>(() => readStoredConsent())
@@ -96,16 +83,3 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
 
   return <CookieConsentContext.Provider value={value}>{children}</CookieConsentContext.Provider>
 }
-
-export function useCookieConsent(): CookieConsentContextValue {
-  const ctx = useContext(CookieConsentContext)
-  if (!ctx) throw new Error('useCookieConsent must be used within CookieConsentProvider')
-  return ctx
-}
-
-/** Safe hook for footer — returns null outside provider. */
-export function useCookieConsentOptional(): CookieConsentContextValue | null {
-  return useContext(CookieConsentContext)
-}
-
-export { DEFAULT_PREFS }

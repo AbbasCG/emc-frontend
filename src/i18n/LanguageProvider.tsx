@@ -7,17 +7,10 @@
  * already ships `lang="ar" dir="rtl"`, and this provider simply re-asserts it
  * on mount, so the Arabic experience is unchanged.
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LANG_STORAGE_KEY, resolveLang, type LangCode, type LangDir, type LangDefinition } from './index'
-
-type LanguageContextValue = {
-  lang: LangCode
-  dir: LangDir
-  setLang: (code: LangCode) => void
-}
-
-const LanguageContext = createContext<LanguageContextValue | null>(null)
+import { LANG_STORAGE_KEY, resolveLang, type LangCode, type LangDefinition } from './index'
+import { LanguageContext, type LanguageContextValue } from './useLanguage'
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
@@ -57,12 +50,4 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   )
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
-}
-
-export function useLanguage(): LanguageContextValue {
-  const ctx = useContext(LanguageContext)
-  if (!ctx) {
-    throw new Error('useLanguage must be used within <LanguageProvider>')
-  }
-  return ctx
 }

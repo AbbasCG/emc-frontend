@@ -16,10 +16,8 @@ import {
 } from '@/pages/super-admin/crud/shared/EntityDetailDrawer'
 import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
-import {
-  EMC_CHART_PALETTE,
-  EnterpriseColumnChart,
-} from '@/pages/super-admin/crud/shared/enterprise/charts'
+import { EMC_CHART_PALETTE } from '@/pages/super-admin/crud/shared/enterprise/chartPrimitives'
+import { EnterpriseColumnChart } from '@/pages/super-admin/crud/shared/enterprise/charts'
 import {
   SaGlassCard,
   SaPageRoot,

@@ -2,7 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Calendar, Clock, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
-import { CALENDAR_PORTAL_CLASS, EmcCalendarBody } from '@/components/ui/EmcCalendarPopover'
+import { EmcCalendarBody } from '@/components/ui/EmcCalendarPopover'
+import { CALENDAR_PORTAL_CLASS } from '@/components/ui/emcCalendarUtils'
 import {
   addDaysToDatetimeLocal,
   addMinutesToDatetimeLocal,

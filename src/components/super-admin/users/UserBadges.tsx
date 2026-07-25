@@ -2,6 +2,14 @@ import { cn } from '@/lib/utils'
 import { adminRoleLabelAr } from '@/pages/super-admin/users/assignableRoles'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import type { AdminManagedUser } from '@/api/adminUsersApi'
+import {
+  STATUS_LABEL,
+  STATUS_PILL,
+  userStatusKey,
+  userVerifiedKey,
+  VERIFIED_LABEL,
+  VERIFIED_PILL,
+} from '@/components/super-admin/users/userBadgeStatus'
 
 const ROLE_PILL: Record<string, string> = {
   super_admin: 'bg-[#0C2A4B] text-white border-[#0C2A4B]/70 shadow-sm',
@@ -23,45 +31,6 @@ const ROLE_PILL: Record<string, string> = {
   volunteer: 'bg-green-50 text-green-800 border-green-200',
   partner: 'bg-yellow-50 text-yellow-800 border-yellow-200',
   section_lead: 'bg-rose-50 text-rose-800 border-rose-200',
-}
-
-const STATUS_PILL = {
-  active: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-  inactive: 'bg-amber-50 text-amber-800 border-amber-200',
-  deleted: 'bg-red-50 text-red-700 border-red-200',
-  unknown: 'bg-slate-50 text-slate-600 border-slate-200',
-} as const
-
-const STATUS_LABEL = {
-  active: 'نشط',
-  inactive: 'موقوف',
-  deleted: 'محذوف',
-  unknown: 'غير محدد',
-} as const
-
-const VERIFIED_PILL = {
-  yes: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-  no: 'bg-rose-50 text-rose-700 border-rose-200',
-  unknown: 'bg-slate-50 text-slate-500 border-slate-200',
-} as const
-
-const VERIFIED_LABEL = { yes: 'موثَّق', no: 'غير موثَّق', unknown: 'غير مُرسَل' } as const
-
-export function isDeletedUser(u: AdminManagedUser): boolean {
-  return !!u.deleted_at
-}
-
-export function userStatusKey(u: AdminManagedUser): keyof typeof STATUS_PILL {
-  if (isDeletedUser(u)) return 'deleted'
-  if (u.is_active === false) return 'inactive'
-  if (u.is_active === true) return 'active'
-  return 'unknown'
-}
-
-export function userVerifiedKey(u: AdminManagedUser): keyof typeof VERIFIED_PILL {
-  const raw = u.email_verified_at
-  if (raw == null || String(raw).trim() === '') return 'no'
-  return Number.isFinite(Date.parse(raw)) ? 'yes' : 'unknown'
 }
 
 function Pill({ children, className }: { children: React.ReactNode; className?: string }) {

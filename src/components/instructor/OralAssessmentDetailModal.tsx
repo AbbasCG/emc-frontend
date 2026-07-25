@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { ClassAssignmentStudent } from '@/api/placementApi'
-import { CEFR_MAP } from './InstructorStudentDrawer'
+import { CEFR_MAP } from './instructorStudentFormats'
 import { formatAmsterdamDMY, formatAmsterdamTime24 } from '@/utils/amsterdamTime'
 
 type Props = {

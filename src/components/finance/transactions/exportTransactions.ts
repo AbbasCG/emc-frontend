@@ -1,5 +1,5 @@
 import type { FinancialTransaction } from '@/types/intelligence'
-import { downloadCsv } from '@/components/finance/financeTablesShared'
+import { downloadCsv } from '@/components/finance/financeTableFormats'
 import { formatFinanceDateTime, formatMoney } from '@/utils/financeFormatters'
 import { getTransactionStatusLabel } from '@/utils/transactionStatusLabels'
 import { mapStatusForFilter, typeLabelAr } from './constants'

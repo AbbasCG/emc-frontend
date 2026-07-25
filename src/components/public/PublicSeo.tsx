@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
 import { LANGS, type LangCode } from '@/i18n'
-import { useLanguage } from '@/i18n/LanguageProvider'
+import { useLanguage } from '@/i18n/useLanguage'
 
 const SITE_NAME = 'EMC — مركز ماستر التعليمي'
 

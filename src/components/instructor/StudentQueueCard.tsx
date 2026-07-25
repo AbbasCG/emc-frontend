@@ -8,7 +8,7 @@ import {
   Mic,
 } from 'lucide-react'
 import type { ClassAssignmentStudent, ClassGroup } from '@/api/placementApi'
-import { CEFR_MAP } from './InstructorStudentDrawer'
+import { CEFR_MAP } from './instructorStudentFormats'
 
 function waitingLabel(student: ClassAssignmentStudent): string | null {
   if (student.is_assigned) return null

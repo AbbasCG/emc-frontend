@@ -24,7 +24,7 @@ import {
   type ClassGroupDetail,
   type ClassGroupSessionRow,
 } from '@/api/placementApi'
-import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP } from '@/components/instructor/instructorStudentFormats'
 import { StudentsPreview } from '@/components/instructor/classes/StudentsPreview'
 import { STATUS_AR, STATUS_BADGE, WEEKDAYS_AR } from '@/components/instructor/classes/constants'
 import { formatDate, formatDateTime } from '@/utils/dateTime'

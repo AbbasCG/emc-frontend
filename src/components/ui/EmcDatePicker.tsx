@@ -2,12 +2,12 @@ import { useId, useRef, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
+import { EmcCalendarBody } from '@/components/ui/EmcCalendarPopover'
 import {
   CALENDAR_PORTAL_CLASS,
-  EmcCalendarBody,
   formatDateDisplay,
   parseIso,
-} from '@/components/ui/EmcCalendarPopover'
+} from '@/components/ui/emcCalendarUtils'
 
 export type EmcDatePickerProps = {
   label: string

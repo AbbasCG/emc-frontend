@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { ClassAssignmentStudent, ClassGroup } from '@/api/placementApi'
-import { CEFR_MAP } from './InstructorStudentDrawer'
+import { CEFR_MAP } from './instructorStudentFormats'
 import { StudentsPreview } from './classes/StudentsPreview'
 import { STATUS_AR, STATUS_BADGE, STATUS_DOT, WEEKDAYS_AR } from './classes/constants'
 import { formatDate } from '@/utils/dateTime'

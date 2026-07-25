@@ -35,8 +35,8 @@ import {
   EnterpriseCrudHero,
   EnterpriseMetricTile,
 } from '@/pages/super-admin/crud/shared/enterprise/EnterpriseMetrics'
+import { EMC_CHART_PALETTE } from '@/pages/super-admin/crud/shared/enterprise/chartPrimitives'
 import {
-  EMC_CHART_PALETTE,
   EnterpriseColumnChart,
   EnterprisePieRadial,
 } from '@/pages/super-admin/crud/shared/enterprise/charts'

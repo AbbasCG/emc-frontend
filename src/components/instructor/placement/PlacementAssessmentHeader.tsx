@@ -2,12 +2,11 @@ import { Mail, User } from 'lucide-react'
 import { progressFromStatus, type PlacementStudentRow } from '@/api/placementApi'
 import {
   ASSESSMENT_STATUS_LABELS,
-  CEFR_MAP,
   STATUS_LABELS,
   cefrBadge,
 } from '@/components/instructor/placement/constants'
 import { buildPlacementSummary, writtenPercentage } from '@/utils/placementAssessmentSummary'
-import { toDMY } from '@/components/instructor/InstructorStudentDrawer'
+import { toDMY } from '@/components/instructor/instructorStudentFormats'
 
 type Props = {
   row: PlacementStudentRow
@@ -106,10 +105,4 @@ function ScorePill({
       {sub && <p className="mt-1 text-[10px] font-bold text-[#F28C00]">{sub}</p>}
     </div>
   )
-}
-
-/** Resolve CEFR display from internal key or CEFR code */
-export function displayCefr(level: string | null | undefined) {
-  if (!level) return null
-  return CEFR_MAP[level] ?? Object.values(CEFR_MAP).find((v) => v.cefr === level) ?? null
 }

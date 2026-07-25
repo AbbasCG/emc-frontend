@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom'
 import type { InstructorPlacementTestRow } from '@/api/placementApi'
 import { PlacementAnswerReviewBody } from '@/components/instructor/PlacementAnswerReviewBody'
 import type { ReviewSubject } from '@/components/instructor/PlacementAnswerReviewModal'
-import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP } from '@/components/instructor/instructorStudentFormats'
 import { formatAmsterdamDate, formatAmsterdamTime24 } from '@/utils/amsterdamTime'
 import { STATUS_AR, overallPct, writtenPct } from './constants'
 

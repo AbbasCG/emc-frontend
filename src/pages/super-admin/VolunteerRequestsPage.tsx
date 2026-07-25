@@ -22,7 +22,8 @@ import {
   type VolunteerRequestsStatistics,
   type VolunteerRequestStatus,
 } from '@/api/volunteerApplicationApi'
-import VolunteerRequestDetailModal, { STATUS_CFG } from '@/components/volunteer/VolunteerRequestDetailModal'
+import VolunteerRequestDetailModal from '@/components/volunteer/VolunteerRequestDetailModal'
+import { STATUS_CFG } from '@/components/volunteer/volunteerRequestStatus'
 import { formatDate } from '@/utils/dateTime'
 
 /* ── Status config (table badges) ──────────────────────────────────── */

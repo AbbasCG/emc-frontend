@@ -37,7 +37,7 @@ import {
   type CertificateLog,
 } from '@/api/certificatesApi'
 import apiClient from '@/api/axios'
-import { CERT_TYPE_LABELS } from './AdminCertificatesPage'
+import { CERT_TYPE_LABELS } from './certificateLabels'
 
 // ── Status display ─────────────────────────────────────────────────────────────
 

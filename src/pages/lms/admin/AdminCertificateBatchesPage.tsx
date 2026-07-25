@@ -11,7 +11,7 @@ import {
   type CertificateBatch,
   type Certificate,
 } from '@/api/certificatesApi'
-import { CERT_TYPE_LABELS } from './AdminCertificatesPage'
+import { CERT_TYPE_LABELS } from './certificateLabels'
 
 const BATCH_STATUS_CLS: Record<string, string> = {
   pending:               'bg-amber-50 text-amber-700 ring-1 ring-amber-200',

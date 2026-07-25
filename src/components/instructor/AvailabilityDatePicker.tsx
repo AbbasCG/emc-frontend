@@ -3,7 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Calendar, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DropdownPortal } from '@/components/ui/DropdownPortal'
-import { CALENDAR_PORTAL_CLASS, EmcCalendarBody, parseIso } from '@/components/ui/EmcCalendarPopover'
+import { EmcCalendarBody } from '@/components/ui/EmcCalendarPopover'
+import { CALENDAR_PORTAL_CLASS, parseIso } from '@/components/ui/emcCalendarUtils'
 
 const WEEKDAYS_AR_LONG = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'] as const
 

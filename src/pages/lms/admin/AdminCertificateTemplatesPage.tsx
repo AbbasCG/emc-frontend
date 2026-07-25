@@ -20,7 +20,7 @@ import {
   type CertificateType,
   type CreateTemplatePayload,
 } from '@/api/certificatesApi'
-import { CERT_TYPE_LABELS } from './AdminCertificatesPage'
+import { CERT_TYPE_LABELS } from './certificateLabels'
 
 const LANG_LABELS: Record<string, string> = {
   arabic: 'عربي',

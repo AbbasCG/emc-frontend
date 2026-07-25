@@ -62,6 +62,8 @@ import {
   CmsFormSection,
   CmsSelect,
   CmsTextarea,
+} from '@/components/lms/CourseCmsFormModal'
+import {
   MATERIAL_KIND_OPTIONS,
   normalizeSessionLocationType,
   SESSION_LOCATION_OPTIONS,
@@ -71,7 +73,7 @@ import {
   SUBMISSION_TYPE_OPTIONS,
   validateSessionDraft,
   YES_NO_OPTIONS,
-} from '@/components/lms/CourseCmsFormModal'
+} from '@/components/lms/courseCmsFields'
 import { CmsSessionTimingSection } from '@/components/lms/CmsSessionTimingSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatLmsDateTime, formatLmsTime } from '@/components/lms/lmsFormatters'

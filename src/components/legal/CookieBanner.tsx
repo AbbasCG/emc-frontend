@@ -2,8 +2,8 @@ import { motion } from 'framer-motion'
 import { Cookie, Settings2, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useLanguage } from '@/i18n/LanguageProvider'
-import { useCookieConsent } from '@/contexts/CookieConsentContext'
+import { useLanguage } from '@/i18n/useLanguage'
+import { useCookieConsent } from '@/contexts/useCookieConsent'
 
 export default function CookieBanner() {
   const { t } = useTranslation()

@@ -27,9 +27,9 @@ import {
   buildRadarSkills,
   buildTimeline,
 } from '@/utils/placementAssessmentSummary'
-import { toDMY } from '@/components/instructor/InstructorStudentDrawer'
+import { toDMY } from '@/components/instructor/instructorStudentFormats'
 import type { OralForm } from '@/components/instructor/placement/constants'
-import { emcTooltipItemStyle, emcTooltipLabelStyle, emcTooltipStyle } from '@/pages/super-admin/crud/shared/enterprise/charts'
+import { emcTooltipItemStyle, emcTooltipLabelStyle, emcTooltipStyle } from '@/pages/super-admin/crud/shared/enterprise/chartPrimitives'
 
 type Props = {
   row: PlacementStudentRow

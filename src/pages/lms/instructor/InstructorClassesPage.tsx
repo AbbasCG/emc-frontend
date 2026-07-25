@@ -30,7 +30,7 @@ import type { TeachingCourseLms } from '@/types/lms'
 import toast from '@/lib/toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { ClassCard, InstructorHero, KpiCard, KpiSkeletonRow } from '@/components/instructor'
-import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP } from '@/components/instructor/instructorStudentFormats'
 import {
   CEFR_LEVELS,
   ClassesEmptyState,

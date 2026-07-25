@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { InstructorPlacementTestRow } from '@/api/placementApi'
-import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP } from '@/components/instructor/instructorStudentFormats'
 import { formatInstructorDateAr, formatInstructorTimeRange } from '@/utils/instructorScheduleFormat'
 import { STATUS_AR, STATUS_BADGE, overallPct, writtenPct } from './constants'
 

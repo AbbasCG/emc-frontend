@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { InstructorStudentRow } from '@/api/instructorApi'
-import { CEFR_MAP, toDMY } from './InstructorStudentDrawer'
+import { CEFR_MAP, toDMY } from './instructorStudentFormats'
 
 /* ── Label maps ─────────────────────────────────────────────────────────── */
 

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Calendar, ClipboardCheck, ExternalLink, Mail, Mic, UserPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { InstructorPlacementTestRow } from '@/api/placementApi'
-import { CEFR_MAP, toDMY } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP, toDMY } from '@/components/instructor/instructorStudentFormats'
 import { STATUS_AR, STATUS_BADGE, getPipelineStage, overallPct, writtenPct } from './constants'
 import { PIPELINE_STAGES } from './constants'
 

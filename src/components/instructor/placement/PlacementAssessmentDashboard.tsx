@@ -7,7 +7,7 @@ import { PlacementAssessmentHeader } from './PlacementAssessmentHeader'
 import { PlacementQuickActionsSidebar } from './PlacementQuickActionsSidebar'
 import { OralAssessmentTab } from './OralAssessmentTab'
 import { PlacementSummaryTab } from './PlacementSummaryTab'
-import { emptyOralForm, type OralForm } from './constants'
+import type { OralForm } from './constants'
 
 export type AssessmentTab = 'written' | 'oral' | 'summary'
 
@@ -130,4 +130,3 @@ export function PlacementAssessmentDashboard({
   )
 }
 
-export { emptyOralForm }

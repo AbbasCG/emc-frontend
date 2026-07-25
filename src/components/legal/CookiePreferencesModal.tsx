@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Cookie, Shield, BarChart3, Megaphone, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useCookieConsent, DEFAULT_PREFS } from '@/contexts/CookieConsentContext'
+import { useCookieConsent, DEFAULT_PREFS } from '@/contexts/useCookieConsent'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { cn } from '@/lib/utils'
 

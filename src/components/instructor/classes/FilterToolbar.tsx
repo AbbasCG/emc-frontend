@@ -1,6 +1,6 @@
 import { ChevronDown, Search } from 'lucide-react'
 import type { TeachingCourseLms } from '@/types/lms'
-import { CEFR_MAP } from '@/components/instructor/InstructorStudentDrawer'
+import { CEFR_MAP } from '@/components/instructor/instructorStudentFormats'
 import { CEFR_LEVELS, STATUS_FILTERS, type StatusFilter } from './constants'
 
 type Props = {

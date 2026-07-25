@@ -35,7 +35,7 @@ import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
 import { routeMatchesPath } from '@/utils/routeMatch'
 import { UserAvatar } from '@/components/UserAvatar'
 import { LANGS } from '@/i18n'
-import { useLanguage } from '@/i18n/LanguageProvider'
+import { useLanguage } from '@/i18n/useLanguage'
 
 /**
  * M3 i18n: mega-menu items are defined by catalog key; labels/descriptions

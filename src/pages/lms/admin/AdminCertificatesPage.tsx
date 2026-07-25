@@ -18,19 +18,8 @@ import {
   type CertificateFilters,
 } from '@/api/certificatesApi'
 import apiClient from '@/api/axios'
+import { CERT_TYPE_LABELS } from './certificateLabels'
 
-export const CERT_TYPE_LABELS: Record<CertificateType, string> = {
-  course_completion:   'إتمام دورة',
-  workshop_attendance: 'حضور ورشة',
-  summer_camp:         'معسكر صيفي',
-  learning_track:      'مسار تعليمي',
-  partner:             'شراكة',
-  guest_speaker:       'متحدث ضيف',
-  volunteer:           'تطوع',
-  internship:          'تدريب',
-  sponsor:             'رعاية',
-  custom:              'مخصص',
-}
 
 const STATUS_LABELS: Record<string, string> = {
   draft:              'مسودة',

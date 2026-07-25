@@ -21,7 +21,7 @@ import {
   sendOralBookingMessage,
   updateOralBookingStatus,
 } from '@/api/placementApi'
-import { CEFR_MAP } from './InstructorStudentDrawer'
+import { CEFR_MAP } from './instructorStudentFormats'
 import { formatAmsterdamDMY, formatAmsterdamTimeRange } from '@/utils/amsterdamTime'
 import toast from '@/lib/toast'
 import { PLACEMENT_STATUS_META, resolvePlacementStatusKey } from '@/utils/placementStatusColors'
