@@ -19,17 +19,18 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
-      // Recommended preset flags many legitimate “reset UI on navigation” / “fetch on mount”
-      // patterns. Warn-only keeps CI usable until refactors adopt useEffectEvent / alternatives.
-      'react-hooks/set-state-in-effect': 'warn',
+      // Restored to the recommended `error` in M4.a once all 245 violations across 184
+      // files were refactored — see docs/04-references/effect-patterns.md for the three
+      // legal shapes (inline async IIFE, subscription callback, render-phase adjustment).
+      'react-hooks/set-state-in-effect': 'error',
       // Honour the `_`-prefix convention for intentionally-unused bindings.
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
-      // Fast-Refresh boundary hint — a dev-only DX rule with no runtime impact. Kept as a warning
-      // so mixed component+constant files don't block CI; proper file-splitting is tracked in the backlog.
-      'react-refresh/only-export-components': 'warn',
+      // Restored to `error` in M4.a once every mixed component+constant module was split
+      // into a component file and a sibling `*.ts` holding its constants/helpers/hooks.
+      'react-refresh/only-export-components': 'error',
     },
   },
 ])
