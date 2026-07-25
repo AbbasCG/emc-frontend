@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, LayoutDashboard, Sparkles } from 'lucide-react'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'

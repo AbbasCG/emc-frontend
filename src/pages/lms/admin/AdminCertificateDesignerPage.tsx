@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, Save, Eye, ArrowLeft, RefreshCw, Type, Palette,

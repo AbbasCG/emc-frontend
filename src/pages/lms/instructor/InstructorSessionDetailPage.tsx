@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   Archive, Ban, CheckCircle2, Copy, ExternalLink, Pencil, Play, Save, Trash2, UserCheck, X, AlertOctagon,

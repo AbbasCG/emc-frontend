@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import type { SupportTicket } from '@/types/operations'
 import { SUPPORT_STATUS_AR } from '@/data/operationsLabels'
 

@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, Download, RefreshCw } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { financeSectionBase } from '@/utils/financeNav'
 import { FinanceSubnav } from '@/components/intelligence'
 

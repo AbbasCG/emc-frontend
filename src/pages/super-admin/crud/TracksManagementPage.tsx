@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { GitBranch, GitMerge, Layers, Link2, RefreshCw, Route } from 'lucide-react'
 import type { CatalogTrackRow } from '@/api/superAdminCatalogApi'
 import { fetchTracksStrict } from '@/api/superAdminCatalogApi'

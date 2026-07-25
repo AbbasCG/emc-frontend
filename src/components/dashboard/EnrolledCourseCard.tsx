@@ -1,6 +1,6 @@
 import { BookOpen, CalendarClock, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { resolveCourseCoverImageUrl } from '@/utils/publicCourseDisplay'
 import type { ClassAssignment, Course, Enrollment } from '../../types'
 

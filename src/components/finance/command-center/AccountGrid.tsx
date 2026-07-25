@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowDownLeft, ArrowUpRight, Building2, CreditCard, MoreHorizontal, Wallet } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { formatFinanceForeignCurrency } from '@/utils/financeFormatters'
 import type { FinanceAccount, FinancePaymentRow } from '@/types/intelligence'
 import { accountIncomingOutgoing } from './derivations'

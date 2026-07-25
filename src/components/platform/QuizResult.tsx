@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Award, TrendingUp } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { QuizAttemptResult } from '@/types/platform'
 
 type Props = {

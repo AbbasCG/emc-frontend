@@ -1,6 +1,6 @@
 import { BookOpen, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { DashboardSection, ProgressCard } from '@/components/dashboard'
 import { LmsEmptyState, LmsPageSkeleton, ProgressRing } from '@/components/lms'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'

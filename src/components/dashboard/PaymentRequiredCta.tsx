@@ -1,5 +1,5 @@
 import { CreditCard } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useState } from 'react'
 import type { Course } from '@/types'
 import type { StudentCourseAccess } from '@/api/studentApi'

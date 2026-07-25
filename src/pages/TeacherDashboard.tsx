@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { motion, type Variants } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { fetchInstructorDashboardStats } from '@/api/instructorApi'
 import type { InstructorSubmission, LmsSession, TeachingCourseLms } from '@/types/lms'
 import { useAuth } from '../contexts/AuthContext'

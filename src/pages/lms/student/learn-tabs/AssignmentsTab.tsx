@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { ArrowLeft, ClipboardList } from 'lucide-react'
 import { AssignmentCard } from '@/components/lms'
 import type { StudentAssignment } from '@/types/lms'

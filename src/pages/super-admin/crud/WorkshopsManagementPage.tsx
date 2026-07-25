@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNow } from '@/hooks/useNow'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { CalendarDays, RefreshCw } from 'lucide-react'
 import type { CatalogWorkshopRow } from '@/api/superAdminCatalogApi'
 import { fetchWorkshopRequestsStrict } from '@/api/workshopRequestsApi'

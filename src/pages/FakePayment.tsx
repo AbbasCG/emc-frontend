@@ -9,7 +9,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 import { fakeConfirmPayment, fakeFailPayment } from '@/api/paymentsApi'
 
 export default function FakePayment() {

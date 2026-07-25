@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
 
 export type BreadcrumbItem = { label: string; href?: string }

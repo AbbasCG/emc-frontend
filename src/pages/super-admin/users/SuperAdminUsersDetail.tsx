@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import toast from '@/lib/toast'
 import { PenLine, RefreshCw, Trash2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'

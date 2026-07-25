@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'

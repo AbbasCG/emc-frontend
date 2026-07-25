@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { markNotificationRead, notifyNotificationsRefresh } from '@/api/notificationsApi'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'
 import { formatRelativeDate } from '@/utils/dateTime'

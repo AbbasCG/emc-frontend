@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { fetchStudentSessionCalendar, type LmsSessionEvent } from '@/api/placementApi'
 import { BackButton } from '@/components/shared/BackButton'
 import SessionCalendar from '@/components/sessions/SessionCalendar'

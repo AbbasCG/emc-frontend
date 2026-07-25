@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { loadingToast, successToast, errorToast } from '@/lib/toast'
 import {
   createWebhookEndpoint,

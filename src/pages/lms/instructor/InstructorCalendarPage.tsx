@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { fetchInstructorSessionCalendar, fetchInstructorClasses, type LmsSessionEvent, type ClassGroup } from '@/api/placementApi'
 import { fetchInstructorCourses } from '@/api/instructorApi'
 import type { TeachingCourseLms } from '@/types/lms'

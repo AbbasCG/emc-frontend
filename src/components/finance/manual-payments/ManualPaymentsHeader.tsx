@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, HandCoins, Plus, RefreshCw } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import FinanceDate from '@/components/finance/FinanceDate'
 import { formatFinanceCount } from '@/utils/financeFormatters'
 import { financeSectionBase } from '@/utils/financeNav'

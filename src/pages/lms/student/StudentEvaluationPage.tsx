@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router'
 import { Sparkles } from 'lucide-react'
 import EvaluationForm from '@/components/lms/EvaluationForm'
 import type { EvaluationPayload } from '@/api/studentApi'

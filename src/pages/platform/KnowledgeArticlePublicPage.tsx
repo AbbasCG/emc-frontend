@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 import { motion } from 'framer-motion'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { useEffect, useState } from 'react'
 import { fetchKnowledgeArticleBySlug, fetchKnowledgeArticles } from '@/api/knowledgeApi'
 import EmptyState from '@/components/dashboard/EmptyState'

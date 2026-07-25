@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import FormBuilder from '@/components/operations/FormBuilder'
 import { createFormDefinition } from '@/api/formsApi'
 

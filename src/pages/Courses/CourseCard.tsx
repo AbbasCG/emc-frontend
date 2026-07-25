@@ -9,7 +9,7 @@ import {
   ArrowUpRight,
   GraduationCap,
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
 import { toLatinDigits } from '@/utils/publicDetailFormat'

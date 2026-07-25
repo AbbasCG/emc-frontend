@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, Bot, BrainCircuit, Sparkles, Zap } from 'lucide-react'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'

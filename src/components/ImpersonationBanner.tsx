@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import axios from 'axios'
 import { motion } from 'framer-motion'
 import { ShieldAlert } from 'lucide-react'

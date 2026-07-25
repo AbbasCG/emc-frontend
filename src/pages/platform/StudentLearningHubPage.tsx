@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpenCheck, ClipboardCheck, Video } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 const courseId = 1
 
 export default function StudentLearningHubPage() {

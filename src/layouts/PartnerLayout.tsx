@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Briefcase, FileStack, LayoutDashboard, Menu, PieChart, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'

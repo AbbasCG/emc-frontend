@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { fetchQuiz, submitQuizAnswers } from '@/api/advancedLmsApi'
 import QuizCard from '@/components/platform/QuizCard'
 import QuizResult from '@/components/platform/QuizResult'

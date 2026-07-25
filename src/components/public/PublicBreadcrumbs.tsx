@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
 
 export type Crumb = { label: string; href?: string }

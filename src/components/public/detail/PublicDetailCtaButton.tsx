@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, GraduationCap, Loader2, Lock } from 'lucide-react'
 import type { PublicEnrollCta } from '@/utils/publicCourseDetailCta'

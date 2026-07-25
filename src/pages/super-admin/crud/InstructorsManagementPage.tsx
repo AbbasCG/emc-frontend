@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ElementType } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { AlertCircle, ArrowRight, CheckCircle2, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

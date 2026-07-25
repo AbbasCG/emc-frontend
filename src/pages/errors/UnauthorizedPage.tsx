@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { KeyRound } from 'lucide-react'
 import ErrorPageShell from '@/components/errors/ErrorPageShell'
 

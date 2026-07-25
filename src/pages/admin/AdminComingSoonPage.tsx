@@ -1,5 +1,5 @@
-import { useLocation } from 'react-router-dom'
-import { Link } from 'react-router-dom'
+import { useLocation } from 'react-router'
+import { Link } from 'react-router'
 import { Construction } from 'lucide-react'
 
 const PAGE_LABELS: Record<string, string> = {

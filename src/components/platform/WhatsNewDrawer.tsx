@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import {
   X, Megaphone, Check, RefreshCw, ExternalLink,
   Info, Zap, ArrowRight, Palette, Bug, Bell,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { motion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 import { fetchStudentSessionDetail, type LmsSessionEvent } from '@/api/placementApi'

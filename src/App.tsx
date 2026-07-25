@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
 import { lazy, Suspense } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'

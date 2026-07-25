@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import { Archive, ArchiveRestore, CheckSquare, Pin, PinOff, RefreshCw, Search, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import {
   archiveNotification,

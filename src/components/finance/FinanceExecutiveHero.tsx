@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowDownLeft, ArrowUpRight, ChevronLeft, CreditCard } from 'lucide-react'
 import FinanceAnimatedNumber from './FinanceAnimatedNumber'

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import { Mail, PhoneForwarded, RefreshCw } from 'lucide-react'
 import { fetchPartnersForSuperAdmin } from '@/api/partnersApi'
 import type { PartnerRecord } from '@/types/operations'

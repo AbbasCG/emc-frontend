@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Download, PlayCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { LmsLesson, LmsModule } from '@/types/platform'
 import ModuleSidebar from './ModuleSidebar'
 

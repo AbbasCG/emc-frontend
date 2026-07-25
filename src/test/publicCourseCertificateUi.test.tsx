@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import type { PropsWithChildren, ReactElement } from 'react'
 import { render, screen, within, cleanup } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import PremiumHero from '@/components/public/course-detail/premium/PremiumHero'
 import PremiumJourney from '@/components/public/course-detail/premium/PremiumJourney'
 import { deriveCourseDetail } from '@/utils/courseDetailDerived'

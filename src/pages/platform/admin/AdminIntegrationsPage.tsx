@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { fetchIntegrations } from '@/api/integrationsApi'
 import IntegrationCard from '@/components/enterprise/IntegrationCard'
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'

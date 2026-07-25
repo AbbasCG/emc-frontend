@@ -7,7 +7,7 @@ import {
   User,
   X,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import type { ClassAssignmentStudent } from '@/api/placementApi'
 import { CEFR_MAP } from './instructorStudentFormats'
 import { formatAmsterdamDMY, formatAmsterdamTime24 } from '@/utils/amsterdamTime'

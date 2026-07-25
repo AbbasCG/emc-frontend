@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { BookOpen, Handshake, Heart, MessageCircle } from 'lucide-react'
 import { fadeUp } from '../../utils/course'

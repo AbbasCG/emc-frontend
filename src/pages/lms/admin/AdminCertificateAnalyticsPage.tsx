@@ -34,7 +34,7 @@ import {
   type CertificateTemplateUsage,
   type CertificateTrendPoint,
 } from '@/api/certificatesApi'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const C_BLUE   = '#0077B6'

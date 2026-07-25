@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router'
 import { motion } from 'framer-motion'
 import Footer from './Footer'
 import Navbar from './Navbar'

@@ -2,7 +2,7 @@ import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import ConfirmDialog from '@/components/feedback/ConfirmDialog'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import {
   Archive,
   BookMarked,

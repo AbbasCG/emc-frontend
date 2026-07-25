@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import FormRenderer from '@/components/operations/FormRenderer'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { fetchPublicFormBySlug, submitPublicForm } from '@/api/formsApi'

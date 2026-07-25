@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Award, BookOpen, Calendar, ClipboardList, GraduationCap, Layers, TrendingUp } from 'lucide-react'
 import type { StudentLearnModule } from '@/types/courseLearn'
 import EmptyHint from './shared/EmptyHint'

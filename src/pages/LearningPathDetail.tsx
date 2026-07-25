@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import {

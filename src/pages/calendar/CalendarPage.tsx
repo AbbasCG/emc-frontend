@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import {
   X, Plus, CalendarClock, MapPin, Loader2,
   Users, BookOpen, Clock, ExternalLink, RefreshCw, AlertCircle,

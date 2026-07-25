@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import OpsSupportTicketDetailPage from '@/pages/operations/admin/OpsSupportTicketDetailPage'
 import type { SupportTicketDetail } from '@/types/operations'
 

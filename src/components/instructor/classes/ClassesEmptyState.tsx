@@ -1,6 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import { BookOpen, HelpCircle, Lightbulb, Plus, Upload } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 type Props = {
   title: string

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import FinanceDate from '@/components/finance/FinanceDate'
 import { formatFinanceCurrencyInteger } from '@/utils/financeFormatters'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { CreditCard, Search } from 'lucide-react'
 import PaymentStatusBadge from '@/components/intelligence/PaymentStatusBadge'

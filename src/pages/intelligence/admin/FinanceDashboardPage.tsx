@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 import { FinanceCommandCenter } from '@/components/finance/command-center'
 import { useAuth } from '@/contexts/AuthContext'
 import { financeSectionBase } from '@/utils/financeNav'

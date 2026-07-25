@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { CheckCircle, Home, Clock, Mail, Hash } from 'lucide-react'
 import type { AmbassadorSubmitResult } from '@/api/ambassadorApplicationApi'
 import { formatDateTime } from '@/utils/dateTime'

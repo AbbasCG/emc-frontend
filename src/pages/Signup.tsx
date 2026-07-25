@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
 import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, Phone, UserPlus, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

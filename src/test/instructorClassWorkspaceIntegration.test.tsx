@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import InstructorClassWorkspacePage from '@/pages/lms/instructor/InstructorClassWorkspacePage'
 import { fetchClassGroupDetail, type ClassGroupDetail } from '@/api/placementApi'
 import { fetchCourseModules, fetchCourseMaterials, fetchCurriculumAnalytics } from '@/api/courseContentApi'

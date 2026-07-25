@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNow } from '@/hooks/useNow'
 import axios, { type AxiosError } from 'axios'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import toast from '@/lib/toast'
 import { createApiToken, fetchApiTokens, revokeApiToken } from '@/api/apiTokensApi'
 import ApiTokenTable from '@/components/enterprise/ApiTokenTable'

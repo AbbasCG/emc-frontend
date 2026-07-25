@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { BadgeCheck, ExternalLink, GraduationCap } from 'lucide-react'
 import toast from '@/lib/toast'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'

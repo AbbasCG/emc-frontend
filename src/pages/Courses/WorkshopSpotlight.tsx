@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, Clock, MapPin, Wifi, Users, ArrowLeft } from 'lucide-react'
 import type { WorkshopItem } from '@/services/coursesApi'

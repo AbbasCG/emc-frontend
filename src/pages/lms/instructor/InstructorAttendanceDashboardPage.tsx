@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { CalendarCheck, Download, TrendingUp, AlertTriangle, BarChart3 } from 'lucide-react'
 import { fetchAttendanceDashboard, downloadAttendanceExport, type AttendanceDashboardData } from '@/api/instructorApi'
 import { InstructorHero } from '@/components/instructor'

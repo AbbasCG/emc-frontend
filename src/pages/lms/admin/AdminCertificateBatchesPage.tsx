@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Layers, CheckCircle2, AlertCircle, Clock, Loader2, RefreshCw } from 'lucide-react'
 import AdminLmsShell from '@/components/lms/AdminLmsShell'

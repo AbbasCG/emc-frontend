@@ -13,7 +13,7 @@ import {
   Video,
   X,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { ClassAssignmentStudent, ClassGroup } from '@/api/placementApi'
 import { CEFR_MAP } from './instructorStudentFormats'
 import { StudentsPreview } from './classes/StudentsPreview'

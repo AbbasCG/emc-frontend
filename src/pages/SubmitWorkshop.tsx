@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { cn } from '@/lib/utils'
 import { submitWorkshopRequest } from '../api/workshopRequestsApi'
 import AppAlert from '../components/ui/AppAlert'

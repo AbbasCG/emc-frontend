@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ClipboardCheck, UserPlus } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'

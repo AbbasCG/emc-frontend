@@ -8,7 +8,7 @@ import {
   Mic,
   User,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { InstructorStudentRow } from '@/api/instructorApi'
 import { CEFR_MAP, toDMY } from './instructorStudentFormats'
 

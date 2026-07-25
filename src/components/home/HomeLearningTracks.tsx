@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BadgeCheck, Briefcase, Brain, CircuitBoard, LineChart } from 'lucide-react'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'

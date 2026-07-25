@@ -27,7 +27,7 @@ import {
 } from '@/api/adminRegistrationsApi'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from '@/lib/toast'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 

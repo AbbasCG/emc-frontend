@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Calendar, Clock, GraduationCap, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../../types'

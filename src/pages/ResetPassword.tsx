@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
 import { AlertCircle, ArrowRight, LockKeyhole } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { BookOpen, ChevronLeft, Clock, Route } from 'lucide-react'
 import type { LearningPath } from '@/api/learningPathsApi'

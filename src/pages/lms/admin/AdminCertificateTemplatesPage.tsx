@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import {
   X, Plus, Eye, Trash2, FileText, CheckCircle,
   Palette, Star, Copy, MoreVertical, Clock,

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import PublicDetailShareActions from '@/components/public/detail/PublicDetailShareActions'

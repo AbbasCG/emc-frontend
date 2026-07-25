@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { FolderOpen } from 'lucide-react'
 import { MaterialCard, StudentCardGrid } from '@/components/lms'
 import type { LmsMaterial, MaterialKind } from '@/types/lms'

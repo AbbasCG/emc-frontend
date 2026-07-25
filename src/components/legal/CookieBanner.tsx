@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Cookie, Settings2, ShieldCheck } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/i18n/useLanguage'
 import { useCookieConsent } from '@/contexts/useCookieConsent'

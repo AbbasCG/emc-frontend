@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Cpu, Gauge, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchAiRecentGenerations } from '@/api/aiApi'

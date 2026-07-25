@@ -17,7 +17,7 @@ import {
   Video,
   X,
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import type { NotificationType, PlatformNotification } from '@/types/platform'
 import { isNotificationUnread } from '@/api/notificationsApi'
 import { normalizeNotificationInternalPath } from '@/utils/notificationRoutes'

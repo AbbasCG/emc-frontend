@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Activity, BellRing, Cloud, LayoutDashboard, Smartphone } from 'lucide-react'
 import { fetchMobileReadiness } from '@/api/mobileReadinessApi'
 import MobileReadinessCard from '@/components/enterprise/MobileReadinessCard'

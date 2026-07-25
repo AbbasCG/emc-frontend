@@ -7,7 +7,7 @@ import {
   Receipt,
   Wallet,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 const ACTIONS = [
   { icon: Plus, label: 'دفع يدوي جديد', href: 'manual-payments', color: 'from-brand-500 to-brand-600' },

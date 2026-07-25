@@ -16,7 +16,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import StudentMyCourseCard from '@/components/dashboard/StudentMyCourseCard'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { fetchStudentLearningPaths } from '@/api/learningPathsApi'

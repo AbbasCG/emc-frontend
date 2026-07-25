@@ -15,7 +15,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useState } from 'react'
 import type { Course, Enrollment } from '@/types'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'

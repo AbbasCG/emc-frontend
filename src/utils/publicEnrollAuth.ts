@@ -1,4 +1,4 @@
-import type { NavigateFunction } from 'react-router-dom'
+import type { NavigateFunction } from 'react-router'
 import toast from '@/lib/toast'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'

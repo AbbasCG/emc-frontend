@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import CourseCard from './CourseCard'

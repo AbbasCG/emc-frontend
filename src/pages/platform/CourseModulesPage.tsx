@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, Layers } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { useEffect, useState } from 'react'
 import { fetchCourseModules } from '@/api/advancedLmsApi'
 import EmptyState from '@/components/dashboard/EmptyState'

@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import {
   ArrowRight,
   Award,

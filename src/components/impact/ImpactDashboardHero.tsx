@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { Globe2, Handshake, Languages, MapPinned, Mic2, MonitorPlay, Sparkles, UserPlus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'

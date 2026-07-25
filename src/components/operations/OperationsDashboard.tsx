@@ -9,7 +9,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { OperationsDashboardData } from '@/types/operations'
 import { DashboardSection } from '@/components/dashboard'
 

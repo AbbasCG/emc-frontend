@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type ElementType, type SetStateAction } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router'
 import {
   ArrowLeft,
   BookOpen,

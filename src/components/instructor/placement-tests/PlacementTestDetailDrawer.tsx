@@ -10,7 +10,7 @@ import {
   UserPlus,
   X,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { InstructorPlacementTestRow } from '@/api/placementApi'
 import { PlacementAnswerReviewBody } from '@/components/instructor/PlacementAnswerReviewBody'
 import type { ReviewSubject } from '@/components/instructor/PlacementAnswerReviewModal'

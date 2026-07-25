@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface Props {
   /** Fallback route when no browser history is available (e.g. direct page load). */

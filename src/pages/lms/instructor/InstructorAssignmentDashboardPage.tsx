@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { AlertTriangle, CheckCircle2, ClipboardList, ClipboardCheck, FileWarning, ListChecks } from 'lucide-react'
 import { fetchAssignmentDashboard, type AssignmentDashboardCounters } from '@/api/instructorApi'
 import { InstructorHero } from '@/components/instructor'

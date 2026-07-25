@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 import { motion } from 'framer-motion'
 import { Building2 } from 'lucide-react'
 import DepartmentCard from '@/components/operations/DepartmentCard'

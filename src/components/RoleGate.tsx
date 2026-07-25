@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import type { UserRole } from '../types'

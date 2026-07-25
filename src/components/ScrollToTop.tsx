@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 
 /** Resets scroll position on every route change (SPA). */
 export function ScrollToTop() {

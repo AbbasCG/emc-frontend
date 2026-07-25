@@ -1,6 +1,6 @@
 import { BookOpen, Calendar, MapPin, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useState } from 'react'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'

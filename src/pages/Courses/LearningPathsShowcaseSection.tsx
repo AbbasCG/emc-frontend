@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { ChevronLeft, Route, Sparkles } from 'lucide-react'
 import type { LearningPath } from '@/api/learningPathsApi'

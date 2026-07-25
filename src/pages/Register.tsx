@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, UserPlus } from 'lucide-react'
 import api from '../api/axios'

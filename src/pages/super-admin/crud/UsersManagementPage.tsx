@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useAuth } from '@/contexts/AuthContext'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import {

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import DepartmentSection from '@/components/team/DepartmentSection'
 import DepartmentTabs from '@/components/team/DepartmentTabs'

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { AlertTriangle, ChevronLeft, Info, ShieldAlert } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { FinanceAlert } from './types'
 import { SectionShell } from './shared'
 

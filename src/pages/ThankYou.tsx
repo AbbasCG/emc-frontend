@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

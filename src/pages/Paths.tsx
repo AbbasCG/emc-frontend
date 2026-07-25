@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowLeftCircle, BriefcaseBusiness, GraduationCap, Users } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
