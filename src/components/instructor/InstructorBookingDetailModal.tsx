@@ -6,11 +6,13 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  Link2,
   Mail,
   MessageCircle,
   Phone,
   RefreshCw,
   Repeat,
+  Trash2,
   X,
   XCircle,
 } from 'lucide-react'
@@ -19,6 +21,7 @@ import {
   fetchOralBookingDetail,
   rescheduleOralBooking,
   sendOralBookingMessage,
+  updateOralBookingMeetingLink,
   updateOralBookingStatus,
 } from '@/api/placementApi'
 import { CEFR_MAP } from './InstructorStudentDrawer'
@@ -44,6 +47,9 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
   const [confirming, setConfirming] = useState<null | { status: 'completed' | 'no_show' | 'cancelled_by_instructor'; label: string }>(null)
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [rescheduleSlotId, setRescheduleSlotId] = useState<number | null>(null)
+  const [linkEditing, setLinkEditing] = useState(false)
+  const [linkValue, setLinkValue]     = useState('')
+  const [linkBusy, setLinkBusy]       = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
 
@@ -58,6 +64,8 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
     setConfirming(null)
     setRescheduleOpen(false)
     setRescheduleSlotId(null)
+    setLinkEditing(false)
+    setLinkValue('')
     fetchOralBookingDetail(bookingId)
       .then((d) => { if (!cancelled) setDetail(d) })
       .catch(() => { if (!cancelled) setDetail(slot?.booking ?? null) })
@@ -124,6 +132,22 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
       toast.error('تعذّر نقل الموعد — قد يكون غير متاح')
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function handleSaveMeetingLink(newValue: string | null) {
+    if (!bookingId) return
+    setLinkBusy(true)
+    try {
+      const result = await updateOralBookingMeetingLink(bookingId, newValue)
+      setDetail((prev) => (prev ? { ...prev, meeting_link: result.meeting_link } : prev))
+      toast.success(newValue ? 'تم تحديث رابط الاجتماع' : 'تمت إزالة رابط الاجتماع')
+      setLinkEditing(false)
+      onChanged()
+    } catch {
+      toast.error('تعذّر تحديث رابط الاجتماع')
+    } finally {
+      setLinkBusy(false)
     }
   }
 
@@ -196,12 +220,54 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
                   <Row icon={<Calendar className="h-3.5 w-3.5" />} label={formatAmsterdamDMY(slot.starts_at)} />
                   <Row icon={<Clock className="h-3.5 w-3.5" />} label={`${formatAmsterdamTimeRange(slot.starts_at, slot.ends_at)} (أمستردام)`} />
                   {slot.course_title && <Row icon={<CheckCircle2 className="h-3.5 w-3.5" />} label={slot.course_title} />}
-                  {b.meeting_link && (
-                    <a href={b.meeting_link} target="_blank" rel="noreferrer"
-                      className="mt-1 flex items-center gap-1.5 text-[12px] font-bold text-[#2691C2] hover:underline">
-                      <ExternalLink className="h-3.5 w-3.5" /> رابط الاجتماع
-                    </a>
-                  )}
+                  <div className="mt-1.5">
+                    {linkEditing ? (
+                      <div className="space-y-2">
+                        <input
+                          type="url"
+                          value={linkValue}
+                          onChange={(e) => setLinkValue(e.target.value)}
+                          placeholder="https://meet.google.com/..."
+                          dir="ltr"
+                          className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-bold text-[#22334A] outline-none focus:border-[#2691C2]/40"
+                        />
+                        <div className="flex gap-2">
+                          <button type="button" disabled={linkBusy || !linkValue.trim()}
+                            onClick={() => void handleSaveMeetingLink(linkValue.trim())}
+                            className="flex-1 rounded-xl bg-[#22334A] py-1.5 text-[11px] font-black text-white transition hover:brightness-110 disabled:opacity-40">
+                            حفظ
+                          </button>
+                          <button type="button" onClick={() => { setLinkEditing(false); setLinkValue(b.meeting_link ?? '') }}
+                            className="rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-deepBlue/60 transition hover:bg-slate-50">
+                            إلغاء
+                          </button>
+                        </div>
+                      </div>
+                    ) : b.meeting_link ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <a href={b.meeting_link} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-1.5 text-[12px] font-bold text-[#2691C2] hover:underline">
+                          <ExternalLink className="h-3.5 w-3.5" /> رابط الاجتماع
+                        </a>
+                        <button type="button" onClick={() => { setLinkValue(b.meeting_link ?? ''); setLinkEditing(true) }}
+                          className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-black text-deepBlue/55 transition hover:bg-slate-50">
+                          <Link2 className="h-3 w-3" /> تعديل
+                        </button>
+                        <button type="button" disabled={linkBusy} onClick={() => void handleSaveMeetingLink(null)}
+                          className="flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-[10px] font-black text-rose-600 transition hover:bg-rose-50 disabled:opacity-40">
+                          <Trash2 className="h-3 w-3" /> إزالة
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-bold text-amber-600">سيتم إضافة رابط الاجتماع قريباً</span>
+                        <button type="button" onClick={() => { setLinkValue(''); setLinkEditing(true) }}
+                          className="flex items-center gap-1 rounded-lg border border-[#2691C2]/25 bg-[#2691C2]/[0.06] px-2 py-1 text-[10px] font-black text-[#2691C2] transition hover:bg-[#2691C2]/[0.12]">
+                          <Link2 className="h-3 w-3" /> إضافة رابط
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </Section>
 
                 {/* Student */}

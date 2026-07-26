@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   CalendarClock,
@@ -91,23 +92,36 @@ function getWeekBounds(): { startISO: string; endISO: string } {
 
 /* ── Form types ──────────────────────────────────────────────────────────── */
 
-type BulkForm = {
-  applyToAll:  boolean
-  courseId:    string
-  dateMode:    'single' | 'range'
-  singleDate:  string
-  dateFrom:    string
-  dateTo:      string
-  days:        number[]
+/** One selectable time period. An instructor may add several — e.g. both
+ *  "صباحاً" and "مساءً" — in a single submission. */
+type TimeWindow = {
+  id:          string
   presetIdx:   number
   customStart: string
   customEnd:   string
-  duration:    number
-  notes:       string
+}
+
+type BulkForm = {
+  applyToAll:   boolean
+  courseId:     string
+  dateMode:     'single' | 'range'
+  singleDate:   string
+  dateFrom:     string
+  dateTo:       string
+  days:         number[]
+  timeWindows:  TimeWindow[]
+  duration:     number
+  notes:        string
 }
 
 const TODAY      = localISO(new Date())
 const DEFAULT_TO = localISO(new Date(Date.now() + 7 * 86400000))
+
+let windowIdSeq = 0
+function newTimeWindow(overrides: Partial<TimeWindow> = {}): TimeWindow {
+  windowIdSeq += 1
+  return { id: `w${windowIdSeq}`, presetIdx: 0, customStart: '09:00', customEnd: '12:00', ...overrides }
+}
 
 const EMPTY_FORM: BulkForm = {
   applyToAll:  true,
@@ -117,9 +131,7 @@ const EMPTY_FORM: BulkForm = {
   dateFrom:    TODAY,
   dateTo:      DEFAULT_TO,
   days:        [0, 1, 2, 3, 4],
-  presetIdx:   0,
-  customStart: '09:00',
-  customEnd:   '12:00',
+  timeWindows: [newTimeWindow()],
   duration:    60,
   notes:       '',
 }
@@ -128,11 +140,18 @@ const EMPTY_FORM: BulkForm = {
 
 type SlotPreview = { date: string; start: string; end: string }
 
+/** Resolves a single time window to its actual start/end (preset or custom), or null if invalid/incomplete. */
+function resolveWindow(w: TimeWindow): { start: string; end: string } | null {
+  const isCustom = w.presetIdx === TIME_PRESETS.length - 1
+  const start = isCustom ? w.customStart : TIME_PRESETS[w.presetIdx].start
+  const end   = isCustom ? w.customEnd   : TIME_PRESETS[w.presetIdx].end
+  if (!start || !end || start >= end) return null
+  return { start, end }
+}
+
 function buildPreviews(form: BulkForm): SlotPreview[] {
-  const isCustom = form.presetIdx === TIME_PRESETS.length - 1
-  const startT = isCustom ? form.customStart : TIME_PRESETS[form.presetIdx].start
-  const endT   = isCustom ? form.customEnd   : TIME_PRESETS[form.presetIdx].end
-  if (!startT || !endT || startT >= endT) return []
+  const windows = form.timeWindows.map(resolveWindow).filter((w): w is { start: string; end: string } => w !== null)
+  if (windows.length === 0) return []
 
   let dates: string[]
   if (form.dateMode === 'single') {
@@ -143,16 +162,24 @@ function buildPreviews(form: BulkForm): SlotPreview[] {
   }
 
   const out: SlotPreview[] = []
+  const seen = new Set<string>()
   for (const date of dates) {
     if (form.dateMode === 'range') {
       if (!form.days.includes(new Date(`${date}T00:00:00`).getDay())) continue
     }
-    let cursor = startT
-    while (cursor < endT) {
-      const next = addMins(cursor, form.duration)
-      if (next > endT) break
-      out.push({ date, start: cursor, end: next })
-      cursor = next
+    for (const { start: startT, end: endT } of windows) {
+      let cursor = startT
+      while (cursor < endT) {
+        const next = addMins(cursor, form.duration)
+        if (next > endT) break
+        // Two overlapping/duplicate windows can produce the same slot — dedupe for an honest preview count.
+        const key = `${date}|${cursor}|${next}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          out.push({ date, start: cursor, end: next })
+        }
+        cursor = next
+      }
     }
   }
   return out
@@ -205,9 +232,7 @@ export default function InstructorAvailabilityPage() {
   /* ── Validate ─────────────────────────────────────────────────────────── */
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {}
-    const isCustom = form.presetIdx === TIME_PRESETS.length - 1
-    const startT = isCustom ? form.customStart : TIME_PRESETS[form.presetIdx].start
-    const endT   = isCustom ? form.customEnd   : TIME_PRESETS[form.presetIdx].end
+    const resolved = form.timeWindows.map(resolveWindow)
 
     if (!form.applyToAll && !form.courseId) errs.courseId = 'يرجى اختيار الدورة'
     if (form.dateMode === 'single' && !form.singleDate) errs.singleDate = 'يرجى اختيار التاريخ'
@@ -218,9 +243,19 @@ export default function InstructorAvailabilityPage() {
         errs.dateTo = 'يجب أن يكون تاريخ النهاية بعد البداية'
       if (form.days.length === 0) errs.days = 'يرجى اختيار يوم واحد على الأقل'
     }
-    if (!startT) errs.startTime = 'يرجى تحديد وقت البداية'
-    if (!endT)   errs.endTime   = 'يرجى تحديد وقت النهاية'
-    if (startT && endT && startT >= endT) errs.endTime = 'وقت النهاية يجب أن يكون بعد وقت البداية'
+    if (form.timeWindows.length === 0) {
+      errs.timeWindows = 'يرجى إضافة فترة زمنية واحدة على الأقل'
+    } else {
+      form.timeWindows.forEach((w, i) => {
+        const isCustom = w.presetIdx === TIME_PRESETS.length - 1
+        const start = isCustom ? w.customStart : TIME_PRESETS[w.presetIdx].start
+        const end   = isCustom ? w.customEnd   : TIME_PRESETS[w.presetIdx].end
+        if (!start) errs[`timeWindow.${i}.start`] = 'يرجى تحديد وقت البداية'
+        else if (!end) errs[`timeWindow.${i}.end`] = 'يرجى تحديد وقت النهاية'
+        else if (start >= end) errs[`timeWindow.${i}.end`] = 'وقت النهاية يجب أن يكون بعد وقت البداية'
+      })
+      if (resolved.every((w) => w === null)) errs.timeWindows = 'يرجى تحديد فترة زمنية صحيحة واحدة على الأقل'
+    }
     if (previews.length === 0 && Object.keys(errs).length === 0)
       errs.general = 'لا توجد مواعيد ستُنشأ — يرجى مراجعة التاريخ والوقت'
     return errs
@@ -231,24 +266,36 @@ export default function InstructorAvailabilityPage() {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
 
-    const isCustom = form.presetIdx === TIME_PRESETS.length - 1
-    const startTime = isCustom ? form.customStart : TIME_PRESETS[form.presetIdx].start
-    const endTime   = isCustom ? form.customEnd   : TIME_PRESETS[form.presetIdx].end
+    const windows = form.timeWindows.map(resolveWindow).filter((w): w is { start: string; end: string } => w !== null)
+
+    const basePayload = {
+      course_id:            form.applyToAll ? null : Number(form.courseId),
+      // The backend only treats course_id=null as "all courses" when this
+      // flag is explicitly true — omitting it (the prior bug) makes the
+      // backend fall back to requiring course_id, causing a 422.
+      apply_to_all_courses: form.applyToAll,
+      date_from:            form.dateMode === 'single' ? form.singleDate : form.dateFrom,
+      date_to:              form.dateMode === 'single' ? form.singleDate : form.dateTo,
+      weekdays:             form.dateMode === 'single'
+        ? [DAYS_NAME[new Date(`${form.singleDate}T00:00:00`).getDay()]]
+        : [...form.days].sort().map((d) => DAYS_NAME[d]),
+      slot_duration:        form.duration,
+      ...(form.notes.trim() ? { notes: form.notes.trim() } : {}),
+    }
 
     setSaving(true)
     try {
-      const created = await createInstructorAvailability({
-        course_id:     form.applyToAll ? null : Number(form.courseId),
-        date_from:     form.dateMode === 'single' ? form.singleDate : form.dateFrom,
-        date_to:       form.dateMode === 'single' ? form.singleDate : form.dateTo,
-        weekdays:      form.dateMode === 'single'
-          ? [DAYS_NAME[new Date(`${form.singleDate}T00:00:00`).getDay()]]
-          : [...form.days].sort().map((d) => DAYS_NAME[d]),
-        start_time:    startTime,
-        end_time:      endTime,
-        slot_duration: form.duration,
-        ...(form.notes.trim() ? { notes: form.notes.trim() } : {}),
-      })
+      // Multiple time periods (e.g. "صباحاً" + "مساءً") share one date/course
+      // scope but the backend only accepts one start_time/end_time window per
+      // request — one create call per window, results merged into one summary.
+      const results = await Promise.all(
+        windows.map((w) => createInstructorAvailability({
+          ...basePayload,
+          start_time: w.start,
+          end_time:   w.end,
+        })),
+      )
+      const created = results.flat()
       const count = created.length || previews.length
       toast.success(`تم إنشاء ${count} موعدًا بنجاح`)
       setShowForm(false)
@@ -659,15 +706,28 @@ function AvailabilityModal({ form, errors, courses, saving, previews, onPatch, o
     return m
   }, [previews])
 
-  const isCustom = form.presetIdx === TIME_PRESETS.length - 1
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 pt-6" dir="rtl">
+  // Rendered via a portal straight to <body> (see createPortal below) — the
+  // dashboard's <main> establishes its own stacking context (position:
+  // relative + a z-index token), which traps any `fixed` descendant inside
+  // it no matter how high that descendant's own z-index is set. That trap —
+  // not a raw z-index mismatch — is why this modal used to render behind
+  // the sidebar at narrower widths (where the max-w-5xl panel's edge
+  // extends into the sidebar's screen region). Rendering to `document.body`
+  // escapes that stacking context entirely; z-modal-overlay/z-modal-content
+  // are the project's own canonical modal stacking tokens (see
+  // tailwind.config.js), already above z-sidebar everywhere else.
+  return createPortal(
+    <div
+      className="fixed inset-0 z-modal-overlay flex items-center justify-center overflow-y-auto bg-black/45 p-4"
+      dir="rtl"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: -10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="w-full max-w-5xl rounded-3xl bg-white shadow-2xl"
+        className="relative z-modal-content max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-7 py-5">
@@ -764,38 +824,67 @@ function AvailabilityModal({ form, errors, courses, saving, previews, onPatch, o
             )}
 
             {/* D. Time preset */}
-            <FieldSection label="د. الوقت">
-              <div className="flex flex-wrap gap-2">
-                {TIME_PRESETS.map((p, i) => (
-                  <button key={p.label} type="button" onClick={() => onPatch({ presetIdx: i })}
-                    className={`rounded-xl px-3 py-1.5 text-[11px] font-black transition ${
-                      form.presetIdx === i ? 'bg-deepBlue text-white shadow-sm' : 'border border-slate-200 bg-white text-deepBlue/55 hover:border-slate-300'
-                    }`}>
-                    {p.label}
-                    {p.start && <span className="mr-1 font-mono text-[9px] opacity-60">({p.start}–{p.end})</span>}
-                  </button>
-                ))}
+            <FieldSection label="د. الوقت" hint="يمكن إضافة أكثر من فترة">
+              <div className="space-y-3">
+                {form.timeWindows.map((w, i) => {
+                  const wIsCustom = w.presetIdx === TIME_PRESETS.length - 1
+                  function patchWindow(patch: Partial<TimeWindow>) {
+                    onPatch({ timeWindows: form.timeWindows.map((x, xi) => (xi === i ? { ...x, ...patch } : x)) })
+                  }
+                  return (
+                    <div key={w.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-1 flex-wrap gap-2">
+                          {TIME_PRESETS.map((p, pi) => (
+                            <button key={p.label} type="button" onClick={() => patchWindow({ presetIdx: pi })}
+                              className={`rounded-xl px-3 py-1.5 text-[11px] font-black transition ${
+                                w.presetIdx === pi ? 'bg-deepBlue text-white shadow-sm' : 'border border-slate-200 bg-white text-deepBlue/55 hover:border-slate-300'
+                              }`}>
+                              {p.label}
+                              {p.start && <span className="mr-1 font-mono text-[9px] opacity-60">({p.start}–{p.end})</span>}
+                            </button>
+                          ))}
+                        </div>
+                        {form.timeWindows.length > 1 && (
+                          <button type="button" aria-label="إزالة هذه الفترة"
+                            onClick={() => onPatch({ timeWindows: form.timeWindows.filter((_, xi) => xi !== i) })}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {wIsCustom && (
+                        <div className="mt-3 grid grid-cols-2 gap-3">
+                          <GoogleStyleTimePicker
+                            label="من"
+                            value={w.customStart || null}
+                            onChange={(v) => patchWindow({ customStart: v })}
+                            error={errors[`timeWindow.${i}.start`]}
+                            minuteStep={15}
+                          />
+                          <GoogleStyleTimePicker
+                            label="إلى"
+                            value={w.customEnd || null}
+                            onChange={(v) => patchWindow({ customEnd: v })}
+                            error={errors[`timeWindow.${i}.end`]}
+                            minuteStep={15}
+                          />
+                        </div>
+                      )}
+                      {!wIsCustom && errors[`timeWindow.${i}.end`] && <FieldError msg={errors[`timeWindow.${i}.end`]} />}
+                    </div>
+                  )
+                })}
               </div>
 
-              {isCustom && (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <GoogleStyleTimePicker
-                    label="من"
-                    value={form.customStart || null}
-                    onChange={(v) => onPatch({ customStart: v })}
-                    error={errors.startTime}
-                    minuteStep={15}
-                  />
-                  <GoogleStyleTimePicker
-                    label="إلى"
-                    value={form.customEnd || null}
-                    onChange={(v) => onPatch({ customEnd: v })}
-                    error={errors.endTime}
-                    minuteStep={15}
-                  />
-                </div>
-              )}
-              {!isCustom && errors.endTime && <FieldError msg={errors.endTime} />}
+              <button type="button"
+                onClick={() => onPatch({ timeWindows: [...form.timeWindows, newTimeWindow({ presetIdx: 1 })] })}
+                className="mt-3 flex items-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-[11px] font-black text-deepBlue/55 transition hover:border-customBlue/40 hover:text-customBlue">
+                <Plus className="h-3.5 w-3.5" />
+                إضافة فترة زمنية أخرى
+              </button>
+              {errors.timeWindows && <FieldError msg={errors.timeWindows} />}
             </FieldSection>
 
             {/* E. Duration */}
@@ -879,7 +968,8 @@ function AvailabilityModal({ form, errors, courses, saving, previews, onPatch, o
           </button>
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

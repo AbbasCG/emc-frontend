@@ -10,6 +10,8 @@ import {
   CheckCircle,
   ClipboardCheck,
   Clock,
+  Download,
+  ExternalLink,
   Lock,
   MessageSquare,
   Mic,
@@ -22,8 +24,18 @@ import {
   type OralBooking,
   type PlacementAttempt,
 } from '@/api/placementApi'
+import { downloadCalendarEventIcs } from '@/api/calendarApi'
 import { BackButton } from '@/components/shared/BackButton'
 import { fmtDate, formatStudentTimeFromIso, formatStudentDateTimeRange } from '@/components/lms/lmsFormatters'
+import toast from '@/lib/toast'
+
+const ORAL_BOOKING_STATUS_LABEL: Record<string, string> = {
+  booked: 'في انتظار المدرب',
+  completed: 'اكتملت المقابلة',
+  cancelled_by_instructor: 'ألغى المدرب الموعد',
+  cancelled_by_student: 'تم إلغاء الموعد',
+  no_show: 'لم يحضر الطالب',
+}
 
 /* ── CEFR level ladder ──────────────────────────────────────────────────────── */
 
@@ -387,7 +399,7 @@ export default function PlacementResultPage() {
               </div>
               <p className="font-black text-deepBlue">تم حجز المقابلة الشفوية</p>
               <span className="mr-auto rounded-xl bg-amber-200 px-2.5 py-1 text-[10px] font-black text-amber-700">
-                في انتظار المدرب
+                {ORAL_BOOKING_STATUS_LABEL[oralBooking.status ?? ''] ?? 'في انتظار المدرب'}
               </span>
             </div>
 
@@ -415,9 +427,48 @@ export default function PlacementResultPage() {
                   </span>
                 </div>
               )}
+
+              {/* Meeting link — never left blank */}
+              <div className="pt-1">
+                {oralBooking.meeting_link ? (
+                  <a
+                    href={oralBooking.meeting_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-customBlue to-deepBlue px-4 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    الانضمام إلى الاجتماع
+                  </a>
+                ) : (
+                  <p className="rounded-xl bg-white px-3 py-2 text-center text-[11px] font-bold text-amber-700">
+                    سيتم إضافة رابط الاجتماع قريباً
+                  </p>
+                )}
+              </div>
+
+              {/* Calendar action */}
+              {oralBooking.calendar_event_id != null && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void downloadCalendarEventIcs(
+                      oralBooking.calendar_event_id!,
+                      'oral-assessment.ics',
+                    ).catch(() => toast.error('تعذّر تنزيل ملف التقويم'))
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white px-4 py-2 text-[11px] font-black text-amber-700 transition hover:bg-amber-50"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  إضافة إلى التقويم (ICS)
+                </button>
+              )}
             </div>
 
-            <p className="mt-3 text-center text-[12px] font-semibold text-amber-700/70">
+            <p className="mt-3 text-center text-[11px] font-semibold text-amber-700/70">
+              أُرسلت تفاصيل الموعد ودعوة التقويم إلى بريدك الإلكتروني.
+            </p>
+            <p className="mt-1.5 text-center text-[12px] font-semibold text-amber-700/70">
               ستُفعَّل الدورة بعد اعتماد مستواك من المدرب
             </p>
           </div>

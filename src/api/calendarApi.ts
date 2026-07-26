@@ -232,6 +232,19 @@ export async function updateCalendarEvent(
   return normalized
 }
 
+/** Downloads a calendar event's .ics file via the authenticated API client and saves it locally. */
+export async function downloadCalendarEventIcs(calendarEventId: number, filename = 'event.ics'): Promise<void> {
+  const res = await apiClient.get(`/calendar/events/${calendarEventId}/ics`, { responseType: 'blob' })
+  const blobUrl = URL.createObjectURL(new Blob([res.data as BlobPart], { type: 'text/calendar' }))
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(blobUrl)
+}
+
 export async function deleteCalendarEvent(rawId: string): Promise<void> {
   const numId = rawId.replace('event_', '')
   await apiClient.delete(`/calendar/events/${numId}`)

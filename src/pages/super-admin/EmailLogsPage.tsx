@@ -53,6 +53,7 @@ const STATUS: Record<string, { label: string; dot: string; badge: string; text: 
   sending:  { label: 'جارٍ الإرسال', dot: 'bg-amber-500',  badge: 'bg-amber-50 border-amber-200',      text: 'text-amber-700',   ring: 'ring-amber-200' },
   failed:   { label: 'فاشل',          dot: 'bg-red-500',    badge: 'bg-red-50 border-red-200',          text: 'text-red-700',     ring: 'ring-red-200' },
   bounced:  { label: 'مُرتجَع',       dot: 'bg-purple-500', badge: 'bg-purple-50 border-purple-200',    text: 'text-purple-700',  ring: 'ring-purple-200' },
+  skipped_disabled: { label: 'تم التخطي (معطّل من الإعدادات)', dot: 'bg-slate-400', badge: 'bg-slate-50 border-slate-200', text: 'text-slate-500', ring: 'ring-slate-200' },
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

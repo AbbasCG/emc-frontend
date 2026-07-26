@@ -334,6 +334,7 @@ export default function StudentMyCourseCard({ enrollment }: { enrollment: Enroll
           {!paymentBlocked && placementState === 'oral' && (
             <Link
               to={`/dashboard/student/courses/${courseId}/oral-booking`}
+              state={{ courseTitle: course.title }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-deepBlue px-4 py-2.5 text-[12px] font-black text-white shadow-md shadow-customBlue/25 transition hover:brightness-105"
             >
               <MessageSquare className="h-4 w-4" aria-hidden />

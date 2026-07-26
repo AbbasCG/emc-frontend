@@ -9,7 +9,10 @@ export interface EmailSettingItem {
   key: string
   label: string
   description: string
+  category: string
+  category_label: string
   enabled: boolean
+  updated_at: string | null
 }
 
 export interface EmailSettingsPayload {
@@ -32,7 +35,7 @@ export interface EmailLog {
   recipient_name: string | null
   type: string
   subject: string | null
-  status: 'pending' | 'sent' | 'failed' | 'queued' | 'sending' | 'bounced'
+  status: 'pending' | 'sent' | 'failed' | 'queued' | 'sending' | 'bounced' | 'skipped_disabled'
   error_message: string | null
   smtp_response?: string | null
   payload?: Record<string, unknown> | null

@@ -85,13 +85,22 @@ export type FinanceInvoice = {
 
 export type FinanceAccount = {
   id: number
+  /** Stable technical identity (e.g. "STRIPE_CARD") — present only on system accounts. */
+  code?: string | null
   name: string
   type: string
+  /** Payment gateway, e.g. "stripe" — present only on gateway-linked accounts. */
+  provider?: string | null
+  /** Specific method within the provider, e.g. "card" | "ideal" — distinguishes Stripe Card from Stripe iDEAL. */
+  payment_method?: string | null
   currency: string
   opening_balance: number
   current_balance: number
   notes?: string | null
   is_active: boolean
+  /** System-provisioned account (Stripe Card/iDEAL) — undeletable, identity fields locked. Backend-enforced, not just UI. */
+  is_system?: boolean
+  is_deletable?: boolean
   created_at?: string
   bank_name?: string | null
   account_holder?: string | null
