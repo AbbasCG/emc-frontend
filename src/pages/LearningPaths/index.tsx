@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Loader2, Route } from 'lucide-react'
+import { ChevronLeft, Route } from 'lucide-react'
 import PublicSeo from '@/components/public/PublicSeo'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -178,8 +178,18 @@ export default function LearningPathsPage() {
       <section id="paths-catalog" className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {loading ?
-            <div className="flex items-center justify-center py-24">
-              <Loader2 className="h-10 w-10 animate-spin text-customBlue" />
+            <div className="space-y-6" aria-busy="true" aria-label="جارٍ تحميل المسارات">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <div className="h-5 w-1/3 animate-pulse rounded bg-slate-100" />
+                  <div className="mt-4 h-3 w-full animate-pulse rounded bg-slate-100" />
+                  <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-slate-100" />
+                  <div className="mt-6 flex gap-3">
+                    <div className="h-9 w-28 animate-pulse rounded-xl bg-slate-100" />
+                    <div className="h-9 w-20 animate-pulse rounded-xl bg-slate-100" />
+                  </div>
+                </div>
+              ))}
             </div>
           : filteredPaths.length === 0 ?
             <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Loader2, SearchX, X } from 'lucide-react'
+import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, SearchX, X } from 'lucide-react'
 import PublicCatalogHero from '@/components/public/PublicCatalogHero'
 import PublicSeo from '@/components/public/PublicSeo'
 import WorkshopCard from '@/components/public/WorkshopCard'
@@ -242,8 +242,17 @@ export default function WorkshopsPage() {
             <p>تعذّر تحميل الورش من الخادم. تحقّق من الاتصال ثم أعد تحميل الصفحة.</p>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-24">
-            <Loader2 className="h-10 w-10 animate-spin text-[#0077B6]" />
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جارٍ تحميل الورش">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <div className="h-40 animate-pulse bg-slate-100" />
+                <div className="space-y-3 p-5">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 w-full animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : pageRows.length === 0 ? (
           <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
