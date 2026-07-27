@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Building2, Banknote, CreditCard, Globe, Wallet, Circle,
-  Plus, Pencil, RefreshCw, X, Eye, Check, Loader2,
+  Plus, Pencil, RefreshCw, X, Eye, Check, Loader2, ShieldCheck, Lock,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { FinanceAccount } from '@/types/intelligence'
@@ -56,6 +56,14 @@ const TYPE_COLORS: Record<string, string> = {
   other: 'bg-slate-100 text-slate-600',
 }
 
+/** Specific payment method label — distinguishes Stripe Card from Stripe iDEAL, both provider=stripe. */
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  card: 'بطاقة بنكية (Card)',
+  ideal: 'iDEAL / Wero',
+}
+
+const PROTECTED_ACCOUNT_TOOLTIP = 'هذا الحساب مرتبط ببوابة الدفع ولا يمكن حذفه'
+
 // ── animations ───────────────────────────────────────────────────────────────
 
 const containerVariants = {
@@ -97,9 +105,23 @@ function AccountCard({ account, onEdit, onViewTransactions }: AccountCardProps) 
             {account.bank_name && (
               <p className="text-xs text-slate-400 mt-0.5">{account.bank_name}</p>
             )}
+            {account.payment_method && (
+              <p className="text-xs text-slate-400 mt-0.5">
+                {PAYMENT_METHOD_LABELS[account.payment_method] ?? account.payment_method}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-1 justify-end">
+          {account.is_system && (
+            <span
+              title={PROTECTED_ACCOUNT_TOOLTIP}
+              className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-slate-800 text-white"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              حساب نظام
+            </span>
+          )}
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${typeColor}`}>{typeLabel}</span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${currColor}`}>{account.currency}</span>
           {account.is_active ? (
@@ -182,6 +204,7 @@ interface AccountModalProps {
 
 function AccountModal({ account, onClose, onSaved }: AccountModalProps) {
   const isEdit = !!account
+  const isSystem = !!account?.is_system
   const [form, setForm] = useState<FormData>(() =>
     account
       ? {
@@ -263,6 +286,16 @@ function AccountModal({ account, onClose, onSaved }: AccountModalProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4" dir="rtl">
+            {isSystem && (
+              <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-600">
+                <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
+                <p>
+                  {PROTECTED_ACCOUNT_TOOLTIP}. النوع والعملة وبوابة الدفع ثابتة لهذا الحساب —
+                  يمكنك فقط تعديل الاسم والملاحظات وحالة التفعيل.
+                </p>
+              </div>
+            )}
+
             {/* Name */}
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">اسم الحساب *</label>
@@ -282,7 +315,9 @@ function AccountModal({ account, onClose, onSaved }: AccountModalProps) {
                 <select
                   value={form.account_type}
                   onChange={e => set('account_type', e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  disabled={isSystem}
+                  title={isSystem ? PROTECTED_ACCOUNT_TOOLTIP : undefined}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   {Object.entries(ACCOUNT_TYPE_LABELS).map(([v, l]) => (
                     <option key={v} value={v}>{l}</option>
@@ -294,7 +329,9 @@ function AccountModal({ account, onClose, onSaved }: AccountModalProps) {
                 <select
                   value={form.currency}
                   onChange={e => set('currency', e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  disabled={isSystem}
+                  title={isSystem ? PROTECTED_ACCOUNT_TOOLTIP : undefined}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   {['EUR', 'USD', 'SAR', 'TRY', 'GBP'].map(c => (
                     <option key={c} value={c}>{c}</option>

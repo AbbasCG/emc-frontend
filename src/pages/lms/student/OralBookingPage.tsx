@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Calendar,
@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  ExternalLink,
   RefreshCw,
   User,
 } from 'lucide-react'
@@ -49,6 +50,8 @@ function groupByInstructor(slots: OralSlot[]): Array<{ name: string; slots: Oral
 export default function OralBookingPage() {
   const { courseId } = useParams<{ courseId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const courseTitle = (location.state as { courseTitle?: string } | null)?.courseTitle ?? null
 
   const [slots, setSlots]           = useState<OralSlot[]>([])
   const [loading, setLoading]       = useState(true)
@@ -131,16 +134,52 @@ export default function OralBookingPage() {
             <Check className="h-8 w-8 text-emerald-600" />
           </div>
           <h2 className="text-[20px] font-black text-deepBlue">تم حجز المقابلة بنجاح</h2>
+
           {selected && (
-            <p className="mt-2 text-[13px] font-semibold text-deepBlue/55">
-              {formatStudentDateWithWeekday(selected.date)} — {selected.time}
-            </p>
+            <div className="mt-4 space-y-2 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-right">
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-deepBlue/45">الدورة</span>
+                <span className="font-black text-deepBlue">{courseTitle ?? '—'}</span>
+              </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-deepBlue/45">المدرب</span>
+                <span className="font-black text-deepBlue">{selected.instructor_name || '—'}</span>
+              </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-deepBlue/45">التاريخ</span>
+                <span className="font-black text-deepBlue">{formatStudentDateWithWeekday(selected.date)}</span>
+              </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-deepBlue/45">الوقت</span>
+                <span className="font-mono font-black tabular-nums text-deepBlue">
+                  {selected.time}{selected.end_time ? ` – ${selected.end_time}` : ''}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-deepBlue/45">حالة الحجز</span>
+                <span className="font-black text-emerald-600">مؤكد</span>
+              </div>
+
+              <div className="pt-2">
+                {selected.meeting_link ? (
+                  <a
+                    href={selected.meeting_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-customBlue to-deepBlue px-4 py-2.5 text-[12px] font-black text-white shadow-sm transition hover:brightness-105"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    الانضمام إلى الاجتماع
+                  </a>
+                ) : (
+                  <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-[11px] font-bold text-amber-700">
+                    سيتم إضافة رابط الاجتماع قريباً
+                  </p>
+                )}
+              </div>
+            </div>
           )}
-          {selected?.instructor_name && (
-            <p className="mt-1 text-[12px] font-semibold text-deepBlue/45">
-              المدرب: {selected.instructor_name}
-            </p>
-          )}
+
           <p className="mt-3 text-[12px] font-semibold leading-relaxed text-deepBlue/45">
             ستُفعَّل دورتك بعد إتمام المقابلة واعتماد مستواك من المدرب.
           </p>

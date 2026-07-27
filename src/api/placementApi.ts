@@ -157,6 +157,8 @@ export type OralBooking = {
   final_level: string | null
   oral_score: number | null
   notes: string | null
+  meeting_link: string | null
+  calendar_event_id: number | null
 }
 
 /** Returned by GET /placement-test/status */
@@ -196,8 +198,10 @@ export type OralSlot = {
   instructor_name: string
   date: string
   time: string
+  end_time: string
   duration_minutes: number
   is_available: boolean
+  meeting_link: string | null
 }
 
 export type WrittenAssessmentStats = {
@@ -420,6 +424,8 @@ function normalizeOralBooking(o: Record<string, unknown>): OralBooking {
     final_level:     o.final_level   != null ? String(o.final_level)   : null,
     oral_score:      o.oral_score    != null ? Number(o.oral_score)    : null,
     notes:           o.notes         != null ? String(o.notes)         : null,
+    meeting_link:    o.meeting_link  != null ? String(o.meeting_link)  : null,
+    calendar_event_id: o.calendar_event_id != null ? Number(o.calendar_event_id) : null,
   }
 }
 
@@ -821,7 +827,7 @@ export async function logExamViolation(
  */
 function normalizeOralSlot(r: unknown): OralSlot {
   if (!r || typeof r !== 'object' || Array.isArray(r)) {
-    return { id: 0, instructor_id: 0, instructor_name: '', date: '', time: '', duration_minutes: 30, is_available: false }
+    return { id: 0, instructor_id: 0, instructor_name: '', date: '', time: '', end_time: '', duration_minutes: 30, is_available: false, meeting_link: null }
   }
   const o = r as Record<string, unknown>
 
@@ -864,6 +870,22 @@ function normalizeOralSlot(r: unknown): OralSlot {
     }
   }
 
+  // End time (HH:MM), from ends_at directly or derived from start + duration
+  let endTime = ''
+  if (endsAtRaw != null) {
+    const d = new Date(String(endsAtRaw))
+    if (!Number.isNaN(d.getTime())) {
+      endTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    }
+  }
+  if (!endTime && time) {
+    const [h, m] = time.split(':').map(Number)
+    if (!Number.isNaN(h) && !Number.isNaN(m)) {
+      const total = h * 60 + m + durationMinutes
+      endTime = `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+    }
+  }
+
   const instructorName =
     o.instructor_name != null ? String(o.instructor_name) :
     o.instructor != null && typeof o.instructor === 'object'
@@ -876,8 +898,10 @@ function normalizeOralSlot(r: unknown): OralSlot {
     instructor_name:  instructorName,
     date,
     time,
+    end_time:         endTime,
     duration_minutes: durationMinutes,
     is_available:     o.is_available !== false,
+    meeting_link:     o.meeting_link != null ? String(o.meeting_link) : null,
   }
 }
 
@@ -1417,6 +1441,14 @@ export async function fetchInstructorAvailability(): Promise<InstructorAvailabil
 
 export async function createInstructorAvailability(data: {
   course_id: number | null
+  /**
+   * Must be sent explicitly whenever `course_id` is null — the backend's
+   * `course_id` validation branches on this flag (`required` unless it's
+   * true). Omitting it while course_id is null causes a 422: the backend
+   * has no other way to know "no course" means "apply to all courses"
+   * rather than a missing required field.
+   */
+  apply_to_all_courses?: boolean
   date_from: string
   date_to: string
   weekdays: string[]
@@ -1477,6 +1509,25 @@ export async function rescheduleOralBooking(
   })
   const payload = extractPayload(res.data)
   return normalizeOralBookingDetail(payload as Record<string, unknown>)
+}
+
+export type MeetingProvider = 'custom_url' | 'google_meet' | 'zoom' | 'teams'
+
+/** PATCH /instructor/oral-bookings/{booking}/meeting-link — add, edit, replace, or remove the meeting link. */
+export async function updateOralBookingMeetingLink(
+  bookingId: number,
+  meetingLink: string | null,
+  meetingProvider?: MeetingProvider,
+): Promise<{ meeting_link: string | null; meeting_provider: string | null }> {
+  const res = await apiClient.patch<unknown>(`/instructor/oral-bookings/${bookingId}/meeting-link`, {
+    meeting_link: meetingLink,
+    meeting_provider: meetingProvider,
+  })
+  const payload = extractPayload(res.data) as Record<string, unknown>
+  return {
+    meeting_link:     payload.meeting_link     != null ? String(payload.meeting_link)     : null,
+    meeting_provider: payload.meeting_provider != null ? String(payload.meeting_provider) : null,
+  }
 }
 
 /* ── Instructor Placement Tests (all courses) ────────────────────────────── */
