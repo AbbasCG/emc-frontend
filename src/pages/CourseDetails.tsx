@@ -300,13 +300,30 @@ export default function CourseDetails() {
   }
 
   // ── Loading / error / not-found states ──────────────────────────────────────
-  if (isLoading) return <CourseDetailsLoading />
+  // M6.f: the loaded branch overrides this with the course's real meta; without a
+  // fallback here the pre-data document ships no description at all (SEO audit).
+  const fallbackSeo = (
+    <PublicSeo
+      title="تفاصيل الدورة"
+      description="استعرض تفاصيل الدورة التدريبية في منصة EMC: المنهج، المدرب، مواعيد الجلسات وخطوات التسجيل."
+      path={slug ? `/courses/${slug}` : '/courses'}
+    />
+  )
+  if (isLoading) {
+    return (
+      <>
+        {fallbackSeo}
+        <CourseDetailsLoading />
+      </>
+    )
+  }
   if (error) {
     return (
       <main
         className={`overflow-x-hidden bg-[#f8fafc] px-4 pb-20 ${PAGE_TOP} sm:px-6 lg:px-8`}
         dir="rtl"
       >
+        {fallbackSeo}
         <StateMessage type="error" title="حدث خطأ" message={error} />
       </main>
     )
@@ -317,6 +334,12 @@ export default function CourseDetails() {
         className={`overflow-x-hidden bg-[#f8fafc] px-4 pb-20 ${PAGE_TOP} sm:px-6 lg:px-8`}
         dir="rtl"
       >
+        <PublicSeo
+          title="الدورة غير موجودة"
+          description="لم نتمكن من العثور على هذه الدورة — تصفح كتالوج الدورات المتاح."
+          path="/courses"
+          noIndex
+        />
         <StateMessage
           type="empty"
           title="الدورة غير موجودة"
