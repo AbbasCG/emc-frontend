@@ -1,8 +1,14 @@
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, ArrowLeft } from 'lucide-react'
 
-export default function CoursesCTA() {
+const trustIndicators = [
+  { value: '١٥ دقيقة', label: 'جلسة موجزة عند التوفر' },
+  { value: 'وضوح', label: 'خطة تالية مناسبة لمرحلتك' },
+  { value: 'مهنية', label: 'بدون وعود مبالغ فيها' },
+]
+
+function CoursesCTA() {
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
@@ -71,11 +77,7 @@ export default function CoursesCTA() {
 
           {/* Trust indicators */}
           <div className="flex flex-wrap items-center justify-center gap-6 mt-12">
-            {[
-              { value: '١٥ دقيقة', label: 'جلسة موجزة عند التوفر' },
-              { value: 'وضوح', label: 'خطة تالية مناسبة لمرحلتك' },
-              { value: 'مهنية', label: 'بدون وعود مبالغ فيها' },
-            ].map(item => (
+            {trustIndicators.map(item => (
               <div key={item.label} className="text-center">
                 <p className="text-xl font-black text-customOrange">{item.value}</p>
                 <p className="text-xs text-white/50 mt-0.5">{item.label}</p>
@@ -87,3 +89,5 @@ export default function CoursesCTA() {
     </section>
   )
 }
+
+export default memo(CoursesCTA)

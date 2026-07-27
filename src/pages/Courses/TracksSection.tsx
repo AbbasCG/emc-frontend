@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import TrackCard from './TrackCard'
@@ -34,7 +34,7 @@ function TrackSkeleton() {
   )
 }
 
-export default function TracksSection({ tracks, loading }: TracksSectionProps) {
+function TracksSection({ tracks, loading }: TracksSectionProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
 
@@ -98,3 +98,5 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
     </section>
   )
 }
+
+export default memo(TracksSection)

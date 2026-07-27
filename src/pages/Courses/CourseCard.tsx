@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
@@ -27,32 +28,35 @@ type CourseCardProps = {
   index?: number
 }
 
+// Calm, on-brand chip palette — sea (blue/navy) + a single warm ember tone,
+// never the rainbow. Keeps category chips quiet and consistent.
+const palettes = [
+  { chip: 'bg-brand-50 text-brand-700 border-brand-100' },
+  { chip: 'bg-brand-100/70 text-navy border-brand-200/70' },
+  { chip: 'bg-accent-50 text-accent-700 border-accent-100' },
+]
+
 function accentFromKey(label: string) {
   let h = 0
   for (let i = 0; i < label.length; i++) h = (h + label.charCodeAt(i) * (i + 1)) % 1000000
-  // Calm, on-brand chip palette — sea (blue/navy) + a single warm ember tone,
-  // never the rainbow. Keeps category chips quiet and consistent.
-  const palettes = [
-    { chip: 'bg-brand-50 text-brand-700 border-brand-100' },
-    { chip: 'bg-brand-100/70 text-navy border-brand-200/70' },
-    { chip: 'bg-accent-50 text-accent-700 border-accent-100' },
-  ]
   return palettes[h % palettes.length]
 }
+
+const startDateFormatter = new Intl.DateTimeFormat('ar-SA', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  numberingSystem: 'latn',
+})
 
 function formatStartAr(iso: string | null): string | null {
   if (!iso) return null
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return null
-  return new Intl.DateTimeFormat('ar-SA', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    numberingSystem: 'latn',
-  }).format(d)
+  return startDateFormatter.format(d)
 }
 
-export default function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
+function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
   const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
   const accent = accentFromKey(course.category_label)
@@ -224,3 +228,5 @@ export default function CourseCard({ course, viewMode = 'grid', index = 0 }: Cou
     </motion.article>
   )
 }
+
+export default memo(CourseCard)

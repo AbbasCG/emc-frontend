@@ -26,6 +26,12 @@ const faqs = [
   },
 ] as const
 
+const trustBullets = [
+  'منصة لجميع مستويات الخبرة',
+  'دعم مباشر باللغة العربية',
+  'شهادات معتمدة قابلة للتحقق',
+] as const
+
 export default function HomeFaqSection() {
   const [open, setOpen] = useState<number | null>(0)
 
@@ -60,11 +66,7 @@ export default function HomeFaqSection() {
 
             {/* Trust bullets */}
             <ul className="mt-8 space-y-3.5">
-              {[
-                'منصة لجميع مستويات الخبرة',
-                'دعم مباشر باللغة العربية',
-                'شهادات معتمدة قابلة للتحقق',
-              ].map((item) => (
+              {trustBullets.map((item) => (
                 <li key={item} className="flex items-center justify-start gap-3 text-sm font-semibold text-foreground/65">
                   {item}
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-customBlue/15">

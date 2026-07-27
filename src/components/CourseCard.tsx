@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Building2, Clock3, MapPin, Monitor } from 'lucide-react'
@@ -13,7 +14,7 @@ type CourseCardProps = {
   index: number
 }
 
-export default function CourseCard({ course, index }: CourseCardProps) {
+function CourseCard({ course, index }: CourseCardProps) {
   const isOnline = Boolean(course.is_online)
   const image = resolveCourseCoverImageUrl(course)
   const isFree = course.type === 'free'
@@ -107,3 +108,5 @@ export default function CourseCard({ course, index }: CourseCardProps) {
     </motion.article>
   )
 }
+
+export default memo(CourseCard)

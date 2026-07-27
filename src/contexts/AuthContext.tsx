@@ -1,7 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -111,7 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  async function login(email: string, password: string) {
+  // Every handler below closes only over stable setters/localStorage, so they are
+  // identity-stable for the provider's lifetime — a requirement for the useMemo'd
+  // context value to actually hold still between state changes.
+  const login = useCallback(async (email: string, password: string) => {
     const payload = await authApi.login(email, password)
     const { token: newToken, user: newUser } = payload
     localStorage.setItem(TOKEN_KEY, newToken)
@@ -121,9 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
     return payload
-  }
+  }, [])
 
-  async function registerAccount(input: RegisterAccountInput) {
+  const registerAccount = useCallback(async (input: RegisterAccountInput) => {
     const payload = await authApi.registerAccount(input)
     const { token: newToken, user: newUser } = payload
     localStorage.setItem(TOKEN_KEY, newToken)
@@ -133,9 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
     return payload
-  }
+  }, [])
 
-  function logout() {
+  const logout = useCallback(() => {
     void (async () => {
       try {
         await authApi.logoutRemote()
@@ -159,9 +164,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setImpersonationOriginalUser(null)
       window.location.assign('/login')
     })()
-  }
+  }, [])
 
-  async function startImpersonationPreview(targetUserId: number) {
+  const startImpersonationPreview = useCallback(async (targetUserId: number) => {
     if (readStoredImpersonationOriginal()) {
       toast.warning('وضع معاينة نشط بالفعل. أنِهِ الحالي قبل البدء بآخر.')
       throw new Error('already_impersonating')
@@ -195,9 +200,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setImpersonationOriginalUser(null)
       throw e
     }
-  }
+  }, [])
 
-  async function stopImpersonationPreview() {
+  const stopImpersonationPreview = useCallback(async () => {
     const fallback = readStoredImpersonationOriginal()
 
     try {
@@ -233,9 +238,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
     throw new Error('stop_impersonation_failed')
-  }
+  }, [])
 
-  async function refreshUser() {
+  const refreshUser = useCallback(async () => {
     try {
       const fresh = await authApi.fetchMe()
       setUser(fresh)
@@ -250,28 +255,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null
       }
     }
-  }
+  }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: Boolean(token && user),
-        isLoading,
-        login,
-        registerAccount,
-        logout,
-        isImpersonating,
-        impersonationOriginalUser,
-        startImpersonationPreview,
-        stopImpersonationPreview,
-        refreshUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  // 41+ consumers hang off this context — keep the value's identity tied to actual
+  // auth-state changes, not to incidental re-renders of the provider's subtree host.
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      token,
+      isAuthenticated: Boolean(token && user),
+      isLoading,
+      login,
+      registerAccount,
+      logout,
+      isImpersonating,
+      impersonationOriginalUser,
+      startImpersonationPreview,
+      stopImpersonationPreview,
+      refreshUser,
+    }),
+    [
+      user,
+      token,
+      isLoading,
+      isImpersonating,
+      impersonationOriginalUser,
+      login,
+      registerAccount,
+      logout,
+      startImpersonationPreview,
+      stopImpersonationPreview,
+      refreshUser,
+    ],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 // Provider + hook must share one module; Fast Refresh wants components-only exports.

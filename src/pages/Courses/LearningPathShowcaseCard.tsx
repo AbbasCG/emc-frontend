@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
@@ -28,7 +29,7 @@ type Props = {
   enrolled: boolean
 }
 
-export default function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
+function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
   const href = `/learning-paths/${path.slug}`
   const cover = resolvePublicAssetUrl(path.featured_image) ?? null
   const duration = formatPathDuration(path)
@@ -235,3 +236,5 @@ export default function LearningPathShowcaseCard({ path, index, enrolled }: Prop
     </motion.article>
   )
 }
+
+export default memo(LearningPathShowcaseCard)

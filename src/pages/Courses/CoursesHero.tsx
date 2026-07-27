@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, type ChangeEvent } from 'react'
+import { useRef, useState, useEffect, memo, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { Search } from 'lucide-react'
@@ -20,7 +20,7 @@ type CoursesHeroProps = {
   stats: CoursesHeroStats
 }
 
-function StatCounter({
+const StatCounter = memo(function StatCounter({
   value,
   label,
   suffix,
@@ -64,9 +64,11 @@ function StatCounter({
       <p className="text-xs md:text-sm text-brand-300/90 mt-1 font-medium">{label}</p>
     </motion.div>
   )
-}
+})
 
-export default function CoursesHero({
+const easing: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
+
+function CoursesHero({
   onSearch,
   activeCategory,
   onCategoryChange,
@@ -82,7 +84,6 @@ export default function CoursesHero({
     onSearch(e.target.value)
   }
 
-  const easing: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
   const fadeUp = (delay: number) => ({
     initial: { opacity: 0, y: 32 },
     animate: isInView ? { opacity: 1, y: 0 } : {},
@@ -200,3 +201,5 @@ export default function CoursesHero({
     </section>
   )
 }
+
+export default memo(CoursesHero)

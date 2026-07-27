@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -109,7 +109,7 @@ const dashboardIconClass =
 const loginIconClass =
   'relative size-[15px] shrink-0 text-white/85 transition-colors duration-200 group-hover/login:text-white'
 
-export default function Navbar() {
+function Navbar() {
   const { t } = useTranslation()
   const { lang, dir, setLang } = useLanguage()
   const { isAuthenticated, isLoading, user, logout } = useAuth()
@@ -559,3 +559,10 @@ export default function Navbar() {
     </header>
   )
 }
+
+/**
+ * M5.E: Navbar takes no props, so memo() skips re-renders triggered by
+ * ancestors re-rendering. Context updates it consumes (auth, language,
+ * router location) still propagate normally.
+ */
+export default memo(Navbar)

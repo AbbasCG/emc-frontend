@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { BookOpen, Layers, Sparkles } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
@@ -17,7 +18,7 @@ const palette = [
   'from-ocean/10 to-ocean/4 border-brand-200/50',
 ]
 
-export default function CoursesProgramIntro({ derivedCategories, loading }: Props) {
+function CoursesProgramIntro({ derivedCategories, loading }: Props) {
   return (
     <section className="bg-gradient-to-b from-[#f0f5fb] to-white py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -97,3 +98,5 @@ export default function CoursesProgramIntro({ derivedCategories, loading }: Prop
     </section>
   )
 }
+
+export default memo(CoursesProgramIntro)

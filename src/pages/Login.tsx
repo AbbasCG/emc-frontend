@@ -12,6 +12,11 @@ import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 import { getPostLoginRedirect } from '@/utils/dashboardAccess'
 
+function safeInternalPath(raw: string | null | undefined): string | null {
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null
+  return raw
+}
+
 export default function Login() {
   const { t } = useTranslation()
   const { login } = useAuth()
@@ -20,11 +25,6 @@ export default function Login() {
 
   // Redirect to the page the user originally tried to visit, or dashboard
   const [searchParams, setSearchParams] = useSearchParams()
-
-  function safeInternalPath(raw: string | null | undefined): string | null {
-    if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null
-    return raw
-  }
 
   const stateFrom = (location.state as { from?: string } | null)?.from
   const from =

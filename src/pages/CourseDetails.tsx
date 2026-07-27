@@ -56,16 +56,18 @@ const PAGE_TOP = 'pt-[calc(4rem+1rem)] sm:pt-[calc(4.25rem+1.25rem)]'
 const STICKY_TOP = 'lg:top-[calc(4.25rem+0.75rem)]'
 const WISHLIST_KEY = 'emc_course_wishlist'
 const EMPTY_RELATED: Course[] = []
+const SKELETON_SLOTS = Array.from({ length: 5 }, (_, i) => i)
+
+const LEVEL_LABEL_MAP: Record<string, string> = {
+  beginner: 'مبتدئ',
+  intermediate: 'متوسط',
+  advanced: 'متقدم',
+}
 
 function levelLabel(raw: unknown): string | null {
   const s = safeTrimUnknown(raw)
   if (!s) return null
-  const map: Record<string, string> = {
-    beginner: 'مبتدئ',
-    intermediate: 'متوسط',
-    advanced: 'متقدم',
-  }
-  return map[s.toLowerCase()] ?? s
+  return LEVEL_LABEL_MAP[s.toLowerCase()] ?? s
 }
 
 function buildMetrics(
@@ -581,7 +583,7 @@ function CourseDetailsLoading() {
       {/* Content skeleton */}
       <div className="bg-gradient-to-b from-[#f0f4f8] to-[#f8fafc] px-4 pb-16 sm:px-6 lg:px-10">
         <div className="flex gap-2 overflow-hidden border-b border-[#0C2A4B]/8 bg-white py-4">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {SKELETON_SLOTS.map((i) => (
             <div key={i} className="h-12 w-32 shrink-0 animate-pulse rounded-xl bg-slate-100" />
           ))}
         </div>

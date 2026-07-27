@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { BookOpen, ChevronLeft, Clock, Route } from 'lucide-react'
@@ -84,7 +84,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
   )
 }
 
-export default function LearningPathsTeaserSection({ paths, loading }: Props) {
+function LearningPathsTeaserSection({ paths, loading }: Props) {
   const [active, setActive] = useState(0)
 
   const featured = useMemo(
@@ -161,3 +161,5 @@ export default function LearningPathsTeaserSection({ paths, loading }: Props) {
     </section>
   )
 }
+
+export default memo(LearningPathsTeaserSection)

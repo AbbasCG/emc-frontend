@@ -90,6 +90,13 @@ const capabilities = [
 
 type Cap = (typeof capabilities)[number]
 
+const featuredCardFeatures = [
+  'تتبّع تقدّم الطلاب لحظياً',
+  'واجبات وتقييم متكامل',
+  'شهادات إتمام موثّقة',
+  'تكامل مع بوابات المدربين',
+] as const
+
 function FeaturedCard({ c }: { c: Cap }) {
   const Icon = c.icon
   return (
@@ -130,12 +137,7 @@ function FeaturedCard({ c }: { c: Cap }) {
 
       {/* Feature list */}
       <ul className="relative mt-8 space-y-3">
-        {[
-          'تتبّع تقدّم الطلاب لحظياً',
-          'واجبات وتقييم متكامل',
-          'شهادات إتمام موثّقة',
-          'تكامل مع بوابات المدربين',
-        ].map((feat) => (
+        {featuredCardFeatures.map((feat) => (
           <li key={feat} className="flex items-center justify-start gap-3 text-sm font-semibold text-white/55">
             {feat}
             <span

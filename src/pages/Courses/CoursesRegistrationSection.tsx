@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ClipboardCheck, UserPlus } from 'lucide-react'
@@ -19,7 +20,7 @@ const steps = [
   },
 ]
 
-export default function CoursesRegistrationSection() {
+function CoursesRegistrationSection() {
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -81,3 +82,5 @@ export default function CoursesRegistrationSection() {
     </section>
   )
 }
+
+export default memo(CoursesRegistrationSection)

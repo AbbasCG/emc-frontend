@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, BarChart3, Rocket, BookOpen, Megaphone, Shield, Clock, ChevronLeft } from 'lucide-react'
 import type { TrackItem } from '@/services/coursesApi'
@@ -30,7 +31,7 @@ const accentGradients = [
   'from-ocean/12 to-ocean/4',
 ]
 
-export default function TrackCard({ track, index = 0 }: TrackCardProps) {
+function TrackCard({ track, index = 0 }: TrackCardProps) {
   const Icon = iconMap[track.icon] ?? Brain
   const level = levelConfig[track.level] ?? levelConfig.beginner
   const gradient = accentGradients[index % accentGradients.length]
@@ -123,3 +124,5 @@ export default function TrackCard({ track, index = 0 }: TrackCardProps) {
     </motion.div>
   )
 }
+
+export default memo(TrackCard)

@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { BadgePercent, Coins, Gift } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 
-export default function CoursesPricingSection() {
+function CoursesPricingSection() {
   return (
     <section className="bg-[#f4f7fb] py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -45,3 +46,5 @@ export default function CoursesPricingSection() {
     </section>
   )
 }
+
+export default memo(CoursesPricingSection)

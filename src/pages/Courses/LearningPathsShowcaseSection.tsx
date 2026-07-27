@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { ChevronLeft, Route, Sparkles } from 'lucide-react'
@@ -28,12 +28,16 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-40px' })
 
-  if (!loading && paths.length === 0) return null
+  const sortedPaths = useMemo(
+    () =>
+      [...paths].sort((a, b) => {
+        if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1
+        return b.id - a.id
+      }),
+    [paths],
+  )
 
-  const sortedPaths = [...paths].sort((a, b) => {
-    if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1
-    return b.id - a.id
-  })
+  if (!loading && paths.length === 0) return null
 
   return (
     <section

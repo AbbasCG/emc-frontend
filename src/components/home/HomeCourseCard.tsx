@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, Calendar, Clock, GraduationCap, MapPin, Monitor } from 'lucide-react'
@@ -11,7 +12,7 @@ import { staggerItem } from '@/utils/animations'
 
 type Props = { course: Course; index?: number }
 
-export default function HomeCourseCard({ course }: Props) {
+function HomeCourseCard({ course }: Props) {
   const rawImg =
     course.course_image ||
     course.image_url ||
@@ -163,3 +164,7 @@ export default function HomeCourseCard({ course }: Props) {
     </motion.article>
   )
 }
+
+// Memoized: rendered in a list by FeaturedCoursesSection, which re-renders on
+// pagination/resize/in-view state changes while individual course props stay stable.
+export default memo(HomeCourseCard)

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, Clock, MapPin, Wifi, Users, ArrowLeft } from 'lucide-react'
@@ -9,12 +9,14 @@ type WorkshopSpotlightProps = {
   loading: boolean
 }
 
+const workshopDateFormatter = new Intl.DateTimeFormat('ar-EG', {
+  day: 'numeric',
+  month: 'long',
+  numberingSystem: 'latn',
+})
+
 function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat('ar-EG', {
-    day: 'numeric',
-    month: 'long',
-    numberingSystem: 'latn',
-  }).format(new Date(dateStr))
+  return workshopDateFormatter.format(new Date(dateStr))
 }
 
 function spotsColor(remaining: number, total: number): string {
@@ -39,7 +41,7 @@ function WorkshopSkeleton() {
   )
 }
 
-export default function WorkshopSpotlight({ workshops, loading }: WorkshopSpotlightProps) {
+function WorkshopSpotlight({ workshops, loading }: WorkshopSpotlightProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
 
@@ -104,7 +106,7 @@ type WorkshopCardProps = {
   isVisible: boolean
 }
 
-function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
+const WorkshopCard = memo(function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
   const spotsStyle = spotsColor(workshop.spots_remaining, workshop.total_spots)
   const spotsPercent = workshop.total_spots
     ? Math.round((workshop.spots_remaining / workshop.total_spots) * 100)
@@ -179,4 +181,6 @@ function WorkshopCard({ workshop, index, isVisible }: WorkshopCardProps) {
       </Link>
     </motion.div>
   )
-}
+})
+
+export default memo(WorkshopSpotlight)

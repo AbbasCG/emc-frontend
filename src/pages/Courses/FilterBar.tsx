@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { LayoutGrid, List, ChevronDown, AlertCircle, Search, X } from 'lucide-react'
 
 type SelectOption = { value: string; label: string }
@@ -80,7 +81,7 @@ const sortOptions = [
   { value: 'name_az', label: 'الاسم أ-ي' },
 ]
 
-export default function FilterBar({
+function FilterBar({
   search,
   onSearchChange,
   activePrice,
@@ -343,3 +344,5 @@ export default function FilterBar({
     </div>
   )
 }
+
+export default memo(FilterBar)

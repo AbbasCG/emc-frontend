@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Quote } from 'lucide-react'
 
 const testimonials = [
@@ -43,7 +43,8 @@ const testimonials = [
 
 const AUTO_MS = 6500
 
-function StarRating({ count }: { count: number }) {
+// Memoized: the carousel re-renders every AUTO_MS tick; star SVGs are identical each time.
+const StarRating = memo(function StarRating({ count }: { count: number }) {
   return (
     <div className="flex gap-1" aria-label={`تقييم ${count} من 5`}>
       {Array.from({ length: 5 }).map((_, i) => (
@@ -60,7 +61,7 @@ function StarRating({ count }: { count: number }) {
       ))}
     </div>
   )
-}
+})
 
 export default function HomeTestimonialsCarousel() {
   const [active, setActive] = useState(0)
