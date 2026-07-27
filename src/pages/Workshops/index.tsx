@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
+import { Link } from 'react-router'
+import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Loader2, SearchX, X } from 'lucide-react'
 import PublicCatalogHero from '@/components/public/PublicCatalogHero'
 import PublicSeo from '@/components/public/PublicSeo'
 import WorkshopCard from '@/components/public/WorkshopCard'
@@ -245,8 +246,21 @@ export default function WorkshopsPage() {
             <Loader2 className="h-10 w-10 animate-spin text-[#0077B6]" />
           </div>
         ) : pageRows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-            <p className="text-base font-black text-deepBlue">{emptyMessage}</p>
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
+            <span className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-customBlue">
+              <SearchX className="h-7 w-7" aria-hidden />
+            </span>
+            <h2 className="text-lg font-black text-deepBlue">
+              {hasFilters ? 'لا توجد ورش مطابقة' : 'لا توجد ورش حالياً'}
+            </h2>
+            <p className="mt-2 text-sm font-bold leading-7 text-slate-500">{emptyMessage}</p>
+            <Link
+              to="/courses"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition hover:opacity-90"
+            >
+              تصفح الدورات التدريبية
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
           </div>
         ) : (
           <>

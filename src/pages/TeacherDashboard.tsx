@@ -269,7 +269,7 @@ function KpiCard({
       </div>
       <div className="min-w-0">
         <p className="text-2xl font-black tabular-nums leading-tight text-[#0B1E38]">{n(v)}</p>
-        <p className="truncate text-[11px] font-semibold text-slate-500">{label}</p>
+        <p className="text-[11px] font-semibold leading-snug text-slate-500">{label}</p>
         {hint && <p className="text-[10px] text-slate-400">{hint}</p>}
       </div>
       {urgent && value > 0 && (

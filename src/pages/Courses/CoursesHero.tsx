@@ -144,7 +144,7 @@ function CoursesHero({
             type="search"
             value={query}
             onChange={handleSearch}
-            placeholder="ابحث عن دورة، وصف، مدرّب، مسار أو قسم..."
+            placeholder="ابحث عن دورة أو مدرّب…"
             className="h-14 w-full rounded-2xl border-2 border-transparent bg-white/95 pr-14 pl-5 text-base font-medium text-deepBlue shadow-xl backdrop-blur-sm placeholder:text-muted-400/80 outline-none transition-all duration-200 focus:border-brand-400"
           />
         </motion.div>

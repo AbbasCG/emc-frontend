@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
-import { AlertCircle, CheckCircle2, LifeBuoy } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import PageHeader from '@/components/PageHeader'
 import { submitSupportTicket } from '@/api/supportApi'
 
 const REQUEST_TYPES = [
@@ -57,20 +58,17 @@ export default function SupportPage() {
   }
 
   return (
-    <div dir="rtl" className="mx-auto max-w-2xl px-4 py-16">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-[1.35rem] bg-gradient-to-bl from-deepBlue to-[#152536] p-8 text-center text-white shadow-xl"
-      >
-        <LifeBuoy className="mx-auto text-customOrange" size={36} />
-        <h1 className="mt-4 text-2xl font-black">مركز المساعدة</h1>
-        <p className="mt-3 text-sm font-semibold text-white/75">
-          أرسل طلبك وسيتواصل معك فريق EMC في أقرب وقت.
-        </p>
-      </motion.div>
+    <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
+      <PageHeader
+        title="مركز المساعدة"
+        subtitle="أرسل طلبك وسيتواصل معك فريق EMC في أقرب وقت."
+        breadcrumbs={[
+          { label: 'الرئيسية', href: '/' },
+          { label: 'الدعم' },
+        ]}
+      />
 
-      <div className="mt-10">
+      <div className="mx-auto max-w-2xl px-4 py-16">
         {done ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
@@ -143,7 +141,7 @@ export default function SupportPage() {
           </form>
         )}
       </div>
-    </div>
+    </main>
   )
 }
 

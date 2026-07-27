@@ -484,6 +484,9 @@ export default function VolunteerApply() {
     exit: { opacity: 0, x: 20 },
   }
 
+  // Progress reflects COMPLETED steps: 0% on step 1, 100% only after the last step
+  const progress = ((step - 1) / STEPS.length) * 100
+
   return (
     <div className="bg-paper pt-20" dir="rtl">
       <PageHeader
@@ -501,12 +504,12 @@ export default function VolunteerApply() {
           {/* Progress bar */}
           <div className="mb-2 flex items-center justify-between text-[11px] font-black text-foreground/50">
             <span>الخطوة {step} من {STEPS.length}</span>
-            <span className="font-latin tabular-nums" dir="ltr">{Math.round((step / STEPS.length) * 100)}%</span>
+            <span className="font-latin tabular-nums" dir="ltr">{Math.round(progress)}%</span>
           </div>
           <div className="mb-10 h-2 overflow-hidden rounded-full bg-slate-200">
             <motion.div
               className="h-full rounded-full bg-gradient-to-l from-customBlue to-deepBlue"
-              animate={{ width: `${(step / STEPS.length) * 100}%` }}
+              animate={{ width: `${progress}%` }}
               transition={{ duration: 0.45, ease: 'easeOut' }}
             />
           </div>
@@ -826,7 +829,7 @@ export default function VolunteerApply() {
                   type="button"
                   onClick={() => void handleSubmit()}
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-7 py-2.5 text-[13px] font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-105 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-2.5 text-[13px] font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-105 disabled:opacity-60"
                 >
                   {submitting ? (
                     <>

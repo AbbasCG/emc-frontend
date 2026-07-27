@@ -1350,7 +1350,7 @@ export default function AmbassadorApply() {
               <button
                 type="button"
                 onClick={goNext}
-                className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-8 py-3.5 text-sm font-extrabold text-white shadow-md transition hover:bg-deepBlue/90"
+                className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-8 py-3.5 text-sm font-extrabold text-white shadow-md transition hover:brightness-110"
               >
                 التالي
                 <ArrowLeft size={16} />

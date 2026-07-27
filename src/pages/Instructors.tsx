@@ -204,6 +204,13 @@ export default function Instructors() {
                   مسح البحث
                 </button>
               )}
+              <Link
+                to="/courses"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-2.5 text-[12px] font-black text-white transition hover:opacity-90"
+              >
+                تصفح الدورات التدريبية
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
             </div>
           ) : (
             <motion.div

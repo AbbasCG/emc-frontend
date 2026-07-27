@@ -61,7 +61,11 @@ export default function OpsVolunteersPage() {
       </header>
 
       {items.length === 0 ? (
-        <EmptyState icon={HeartHandshake} title="لا متطوعين مسجلين" />
+        <EmptyState
+          icon={HeartHandshake}
+          title="لا متطوعين مسجلين"
+          description="عند انضمام متطوعين جدد ستظهر ملفاتهم وجاهزيتهم وسجل ساعاتهم هنا."
+        />
       ) : (
         <motion.div layout className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {items.map((v) => (

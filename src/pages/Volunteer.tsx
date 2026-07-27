@@ -46,10 +46,10 @@ const WHY_ITEM_DEFS: readonly {
   {
     key: 'impact',
     icon: Heart,
-    accentBg: 'bg-rose-50',
-    accentBorder: 'border-rose-100',
-    accentIcon: 'text-rose-500',
-    accentBar: 'bg-rose-400',
+    accentBg: 'bg-customOrange/10',
+    accentBorder: 'border-customOrange/20',
+    accentIcon: 'text-deepBlue',
+    accentBar: 'bg-amber',
   },
   {
     key: 'experience',

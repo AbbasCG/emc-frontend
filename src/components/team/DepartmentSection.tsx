@@ -1,5 +1,6 @@
 import { createElement } from 'react'
 import { motion } from 'framer-motion'
+import { Users } from 'lucide-react'
 import type { Department, TeamMember } from '@/services/teamApi'
 import { resolveDepartmentIcon } from '@/components/team/teamIcons'
 import TeamMemberCard from '@/components/team/TeamMemberCard'
@@ -9,6 +10,15 @@ const EXEC_SLUG = 'executive-leadership'
 
 type Props = {
   department: Department
+}
+
+/** Arabic-correct member count: 0/1/2 have dedicated forms, 3-10 plural, 11+ singular accusative. */
+function formatMemberCount(count: number): string {
+  if (count === 0) return 'لا أعضاء'
+  if (count === 1) return 'عضو واحد'
+  if (count === 2) return 'عضوان'
+  if (count <= 10) return `${count} أعضاء`
+  return `${count} عضواً`
 }
 
 function partitionMembers(members: TeamMember[]) {
@@ -39,15 +49,23 @@ export default function DepartmentSection({ department }: Props) {
                 {createElement(resolveDepartmentIcon(department.icon), { size: 24, strokeWidth: 2.1, 'aria-hidden': true })}
               </span>
               <h2 className="font-display text-xl font-black tracking-tight text-deepBlue sm:text-2xl">{department.name_ar}</h2>
+              <span className="rounded-lg bg-deepBlue/[0.05] px-2.5 py-1 text-xs font-bold text-foreground/55">
+                {formatMemberCount(department.members.length)}
+              </span>
             </div>
             <p className="mt-6 text-[1.03rem] font-medium leading-8 text-foreground/73">{department.description_ar}</p>
           </div>
         </div>
 
         {department.members.length === 0 ? (
-          <p className="relative mt-8 text-center text-sm font-semibold text-foreground/50">
-            لا توجد بطاقات أعضاء في هذا القسم بعد.
-          </p>
+          <div className="relative mt-8 flex flex-col items-center gap-3 py-6 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-customBlue/[0.06] ring-1 ring-customBlue/10">
+              <Users size={22} strokeWidth={1.75} className="text-customBlue/60" aria-hidden />
+            </span>
+            <p className="text-sm font-semibold leading-7 text-foreground/55">
+              سنعرض أعضاء هذا القسم هنا فور نشر بطاقاتهم.
+            </p>
+          </div>
         ) : (
           <motion.div
             className="relative mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"

@@ -559,7 +559,7 @@ function Topbar({
       </button>
 
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-[15px] font-black tracking-tight text-deepBlue font-display sm:text-base">{pageTitle}</h1>
+        <h1 className="line-clamp-2 break-words text-[13px] font-black leading-snug tracking-tight text-deepBlue font-display sm:text-base sm:leading-normal">{pageTitle}</h1>
       </div>
 
       <div className="flex items-center gap-2">

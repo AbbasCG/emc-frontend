@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { fetchKnowledgeArticles, fetchKnowledgeCategories } from '@/api/knowledgeApi'
+import PageHeader from '@/components/PageHeader'
 import ArticleCard from '@/components/platform/ArticleCard'
 import KnowledgeSidebar from '@/components/platform/KnowledgeSidebar'
 import EmptyState from '@/components/dashboard/EmptyState'
@@ -41,16 +41,20 @@ export default function KnowledgeHubPage() {
     return (id: string) => map[id] ?? KNOWLEDGE_CATEGORY_LABELS[id] ?? id
   }, [categories])
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">
-        <p className="text-[11px] font-black uppercase tracking-[0.25em] text-customBlue">Knowledge OS</p>
-        <h1 className="mt-3 text-4xl font-black text-deepBlue md:text-5xl">قاعدة المعرفة</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-sm font-medium leading-8 text-slate-500">
-          سياسات، أدلة، قوالب، تقارير، ودروس مستفادة — مساحة عمل تشبه Notion بروح EMC العربية.
-        </p>
-      </motion.div>
+  const hasFilters = q.trim() !== '' || cat !== null
 
+  return (
+    <main dir="rtl" className="bg-slate-50 pt-[4.75rem] lg:pt-[5rem]">
+      <PageHeader
+        title="قاعدة المعرفة"
+        subtitle="سياسات، أدلة، قوالب، تقارير، ودروس مستفادة — مساحة عمل تشبه Notion بروح EMC العربية."
+        breadcrumbs={[
+          { label: 'الرئيسية', href: '/' },
+          { label: 'قاعدة المعرفة' },
+        ]}
+      />
+
+      <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
       <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:flex-row md:items-center">
         <input
           className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-deepBlue outline-none ring-customBlue/25 focus:ring-2"
@@ -71,7 +75,15 @@ export default function KnowledgeHubPage() {
               ))}
             </div>
           ) : articles.length === 0 ? (
-            <EmptyState title="لا توجد مقالات" description="جرّب تصفية مختلفة أو عد لاحقاً." />
+            <EmptyState
+              title="لا توجد مقالات"
+              description={hasFilters ? 'جرّب تصفية مختلفة أو أعد ضبط التصفية الحالية.' : 'لم تُنشر مقالات بعد — عد لاحقاً أو تواصل مع فريق الدعم.'}
+              action={
+                hasFilters
+                  ? { label: 'إعادة ضبط التصفية', onClick: () => { setQ(''); setCat(null) } }
+                  : { label: 'تواصل مع الدعم', href: '/support' }
+              }
+            />
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
               {articles.map((a) => (
@@ -81,6 +93,7 @@ export default function KnowledgeHubPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
