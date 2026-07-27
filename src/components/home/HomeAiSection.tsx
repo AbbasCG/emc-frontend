@@ -72,7 +72,7 @@ export default function HomeAiSection() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: [0.22, 0.61, 0.36, 1] }}
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >
@@ -156,7 +156,7 @@ export default function HomeAiSection() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-7 py-5 backdrop-blur-sm"
         >

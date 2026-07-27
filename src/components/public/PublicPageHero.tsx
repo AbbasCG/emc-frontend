@@ -81,7 +81,7 @@ export default function PublicPageHero({
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.35 }}
+        viewport={{ once: true, amount: 0.2 }}
         className="grid gap-3 sm:grid-cols-3 lg:max-w-sm lg:grid-cols-1"
       >
         {stats.map((s) => (

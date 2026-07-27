@@ -51,7 +51,7 @@ export default function HomeImpactMetrics() {
               key={m.label}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-6 text-right backdrop-blur-sm transition-colors hover:border-sky/30 hover:bg-white/[0.07] sm:p-8"
             >

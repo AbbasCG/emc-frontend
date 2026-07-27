@@ -19,7 +19,7 @@ export default function TimelineSteps({ steps, title }: TimelineStepsProps) {
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
       >
         {steps.map((step, i) => (
           <motion.li

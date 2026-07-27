@@ -122,7 +122,7 @@ export default function AmbassadorProgram() {
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
             className="grid gap-6 md:grid-cols-3"
           >
             {benefits.map((item) => {
@@ -216,7 +216,7 @@ export default function AmbassadorProgram() {
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="visible"
-                  viewport={{ once: true, amount: 0.3 }}
+                  viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.4, delay: i * 0.08 }}
                   className="flex items-start gap-5 sm:gap-6"
                 >
@@ -275,7 +275,7 @@ export default function AmbassadorProgram() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.5 }}
           className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-deepBlue text-right text-white shadow-2xl"
         >

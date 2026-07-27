@@ -4,8 +4,21 @@ import type { Variants } from 'framer-motion'
 // content reads fast and animation guides rather than distracts.
 // See docs/02-planning/ux-simplification-plan.md §2.
 
-/** Default viewport for scroll reveals — premium feel, no repeat flicker */
-export const viewportOnce = { once: true, amount: 0.25 as const }
+/**
+ * Default viewport for scroll reveals — premium feel, no repeat flicker.
+ *
+ * `amount` is a fraction of the ELEMENT, so a fractional threshold on a container
+ * taller than viewport/amount can NEVER fire — on a 812px phone, `amount: 0.25`
+ * permanently hides any section taller than ~3200px (M5.5 album: the 12-themes
+ * grid, about/partnerships/volunteer bodies…). `amount: 'some'` + a negative
+ * bottom margin keeps the "meaningfully entered" reveal feel while guaranteeing
+ * the trigger fires for content of any height.
+ */
+export const viewportOnce = {
+  once: true,
+  amount: 'some',
+  margin: '0px 0px -96px 0px',
+} as const
 
 export const fadeUp: Variants = {
   hidden: { opacity: 0, y: 8 },

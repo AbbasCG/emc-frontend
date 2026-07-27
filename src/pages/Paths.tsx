@@ -74,7 +74,7 @@ export default function Paths() {
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
+                viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
                 transition={{ duration: 0.5, delay: pi * 0.08 }}
                 className="overflow-hidden rounded-2xl bg-white shadow-xl shadow-slate-200/70 ring-1 ring-slate-100 lg:grid lg:grid-cols-[1fr_380px]"
               >
@@ -130,7 +130,7 @@ export default function Paths() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.5 }}
         >
           <div>

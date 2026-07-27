@@ -139,7 +139,7 @@ export default function Departments() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.25 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
             transition={{ duration: 0.5 }}
             className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-lg ring-1 ring-white/10 lg:p-10"
           >

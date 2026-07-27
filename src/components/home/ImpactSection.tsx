@@ -63,7 +63,7 @@ export default function ImpactSection() {
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
+                viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.48, delay: i * 0.09 }}
                 className="rounded-2xl bg-white p-7 text-center shadow-lg shadow-slate-200/60 ring-1 ring-slate-100"
               >

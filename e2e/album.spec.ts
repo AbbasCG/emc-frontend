@@ -56,18 +56,23 @@ function slugOf(route: string): string {
   return route.replace(/^\//, '').replace(/[/?#]+/g, '_')
 }
 
-/** Fires in-view animations so full-page captures don't show opacity-0 sections. */
+/**
+ * Fires in-view animations so full-page captures don't show opacity-0 sections.
+ * Half-viewport steps with a 150ms dwell: under parallel-worker load, faster
+ * jump-scrolling outruns IntersectionObserver and leaf reveals (amount 0.2-0.25)
+ * never fire, which reads as fake "blank section" findings in the album review.
+ */
 async function settleAndSweep(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
   await page.evaluate(async () => {
-    const step = window.innerHeight
+    const step = Math.max(200, Math.floor(window.innerHeight / 2))
     for (let y = 0; y < document.body.scrollHeight; y += step) {
       window.scrollTo(0, y)
-      await new Promise((r) => setTimeout(r, 60))
+      await new Promise((r) => setTimeout(r, 150))
     }
     window.scrollTo(0, 0)
   })
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(600)
 }
 
 async function assertRenderedAndCapture(

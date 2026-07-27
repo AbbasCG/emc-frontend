@@ -8,7 +8,7 @@ export default function ProgramsHelpCTA() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
         transition={{ duration: 0.5 }}
         className="emc-depth mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-xl ring-1 ring-white/10 sm:p-10 lg:flex-row lg:items-center"
       >

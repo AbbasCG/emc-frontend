@@ -21,7 +21,7 @@ export default function ProcessSteps({ steps, title, subtitle }: ProcessStepsPro
       variants={fadeUp}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
       transition={{ duration: 0.5 }}
     >
       {(title || subtitle) && (

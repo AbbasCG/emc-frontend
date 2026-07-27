@@ -33,7 +33,7 @@ export default function ImpactGeographicSection() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.22 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           >
             <div className="mb-4 flex flex-wrap items-center justify-start gap-2 text-right lg:justify-start">
               <MapPinned size={20} className="text-customBlue" aria-hidden />
@@ -87,7 +87,7 @@ export default function ImpactGeographicSection() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.22 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           >
             <div className="mb-4 flex flex-wrap items-center gap-2 text-right lg:flex-row-reverse lg:justify-end">
               <Globe2 size={20} className="shrink-0 text-customOrange" aria-hidden />

@@ -134,7 +134,7 @@ export default function About() {
               className="rounded-3xl bg-white p-2 shadow-emc-lg ring-1 ring-line"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
               transition={{ duration: 0.5 }}
             >
               <div className="rounded-2xl bg-gradient-to-br from-[#f4f7fb] to-white p-6 sm:p-8">
@@ -296,7 +296,7 @@ export default function About() {
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.25 }}
+              viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
               transition={{ duration: 0.5 }}
               className="rounded-3xl bg-[#f4f7fb] p-6 ring-1 ring-slate-200/80 sm:p-8"
             >
@@ -351,7 +351,7 @@ export default function About() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
           >
             <div>

@@ -27,7 +27,7 @@ export default function CTASection({
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
         transition={{ duration: 0.5 }}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_0%_50%,rgba(0,119,182,0.15),transparent_50%),radial-gradient(ellipse_60%_50%_at_100%_100%,rgba(242,140,0,0.1),transparent_45%)]" />

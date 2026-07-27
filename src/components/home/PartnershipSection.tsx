@@ -11,7 +11,7 @@ export default function PartnershipSection() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.55 }}
           className="overflow-hidden rounded-3xl bg-deepBlue px-8 py-14 text-right text-white shadow-2xl md:px-14"
         >

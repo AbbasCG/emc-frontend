@@ -11,7 +11,7 @@ export default function HomeCTASection() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.55 }}
           className="rounded-3xl bg-gradient-to-l from-deepBlue via-[#1c3f5e] to-[#162334] px-8 py-16 text-center text-white shadow-2xl md:px-16"
         >

@@ -281,7 +281,7 @@ export default function Contact() {
             }`}
             initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
             transition={{ duration: 0.5 }}
           >
             <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue">{t('contact.form.title')}</h2>

@@ -69,7 +69,7 @@ export default function Platform() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.55 }}
           >
             <span className="emc-eyebrow mb-4">
@@ -149,7 +149,7 @@ export default function Platform() {
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
+                viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
                 className="group rounded-2xl bg-white p-6 text-right shadow-emc ring-1 ring-line transition duration-300 ease-emc hover:-translate-y-1 hover:shadow-emc-md hover:ring-customBlue/20"
               >
@@ -170,7 +170,7 @@ export default function Platform() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.5 }}
         >
           <div>
