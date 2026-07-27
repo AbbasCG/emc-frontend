@@ -22,6 +22,7 @@ import {
   Info,
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
 import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import {
@@ -658,6 +659,11 @@ export default function AmbassadorApply() {
   /* ── Main render ─────────────────────────────────────────────────────── */
   return (
     <main className="bg-[#f4f7fb] pt-20" ref={topRef}>
+      <PublicSeo
+        title="طلب الانضمام لبرنامج السفراء"
+        description="نموذج التقديم لبرنامج سفراء التحول الرقمي: بياناتك الشخصية والجامعية، اهتماماتك ومهاراتك التقنية، ودوافعك للانضمام — يراجع الفريق طلبك ثم يتواصل معك."
+        path="/ambassador/apply"
+      />
       <PageHeader
         title="طلب الانضمام لبرنامج السفراء"
         breadcrumbs={[

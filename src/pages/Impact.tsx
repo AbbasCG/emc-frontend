@@ -1,6 +1,7 @@
 import ImpactDashboardCta from '@/components/impact/ImpactDashboardCta'
 import ImpactDashboardHero from '@/components/impact/ImpactDashboardHero'
 import ImpactOverviewSection from '@/components/impact/ImpactOverviewSection'
+import PublicSeo from '@/components/public/PublicSeo'
 
 /**
  * Brand-V3 governance (§7): only founder-confirmed figures may appear publicly
@@ -14,6 +15,11 @@ import ImpactOverviewSection from '@/components/impact/ImpactOverviewSection'
 export default function Impact() {
   return (
     <main dir="rtl" className="min-h-screen bg-white text-foreground antialiased">
+      <PublicSeo
+        title="الأثر والإنجازات"
+        description="لوحة الأثر والإنجازات: أرقام حقيقية معتمدة تعكس نمو مركز EMC وتأثيره التعليمي والمجتمعي، بشفافية ودون مبالغة في البيانات المعروضة."
+        path="/impact"
+      />
       <ImpactDashboardHero />
       <ImpactOverviewSection />
       <ImpactDashboardCta />

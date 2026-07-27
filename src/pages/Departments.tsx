@@ -9,6 +9,7 @@ import DepartmentsLayerTabs from '@/components/departments/DepartmentsLayerTabs'
 import DepartmentsOrgEcosystem from '@/components/departments/DepartmentsOrgEcosystem'
 import DepartmentsTimelineStrip from '@/components/departments/DepartmentsTimelineStrip'
 import { CTASection, PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
 /** M3 i18n: copy lives in the catalogs under departments.flow.phases.<key>. */
@@ -34,6 +35,11 @@ export default function Departments() {
   const flowPhases = useMemo(() => buildFlowPhases(t), [t])
   return (
     <main className="bg-emcBg pt-20">
+      <PublicSeo
+        title="الإدارات والحوكمة"
+        description="هيكل إداري يضمن جودة البرامج وسلاسة التشغيل واستدامة الشراكات — حوكمة واضحة ومساءلة مهنية من تصميم البرنامج إلى تجربة المشارك."
+        path="/departments"
+      />
       <PublicPageHero
         eyebrow={t('departments.hero.eyebrow')}
         title={t('departments.hero.title')}

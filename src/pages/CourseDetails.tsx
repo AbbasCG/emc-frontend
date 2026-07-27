@@ -18,6 +18,7 @@ import type { Course } from '../types'
 import { unwrapPublicCoursePayload, safeTrimUnknown, sanitizeCourseForDisplay } from '@/utils/publicCourseNormalize'
 import { useAuth } from '@/contexts/AuthContext'
 import PublicSeo from '@/components/public/PublicSeo'
+import { CourseJsonLd } from '@/components/public/JsonLd'
 import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
 import PublicDetailCtaButton from '@/components/public/detail/PublicDetailCtaButton'
 import AppAlert from '@/components/ui/AppAlert'
@@ -438,6 +439,12 @@ export default function CourseDetails() {
         path={`/courses/${course.slug}`}
         image={coverUrl}
         type="article"
+      />
+      <CourseJsonLd
+        name={course.title}
+        description={course.short_description || course.description?.slice(0, 160) || `دورة ${course.title}`}
+        slug={course.slug}
+        image={coverUrl}
       />
 
       {/* ── SECTION 1: Immersive hero ── */}

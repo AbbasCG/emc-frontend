@@ -6,6 +6,7 @@ import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, Phone, UserPlus, U
 import { useTranslation } from 'react-i18next'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { useAuth } from '../contexts/AuthContext'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
 import CountrySelector, { type Country, COUNTRIES } from '../components/ui/CountrySelector'
@@ -134,6 +135,11 @@ export default function Signup() {
 
   return (
     <div className="bg-paper pt-20">
+      <PublicSeo
+        title="إنشاء حساب جديد"
+        description="أنشئ حسابك في مركز ماستر التعليمي خلال دقائق لتتمكن من التسجيل في الدورات والورش التدريبية ومتابعة تقدمك التعليمي بسهولة."
+        path="/signup"
+      />
       <PageHeader
         title={t('auth.signup.title')}
         breadcrumbs={[

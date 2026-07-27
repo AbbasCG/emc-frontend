@@ -1,8 +1,16 @@
 import { ServerCrash } from 'lucide-react'
 import ErrorPageShell from '@/components/errors/ErrorPageShell'
+import PublicSeo from '@/components/public/PublicSeo'
 
 export default function ServerErrorPage() {
   return (
+    <>
+    <PublicSeo
+      title="خطأ في الخادم"
+      description="نواجه مشكلة تقنية مؤقتة في المنصة — يمكنك إعادة المحاولة بعد قليل أو التواصل مع فريق الدعم إذا استمرّت المشكلة بالظهور."
+      path="/500"
+      noIndex
+    />
     <ErrorPageShell
       code="500"
       title="حدث خطأ في الخادم"
@@ -26,5 +34,6 @@ export default function ServerErrorPage() {
         </>
       }
     />
+    </>
   )
 }

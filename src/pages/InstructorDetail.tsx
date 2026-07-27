@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { fetchInstructor, type InstructorPublic } from '@/api/instructorsApi'
 import { PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
 
@@ -72,6 +73,7 @@ function PathItem({ path }: { path: { id: number; slug: string; title: string } 
 
 export default function InstructorDetail() {
   const { slug } = useParams<{ slug: string }>()
+  const { pathname } = useLocation()
   const [ins,     setIns]     = useState<InstructorPublic | null>(null)
   // Seeded exactly as the old mount-time effect left it: a missing slug resolves straight
   // to the invalid-link message instead of loading.
@@ -104,10 +106,24 @@ export default function InstructorDetail() {
     return () => { alive = false }
   }, [slug])
 
+  // Generic title before the data arrives (or on error); the instructor's name once loaded.
+  const seo = (
+    <PublicSeo
+      title={ins?.name ?? 'ملف المدرب'}
+      description={
+        ins
+          ? `تعرّف على ${ins.name} ضمن الكادر التدريبي في EMC: نبذة تعريفية والتخصص والدورات والمسارات التعليمية المرتبطة به داخل المنصة.`
+          : 'ملف مدرب ضمن الكادر التدريبي في EMC: نبذة تعريفية والتخصص والدورات والمسارات التعليمية المرتبطة به داخل المنصة.'
+      }
+      path={pathname}
+    />
+  )
+
   /* ── Loading ── */
   if (loading) {
     return (
       <main className="min-h-[50vh] bg-emcBg px-4 pb-20 pt-28">
+        {seo}
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="emc-skeleton h-44 rounded-3xl ring-1 ring-deepBlue/[0.06]" />
           <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
@@ -123,6 +139,7 @@ export default function InstructorDetail() {
   if (err || !ins) {
     return (
       <main className="bg-emcBg px-4 pb-20 pt-28 text-right" dir="rtl">
+        {seo}
         <div className="mx-auto max-w-xl">
           <div className="flex flex-col items-center justify-center rounded-3xl border border-orange-200 bg-orange-50 py-16 text-center shadow-emc">
             <UserCircle className="mb-4 h-14 w-14 text-accent-700/40" />
@@ -152,6 +169,7 @@ export default function InstructorDetail() {
 
   return (
     <main className="bg-emcBg pt-20" dir="rtl">
+      {seo}
       <PublicPageHero
         eyebrow="ملف المدرب"
         title={ins.name}

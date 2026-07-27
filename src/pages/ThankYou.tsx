@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 
 type ThankYouState = {
   courseName?: string
@@ -39,6 +40,12 @@ export default function ThankYou() {
 
   return (
     <main className="bg-paper pt-20">
+      <PublicSeo
+        title="شكراً لتسجيلك"
+        description="صفحة تأكيد التسجيل في EMC: ملخص تفاصيل طلبك بعد إتمام التسجيل في الدورة، مع اسم الدورة وتاريخ التسجيل ورابط العودة إلى الصفحة الرئيسية."
+        path="/thank-you"
+        noIndex
+      />
       <PageHeader
         title={t('auth.thankYou.title')}
         breadcrumbs={[

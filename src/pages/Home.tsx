@@ -11,6 +11,7 @@ import HomePartnersSection from '../components/home/HomePartnersSection'
 import HomeFaqSection from '../components/home/HomeFaqSection'
 import HomeGrandCTA from '../components/home/HomeGrandCTA'
 import PublicSeo from '@/components/public/PublicSeo'
+import { OrganizationJsonLd } from '@/components/public/JsonLd'
 
 const FeaturedCoursesSection = lazy(() => import('../components/home/FeaturedCoursesSection'))
 const HomeEcosystemBento = lazy(() => import('../components/home/HomeEcosystemBento'))
@@ -38,6 +39,7 @@ export default function Home() {
         description="منصة EMC التعليمية العربية—الهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
         path="/"
       />
+      <OrganizationJsonLd />
       {/* 1. Cinematic dark hero + orbital visual + stat pills */}
       <HomeCinematicHero />
 

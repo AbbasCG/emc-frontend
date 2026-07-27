@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { CheckCircle, Home, Clock, Mail, Hash } from 'lucide-react'
+import PublicSeo from '@/components/public/PublicSeo'
 import type { AmbassadorSubmitResult } from '@/api/ambassadorApplicationApi'
 import { formatDateTime } from '@/utils/dateTime'
 
@@ -22,6 +23,12 @@ export default function AmbassadorApplicationSuccess() {
 
   return (
     <div className="min-h-screen bg-[#f4f7fb]" dir="rtl">
+      <PublicSeo
+        title="تم استلام طلبك"
+        description="تأكيد استلام طلب الانضمام لبرنامج سفراء التحول الرقمي — سيراجع فريق EMC طلبك ويتواصل معك عبر البريد الإلكتروني، مع رقم مرجعي لمتابعة الطلب."
+        path="/ambassador/application-success"
+        noIndex
+      />
       {/* Top bar */}
       <div className="bg-deepBlue px-6 py-4">
         <Link to="/" className="text-xl font-black text-white">

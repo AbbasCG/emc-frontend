@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PageHeader from '@/components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import TracksPageContinued from '@/components/tracks/TracksPageContinued'
 import { themes12 } from '@/data/publicPages'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
@@ -56,6 +57,11 @@ export default function Tracks() {
   const { t } = useTranslation()
   return (
     <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
+      <PublicSeo
+        title="المحاور الاثنا عشر"
+        description="محاور EMC الاثنا عشر — مصفوفة واحدة تجمع التعليم الأكاديمي والعالمي والرقمي والمهني، وكل محور يربطك مباشرة بكتالوج البرامج والدورات."
+        path="/tracks"
+      />
       <PageHeader
         title={t('tracks.header.title')}
         subtitle={t('tracks.header.subtitle')}

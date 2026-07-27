@@ -15,6 +15,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import { departments10, volunteerLead } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
@@ -120,6 +121,11 @@ export default function Volunteer() {
   const commitmentBlocks = useMemo(() => buildCommitmentBlocks(t), [t])
   return (
     <main className="bg-paper pt-20">
+      <PublicSeo
+        title="التطوع والانضمام للفريق"
+        description="انضم لفريق EMC التطوعي وساهم في برامج تعليمية بجودة عالية — تعلم عملي، خبرة مهنية في تنظيم البرامج، ومجتمع داعم بحدود واضحة للوقت والمهام."
+        path="/volunteer"
+      />
       <PublicPageHero
         eyebrow={t('volunteer.hero.eyebrow')}
         title={t('volunteer.hero.title')}

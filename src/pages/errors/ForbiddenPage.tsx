@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { ShieldOff } from 'lucide-react'
 import ErrorPageShell from '@/components/errors/ErrorPageShell'
+import PublicSeo from '@/components/public/PublicSeo'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDashboardPathByRole } from '@/utils/dashboardAccess'
 
@@ -10,6 +11,13 @@ export default function ForbiddenPage() {
   const dashboardHref = getDashboardPathByRole(user?.role)
 
   return (
+    <>
+    <PublicSeo
+      title="لا تملك صلاحية الوصول"
+      description="هذه الصفحة مخصّصة لدور آخر في المنصة — إذا كنت تعتقد أن هذا خطأ تواصل مع فريق الدعم أو عد إلى لوحتك الرئيسية للمتابعة."
+      path="/403"
+      noIndex
+    />
     <ErrorPageShell
       code="403"
       title="لا تملك صلاحية الوصول"
@@ -41,5 +49,6 @@ export default function ForbiddenPage() {
         </>
       }
     />
+    </>
   )
 }

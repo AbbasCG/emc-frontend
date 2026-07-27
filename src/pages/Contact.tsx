@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import { submitContactMessage } from '@/api/contactApi'
 import type { ContactTicketData } from '@/api/contactApi'
 import { siteContact } from '@/data/publicPages'
@@ -209,6 +210,11 @@ export default function Contact() {
 
   return (
     <main className="bg-paper pt-20">
+      <PublicSeo
+        title="تواصل معنا"
+        description="تواصل مع فريق EMC: نموذج رسائل عام مع رقم تذكرة للمتابعة، بيانات الهاتف والبريد وساعات العمل، وقنوات مخصصة للشراكات والتطوع والدعم الفني."
+        path="/contact"
+      />
       <PublicPageHero
         eyebrow={t('contact.hero.eyebrow')}
         title={t('contact.hero.title')}

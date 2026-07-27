@@ -8,6 +8,7 @@ import { unwrapPublicCoursePayload } from '@/utils/publicCourseNormalize'
 import { resolveItemType } from '@/utils/publicCourseDisplay'
 import StateMessage from '../components/StateMessage'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import EnrollmentForm from '@/components/enrollment/EnrollmentForm'
 import type { Course } from '../types'
 import { formatPrice } from '../utils/course'
@@ -121,6 +122,11 @@ export default function Register() {
 
   return (
     <main className="bg-paper pt-20">
+      <PublicSeo
+        title="التسجيل في الدورات"
+        description="نموذج التسجيل في دورات وورش وبرامج مركز ماستر التعليمي — اختر الدورة المناسبة لك وأكمل بياناتك لإتمام عملية التسجيل بخطوات بسيطة."
+        path="/register"
+      />
       <PageHeader
         title="سجل الآن"
         breadcrumbs={[

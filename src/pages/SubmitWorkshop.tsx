@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
 import { cn } from '@/lib/utils'
+import PublicSeo from '@/components/public/PublicSeo'
 import { submitWorkshopRequest } from '../api/workshopRequestsApi'
 import AppAlert from '../components/ui/AppAlert'
 import AppBadge from '../components/ui/AppBadge'
@@ -489,6 +490,11 @@ export default function SubmitWorkshop() {
       dir="rtl"
       className="min-h-screen bg-paper pb-24 pt-[5.25rem]"
     >
+      <PublicSeo
+        title="تقديم ورشة عمل"
+        description="قدّم طلب ورشة عمل إلى فريق EMC: شارك خبرتك مع المجتمع عبر نموذج منظم يشمل بيانات المتحدث والمحاور والجمهور المستهدف والمواعيد المقترحة."
+        path="/submit-workshop"
+      />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}

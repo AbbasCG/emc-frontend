@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 import { PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
 const benefits = [
@@ -93,6 +94,11 @@ const roles = [
 export default function AmbassadorProgram() {
   return (
     <main className="bg-[#f4f7fb] pt-20">
+      <PublicSeo
+        title="سفراء التحول الرقمي"
+        description="انضم لشبكة قادة التحول الرقمي في الجامعات العربية — برنامج سفراء EMC للطلاب الجامعيين: تدريب متخصص مجاني، شهادة معتمدة، وقيادة مجتمعية داخل جامعتك."
+        path="/ambassador"
+      />
       <PublicPageHero
         eyebrow="برنامج القيادة الرقمية"
         title="سفراء التحول الرقمي"

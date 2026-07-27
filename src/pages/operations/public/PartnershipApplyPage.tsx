@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Handshake } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { submitPartnershipApplication } from '@/api/partnersApi'
 
 export default function PartnershipApplyPage() {
@@ -36,6 +37,11 @@ export default function PartnershipApplyPage() {
 
   return (
     <main dir="rtl" className="bg-[#f4f7fb] pt-20">
+      <PublicSeo
+        title="طلب شراكة مؤسسية"
+        description="عرّف بمؤسستك واقترح فكرة التعاون عبر نموذج طلب الشراكة — يدرس فريق الشراكات في EMC طلبكم ثم يتواصل معكم عبر البريد الإلكتروني لمناقشة الخطوات التالية."
+        path="/partnerships/apply"
+      />
       <PageHeader
         title="طلب شراكة مؤسسية"
         subtitle="عرّفنا بمؤسستكم وفكرة التعاون، وسيتولى فريق الشراكات دراسة الطلب والتواصل معكم."

@@ -5,6 +5,7 @@ import { ArrowLeft, BadgeCheck, Bell, BookOpen, GraduationCap, MonitorCheck, Shi
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { fadeUp } from '../utils/course'
 
 /** M3 i18n: copy lives in the catalogs under platform.features.items.<key>. */
@@ -52,6 +53,11 @@ export default function Platform() {
   const steps = useMemo(() => buildSteps(t), [t])
   return (
     <main className="bg-slate-50 pt-20">
+      <PublicSeo
+        title="المنصة"
+        description="بيئة تعليمية رقمية متكاملة تجمع التعلم الأونلاين والحضوري مع مدربين معتمدين وشهادات ودعم شخصي في كل خطوة من رحلتك التعليمية."
+        path="/platform"
+      />
       <PageHeader
         title={t('platform.header.title')}
         subtitle={t('platform.header.subtitle')}

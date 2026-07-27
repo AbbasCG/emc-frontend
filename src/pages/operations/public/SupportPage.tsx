@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { submitSupportTicket } from '@/api/supportApi'
 
 const REQUEST_TYPES = [
@@ -59,6 +60,11 @@ export default function SupportPage() {
 
   return (
     <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
+      <PublicSeo
+        title="مركز المساعدة"
+        description="مركز المساعدة في EMC: أرسل تذكرة دعم لاستفسار عام أو دعم فني أو شراكة أو تطوع عبر نموذج بسيط، وسيتواصل معك فريق المركز في أقرب وقت."
+        path="/support"
+      />
       <PageHeader
         title="مركز المساعدة"
         subtitle="أرسل طلبك وسيتواصل معك فريق EMC في أقرب وقت."

@@ -26,6 +26,7 @@ import {
   PublicPageHero,
   TimelineSteps,
 } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import { aboutPlatformLead } from '@/data/publicPages'
 import { fadeUp } from '@/utils/animations'
 
@@ -89,6 +90,11 @@ export default function About() {
   const journeySteps = useMemo(() => buildJourneySteps(t), [t])
   return (
     <main className="bg-[#f4f7fb] pt-20">
+      <PublicSeo
+        title="عن المركز"
+        description="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة والمهارة والفرص — رؤية ورسالة وخارطة طريق مؤسسية بلغة عربية احترافية ومعايير عالمية."
+        path="/about"
+      />
       <PublicPageHero
         variant="split"
         badge={t('about.hero.badge')}

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { AlertCircle, ArrowRight, CheckCircle2, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { forgotPassword } from '@/api/authApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 
@@ -31,6 +32,12 @@ export default function ForgotPassword() {
 
   return (
     <div className="bg-paper pt-20">
+      <PublicSeo
+        title="استعادة كلمة المرور"
+        description="أدخل بريدك الإلكتروني المسجّل في مركز ماستر التعليمي لنرسل لك رابط إعادة تعيين كلمة المرور واستعادة الوصول إلى حسابك بأمان."
+        path="/forgot-password"
+        noIndex
+      />
       <PageHeader
         title={t('auth.forgot.title')}
         breadcrumbs={[

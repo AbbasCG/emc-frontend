@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import CountrySelector, { type Country, COUNTRIES } from '@/components/ui/CountrySelector'
 import { countryFromPhone } from '@/lib/countryFromPhone'
 import { submitVolunteerApplication } from '@/api/volunteerApplicationApi'
@@ -489,6 +490,11 @@ export default function VolunteerApply() {
 
   return (
     <div className="bg-paper pt-20" dir="rtl">
+      <PublicSeo
+        title="تقديم طلب التطوع"
+        description="قدّم طلب التطوع مع فريق EMC عبر نموذج إلكتروني بسيط: بياناتك، الإدارة التي تفضّل المساهمة فيها، خبراتك ومدى توفرك الأسبوعي — ويتواصل معك الفريق بعد المراجعة."
+        path="/volunteer/apply"
+      />
       <PageHeader
         title="طلب التطوع مع EMC"
         breadcrumbs={[

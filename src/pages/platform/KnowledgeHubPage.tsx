@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchKnowledgeArticles, fetchKnowledgeCategories } from '@/api/knowledgeApi'
 import PageHeader from '@/components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import ArticleCard from '@/components/platform/ArticleCard'
 import KnowledgeSidebar from '@/components/platform/KnowledgeSidebar'
 import EmptyState from '@/components/dashboard/EmptyState'
@@ -45,6 +46,11 @@ export default function KnowledgeHubPage() {
 
   return (
     <main dir="rtl" className="bg-slate-50 pt-[4.75rem] lg:pt-[5rem]">
+      <PublicSeo
+        title="قاعدة المعرفة"
+        description="قاعدة معرفة EMC: سياسات وأدلة وقوالب وتقارير ودروس مستفادة، مع بحث فوري في المقالات وتصفية حسب الفئة ضمن مساحة عمل عربية منظمة."
+        path="/knowledge"
+      />
       <PageHeader
         title="قاعدة المعرفة"
         subtitle="سياسات، أدلة، قوالب، تقارير، ودروس مستفادة — مساحة عمل تشبه Notion بروح EMC العربية."

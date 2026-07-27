@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, SearchX } from 'lucide-react'
+import PublicSeo from '@/components/public/PublicSeo'
 
 export default function NotFound() {
   return (
@@ -8,6 +9,12 @@ export default function NotFound() {
       dir="rtl"
       className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-[#F6F8FB] px-4"
     >
+      <PublicSeo
+        title="الصفحة غير موجودة"
+        description="عذراً، لم نتمكن من العثور على الصفحة التي تبحث عنها — ربما تم نقلها أو حذفها أو أن الرابط غير صحيح. عد إلى الرئيسية أو تصفح الدورات."
+        path="/404"
+        noIndex
+      />
       <motion.div
         className="w-full max-w-lg text-center"
         initial={{ opacity: 0, y: 32 }}

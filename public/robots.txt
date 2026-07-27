@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /thank-you
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: https://edumc.nl/sitemap.xml

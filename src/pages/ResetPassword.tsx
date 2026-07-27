@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { AlertCircle, ArrowRight, LockKeyhole } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { resetPassword } from '@/api/authApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 
@@ -72,6 +73,12 @@ export default function ResetPassword() {
   if (!token || !email) {
     return (
       <div className="bg-paper pt-20">
+        <PublicSeo
+          title="إعادة تعيين كلمة المرور"
+          description="قم بتعيين كلمة مرور جديدة وآمنة لحسابك في مركز ماستر التعليمي لتستعيد الوصول إلى دوراتك ولوحة التحكم الخاصة بك بشكل كامل."
+          path="/reset-password"
+          noIndex
+        />
         <section className="px-4 py-20 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-md rounded-3xl bg-white p-10 text-center shadow-emc-lg ring-1 ring-line">
             <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-50 text-red-500 ring-1 ring-red-100">
@@ -92,6 +99,12 @@ export default function ResetPassword() {
 
   return (
     <div className="bg-paper pt-20">
+      <PublicSeo
+        title="إعادة تعيين كلمة المرور"
+        description="قم بتعيين كلمة مرور جديدة وآمنة لحسابك في مركز ماستر التعليمي لتستعيد الوصول إلى دوراتك ولوحة التحكم الخاصة بك بشكل كامل."
+        path="/reset-password"
+        noIndex
+      />
       <PageHeader
         title={t('auth.reset.title')}
         breadcrumbs={[

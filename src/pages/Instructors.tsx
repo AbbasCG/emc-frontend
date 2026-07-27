@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { fetchInstructors, type InstructorPublic } from '@/api/instructorsApi'
 import { PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 
@@ -144,6 +145,11 @@ export default function Instructors() {
 
   return (
     <main className="bg-emcBg pt-20">
+      <PublicSeo
+        title="المدربون"
+        description="تعرّف على الكادر التدريبي في EMC: خبراء يقودون الجلسات والمسارات التعليمية بجودة مؤسسية، مع سيرة كل مدرب والدورات والمسارات المرتبطة به."
+        path="/instructors"
+      />
       <PublicPageHero
         eyebrow="الكادر التدريبي"
         title="مدربون يصنعون أثراً حقيقياً"

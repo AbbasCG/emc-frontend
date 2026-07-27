@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
+import PublicSeo from '@/components/public/PublicSeo'
 import { useAuth } from '../contexts/AuthContext'
 import { getPostLoginRedirect } from '@/utils/dashboardAccess'
 
@@ -93,6 +94,11 @@ export default function Login() {
 
   return (
     <div className="bg-paper pt-20">
+      <PublicSeo
+        title="تسجيل الدخول"
+        description="سجّل دخولك إلى حسابك في مركز ماستر التعليمي للوصول إلى دوراتك ولوحة التحكم الخاصة بك ومتابعة رحلتك التعليمية من أي مكان وفي أي وقت."
+        path="/login"
+      />
       <PageHeader
         title={t('auth.login.title')}
         breadcrumbs={[

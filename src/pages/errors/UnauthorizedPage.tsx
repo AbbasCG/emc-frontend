@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router'
 import { KeyRound } from 'lucide-react'
 import ErrorPageShell from '@/components/errors/ErrorPageShell'
+import PublicSeo from '@/components/public/PublicSeo'
 
 export default function UnauthorizedPage() {
   const location = useLocation()
@@ -8,6 +9,13 @@ export default function UnauthorizedPage() {
   const from = stateFrom ?? `${location.pathname}${location.search}`
 
   return (
+    <>
+    <PublicSeo
+      title="مطلوب تسجيل الدخول"
+      description="لا يمكن عرض هذا المحتوى بدون حساب نشط في مركز ماستر التعليمي — سجّل دخولك أو أنشئ حسابًا جديدًا للمتابعة والوصول إلى المحتوى."
+      path="/401"
+      noIndex
+    />
     <ErrorPageShell
       code="401"
       title="يجب تسجيل الدخول أولًا"
@@ -31,5 +39,6 @@ export default function UnauthorizedPage() {
         </>
       }
     />
+    </>
   )
 }

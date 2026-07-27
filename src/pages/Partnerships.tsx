@@ -12,6 +12,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { CTASection, PublicPageHero } from '@/components/public'
+import PublicSeo from '@/components/public/PublicSeo'
 import { partnershipTypes } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
@@ -37,6 +38,11 @@ export default function Partnerships() {
   const { t } = useTranslation()
   return (
     <main className="bg-paper pt-20">
+      <PublicSeo
+        title="الشراكات"
+        description="شراكات مؤسسية مع الجامعات والمدارس والشركات والمبادرات المجتمعية — تعاون تعليمي مسؤول بأهداف محددة وأدوار واضحة ومخرجات قابلة للقياس."
+        path="/partnerships"
+      />
       <PublicPageHero
         eyebrow={t('partnerships.hero.eyebrow')}
         title={t('partnerships.hero.title')}

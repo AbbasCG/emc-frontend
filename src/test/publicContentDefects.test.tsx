@@ -54,6 +54,12 @@ vi.mock('@/i18n/useLanguage', () => ({
   useLanguage: () => ({ dir: 'rtl', lang: 'ar' }),
 }))
 
+// M6: pages now render <PublicSeo/>, which imports LANGS from the i18n module —
+// stub it so the real i18next init (and its initReactI18next dependency) never runs.
+vi.mock('@/i18n', () => ({
+  LANGS: [{ code: 'ar' }, { code: 'en' }],
+}))
+
 vi.mock('@/api/partnersApi', () => ({
   submitPartnershipApplication: vi.fn().mockResolvedValue({}),
 }))
