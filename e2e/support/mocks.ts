@@ -27,11 +27,13 @@ import type { Page, Route } from '@playwright/test'
 
 // ─── roles / users ───────────────────────────────────────────────────────────
 
-export type MockRole = 'student' | 'instructor' | 'super_admin'
+import { EMC_DASHBOARD_ROLES, type EmcDashboardRole } from '../../src/utils/dashboardAccess'
+
+export type MockRole = EmcDashboardRole
 
 export const PASSWORD = 'Password!123' // accepted for every fixture account
 
-export const USERS: Record<MockRole, Record<string, unknown>> = {
+const CORE_USERS = {
   student: {
     id: 1101,
     name: 'طالب الاختبار',
@@ -74,7 +76,33 @@ export const USERS: Record<MockRole, Record<string, unknown>> = {
     created_at: '2026-01-01T10:00:00Z',
     permissions: [],
   },
-}
+} satisfies Partial<Record<MockRole, Record<string, unknown>>>
+
+/**
+ * Every dashboard role gets a fixture account so the polish-album suite can open
+ * each role's home. The three journeys above keep their hand-written fixtures;
+ * the rest are generated — their dashboards render on the mock catch-all's
+ * valid-but-empty payloads, which is exactly the empty-state surface M5.5 audits.
+ */
+export const USERS: Record<MockRole, Record<string, unknown>> = Object.fromEntries(
+  EMC_DASHBOARD_ROLES.map((role, i) => [
+    role,
+    (CORE_USERS as Record<string, Record<string, unknown>>)[role] ?? {
+      id: 1200 + i,
+      name: `حساب ${role}`,
+      email: `${role.replace(/_/g, '-')}@emc.test`,
+      phone: `+3161234${String(5700 + i)}`,
+      city: 'أمستردام',
+      country: 'NL',
+      gender: 'male',
+      role,
+      is_active: true,
+      email_verified_at: '2026-01-01T10:00:00Z',
+      created_at: '2026-01-01T10:00:00Z',
+      permissions: [],
+    },
+  ]),
+) as Record<MockRole, Record<string, unknown>>
 
 const EMAIL_TO_ROLE: Record<string, MockRole> = {
   'student@emc.test': 'student',
