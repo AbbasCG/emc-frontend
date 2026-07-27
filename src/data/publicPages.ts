@@ -373,6 +373,11 @@ export const partnershipTypes: PartnershipType[] = [
 
 /** Contact / footer — aligned branding */
 export const siteContact = {
+  /**
+   * UNCONFIRMED placeholder — NOT a real number. Do NOT render publicly.
+   * Once management confirms an official number, put it here and re-add the
+   * phone row in Footer (and any other renderer) — a one-line restore.
+   */
   phone: '+31 6 00 000 000',
   email: 'info@edumc.nl',
   supportEmail: 'support@edumc.nl',

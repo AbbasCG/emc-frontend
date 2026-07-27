@@ -23,28 +23,28 @@ export default function CookieBanner() {
       transition={{ type: 'spring', stiffness: 320, damping: 28 }}
       className="fixed inset-x-0 bottom-0 z-[190] px-4 pb-4 sm:px-6 lg:px-10"
     >
-      <div className="mx-auto max-w-[1540px] overflow-hidden rounded-2xl border border-white/10 bg-[#0C2A4B]/97 text-white shadow-[0_-8px_48px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+      <div className="mx-auto max-w-[1540px] overflow-hidden rounded-2xl border border-white/10 bg-[#0C2A4B] text-white shadow-[0_-8px_48px_rgba(15,23,42,0.35)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_100%_0%,rgba(0,119,182,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
           <div className="flex min-w-0 items-start gap-4 text-right">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/20 text-[#0077B6] ring-1 ring-[#0077B6]/30">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/20 text-[#A6D6F2] ring-1 ring-[#0077B6]/30">
               <Cookie className="h-6 w-6" aria-hidden />
             </span>
             <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black text-white/70">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black text-white/80">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden />
                 AVG / GDPR
               </div>
               <h2 id="cookie-banner-title" className="text-base font-black sm:text-lg">
                 {t('cookie.title')}
               </h2>
-              <p id="cookie-banner-desc" className="mt-2 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65">
+              <p id="cookie-banner-desc" className="mt-2 max-w-2xl text-[13px] font-medium leading-relaxed text-white/85">
                 {t('cookie.description')}{' '}
-                <Link to="/cookies" className="font-black text-[#F28C00] underline-offset-2 hover:underline">
+                <Link to="/cookies" className="font-black text-[#A6D6F2] underline-offset-2 hover:underline">
                   {t('cookie.policyLink')}
                 </Link>
                 {' · '}
-                <Link to="/privacy" className="font-black text-[#0077B6] underline-offset-2 hover:underline">
+                <Link to="/privacy" className="font-black text-[#A6D6F2] underline-offset-2 hover:underline">
                   {t('cookie.privacyLink')}
                 </Link>
               </p>
@@ -55,7 +55,7 @@ export default function CookieBanner() {
             <button
               type="button"
               onClick={openPreferences}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/10"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/15"
             >
               <Settings2 className="h-4 w-4" aria-hidden />
               {t('cookie.managePreferences')}
@@ -63,7 +63,7 @@ export default function CookieBanner() {
             <button
               type="button"
               onClick={rejectNonEssential}
-              className="rounded-xl border border-white/15 px-4 py-2.5 text-[12px] font-black text-white/90 transition hover:bg-white/10"
+              className="rounded-xl border border-white/25 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/10"
             >
               {t('cookie.rejectNonEssential')}
             </button>

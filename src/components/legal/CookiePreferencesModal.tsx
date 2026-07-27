@@ -65,7 +65,7 @@ export default function CookiePreferencesModal() {
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           >
-            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-100 bg-white/95 px-6 py-5 backdrop-blur-md">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-6 py-5">
               <div className="flex items-start gap-3 text-right">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/10 text-[#0077B6]">
                   <Cookie className="h-5 w-5" aria-hidden />

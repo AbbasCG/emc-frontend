@@ -17,18 +17,40 @@ export interface SupportTicketsMeta {
   total?: number
 }
 
+// The API may legitimately answer `{ success: true, data: [] }` or
+// `{ success: true, data: {} }` with `stats` missing or partial. Normalize at
+// the fetch boundary so the page never derives NaN from undefined counters.
+function statNum(v: unknown): number {
+  const n = typeof v === 'string' ? Number(v) : v
+  return typeof n === 'number' && Number.isFinite(n) ? n : 0
+}
+
 export async function fetchSupportTickets(
   params?: Record<string, string>,
 ): Promise<{ data: SupportTicket[]; stats: SupportTicketsStats; meta: SupportTicketsMeta }> {
   const res = await apiClient.get<{
-    data?: { data?: SupportTicket[]; meta?: SupportTicketsMeta }
-    stats?: SupportTicketsStats
+    data?: { data?: SupportTicket[]; meta?: SupportTicketsMeta } | SupportTicket[]
+    stats?: Partial<SupportTicketsStats>
   }>('/operations/support-tickets', { params })
   const raw = res.data
+  const inner = raw?.data
+  const list = Array.isArray(inner)
+    ? inner
+    : Array.isArray(inner?.data)
+      ? inner.data
+      : []
+  const s = (raw?.stats ?? {}) as Record<string, unknown>
+  const meta = !Array.isArray(inner) && inner?.meta && typeof inner.meta === 'object' ? inner.meta : {}
   return {
-    data: (raw?.data?.data ?? raw?.data ?? []) as SupportTicket[],
-    stats: (raw?.stats ?? {}) as SupportTicketsStats,
-    meta: raw?.data?.meta ?? {},
+    data: list,
+    stats: {
+      total:      statNum(s.total),
+      open:       statNum(s.open),
+      unassigned: statNum(s.unassigned),
+      resolved:   statNum(s.resolved),
+      high:       statNum(s.high),
+    },
+    meta,
   }
 }
 

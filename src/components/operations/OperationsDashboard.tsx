@@ -23,11 +23,15 @@ function Metric({
 }: {
   icon: React.ElementType
   label: string
-  value: number | string
+  value?: number | string | null
   hint?: string
   to: string
   accent: 'blue' | 'orange'
 }) {
+  // API empty-payload contract: GET may return {success:true, data:{}} — every
+  // count can then be undefined. Tiles must show an explicit Latin 0, never a
+  // blank value and never NaN.
+  const shown = value == null || (typeof value === 'number' && !Number.isFinite(value)) ? 0 : value
   const glow =
     accent === 'orange'
       ? 'shadow-[0_22px_48px_-20px_rgba(242,140,0,0.35)]'
@@ -53,7 +57,7 @@ function Metric({
           <Icon size={22} className={accent === 'orange' ? 'text-customOrange' : 'text-customBlue'} />
           <div className="text-right">
             <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">{label}</p>
-            <p className="mt-2 text-3xl font-black text-deepBlue">{value}</p>
+            <p className="mt-2 font-latin text-3xl font-black tabular-nums text-deepBlue">{shown}</p>
             {hint && <p className="mt-1 text-[11px] font-semibold text-slate-500">{hint}</p>}
           </div>
         </div>

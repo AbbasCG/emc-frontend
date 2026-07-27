@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ArrowLeft, ChevronDown, Cookie, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Cookie, Mail, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/i18n/useLanguage'
 import { siteContact } from '@/data/publicPages'
@@ -164,17 +164,9 @@ export default function Footer() {
 
           <FooterAccordion title={t('footer.headings.contact')} defaultOpen>
             <ul className="space-y-2 text-[12px] font-semibold text-white/55">
-              <li>
-                <a
-                  href={`tel:${siteContact.phone.replace(/\s/g, '')}`}
-                  className="inline-flex items-center gap-2 transition hover:text-white"
-                >
-                  <Phone className="h-3.5 w-3.5 shrink-0 text-[#F28C00]" aria-hidden />
-                  <span dir="ltr" className="font-latin">
-                    {siteContact.phone}
-                  </span>
-                </a>
-              </li>
+              {/* Phone row intentionally removed: siteContact.phone is an unconfirmed
+                  placeholder (see src/data/publicPages.ts). Restore the row once a
+                  real number is confirmed. */}
               <li>
                 <a
                   href={`mailto:${siteContact.email}`}

@@ -683,7 +683,7 @@ export default function SuperAdminOverviewPage() {
           </h1>
           <p className="mt-0.5 text-[11px] text-slate-400">
             مركز استخبارات EMC · آخر تحديث{' '}
-            <span className="font-mono text-slate-500">
+            <span dir="ltr" className="inline-block font-mono text-slate-500">
               {refreshTs.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </p>

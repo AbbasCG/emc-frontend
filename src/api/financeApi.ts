@@ -16,12 +16,40 @@ import type {
 /** Finance pages fallback to seeded data — avoid global 403 toast on role/endpoint mismatch. */
 const silent = { skipErrorToast: true as const }
 
+function toFiniteNumberOrZero(value: unknown): number {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : 0
+}
+
+function toArrayOrEmpty<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : []
+}
+
+/** The API may return `{success:true, data:[]}` or `{success:true, data:{}}` for an
+ *  empty dashboard — normalize any shape to a complete FinanceDashboardData so the
+ *  command center derivations never crash on `.map`/`.reduce` of a missing array
+ *  and never show NaN. Real payload fields pass through untouched. */
+function normalizeFinanceDashboard(payload: unknown): FinanceDashboardData {
+  const raw = unwrapLms<unknown>(payload)
+  const o = (raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}) as Record<string, unknown>
+  return {
+    total_revenue: toFiniteNumberOrZero(o.total_revenue),
+    confirmed_revenue: toFiniteNumberOrZero(o.confirmed_revenue),
+    pending_revenue: toFiniteNumberOrZero(o.pending_revenue),
+    failed_count: toFiniteNumberOrZero(o.failed_count),
+    monthly_revenue: toArrayOrEmpty<FinanceDashboardData['monthly_revenue'][number]>(o.monthly_revenue),
+    revenue_by_course: toArrayOrEmpty<FinanceDashboardData['revenue_by_course'][number]>(o.revenue_by_course),
+    revenue_by_track: toArrayOrEmpty<FinanceDashboardData['revenue_by_track'][number]>(o.revenue_by_track),
+    latest_payments: toArrayOrEmpty<FinanceDashboardData['latest_payments'][number]>(o.latest_payments),
+  }
+}
+
 export async function fetchFinanceDashboard(params?: {
   from?: string
   to?: string
 }): Promise<FinanceDashboardData> {
   const res = await apiClient.get<unknown>('/finance/dashboard', { ...silent, params })
-  return unwrapLms<FinanceDashboardData>(res.data)
+  return normalizeFinanceDashboard(res.data)
 }
 
 export async function fetchFinancePayments(params?: {

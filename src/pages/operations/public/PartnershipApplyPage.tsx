@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Handshake } from 'lucide-react'
+import PageHeader from '@/components/PageHeader'
 import { submitPartnershipApplication } from '@/api/partnersApi'
 
 export default function PartnershipApplyPage() {
@@ -34,22 +35,36 @@ export default function PartnershipApplyPage() {
   }
 
   return (
-    <div dir="rtl" className="mx-auto max-w-2xl px-4 py-16">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-[1.35rem] bg-gradient-to-bl from-white via-sky-50/30 to-white p-[1px] shadow-xl ring-1 ring-deepBlue/[0.08]"
-      >
-        <div className="rounded-[1.3rem] bg-white px-8 py-10 text-right">
-          <Handshake className="text-customOrange" size={32} />
-          <h1 className="mt-4 text-3xl font-black text-deepBlue">طلب شراكة مؤسسية</h1>
-          <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
-            نموذج عام أنيق يعكس هوية EMC — يُرسل إلى خط أنابيب العمليات بعد اعتماد الـ API.
-          </p>
-        </div>
-      </motion.div>
+    <main dir="rtl" className="bg-[#f4f7fb] pt-20">
+      <PageHeader
+        title="طلب شراكة مؤسسية"
+        subtitle="عرّفنا بمؤسستكم وفكرة التعاون، وسيتولى فريق الشراكات دراسة الطلب والتواصل معكم."
+        breadcrumbs={[
+          { label: 'الرئيسية', href: '/' },
+          { label: 'الشراكات', href: '/partnerships' },
+          { label: 'تقديم الطلب' },
+        ]}
+      />
 
-      <div className="mt-10">
+      <section className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-[1.35rem] bg-gradient-to-bl from-white via-sky-50/30 to-white p-[1px] shadow-xl ring-1 ring-deepBlue/[0.08]"
+          >
+            <div className="rounded-[1.3rem] bg-white px-8 py-10 text-right">
+              <Handshake className="text-customOrange" size={32} />
+              <h2 className="mt-4 text-2xl font-black text-deepBlue">لنبنِ أثراً تعليمياً مشتركاً</h2>
+              <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
+                يسعدنا اهتمام مؤسستكم بالتعاون مع EMC. عبّئوا النموذج أدناه بفكرة الشراكة
+                المقترحة، وسيراجع فريق الشراكات طلبكم ثم يتواصل معكم عبر البريد الإلكتروني
+                لمناقشة الخطوات التالية.
+              </p>
+            </div>
+          </motion.div>
+
+          <div className="mt-10">
         {done ? (
           <motion.p
             initial={{ opacity: 0 }}
@@ -100,7 +115,9 @@ export default function PartnershipApplyPage() {
             </button>
           </form>
         )}
-      </div>
-    </div>
+          </div>
+        </div>
+      </section>
+    </main>
   )
 }

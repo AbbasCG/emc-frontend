@@ -61,7 +61,7 @@ type KpiProps = {
 
 const KPI_COLOR: Record<KpiProps['color'], string> = {
   blue:   'bg-customBlue/[0.08] text-customBlue ring-customBlue/15',
-  orange: 'bg-customOrange/[0.08] text-accent-700 ring-customOrange/15',
+  orange: 'bg-customOrange/[0.08] text-deepBlue ring-customOrange/15',
   green:  'bg-emerald-500/[0.08] text-emerald-600 ring-emerald-200/60',
   purple: 'bg-violet-500/[0.08] text-violet-600 ring-violet-200/60',
   slate:  'bg-slate-100 text-slate-500 ring-slate-200/60',

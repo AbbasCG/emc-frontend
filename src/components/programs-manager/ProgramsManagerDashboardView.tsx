@@ -66,13 +66,13 @@ function hourGreeting(): string {
 }
 
 function todayLabel(): string {
-  return new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  return new Date().toLocaleDateString('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—'
   try {
-    return new Date(dateStr).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })
+    return new Date(dateStr).toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'short', day: 'numeric' })
   } catch {
     return dateStr
   }
@@ -379,7 +379,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
         <Panel>
           <PanelHeader
             eyebrow="اتجاه العمليات"
-            title="هل pipeline التعلم ينمو؟"
+            title="هل مسار التعلّم ينمو؟"
             action={
               <Link to="/dashboard/admin/kpi" className="text-[11px] font-black text-[#0077B6] hover:underline">
                 تفاصيل KPI

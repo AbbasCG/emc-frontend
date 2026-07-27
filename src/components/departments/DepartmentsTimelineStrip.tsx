@@ -8,7 +8,19 @@ const milestones = [
   { phase: 'المرحلة ٤', title: 'توسيع الأثر', desc: 'شراكات مؤسسية وبرامج موسمية بضوابط واضحة.' },
 ]
 
+/**
+ * Hide-before-delete flag (mirrors src/lib/featureFlags.ts convention).
+ *
+ * The whole strip is schematic placeholder content — the four "phases" are
+ * not management-approved milestones, so publishing them violates the
+ * no-unconfirmed-content rule. Flip to `true` to restore the strip once
+ * official milestone data is approved. Kept module-local (not exported) so
+ * the file keeps exporting only the component (react-refresh rule).
+ */
+const SHOW_DEPARTMENTS_TIMELINE: boolean = false
+
 export default function DepartmentsTimelineStrip() {
+  if (!SHOW_DEPARTMENTS_TIMELINE) return null
   return (
     <section className="emc-depth border-y border-deepBlue/[0.08] px-4 py-16 text-white sm:px-6 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
@@ -47,10 +59,6 @@ export default function DepartmentsTimelineStrip() {
             </motion.div>
           ))}
         </motion.div>
-
-        <p className="mt-8 text-center text-xs font-semibold text-white/45">
-          يمكن ربط هذا القسم لاحقاً ببيانات Laravel عند اعتماد milestones رسمية.
-        </p>
       </div>
     </section>
   )

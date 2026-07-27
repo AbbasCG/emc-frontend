@@ -96,11 +96,21 @@ export default function Platform() {
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.55 }}
           >
-            <img
-              src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=85"
-              alt={t('platform.intro.imageAlt')}
-              className="h-[420px] w-full object-cover"
-            />
+            {/* Local V3 dawn-gradient panel (sea palette only) — replaces the former
+                externally-hotlinked Unsplash photo, which was brand-foreign and rendered
+                as a broken block when the third-party host was blocked. */}
+            <div
+              role="img"
+              aria-label={t('platform.intro.imageAlt')}
+              className="relative flex h-[420px] w-full items-center justify-center"
+              style={{ background: 'linear-gradient(152deg,#06182C,#0C2A4B 52%,#10456E)' }}
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-16 end-0 h-56 w-56 rounded-full bg-[#089FE0]/15 blur-[90px]"
+              />
+              <MonitorCheck size={72} strokeWidth={1.25} className="relative text-[#A6D6F2]/70" aria-hidden />
+            </div>
           </motion.div>
         </div>
       </section>
