@@ -72,7 +72,10 @@ async function settleAndSweep(page: Page): Promise<void> {
     }
     window.scrollTo(0, 0)
   })
-  await page.waitForTimeout(600)
+  // Headless rAF runs slow under parallel-worker load: one-shot 0.5s framer
+  // transitions can take ~2s of wall clock, so the page's tail sections (whose
+  // reveals fire on the sweep's last steps) need this settle to finish fading in.
+  await page.waitForTimeout(1800)
 }
 
 async function assertRenderedAndCapture(
@@ -98,15 +101,44 @@ async function assertRenderedAndCapture(
     })
   }
 
-  await page.screenshot({
-    path: `e2e/__screenshots__/${testInfo.project.name}/album/${slug}.png`,
-    fullPage: opts.fullPage,
+  const base = `e2e/__screenshots__/${testInfo.project.name}/album/${slug}`
+  // Chromium's max texture height is 16384px: a fullPage capture of a taller page
+  // corrupts its tail (ghosted fixed elements, blank/duplicated bands) — clipping
+  // doesn't help because the clip is cut from the same corrupted capture. Zoom the
+  // document down just enough to fit under the limit, capture once, restore.
+  const pageHeight = await page.evaluate(() => document.body.scrollHeight)
+  if (opts.fullPage && pageHeight > 16000) {
+    // Content past ~16384px is corrupted in Chromium fullPage captures (max texture
+    // height) and clipping can't recover it — so capture the safe region in one
+    // clipped shot and photograph the true tail with a plain viewport shot.
+    const width = page.viewportSize()?.width ?? 1280
+    await page.screenshot({ path: `${base}.png`, fullPage: true, clip: { x: 0, y: 0, width, height: 16000 } })
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.waitForTimeout(800)
+    await page.screenshot({ path: `${base}--tail.png` })
+    return
+  }
+  await page.screenshot({ path: `${base}.png`, fullPage: opts.fullPage })
+}
+
+/**
+ * The consent banner is a fixed overlay that obscures mid-page content in captures;
+ * it has been reviewed and has its own styling coverage, so album shots pre-seed
+ * consent to photograph the page itself. Keys mirror src/lib/cookieConsent.ts.
+ */
+async function seedCookieConsent(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      'emc_cookie_consent_v1',
+      JSON.stringify({ version: 1, necessary: true, analytics: false, marketing: false, updatedAt: '2026-01-01T00:00:00Z' }),
+    )
   })
 }
 
 for (const route of PUBLIC_ROUTES) {
   test(`album: public ${route}`, async ({ page }, testInfo) => {
     await mockApi(page)
+    await seedCookieConsent(page)
     const consoleErrors = collectConsoleErrors(page)
     await page.goto(route)
     await settleAndSweep(page)
@@ -119,6 +151,7 @@ for (const route of PUBLIC_ROUTES) {
 for (const role of EMC_DASHBOARD_ROLES) {
   test(`album: dashboard ${role}`, async ({ page }, testInfo) => {
     await mockApi(page, { role })
+    await seedCookieConsent(page)
     const consoleErrors = collectConsoleErrors(page)
     await loginAs(page, role)
 

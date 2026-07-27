@@ -25,8 +25,8 @@ export default function PartnerDashboardPage() {
   return (
     <div className="space-y-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Status</p>
-        <h2 className="mt-2 text-2xl font-black text-white">{data.partnership_status}</h2>
+        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">حالة الشراكة</p>
+        <h2 className="mt-2 text-2xl font-black text-deepBlue">{data.partnership_status || '—'}</h2>
       </motion.div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -36,20 +36,30 @@ export default function PartnerDashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-          <h3 className="text-sm font-black text-white">الاجتماعات القادمة</h3>
+        <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <h3 className="text-sm font-black text-deepBlue">الاجتماعات القادمة</h3>
           <ul className="mt-4 space-y-3">
+            {data.upcoming_meetings.length === 0 && (
+              <li className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-500">
+                لا اجتماعات قادمة حالياً
+              </li>
+            )}
             {data.upcoming_meetings.map((m) => (
-              <li key={m.id} className="rounded-xl bg-white/10 px-4 py-3 text-sm font-bold text-white ring-1 ring-white/10">
+              <li key={m.id} className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-deepBlue ring-1 ring-slate-100">
                 <span className="block font-black">{m.title}</span>
-                <span className="mt-1 block text-[11px] text-white/60">{m.at}</span>
+                <span className="mt-1 block text-[11px] text-slate-500">{m.at}</span>
               </li>
             ))}
           </ul>
         </section>
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-          <h3 className="text-sm font-black text-white">تقارير حديثة</h3>
+        <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <h3 className="text-sm font-black text-deepBlue">تقارير حديثة</h3>
           <div className="mt-4 space-y-2">
+            {data.recent_reports.length === 0 && (
+              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-500">
+                لا تقارير حديثة بعد
+              </p>
+            )}
             {data.recent_reports.map((r) => (
               <PartnerReportCard key={r.id} title={r.title} at={r.at} />
             ))}
@@ -57,7 +67,7 @@ export default function PartnerDashboardPage() {
         </section>
       </div>
 
-      <div className="rounded-2xl bg-white p-4 shadow-xl shadow-black/25 ring-1 ring-white/30">
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
         <UploadPanel />
       </div>
     </div>

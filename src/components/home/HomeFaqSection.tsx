@@ -57,7 +57,10 @@ export default function HomeFaqSection() {
           >
             <span className="emc-eyebrow">أسئلة شائعة</span>
             <h2 className="emc-title-arc mt-4 font-display text-3xl font-black leading-tight tracking-tight text-deepBlue sm:text-4xl xl:text-[2.5rem]">
-              كل ما تحتاج<br className="hidden sm:block" />
+              {/* explicit space: with the <br> hidden on mobile the two lines
+                  used to concatenate into "تحتاجمعرفته" */}
+              كل ما تحتاج{' '}
+              <br className="hidden sm:block" />
               معرفته قبل البدء
             </h2>
             <p className="mt-5 text-base font-medium leading-8 text-foreground/60">
