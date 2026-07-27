@@ -1,42 +1,42 @@
 {
   "home": {
     "url": "http://localhost:4173/",
-    "performance": 69,
+    "performance": 77,
     "accessibility": 86,
     "bestPractices": 96,
     "seo": 92,
-    "lcpMs": 5215,
-    "tbtMs": 102,
-    "cls": 0
+    "lcpMs": 4312,
+    "tbtMs": 105,
+    "cls": 0.012
   },
   "courses": {
     "url": "http://localhost:4173/courses",
-    "performance": 78,
+    "performance": 70,
     "accessibility": 89,
     "bestPractices": 96,
     "seo": 92,
-    "lcpMs": 4265,
-    "tbtMs": 34,
-    "cls": 0.012
+    "lcpMs": 5685,
+    "tbtMs": 63,
+    "cls": 0.008
   },
   "course-detail": {
     "url": "http://localhost:4173/courses/1",
-    "performance": 52,
+    "performance": 51,
     "accessibility": 93,
     "bestPractices": 96,
     "seo": 83,
-    "lcpMs": 5942,
-    "tbtMs": 73,
+    "lcpMs": 5938,
+    "tbtMs": 69,
     "cls": 0.352
   },
   "login": {
     "url": "http://localhost:4173/login",
-    "performance": 69,
+    "performance": 74,
     "accessibility": 90,
     "bestPractices": 100,
     "seo": 83,
-    "lcpMs": 5191,
-    "tbtMs": 0,
-    "cls": 0.013
+    "lcpMs": 5228,
+    "tbtMs": 57,
+    "cls": 0.008
   }
 }
