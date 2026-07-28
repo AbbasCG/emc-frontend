@@ -1,7 +1,12 @@
 import api from './axios'
 
+/**
+ * Callers show their own error toast (usually with the specific backend
+ * message via getApiErrorMessage) — skipErrorToast prevents the axios
+ * interceptor's global toast from firing a second, generic one alongside it.
+ */
 export async function initiateCheckout(courseId: number): Promise<{ checkout_url: string }> {
-  const res = await api.post(`/courses/${courseId}/checkout`)
+  const res = await api.post(`/courses/${courseId}/checkout`, undefined, { skipErrorToast: true })
   return res.data
 }
 

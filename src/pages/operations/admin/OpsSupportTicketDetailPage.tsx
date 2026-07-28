@@ -1199,9 +1199,14 @@ export default function OpsSupportTicketDetailPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const listPath = location.pathname.startsWith('/dashboard/support')
-    ? '/dashboard/support'
-    : '/dashboard/admin/support-tickets'
+  // Prefer the exact list URL (page/search/filters) the user came from —
+  // passed via navigate() state when opening a ticket from the list — so
+  // Back restores it exactly. Falls back to the bare namespace path for
+  // direct links / bookmarks that never carried that state.
+  const listPath = (location.state as { from?: string } | null)?.from
+    ?? (location.pathname.startsWith('/dashboard/support')
+      ? '/dashboard/support'
+      : '/dashboard/admin/support-tickets')
 
   const tid = id ? Number(id) : NaN
   const [ticket, setTicket] = useState<SupportTicketDetail | null>(null)

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { BadgeCheck, CheckCircle2, Loader2, UserRound } from 'lucide-react'
 import toast from '@/lib/toast'
+import { getApiErrorMessage } from '@/api/apiErrors'
 import { fetchProfileUser, updateProfile } from '@/api/profileApi'
 import { submitCourseRegistration } from '@/api/registrationsApi'
 import { notifyStudentScopeRefresh } from '@/api/studentApi'
@@ -256,7 +257,10 @@ export default function CourseEnrollmentCard({
             import('@/api/checkoutApi').then(({ initiateCheckout }) => {
               initiateCheckout(course.id)
                 .then(({ checkout_url }) => { window.location.assign(checkout_url) })
-                .catch(() => { toast.error('تعذّر بدء الدفع. حاول مرة أخرى.') })
+                .catch((checkoutErr) => {
+                  // initiateCheckout sets skipErrorToast, so this is the only toast shown.
+                  toast.error(getApiErrorMessage(checkoutErr) || 'تعذّر بدء الدفع. حاول مرة أخرى.')
+                })
             })
             return
           }

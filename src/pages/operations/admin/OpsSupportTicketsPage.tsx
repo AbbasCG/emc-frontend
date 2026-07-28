@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -518,12 +518,38 @@ export default function OpsSupportTicketsPage() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
-  const [priority, setPriority] = useState('')
-  const [requestType, setRequestType] = useState('')
-  const [page, setPage] = useState(1)
-  const [showFilters, setShowFilters] = useState(false)
+  // Search/filters/page live in the URL (not local state) so returning from
+  // the ticket detail page via Back restores exactly where the user left
+  // off — a fresh mount reads these straight back out of the URL instead of
+  // resetting to defaults.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search      = searchParams.get('search') ?? ''
+  const status      = searchParams.get('status') ?? ''
+  const priority    = searchParams.get('priority') ?? ''
+  const requestType = searchParams.get('request_type') ?? ''
+  const page        = Math.max(1, Number(searchParams.get('page') ?? '1') || 1)
+
+  const updateParams = useCallback((patch: Record<string, string | null>) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null || value === '') next.delete(key)
+        else next.set(key, value)
+      }
+      return next
+    }, { replace: true })
+  }, [setSearchParams])
+
+  function setSearch(v: string) { updateParams({ search: v, page: null }) }
+  function setStatus(v: string) { updateParams({ status: v, page: null }) }
+  function setPriority(v: string) { updateParams({ priority: v, page: null }) }
+  function setRequestType(v: string) { updateParams({ request_type: v, page: null }) }
+  function setPage(v: number | ((p: number) => number)) {
+    const next = typeof v === 'function' ? v(page) : v
+    updateParams({ page: next > 1 ? String(next) : null })
+  }
+
+  const [showFilters, setShowFilters] = useState(() => Boolean(status || priority || requestType))
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
@@ -548,10 +574,29 @@ export default function OpsSupportTicketsPage() {
 
   useEffect(() => { void load() }, [load])
 
+  // Scroll position is saved (keyed by the exact list URL — path + query)
+  // right before opening a ticket, and restored once this list has
+  // reloaded on return. Runs after data is in, so it overrides the
+  // app-wide <ScrollToTop /> that already reset scroll to 0 on this mount —
+  // same "restore after content is ready" pattern used for the ticket
+  // detail page's own scroll fix.
+  const scrollKey = useMemo(
+    () => `support-tickets-scroll:${location.pathname}${location.search}`,
+    [location.pathname, location.search],
+  )
+  useEffect(() => {
+    if (loading) return
+    const saved = sessionStorage.getItem(scrollKey)
+    if (saved != null) {
+      window.scrollTo({ top: Number(saved), behavior: 'instant' })
+      sessionStorage.removeItem(scrollKey)
+    }
+  }, [loading, scrollKey])
+
   const activeFilters = [search, status, priority, requestType].filter(Boolean).length
 
   function clearFilters() {
-    setSearch(''); setStatus(''); setPriority(''); setRequestType(''); setPage(1)
+    updateParams({ search: null, status: null, priority: null, request_type: null, page: null })
   }
 
   async function handleStatusChange(id: number, newStatus: SupportTicketStatus) {
@@ -675,7 +720,7 @@ export default function OpsSupportTicketsPage() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="بحث بالموضوع، الرقم، الاسم أو البريد..."
                 className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pe-10 ps-4 text-[14px] font-medium text-[#22334A] placeholder:text-slate-400 transition focus:border-[#2691C2]/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2691C2]/15"
               />
@@ -737,7 +782,7 @@ export default function OpsSupportTicketsPage() {
                     <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-slate-400">الحالة</label>
                     <select
                       value={status}
-                      onChange={(e) => { setStatus(e.target.value); setPage(1) }}
+                      onChange={(e) => setStatus(e.target.value)}
                       className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-[13px] font-medium text-slate-700 focus:border-[#2691C2]/40 focus:outline-none"
                     >
                       <option value="">كل الحالات</option>
@@ -748,7 +793,7 @@ export default function OpsSupportTicketsPage() {
                     <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-slate-400">الأولوية</label>
                     <select
                       value={priority}
-                      onChange={(e) => { setPriority(e.target.value); setPage(1) }}
+                      onChange={(e) => setPriority(e.target.value)}
                       className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-[13px] font-medium text-slate-700 focus:border-[#2691C2]/40 focus:outline-none"
                     >
                       <option value="">كل الأولويات</option>
@@ -759,7 +804,7 @@ export default function OpsSupportTicketsPage() {
                     <label className="mb-1.5 block text-[11px] font-black uppercase tracking-wider text-slate-400">نوع الطلب</label>
                     <select
                       value={requestType}
-                      onChange={(e) => { setRequestType(e.target.value); setPage(1) }}
+                      onChange={(e) => setRequestType(e.target.value)}
                       className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-[13px] font-medium text-slate-700 focus:border-[#2691C2]/40 focus:outline-none"
                     >
                       <option value="">كل الأنواع</option>
@@ -834,7 +879,10 @@ export default function OpsSupportTicketsPage() {
                 >
                   <TicketCard
                     t={t}
-                    onOpen={() => navigate(`${detailBasePath}/${t.id}`)}
+                    onOpen={() => {
+                      sessionStorage.setItem(scrollKey, String(window.scrollY))
+                      navigate(`${detailBasePath}/${t.id}`, { state: { from: `${location.pathname}${location.search}` } })
+                    }}
                     onStatusChange={handleStatusChange}
                     onPriorityChange={handlePriorityChange}
                     onResolve={handleResolve}

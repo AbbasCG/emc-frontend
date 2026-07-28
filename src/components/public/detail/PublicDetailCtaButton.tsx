@@ -6,6 +6,7 @@ import type { PublicEnrollCta } from '@/utils/publicCourseDetailCta'
 import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import toast from '@/lib/toast'
 import { initiateCheckout } from '@/api/checkoutApi'
+import { getApiErrorMessage } from '@/api/apiErrors'
 import { formatEuro } from '@/utils/currency'
 
 type Props = {
@@ -45,8 +46,11 @@ export default function PublicDetailCtaButton({
       try {
         const { checkout_url } = await initiateCheckout(cta.checkoutCourseId!)
         window.location.href = checkout_url
-      } catch {
-        toast.error('تعذر بدء عملية الدفع. حاول مرة أخرى.')
+      } catch (err) {
+        // Single toast with the backend's actual reason (e.g. "already
+        // enrolled" vs. "payment gateway unavailable") — initiateCheckout
+        // sets skipErrorToast so the global interceptor doesn't also fire.
+        toast.error(getApiErrorMessage(err) || 'تعذر بدء عملية الدفع. حاول مرة أخرى.')
         setCheckingOut(false)
       }
     }
