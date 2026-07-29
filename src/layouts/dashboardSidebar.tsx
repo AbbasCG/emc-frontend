@@ -445,6 +445,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'الفواتير',           href: '/dashboard/finance/invoices',        icon: FileText      },
           { label: 'المعاملات',          href: '/dashboard/finance/transactions',    icon: BarChart3     },
           { label: 'النقدية والحسابات',  href: '/dashboard/finance/accounts',        icon: Wallet        },
+          { label: 'شجرة الحسابات',      href: '/dashboard/finance/chart-of-accounts', icon: FolderTree  },
           { label: 'الطلبات المالية الداخلية', href: '/dashboard/finance/financial-requests', icon: Wallet },
           { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals', icon: ShieldCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },

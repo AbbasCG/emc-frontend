@@ -40,6 +40,10 @@ function TreeNode({ account, level = 0, onAddChild, onEdit, onDelete }: TreeNode
   const children = account.all_children ?? account.children ?? []
 
   const isDebit = account.type === 'debit'
+  // Backend is the source of truth (Account::booted() blocks this
+  // regardless) — hiding the button here just avoids a round-trip to
+  // discover a protected/system account can't be deleted.
+  const canDelete = account.is_system !== true && account.is_deletable !== false
 
   return (
     <div className="flex flex-col">
@@ -112,6 +116,15 @@ function TreeNode({ account, level = 0, onAddChild, onEdit, onDelete }: TreeNode
             {account.is_selectable ? 'فرعي (يقبل قيود)' : 'رئيسي (تجميعي)'}
           </span>
 
+          {account.is_system && (
+            <span
+              title="حساب نظامي محمي — لا يمكن حذفه أو تغيير رمزه"
+              className="rounded-md border border-violet-200/60 bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700"
+            >
+              نظامي 🔒
+            </span>
+          )}
+
           {/* Action buttons */}
           <div className="flex items-center gap-1 opacity-90 transition-opacity group-hover:opacity-100">
             {!account.is_selectable && (
@@ -135,14 +148,16 @@ function TreeNode({ account, level = 0, onAddChild, onEdit, onDelete }: TreeNode
               <Pencil size={14} />
             </button>
 
-            <button
-              type="button"
-              onClick={() => onDelete(account)}
-              title="حذف الحساب"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
-            >
-              <Trash2 size={14} />
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(account)}
+                title="حذف الحساب"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
         </div>
       </div>

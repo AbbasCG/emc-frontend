@@ -8,6 +8,8 @@ export interface ChartOfAccountItem {
   type: 'debit' | 'credit'
   parent_id?: number | null
   is_selectable: boolean
+  is_system?: boolean
+  is_deletable?: boolean
   created_at?: string
   updated_at?: string
   parent?: ChartOfAccountItem | null
