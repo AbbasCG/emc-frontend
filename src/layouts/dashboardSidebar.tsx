@@ -22,6 +22,7 @@ import {
   FolderTree,
   GraduationCap,
   HeartHandshake,
+  Inbox,
   LayoutDashboard,
   Layers,
   Mail,
@@ -42,6 +43,7 @@ import {
   TrendingUp,
   UserCheck,
   UserCog,
+  UserPlus,
   Users,
   Wallet,
   Webhook as WebhookIcon,
@@ -157,6 +159,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'التسجيلات',    href: '/dashboard/registrations',                  icon: ClipboardList },
         { label: 'المستخدمون',   href: '/dashboard/users',                          icon: UserCog       },
         { label: 'المدرسون',     href: '/dashboard/super-admin/crud/instructors',   icon: UserCheck     },
+        { label: 'طلبات الاحتياج (HR والإدارات)', href: '/dashboard/hr/incoming-requests', icon: Inbox         },
+        { label: 'تقديم طلب احتیاج كادر', href: '/dashboard/hr/my-requests', icon: UserPlus },
       ],
     },
 
@@ -175,7 +179,6 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
         { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts',            icon: FolderTree    },
         { label: 'الطلبات المالية الداخلية', href: '/dashboard/admin/finance/financial-requests', icon: FileText  },
-        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
         { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals',       icon: ShieldCheck },
       ],
     },
@@ -230,7 +233,6 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
-        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
       ],
     },
     {
@@ -282,6 +284,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
         { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports', icon: FileBarChart },
         { label: 'شركاء التشغيل', href: '/dashboard/admin/partners', icon: Briefcase },
+        { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts', icon: FolderTree },
       ],
     },
     {
@@ -428,7 +431,6 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           { label: 'الطلبات المالية', href: '/dashboard/executive/financial-requests', icon: Wallet },
-          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           membersNavItem(),
         ],
       },
@@ -448,9 +450,8 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'الفواتير',           href: '/dashboard/finance/invoices',        icon: FileText      },
           { label: 'المعاملات',          href: '/dashboard/finance/transactions',    icon: BarChart3     },
           { label: 'النقدية والحسابات',  href: '/dashboard/finance/accounts',        icon: Wallet        },
-          { label: 'شجرة الحسابات',      href: '/dashboard/finance/chart-of-accounts', icon: FolderTree  },
+          { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts', icon: FolderTree    },
           { label: 'الطلبات المالية الداخلية', href: '/dashboard/finance/financial-requests', icon: Wallet },
-          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals', icon: ShieldCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
@@ -504,6 +505,13 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
   if (n === 'hr_manager') {
     return [
       { items: [{ label: 'لوحة الموارد البشرية', href: '/dashboard/hr', icon: LayoutDashboard }] },
+      {
+        title: 'طلبات الاحتياج الكادر',
+        items: [
+          { label: 'طلبات الإدارات الواردة (HR)', href: '/dashboard/hr/incoming-requests', icon: Inbox },
+          { label: 'تقديم طلب احتیاج قسم HR (للإدارة العليا)', href: '/dashboard/hr/my-requests', icon: UserPlus },
+        ],
+      },
       {
         title: 'الفريق والأعضاء',
         items: [
@@ -574,11 +582,11 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       { items: [{ label: 'إدارتي', href: '/dashboard/department', icon: Building2 }] },
       {
-        title: 'التعلّم والبرامج',
+        title: 'التعلّم والبرامج والطلبات',
         items: [
           { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
           { label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet },
-          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
+          { label: 'طلب احتیاج كادر / أعضاء', href: '/dashboard/hr/my-requests', icon: UserPlus },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],

@@ -482,11 +482,49 @@ export default function ChartOfAccountsPage() {
               </div>
 
               <form onSubmit={handleCreateSubmit} className="mt-5 space-y-4 text-right">
-                {selectedParent && (
-                  <div className="rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-600">
-                    الحساب الأب: <span className="text-deepBlue">{selectedParent.name_ar}</span> (كود: {selectedParent.code})
-                  </div>
-                )}
+                <div>
+                  <label className="block text-xs font-black text-deepBlue mb-1">الحساب الأب (اختياري)</label>
+                  <select
+                    value={selectedParent?.id || ''}
+                    onChange={async (e) => {
+                      const val = e.target.value
+                      if (!val) {
+                        setSelectedParent(null)
+                        try {
+                          const res = await suggestAccountCode(undefined)
+                          setFormCode(res.suggested_code)
+                          setFormType(res.type ?? 'debit')
+                        } catch {
+                          setFormCode('')
+                          setFormType('debit')
+                        }
+                        return
+                      }
+                      const p = flatAccounts.find((a) => a.id === Number(val))
+                      if (p) {
+                        setSelectedParent(p)
+                        try {
+                          const res = await suggestAccountCode(p.id)
+                          setFormCode(res.suggested_code)
+                          setFormType(res.type ?? p.type ?? 'debit')
+                        } catch {
+                          setFormCode('')
+                          setFormType(p.type ?? 'debit')
+                        }
+                      }
+                    }}
+                    className="h-11 w-full rounded-xl border border-slate-200 px-3 font-bold text-deepBlue outline-none focus:border-customBlue bg-white"
+                  >
+                    <option value="">-- حساب رئيسي (بدون أب) --</option>
+                    {flatAccounts
+                      .filter((acc) => !acc.is_selectable)
+                      .map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.code} - {acc.name_ar}
+                        </option>
+                      ))}
+                  </select>
+                </div>
 
                 <div>
                   <label className="block text-xs font-black text-deepBlue">رمز الحساب (Code)</label>
