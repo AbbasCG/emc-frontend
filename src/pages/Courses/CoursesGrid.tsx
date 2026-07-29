@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Search, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import CourseCard from './CourseCard'
 import type { CourseItem } from '@/services/coursesApi'
+import { CourseGridSkeleton } from '@/components/ui/CourseCardSkeleton'
 
 type CoursesGridProps = {
   courses: CourseItem[]
@@ -24,27 +25,6 @@ function useItemsPerPage() {
     return () => window.removeEventListener('resize', update)
   }, [])
   return n
-}
-
-function CourseSkeleton() {
-  return (
-    <div className="animate-pulse overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc-md">
-      <div className="h-52 bg-gradient-to-br from-slate-200 to-slate-100" />
-      <div className="space-y-4 p-6">
-        <div className="flex gap-2">
-          <div className="h-6 w-24 rounded-full bg-slate-100" />
-          <div className="h-6 w-16 rounded-full bg-slate-100" />
-        </div>
-        <div className="h-6 w-4/5 rounded-lg bg-slate-200" />
-        <div className="h-4 w-full rounded bg-slate-100" />
-        <div className="h-4 w-3/4 rounded bg-slate-100" />
-        <div className="flex gap-2 pt-2">
-          <div className="h-8 flex-1 rounded-xl bg-slate-100" />
-          <div className="h-8 flex-1 rounded-xl bg-slate-200" />
-        </div>
-      </div>
-    </div>
-  )
 }
 
 function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
@@ -177,13 +157,7 @@ export default function CoursesGrid({
 
   const gridBody = (
     <>
-      {loading && (
-        <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <CourseSkeleton key={i} />
-          ))}
-        </div>
-      )}
+      {loading && <CourseGridSkeleton count={6} />}
 
       {!loading && courses.length === 0 && (
         <div className={gridClass}>

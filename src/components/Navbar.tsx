@@ -16,6 +16,7 @@ import {
   MapPinned,
   Menu,
   Monitor,
+  Search,
   ShieldCheck,
   Sparkles,
   Target,
@@ -34,6 +35,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
 import { routeMatchesPath } from '@/utils/routeMatch'
 import { UserAvatar } from '@/components/UserAvatar'
+import CommandPalette from '@/components/ai/CommandPalette'
 
 const aboutItems: MegaDropdownItem[] = [
   { href: '/about', label: 'من نحن', description: 'تعريف بالمنصة وأسلوب عملها', icon: Users },
@@ -106,6 +108,7 @@ export default function Navbar() {
   const [openMega, setOpenMega] = useState<MegaId | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [mobileGroup, setMobileGroup] = useState<MegaId | null>(null)
 
   const navRef = useRef<HTMLElement>(null)
@@ -137,7 +140,10 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen((v) => !v)
+      } else if (e.key === 'Escape') {
         setOpenMega(null)
         setUserMenuOpen(false)
         setMobileOpen(false)
@@ -157,25 +163,25 @@ export default function Navbar() {
       ref={navRef}
       dir="rtl"
       className={[
-        'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-350 ease-emc-out',
+        'fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-emc-out',
         scrolled
-          ? 'border-deepBlue/[0.085] bg-white/[0.9] shadow-emc-lg shadow-deepBlue/[0.06] ring-1 ring-deepBlue/[0.045] backdrop-blur-2xl backdrop-saturate-150'
-          : 'border-deepBlue/[0.04] bg-white/[0.78] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/60',
+          ? 'border-b border-white/40 bg-white/80 shadow-lg shadow-deepBlue/[0.04] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-deepBlue/[0.03]'
+          : 'border-b border-white/20 bg-white/70 backdrop-blur-lg backdrop-saturate-150 ring-1 ring-white/50',
       ].join(' ')}
     >
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:h-[4.25rem] lg:px-8">
         <Link
           to="/"
-          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1 ring-deepBlue/0 transition hover:bg-emcBg/90 hover:ring-1 hover:ring-customBlue/18"
+          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1 transition-all duration-200 hover:bg-customBlue/[0.06] hover:scale-[1.02]"
         >
           <img src={logo} alt="EMC" className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
         </Link>
 
         <nav
-          className="absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center lg:flex"
+          className="hidden flex-1 items-center justify-center px-4 lg:flex"
           aria-label="القائمة الرئيسية"
         >
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-white/50 bg-white/60 p-1.5 shadow-md shadow-deepBlue/[0.03] ring-1 ring-white/80 backdrop-blur-xl">
             <NavLink to="/" end className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}>
               الرئيسية
             </NavLink>
@@ -228,6 +234,20 @@ export default function Navbar() {
         </nav>
 
         <div className="relative z-20 hidden shrink-0 items-center gap-3 lg:flex">
+          {/* Quick Search Ctrl + K trigger button */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="flex h-11 items-center gap-2.5 rounded-2xl border border-deepBlue/[0.1] bg-white/80 px-4 text-[13px] font-bold text-deepBlue shadow-sm backdrop-blur-md transition-all duration-200 hover:border-customBlue/35 hover:bg-customBlue/[0.06] hover:text-customBlue"
+            aria-label="البحث السريع (Ctrl + K)"
+          >
+            <Search size={15} className="text-customBlue shrink-0" />
+            <span className="whitespace-nowrap">بحث سريع</span>
+            <kbd className="rounded-lg border border-slate-200/90 bg-slate-100/90 px-2 py-0.5 font-latin text-[10px] font-extrabold text-slate-500 shadow-inner">
+              Ctrl K
+            </kbd>
+          </button>
+
           {!isLoading &&
             (isAuthenticated && user ? (
               <>
@@ -313,14 +333,25 @@ export default function Navbar() {
             ))}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-emcBg/90 lg:hidden"
-        >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="البحث السريع"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-customBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-customBlue/[0.08]"
+          >
+            <Search size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-emcBg/90"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -463,6 +494,11 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+      <CommandPalette
+        open={searchOpen}
+        onOpen={() => setSearchOpen(true)}
+        onClose={() => setSearchOpen(false)}
+      />
     </header>
   )
 }

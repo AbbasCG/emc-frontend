@@ -401,23 +401,23 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             const open = sidebarSearching ? true : collapsibleSectionOpen(group.title, group.collapsible, group.defaultOpen)
 
             return (
-            <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
+            <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
               {group.collapsible && group.title ?
                 <button
                   type="button"
                   aria-expanded={open}
                   onClick={() => toggleCollapsibleSection(group.title, group.defaultOpen)}
-                  className="group/cap mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/46 transition hover:bg-white/[0.05]"
+                  className="group/cap mb-1 flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.06] hover:text-white"
                 >
+                  <span className="flex-1 text-right text-xs font-bold text-white/70">{group.title}</span>
                   <ChevronDown
-                    size={16}
-                    className={`shrink-0 text-customOrange transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
+                    size={14}
+                    className={`shrink-0 text-customOrange/90 transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
                     aria-hidden
                   />
-                  <span className="font-latin flex-1 text-right leading-tight text-white/55">{group.title}</span>
                 </button>
               : group.title ?
-                <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-white/40 font-latin">
+                <p className="mb-1 px-3 text-xs font-bold text-white/50 tracking-wide">
                   {group.title}
                 </p>
               : null}
@@ -431,22 +431,22 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                           to={item.href}
                           end={exactMatchSidebarRoutes.has(item.href)}
                           className={[
-                            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
+                            'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 ease-emc-out',
                             active
                               ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(38,145,194,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
-                              : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+                              : 'text-white/75 hover:bg-white/[0.07] hover:text-white',
                           ].join(' ')}
                         >
                           {active ?
                             <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(236,148,60,0.7)]" />
                           : null}
                           <item.icon
-                            size={17}
-                            className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'}
+                            size={16}
+                            className={active ? 'text-white shrink-0' : 'text-white/60 shrink-0 transition group-hover:text-white'}
                           />
-                          <span className="flex-1">{item.label}</span>
+                          <span className="flex-1 truncate">{item.label}</span>
                           {!active ?
-                            <ChevronLeft size={14} className="text-white/25 transition group-hover:text-white/50" />
+                            <ChevronLeft size={13} className="text-white/25 shrink-0 transition group-hover:text-white/50" />
                           : null}
                         </NavLink>
                       </li>

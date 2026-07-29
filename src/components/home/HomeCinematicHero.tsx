@@ -1,94 +1,220 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import {
+  GraduationCap,
+  Globe,
+  Languages,
+  Bot,
+  Briefcase,
+  Crown,
+  Sparkles,
+  Heart,
+  TrendingUp,
+  FlaskConical,
+  Smile,
+  Handshake,
+  ArrowLeft,
+} from 'lucide-react'
+import logo from '@/assets/logo.png'
 
-// ── Orbital ecosystem visual ──────────────────────────────────────────────────
+// ── 12 EMC Core Themes Orbit (Matching Image 1) ─────────────────────────────
 
-const ORBIT_ITEMS = [
-  { label: 'ورش', angle: 0, r: 120, color: '#2691C2', size: 42 },
-  { label: 'دورات', angle: 72, r: 140, color: '#EC943C', size: 46 },
-  { label: 'مسارات', angle: 144, r: 128, color: '#22334A', size: 44 },
-  { label: 'ذكاء اصطناعي', angle: 216, r: 138, color: '#2691C2', size: 50 },
-  { label: 'مجتمع', angle: 288, r: 118, color: '#EC943C', size: 40 },
+const EMC_12_THEMES = [
+  { id: 'academic', num: '01', title: 'المسارات الأكاديمية', desc: 'إرشاد أكاديمي منظم من المدرسة إلى الجامعة وما بعدها.', icon: GraduationCap, color: '#1FA3DC', link: '/tracks#academic' },
+  { id: 'global', num: '02', title: 'التعلّم العالمي', desc: 'برامج وفرص تعلّم دولية عابرة للحدود لتوسيع الآفاق.', icon: Globe, color: '#F39200', link: '/tracks#global' },
+  { id: 'language', num: '03', title: 'معهد اللغات', desc: 'تعزيز المهارات اللغوية والتواصلية المتعددة.', icon: Languages, color: '#52BFEA', link: '/tracks#language' },
+  { id: 'ai', num: '04', title: 'الذكاء الاصطناعي والتمكين الرقمي', desc: 'بناء قدرات الذكاء الاصطناعي والتكنولوجيا الحديثة.', icon: Bot, color: '#FCB347', link: '/tracks#ai' },
+  { id: 'career', num: '05', title: 'المهارات والتطوير المهني', desc: 'إعداد الكوادر لسوق العمل وصقل المهارات.', icon: Briefcase, color: '#0F6E99', link: '/tracks#career' },
+  { id: 'leadership', num: '06', title: 'القيادة (روّاد)', desc: 'تمكين قادة وروّاد المستقبل بالمهارات القيادية.', icon: Crown, color: '#A95F00', link: '/tracks#leadership' },
+  { id: 'awareness', num: '07', title: 'الوعي والمعرفة', desc: 'إثراء الفكر ونشر المعرفة التخصصية الشاملة.', icon: Sparkles, color: '#7CCEEE', link: '/tracks#awareness' },
+  { id: 'wellbeing', num: '08', title: 'الرفاه والصحة', desc: 'تعزيز التوازن النفسي والرفاه المتكامل.', icon: Heart, color: '#D77F00', link: '/tracks#wellbeing' },
+  { id: 'finance', num: '09', title: 'الوعي المالي', desc: 'ثقافة الإدارة المالية الشخصية والاستثمار الواعي.', icon: TrendingUp, color: '#1488BC', link: '/tracks#finance' },
+  { id: 'experiential', num: '10', title: 'التعلّم التجريبي التطبيقي', desc: 'تطبيقات عمليّة وورش تفاعلية ومشاريع ميدانية.', icon: FlaskConical, color: '#E07F00', link: '/tracks#experiential' },
+  { id: 'children', num: '11', title: 'الأطفال (عقول المستقبل)', desc: 'برامج مبتكرة لتنمية شغف التفكير لدى الناشئة.', icon: Smile, color: '#073E58', link: '/tracks#children' },
+  { id: 'partnerships', num: '12', title: 'الشراكات والتحالفات', desc: 'تعاون مؤسسي وأكاديمي دولي ذو أثر.', icon: Handshake, color: '#FBBF24', link: '/tracks#partnerships' },
 ] as const
 
 function OrbitalVisual() {
   const shouldReduce = useReducedMotion()
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  // Auto-rotate selected node every 4 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % EMC_12_THEMES.length)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const activeItem = EMC_12_THEMES[activeIndex]
+  const R = 195 // orbit radius in pixels
+
   return (
-    <div className="relative flex h-[340px] w-[340px] items-center justify-center sm:h-[420px] sm:w-[420px] lg:h-[480px] lg:w-[480px]">
-      {/* Orbit ring */}
-      <div
-        aria-hidden
-        className="absolute inset-0 rounded-full border border-white/[0.08]"
-        style={{ margin: '32px' }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 rounded-full border border-white/[0.04]"
-        style={{ margin: '62px' }}
-      />
+    <div className="relative flex flex-col items-center">
+      {/* 12-Theme Orbital Canvas Container */}
+      <div className="relative flex h-[480px] w-[480px] items-center justify-center sm:h-[530px] sm:w-[530px]">
+        {/* Top Orbit Header Label */}
+        <div className="absolute top-2 inset-x-0 z-20 flex items-center justify-between px-6 text-[10px] uppercase tracking-widest text-white/60">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-customOrange animate-pulse" />
+            <span className="font-black text-white/90">منظومة EMC</span>
+          </div>
+          <span className="font-latin font-bold text-white/80">{activeItem.num} / 12</span>
+        </div>
 
-      {/* Glow core */}
-      <motion.div
-        aria-hidden
-        animate={shouldReduce ? {} : { scale: [1, 1.12, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute h-32 w-32 rounded-full bg-customBlue/30 blur-3xl"
-      />
+        {/* Orbit Background Circles */}
+        <div aria-hidden className="absolute inset-8 rounded-full border border-white/10" />
+        <div aria-hidden className="absolute inset-16 rounded-full border border-white/[0.06] stroke-dash-2" />
 
-      {/* Center EMC badge */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.7 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.3 }}
-        className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-[0_0_40px_rgba(38,145,194,0.35)] backdrop-blur-xl"
-      >
-        <span className="font-latin text-lg font-black tracking-widest text-white">EMC</span>
-        <span className="mt-0.5 text-[9px] font-black tracking-widest text-white/50">PLATFORM</span>
-      </motion.div>
+        {/* Rotating ambient glow ring */}
+        <motion.div
+          aria-hidden
+          animate={shouldReduce ? {} : { rotate: 360 }}
+          transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
+          className="absolute inset-12"
+        >
+          <div
+            className="h-full w-full rounded-full"
+            style={{
+              background: 'conic-gradient(from 0deg, transparent 75%, rgba(38,145,194,0.3) 90%, transparent 100%)',
+            }}
+          />
+        </motion.div>
 
-      {/* Orbiting items */}
-      {ORBIT_ITEMS.map((item, i) => {
-        const rad = (item.angle * Math.PI) / 180
-        const cx = Math.cos(rad) * item.r
-        const cy = Math.sin(rad) * item.r
-        return (
-          <motion.div
-            key={item.label}
-            aria-hidden
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 + i * 0.1, ease: [0.22, 0.61, 0.36, 1] }}
-            style={{ left: `calc(50% + ${cx}px)`, top: `calc(50% + ${cy}px)` }}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
-          >
-            <motion.div
-              animate={shouldReduce ? {} : { y: [0, -6, 0] }}
-              transition={{ duration: 3 + i * 0.7, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
-              className="flex items-center justify-center rounded-2xl border border-white/15 bg-white/[0.09] px-3 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.25)] backdrop-blur-md"
-              style={{ minWidth: `${item.size + 18}px` }}
+        {/* Center EMC Sphere */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 flex h-32 w-32 flex-col items-center justify-center rounded-full border border-white/30 bg-gradient-to-br from-[#073E58] via-[#1FA3DC] to-[#0F6E99] p-3 text-center shadow-[0_0_50px_rgba(31,163,220,0.45)] backdrop-blur-md"
+        >
+          <img src={logo} alt="EMC" className="h-9 w-auto drop-shadow-md" />
+          <span className="mt-1 text-[9px] font-black text-white/90">اثنا عشر محوراً</span>
+        </motion.div>
+
+        {/* SVG Connecting Ray Line to Active Node */}
+        <svg className="absolute inset-0 h-full w-full pointer-events-none z-0" viewBox="0 0 530 530">
+          {(() => {
+            const angleDeg = activeIndex * (360 / 12) - 90
+            const rad = (angleDeg * Math.PI) / 180
+            const cx = 265 + Math.cos(rad) * R
+            const cy = 265 + Math.sin(rad) * R
+            return (
+              <motion.line
+                x1={265}
+                y1={265}
+                x2={cx}
+                y2={cy}
+                stroke={activeItem.color}
+                strokeWidth={2}
+                strokeDasharray="4 4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.8 }}
+                transition={{ duration: 0.3 }}
+              />
+            )
+          })()}
+        </svg>
+
+        {/* 12 Orbital Radial Node Buttons */}
+        {EMC_12_THEMES.map((item, i) => {
+          const angleDeg = i * (360 / 12) - 90
+          const rad = (angleDeg * Math.PI) / 180
+          const cx = Math.cos(rad) * R
+          const cy = Math.sin(rad) * R
+          const isActive = i === activeIndex
+          const Icon = item.icon
+
+          return (
+            <div
+              key={item.id}
+              style={{ left: `calc(50% + ${cx}px)`, top: `calc(50% + ${cy}px)` }}
+              className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
             >
-              <span className="whitespace-nowrap text-[11px] font-black text-white/90">{item.label}</span>
-            </motion.div>
-          </motion.div>
-        )
-      })}
+              <button
+                type="button"
+                onClick={() => setActiveIndex(i)}
+                className={`group relative flex items-center justify-center transition-all duration-300 ${
+                  isActive
+                    ? 'h-13 w-13 rounded-full bg-[#073E58] shadow-[0_0_25px_rgba(31,163,220,0.6)] ring-2 ring-white scale-110'
+                    : 'h-10 w-10 rounded-full bg-white shadow-md hover:scale-110'
+                }`}
+                aria-label={item.title}
+              >
+                <Icon
+                  size={isActive ? 22 : 18}
+                  style={{ color: isActive ? '#ffffff' : item.color }}
+                  className="transition-transform group-hover:scale-110"
+                />
 
-      {/* Rotating orbit trace */}
-      <motion.div
-        aria-hidden
-        animate={shouldReduce ? {} : { rotate: 360 }}
-        transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
-        className="absolute inset-8"
-      >
-        <div
-          className="h-full w-full rounded-full"
-          style={{
-            background: 'conic-gradient(from 0deg, transparent 80%, rgba(38,145,194,0.4) 90%, transparent 100%)',
-          }}
-        />
-      </motion.div>
+                {/* Active Pill Badge Number */}
+                {isActive && (
+                  <motion.span
+                    initial={{ scale: 0, y: 5 }}
+                    animate={{ scale: 1, y: 0 }}
+                    className="absolute -bottom-2 font-latin text-[9px] font-black rounded-full bg-white px-1.5 py-0.5 text-deepBlue shadow-md ring-1 ring-slate-200"
+                  >
+                    {item.num}
+                  </motion.span>
+                )}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Active Theme Showcase Glass Card (Bottom of Orbit) */}
+      <div className="relative mt-2 w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/[0.1] p-5 shadow-2xl backdrop-blur-xl">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeItem.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-between gap-4 text-right"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-md"
+                style={{ backgroundColor: activeItem.color }}
+              >
+                <activeItem.icon size={22} />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: activeItem.color }}>
+                  المحور {activeItem.num} / 12
+                </span>
+                <h3 className="text-base font-black text-white">{activeItem.title}</h3>
+                <p className="mt-0.5 line-clamp-1 text-xs text-white/70">{activeItem.desc}</p>
+              </div>
+            </div>
+
+            <Link
+              to={activeItem.link}
+              className="shrink-0 rounded-full bg-customOrange px-4 py-2 text-xs font-black text-white shadow-md transition hover:bg-customOrange/90"
+            >
+              استكشف ←
+            </Link>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* 12 Switcher Indicator Bar */}
+        <div className="mt-4 flex items-center justify-center gap-1">
+          {EMC_12_THEMES.map((t, idx) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveIndex(idx)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                idx === activeIndex ? 'w-6 bg-customBlue' : 'w-2 bg-white/20 hover:bg-white/40'
+              }`}
+              aria-label={t.title}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

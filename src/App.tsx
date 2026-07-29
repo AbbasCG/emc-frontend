@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -162,6 +162,7 @@ const PartnershipApplyPage          = lazy(() => import('./pages/operations/publ
 const FinanceDashboardPage    = lazy(() => import('./pages/intelligence/admin/FinanceDashboardPage'))
 const FinancePaymentsPage     = lazy(() => import('./pages/intelligence/admin/FinancePaymentsPage'))
 const FinanceTransactionsPage = lazy(() => import('./pages/intelligence/admin/FinanceTransactionsPage'))
+const ChartOfAccountsPage     = lazy(() => import('./pages/finance/ChartOfAccountsPage'))
 const CouponsAdminPage        = lazy(() => import('./pages/intelligence/admin/CouponsAdminPage'))
 const ScholarshipsAdminPage   = lazy(() => import('./pages/intelligence/admin/ScholarshipsAdminPage'))
 const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
@@ -503,6 +504,7 @@ function App() {
                   <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceInvoicesPage /></Suspense>} />
                   <Route path="/dashboard/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/chart-of-accounts" element={<Suspense fallback={<RouteFallback />}><ChartOfAccountsPage /></Suspense>} />
                   <Route path="/dashboard/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
                   <Route path="/dashboard/finance/program-approvals" element={<Suspense fallback={<RouteFallback />}><ProgramApprovalsPage /></Suspense>} />
                   <Route path="/dashboard/quality" element={<QualityDashboardPage />} />
