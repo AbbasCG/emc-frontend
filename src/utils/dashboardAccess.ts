@@ -198,6 +198,14 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return 'authenticated'
   }
 
+  /* HR requests — any authenticated user who is a department leader may access this page. */
+  if (
+    path === '/dashboard/department/hr-requests' ||
+    path.startsWith('/dashboard/department/hr-requests/')
+  ) {
+    return 'authenticated'
+  }
+
   /* Workshop requests — must be checked BEFORE generic namespace rules to override /dashboard/admin prefix */
   if (
     path === '/dashboard/admin/workshop-requests' ||

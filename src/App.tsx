@@ -536,6 +536,7 @@ function App() {
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/department/hr-requests" element={<Suspense fallback={<RouteFallback />}><HrRequestsDepartmentPage /></Suspense>} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
 
                   {/* ── Tech Admin dedicated dashboard ── */}
