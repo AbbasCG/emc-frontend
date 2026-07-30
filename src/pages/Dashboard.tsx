@@ -39,6 +39,41 @@ function hourGreeting(): string {
   return 'مساء النور'
 }
 
+function CircularProgressRing({ percent, size = 42, strokeWidth = 4 }: { percent: number; size?: number; strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const strokeDashoffset = circumference - (percent / 100) * circumference
+
+  return (
+    <div className="relative flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90 transform">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-slate-100"
+          fill="transparent"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          className={percent >= 100 ? 'text-emerald-500 transition-all duration-700' : 'text-customBlue transition-all duration-700'}
+          fill="transparent"
+        />
+      </svg>
+      <span className="absolute text-[10px] font-black text-deepBlue">{percent}%</span>
+    </div>
+  )
+}
+
 function HeroChip({ href, label }: { href: string; label: string }) {
   return (
     <Link
@@ -194,20 +229,22 @@ function CourseCard({ course }: { course: DashCourse }) {
           <p className="text-[10px] font-bold text-slate-400">سيتم إشعارك عند تحديد الموعد</p>
         )}
 
-        {/* Progress bar */}
-        <div>
-          <div className="mb-1 flex items-center justify-between text-[10px] font-black">
-            <span className="text-customBlue">{pct}%</span>
-            <span className="text-slate-400">التقدم</span>
+
+
+        {/* Progress row with Circular Ring */}
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-2.5">
+          <div className="flex flex-1 flex-col gap-1 text-right">
+            <span className="text-[10px] font-bold text-slate-400">مستوى إنجاز الدورة</span>
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200/80">
+              <motion.div
+                className={`h-full rounded-full ${pct >= 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-customBlue' : 'bg-slate-300'}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
+            </div>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-            <motion.div
-              className={`h-full rounded-full ${pct >= 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-customBlue' : 'bg-slate-200'}`}
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-            />
-          </div>
+          <CircularProgressRing percent={pct} />
         </div>
 
         {/* Actions */}

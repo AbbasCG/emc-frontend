@@ -370,7 +370,7 @@ export default function Contact() {
               <ul className="mt-6 grid gap-4 text-slate-600">
                 <li className="flex items-start gap-3">
                   <Phone size={18} className="mt-0.5 shrink-0 text-customBlue" />
-                  <a href={`tel:${siteContact.phone.replace(/\s/g, '')}`} className="font-semibold hover:text-customBlue">
+                  <a href={siteContact.telLink} className="font-semibold dir-ltr text-right hover:text-customBlue">
                     {siteContact.phone}
                   </a>
                 </li>

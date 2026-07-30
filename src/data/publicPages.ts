@@ -373,7 +373,8 @@ export const partnershipTypes: PartnershipType[] = [
 
 /** Contact / footer — aligned branding */
 export const siteContact = {
-  phone: '+31 6 00 000 000',
+  phone: '+31 6 86443340',
+  telLink: 'tel:+31686443340',
   email: 'info@edumc.nl',
   supportEmail: 'support@edumc.nl',
   location: { ar: 'أمستردام، هولندا — خدمة أونلاين ومجتمعات عربية وهولندية' },
