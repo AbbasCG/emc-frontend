@@ -256,7 +256,14 @@ export default function CourseEnrollmentCard({
           if (endpoint) {
             import('@/api/checkoutApi').then(({ initiateCheckout }) => {
               initiateCheckout(course.id)
-                .then(({ checkout_url }) => { window.location.assign(checkout_url) })
+                .then(({ checkout_url, free }) => {
+                  if (free) {
+                    toast.success('تم إتمام تسجيلك في الدورة بنجاح.')
+                    window.location.assign('/dashboard/student/courses')
+                    return
+                  }
+                  if (checkout_url) window.location.assign(checkout_url)
+                })
                 .catch((checkoutErr) => {
                   // initiateCheckout sets skipErrorToast, so this is the only toast shown.
                   toast.error(getApiErrorMessage(checkoutErr) || 'تعذّر بدء الدفع. حاول مرة أخرى.')

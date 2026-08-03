@@ -174,6 +174,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'المدفوعات اليدوية', href: '/dashboard/admin/finance/manual-payments',        icon: ClipboardCheck },
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
         { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts',            icon: FolderTree    },
+        { label: 'الكوبونات',          href: '/dashboard/admin/coupons',                         icon: Percent       },
         { label: 'الطلبات المالية الداخلية', href: '/dashboard/admin/finance/financial-requests', icon: FileText  },
         { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals',       icon: ShieldCheck },
       ],
@@ -278,6 +279,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: Wallet },
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
+        { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
         { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports', icon: FileBarChart },
         { label: 'شركاء التشغيل', href: '/dashboard/admin/partners', icon: Briefcase },
       ],
@@ -446,6 +448,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'المعاملات',          href: '/dashboard/finance/transactions',    icon: BarChart3     },
           { label: 'النقدية والحسابات',  href: '/dashboard/finance/accounts',        icon: Wallet        },
           { label: 'شجرة الحسابات',      href: '/dashboard/finance/chart-of-accounts', icon: FolderTree  },
+          { label: 'الكوبونات',          href: '/dashboard/admin/coupons',            icon: Percent      },
           { label: 'الطلبات المالية الداخلية', href: '/dashboard/finance/financial-requests', icon: Wallet },
           { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals', icon: ShieldCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
