@@ -271,6 +271,13 @@ const MembersPage = lazy(() => import('./pages/dashboard/MembersPage'))
 // ── Lazy: admin coming-soon placeholder ──────────────────────────────────────
 const AdminComingSoonPage = lazy(() => import('./pages/admin/AdminComingSoonPage'))
 
+// ── Lazy: English Institute ───────────────────────────────────────────────────
+const InstituteAdminDashboard = lazy(() => import('./pages/institute/admin/InstituteAdminDashboard'))
+const InstituteLevelCreatePage = lazy(() => import('./pages/institute/admin/InstituteLevelCreatePage'))
+const InstituteClassCreatePage = lazy(() => import('./pages/institute/admin/InstituteClassCreatePage'))
+const InstituteTeacherDashboard = lazy(() => import('./pages/institute/teacher/InstituteTeacherDashboard'))
+const InstituteStudentDashboard = lazy(() => import('./pages/institute/student/InstituteDashboard'))
+
 // ── Lazy: settings, profile, calendar, error pages ───────────────────────────
 const NotificationPreferencesPage = lazy(() => import('./pages/settings/NotificationPreferencesPage'))
 const ProfilePage    = lazy(() => import('./pages/ProfilePage'))
@@ -468,6 +475,7 @@ function App() {
                   <Route path="/dashboard/student/course-rating" element={<Navigate to="/dashboard/student/evaluation" replace />} />
                   <Route path="/dashboard/student/orders" element={<Suspense fallback={<RouteFallback />}><StudentOrdersPage /></Suspense>} />
                   <Route path="/dashboard/student/payment-success" element={<Suspense fallback={<RouteFallback />}><PaymentSuccessPage /></Suspense>} />
+                  <Route path="/dashboard/student/institute" element={<Suspense fallback={<RouteFallback />}><InstituteStudentDashboard /></Suspense>} />
                   <Route path="/dashboard/instructor" element={<TeacherDashboard />} />
                   <Route path="/dashboard/instructor/learning-paths" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathsPage /></Suspense>} />
                   <Route path="/dashboard/instructor/learning-paths/:id" element={<Suspense fallback={<RouteFallback />}><InstructorLearningPathDetailPage /></Suspense>} />
@@ -482,6 +490,7 @@ function App() {
                   <Route path="/dashboard/instructor/classes" element={<InstructorClassesPage />} />
                   <Route path="/dashboard/instructor/classes/:groupId/:tab" element={<Suspense fallback={<RouteFallback />}><InstructorClassWorkspacePage /></Suspense>} />
                   <Route path="/dashboard/instructor/calendar" element={<Suspense fallback={<RouteFallback />}><InstructorCalendarPage /></Suspense>} />
+                  <Route path="/dashboard/instructor/institute" element={<Suspense fallback={<RouteFallback />}><InstituteTeacherDashboard /></Suspense>} />
                   <Route path="/dashboard/instructor/classes/:groupId/sessions/:sessionId" element={<Suspense fallback={<RouteFallback />}><InstructorSessionDetailPage /></Suspense>} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
@@ -536,7 +545,7 @@ function App() {
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
-                  <Route path="/dashboard/department/hr-requests" element={<Suspense fallback={<RouteFallback />}><HrRequestsDepartmentPage /></Suspense>} />
+                  {/* <Route path="/dashboard/department/hr-requests" element={<Suspense fallback={<RouteFallback />}><HrRequestsDepartmentPage /></Suspense>} /> */}
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
 
                   {/* ── Tech Admin dedicated dashboard ── */}
@@ -572,6 +581,15 @@ function App() {
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
                   <Route path="/dashboard/courses/:courseId/content" element={<CourseContentManagerPage />} />
+                  <Route path="/dashboard/admin/courses" element={<AdminLmsMaterialsPage />} />
+                  <Route path="/dashboard/admin/evaluations" element={<AdminLmsEvaluationsPage />} />
+                  <Route path="/dashboard/admin/progress" element={<AdminLmsProgressPage />} />
+                  <Route path="/dashboard/admin/institute" element={<InstituteAdminDashboard />} />
+                  <Route path="/dashboard/admin/institute/levels/new" element={<Suspense fallback={<RouteFallback />}><InstituteLevelCreatePage /></Suspense>} />
+                  <Route path="/dashboard/admin/institute/levels/:id/edit" element={<Suspense fallback={<RouteFallback />}><InstituteLevelCreatePage /></Suspense>} />
+                  <Route path="/dashboard/admin/institute/classes/new" element={<Suspense fallback={<RouteFallback />}><InstituteClassCreatePage /></Suspense>} />
+                  <Route path="/dashboard/admin/institute/classes/:id/edit" element={<Suspense fallback={<RouteFallback />}><InstituteClassCreatePage /></Suspense>} />
+                  <Route path="/dashboard/executive/departments" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/admin/lms/courses/:courseId/content" element={<CourseContentManagerPage />} />
                   <Route path="/dashboard/lessons/:lessonId" element={<LessonPlayerPage />} />
                   <Route path="/dashboard/quizzes/:quizId" element={<QuizTakePage />} />
@@ -662,6 +680,8 @@ function App() {
                   <Route path="/dashboard/admin/workshop-requests/:id" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestDetailPage /></Suspense>} />
 
                   {/* ── Admin alias routes (requirement list) — redirect to canonical paths ── */}
+                  <Route path="/dashboard/admin/workshops" element={<Navigate to="/dashboard/super-admin/crud/workshops" replace />} />
+                  <Route path="/dashboard/admin/institute" element={<Suspense fallback={<RouteFallback />}><InstituteAdminDashboard /></Suspense>} />
                   <Route path="/dashboard/admin/sessions" element={<Navigate to="/dashboard/admin/lms/sessions" replace />} />
                   <Route path="/dashboard/admin/attendance" element={<Navigate to="/dashboard/admin/lms/attendance" replace />} />
                   <Route path="/dashboard/admin/assignments" element={<Navigate to="/dashboard/admin/lms/assignments" replace />} />

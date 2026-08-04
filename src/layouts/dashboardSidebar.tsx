@@ -149,6 +149,16 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       ],
     },
 
+    // ── المعهد الإنجليزي ──────────────────────────────────────────────────────
+    {
+      title: 'المعهد الإنجليزي',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'لوحة إدارة المعهد', href: '/dashboard/admin/institute', icon: Building2 },
+      ],
+    },
+
     // ── 3. الطلاب والمستخدمون ────────────────────────────────────────────────
     {
       title: 'الطلاب والمستخدمون',
@@ -179,6 +189,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
         { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts',            icon: FolderTree    },
         { label: 'الطلبات المالية الداخلية', href: '/dashboard/admin/finance/financial-requests', icon: FileText  },
+        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
         { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals',       icon: ShieldCheck },
       ],
     },
@@ -233,6 +244,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
+        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
       ],
     },
     {
@@ -254,6 +266,14 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي', href: '/dashboard/super-admin/ambassador-applications', icon: Star },
         { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
+      ],
+    },
+    {
+      title: 'المعهد الإنجليزي',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'لوحة إدارة المعهد', href: '/dashboard/admin/institute', icon: Building2 },
       ],
     },
     {
@@ -431,6 +451,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           { label: 'الطلبات المالية', href: '/dashboard/executive/financial-requests', icon: Wallet },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           membersNavItem(),
         ],
       },
@@ -452,6 +473,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'النقدية والحسابات',  href: '/dashboard/finance/accounts',        icon: Wallet        },
           { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts', icon: FolderTree    },
           { label: 'الطلبات المالية الداخلية', href: '/dashboard/finance/financial-requests', icon: Wallet },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals', icon: ShieldCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
@@ -586,7 +608,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         items: [
           { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
           { label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet },
-          { label: 'طلب احتیاج كادر / أعضاء', href: '/dashboard/hr/my-requests', icon: UserPlus },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
@@ -617,6 +639,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'لوحة التحكم',   href: home,                                  icon: LayoutDashboard },
+          { label: 'المعهد الإنجليزي',href: '/dashboard/instructor/institute',     icon: Building2 },
           { label: 'دوراتي',        href: '/dashboard/instructor/courses',         icon: BookMarked      },
           { label: 'مساراتي التعليمية', href: '/dashboard/instructor/learning-paths', icon: GraduationCap },
           { label: 'الجلسات',       href: '/dashboard/instructor/sessions',        icon: Calendar        },
@@ -636,6 +659,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'لوحة التعلم',    href: '/dashboard/student',                  icon: LayoutDashboard },
+          { label: 'المعهد الإنجليزي',href: '/dashboard/student/institute',        icon: Building2       },
           { label: 'دوراتي',          href: '/dashboard/student/courses',           icon: BookOpen        },
           { label: 'مساراتي التعليمية', href: '/dashboard/student/learning-paths', icon: GraduationCap  },
           { label: 'الشهادات',       href: '/dashboard/student/certificates',      icon: Award           },
