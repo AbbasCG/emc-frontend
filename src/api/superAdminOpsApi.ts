@@ -47,9 +47,9 @@ function normalizeAdminDepartment(raw: unknown): AdminDepartment {
   }
 }
 
-/** Single department detail — GET /admin/departments/:id */
+/** Single department detail — GET /operations/departments/:id */
 export async function fetchAdminDepartmentById(id: string): Promise<AdminDepartment> {
-  const res = await apiClient.get<unknown>(`/admin/departments/${id}`, silent)
+  const res = await apiClient.get<unknown>(`/operations/departments/${id}`, silent)
   const raw =
     res.data != null && typeof res.data === 'object' && !Array.isArray(res.data)
       ? (res.data as Record<string, unknown>)

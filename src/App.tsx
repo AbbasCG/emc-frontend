@@ -236,6 +236,8 @@ const HrDepartmentsPage = lazy(() => import('./pages/hr/HrDepartmentsPage'))
 const HrOnboardingPage  = lazy(() => import('./pages/hr/HrOnboardingPage'))
 const HrTasksPage       = lazy(() => import('./pages/hr/HrTasksPage'))
 const HrDocumentsPage   = lazy(() => import('./pages/hr/HrDocumentsPage'))
+const HrMyRequestsPage       = lazy(() => import('./pages/hr/HrMyRequestsPage'))
+const HrIncomingRequestsPage = lazy(() => import('./pages/hr/HrIncomingRequestsPage'))
 
 // ── Lazy: workshop request workflow ──────────────────────────────────────────
 const WorkshopRequestsPage        = lazy(() => import('./pages/WorkshopRequestsPage'))
@@ -529,6 +531,8 @@ function App() {
                   <Route path="/dashboard/quality/reports" element={<QualityReportsPage />} />
                   <Route path="/dashboard/quality/team" element={<QualityTeamPage />} />
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
+                  <Route path="/dashboard/hr/my-requests" element={<HrMyRequestsPage />} />
+                  <Route path="/dashboard/hr/incoming-requests" element={<HrIncomingRequestsPage />} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
                   <Route path="/dashboard/hr/instructors" element={<HrInstructorsPage />} />
@@ -545,7 +549,7 @@ function App() {
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
-                  {/* <Route path="/dashboard/department/hr-requests" element={<Suspense fallback={<RouteFallback />}><HrRequestsDepartmentPage /></Suspense>} /> */}
+                  <Route path="/dashboard/department/hr-requests" element={<HrMyRequestsPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
 
                   {/* ── Tech Admin dedicated dashboard ── */}
