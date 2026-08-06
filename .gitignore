@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Environment variables — never commit real secrets
+.env
+.env.production
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +26,28 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.claude
+.claude/
+.claude/settings.local.json
+.claude/settings.json
+
+.cursor
+.cursor/
+.cursor/settings.local.json
+.cursor/settings.json
+
+codebase_analysis.md
+CLAUDE.md
+/.claude/settings.local.json
+docs/
+workflows/
+
+/graphify-out/
+# Graphify tools
+graphify_ast_run.py
+graphify_build.py
+graphify_inspect_schema.py
+graphify_merge.py
+graphify_query.py
+graphify_read_analysis.py

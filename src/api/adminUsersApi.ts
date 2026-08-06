@@ -1,0 +1,697 @@
+import axios from 'axios'
+import apiClient from './axios'
+import { unwrapData } from './unwrap'
+import { getApiErrorMessage, getLaravelFieldErrors, translateLaravelFieldMessage } from './apiErrors'
+import { normalizeRole } from '@/utils/dashboardAccess'
+
+const silent = { skipErrorToast: true as const }
+
+/** Standard copy when AdminUser policy rejects an action with HTTP 403. */
+export const ADMIN_USER_FORBIDDEN_AR = 'لا تملك صلاحية تنفيذ هذا الإجراء'
+
+/**
+ * Admin user management — `AdminUserController` under the API group (e.g. Sanctum + admin).
+ *
+ * Expected Laravel-style routes:
+ *   GET    /admin/users
+ *   POST   /admin/users
+ *   GET    /admin/users/{user}
+ *   PUT    /admin/users/{user}
+ *   DELETE /admin/users/{user}
+ */
+const BASE = '/admin/users'
+
+export type AdminManagedUser = {
+  id: number
+  name: string
+  email: string
+  role?: string | null
+  /** When absent, treated as «active» in UI KPIs unless backend adds explicit flag later. */
+  is_active?: boolean | null
+  /** Backend status string: 'active' | 'inactive' | 'suspended' | etc. */
+  status?: string | null
+  /** Filled when user is soft-deleted. */
+  deleted_at?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  /** Optional fields when Laravel serializes richer admin user payloads — otherwise UI shows «—». */
+  phone?: string | null
+  department?: string | null
+  city?: string | null
+  country?: string | null
+  gender?: string | null
+  how_did_you_hear_about_us?: string | null
+  avatar_url?: string | null
+  email_verified_at?: string | null
+  last_login_at?: string | null
+  /** One-line summaries when backend nests learner/teacher payloads. */
+  related_student_note?: string | null
+  related_instructor_note?: string | null
+}
+
+function summarizeProfileBlock(raw: unknown, kind: 'student' | 'instructor'): string | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const o = raw as Record<string, unknown>
+  const bits: string[] = []
+  if (o.id != null && Number(o.id) > 0) bits.push(`سجل ${kind === 'student' ? 'طالب' : 'مدرب'} #${Math.trunc(Number(o.id))}`)
+  const code = trimStr(o.code ?? o.student_code ?? o.employee_code)
+  if (code) bits.push(kind === 'student' ? `رمز طالب: ${code}` : `رمز موظّف: ${code}`)
+  const lvl = trimStr(o.level ?? o.program ?? o.specialization)
+  if (lvl) bits.push(`${kind === 'student' ? 'المسار' : 'التخصّص'}: ${lvl}`)
+  return bits.length > 0 ? bits.join(' · ') : null
+}
+
+function relateNotesFromRaw(raw: Record<string, unknown>): {
+  student: string | null
+  instructor: string | null
+} {
+  const studentRaw =
+    raw.student ?? raw.student_profile ?? raw.studentProfile ?? raw.student_data ?? raw.learner
+  let student = summarizeProfileBlock(studentRaw, 'student')
+  if (!student && Array.isArray(raw.enrollments) && raw.enrollments.length > 0) {
+    student = `تسجيلات مرتبطة: ${raw.enrollments.length}`
+  }
+
+  const instRaw =
+    raw.instructor ?? raw.instructor_profile ?? raw.teacher ?? raw.teaching_profile ?? raw.staff_profile
+  const instructor = summarizeProfileBlock(instRaw, 'instructor')
+
+  return { student, instructor }
+}
+
+function trimStr(v: unknown): string {
+  if (v == null) return ''
+  return String(v).trim()
+}
+
+function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
+  const id = Number(raw.id)
+  const roleRaw = raw.role
+  let roleStr: string | null = null
+  if (roleRaw != null && String(roleRaw).trim() !== '') {
+    roleStr = String(roleRaw).trim().toLowerCase()
+  }
+
+  const nameFallback = typeof raw.full_name === 'string' ? raw.full_name : ''
+  const name = String(raw.name ?? nameFallback ?? '')
+  const ia = raw.is_active
+  let is_active: boolean | null = null
+  if (ia === true || ia === 1 || ia === '1') is_active = true
+  else if (ia === false || ia === 0 || ia === '0') is_active = false
+
+  const phoneRaw = raw.phone ?? raw.phone_number ?? raw.mobile ?? raw.phoneNumber
+  const phone =
+    phoneRaw != null && String(phoneRaw).trim() !== '' ?
+      typeof phoneRaw === 'string' ?
+        phoneRaw
+      : String(phoneRaw)
+    : null
+
+  const deptRaw =
+    raw.department ??
+    raw.department_name ??
+    raw.faculty ??
+    raw.business_unit ??
+    raw.faculty_name ??
+    raw.org_unit ??
+    raw.org_unit_name
+  let department: string | null = null
+  if (typeof deptRaw === 'string' && deptRaw.trim() !== '') department = deptRaw.trim()
+  else if (deptRaw && typeof deptRaw === 'object' && 'name' in (deptRaw as object)) {
+    const n = (deptRaw as { name?: unknown }).name
+    if (typeof n === 'string' && n.trim() !== '') department = n.trim()
+  }
+
+  const ev = raw.email_verified_at ?? raw.emailVerifiedAt ?? raw.email_verified
+  let email_verified_at: string | null = null
+  if (ev !== null && ev !== undefined && String(ev).trim() !== '') email_verified_at = String(ev)
+
+  const loginRaw =
+    raw.last_login_at ??
+    raw.last_login ??
+    raw.last_seen_at ??
+    raw.last_seen ??
+    raw.last_activity_at ??
+    raw.lastActivityAt ??
+    raw.current_sign_in_at
+  let last_login_at: string | null = null
+  if (loginRaw !== null && loginRaw !== undefined && String(loginRaw).trim() !== '') last_login_at = String(loginRaw)
+
+  const cityRaw = raw.city ?? raw.town ?? raw.city_name
+  const city =
+    cityRaw != null && String(cityRaw).trim() !== '' ?
+      typeof cityRaw === 'string' ?
+        cityRaw.trim()
+      : String(cityRaw)
+    : null
+
+  const countryRaw = raw.country ?? raw.country_name ?? raw.country_code
+  const country =
+    countryRaw != null && String(countryRaw).trim() !== '' ?
+      typeof countryRaw === 'string' ?
+        countryRaw.trim()
+      : String(countryRaw)
+    : null
+
+  const hh =
+    raw.how_did_you_hear_about_us ??
+    raw.howDidYouHearAboutUs ??
+    raw.heard_from ??
+    raw.source ??
+    raw.referral_source
+  const how =
+    hh != null && String(hh).trim() !== '' ?
+      typeof hh === 'string' ?
+        hh.trim()
+      : String(hh)
+    : null
+
+  const avatarRaw =
+    raw.avatar_url ?? raw.avatarUrl ?? raw.avatar ?? raw.photo_url ?? raw.profile_photo ?? raw.profile_photo_url
+  let avatar_url: string | null = null
+  if (avatarRaw != null && String(avatarRaw).trim() !== '') avatar_url = String(avatarRaw).trim()
+
+  const related = relateNotesFromRaw(raw)
+
+  const deletedRaw = raw.deleted_at ?? raw.deletedAt
+  const deleted_at =
+    deletedRaw != null && String(deletedRaw).trim() !== '' ? String(deletedRaw) : null
+
+  const statusRaw = raw.status ?? raw.account_status ?? raw.user_status
+  const status =
+    statusRaw != null && String(statusRaw).trim() !== '' ? String(statusRaw).trim().toLowerCase() : null
+
+  const genderRaw = raw.gender ?? raw.sex
+  const gender =
+    genderRaw != null && String(genderRaw).trim() !== '' ? String(genderRaw).trim().toLowerCase() : null
+
+  return {
+    id: Number.isFinite(id) ? Math.trunc(id) : 0,
+    name,
+    email: String(raw.email ?? ''),
+    role: roleStr,
+    is_active,
+    status,
+    deleted_at,
+    phone,
+    department,
+    city,
+    country,
+    gender,
+    how_did_you_hear_about_us: how,
+    avatar_url,
+    email_verified_at,
+    last_login_at,
+    related_student_note: related.student,
+    related_instructor_note: related.instructor,
+    created_at:
+      raw.created_at != null ?
+        typeof raw.created_at === 'string' ?
+          raw.created_at
+        : String(raw.created_at)
+      : null,
+    updated_at:
+      raw.updated_at != null ?
+        typeof raw.updated_at === 'string' ?
+          raw.updated_at
+        : String(raw.updated_at)
+      : null,
+  }
+}
+
+/** Extract list rows from Laravel array, `{ data: [] }`, or paginated `{ data: { data: [] } }`. */
+export function unwrapAdminUsersList(payload: unknown): AdminManagedUser[] {
+  const inner = unwrapData<unknown>(payload)
+  let rows: unknown[] = []
+  if (Array.isArray(inner)) rows = inner
+  else if (inner && typeof inner === 'object' && inner !== null) {
+    const o = inner as Record<string, unknown>
+    if (Array.isArray(o.data)) rows = o.data
+    else if (o.data && typeof o.data === 'object') {
+      const nested = (o.data as Record<string, unknown>).data
+      if (Array.isArray(nested)) rows = nested
+    }
+  }
+  return rows
+    .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null && !Array.isArray(r))
+    .map((r) => normalizeManagedUser(r))
+    .filter((u) => u.id > 0)
+}
+
+/** Map 403/422 responses to copy required by Super Admin UX. */
+export function getAdminUserMutationMessage(err: unknown): string {
+  if (!axios.isAxiosError(err)) return getApiErrorMessage(err)
+
+  const status = err.response?.status
+  const body = err.response?.data as Record<string, unknown> | undefined
+
+  if (status === 403) {
+    if (body && typeof body.message === 'string' && body.message.trim()) return body.message
+    return ADMIN_USER_FORBIDDEN_AR
+  }
+
+  // For 422 validation failures: collect ALL field errors, translate, and join them so the
+  // user sees exactly which field was rejected (e.g. "الدور: القيمة المختارة غير مقبولة").
+  if (status === 422) {
+    const FIELD_LABELS: Record<string, string> = {
+      name: 'الاسم',
+      email: 'البريد الإلكتروني',
+      role: 'الدور',
+      password: 'كلمة المرور',
+      phone: 'الهاتف',
+      city: 'المدينة',
+      country: 'الدولة',
+      department: 'الإدارة',
+      is_active: 'الحالة',
+    }
+    const fieldErrors = getLaravelFieldErrors(err)
+    const lines = Object.entries(fieldErrors).map(([field, msg]) => {
+      const label = FIELD_LABELS[field] ?? field
+      return `${label}: ${translateLaravelFieldMessage(msg)}`
+    })
+    if (lines.length > 0) return lines.join('\n')
+  }
+
+  return getApiErrorMessage(err)
+}
+
+export type AdminUsersQuery = {
+  page?: number
+  per_page?: number
+  search?: string
+  role?: string
+  status?: 'all' | 'active' | 'inactive' | 'deleted'
+  department?: string
+  verified?: 'all' | 'verified' | 'unverified'
+}
+
+export type AdminUsersSummary = {
+  total: number
+  active: number
+  suspended: number
+  verified: number
+  unverified: number
+}
+
+export type AdminUsersPageResult = {
+  users: AdminManagedUser[]
+  total: number
+  page: number
+  perPage: number
+  lastPage: number
+  /** True when Laravel returned paginator meta (page/per_page respected server-side). */
+  serverPaginated: boolean
+  summary: AdminUsersSummary | null
+}
+
+function parsePaginatorMeta(payload: unknown): {
+  total: number
+  page: number
+  perPage: number
+  lastPage: number
+} | null {
+  const root = payload != null && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : null
+  const inner = unwrapData<unknown>(payload)
+  const innerObj = inner != null && typeof inner === 'object' && !Array.isArray(inner)
+    ? (inner as Record<string, unknown>)
+    : null
+  const meta = (root?.meta ?? innerObj?.meta) as Record<string, unknown> | undefined
+  if (!meta || typeof meta !== 'object') return null
+  const total = Number(meta.total)
+  const page = Number(meta.current_page ?? meta.page)
+  const perPage = Number(meta.per_page ?? meta.perPage)
+  const lastPage = Number(meta.last_page ?? meta.lastPage)
+  if (!Number.isFinite(total) || total < 0) return null
+  return {
+    total,
+    page: Number.isFinite(page) && page > 0 ? page : 1,
+    perPage: Number.isFinite(perPage) && perPage > 0 ? perPage : 15,
+    lastPage: Number.isFinite(lastPage) && lastPage > 0 ? lastPage : Math.max(1, Math.ceil(total / (perPage || 15))),
+  }
+}
+
+function parseSummaryBlock(payload: unknown): AdminUsersSummary | null {
+  const root = payload != null && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : null
+  const inner = unwrapData<unknown>(payload)
+  const innerObj = inner != null && typeof inner === 'object' && !Array.isArray(inner)
+    ? (inner as Record<string, unknown>)
+    : null
+  const stats = (root?.stats ?? root?.summary ?? innerObj?.stats ?? innerObj?.summary) as Record<string, unknown> | undefined
+  if (!stats || typeof stats !== 'object') return null
+  const total = Number(stats.total)
+  if (!Number.isFinite(total)) return null
+  return {
+    total,
+    active: Number(stats.active ?? stats.active_count ?? 0),
+    suspended: Number(stats.suspended ?? stats.inactive ?? stats.inactive_count ?? 0),
+    verified: Number(stats.verified ?? stats.verified_count ?? 0),
+    unverified: Number(stats.unverified ?? stats.unverified_count ?? 0),
+  }
+}
+
+function buildUsersQueryParams(q: AdminUsersQuery): Record<string, string | number> {
+  const params: Record<string, string | number> = {
+    page: q.page ?? 1,
+    per_page: q.per_page ?? 15,
+  }
+  const status = q.status ?? 'all'
+  params.status = status
+  const search = q.search?.trim()
+  if (search) params.search = search
+  if (q.role && q.role !== 'all') params.role = q.role
+  if (q.department && q.department !== 'all') params.department = q.department
+  if (q.verified === 'verified') params.verified = '1'
+  else if (q.verified === 'unverified') params.verified = '0'
+  return params
+}
+
+/** Paginated list — uses server meta when backend supports `page` / `per_page` query params. */
+export async function fetchAdminUsersPage(q: AdminUsersQuery): Promise<AdminUsersPageResult> {
+  const params = buildUsersQueryParams(q)
+  const res = await apiClient.get<unknown>(BASE, { ...silent, params })
+  const users = unwrapAdminUsersList(res.data)
+  const meta = parsePaginatorMeta(res.data)
+  const summary = parseSummaryBlock(res.data)
+
+  if (meta) {
+    return {
+      users,
+      total: meta.total,
+      page: meta.page,
+      perPage: meta.perPage,
+      lastPage: meta.lastPage,
+      serverPaginated: true,
+      summary,
+    }
+  }
+
+  const perPage = q.per_page ?? 15
+  const page = q.page ?? 1
+  const filtered = filterUsersClientSide(users, q)
+  const total = filtered.length
+  const lastPage = Math.max(1, Math.ceil(total / perPage))
+  const safePage = Math.min(Math.max(1, page), lastPage)
+  const start = (safePage - 1) * perPage
+
+  return {
+    users: filtered.slice(start, start + perPage),
+    total,
+    page: safePage,
+    perPage,
+    lastPage,
+    serverPaginated: false,
+    summary: summary ?? summarizeUsersClientSide(filtered),
+  }
+}
+
+function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQuery): AdminManagedUser[] {
+  const search = q.search?.trim().toLowerCase() ?? ''
+  return users.filter((u) => {
+    if (q.role && q.role !== 'all' && normalizeRole(u.role) !== q.role) return false
+    if (q.status === 'active' && (u.is_active === false || u.deleted_at)) return false
+    if (q.status === 'inactive' && (u.is_active !== false || u.deleted_at)) return false
+    if (q.status === 'deleted' && !u.deleted_at) return false
+    if (q.department && q.department !== 'all' && (u.department?.trim() ?? '') !== q.department) return false
+    if (q.verified === 'verified' && !u.email_verified_at) return false
+    if (q.verified === 'unverified' && u.email_verified_at) return false
+    if (!search) return true
+    const hay = `${u.name} ${u.email} ${u.phone ?? ''} ${u.id} ${u.department ?? ''} ${normalizeRole(u.role ?? null)}`.toLowerCase()
+    return hay.includes(search)
+  })
+}
+
+function summarizeUsersClientSide(users: AdminManagedUser[]): AdminUsersSummary {
+  let active = 0
+  let suspended = 0
+  let verified = 0
+  for (const u of users) {
+    if (u.deleted_at) continue
+    if (u.is_active === false) suspended++
+    else active++
+    if (u.email_verified_at) verified++
+  }
+  return {
+    total: users.length,
+    active,
+    suspended,
+    verified,
+    unverified: users.length - verified,
+  }
+}
+
+export async function fetchAdminUsers(): Promise<AdminManagedUser[]> {
+  const res = await apiClient.get<unknown>(BASE, { ...silent, params: { status: 'all' } })
+  return unwrapAdminUsersList(res.data)
+}
+
+export async function restoreAdminUser(id: number): Promise<void> {
+  await apiClient.post(`${BASE}/${id}/restore`, {}, silent)
+}
+
+export async function fetchAdminUser(id: number): Promise<AdminManagedUser> {
+  const res = await apiClient.get<unknown>(`${BASE}/${id}`, silent)
+  const inner = unwrapData<unknown>(res.data)
+  const rec =
+    inner && typeof inner === 'object' && !Array.isArray(inner) ?
+      (inner as Record<string, unknown>)
+    : {}
+  const u = normalizeManagedUser(rec)
+  if (!u.id) throw new Error('Invalid user payload')
+  return u
+}
+
+export type CreateAdminUserInput = {
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+  role: string
+  phone?: string | null
+  department?: string | null
+  city?: string | null
+  country?: string | null
+  how_did_you_hear_about_us?: string | null
+}
+
+export async function createAdminUser(input: CreateAdminUserInput): Promise<AdminManagedUser> {
+  const body: Record<string, unknown> = {
+    name: input.name,
+    email: input.email,
+    password: input.password,
+    password_confirmation: input.password_confirmation,
+    role: input.role,
+  }
+  if (input.phone != null && String(input.phone).trim() !== '') body.phone = String(input.phone).trim()
+  if (input.department != null && String(input.department).trim() !== '')
+    body.department = String(input.department).trim()
+  if (input.city != null && String(input.city).trim() !== '') body.city = String(input.city).trim()
+  if (input.country != null && String(input.country).trim() !== '') body.country = String(input.country).trim()
+  if (input.how_did_you_hear_about_us != null && String(input.how_did_you_hear_about_us).trim() !== '')
+    body.how_did_you_hear_about_us = String(input.how_did_you_hear_about_us).trim()
+
+  const res = await apiClient.post<unknown>(BASE, body, silent)
+  const inner = unwrapData<unknown>(res.data)
+  const rec =
+    inner && typeof inner === 'object' && !Array.isArray(inner) ?
+      (inner as Record<string, unknown>)
+    : typeof res.data === 'object' && res.data !== null ?
+      (res.data as Record<string, unknown>)
+    : {}
+  return normalizeManagedUser(rec as Record<string, unknown>)
+}
+
+export type UpdateAdminUserInput = {
+  name: string
+  email: string
+  role: string
+  phone?: string | null
+  department?: string | null
+  city?: string | null
+  country?: string | null
+  how_did_you_hear_about_us?: string | null
+  /** Omit to leave unchanged on server. */
+  is_active?: boolean | null
+  password?: string
+  password_confirmation?: string
+  /** Multipart PUT via Laravel `_method`. */
+  avatarFile?: File | null
+  remove_avatar?: boolean
+}
+
+export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): Promise<AdminManagedUser> {
+  const pwd = patch.password?.trim()
+
+  function mergedRecord(resData: unknown, fallbackBody: Record<string, unknown>): AdminManagedUser {
+    const inner = unwrapData<unknown>(resData)
+    const rec =
+      inner && typeof inner === 'object' && !Array.isArray(inner) ?
+        (inner as Record<string, unknown>)
+      : { ...fallbackBody, id }
+    return normalizeManagedUser(rec as Record<string, unknown>)
+  }
+
+  const useMultipart = Boolean(patch.avatarFile) || Boolean(patch.remove_avatar)
+
+  const commonPairs: Record<string, string | boolean | undefined> = {}
+  if (patch.phone != null && String(patch.phone).trim() !== '') commonPairs.phone = String(patch.phone).trim()
+  if (patch.department != null && String(patch.department).trim() !== '')
+    commonPairs.department = String(patch.department).trim()
+  if (patch.city != null && String(patch.city).trim() !== '') commonPairs.city = String(patch.city).trim()
+  if (patch.country != null && String(patch.country).trim() !== '') commonPairs.country = String(patch.country).trim()
+  if (patch.how_did_you_hear_about_us != null && String(patch.how_did_you_hear_about_us).trim() !== '')
+    commonPairs.how_did_you_hear_about_us = String(patch.how_did_you_hear_about_us).trim()
+
+  if (patch.is_active === true) commonPairs.is_active = true
+  else if (patch.is_active === false) commonPairs.is_active = false
+
+  if (useMultipart) {
+    const fd = new FormData()
+    fd.append('_method', 'PUT')
+    fd.append('name', patch.name)
+    fd.append('email', patch.email)
+    fd.append('role', patch.role)
+    Object.entries(commonPairs).forEach(([k, val]) => {
+      if (val === undefined) return
+      if (typeof val === 'boolean') {
+        fd.append(k, val ? '1' : '0')
+        return
+      }
+      fd.append(k, val)
+    })
+    if (pwd) {
+      fd.append('password', pwd)
+      fd.append('password_confirmation', patch.password_confirmation?.trim() ?? pwd)
+    }
+    if (patch.avatarFile) fd.append('avatar', patch.avatarFile)
+    if (patch.remove_avatar) fd.append('remove_avatar', '1')
+
+    const res = await apiClient.post<unknown>(`${BASE}/${id}`, fd, silent)
+    return mergedRecord(res.data, {})
+  }
+
+  const body: Record<string, unknown> = {
+    name: patch.name,
+    email: patch.email,
+    role: patch.role,
+  }
+  Object.assign(body, commonPairs)
+  if (pwd) {
+    body.password = pwd
+    body.password_confirmation = patch.password_confirmation ?? pwd
+  }
+
+  const res = await apiClient.put<unknown>(`${BASE}/${id}`, body, silent)
+
+  const innerFallback: Record<string, unknown> = { ...body }
+  innerFallback.id = id
+  return mergedRecord(res.data, innerFallback)
+}
+
+export async function deleteAdminUser(id: number): Promise<void> {
+  await apiClient.delete(`${BASE}/${id}`, silent)
+}
+
+// ---------------------------------------------------------------------------
+// Quick user search (typeahead for admin modals)
+// ---------------------------------------------------------------------------
+
+export type UserSearchHit = {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  avatar: string | null
+}
+
+export async function searchAdminUsers(q: string): Promise<UserSearchHit[]> {
+  if (!q.trim()) return []
+  try {
+    const res = await apiClient.get<unknown>('/admin/users/search', { params: { q: q.trim() }, ...silent })
+    const inner = unwrapData<unknown>(res.data)
+    const list = Array.isArray(inner) ? inner : (inner && typeof inner === 'object' ? ((inner as Record<string, unknown>).data ?? []) : [])
+    return (Array.isArray(list) ? list : []) as UserSearchHit[]
+  } catch {
+    return []
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Student course enrollments
+// ---------------------------------------------------------------------------
+
+export type StudentCourseRow = {
+  course_id: number
+  course_title: string
+  status: string
+  registered_at: string | null
+  progress_status: string | null
+  progress_pct: number
+}
+
+export async function fetchStudentCourses(userId: number): Promise<StudentCourseRow[]> {
+  try {
+    const res = await apiClient.get<unknown>(`/admin/students/${userId}/courses`, silent)
+    const inner = unwrapData<unknown>(res.data)
+    const list =
+      Array.isArray(inner)
+        ? inner
+        : inner && typeof inner === 'object'
+          ? ((inner as Record<string, unknown>).data ?? [])
+          : []
+    return (Array.isArray(list) ? list : []) as StudentCourseRow[]
+  } catch {
+    return []
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Super-admin aggregate stats
+// ---------------------------------------------------------------------------
+
+export type SuperAdminStats = {
+  users: {
+    total: number
+    active: number
+    inactive: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  students: {
+    total: number
+    active: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  registrations: {
+    total: number
+    pending: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  courses: {
+    total: number
+  }
+  chart: Array<{
+    key: string
+    label: string
+    students: number
+    registrations: number
+  }>
+}
+
+export async function fetchSuperAdminStats(): Promise<SuperAdminStats | null> {
+  try {
+    const res = await apiClient.get<unknown>('/admin/stats', { ...silent })
+    const d = res.data as { data?: SuperAdminStats }
+    return d?.data ?? null
+  } catch {
+    return null
+  }
+}

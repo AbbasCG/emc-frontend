@@ -1,0 +1,385 @@
+/** Phase 4 — Revenue, certificates, quality, KPIs, reports */
+
+export type PaymentProvider = 'stripe' | 'paypal' | 'fake' | string
+export type PaymentStatus = 'confirmed' | 'pending' | 'failed' | 'refunded'
+
+export type FinanceDashboardData = {
+  total_revenue: number
+  confirmed_revenue: number
+  pending_revenue: number
+  failed_count: number
+  monthly_revenue: { month: string; amount: number }[]
+  revenue_by_course: { course_name: string; amount: number }[]
+  revenue_by_track: { track_name: string; amount: number }[]
+  latest_payments: FinancePaymentRow[]
+}
+
+export type FinancePaymentRow = {
+  id: number
+  amount: number
+  currency?: string
+  status: PaymentStatus
+  provider: PaymentProvider
+  payment_method?: string | null
+  // student
+  student_name?: string | null
+  student_email?: string | null
+  student_phone?: string | null
+  student_avatar?: string | null
+  // item
+  item_title?: string | null
+  item_type?: 'course' | 'workshop' | 'learning_path' | string | null
+  // legacy compat
+  course_name?: string | null
+  payer_email?: string | null
+  // order
+  order_number?: string | null
+  invoice_number?: string | null
+  order_id?: number | null
+  registration_id?: number | null
+  confirmed_at?: string | null
+  receipt_url?: string | null
+  created_at: string
+}
+
+export type FinanceOrder = {
+  id: number
+  order_number: string
+  type?: string | null
+  subtotal?: number | null
+  tax_amount?: number | null
+  total: number
+  currency: string
+  status: string
+  payment_provider?: string | null
+  paid_at?: string | null
+  created_at: string
+  updated_at?: string | null
+  course?: { id: number; title: string; slug?: string } | null
+  user?: {
+    id?: number
+    name?: string | null
+    email?: string | null
+    phone?: string | null
+    phone_country_code?: string | null
+    city?: string | null
+    country?: string | null
+    avatar_url?: string | null
+  } | null
+  invoice?: { id: number; invoice_number: string; issued_at: string } | null
+}
+
+export type FinanceInvoice = {
+  id: number
+  invoice_number: string
+  issued_at?: string | null
+  order_number?: string | null
+  total?: number | null
+  currency: string
+  status?: string | null
+  course_title?: string | null
+  student_name?: string | null
+  student_email?: string | null
+  has_pdf?: boolean
+}
+
+export type FinanceAccount = {
+  id: number
+  /** Stable technical identity (e.g. "STRIPE_CARD") — present only on system accounts. */
+  code?: string | null
+  name: string
+  type: string
+  /** Payment gateway, e.g. "stripe" — present only on gateway-linked accounts. */
+  provider?: string | null
+  /** Specific method within the provider, e.g. "card" | "ideal" — distinguishes Stripe Card from Stripe iDEAL. */
+  payment_method?: string | null
+  currency: string
+  opening_balance: number
+  current_balance: number
+  notes?: string | null
+  is_active: boolean
+  /** System-provisioned account (Stripe Card/iDEAL) — undeletable, identity fields locked. Backend-enforced, not just UI. */
+  is_system?: boolean
+  is_deletable?: boolean
+  created_at?: string
+  bank_name?: string | null
+  account_holder?: string | null
+  iban?: string | null
+  account_number?: string | null
+}
+
+export type FinanceAccountTransaction = {
+  id: number
+  finance_account_id: number
+  type: string
+  category?: string | null
+  amount: number
+  currency: string
+  status: string
+  description?: string | null
+  payment_method?: string | null
+  transaction_date: string
+  created_at: string
+}
+
+export type FinanceTransactionRow = {
+  id: number
+  label: string
+  amount: number
+  type: 'credit' | 'debit'
+  status: PaymentStatus
+  provider: PaymentProvider
+  created_at: string
+}
+
+/** Ledger row from GET /finance/transactions (FinancialTransactionResource). */
+export type FinancialTransactionType = 'revenue' | 'refund' | 'expense' | 'adjustment' | string
+export type FinancialTransactionStatus = 'confirmed' | 'pending' | 'failed' | string
+
+export type FinancialTransactionUser = {
+  id: number
+  name: string
+  email: string
+}
+
+export type FinancialTransaction = {
+  id: number
+  type: FinancialTransactionType
+  amount: number
+  currency: string
+  status: FinancialTransactionStatus
+  description: string | null
+  occurred_at: string
+  payment_id: number | null
+  registration_id: number | null
+  user: FinancialTransactionUser | null
+  created_at: string
+}
+
+export type FinancePaginationMeta = {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+}
+
+export type FinanceTransactionsPage = {
+  data: FinancialTransaction[]
+  meta: FinancePaginationMeta
+}
+
+export type CouponDiscountType = 'percentage' | 'fixed'
+export type CouponStatus = 'draft' | 'active' | 'inactive' | 'archived'
+
+export type CouponEligibilityType = 'all_paid_courses' | 'selected_courses'
+
+export type CouponCourseRef = { id: number; title: string; price?: number | null; status?: string | null }
+
+export type CouponRecord = {
+  id: number
+  code: string
+  name: string
+  description?: string | null
+  discount_type: CouponDiscountType
+  discount_value: number
+  maximum_discount_amount?: number | null
+  minimum_order_amount?: number | null
+  currency?: string | null
+  max_uses: number | null
+  used_count: number
+  remaining_uses?: number | null
+  usage_limit_per_user?: number | null
+  first_order_only?: boolean
+  individual_use_only?: boolean
+  starts_at: string | null
+  expires_at: string | null
+  status: CouponStatus
+  derived_status?: string
+  eligibility_type?: CouponEligibilityType
+  courses_count?: number
+  courses?: CouponCourseRef[]
+  excluded_courses?: CouponCourseRef[]
+  is_valid?: boolean
+  created_by?: { id: number; name: string } | null
+  updated_by?: { id: number; name: string } | null
+  created_at?: string
+  // Write-only payload fields (not returned by the API, sent on create/update).
+  course_ids?: number[]
+  excluded_course_ids?: number[]
+}
+
+export type ScholarshipType = 'full' | 'partial'
+export type ScholarshipStatus = 'pending' | 'accepted' | 'rejected'
+
+export type ScholarshipApplication = {
+  id: number
+  applicant_name: string
+  email: string
+  type: ScholarshipType
+  discount_percent: number | null
+  amount: number | null
+  reason: string | null
+  status: ScholarshipStatus
+  created_at: string
+}
+
+export type CertificateStatus = 'draft' | 'pending_approval' | 'issued' | 'revoked'
+
+export type CertificateRecord = {
+  id: number
+  student_name: string
+  student_email?: string | null
+  program_name?: string | null
+  course_name?: string | null
+  track_name?: string | null
+  title: string
+  certificate_type: string
+  verification_code: string
+  status: CertificateStatus
+  issued_at: string | null
+}
+
+export type CertificateVerificationResult = {
+  valid: boolean
+  student_name?: string | null
+  program_name?: string | null
+  course_name?: string | null
+  track_name?: string | null
+  title?: string | null
+  issued_at?: string | null
+  verification_code?: string | null
+  message?: string | null
+}
+
+export type QualityReviewStatus = 'draft' | 'submitted' | 'archived'
+
+export type QualityReview = {
+  id: number
+  reviewable_label: string
+  reviewer_name: string
+  overall_score: number
+  status: QualityReviewStatus
+  reviewed_at: string | null
+  objective_clarity?: number
+  content_quality?: number
+  instructor_score?: number
+  organization_score?: number
+  time_commitment?: number
+  completion_score?: number
+  output_quality?: number
+  repeatability?: number
+  notes?: string | null
+  recommendations?: string | null
+}
+
+export type QualityReviewPayload = Omit<
+  QualityReview,
+  'id' | 'reviewer_name' | 'status' | 'reviewed_at' | 'reviewable_label'
+> & {
+  reviewable_label: string
+}
+
+export type KpiTabSlug =
+  | 'overview'
+  | 'education'
+  | 'finance'
+  | 'departments'
+  | 'marketing'
+  | 'partnerships'
+  | 'hr'
+
+export type KpiMetric = {
+  id: string
+  label: string
+  value: string | number
+  hint?: string
+  trend?: 'up' | 'down' | 'flat'
+  accent?: 'blue' | 'orange'
+}
+
+export type KpiTabData = {
+  tab: KpiTabSlug
+  metrics: KpiMetric[]
+  highlights?: string[]
+}
+
+export type ReportTypeSlug =
+  | 'program'
+  | 'course'
+  | 'workshop'
+  | 'finance'
+  | 'quality'
+  | 'management'
+  | 'partnership'
+  | 'hr'
+
+export type ReportRecord = {
+  id: number
+  title: string
+  report_type: ReportTypeSlug
+  related_label?: string | null
+  created_at: string
+  preview_summary?: string | null
+}
+
+export type ManualPaymentStatus = 'pending_review' | 'confirmed' | 'rejected' | 'cancelled' | 'refunded'
+
+export type ManualPaymentPurchasableType = 'course' | 'workshop' | 'learning_path'
+
+export type ManualPayment = {
+  id: number
+  status: ManualPaymentStatus
+  paid_amount: number
+  expected_amount: number
+  difference_amount: number
+  currency: string
+  payment_method: string | null
+  external_reference: string | null
+  internal_reference?: string | null
+  reference?: string | null
+  payment_date: string
+  notes: string | null
+  rejection_reason?: string | null
+  created_at: string
+  updated_at?: string | null
+  reviewed_at: string | null
+  has_proof?: boolean
+  proof_original_name?: string | null
+  student: {
+    id: number
+    name: string
+    email: string
+    phone: string | null
+    role?: string | null
+  } | null
+  purchasable: {
+    id: number
+    title: string
+    type: ManualPaymentPurchasableType
+    price?: number | null
+  } | null
+  account: {
+    id: number
+    name: string
+    currency: string
+    bank_name?: string | null
+  } | null
+  reviewer: { id: number; name: string } | null
+  created_by?: { id: number; name: string } | null
+  creator?: { id: number; name: string } | null
+  order_id: number | null
+  payment_id: number | null
+  finance_transaction_id: number | null
+}
+
+export type FinanceAccountFull = FinanceAccount & {
+  bank_name?: string | null
+  account_holder?: string | null
+  iban?: string | null
+  account_number?: string | null
+  confirmed_income?: number
+  confirmed_expenses?: number
+  pending_amount?: number
+  last_transaction_date?: string | null
+  transactions_count?: number
+}

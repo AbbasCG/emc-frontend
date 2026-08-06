@@ -1,73 +1,113 @@
-# React + TypeScript + Vite
+<p align="center">
+  <img src="https://via.placeholder.com/400x100?text=EMC+Platform" width="400" alt="EMC Logo">
+</p>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<h1 align="center">EMC Frontend</h1>
 
-Currently, two official plugins are available:
+<p align="center">
+Modern educational platform UI built with React + TypeScript.
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 About Project
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+EMC is a global educational platform that helps:
 
-## Expanding the ESLint configuration
+* Students
+* Migrants
+* Career changers
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Services include:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* Language courses (EN / NL / AR)
+* Educational consulting
+* University guidance
+* CV review & job coaching
+* Technical training (AI, Data Science, Marketing, PM)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## ⚙️ Setup
+
+```bash id="fl6gax"
+git clone <frontend-repo-url>
+cd emc-frontend
+
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🌐 API
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Make sure backend is running:
+
+```id="kzj17q"
+http://127.0.0.1:8000/api
+```
+
+---
+
+## 🧱 Tech Stack
+
+* React + TypeScript
+* Vite
+* Tailwind CSS
+* Framer Motion
+* lucide-react
+* Axios
+* React Router
+
+---
+
+## 🎨 UI Features
+
+* RTL Arabic layout
+* Responsive design
+* Animated UI (Framer Motion)
+* Dynamic courses from API
+* Course Details page with:
+
+  * Instructor
+  * Learning outcomes
+  * Course info
+
+---
+
+## 📄 Pages
+
+* Home
+* Courses
+* Course Details
+* Register
+* Login
+* About
+* Contact
+* Dashboard
+
+---
+
+## ⚠️ Notes
+
+* UI is fully connected to Laravel backend
+* No static data (API-driven)
+* Supports:
+
+  * Online courses
+  * In-person courses
+  * Workshops (single-day)
+  * Multi-day programs
+
+---
+
+## 🛠 Troubleshooting
+
+If something breaks:
+
+```bash id="66l8p3"
+rm -rf node_modules
+npm install
+npm run dev
 ```
