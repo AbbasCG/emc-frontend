@@ -67,11 +67,11 @@ export default function OpsPartnershipRequestsPage() {
                   {p.status}
                 </span>
                 <div>
-                  <h2 className="text-lg font-black text-deepBlue">{p.institution_name}</h2>
+                  <h2 className="text-lg font-black text-deepBlue">{p.partner_name}</h2>
                   <p className="mt-1 text-[11px] font-bold text-slate-500">
                     {p.contact_name} · {p.email}
                   </p>
-                  <p className="mt-2 text-xs font-semibold text-slate-600">{p.message_preview}</p>
+                  <p className="mt-2 text-xs font-semibold text-slate-600 line-clamp-2">{p.message}</p>
                   <p className="mt-2 text-[10px] font-bold text-slate-400">{p.created_at}</p>
                 </div>
               </div>

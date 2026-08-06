@@ -215,13 +215,22 @@ export type PartnerRecord = {
 
 export type PartnershipRequest = {
   id: number
-  institution_name: string
+  partner_name: string
   contact_name?: string | null
   email?: string | null
-  institution_type?: string | null
+  phone?: string | null
+  country?: string | null
+  city?: string | null
+  website?: string | null
+  type?: string | null
+  type_other?: string | null
+  partnership_type?: string | null
+  partnership_type_other?: string | null
+  message?: string | null
+  privacy_accepted?: boolean
   status: string
   created_at: string
-  message_preview?: string | null
+  reviewed_by?: { id: number; name: string } | null
 }
 
 /** ── Marketing ─────────────────────────────────────────────────────────── */
