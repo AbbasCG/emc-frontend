@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Calendar, Video, Clock, Award, Bell, ChevronRight, FileText, Settings, LogOut, Headphones, Plus } from 'lucide-react';
+import { BookOpen, Calendar, Video, Clock, Award, Bell, ChevronRight, FileText, Settings, LogOut, Headphones } from 'lucide-react';
 import { EmcButton } from '@/components/ui';
 import { instituteApi } from '@/api/instituteApi';
 

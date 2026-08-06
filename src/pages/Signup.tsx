@@ -2,12 +2,13 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, Phone, UserPlus, UserRound } from 'lucide-react'
+import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, UserPlus, UserRound } from 'lucide-react'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
 import CountrySelector, { type Country } from '../components/ui/CountrySelector'
+import PhoneInput, { buildE164Phone } from '@/components/forms/PhoneInput'
 
 export default function Signup() {
   const { registerAccount } = useAuth()
@@ -54,7 +55,7 @@ export default function Signup() {
     setIsLoading(true)
 
     try {
-      const phone = `${selectedCountry!.dialCode}${localPhone.trim()}`
+      const phone = buildE164Phone(selectedCountry, localPhone)
       const payload = {
         name: name.trim(),
         email: email.trim(),
@@ -210,29 +211,12 @@ export default function Signup() {
               {/* رقم الجوال */}
               <div className="grid gap-2 text-sm font-black text-deepBlue">
                 رقم الجوال
-                <div
-                  dir="ltr"
-                  className={`flex h-14 w-full overflow-hidden rounded-xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-sky-100 ${fieldErrors.phone ? 'border-red-400' : 'border-slate-200 focus-within:border-customBlue'}`}
-                >
-                  <div className="flex shrink-0 items-center gap-1.5 border-r border-slate-200 bg-slate-100 px-3 text-sm font-bold text-deepBlue">
-                    {selectedCountry ? (
-                      <>
-                        <span className="text-base leading-none">{selectedCountry.flag}</span>
-                        <span>{selectedCountry.dialCode}</span>
-                      </>
-                    ) : (
-                      <Phone size={18} className="text-slate-400" />
-                    )}
-                  </div>
-                  <input
-                    type="tel"
-                    dir="ltr"
-                    value={localPhone}
-                    onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
-                    placeholder="000 000 0000"
-                    className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-slate-400"
-                  />
-                </div>
+                <PhoneInput
+                  country={selectedCountry}
+                  value={localPhone}
+                  onChange={(v) => { setLocalPhone(v); clearField('phone') }}
+                  error={fieldErrors.phone}
+                />
                 {fieldErrors.phone && <p className="text-xs font-semibold text-red-600">{fieldErrors.phone}</p>}
               </div>
 

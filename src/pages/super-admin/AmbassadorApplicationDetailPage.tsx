@@ -4,7 +4,7 @@
  *        /dashboard/hr/ambassador-applications/:id
  */
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowRight,
   Briefcase,
@@ -613,9 +613,13 @@ function NotesList({
 export default function AmbassadorApplicationDetailPage() {
   const { id: rawId } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const role = String(user?.role ?? '').toLowerCase()
   const canManage = MANAGE_ROLES.has(role)
+  const listBase = location.pathname.includes('/hr/')
+    ? '/dashboard/hr/ambassador-applications'
+    : '/dashboard/super-admin/ambassador-applications'
 
   const appId = Number(rawId)
 
@@ -759,7 +763,12 @@ export default function AmbassadorApplicationDetailPage() {
   }
 
   function goBack() {
-    navigate(-1)
+    // Prefer browser history so list search/filters/page are restored.
+    if (window.history.length > 1) {
+      navigate(-1)
+      return
+    }
+    navigate(listBase)
   }
 
   // ── Loading skeleton

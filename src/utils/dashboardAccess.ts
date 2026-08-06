@@ -207,6 +207,18 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return 'authenticated'
   }
 
+  /* Volunteer HR profile — the applicant's own self-service form. Must be
+     checked BEFORE the generic '/dashboard/volunteer' namespace rule below
+     (which restricts the bare /dashboard/volunteer "accepted volunteers"
+     list to admin-ish roles) — otherwise the prefix match blocks every
+     ordinary user from ever reaching their own submission form. */
+  if (
+    path === '/dashboard/volunteer/hr-profile' ||
+    path.startsWith('/dashboard/volunteer/hr-profile/')
+  ) {
+    return 'authenticated'
+  }
+
   /* Workshop requests — must be checked BEFORE generic namespace rules to override /dashboard/admin prefix */
   if (
     path === '/dashboard/admin/workshop-requests' ||

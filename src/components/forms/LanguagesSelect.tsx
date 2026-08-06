@@ -1,15 +1,15 @@
-import Select, { type SingleValue, type StylesConfig } from 'react-select'
-import { ALL_COUNTRIES, type Country } from '@/lib/countries'
+import CreatableSelect from 'react-select/creatable'
+import type { MultiValue, StylesConfig } from 'react-select'
 
-type CountryOption = Country & { label: string; value: string }
+export const COMMON_LANGUAGES = [
+  'العربية', 'الإنجليزية', 'الهولندية', 'الفرنسية', 'الألمانية', 'الإسبانية', 'التركية',
+]
 
-const OPTIONS: CountryOption[] = ALL_COUNTRIES.map((c) => ({
-  ...c,
-  value: c.code,
-  label: `${c.flag} ${c.name}`,
-}))
+type LanguageOption = { label: string; value: string }
 
-const rtlStyles: StylesConfig<CountryOption, false> = {
+const OPTIONS: LanguageOption[] = COMMON_LANGUAGES.map((l) => ({ label: l, value: l }))
+
+const rtlStyles: StylesConfig<LanguageOption, true> = {
   control: (base, state) => ({
     ...base,
     minHeight: '3.5rem',
@@ -19,7 +19,7 @@ const rtlStyles: StylesConfig<CountryOption, false> = {
     boxShadow: state.isFocused ? '0 0 0 4px rgba(38, 145, 194, 0.12)' : 'none',
     textAlign: 'right' as const,
     direction: 'rtl' as const,
-    cursor: 'pointer',
+    cursor: 'text',
     '&:hover': { borderColor: state.isFocused ? '#2691C2' : '#cbd5e1' },
   }),
   menu: (base) => ({
@@ -42,11 +42,23 @@ const rtlStyles: StylesConfig<CountryOption, false> = {
     padding: '10px 14px',
     cursor: 'pointer',
   }),
-  singleValue: (base) => ({
+  multiValue: (base) => ({
     ...base,
-    color: '#22334A',
+    backgroundColor: 'rgba(38, 145, 194, 0.1)',
+    borderRadius: '9999px',
+    paddingInline: '2px',
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: '#0f4c66',
     fontWeight: 700,
-    textAlign: 'right' as const,
+    fontSize: '0.75rem',
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    borderRadius: '9999px',
+    color: '#0f4c66',
+    ':hover': { backgroundColor: '#2691C2', color: '#fff' },
   }),
   placeholder: (base) => ({
     ...base,
@@ -67,43 +79,39 @@ const rtlStyles: StylesConfig<CountryOption, false> = {
   }),
 }
 
-function matchesQuery(c: Country, input: string): boolean {
-  const q = input.trim().toLowerCase()
-  if (!q) return true
-  return (
-    c.name.includes(input.trim()) ||
-    c.englishName.toLowerCase().includes(q) ||
-    c.code.toLowerCase().includes(q) ||
-    c.dialCode.includes(q) ||
-    c.dialCode.replace('+', '').includes(q.replace('+', ''))
-  )
-}
-
 type Props = {
-  value: Country | null
-  onChange: (country: Country) => void
+  value: string[]
+  onChange: (languages: string[]) => void
   error?: string
   instanceId?: string
 }
 
-export default function CountrySelect({ value, onChange, error, instanceId = 'emc-country-select' }: Props) {
-  const selected = value ? (OPTIONS.find((o) => o.code === value.code) ?? null) : null
+/**
+ * Searchable multi-select for languages — options + free "أخرى" custom entry
+ * via Creatable, same RTL/z-index/portal pattern as CountrySelect so the
+ * dropdown never gets clipped or layered behind a sibling card.
+ */
+export default function LanguagesSelect({ value, onChange, error, instanceId = 'emc-languages-select' }: Props) {
+  const selected: LanguageOption[] = value.map((v) => OPTIONS.find((o) => o.value === v) ?? { label: v, value: v })
 
   return (
     <div dir="rtl" className={error ? 'rounded-xl ring-2 ring-red-300' : undefined}>
-      <Select<CountryOption, false>
+      <CreatableSelect<LanguageOption, true>
         instanceId={instanceId}
+        isMulti
         options={OPTIONS}
         value={selected}
-        onChange={(opt: SingleValue<CountryOption>) => {
-          if (opt) onChange(opt)
+        onChange={(opts: MultiValue<LanguageOption>) => {
+          const names = opts.map((o) => o.value)
+          onChange(Array.from(new Set(names)))
         }}
         isSearchable
-        placeholder="ابحث بالعربية أو English أو رمز الدولة…"
+        placeholder="اختر اللغات"
         noOptionsMessage={() => 'لا توجد نتائج'}
+        formatCreateLabel={(input) => `إضافة "${input}" (أخرى)`}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"
-        aria-label="اختر الدولة"
+        aria-label="اللغات"
         styles={{
           ...rtlStyles,
           control: (base, state) => ({
@@ -111,14 +119,6 @@ export default function CountrySelect({ value, onChange, error, instanceId = 'em
             borderColor: error ? '#f87171' : state.isFocused ? '#2691C2' : '#e2e8f0',
           }),
         }}
-        filterOption={(option, input) => matchesQuery(option.data, input)}
-        formatOptionLabel={(opt) => (
-          <span className="flex items-center gap-2">
-            <span aria-hidden>{opt.flag}</span>
-            <span className="font-bold text-deepBlue">{opt.name}</span>
-            <span className="text-xs text-slate-400">{opt.dialCode}</span>
-          </span>
-        )}
       />
       {error ? <p className="mt-1.5 text-xs font-bold text-red-600">{error}</p> : null}
     </div>

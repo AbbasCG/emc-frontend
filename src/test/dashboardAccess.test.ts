@@ -87,6 +87,22 @@ describe('canAccessDashboardPath', () => {
     expect(canAccessDashboardPath('teacher', '/dashboard/instructor')).toBe(true)
     expect(canAccessDashboardPath('teacher', '/dashboard/admin')).toBe(false)
   })
+
+  it('any authenticated user (including "volunteer" and "student") can reach their own volunteer HR profile form', () => {
+    // Regression: /dashboard/volunteer/hr-profile was previously captured by
+    // the generic /dashboard/volunteer prefix rule (admin-ish roles only),
+    // so the actual applicant could never load their own submission form.
+    for (const role of ['volunteer', 'student', 'instructor'] as const) {
+      expect(canAccessDashboardPath(role, '/dashboard/volunteer/hr-profile')).toBe(true)
+    }
+  })
+
+  it('the bare accepted-volunteers list at /dashboard/volunteer stays restricted to admin-ish roles', () => {
+    expect(canAccessDashboardPath('super_admin', '/dashboard/volunteer')).toBe(true)
+    expect(canAccessDashboardPath('hr_manager', '/dashboard/volunteer')).toBe(true)
+    expect(canAccessDashboardPath('volunteer', '/dashboard/volunteer')).toBe(false)
+    expect(canAccessDashboardPath('student', '/dashboard/volunteer')).toBe(false)
+  })
 })
 
 describe('getAllowedRolesForPath', () => {

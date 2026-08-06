@@ -203,8 +203,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       items: [
         { label: 'الدعم / التذاكر',         href: '/dashboard/admin/support-tickets',      icon: ShieldQuestion },
         { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
+        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',               icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
-        { label: 'المتطوعون',               href: '/dashboard/admin/volunteers',            icon: Users          },
         { label: 'الشركاء',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
         { label: 'النماذج',                 href: '/dashboard/admin/forms',                 icon: FileText       },
@@ -289,7 +289,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'التسويق والإعلام',        href: '/dashboard/marketing',           icon: Megaphone       },
         { label: 'الدعم الفني',             href: '/dashboard/support',             icon: ShieldQuestion  },
         { label: 'الشركاء',                 href: '/dashboard/partner',             icon: HeartHandshake  },
-        { label: 'المتطوعون',               href: '/dashboard/volunteer',           icon: Users           },
+        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',       icon: UserCheck       },
+        { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',           icon: Users           },
         { label: 'مساحة الإدارات',          href: '/dashboard/department',          icon: Building2       },
         { label: 'اللوحة التنفيذية',        href: '/dashboard/executive',           icon: PieChart        },
         { label: 'مدير البرامج',            href: '/dashboard/admin/programs',      icon: BookMarked      },
@@ -377,8 +378,8 @@ function techAdminSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'طلبات التطوع',            href: '/dashboard/super-admin/volunteer-requests',         icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي',    href: '/dashboard/super-admin/ambassador-applications',    icon: Star           },
+        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',                          icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                             icon: Users          },
-        { label: 'المتطوعون',               href: '/dashboard/admin/volunteers',               icon: Users          },
         { label: 'الشركاء',                  href: '/dashboard/admin/partners',                icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests',    icon: HeartHandshake },
         { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests',       icon: Presentation   },
@@ -548,8 +549,9 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         title: 'التوظيف والمتطوعين',
         items: [
           { label: 'طلبات التطوع',          href: '/dashboard/hr/volunteer-requests',          icon: HeartHandshake },
-          { label: 'سفراء التحول الرقمي',   href: '/dashboard/hr/ambassador-applications',      icon: Star           },
+          { label: 'المتطوعون',              href: '/dashboard/hr/volunteers',                  icon: UserCheck      },
           { label: 'المتطوعون المقبولون',    href: '/dashboard/volunteer',                      icon: Award          },
+          { label: 'سفراء التحول الرقمي',   href: '/dashboard/hr/ambassador-applications',      icon: Star           },
           { label: 'المدربون',               href: '/dashboard/hr/instructors',        icon: GraduationCap  },
         ],
       },
@@ -595,6 +597,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       {
         items: [
+          { label: 'بياناتي التطوعية', href: '/dashboard/volunteer/hr-profile', icon: UserCheck },
           { label: 'طلبات التطوع', href: '/dashboard/ops/volunteers', icon: HeartHandshake },
           membersNavItem(),
         ],

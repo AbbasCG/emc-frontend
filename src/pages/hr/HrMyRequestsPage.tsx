@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Plus, Loader2, Users } from 'lucide-react'
 import apiClient from '@/api/axios'
 import toast from '@/lib/toast'
-import type { Department } from '@/types/platform'
 
 // Basic HR Request Type
 export interface HrRequest {
@@ -17,7 +16,7 @@ export interface HrRequest {
   target_audience: string
   created_by: number
   created_at: string
-  department?: Department
+  department?: { id: number; name?: string | null; name_ar?: string | null }
   creator?: { id: number; name: string }
 }
 
@@ -74,7 +73,7 @@ export default function HrMyRequestsPage() {
       // Refresh list
       void fetchRequests()
     } catch (err: any) {
-      errorToast(err.response?.data?.message || 'فشل في إرسال الطلب')
+      toast.error(err.response?.data?.message || 'فشل في إرسال الطلب')
     } finally {
       setSubmitting(false)
     }

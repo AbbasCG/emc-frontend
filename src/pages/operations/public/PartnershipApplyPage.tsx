@@ -6,7 +6,8 @@ import { Handshake } from 'lucide-react'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { submitPartnershipApplication } from '@/api/partnersApi'
 import { getLaravelFieldErrors } from '@/api/apiErrors'
-import CountrySelect, { type Country } from '@/components/forms/CountrySelect'
+import CountrySelect from '@/components/forms/CountrySelect'
+import type { Country } from '@/lib/countries'
 
 const ORG_TYPES: Array<{ value: string; label: string }> = [
   { value: 'academic', label: 'مؤسسة تعليمية' },

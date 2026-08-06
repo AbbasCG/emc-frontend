@@ -247,6 +247,8 @@ const WorkshopRequestDetailPage   = lazy(() => import('./pages/WorkshopRequestDe
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
 const ProductUpdatesPage          = lazy(() => import('./pages/super-admin/ProductUpdatesPage'))
 const VolunteerRequestsPage            = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
+const VolunteerHrProfilePage           = lazy(() => import('./pages/dashboard/VolunteerHrProfilePage'))
+const HrVolunteerProfilesPage          = lazy(() => import('./pages/dashboard/HrVolunteerProfilesPage'))
 const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
 const AmbassadorApplicationDetailPage  = lazy(() => import('./pages/super-admin/AmbassadorApplicationDetailPage'))
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
@@ -415,6 +417,9 @@ function App() {
                   <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/volunteer/hr-profile" element={<Suspense fallback={<RouteFallback />}><VolunteerHrProfilePage /></Suspense>} />
+                  <Route path="/dashboard/hr/volunteers" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
+                  <Route path="/dashboard/hr/volunteers/:id" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
                   <Route path="/dashboard/hr/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
