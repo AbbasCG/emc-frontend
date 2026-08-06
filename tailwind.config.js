@@ -77,11 +77,11 @@ export default {
       },
 
       fontFamily: {
-        /** Project default stays Tajawal — Arabic first. */
-        sans: ['"Tajawal"', "ui-sans-serif", "system-ui", "sans-serif"],
-        /** Opt-in Latin/Inter family for numerals, kbd, code, English/Dutch text. */
-        latin: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ['"Tajawal"', '"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /** Project default updated to Thmanyah (8) to match the new design. */
+        sans: ['"Thmanyah"', '"IBM Plex Sans Arabic"', '"Tajawal"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /** Opt-in Latin family for numerals, English/Dutch text (Manrope from edumc.nl). */
+        latin: ['"Manrope"', "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"ThmanyahDisplay"', '"Thmanyah"', '"Tajawal"', "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
 
@@ -103,6 +103,8 @@ export default {
         "emc-inset": "inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(15,42,67,0.04)",
         "emc-ring": "0 0 0 1px rgba(34,51,74,0.06), 0 0 0 4px rgba(38,145,194,0.10)",
         "kpi":     "0 16px 44px -24px rgba(15,42,67,0.18), inset 0 1px 0 rgba(255,255,255,0.65)",
+        "soft":    "0 1px 2px rgba(46,16,101,.04), 0 12px 32px -12px rgba(91,33,182,.18)",
+        "lift":    "0 2px 4px rgba(46,16,101,.05), 0 24px 48px -20px rgba(91,33,182,.32)",
       },
 
       backgroundImage: {

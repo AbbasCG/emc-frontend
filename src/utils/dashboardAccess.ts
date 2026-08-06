@@ -91,6 +91,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
   { prefix: '/dashboard/student', roles: ['student'] },
   { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
+  { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance', roles: ['finance_manager'] },
   { prefix: '/dashboard/quality', roles: ['quality_manager'] },
   { prefix: '/dashboard/hr', roles: ['hr_manager'] },
@@ -194,6 +195,14 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (
     path === '/dashboard/department/financial-requests' ||
     path.startsWith('/dashboard/department/financial-requests/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* HR requests — any authenticated user who is a department leader may access this page. */
+  if (
+    path === '/dashboard/department/hr-requests' ||
+    path.startsWith('/dashboard/department/hr-requests/')
   ) {
     return 'authenticated'
   }

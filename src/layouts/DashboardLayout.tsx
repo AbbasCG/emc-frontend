@@ -32,7 +32,6 @@ import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
-import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
 import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
@@ -330,11 +329,11 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       <aside
         dir="rtl"
         className={[
-          'fixed inset-y-0 right-0 z-sidebar flex w-60 flex-col overflow-hidden',
+          'fixed inset-y-0 right-0 z-sidebar flex w-[252px] flex-col overflow-hidden',
           'bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A]',
           'border-l border-white/[0.06] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
           'transition-transform duration-300 ease-emc-out',
-          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
+          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:static lg:col-start-2 lg:row-start-1',
         ].join(' ')}
       >
         {/* Ambient orbs */}
@@ -535,7 +534,7 @@ function Topbar({
   return (
     <header
       dir="rtl"
-      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-deepBlue/[0.07] bg-white/95 px-4 shadow-[0_1px_0_rgba(15,42,67,0.04)] backdrop-blur-2xl lg:right-60 lg:w-[calc(100%-15rem)]"
+      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
     >
       <button
         type="button"
@@ -770,18 +769,12 @@ export default function DashboardLayout() {
   return (
     <FinancialRequestProvider>
     <StudentDashboardProvider>
-    <div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]">
-      {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-gradient-to-br from-[#F6F8FB] via-[#F3F7FC] to-[#EEF4FA]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-emc-grid bg-grid-32 opacity-[0.4] [mask-image:radial-gradient(ellipse_at_top_left,rgba(0,0,0,0.45),transparent_70%)]"
-      />
-
+    <div className="emc-shell min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_252px] h-full" dir="ltr">
+        
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      <main className="col-start-1 row-start-1 min-w-0" dir="rtl" id="dashboard-main-content" tabIndex={-1}>
       <Topbar
         onMenuClick={() => setSidebarOpen(true)}
         onOpenSearch={() => setPaletteOpen(true)}
@@ -818,16 +811,12 @@ export default function DashboardLayout() {
         onUnreadChange={setWhatsNewUnread}
       />
 
-      <main
-        className={`relative z-content ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
-        id="dashboard-main-content"
-        tabIndex={-1}
-      >
         <div className="p-5 md:p-7 lg:p-8">
           <ImpersonationBanner />
           <Outlet />
         </div>
       </main>
+      </div>
     </div>
     </StudentDashboardProvider>
     </FinancialRequestProvider>

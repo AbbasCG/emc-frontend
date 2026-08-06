@@ -1,8 +1,17 @@
 /* EMC global stylesheet — premium design system foundation.
    Arabic-first (Tajawal), Latin/numeric opt-in (Inter), RTL by default. */
-@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Light.woff2) format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Medium.woff2) format("woff2");font-weight:500 600;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Black.woff2) format("woff2");font-weight:800 900;font-display:swap}
+@font-face{font-family:"ThmanyahDisplay";src:url(/fonts/thmanyahserifdisplay-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"ThmanyahDisplay";src:url(/fonts/thmanyahserifdisplay-Black.woff2) format("woff2");font-weight:800 900;font-display:swap}
 
 @tailwind base;
 @tailwind components;
@@ -19,6 +28,16 @@
   --foreground: 213 37% 21%;
   --muted-foreground: 215 16% 47%;
   --primary: 30 81% 57%;
+  --primary-foreground: 0 0% 98%;
+  
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 240 5.9% 10%;
 
   /* ── EMC semantic design tokens (new) ──
      Use via `var(--emc-…)` from utilities below; safe to consume in inline styles. */
@@ -70,7 +89,7 @@ html {
 
 /* Project font + smoother rendering. Numerals use tabular (kerning/lining stays default). */
 body {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Thmanyah", "IBM Plex Sans Arabic", "Tajawal", sans-serif;
   direction: rtl;
   background-color: #ffffff;
   color: var(--deepBlue);
