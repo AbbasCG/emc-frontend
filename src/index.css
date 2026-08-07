@@ -12,7 +12,8 @@
    users actually get. Nothing needed them — `font-serif` has zero usages, and every
    `font-display`/`font-sans` weight in use is covered by the woff2 above. */
 
-@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Light.woff2) format("woff2");font-weight:300;font-display:swap}
+/* Weight 300 (Light) is deliberately NOT loaded: `font-light` has zero usages in src,
+   so its 72KB sat on the critical path for nothing. Re-add the @font-face if it is ever used. */
 @font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Medium.woff2) format("woff2");font-weight:500 600;font-display:swap}
 @font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Bold.woff2) format("woff2");font-weight:700;font-display:swap}

@@ -1,42 +1,42 @@
 {
   "home": {
-    "url": "http://localhost:4173/",
-    "performance": 56,
+    "url": "http://127.0.0.1:4173/",
+    "performance": 61,
     "accessibility": 86,
     "bestPractices": 96,
     "seo": 100,
-    "lcpMs": 11187,
-    "tbtMs": 0,
+    "lcpMs": 6579,
+    "tbtMs": 24,
     "cls": 0
   },
   "courses": {
-    "url": "http://localhost:4173/courses",
-    "performance": 56,
+    "url": "http://127.0.0.1:4173/courses",
+    "performance": 63,
     "accessibility": 89,
     "bestPractices": 96,
     "seo": 100,
-    "lcpMs": 11037,
-    "tbtMs": 0,
+    "lcpMs": 6366,
+    "tbtMs": 32,
     "cls": 0
   },
   "course-detail": {
-    "url": "http://localhost:4173/courses/1",
-    "performance": 39,
+    "url": "http://127.0.0.1:4173/courses/1",
+    "performance": 45,
     "accessibility": 93,
     "bestPractices": 96,
     "seo": 100,
-    "lcpMs": 11490,
-    "tbtMs": 0,
+    "lcpMs": 6572,
+    "tbtMs": 37,
     "cls": 0.352
   },
   "login": {
-    "url": "http://localhost:4173/login",
-    "performance": 56,
+    "url": "http://127.0.0.1:4173/login",
+    "performance": 62,
     "accessibility": 90,
     "bestPractices": 100,
     "seo": 100,
-    "lcpMs": 10210,
+    "lcpMs": 6620,
     "tbtMs": 0,
-    "cls": 0.005
+    "cls": 0
   }
 }

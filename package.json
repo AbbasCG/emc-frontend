@@ -12,6 +12,8 @@
     "check:bundle": "node scripts/bundle-report.mjs",
     "seo:assets": "node scripts/generate-og-image.mjs && node scripts/generate-sitemap.mjs",
     "lint": "eslint .",
+    "prerender": "node scripts/prerender.mjs",
+    "build:prod": "npm run build && npm run prerender",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
