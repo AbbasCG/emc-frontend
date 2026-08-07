@@ -136,15 +136,18 @@ export default {
 
       fontFamily: {
         /* V3: Thmanyah exclusive — Sans for body/UI/ALL numerals; IBM Plex = sanctioned fallback.
-           "Thmanyah"/"ThmanyahDisplay" are the team-committed woff2 families (same typefaces),
-           chained so production renders Thmanyah even without the local gitignored OTF set. */
-        sans: ['"Thmanyah Sans"', '"Thmanyah"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
-        /* V3: headings/covers — Thmanyah Serif Display. */
-        display: ['"Thmanyah Serif Display"', '"ThmanyahDisplay"', '"Thmanyah Sans"', '"Thmanyah"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
-        /* V3: long-form booklet body. */
-        serif: ['"Thmanyah Serif Text"', '"Thmanyah Serif Display"', '"ThmanyahDisplay"', "serif"],
+           "Thmanyah"/"ThmanyahDisplay" are the committed woff2 families — the only Thmanyah
+           files that ship. The OTF-only names ("Thmanyah Sans", "Thmanyah Serif Display",
+           "Thmanyah Serif Text") were dropped from these stacks: their @font-face rules
+           pointed at gitignored files that 404 in production. Same typefaces either way. */
+        sans: ['"Thmanyah"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* V3: headings/covers — Thmanyah Serif Display (woff2: Bold + Black). */
+        display: ['"ThmanyahDisplay"', '"Thmanyah"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* V3: long-form booklet body. No Serif Text woff2 exists and `font-serif` has zero
+           usages in src — falls back to the display family rather than a dead name. */
+        serif: ['"ThmanyahDisplay"', '"Thmanyah"', "serif"],
         /* Latin/numeric contexts — Sans carries numerals per V3; IBM Plex fallback. */
-        latin: ['"Thmanyah Sans"', '"Thmanyah"', '"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        latin: ['"Thmanyah"', '"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
 

@@ -1,10 +1,16 @@
 /* EMC global stylesheet — Brand V3.1 foundation.
    Arabic-first, RTL by default. Typography: Thmanyah (exclusive per V3) —
-   Serif Display for headings, Sans for body/UI/ALL numerals, Serif Text for long-form.
-   Two provisioning layers: the team-committed woff2 subset below (families "Thmanyah"
-   and "ThmanyahDisplay", public/fonts/) serves production; the full 8-weight OTF set
-   (public/fonts/thmanyah — gitignored pending the web-license gate) overrides locally.
-   IBM Plex (via <link> in index.html) is the sanctioned institutional fallback. */
+   Serif Display for headings, Sans for body/UI/ALL numerals.
+   ONE provisioning layer: the committed woff2 below (families "Thmanyah" and
+   "ThmanyahDisplay", public/fonts/) — the same typefaces, and the only ones that ship.
+   IBM Plex (via <link> in index.html) is the sanctioned institutional fallback.
+
+   The local OTF set (public/fonts/thmanyah/, gitignored) used to be declared here as a
+   second layer. It was removed: those files are never deployed, so in production all ten
+   @font-face rules resolved to 404s on every page load, while on a developer machine they
+   added 3.6MB to dist and made local performance measurement unrepresentative of what
+   users actually get. Nothing needed them — `font-serif` has zero usages, and every
+   `font-display`/`font-sans` weight in use is covered by the woff2 above. */
 
 @font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Light.woff2) format("woff2");font-weight:300;font-display:swap}
 @font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
@@ -17,18 +23,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ── Thmanyah @font-face (V3 exclusive) — local, swap ── */
-@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Light.otf') format('opentype'); font-weight: 300; font-display: swap; }
-@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
-@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
-@font-face { font-family: 'Thmanyah Sans'; src: url('/fonts/thmanyah/thmanyahsans-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
-@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyah/thmanyahserifdisplay-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
-@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyah/thmanyahserifdisplay-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
-@font-face { font-family: 'Thmanyah Serif Display'; src: url('/fonts/thmanyah/thmanyahserifdisplay-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
-@font-face { font-family: 'Thmanyah Serif Text'; src: url('/fonts/thmanyah/thmanyahseriftext-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Thmanyah Serif Text'; src: url('/fonts/thmanyah/thmanyahseriftext-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
 
 :root {
   /* ── Brand vars → V2.2 (do not remove — used across components) ── */
@@ -105,7 +99,7 @@ html {
 
 /* Project font + smoother rendering. Numerals use tabular (kerning/lining stays default). */
 body {
-  font-family: "Thmanyah Sans", "Thmanyah", "IBM Plex Sans Arabic", sans-serif;
+  font-family: "Thmanyah", "IBM Plex Sans Arabic", sans-serif;
   direction: rtl;
   background-color: var(--paper);
   color: var(--body);
@@ -122,14 +116,14 @@ body {
 kbd,
 code,
 .tabular-nums {
-  font-family: "Thmanyah Sans", "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Thmanyah", "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "cv11" 1, "ss01" 1;
 }
 
 /* Headings — Thmanyah Serif Display (brand V3). */
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Thmanyah Serif Display", "Thmanyah Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  font-family: "ThmanyahDisplay", "Thmanyah", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.012em;
 }
 
@@ -480,7 +474,7 @@ a {
 
   /* Ghost numbers — huge Sans Black at 5% navy, behind section numbering. */
   .emc-ghost-num {
-    font-family: "Thmanyah Sans", "IBM Plex Sans", sans-serif;
+    font-family: "Thmanyah", "IBM Plex Sans Arabic", sans-serif;
     font-weight: 900;
     color: rgba(12,42,75,0.05);
     line-height: 1;

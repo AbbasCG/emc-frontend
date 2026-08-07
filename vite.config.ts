@@ -1,7 +1,27 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { rmSync } from 'node:fs'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
+
+/**
+ * Keep the local build byte-identical to the deployed one.
+ *
+ * `public/fonts/thmanyah/` holds the 3.6MB OTF master set. It is gitignored, so CI and
+ * production never have it — but Vite copies `public/` verbatim, so on a developer
+ * machine it landed in `dist/` and made every local measurement (Lighthouse, bundle
+ * budget) describe a payload no user ever downloads. Nothing references these files
+ * since the woff2 became the single provisioning layer, so drop them from the output.
+ */
+function dropLocalOnlyFonts() {
+  return {
+    name: 'emc-drop-local-only-fonts',
+    apply: 'build' as const,
+    closeBundle() {
+      rmSync(path.resolve(__dirname, 'dist/fonts/thmanyah'), { recursive: true, force: true })
+    },
+  }
+}
 
 /**
  * Top-level package name for a module id, or `null` for first-party source.
@@ -20,6 +40,7 @@ function packageOf(id: string): string | null {
 export default defineConfig({
   plugins: [
     react(),
+    dropLocalOnlyFonts(),
     ViteImageOptimizer({
       png: { quality: 82 },
       jpeg: { quality: 82 },
