@@ -57,3 +57,9 @@ public/fonts/thmanyah/
 # Playwright generated output — the belt's tracked artefacts are e2e/__screenshots__ only
 /playwright-report/
 /test-results/
+
+# Generated artifacts — never track (regenerate via npm run test:coverage / npx playwright test)
+coverage/
+test-results/
+playwright-report/
+e2e/__screenshots__/
