@@ -51,6 +51,12 @@ jobs:
       - name: Bundle budget (initial payload)
         run: npm run check:bundle
 
+      # M7.C: colours must come from the design tokens. Fails if any file outside the
+      # M0-remap legacy baseline contains a raw hex value, or if a legacy file grows —
+      # the baseline may only shrink. The ESLint half of the gate covers clean files.
+      - name: Brand gate (raw hex vs design tokens)
+        run: npm run check:brand
+
       - name: Test
         run: npm test
 

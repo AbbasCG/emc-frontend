@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
     "check:secrets": "node scripts/check-secrets.mjs",
+    "check:brand": "node scripts/check-raw-hex.mjs",
     "check:bundle": "node scripts/bundle-report.mjs",
     "seo:assets": "node scripts/generate-og-image.mjs && node scripts/generate-sitemap.mjs",
     "lint": "eslint .",
