@@ -32,7 +32,6 @@ import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
-import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
 import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
@@ -337,11 +336,11 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       <aside
         dir="rtl"
         className={[
-          'fixed inset-y-0 right-0 z-sidebar flex w-60 flex-col overflow-hidden',
+          'fixed inset-y-0 right-0 z-sidebar flex w-[252px] flex-col overflow-hidden',
           'bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A]',
           'border-l border-white/[0.06] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
           'transition-transform duration-300 ease-emc-out',
-          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
+          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:static lg:col-start-2 lg:row-start-1',
         ].join(' ')}
       >
         {/* Ambient orbs */}
@@ -408,23 +407,23 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             const open = sidebarSearching ? true : collapsibleSectionOpen(group.title, group.collapsible, group.defaultOpen)
 
             return (
-            <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
+            <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
               {group.collapsible && group.title ?
                 <button
                   type="button"
                   aria-expanded={open}
                   onClick={() => toggleCollapsibleSection(group.title, group.defaultOpen)}
-                  className="group/cap mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-ice/50 transition hover:bg-white/[0.05]"
+                  className="group/cap mb-1 flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.06] hover:text-white"
                 >
+                  <span className="flex-1 text-right text-xs font-bold text-white/70">{group.title}</span>
                   <ChevronDown
-                    size={16}
-                    className={`shrink-0 text-customOrange transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
+                    size={14}
+                    className={`shrink-0 text-customOrange/90 transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
                     aria-hidden
                   />
-                  <span className="font-latin flex-1 text-right leading-tight text-ice/60">{group.title}</span>
                 </button>
               : group.title ?
-                <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-ice/45 font-latin">
+                <p className="mb-1 px-3 text-xs font-bold text-white/50 tracking-wide">
                   {group.title}
                 </p>
               : null}
@@ -439,22 +438,22 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                           end={exactMatchSidebarRoutes.has(item.href)}
                           aria-current={active ? 'page' : undefined}
                           className={[
-                            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
+                            'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 ease-emc-out',
                             active
                               ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(0,119,182,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
-                              : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+                              : 'text-white/75 hover:bg-white/[0.07] hover:text-white',
                           ].join(' ')}
                         >
                           {active ?
                             <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(242,140,0,0.7)]" />
                           : null}
                           <item.icon
-                            size={17}
-                            className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'}
+                            size={16}
+                            className={active ? 'text-white shrink-0' : 'text-white/60 shrink-0 transition group-hover:text-white'}
                           />
-                          <span className="flex-1">{item.label}</span>
+                          <span className="flex-1 truncate">{item.label}</span>
                           {!active ?
-                            <ChevronLeft size={14} className="text-white/25 transition group-hover:text-white/50" />
+                            <ChevronLeft size={13} className="text-white/25 shrink-0 transition group-hover:text-white/50" />
                           : null}
                         </NavLink>
                       </li>
@@ -547,7 +546,7 @@ function Topbar({
   return (
     <header
       dir="rtl"
-      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-deepBlue/[0.07] bg-white/95 px-4 shadow-[0_1px_0_rgba(15,42,67,0.04)] backdrop-blur-2xl lg:right-60 lg:w-[calc(100%-15rem)]"
+      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
     >
       <button
         type="button"
@@ -786,18 +785,12 @@ export default function DashboardLayout() {
   return (
     <FinancialRequestProvider>
     <StudentDashboardProvider>
-    <div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]">
-      {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-gradient-to-br from-[#F6F8FB] via-[#F3F7FC] to-[#EEF4FA]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-emc-grid bg-grid-32 opacity-[0.4] [mask-image:radial-gradient(ellipse_at_top_left,rgba(0,0,0,0.45),transparent_70%)]"
-      />
-
+    <div className="emc-shell min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_252px] h-full" dir="ltr">
+        
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      <main className="col-start-1 row-start-1 min-w-0" dir="rtl" id="dashboard-main-content" tabIndex={-1}>
       <Topbar
         onMenuClick={() => setSidebarOpen(true)}
         onOpenSearch={() => setPaletteOpen(true)}
@@ -837,7 +830,7 @@ export default function DashboardLayout() {
       <Link
         to="/ai"
         aria-label="المساعد الذكي"
-        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(15,42,67,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
+        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(6,24,44,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
       >
         <span
           aria-hidden
@@ -850,16 +843,12 @@ export default function DashboardLayout() {
         <Bot size={26} className="relative" />
       </Link>
 
-      <main
-        className={`relative z-content ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
-        id="dashboard-main-content"
-        tabIndex={-1}
-      >
         <div className="p-5 md:p-7 lg:p-8">
           <ImpersonationBanner />
           <Outlet />
         </div>
       </main>
+      </div>
     </div>
     </StudentDashboardProvider>
     </FinancialRequestProvider>

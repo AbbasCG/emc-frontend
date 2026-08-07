@@ -18,4 +18,5 @@ class ObserverStub {
   readonly thresholds: number[] = []
 }
 globalThis.IntersectionObserver ??= ObserverStub as unknown as typeof IntersectionObserver
+// Also covers the team's DropdownPortal need (EmcDatePicker and floating menus).
 globalThis.ResizeObserver ??= ObserverStub as unknown as typeof ResizeObserver

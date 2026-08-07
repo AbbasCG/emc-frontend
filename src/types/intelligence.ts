@@ -168,20 +168,44 @@ export type FinanceTransactionsPage = {
   meta: FinancePaginationMeta
 }
 
-export type CouponDiscountType = 'percent' | 'fixed'
+export type CouponDiscountType = 'percentage' | 'fixed'
+export type CouponStatus = 'draft' | 'active' | 'inactive' | 'archived'
+
+export type CouponEligibilityType = 'all_paid_courses' | 'selected_courses'
+
+export type CouponCourseRef = { id: number; title: string; price?: number | null; status?: string | null }
 
 export type CouponRecord = {
   id: number
   code: string
   name: string
+  description?: string | null
   discount_type: CouponDiscountType
-  value: number
+  discount_value: number
+  maximum_discount_amount?: number | null
+  minimum_order_amount?: number | null
+  currency?: string | null
   max_uses: number | null
-  uses_count: number
+  used_count: number
+  remaining_uses?: number | null
+  usage_limit_per_user?: number | null
+  first_order_only?: boolean
+  individual_use_only?: boolean
   starts_at: string | null
-  ends_at: string | null
-  applies_to: string
-  active: boolean
+  expires_at: string | null
+  status: CouponStatus
+  derived_status?: string
+  eligibility_type?: CouponEligibilityType
+  courses_count?: number
+  courses?: CouponCourseRef[]
+  excluded_courses?: CouponCourseRef[]
+  is_valid?: boolean
+  created_by?: { id: number; name: string } | null
+  updated_by?: { id: number; name: string } | null
+  created_at?: string
+  // Write-only payload fields (not returned by the API, sent on create/update).
+  course_ids?: number[]
+  excluded_course_ids?: number[]
 }
 
 export type ScholarshipType = 'full' | 'partial'

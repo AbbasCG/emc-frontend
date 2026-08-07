@@ -1,9 +1,18 @@
 /* EMC global stylesheet — Brand V3.1 foundation.
    Arabic-first, RTL by default. Typography: Thmanyah (exclusive per V3) —
    Serif Display for headings, Sans for body/UI/ALL numerals, Serif Text for long-form.
-   Font binaries are locally provisioned (public/fonts/thmanyah — gitignored pending the
-   web-license gate); IBM Plex (via <link> in index.html) is the sanctioned institutional
-   fallback so environments without the files degrade gracefully. */
+   Two provisioning layers: the team-committed woff2 subset below (families "Thmanyah"
+   and "ThmanyahDisplay", public/fonts/) serves production; the full 8-weight OTF set
+   (public/fonts/thmanyah — gitignored pending the web-license gate) overrides locally.
+   IBM Plex (via <link> in index.html) is the sanctioned institutional fallback. */
+
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Light.woff2) format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Medium.woff2) format("woff2");font-weight:500 600;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Thmanyah";src:url(/fonts/thmanyahsans-Black.woff2) format("woff2");font-weight:800 900;font-display:swap}
+@font-face{font-family:"ThmanyahDisplay";src:url(/fonts/thmanyahserifdisplay-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"ThmanyahDisplay";src:url(/fonts/thmanyahserifdisplay-Black.woff2) format("woff2");font-weight:800 900;font-display:swap}
 
 @tailwind base;
 @tailwind components;
@@ -34,6 +43,17 @@
   --foreground: 213 31% 22%;
   --muted-foreground: 213 16% 43%;
   --primary: 33 100% 47%;
+  --primary-foreground: 0 0% 98%;
+
+  /* Sidebar tokens (team, 2026-08 drop) — consumed by dashboard sidebar surfaces. */
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 240 5.9% 10%;
 
   /* ── EMC semantic design tokens (new) ──
      Use via `var(--emc-…)` from utilities below; safe to consume in inline styles. */
@@ -85,7 +105,7 @@ html {
 
 /* Project font + smoother rendering. Numerals use tabular (kerning/lining stays default). */
 body {
-  font-family: "Thmanyah Sans", "IBM Plex Sans Arabic", sans-serif;
+  font-family: "Thmanyah Sans", "Thmanyah", "IBM Plex Sans Arabic", sans-serif;
   direction: rtl;
   background-color: var(--paper);
   color: var(--body);

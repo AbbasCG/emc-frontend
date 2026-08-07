@@ -234,11 +234,21 @@ export type AmbassadorListParams = {
   status?: AmbassadorStatus | 'all'
   search?: string
   country?: string
+  city?: string
+  university?: string
   university_name?: string
+  specialization?: string
   major?: string
   gender?: string
   date_from?: string
   date_to?: string
+}
+
+export type AmbassadorFilterOptions = {
+  countries: string[]
+  cities: string[]
+  universities: string[]
+  specializations: string[]
 }
 
 export type AmbassadorListResult = {
@@ -342,21 +352,28 @@ export async function saveAmbassadorDraft(
 
 export async function fetchAmbassadorApplications(
   params: AmbassadorListParams = {},
+  signal?: AbortSignal,
 ): Promise<AmbassadorListResult> {
   const qs: Record<string, string> = {}
   if (params.page && params.page > 1) qs.page = String(params.page)
   if (params.per_page) qs.per_page = String(params.per_page)
   if (params.status && params.status !== 'all') qs.status = params.status
   if (params.search?.trim()) qs.search = params.search.trim()
-  if (params.country && params.country !== 'all') qs.country = params.country
-  if (params.university_name?.trim()) qs.university_name = params.university_name.trim()
-  if (params.major?.trim()) qs.major = params.major.trim()
+  if (params.country?.trim() && params.country !== 'all') qs.country = params.country.trim()
+  if (params.city?.trim()) qs.city = params.city.trim()
+  const university = (params.university ?? params.university_name)?.trim()
+  if (university) qs.university = university
+  const specialization = (params.specialization ?? params.major)?.trim()
+  if (specialization) qs.specialization = specialization
   if (params.gender && params.gender !== 'all') qs.gender = params.gender
   if (params.date_from) qs.date_from = params.date_from
   if (params.date_to) qs.date_to = params.date_to
 
   const query = Object.keys(qs).length ? '?' + new URLSearchParams(qs).toString() : ''
-  const res = await apiClient.get<unknown>(`/admin/ambassador-applications${query}`, { skipErrorToast: true } as Record<string, unknown>)
+  const res = await apiClient.get<unknown>(`/admin/ambassador-applications${query}`, {
+    skipErrorToast: true,
+    signal,
+  } as Record<string, unknown>)
   const body = res.data as Record<string, unknown>
 
   const rawList = Array.isArray(body?.data) ? (body.data as unknown[]) : []
@@ -379,6 +396,31 @@ export async function fetchAmbassadorApplications(
     statistics: (body?.statistics ?? {}) as Record<string, number>,
     by_country: (body?.by_country ?? []) as { country: string; count: number }[],
     monthly_trend: (body?.monthly_trend ?? []) as { month: string; count: number }[],
+  }
+}
+
+export async function fetchAmbassadorFilterOptions(
+  params: { country?: string; city?: string } = {},
+  signal?: AbortSignal,
+): Promise<AmbassadorFilterOptions> {
+  const qs: Record<string, string> = {}
+  if (params.country?.trim()) qs.country = params.country.trim()
+  if (params.city?.trim()) qs.city = params.city.trim()
+  const query = Object.keys(qs).length ? '?' + new URLSearchParams(qs).toString() : ''
+  const res = await apiClient.get<unknown>(`/admin/ambassador-applications/filter-options${query}`, {
+    skipErrorToast: true,
+    signal,
+  } as Record<string, unknown>)
+  const body = res.data as Record<string, unknown>
+  const data = (body?.data ?? body ?? {}) as Record<string, unknown>
+  const asStringList = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x).trim()).filter(Boolean) : []
+
+  return {
+    countries: asStringList(data.countries),
+    cities: asStringList(data.cities),
+    universities: asStringList(data.universities),
+    specializations: asStringList(data.specializations),
   }
 }
 

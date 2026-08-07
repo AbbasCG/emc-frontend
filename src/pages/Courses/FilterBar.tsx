@@ -169,39 +169,43 @@ function FilterBar({
           {/* Chip groups */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-muted-500">السعر</span>
-              {priceFilters.map((tag) => (
-                <button
-                  key={tag.value}
-                  type="button"
-                  onClick={() => onPriceChange(tag.value)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                    activePrice === tag.value
-                      ? 'bg-deepBlue text-white shadow-sm'
-                      : 'bg-slate-100 text-muted-600 hover:bg-slate-200 hover:text-deepBlue'
-                  }`}
-                >
-                  {tag.label}
-                </button>
-              ))}
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">السعر</span>
+              <div className="flex items-center gap-1.5 rounded-full bg-slate-100/90 p-1">
+                {priceFilters.map((tag) => (
+                  <button
+                    key={tag.value}
+                    type="button"
+                    onClick={() => onPriceChange(tag.value)}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                      activePrice === tag.value
+                        ? 'bg-customBlue text-white shadow-md shadow-customBlue/25 scale-[1.02]'
+                        : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
+                    }`}
+                  >
+                    {tag.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-muted-500">الحالة</span>
-              {availabilityFilters.map((tag) => (
-                <button
-                  key={tag.value}
-                  type="button"
-                  onClick={() => onAvailabilityChange(tag.value)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                    activeAvailability === tag.value
-                      ? 'bg-deepBlue text-white shadow-sm'
-                      : 'bg-slate-100 text-muted-600 hover:bg-slate-200 hover:text-deepBlue'
-                  }`}
-                >
-                  {tag.label}
-                </button>
-              ))}
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">الحالة</span>
+              <div className="flex items-center gap-1.5 rounded-full bg-slate-100/90 p-1">
+                {availabilityFilters.map((tag) => (
+                  <button
+                    key={tag.value}
+                    type="button"
+                    onClick={() => onAvailabilityChange(tag.value)}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                      activeAvailability === tag.value
+                        ? 'bg-deepBlue text-white shadow-md shadow-deepBlue/20 scale-[1.02]'
+                        : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
+                    }`}
+                  >
+                    {tag.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

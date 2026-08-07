@@ -1,7 +1,43 @@
 import api from './axios'
 
-export async function initiateCheckout(courseId: number): Promise<{ checkout_url: string }> {
-  const res = await api.post(`/courses/${courseId}/checkout`)
+export interface CheckoutResult {
+  success: boolean
+  checkout_url: string | null
+  /** true when a coupon reduced the price to €0 — enrollment is already complete, no Stripe redirect happens. */
+  free: boolean
+}
+
+/**
+ * Callers show their own error toast (usually with the specific backend
+ * message via getApiErrorMessage) — skipErrorToast prevents the axios
+ * interceptor's global toast from firing a second, generic one alongside it.
+ */
+export async function initiateCheckout(courseId: number, couponCode?: string | null): Promise<CheckoutResult> {
+  const res = await api.post(
+    `/courses/${courseId}/checkout`,
+    couponCode ? { coupon_code: couponCode } : undefined,
+    { skipErrorToast: true },
+  )
+  return res.data
+}
+
+export interface CouponPricingPreview {
+  valid: true
+  coupon: { code: string; name: string; discount_type: 'percentage' | 'fixed'; discount_value: number }
+  pricing: {
+    original_amount: number
+    discount_amount: number
+    final_amount: number
+    currency: string
+    formatted_original: string
+    formatted_discount: string
+    formatted_final: string
+  }
+}
+
+/** Preview only — never consumes coupon usage. Re-validated again server-side at actual checkout. */
+export async function validateCoupon(courseId: number, code: string): Promise<CouponPricingPreview> {
+  const res = await api.post(`/courses/${courseId}/coupon/validate`, { code }, { skipErrorToast: true })
   return res.data
 }
 

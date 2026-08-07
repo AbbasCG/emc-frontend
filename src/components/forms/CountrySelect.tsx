@@ -1,7 +1,7 @@
 import Select, { type SingleValue, type StylesConfig } from 'react-select'
-import { ALL_COUNTRIES, type Country } from './countryData'
+import { ALL_COUNTRIES, type Country } from '@/lib/countries'
 
-export type { Country } from './countryData'
+export type { Country } from '@/lib/countries'
 
 type CountryOption = Country & { label: string; value: string }
 

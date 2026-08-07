@@ -163,6 +163,7 @@ const PartnershipApplyPage          = lazy(() => import('./pages/operations/publ
 const FinanceDashboardPage    = lazy(() => import('./pages/intelligence/admin/FinanceDashboardPage'))
 const FinancePaymentsPage     = lazy(() => import('./pages/intelligence/admin/FinancePaymentsPage'))
 const FinanceTransactionsPage = lazy(() => import('./pages/intelligence/admin/FinanceTransactionsPage'))
+const ChartOfAccountsPage     = lazy(() => import('./pages/finance/ChartOfAccountsPage'))
 const CouponsAdminPage        = lazy(() => import('./pages/intelligence/admin/CouponsAdminPage'))
 const ScholarshipsAdminPage   = lazy(() => import('./pages/intelligence/admin/ScholarshipsAdminPage'))
 const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
@@ -236,6 +237,8 @@ const HrDepartmentsPage = lazy(() => import('./pages/hr/HrDepartmentsPage'))
 const HrOnboardingPage  = lazy(() => import('./pages/hr/HrOnboardingPage'))
 const HrTasksPage       = lazy(() => import('./pages/hr/HrTasksPage'))
 const HrDocumentsPage   = lazy(() => import('./pages/hr/HrDocumentsPage'))
+const HrMyRequestsPage       = lazy(() => import('./pages/hr/HrMyRequestsPage'))
+const HrIncomingRequestsPage = lazy(() => import('./pages/hr/HrIncomingRequestsPage'))
 
 // ── Lazy: workshop request workflow ──────────────────────────────────────────
 const WorkshopRequestsPage        = lazy(() => import('./pages/WorkshopRequestsPage'))
@@ -245,6 +248,8 @@ const WorkshopRequestDetailPage   = lazy(() => import('./pages/WorkshopRequestDe
 const SuperAdminOverviewPage      = lazy(() => import('./pages/super-admin/SuperAdminOverviewPage'))
 const ProductUpdatesPage          = lazy(() => import('./pages/super-admin/ProductUpdatesPage'))
 const VolunteerRequestsPage            = lazy(() => import('./pages/super-admin/VolunteerRequestsPage'))
+const VolunteerHrProfilePage           = lazy(() => import('./pages/dashboard/VolunteerHrProfilePage'))
+const HrVolunteerProfilesPage          = lazy(() => import('./pages/dashboard/HrVolunteerProfilesPage'))
 const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
 const AmbassadorApplicationDetailPage  = lazy(() => import('./pages/super-admin/AmbassadorApplicationDetailPage'))
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
@@ -270,6 +275,13 @@ const MembersPage = lazy(() => import('./pages/dashboard/MembersPage'))
 
 // ── Lazy: admin coming-soon placeholder ──────────────────────────────────────
 const AdminComingSoonPage = lazy(() => import('./pages/admin/AdminComingSoonPage'))
+
+// ── Lazy: English Institute ───────────────────────────────────────────────────
+const InstituteAdminDashboard = lazy(() => import('./pages/institute/admin/InstituteAdminDashboard'))
+const InstituteLevelCreatePage = lazy(() => import('./pages/institute/admin/InstituteLevelCreatePage'))
+const InstituteClassCreatePage = lazy(() => import('./pages/institute/admin/InstituteClassCreatePage'))
+const InstituteTeacherDashboard = lazy(() => import('./pages/institute/teacher/InstituteTeacherDashboard'))
+const InstituteStudentDashboard = lazy(() => import('./pages/institute/student/InstituteDashboard'))
 
 // ── Lazy: settings, profile, calendar, error pages ───────────────────────────
 const NotificationPreferencesPage = lazy(() => import('./pages/settings/NotificationPreferencesPage'))
@@ -426,6 +438,9 @@ function App() {
                   <Route path="/dashboard/super-admin/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
                   <Route path="/dashboard/hr/volunteer-requests/:id" element={<Suspense fallback={<RouteFallback />}><VolunteerRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/volunteer/hr-profile" element={<Suspense fallback={<RouteFallback />}><VolunteerHrProfilePage /></Suspense>} />
+                  <Route path="/dashboard/hr/volunteers" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
+                  <Route path="/dashboard/hr/volunteers/:id" element={<Suspense fallback={<RouteFallback />}><HrVolunteerProfilesPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
                   <Route path="/dashboard/hr/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
@@ -491,6 +506,7 @@ function App() {
                   <Route path="/dashboard/student/course-rating" element={<Navigate to="/dashboard/student/evaluation" replace />} />
                   <Route path="/dashboard/student/orders" element={<Suspense fallback={<RouteFallback />}><StudentOrdersPage /></Suspense>} />
                   <Route path="/dashboard/student/payment-success" element={<Suspense fallback={<RouteFallback />}><PaymentSuccessPage /></Suspense>} />
+                  <Route path="/dashboard/student/institute" element={<Suspense fallback={<RouteFallback />}><InstituteStudentDashboard /></Suspense>} />
                   </Route>
 
                   {/* ── SectionErrorBoundary: instructor cluster ── */}
@@ -509,6 +525,7 @@ function App() {
                   <Route path="/dashboard/instructor/classes" element={<InstructorClassesPage />} />
                   <Route path="/dashboard/instructor/classes/:groupId/:tab" element={<Suspense fallback={<RouteFallback />}><InstructorClassWorkspacePage /></Suspense>} />
                   <Route path="/dashboard/instructor/calendar" element={<Suspense fallback={<RouteFallback />}><InstructorCalendarPage /></Suspense>} />
+                  <Route path="/dashboard/instructor/institute" element={<Suspense fallback={<RouteFallback />}><InstituteTeacherDashboard /></Suspense>} />
                   <Route path="/dashboard/instructor/classes/:groupId/sessions/:sessionId" element={<Suspense fallback={<RouteFallback />}><InstructorSessionDetailPage /></Suspense>} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   </Route>
@@ -535,6 +552,7 @@ function App() {
                   <Route path="/dashboard/finance/invoices" element={<Suspense fallback={<RouteFallback />}><FinanceInvoicesPage /></Suspense>} />
                   <Route path="/dashboard/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/chart-of-accounts" element={<Suspense fallback={<RouteFallback />}><ChartOfAccountsPage /></Suspense>} />
                   <Route path="/dashboard/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
                   <Route path="/dashboard/finance/program-approvals" element={<Suspense fallback={<RouteFallback />}><ProgramApprovalsPage /></Suspense>} />
                   </Route>
@@ -558,6 +576,8 @@ function App() {
                   {/* ── SectionErrorBoundary: HR / marketing / support / ops cluster ── */}
                   <Route element={<SectionBoundary />}>
                   <Route path="/dashboard/hr" element={<HrDashboardPage />} />
+                  <Route path="/dashboard/hr/my-requests" element={<HrMyRequestsPage />} />
+                  <Route path="/dashboard/hr/incoming-requests" element={<HrIncomingRequestsPage />} />
                   <Route path="/dashboard/hr/team" element={<HrTeamPage />} />
                   <Route path="/dashboard/hr/volunteers" element={<HrVolunteersPage />} />
                   <Route path="/dashboard/hr/instructors" element={<HrInstructorsPage />} />
@@ -574,6 +594,7 @@ function App() {
                   <Route path="/dashboard/department" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
+                  <Route path="/dashboard/department/hr-requests" element={<HrMyRequestsPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
                   </Route>
 
@@ -618,6 +639,15 @@ function App() {
                   <Route path="/dashboard/learning" element={<StudentLearningHubPage />} />
                   <Route path="/dashboard/courses/:courseId/modules" element={<CourseModulesPage />} />
                   <Route path="/dashboard/courses/:courseId/content" element={<CourseContentManagerPage />} />
+                  <Route path="/dashboard/admin/courses" element={<AdminLmsMaterialsPage />} />
+                  <Route path="/dashboard/admin/evaluations" element={<AdminLmsEvaluationsPage />} />
+                  <Route path="/dashboard/admin/progress" element={<AdminLmsProgressPage />} />
+                  <Route path="/dashboard/admin/institute" element={<InstituteAdminDashboard />} />
+                  <Route path="/dashboard/admin/institute/levels/new" element={<Suspense fallback={<RouteFallback />}><InstituteLevelCreatePage /></Suspense>} />
+                  <Route path="/dashboard/admin/institute/levels/:id/edit" element={<Suspense fallback={<RouteFallback />}><InstituteLevelCreatePage /></Suspense>} />
+                  <Route path="/dashboard/admin/institute/classes/new" element={<Suspense fallback={<RouteFallback />}><InstituteClassCreatePage /></Suspense>} />
+                  <Route path="/dashboard/admin/institute/classes/:id/edit" element={<Suspense fallback={<RouteFallback />}><InstituteClassCreatePage /></Suspense>} />
+                  <Route path="/dashboard/executive/departments" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/admin/lms/courses/:courseId/content" element={<CourseContentManagerPage />} />
                   <Route path="/dashboard/lessons/:lessonId" element={<LessonPlayerPage />} />
                   <Route path="/dashboard/quizzes/:quizId" element={<QuizTakePage />} />
@@ -715,6 +745,7 @@ function App() {
                   </Route>
 
                   {/* ── Admin alias routes (requirement list) — redirect to canonical paths ── */}
+                  <Route path="/dashboard/admin/workshops" element={<Navigate to="/dashboard/super-admin/crud/workshops" replace />} />
                   <Route path="/dashboard/admin/sessions" element={<Navigate to="/dashboard/admin/lms/sessions" replace />} />
                   <Route path="/dashboard/admin/attendance" element={<Navigate to="/dashboard/admin/lms/attendance" replace />} />
                   <Route path="/dashboard/admin/assignments" element={<Navigate to="/dashboard/admin/lms/assignments" replace />} />

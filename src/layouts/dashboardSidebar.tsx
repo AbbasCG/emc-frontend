@@ -19,8 +19,10 @@ import {
   FileText,
   FolderLock,
   FolderOpen,
+  FolderTree,
   GraduationCap,
   HeartHandshake,
+  Inbox,
   LayoutDashboard,
   Layers,
   Mail,
@@ -41,6 +43,7 @@ import {
   TrendingUp,
   UserCheck,
   UserCog,
+  UserPlus,
   Users,
   Wallet,
   Webhook as WebhookIcon,
@@ -148,6 +151,16 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       ],
     },
 
+    // ── المعهد الإنجليزي ──────────────────────────────────────────────────────
+    {
+      title: 'المعهد الإنجليزي',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'لوحة إدارة المعهد', href: '/dashboard/admin/institute', icon: Building2 },
+      ],
+    },
+
     // ── 3. الطلاب والمستخدمون ────────────────────────────────────────────────
     {
       title: 'الطلاب والمستخدمون',
@@ -166,6 +179,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
               { label: 'المستخدمون', href: '/dashboard/users',         icon: UserCog       },
             ]),
         { label: 'المدرسون',     href: '/dashboard/super-admin/crud/instructors',   icon: UserCheck     },
+        { label: 'طلبات الاحتياج (HR والإدارات)', href: '/dashboard/hr/incoming-requests', icon: Inbox         },
+        { label: 'تقديم طلب احتیاج كادر', href: '/dashboard/hr/my-requests', icon: UserPlus },
       ],
     },
 
@@ -182,7 +197,10 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
         { label: 'المعاملات',       href: '/dashboard/admin/finance/transactions',             icon: BarChart3     },
         { label: 'المدفوعات اليدوية', href: '/dashboard/admin/finance/manual-payments',        icon: ClipboardCheck },
         { label: 'النقدية والحسابات', href: '/dashboard/admin/finance/accounts',               icon: Wallet        },
+        { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts',            icon: FolderTree    },
+        { label: 'الكوبونات',          href: '/dashboard/admin/coupons',                         icon: Percent       },
         { label: 'الطلبات المالية الداخلية', href: '/dashboard/admin/finance/financial-requests', icon: FileText  },
+        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
         { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals',       icon: ShieldCheck },
       ],
     },
@@ -195,6 +213,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       items: [
         { label: 'الدعم / التذاكر',         href: '/dashboard/admin/support-tickets',      icon: ShieldQuestion },
         { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
+        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',               icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
         { label: 'الشركاء',                 href: '/dashboard/admin/partners',              icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests', icon: HeartHandshake },
@@ -236,6 +255,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
+        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
       ],
     },
     {
@@ -261,6 +281,14 @@ function superMasterSidebar(): SidebarNavGroup[] {
       ],
     },
     {
+      title: 'المعهد الإنجليزي',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'لوحة إدارة المعهد', href: '/dashboard/admin/institute', icon: Building2 },
+      ],
+    },
+    {
       title: 'لوحات الأدوار (وصول كامل)',
       collapsible: true,
       defaultOpen: false,
@@ -274,7 +302,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'التسويق والإعلام',        href: '/dashboard/marketing',           icon: Megaphone       },
         { label: 'الدعم الفني',             href: '/dashboard/support',             icon: ShieldQuestion  },
         { label: 'الشركاء',                 href: '/dashboard/partner',             icon: HeartHandshake  },
-        { label: 'المتطوعون',               href: '/dashboard/volunteer',           icon: Users           },
+        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',       icon: UserCheck       },
+        { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',           icon: Users           },
         { label: 'مساحة الإدارات',          href: '/dashboard/department',          icon: Building2       },
         { label: 'اللوحة التنفيذية',        href: '/dashboard/executive',           icon: PieChart        },
         { label: 'مدير البرامج',            href: '/dashboard/admin/programs',      icon: BookMarked      },
@@ -290,8 +319,10 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'المدفوعات', href: '/dashboard/finance/payments', icon: Wallet },
         { label: 'المعاملات المالية', href: '/dashboard/finance/transactions', icon: BarChart3 },
+        { label: 'الكوبونات', href: '/dashboard/admin/coupons', icon: Percent },
         { label: 'التقارير والتحليلات', href: '/dashboard/admin/reports', icon: FileBarChart },
         { label: 'شركاء التشغيل', href: '/dashboard/admin/partners', icon: Briefcase },
+        { label: 'شجرة الحسابات (CoA)', href: '/dashboard/finance/chart-of-accounts', icon: FolderTree },
       ],
     },
     {
@@ -364,8 +395,8 @@ function techAdminSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'طلبات التطوع',            href: '/dashboard/super-admin/volunteer-requests',         icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي',    href: '/dashboard/super-admin/ambassador-applications',    icon: Star           },
+        { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',                          icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                             icon: Users          },
-        { label: 'المتطوعون',               href: '/dashboard/admin/volunteers',               icon: Users          },
         { label: 'الشركاء',                  href: '/dashboard/admin/partners',                icon: Briefcase      },
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests',    icon: HeartHandshake },
         { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests',       icon: Presentation   },
@@ -442,6 +473,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'البرامج والدورات', href: '/dashboard/executive/programs', icon: BookMarked },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           { label: 'الطلبات المالية', href: '/dashboard/executive/financial-requests', icon: Wallet },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           membersNavItem(),
         ],
       },
@@ -463,7 +495,10 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
           { label: 'الفواتير',           href: '/dashboard/finance/invoices',        icon: FileText      },
           { label: 'المعاملات',          href: '/dashboard/finance/transactions',    icon: BarChart3     },
           { label: 'النقدية والحسابات',  href: '/dashboard/finance/accounts',        icon: Wallet        },
+          { label: 'شجرة الحسابات',      href: '/dashboard/finance/chart-of-accounts', icon: FolderTree  },
+          { label: 'الكوبونات',          href: '/dashboard/admin/coupons',            icon: Percent      },
           { label: 'الطلبات المالية الداخلية', href: '/dashboard/finance/financial-requests', icon: Wallet },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           { label: 'اعتماد البرامج المالية',  href: '/dashboard/finance/program-approvals', icon: ShieldCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
@@ -526,6 +561,13 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       { items: [{ label: 'لوحة الموارد البشرية', href: '/dashboard/hr', icon: LayoutDashboard }] },
       {
+        title: 'طلبات الاحتياج الكادر',
+        items: [
+          { label: 'طلبات الإدارات الواردة (HR)', href: '/dashboard/hr/incoming-requests', icon: Inbox },
+          { label: 'تقديم طلب احتیاج قسم HR (للإدارة العليا)', href: '/dashboard/hr/my-requests', icon: UserPlus },
+        ],
+      },
+      {
         title: 'الفريق والأعضاء',
         collapsible: true,
         defaultOpen: true,
@@ -540,8 +582,9 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
         defaultOpen: false,
         items: [
           { label: 'طلبات التطوع',          href: '/dashboard/hr/volunteer-requests',          icon: HeartHandshake },
-          { label: 'سفراء التحول الرقمي',   href: '/dashboard/hr/ambassador-applications',      icon: Star           },
+          { label: 'المتطوعون',              href: '/dashboard/hr/volunteers',                  icon: UserCheck      },
           { label: 'المتطوعون المقبولون',    href: '/dashboard/volunteer',                      icon: Award          },
+          { label: 'سفراء التحول الرقمي',   href: '/dashboard/hr/ambassador-applications',      icon: Star           },
           { label: 'المدربون',               href: '/dashboard/hr/instructors',        icon: GraduationCap  },
         ],
       },
@@ -589,6 +632,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       {
         items: [
+          { label: 'بياناتي التطوعية', href: '/dashboard/volunteer/hr-profile', icon: UserCheck },
           { label: 'طلبات التطوع', href: '/dashboard/ops/volunteers', icon: HeartHandshake },
           membersNavItem(),
         ],
@@ -601,10 +645,11 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
     return [
       { items: [{ label: 'إدارتي', href: '/dashboard/department', icon: Building2 }] },
       {
-        title: 'التعلّم والبرامج',
+        title: 'التعلّم والبرامج والطلبات',
         items: [
           { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
           { label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
           membersNavItem(),
         ],
@@ -635,6 +680,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'لوحة التحكم',   href: home,                                  icon: LayoutDashboard },
+          { label: 'المعهد الإنجليزي',href: '/dashboard/instructor/institute',     icon: Building2 },
           { label: 'دوراتي',        href: '/dashboard/instructor/courses',         icon: BookMarked      },
           { label: 'مساراتي التعليمية', href: '/dashboard/instructor/learning-paths', icon: GraduationCap },
           { label: 'الجلسات',       href: '/dashboard/instructor/sessions',        icon: Calendar        },
@@ -654,6 +700,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'لوحة التعلم',    href: '/dashboard/student',                  icon: LayoutDashboard },
+          { label: 'المعهد الإنجليزي',href: '/dashboard/student/institute',        icon: Building2       },
           { label: 'دوراتي',          href: '/dashboard/student/courses',           icon: BookOpen        },
           { label: 'مساراتي التعليمية', href: '/dashboard/student/learning-paths', icon: GraduationCap  },
           { label: 'الشهادات',       href: '/dashboard/student/certificates',      icon: Award           },

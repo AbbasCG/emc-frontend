@@ -30,6 +30,21 @@ export default {
         emcBg:        "#FBFAF7", // paper
 
         /* ── Sea of Knowledge — primary scale. 500 = #0077B6 ── */
+        /* `primary` aliases `brand`: the 2026-08 team drop (institute pages) styles with
+           primary-*; without the alias those classes generate no CSS at all. */
+        primary: {
+          50:  "#EAF6FD",
+          100: "#CFE9FA",
+          200: "#A6D6F2",
+          300: "#6EC1EC",
+          400: "#089FE0",
+          500: "#0077B6",
+          600: "#0E5A8A",
+          700: "#0C3E63",
+          800: "#0C2A4B",
+          900: "#06182C",
+          950: "#06182C",
+        },
         brand: {
           50:  "#EAF6FD",
           100: "#CFE9FA",
@@ -43,7 +58,22 @@ export default {
           900: "#06182C", // night
           950: "#06182C",
         },
-        sky:   "#089FE0",
+        /* Scale (V3 sea family) + DEFAULT: bare `text-sky` keeps meaning #089FE0, and the
+           numbered sky-50…900 classes used across dashboards stop silently generating no CSS
+           (a single-string key shades the whole default scale). Same treatment for amber. */
+        sky: {
+          DEFAULT: "#089FE0",
+          50:  "#EAF6FD",
+          100: "#CFE9FA",
+          200: "#A6D6F2",
+          300: "#6EC1EC",
+          400: "#089FE0",
+          500: "#0077B6",
+          600: "#0E5A8A",
+          700: "#0C3E63",
+          800: "#0C2A4B",
+          900: "#06182C",
+        },
         ocean: "#0E5A8A",
         navy:  "#0C2A4B",
         night: "#06182C",
@@ -62,7 +92,19 @@ export default {
           800: "#A85E06",
           900: "#874B07",
         },
-        amber: "#FFA733",
+        amber: {
+          DEFAULT: "#FFA733",
+          50:  "#FEF7EE",
+          100: "#FCE9D2",
+          200: "#FBD9AE",
+          300: "#FFA733",
+          400: "#F89A1A",
+          500: "#F28C00",
+          600: "#DD7C02",
+          700: "#C97208",
+          800: "#A85E06",
+          900: "#874B07",
+        },
         ember: "#C97208",
         sand:  "#FCE9D2",
 
@@ -93,14 +135,16 @@ export default {
       },
 
       fontFamily: {
-        /* V3: Thmanyah exclusive — Sans for body/UI/ALL numerals; IBM Plex = sanctioned fallback. */
-        sans: ['"Thmanyah Sans"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        /* V3: Thmanyah exclusive — Sans for body/UI/ALL numerals; IBM Plex = sanctioned fallback.
+           "Thmanyah"/"ThmanyahDisplay" are the team-committed woff2 families (same typefaces),
+           chained so production renders Thmanyah even without the local gitignored OTF set. */
+        sans: ['"Thmanyah Sans"', '"Thmanyah"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
         /* V3: headings/covers — Thmanyah Serif Display. */
-        display: ['"Thmanyah Serif Display"', '"Thmanyah Sans"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"Thmanyah Serif Display"', '"ThmanyahDisplay"', '"Thmanyah Sans"', '"Thmanyah"', '"IBM Plex Sans Arabic"', "ui-sans-serif", "system-ui", "sans-serif"],
         /* V3: long-form booklet body. */
-        serif: ['"Thmanyah Serif Text"', '"Thmanyah Serif Display"', "serif"],
+        serif: ['"Thmanyah Serif Text"', '"Thmanyah Serif Display"', '"ThmanyahDisplay"', "serif"],
         /* Latin/numeric contexts — Sans carries numerals per V3; IBM Plex fallback. */
-        latin: ['"Thmanyah Sans"', '"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        latin: ['"Thmanyah Sans"', '"Thmanyah"', '"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
 
@@ -119,6 +163,9 @@ export default {
         "emc-inset": "inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(6,24,44,0.04)",
         "emc-ring": "0 0 0 1px rgba(12,42,75,0.06), 0 0 0 4px rgba(0,119,182,0.10)",
         "kpi":     "0 16px 44px -24px rgba(6,24,44,0.18), inset 0 1px 0 rgba(255,255,255,0.65)",
+        /* Team keys (2026-08 drop), recolored from off-brand purple to V3 navy. */
+        "soft":    "0 1px 2px rgba(6,24,44,.04), 0 12px 32px -12px rgba(12,42,75,.18)",
+        "lift":    "0 2px 4px rgba(6,24,44,.05), 0 24px 48px -20px rgba(12,42,75,.32)",
       },
 
       backgroundImage: {

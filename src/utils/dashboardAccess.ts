@@ -91,6 +91,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
   { prefix: '/dashboard/student', roles: ['student'] },
   { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
+  { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance', roles: ['finance_manager'] },
   { prefix: '/dashboard/quality', roles: ['quality_manager'] },
   { prefix: '/dashboard/hr', roles: ['hr_manager'] },
@@ -194,6 +195,26 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (
     path === '/dashboard/department/financial-requests' ||
     path.startsWith('/dashboard/department/financial-requests/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* HR requests — any authenticated user who is a department leader may access this page. */
+  if (
+    path === '/dashboard/department/hr-requests' ||
+    path.startsWith('/dashboard/department/hr-requests/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* Volunteer HR profile — the applicant's own self-service form. Must be
+     checked BEFORE the generic '/dashboard/volunteer' namespace rule below
+     (which restricts the bare /dashboard/volunteer "accepted volunteers"
+     list to admin-ish roles) — otherwise the prefix match blocks every
+     ordinary user from ever reaching their own submission form. */
+  if (
+    path === '/dashboard/volunteer/hr-profile' ||
+    path.startsWith('/dashboard/volunteer/hr-profile/')
   ) {
     return 'authenticated'
   }

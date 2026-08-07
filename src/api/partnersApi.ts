@@ -33,13 +33,27 @@ export async function updatePartnershipRequest(id: number, status: string): Prom
   await apiClient.patch(`/operations/partnership-requests/${id}`, { status })
 }
 
-export async function submitPartnershipApplication(payload: {
-  institution_name: string
-  institution_type?: string
+export interface PartnershipApplicationPayload {
+  partner_name: string
+  type: string
+  type_other?: string | null
   contact_name: string
   email: string
-  phone?: string
+  phone: string
+  country: string
+  city?: string | null
+  website?: string | null
+  partnership_type: string
+  partnership_type_other?: string | null
   message: string
-}): Promise<void> {
-  await apiClient.post('/partnership-requests', payload)
+  privacy_accepted: boolean
+}
+
+/**
+ * skipErrorToast: the page shows its own per-field/summary error UI for
+ * this form — without this flag the global axios interceptor would also
+ * fire a second, generic toast on top of it.
+ */
+export async function submitPartnershipApplication(payload: PartnershipApplicationPayload): Promise<void> {
+  await apiClient.post('/partnership-requests', payload, { skipErrorToast: true })
 }

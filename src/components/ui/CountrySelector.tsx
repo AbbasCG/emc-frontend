@@ -1,5 +1,5 @@
 import CountrySelect from '@/components/forms/CountrySelect'
-import { ALL_COUNTRIES, type Country } from '@/components/forms/countryData'
+import { ALL_COUNTRIES, type Country } from '@/lib/countries'
 
 export type { Country }
 

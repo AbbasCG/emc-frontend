@@ -38,9 +38,9 @@ function HomeCourseCard({ course }: Props) {
   return (
     <motion.article
       variants={staggerItem}
-      whileHover={{ y: -6 }}
+      whileHover={{ y: -7 }}
       aria-label={course.title}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/40 hover:shadow-[0_16px_45px_-10px_rgba(0,119,182,0.18)]"
     >
       {/* Invisible cover link — makes entire card clickable while inner buttons keep their own events */}
       <Link

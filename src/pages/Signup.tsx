@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
-import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, Phone, UserPlus, UserRound } from 'lucide-react'
+import { AlertCircle, ChevronDown, LockKeyhole, Mail, MapPin, UserPlus, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import PageHeader from '../components/PageHeader'
@@ -11,6 +11,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { safeEnrollmentRedirect } from '@/utils/enrollmentRedirect'
 import CountrySelector, { type Country, COUNTRIES } from '../components/ui/CountrySelector'
 import { countryFromPhone } from '@/lib/countryFromPhone'
+import PhoneInput from '@/components/forms/PhoneInput'
+import { buildE164Phone } from '@/components/forms/phoneUtils'
 
 export default function Signup() {
   const { t } = useTranslation()
@@ -95,7 +97,7 @@ export default function Signup() {
     setIsLoading(true)
 
     try {
-      const phone = `${selectedCountry!.dialCode}${localPhone.trim()}`
+      const phone = buildE164Phone(selectedCountry, localPhone)
       const payload = {
         name: name.trim(),
         email: email.trim(),
@@ -261,28 +263,15 @@ export default function Signup() {
               {/* رقم الجوال */}
               <div className="grid gap-2 text-sm font-black text-deepBlue">
                 {t('auth.signup.form.phone')}
-                <div
-                  dir="ltr"
-                  className={`flex h-14 w-full overflow-hidden rounded-xl border bg-paper2 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-100 ${fieldErrors.phone ? 'border-red-400' : 'border-line focus-within:border-customBlue'}`}
-                >
-                  <div className="flex shrink-0 items-center gap-1.5 border-r border-line bg-paper2 px-3 text-sm font-bold text-deepBlue">
-                    {selectedCountry ? (
-                      <>
-                        <span className="text-base leading-none">{selectedCountry.flag}</span>
-                        <span className="font-latin tabular-nums">{selectedCountry.dialCode}</span>
-                      </>
-                    ) : (
-                      <Phone size={18} className="text-muted-400" />
-                    )}
-                  </div>
-                  <input
-                    type="tel"
-                    dir="ltr"
+                {/* onBlur on the wrapper (React focusout) keeps our country auto-fill
+                    while the team's shared PhoneInput owns the field itself. */}
+                <div onBlur={autofillCountryFromPhone}>
+                  <PhoneInput
+                    country={selectedCountry}
                     value={localPhone}
-                    onChange={(e) => { setLocalPhone(e.target.value); clearField('phone') }}
-                    onBlur={autofillCountryFromPhone}
+                    onChange={(v) => { setLocalPhone(v); clearField('phone') }}
+                    error={fieldErrors.phone}
                     placeholder={t('auth.signup.form.phonePlaceholder')}
-                    className="min-w-0 flex-1 bg-transparent px-4 text-left font-semibold text-deepBlue outline-none placeholder:font-normal placeholder:text-muted-400"
                   />
                 </div>
                 {fieldErrors.phone && <p className="text-xs font-semibold text-red-600">{fieldErrors.phone}</p>}
