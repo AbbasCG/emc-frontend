@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -108,80 +108,80 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from './axios'
 import { asList, unwrapLms } from './lmsApi'
 import type { FormSubmissionRow, OpsFormDefinition } from '@/types/operations'
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchFormDefinitions(): Promise&lt;OpsFormDefinition[]&gt; {</span>
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/operations/forms')</span>
-<span class="cstat-no" title="statement not covered" >  return asList&lt;OpsFormDefinition&gt;(res.data)</span>
+export async function fetchFormDefinitions(): Promise&lt;OpsFormDefinition[]&gt; {
+  const res = await apiClient.get&lt;unknown&gt;('/operations/forms')
+  return asList&lt;OpsFormDefinition&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchFormDefinition(i</span>d: number): Promise&lt;OpsFormDefinition&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;(`/operations/forms/${id}`)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)</span>
+export async function fetchFormDefinition(id: number): Promise&lt;OpsFormDefinition&gt; {
+  const res = await apiClient.get&lt;unknown&gt;(`/operations/forms/${id}`)
+  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchPublicFormBySlug(s</span>lug: string): Promise&lt;OpsFormDefinition&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;(`/forms/${slug}`)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)</span>
+export async function fetchPublicFormBySlug(slug: string): Promise&lt;OpsFormDefinition&gt; {
+  const res = await apiClient.get&lt;unknown&gt;(`/forms/${slug}`)
+  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >submitPublicForm(s</span>lug: string, answers: Record&lt;string, unknown&gt;): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  await apiClient.post(`/forms/${slug}/submit`, { answers })</span>
+export async function submitPublicForm(slug: string, answers: Record&lt;string, unknown&gt;): Promise&lt;void&gt; {
+  await apiClient.post(`/forms/${slug}/submit`, { answers })
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >createFormDefinition(b</span>ody: Partial&lt;OpsFormDefinition&gt;): Promise&lt;OpsFormDefinition&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/operations/forms', body)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)</span>
+export async function createFormDefinition(body: Partial&lt;OpsFormDefinition&gt;): Promise&lt;OpsFormDefinition&gt; {
+  const res = await apiClient.post&lt;unknown&gt;('/operations/forms', body)
+  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >updateFormDefinition(</span>
+export async function updateFormDefinition(
   id: number,
   body: Partial&lt;OpsFormDefinition&gt;,
 ): Promise&lt;OpsFormDefinition&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.put&lt;unknown&gt;(`/operations/forms/${id}`, body)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)</span>
+  const res = await apiClient.put&lt;unknown&gt;(`/operations/forms/${id}`, body)
+  return unwrapLms&lt;OpsFormDefinition&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchFormSubmissions(f</span>ormId: number): Promise&lt;FormSubmissionRow[]&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;(`/operations/forms/${formId}/submissions`)</span>
-<span class="cstat-no" title="statement not covered" >  return asList&lt;FormSubmissionRow&gt;(res.data)</span>
+export async function fetchFormSubmissions(formId: number): Promise&lt;FormSubmissionRow[]&gt; {
+  const res = await apiClient.get&lt;unknown&gt;(`/operations/forms/${formId}/submissions`)
+  return asList&lt;FormSubmissionRow&gt;(res.data)
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -190,7 +190,7 @@ export async function <span class="fstat-no" title="function not covered" >fetch
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

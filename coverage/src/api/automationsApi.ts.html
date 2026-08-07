@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -106,75 +106,75 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from './axios'
 import { asList, unwrapLms } from './lmsApi'
 import type { AutomationRule, AutomationRun } from '@/types/platform'
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchAutomationRules(): Promise&lt;AutomationRule[]&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/admin/automation-rules')</span>
-<span class="cstat-no" title="statement not covered" >    return asList&lt;AutomationRule&gt;(res.data)</span>
+export async function fetchAutomationRules(): Promise&lt;AutomationRule[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/admin/automation-rules')
+    return asList&lt;AutomationRule&gt;(res.data)
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchAutomationRuns(): Promise&lt;AutomationRun[]&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/admin/automation-runs')</span>
-<span class="cstat-no" title="statement not covered" >    return asList&lt;AutomationRun&gt;(res.data)</span>
+export async function fetchAutomationRuns(): Promise&lt;AutomationRun[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/admin/automation-runs')
+    return asList&lt;AutomationRun&gt;(res.data)
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >createAutomationRule(b</span>ody: Partial&lt;AutomationRule&gt;): Promise&lt;AutomationRule&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/admin/automation-rules', body)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;AutomationRule&gt;(res.data)</span>
+export async function createAutomationRule(body: Partial&lt;AutomationRule&gt;): Promise&lt;AutomationRule&gt; {
+  const res = await apiClient.post&lt;unknown&gt;('/admin/automation-rules', body)
+  return unwrapLms&lt;AutomationRule&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >patchAutomationRule(</span>
+export async function patchAutomationRule(
   id: number,
   body: Partial&lt;AutomationRule&gt;,
 ): Promise&lt;AutomationRule | null&gt; {
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.patch&lt;unknown&gt;(`/admin/automation-rules/${id}`, body)</span>
-<span class="cstat-no" title="statement not covered" >    return unwrapLms&lt;AutomationRule&gt;(res.data)</span>
+  try {
+    const res = await apiClient.patch&lt;unknown&gt;(`/admin/automation-rules/${id}`, body)
+    return unwrapLms&lt;AutomationRule&gt;(res.data)
   } catch {
-<span class="cstat-no" title="statement not covered" >    return null</span>
+    return null
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -184,7 +184,7 @@ export async function <span class="fstat-no" title="function not covered" >patch
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

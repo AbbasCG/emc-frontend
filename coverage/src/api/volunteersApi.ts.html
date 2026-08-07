@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>19/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -111,83 +111,83 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from './axios'
 import { asList, unwrapLms } from './lmsApi'
 import { unwrapData } from './unwrap'
 import type { OpsVolunteer } from '@/types/operations'
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchVolunteers(): Promise&lt;OpsVolunteer[]&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/operations/volunteers', { skipErrorToast: true })</span>
-<span class="cstat-no" title="statement not covered" >    return asList&lt;OpsVolunteer&gt;(res.data)</span>
+export async function fetchVolunteers(): Promise&lt;OpsVolunteer[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/operations/volunteers', { skipErrorToast: true })
+    return asList&lt;OpsVolunteer&gt;(res.data)
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchVolunteerRequestsStats(): Promise&lt;{ total: number; pending: number }&gt; {</span>
-  const getCount = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async (s</span>tatus?: string): Promise&lt;number&gt; =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const params: Record&lt;string, unknown&gt; = <span class="cstat-no" title="statement not covered" >{ per_page: 1 }</span>
-<span class="cstat-no" title="statement not covered" >      if (status) <span class="cstat-no" title="statement not covered" >params.status = status</span></span>
-      const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/admin/volunteer-requests', { skipErrorToast: true, params })</span>
-      const <span class="cstat-no" title="statement not covered" >inner = unwrapData&lt;{ total?: unknown }&gt;(res.data)</span>
-<span class="cstat-no" title="statement not covered" >      return Number(inner?.total ?? 0) || 0</span>
+export async function fetchVolunteerRequestsStats(): Promise&lt;{ total: number; pending: number }&gt; {
+  const getCount = async (status?: string): Promise&lt;number&gt; =&gt; {
+    try {
+      const params: Record&lt;string, unknown&gt; = { per_page: 1 }
+      if (status) params.status = status
+      const res = await apiClient.get&lt;unknown&gt;('/admin/volunteer-requests', { skipErrorToast: true, params })
+      const inner = unwrapData&lt;{ total?: unknown }&gt;(res.data)
+      return Number(inner?.total ?? 0) || 0
     } catch {
-<span class="cstat-no" title="statement not covered" >      return 0</span>
+      return 0
     }
   }
-  const [total, pending] = <span class="cstat-no" title="statement not covered" >await Promise.all([getCount(), getCount('pending')])</span>
-<span class="cstat-no" title="statement not covered" >  return { total, pending }</span>
+  const [total, pending] = await Promise.all([getCount(), getCount('pending')])
+  return { total, pending }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchVolunteer(i</span>d: number): Promise&lt;OpsVolunteer&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;(`/operations/volunteers/${id}`)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;OpsVolunteer&gt;(res.data)</span>
+export async function fetchVolunteer(id: number): Promise&lt;OpsVolunteer&gt; {
+  const res = await apiClient.get&lt;unknown&gt;(`/operations/volunteers/${id}`)
+  return unwrapLms&lt;OpsVolunteer&gt;(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >updateVolunteer(</span>
+export async function updateVolunteer(
   id: number,
   body: Partial&lt;Pick&lt;OpsVolunteer, 'status' | 'department_id' | 'availability'&gt;&gt;,
 ): Promise&lt;OpsVolunteer&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.patch&lt;unknown&gt;(`/operations/volunteers/${id}`, body)</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;OpsVolunteer&gt;(res.data)</span>
+  const res = await apiClient.patch&lt;unknown&gt;(`/operations/volunteers/${id}`, body)
+  return unwrapLms&lt;OpsVolunteer&gt;(res.data)
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -196,7 +196,7 @@ export async function <span class="fstat-no" title="function not covered" >updat
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

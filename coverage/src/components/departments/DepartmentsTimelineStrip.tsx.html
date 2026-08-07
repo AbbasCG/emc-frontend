@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>4/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">60% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -120,9 +120,37 @@
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,14 +159,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -162,10 +182,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -180,14 +196,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { motion } from 'framer-motion'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 &nbsp;
-const milestones = <span class="cstat-no" title="statement not covered" >[</span>
+const milestones = [
   { phase: 'المرحلة ١', title: 'تأسيس الهيكل', desc: 'تعريف الإدارات والمسؤوليات وربطها بالرسالة.' },
   { phase: 'المرحلة ٢', title: 'توحيد الجودة', desc: 'اعتماد معايير محتوى وتشغيل وتوثيق للإجراءات.' },
   { phase: 'المرحلة ٣', title: 'التكامل الرقمي', desc: 'ربط التسجيل والمتابعة والتقارير في تجربة واحدة.' },
   { phase: 'المرحلة ٤', title: 'توسيع الأثر', desc: 'شراكات مؤسسية وبرامج موسمية بضوابط واضحة.' },
 ]
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >DepartmentsTimelineStrip() {</span>
+/**
+ * Hide-before-delete flag (mirrors src/lib/featureFlags.ts convention).
+ *
+ * The whole strip is schematic placeholder content — the four "phases" are
+ * not management-approved milestones, so publishing them violates the
+ * no-unconfirmed-content rule. Flip to `true` to restore the strip once
+ * official milestone data is approved. Kept module-local (not exported) so
+ * the file keeps exporting only the component (react-refresh rule).
+ */
+const SHOW_DEPARTMENTS_TIMELINE: boolean = false
+&nbsp;
+export default function DepartmentsTimelineStrip() {
+  <span class="missing-if-branch" title="else path not taken" >E</span>if (!SHOW_DEPARTMENTS_TIMELINE) return null
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;section className="emc-depth border-y border-deepBlue/[0.08] px-4 py-16 text-white sm:px-6 lg:px-8 lg:py-20"&gt;
       &lt;div className="mx-auto max-w-7xl"&gt;
@@ -226,10 +254,6 @@ export default function <span class="fstat-no" title="function not covered" >Dep
             &lt;/motion.div&gt;
           ))}
         &lt;/motion.div&gt;
-&nbsp;
-        &lt;p className="mt-8 text-center text-xs font-semibold text-white/45"&gt;
-          يمكن ربط هذا القسم لاحقاً ببيانات Laravel عند اعتماد milestones رسمية.
-        &lt;/p&gt;
       &lt;/div&gt;
     &lt;/section&gt;
   )
@@ -241,7 +265,7 @@ export default function <span class="fstat-no" title="function not covered" >Dep
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

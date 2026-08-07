@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -190,29 +190,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -264,7 +255,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -280,7 +270,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -303,30 +303,30 @@ type Props = {
   featuredCount: number
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >LearningPathsHero({</span> onSearch, totalPaths, openCount, featuredCount }: Props) {
-  const [query, <span class="cstat-no" title="statement not covered" >setQuery] = useState('')</span>
-  const <span class="cstat-no" title="statement not covered" >sectionRef = useRef&lt;HTMLElement&gt;(null)</span>
-  const <span class="cstat-no" title="statement not covered" >isInView = useInView(sectionRef, { once: true, margin: '-40px' })</span>
+export default function LearningPathsHero({ onSearch, totalPaths, openCount, featuredCount }: Props) {
+  const [query, setQuery] = useState('')
+  const sectionRef = useRef&lt;HTMLElement&gt;(null)
+  const isInView = useInView(sectionRef, { once: true, margin: '-40px' })
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >handleSearch(e</span>: ChangeEvent&lt;HTMLInputElement&gt;) {
-<span class="cstat-no" title="statement not covered" >    setQuery(e.target.value)</span>
-<span class="cstat-no" title="statement not covered" >    onSearch(e.target.value)</span>
+  function handleSearch(e: ChangeEvent&lt;HTMLInputElement&gt;) {
+    setQuery(e.target.value)
+    onSearch(e.target.value)
   }
 &nbsp;
-  const easing: [number, number, number, number] = <span class="cstat-no" title="statement not covered" >[0.25, 0.46, 0.45, 0.94]</span>
-  const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >fadeUp = (d</span>elay: number) =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
+  const easing: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
+  const fadeUp = (delay: number) =&gt; ({
     initial: { opacity: 0, y: 32 },
     animate: isInView ? { opacity: 1, y: 0 } : {},
     transition: { duration: 0.6, delay, ease: easing },
   })
 &nbsp;
-  const stats = <span class="cstat-no" title="statement not covered" >[</span>
+  const stats = [
     { value: totalPaths, label: 'مسار متاح' },
     { value: openCount, label: 'التسجيل مفتوح' },
     { value: featuredCount, label: 'مسار مميز' },
   ]
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;section
       ref={sectionRef}
       className="relative overflow-hidden bg-gradient-to-b from-ink-900 via-deepBlue to-[#1a2a3f] pt-28 pb-16"
@@ -378,7 +378,7 @@ export default function <span class="fstat-no" title="function not covered" >Lea
             type="button"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-<span class="fstat-no" title="function not covered" >            onClick={() =&gt; <span class="cstat-no" title="statement not covered" >d</span>ocument.getElementById('paths-catalog')?.scrollIntoView({ behavior: 'smooth' })}</span>
+            onClick={() =&gt; document.getElementById('paths-catalog')?.scrollIntoView({ behavior: 'smooth' })}
             className="rounded-xl bg-brand-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-600"
           &gt;
             استكشف المسارات
@@ -393,8 +393,8 @@ export default function <span class="fstat-no" title="function not covered" >Lea
 &nbsp;
         &lt;motion.div {...fadeUp(0.42)}&gt;
           &lt;div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-10 md:gap-6"&gt;
-            {stats.<span class="fstat-no" title="function not covered" >map((s</span>tat) =&gt; (
-<span class="cstat-no" title="statement not covered" >              &lt;div key={stat.label} className="text-center px-2"&gt;</span>
+            {stats.map((stat) =&gt; (
+              &lt;div key={stat.label} className="text-center px-2"&gt;
                 &lt;p className="text-2xl font-black text-white tabular-nums md:text-3xl"&gt;{String(stat.value)}&lt;/p&gt;
                 &lt;p className="mt-1 text-xs font-medium text-brand-300/90 md:text-sm"&gt;{stat.label}&lt;/p&gt;
               &lt;/div&gt;
@@ -412,7 +412,7 @@ export default function <span class="fstat-no" title="function not covered" >Lea
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

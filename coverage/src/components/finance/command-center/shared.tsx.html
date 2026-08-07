@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -129,26 +129,21 @@
 <a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,7 +162,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -191,13 +191,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { motion } from 'framer-motion'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >FinanceCommandCenterSkeleton() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export default function FinanceCommandCenterSkeleton() {
+  return (
     &lt;div dir="rtl" className="space-y-6 animate-pulse"&gt;
       &lt;div className="h-28 rounded-2xl bg-slate-100" /&gt;
       &lt;div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"&gt;
-        {[...Array(8)].<span class="fstat-no" title="function not covered" >map((_</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;div key={i} className="h-32 rounded-2xl bg-slate-100" /&gt;</span>
+        {[...Array(8)].map((_, i) =&gt; (
+          &lt;div key={i} className="h-32 rounded-2xl bg-slate-100" /&gt;
         ))}
       &lt;/div&gt;
       &lt;div className="grid gap-4 lg:grid-cols-3"&gt;
@@ -205,8 +205,8 @@ export default function <span class="fstat-no" title="function not covered" >Fin
         &lt;div className="h-80 rounded-2xl bg-slate-100" /&gt;
       &lt;/div&gt;
       &lt;div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"&gt;
-        {[...Array(3)].<span class="fstat-no" title="function not covered" >map((_</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;div key={i} className="h-44 rounded-2xl bg-slate-100" /&gt;</span>
+        {[...Array(3)].map((_, i) =&gt; (
+          &lt;div key={i} className="h-44 rounded-2xl bg-slate-100" /&gt;
         ))}
       &lt;/div&gt;
       &lt;div className="h-72 rounded-2xl bg-slate-100" /&gt;
@@ -215,13 +215,13 @@ export default function <span class="fstat-no" title="function not covered" >Fin
   )
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >SectionShell({</span>
+export function SectionShell({
   eyebrow,
   title,
   subtitle,
   action,
   children,
-  className = <span class="branch-0 cbranch-no" title="branch not covered" >'',</span>
+  className = '',
 }: {
   eyebrow?: string
   title: string
@@ -230,7 +230,7 @@ export function <span class="fstat-no" title="function not covered" >SectionShel
   children: React.ReactNode
   className?: string
 }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;motion.section
       initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -259,7 +259,7 @@ export function <span class="fstat-no" title="function not covered" >SectionShel
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

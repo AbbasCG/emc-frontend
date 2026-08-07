@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/69</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -254,23 +254,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -292,7 +275,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -307,8 +289,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -425,24 +425,24 @@ type Props = {
   modules: StudentLearnModule[]
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >moduleProgress(m</span>od: StudentLearnModule): number {
-<span class="cstat-no" title="statement not covered" >  if (typeof mod.progress_percentage === 'number') <span class="cstat-no" title="statement not covered" >return Math.round(mod.progress_percentage)</span></span>
-  const done = <span class="cstat-no" title="statement not covered" >Math.max(0, mod.completed_lessons_count ?? mod.completed_lessons ?? 0)</span>
-<span class="cstat-no" title="statement not covered" >  return Math.round((done / Math.max(mod.lessons_count, 1)) * 100)</span>
+function moduleProgress(mod: StudentLearnModule): number {
+  if (typeof mod.progress_percentage === 'number') return Math.round(mod.progress_percentage)
+  const done = Math.max(0, mod.completed_lessons_count ?? mod.completed_lessons ?? 0)
+  return Math.round((done / Math.max(mod.lessons_count, 1)) * 100)
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >ProgressTab({</span>
+export default function ProgressTab({
   progressPct, totalLessons, doneLessons, doneAssignments, assignmentsCount,
   upcomingCount, completedSessionsCount, instructor, modules,
 }: Props) {
-  const nextModule = <span class="cstat-no" title="statement not covered" >modules.<span class="fstat-no" title="function not covered" >find((m</span>) =&gt; <span class="cstat-no" title="statement not covered" >!m.is_completed &amp;&amp; moduleProgress(m) &lt; 100)</span> ?? null</span>
-  const nextLesson = <span class="cstat-no" title="statement not covered" >nextModule?.lessons?.<span class="fstat-no" title="function not covered" >find((l</span>) =&gt; <span class="cstat-no" title="statement not covered" >String(l.status).toLowerCase() !== 'completed' &amp;&amp; String(l.status).toLowerCase() !== 'done')</span> ?? null</span>
+  const nextModule = modules.find((m) =&gt; !m.is_completed &amp;&amp; moduleProgress(m) &lt; 100) ?? null
+  const nextLesson = nextModule?.lessons?.find((l) =&gt; String(l.status).toLowerCase() !== 'completed' &amp;&amp; String(l.status).toLowerCase() !== 'done') ?? null
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (modules.length === 0 &amp;&amp; totalLessons === 0 &amp;&amp; assignmentsCount === 0) {</span>
-<span class="cstat-no" title="statement not covered" >    return &lt;EmptyHint icon={TrendingUp} title="لا توجد بيانات تقدم كافية بعد" description="سيظهر تقدّمك هنا بعد بدء الدروس والواجبات" /&gt;</span>
+  if (modules.length === 0 &amp;&amp; totalLessons === 0 &amp;&amp; assignmentsCount === 0) {
+    return &lt;EmptyHint icon={TrendingUp} title="لا توجد بيانات تقدم كافية بعد" description="سيظهر تقدّمك هنا بعد بدء الدروس والواجبات" /&gt;
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-6"&gt;
       &lt;div&gt;
         &lt;h2 className="mb-4 text-xl font-black text-[#0C2A4B]"&gt;تقدّمك في هذه الدورة&lt;/h2&gt;
@@ -463,8 +463,8 @@ export default function <span class="fstat-no" title="function not covered" >Pro
               sub: upcomingCount &gt; 0 ? 'جلسة قادمة أو نشطة' : `${completedSessionsCount} جلسة مكتملة`,
               color: 'text-emerald-600',
             },
-          ].<span class="fstat-no" title="function not covered" >map(({</span> label, value, Icon, sub, color }) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;motion.div key={label} whileHover={{ y: -2 }} className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]"&gt;</span>
+          ].map(({ label, value, Icon, sub, color }) =&gt; (
+            &lt;motion.div key={label} whileHover={{ y: -2 }} className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]"&gt;
               &lt;Icon className={`mb-3 h-5 w-5 ${color}`} /&gt;
               &lt;p className="text-[11px] font-black uppercase tracking-wide text-[#0C2A4B]/50"&gt;{label}&lt;/p&gt;
               &lt;p className="mt-2 text-2xl font-black tabular-nums text-[#0C2A4B]"&gt;{value}&lt;/p&gt;
@@ -478,9 +478,9 @@ export default function <span class="fstat-no" title="function not covered" >Pro
         &lt;div&gt;
           &lt;h2 className="mb-3 text-lg font-black text-[#0C2A4B]"&gt;تقدّم الوحدات&lt;/h2&gt;
           &lt;div className="space-y-2"&gt;
-            {modules.<span class="fstat-no" title="function not covered" >map((m</span>od) =&gt; {
-              const pct = <span class="cstat-no" title="statement not covered" >moduleProgress(mod)</span>
-<span class="cstat-no" title="statement not covered" >              return (</span>
+            {modules.map((mod) =&gt; {
+              const pct = moduleProgress(mod)
+              return (
                 &lt;div key={mod.id} className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm ring-1 ring-[#0C2A4B]/[0.04]"&gt;
                   &lt;div className="flex items-center justify-between gap-3"&gt;
                     &lt;p className="min-w-0 flex-1 truncate text-[13px] font-black text-[#0C2A4B]"&gt;{mod.title}&lt;/p&gt;
@@ -586,7 +586,7 @@ export default function <span class="fstat-no" title="function not covered" >Pro
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

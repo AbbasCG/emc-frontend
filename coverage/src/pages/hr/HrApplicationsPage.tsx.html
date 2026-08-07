@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/21</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -146,34 +146,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -196,7 +168,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -218,35 +218,35 @@ import EmptyState from '@/components/dashboard/EmptyState'
 import { HrPageShell } from '@/components/hr/HrLayout'
 import type { OpsVolunteer } from '@/types/operations'
 &nbsp;
-function <span class="fstat-no" title="function not covered" >isPendingJoin(v</span>: OpsVolunteer) {
-<span class="cstat-no" title="statement not covered" >  return v.status === 'applied' || v.status === 'review'</span>
+function isPendingJoin(v: OpsVolunteer) {
+  return v.status === 'applied' || v.status === 'review'
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >HrApplicationsPage() {</span>
-  const [rows, <span class="cstat-no" title="statement not covered" >setRows] = useState&lt;OpsVolunteer[] | null&gt;(null)</span>
-  const [loading, <span class="cstat-no" title="statement not covered" >setLoading] = useState(true)</span>
+export default function HrApplicationsPage() {
+  const [rows, setRows] = useState&lt;OpsVolunteer[] | null&gt;(null)
+  const [loading, setLoading] = useState(true)
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-    let c = <span class="cstat-no" title="statement not covered" >false</span>
-    ;<span class="cstat-no" title="statement not covered" >(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      try {</span>
-        const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/operations/volunteers', { skipErrorToast: true })</span>
-        const <span class="cstat-no" title="statement not covered" >list = asList&lt;OpsVolunteer&gt;(res.data)</span>
-<span class="cstat-no" title="statement not covered" >        if (!c) <span class="cstat-no" title="statement not covered" >setRows(list.filter(isPendingJoin))</span></span>
+  useEffect(() =&gt; {
+    let c = false
+    ;(async () =&gt; {
+      try {
+        const res = await apiClient.get&lt;unknown&gt;('/operations/volunteers', { skipErrorToast: true })
+        const list = asList&lt;OpsVolunteer&gt;(res.data)
+        if (!c) setRows(list.filter(isPendingJoin))
       } catch {
-<span class="cstat-no" title="statement not covered" >        if (!c) <span class="cstat-no" title="statement not covered" >setRows(null)</span></span>
+        if (!c) setRows(null)
       } finally {
-<span class="cstat-no" title="statement not covered" >        if (!c) <span class="cstat-no" title="statement not covered" >setLoading(false)</span></span>
+        if (!c) setLoading(false)
       }
     })()
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      c = true</span>
+    return () =&gt; {
+      c = true
     }
   }, [])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (loading) <span class="cstat-no" title="statement not covered" >return &lt;div className="animate-pulse text-right opacity-70"&gt;يتم تحميل الطلبات...&lt;/div&gt;</span></span>
+  if (loading) return &lt;div className="animate-pulse text-right opacity-70"&gt;يتم تحميل الطلبات...&lt;/div&gt;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;HrPageShell
       title="طلبات الانضمام"
       description="مسارات الانضمام كمتطوع (التقديم والمراجعة). يمكن تركيب نقاط تعيين أخرى لاحقًا دون إعادة بناء هذه الصفحة."
@@ -268,8 +268,8 @@ export default function <span class="fstat-no" title="function not covered" >HrA
               &lt;/tr&gt;
             &lt;/thead&gt;
             &lt;tbody className="divide-y divide-slate-50 font-semibold"&gt;
-              {rows.<span class="fstat-no" title="function not covered" >map((v</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >                &lt;motion.tr key={v.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}&gt;</span>
+              {rows.map((v, i) =&gt; (
+                &lt;motion.tr key={v.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}&gt;
                   &lt;td className="px-4 py-3 text-deepBlue"&gt;{v.name}&lt;/td&gt;
                   &lt;td className="px-4 py-3 text-slate-600"&gt;{v.department_name ?? '—'}&lt;/td&gt;
                   &lt;td className="px-4 py-3 text-customOrange"&gt;{v.status === 'applied' ? 'مقدّم' : 'مراجعة'}&lt;/td&gt;
@@ -289,7 +289,7 @@ export default function <span class="fstat-no" title="function not covered" >HrA
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

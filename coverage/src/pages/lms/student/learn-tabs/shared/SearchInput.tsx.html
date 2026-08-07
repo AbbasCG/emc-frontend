@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/24</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -155,33 +155,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -191,9 +164,36 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -230,34 +230,34 @@ type Props = {
  * Compact pill search — debounced, RTL. Capped to a modest width on desktop
  * (260–320px) so it never dominates the toolbar; full width on mobile.
  */
-export default function <span class="fstat-no" title="function not covered" >SearchInput({</span> value, onChange, placeholder, delay = <span class="branch-0 cbranch-no" title="branch not covered" >280 }: Props) {</span>
-  const [raw, <span class="cstat-no" title="statement not covered" >setRaw] = useState(value)</span>
-  const [focused, <span class="cstat-no" title="statement not covered" >setFocused] = useState(false)</span>
-  const <span class="cstat-no" title="statement not covered" >timerRef = useRef&lt;number | null&gt;(null)</span>
+export default function SearchInput({ value, onChange, placeholder, delay = 280 }: Props) {
+  const [raw, setRaw] = useState(value)
+  const [focused, setFocused] = useState(false)
+  const timerRef = useRef&lt;number | null&gt;(null)
 &nbsp;
   // Mirror an externally-changed value during render (react.dev "adjusting state when a
   // prop changes") — an effect would paint one frame holding the stale draft.
-  const [seenValue, <span class="cstat-no" title="statement not covered" >setSeenValue] = useState(value)</span>
-<span class="cstat-no" title="statement not covered" >  if (seenValue !== value) {</span>
-<span class="cstat-no" title="statement not covered" >    setSeenValue(value)</span>
-<span class="cstat-no" title="statement not covered" >    setRaw(value)</span>
+  const [seenValue, setSeenValue] = useState(value)
+  if (seenValue !== value) {
+    setSeenValue(value)
+    setRaw(value)
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; () =&gt; {</span> <span class="cstat-no" title="statement not covered" >if (timerRef.current) <span class="cstat-no" title="statement not covered" >window.clearTimeout(timerRef.current) }</span></span>, [</span>])</span>
+  useEffect(() =&gt; () =&gt; { if (timerRef.current) window.clearTimeout(timerRef.current) }, [])
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >handleChange(v</span>: string) {
-<span class="cstat-no" title="statement not covered" >    setRaw(v)</span>
-<span class="cstat-no" title="statement not covered" >    if (timerRef.current) <span class="cstat-no" title="statement not covered" >window.clearTimeout(timerRef.current)</span></span>
-<span class="cstat-no" title="statement not covered" >    timerRef.current = window.<span class="fstat-no" title="function not covered" >setTimeout(() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nChange(v), d</span>elay)</span>
+  function handleChange(v: string) {
+    setRaw(v)
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+    timerRef.current = window.setTimeout(() =&gt; onChange(v), delay)
   }
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >clear() {</span>
-<span class="cstat-no" title="statement not covered" >    setRaw('')</span>
-<span class="cstat-no" title="statement not covered" >    if (timerRef.current) <span class="cstat-no" title="statement not covered" >window.clearTimeout(timerRef.current)</span></span>
-<span class="cstat-no" title="statement not covered" >    onChange('')</span>
+  function clear() {
+    setRaw('')
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+    onChange('')
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;motion.div
       className="relative w-full sm:w-[280px] shrink-0"
       animate={{ scale: focused ? 1.015 : 1 }}
@@ -267,9 +267,9 @@ export default function <span class="fstat-no" title="function not covered" >Sea
       &lt;input
         type="text"
         value={raw}
-<span class="fstat-no" title="function not covered" >        onChange={(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >handleChange(e.target.value)}</span>
-<span class="fstat-no" title="function not covered" >        onFocus={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etFocused(true)}</span>
-<span class="fstat-no" title="function not covered" >        onBlur={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etFocused(false)}</span>
+        onChange={(e) =&gt; handleChange(e.target.value)}
+        onFocus={() =&gt; setFocused(true)}
+        onBlur={() =&gt; setFocused(false)}
         placeholder={placeholder}
         dir="rtl"
         className={`h-9 w-full rounded-full border bg-white pe-3.5 ps-9 text-[12px] font-semibold text-[#0C2A4B] outline-none transition-all placeholder:text-[#0C2A4B]/35 ${
@@ -298,7 +298,7 @@ export default function <span class="fstat-no" title="function not covered" >Sea
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

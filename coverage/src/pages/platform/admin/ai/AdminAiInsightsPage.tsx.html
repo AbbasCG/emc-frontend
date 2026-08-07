@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -118,24 +118,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -152,7 +134,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,25 +165,25 @@ import AiInsightCard from '@/components/ai/AiInsightCard'
 import EmptyState from '@/components/ai/EmptyState'
 import { LoadingStack } from '@/components/ai/LoadingSkeleton'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AdminAiInsightsPage() {</span>
-  const [loading, <span class="cstat-no" title="statement not covered" >setLoading] = useState(true)</span>
-  const [insights, <span class="cstat-no" title="statement not covered" >setInsights] = useState&lt;Awaited&lt;ReturnType&lt;typeof fetchAiInsights&gt;&gt;&gt;([])</span>
+export default function AdminAiInsightsPage() {
+  const [loading, setLoading] = useState(true)
+  const [insights, setInsights] = useState&lt;Awaited&lt;ReturnType&lt;typeof fetchAiInsights&gt;&gt;&gt;([])
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-    let cancelled = <span class="cstat-no" title="statement not covered" >false</span>
-    ;<span class="cstat-no" title="statement not covered" >(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-      const data = <span class="cstat-no" title="statement not covered" >await fetchAiInsights()</span>
-<span class="cstat-no" title="statement not covered" >      if (!cancelled) {</span>
-<span class="cstat-no" title="statement not covered" >        setInsights(data)</span>
-<span class="cstat-no" title="statement not covered" >        setLoading(false)</span>
+  useEffect(() =&gt; {
+    let cancelled = false
+    ;(async () =&gt; {
+      const data = await fetchAiInsights()
+      if (!cancelled) {
+        setInsights(data)
+        setLoading(false)
       }
     })()
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      cancelled = true</span>
+    return () =&gt; {
+      cancelled = true
     }
   }, [])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="mx-auto max-w-6xl space-y-6"&gt;
       &lt;header&gt;
         &lt;p className="text-[11px] font-black uppercase tracking-widest text-customBlue"&gt;AI Intelligence&lt;/p&gt;
@@ -199,8 +199,8 @@ export default function <span class="fstat-no" title="function not covered" >Adm
         &lt;EmptyState title="لا توجد رؤى متاحة" description="سيتم تعبئة هذه اللوحة من نموذج التحليل عند تفعيل API." /&gt;
       ) : (
         &lt;div className="grid gap-4 lg:grid-cols-2"&gt;
-          {insights.<span class="fstat-no" title="function not covered" >map((i</span>nsight) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;AiInsightCard key={insight.id} insight={insight} /&gt;</span>
+          {insights.map((insight) =&gt; (
+            &lt;AiInsightCard key={insight.id} insight={insight} /&gt;
           ))}
         &lt;/div&gt;
       )}
@@ -214,7 +214,7 @@ export default function <span class="fstat-no" title="function not covered" >Adm
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -100,64 +100,64 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from './axios'
 import { asList, unwrapLms } from './lmsApi'
 import type { DocumentFolder, PlatformDocument } from '@/types/platform'
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchDocumentFolders(): Promise&lt;DocumentFolder[]&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/documents/folders')</span>
-<span class="cstat-no" title="statement not covered" >    return asList&lt;DocumentFolder&gt;(res.data)</span>
+export async function fetchDocumentFolders(): Promise&lt;DocumentFolder[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/documents/folders')
+    return asList&lt;DocumentFolder&gt;(res.data)
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchDocuments(p</span>arams?: { folder?: string }): Promise&lt;PlatformDocument[]&gt; {
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/documents', { params })</span>
-    const <span class="cstat-no" title="statement not covered" >list = asList&lt;PlatformDocument&gt;(res.data)</span>
-<span class="cstat-no" title="statement not covered" >    if (params?.folder &amp;&amp; params.folder !== 'root') {</span>
-<span class="cstat-no" title="statement not covered" >      return list.<span class="fstat-no" title="function not covered" >filter((d</span>) =&gt; <span class="cstat-no" title="statement not covered" >d.folder_id === params.folder)</span></span>
+export async function fetchDocuments(params?: { folder?: string }): Promise&lt;PlatformDocument[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/documents', { params })
+    const list = asList&lt;PlatformDocument&gt;(res.data)
+    if (params?.folder &amp;&amp; params.folder !== 'root') {
+      return list.filter((d) =&gt; d.folder_id === params.folder)
     }
-<span class="cstat-no" title="statement not covered" >    return list</span>
+    return list
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >uploadDocument(p</span>ayload: FormData): Promise&lt;PlatformDocument&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/documents/upload', payload, {</span>
+export async function uploadDocument(payload: FormData): Promise&lt;PlatformDocument&gt; {
+  const res = await apiClient.post&lt;unknown&gt;('/documents/upload', payload, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
-<span class="cstat-no" title="statement not covered" >  return unwrapLms&lt;PlatformDocument&gt;(res.data)</span>
+  return unwrapLms&lt;PlatformDocument&gt;(res.data)
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -166,7 +166,7 @@ export async function <span class="fstat-no" title="function not covered" >uploa
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

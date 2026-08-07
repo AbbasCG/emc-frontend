@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -216,7 +216,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -243,7 +242,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -283,7 +281,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -308,13 +305,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -341,16 +336,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -365,7 +365,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 &nbsp;
-const accentBg: Record&lt;'blue' | 'orange' | 'navy' | 'mint', string&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const accentBg: Record&lt;'blue' | 'orange' | 'navy' | 'mint', string&gt; = {
   blue: 'from-[#0077B6]/15 via-white to-transparent',
   orange: 'from-[#F28C00]/14 via-white to-transparent',
   navy: 'from-[#0C2A4B]/14 via-white to-transparent',
@@ -383,16 +383,16 @@ export type EnterpriseMetricTileProps = {
   loading?: boolean
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >EnterpriseMetricTile({</span>
+export function EnterpriseMetricTile({
   icon: Icon,
   label,
   value,
   hint,
   deltaLabel,
-  accent = <span class="branch-0 cbranch-no" title="branch not covered" >'blue',</span>
+  accent = 'blue',
   loading,
 }: EnterpriseMetricTileProps) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -431,8 +431,8 @@ export function <span class="fstat-no" title="function not covered" >EnterpriseM
 &nbsp;
 /** Marketing-style hero ribbon for dense enterprise CRUD hubs. */
 /** Optional springy replace on change — avoids inventing KPIs while adding perceived polish. */
-export function <span class="fstat-no" title="function not covered" >AnimatedTabular({</span> value }: { value: number | string }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export function AnimatedTabular({ value }: { value: number | string }) {
+  return (
     &lt;motion.span layout key={`${typeof value === 'number' ? value : encodeURIComponent(String(value))}`}
       initial={{ opacity: 0, y: 3 }}
       animate={{ opacity: 1, y: 0 }}
@@ -443,12 +443,12 @@ export function <span class="fstat-no" title="function not covered" >AnimatedTab
   )
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >EnterpriseCrudHero({</span>
+export function EnterpriseCrudHero({
   eyebrow,
   title,
   subtitle,
   actions,
-  variant = <span class="branch-0 cbranch-no" title="branch not covered" >'navy',</span>
+  variant = 'navy',
 }: {
   eyebrow?: string
   title: string
@@ -457,13 +457,13 @@ export function <span class="fstat-no" title="function not covered" >EnterpriseC
   variant?: 'blue' | 'orange' | 'navy'
 }) {
   const ring =
-<span class="cstat-no" title="statement not covered" >    variant === 'orange'</span>
+    variant === 'orange'
       ? 'ring-accent-400/25'
       : variant === 'blue'
         ? 'ring-customBlue/20'
         : 'ring-deepBlue/[0.12]'
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div
       className={cn(
         'relative overflow-hidden rounded-[28px] border border-ink-100/80 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.18)]',
@@ -489,17 +489,17 @@ export function <span class="fstat-no" title="function not covered" >EnterpriseC
   )
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >EnterpriseTableSkeleton({</span> cols = <span class="branch-0 cbranch-no" title="branch not covered" >6, r</span>ows = <span class="branch-0 cbranch-no" title="branch not covered" >8 }: { cols?: number; rows?: number }) {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export function EnterpriseTableSkeleton({ cols = 6, rows = 8 }: { cols?: number; rows?: number }) {
+  return (
     &lt;div dir="rtl" className="space-y-2 p-4" aria-busy aria-label="جارٍ تحميل الجدول"&gt;
-      {Array.from({ length: rows }).<span class="fstat-no" title="function not covered" >map((_</span>, ri) =&gt; (
-<span class="cstat-no" title="statement not covered" >        &lt;div</span>
+      {Array.from({ length: rows }).map((_, ri) =&gt; (
+        &lt;div
           key={`sk-${String(ri)}`}
           className="flex gap-3 rounded-2xl border border-ink-100/60 bg-white/70 p-3 shadow-sm"
           style={{ animationDelay: `${ri * 40}ms` }}
         &gt;
-          {Array.from({ length: cols }).<span class="fstat-no" title="function not covered" >map((_</span>_, ci) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;div</span>
+          {Array.from({ length: cols }).map((__, ci) =&gt; (
+            &lt;div
               key={`skc-${String(ri)}-${String(ci)}`}
               className="h-4 flex-1 animate-pulse rounded-md bg-gradient-to-r from-slate-200/90 via-slate-100/90 to-slate-200/90"
               style={{ animationDuration: '1.1s' }}
@@ -517,7 +517,7 @@ export function <span class="fstat-no" title="function not covered" >EnterpriseT
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../../prettify.js"></script>
         <script>

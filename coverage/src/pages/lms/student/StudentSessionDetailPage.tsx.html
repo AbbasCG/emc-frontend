@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/26</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -179,25 +179,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -277,26 +277,26 @@ import { formatWallClockDMY, formatWallClockTime24 } from '@/utils/amsterdamTime
  * button is shown strictly when the backend says join_allowed &amp;&amp; url is set;
  * access is never inferred from status here.
  */
-export default function <span class="fstat-no" title="function not covered" >StudentSessionDetailPage() {</span>
-  const { <span class="cstat-no" title="statement not covered" >sessionId } = useParams&lt;{ sessionId: string }&gt;()</span>
-  const [session, <span class="cstat-no" title="statement not covered" >setSession] = useState&lt;LmsSessionEvent | null&gt;(null)</span>
-  const [loading, <span class="cstat-no" title="statement not covered" >setLoading] = useState(true)</span>
+export default function StudentSessionDetailPage() {
+  const { sessionId } = useParams&lt;{ sessionId: string }&gt;()
+  const [session, setSession] = useState&lt;LmsSessionEvent | null&gt;(null)
+  const [loading, setLoading] = useState(true)
 &nbsp;
   // Re-arm the loading state during render when the session changes (react.dev
   // "adjusting state when a prop changes") — the initial state is already `true`, so the
   // effect below never touches state synchronously.
-  const [seenSessionId, <span class="cstat-no" title="statement not covered" >setSeenSessionId] = useState(sessionId)</span>
-<span class="cstat-no" title="statement not covered" >  if (seenSessionId !== sessionId) {</span>
-<span class="cstat-no" title="statement not covered" >    setSeenSessionId(sessionId)</span>
-<span class="cstat-no" title="statement not covered" >    if (sessionId) <span class="cstat-no" title="statement not covered" >setLoading(true)</span></span>
+  const [seenSessionId, setSeenSessionId] = useState(sessionId)
+  if (seenSessionId !== sessionId) {
+    setSeenSessionId(sessionId)
+    if (sessionId) setLoading(true)
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (!sessionId) <span class="cstat-no" title="statement not covered" >return</span></span>
-<span class="cstat-no" title="statement not covered" >    fetchStudentSessionDetail(Number(sessionId)).then(setSession).<span class="fstat-no" title="function not covered" >finally(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etLoading(false))</span></span>
+  useEffect(() =&gt; {
+    if (!sessionId) return
+    fetchStudentSessionDetail(Number(sessionId)).then(setSession).finally(() =&gt; setLoading(false))
   }, [sessionId])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-5 pb-16" dir="rtl"&gt;
       &lt;BackButton to="/dashboard/student/calendar" /&gt;
 &nbsp;
@@ -367,7 +367,7 @@ export default function <span class="fstat-no" title="function not covered" >Stu
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

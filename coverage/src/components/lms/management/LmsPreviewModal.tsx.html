@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">71.42% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/21</span>
+                <span class='fraction'>15/21</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">64.28% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/28</span>
+                <span class='fraction'>18/28</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">62.5% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>5/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">82.35% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>14/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -213,33 +213,33 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -345,34 +345,34 @@ type Props = {
   onClose: () =&gt; void
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >isImageMime(m</span>ime: string): boolean {
-<span class="cstat-no" title="statement not covered" >  return mime.startsWith('image/')</span>
+function isImageMime(mime: string): boolean {
+  return mime.startsWith('image/')
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >isPdfMime(m</span>ime: string): boolean {
-<span class="cstat-no" title="statement not covered" >  return mime === 'application/pdf' || mime === 'application/x-pdf'</span>
+function isPdfMime(mime: string): boolean {
+  return mime === 'application/pdf' || <span class="branch-1 cbranch-no" title="branch not covered" >mime === 'application/x-pdf'</span>
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >LmsPreviewModal({</span> state, onClose }: Props) {
-  const <span class="cstat-no" title="statement not covered" >overlayRef = useRef&lt;HTMLDivElement&gt;(null)</span>
+export function LmsPreviewModal({ state, onClose }: Props) {
+  const overlayRef = useRef&lt;HTMLDivElement&gt;(null)
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (state.kind === 'idle') <span class="cstat-no" title="statement not covered" >return</span></span>
-    const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >onKey = (e</span>: KeyboardEvent) =&gt; {</span>
+  useEffect(() =&gt; {
+    if (state.kind === 'idle') return
+    const <span class="fstat-no" title="function not covered" >onKey = (e</span>: KeyboardEvent) =&gt; {
 <span class="cstat-no" title="statement not covered" >      if (e.key === 'Escape') <span class="cstat-no" title="statement not covered" >onClose()</span></span>
     }
-<span class="cstat-no" title="statement not covered" >    document.addEventListener('keydown', onKey)</span>
-    const prev = <span class="cstat-no" title="statement not covered" >document.body.style.overflow</span>
-<span class="cstat-no" title="statement not covered" >    document.body.style.overflow = 'hidden'</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      document.removeEventListener('keydown', onKey)</span>
-<span class="cstat-no" title="statement not covered" >      document.body.style.overflow = prev</span>
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () =&gt; {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
     }
   }, [state.kind, onClose])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (typeof document === 'undefined') <span class="cstat-no" title="statement not covered" >return null</span></span>
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof document === 'undefined') <span class="cstat-no" title="statement not covered" >return null</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return createPortal(</span>
+  return createPortal(
     &lt;AnimatePresence&gt;
       {state.kind !== 'idle' ?
         &lt;motion.div
@@ -435,7 +435,7 @@ export function <span class="fstat-no" title="function not covered" >LmsPreviewM
                   &lt;p className="text-center text-sm font-semibold"&gt;{state.message}&lt;/p&gt;
                 &lt;/div&gt;
               : isImageMime(state.mime) ?
-                &lt;div className="flex h-full items-center justify-center p-4"&gt;
+<span class="branch-0 cbranch-no" title="branch not covered" >                &lt;div className="flex h-full items-center justify-center p-4"&gt;</span>
                   &lt;img src={state.objectUrl} alt={state.fileName} className="max-h-full max-w-full rounded-lg object-contain shadow-lg" /&gt;
                 &lt;/div&gt;
               : isPdfMime(state.mime) ?
@@ -445,7 +445,7 @@ export function <span class="fstat-no" title="function not covered" >LmsPreviewM
                   className="h-full w-full border-0"
                   title={state.fileName}
                 /&gt;
-              : state.mime === 'text/plain' ?
+              : <span class="branch-1 cbranch-no" title="branch not covered" >state.mime === 'text/plain' ?</span>
                 &lt;iframe src={state.objectUrl} className="h-full w-full border-0 bg-white" title={state.fileName} /&gt;
               : (
                 &lt;iframe
@@ -469,7 +469,7 @@ export function <span class="fstat-no" title="function not covered" >LmsPreviewM
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

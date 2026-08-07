@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/55</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -300,7 +300,10 @@
 <a name='L235'></a><a href='#L235'>235</a>
 <a name='L236'></a><a href='#L236'>236</a>
 <a name='L237'></a><a href='#L237'>237</a>
-<a name='L238'></a><a href='#L238'>238</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -322,7 +325,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -331,18 +333,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -453,7 +445,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -537,7 +528,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Link } from 'react-router'
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { memo } from 'react'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   Award,
@@ -559,7 +566,7 @@ import {
   levelLabelAr,
 } from '@/pages/LearningPaths/learningPathDisplay'
 &nbsp;
-const PLACEHOLDER_GRADIENT = <span class="cstat-no" title="statement not covered" >'bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]'</span>
+const PLACEHOLDER_GRADIENT = 'bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]'
 &nbsp;
 type Props = {
   path: LearningPath
@@ -567,19 +574,19 @@ type Props = {
   enrolled: boolean
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >LearningPathShowcaseCard({</span> path, index, enrolled }: Props) {
-  const href = <span class="cstat-no" title="statement not covered" >`/learning-paths/${path.slug}`</span>
-  const <span class="cstat-no" title="statement not covered" >cover = resolvePublicAssetUrl(path.featured_image) ?? null</span>
-  const <span class="cstat-no" title="statement not covered" >duration = formatPathDuration(path)</span>
-  const <span class="cstat-no" title="statement not covered" >includedHeading = includedCoursesHeading(path)</span>
-  const <span class="cstat-no" title="statement not covered" >price = formatPathPrice(path)</span>
-  const { items: previewCourses, <span class="cstat-no" title="statement not covered" >extra } = coursePreviewItems(path, 3)</span>
-  const <span class="cstat-no" title="statement not covered" >level = levelLabelAr(path.level)</span>
+function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
+  const href = `/learning-paths/${path.slug}`
+  const cover = resolvePublicAssetUrl(path.featured_image) ?? null
+  const duration = formatPathDuration(path)
+  const includedHeading = includedCoursesHeading(path)
+  const price = formatPathPrice(path)
+  const { items: previewCourses, extra } = coursePreviewItems(path, 3)
+  const level = levelLabelAr(path.level)
 &nbsp;
-  const primaryHref = <span class="cstat-no" title="statement not covered" >enrolled ? `/dashboard/student/learning-paths/${path.id}` : href</span>
-  const primaryLabel = <span class="cstat-no" title="statement not covered" >enrolled ? 'متابعة المسار' : 'عرض المسار'</span>
+  const primaryHref = enrolled ? `/dashboard/student/learning-paths/${path.id}` : href
+  const primaryLabel = enrolled ? 'متابعة المسار' : 'عرض المسار'
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;motion.article
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -689,8 +696,8 @@ export default function <span class="fstat-no" title="function not covered" >Lea
               )}
               {previewCourses.length &gt; 0 ?
                 &lt;ul className="space-y-2"&gt;
-                  {previewCourses.<span class="fstat-no" title="function not covered" >map((c</span>ourse) =&gt; (
-<span class="cstat-no" title="statement not covered" >                    &lt;li key={course.id} className="flex items-start gap-2 text-sm font-semibold text-slate-700"&gt;</span>
+                  {previewCourses.map((course) =&gt; (
+                    &lt;li key={course.id} className="flex items-start gap-2 text-sm font-semibold text-slate-700"&gt;
                       &lt;Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden /&gt;
                       &lt;span className="line-clamp-1"&gt;{course.title}&lt;/span&gt;
                     &lt;/li&gt;
@@ -774,6 +781,8 @@ export default function <span class="fstat-no" title="function not covered" >Lea
     &lt;/motion.article&gt;
   )
 }
+&nbsp;
+export default memo(LearningPathShowcaseCard)
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -781,7 +790,7 @@ export default function <span class="fstat-no" title="function not covered" >Lea
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -163,7 +163,9 @@
 <a name='L98'></a><a href='#L98'>98</a>
 <a name='L99'></a><a href='#L99'>99</a>
 <a name='L100'></a><a href='#L100'>100</a>
-<a name='L101'></a><a href='#L101'>101</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -175,7 +177,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -200,10 +201,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -228,7 +226,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -238,7 +235,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -263,7 +259,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useRef } from 'react'
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { memo, useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import TrackCard from './TrackCard'
@@ -274,8 +278,8 @@ type TracksSectionProps = {
   loading: boolean
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >TrackSkeleton() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+function TrackSkeleton() {
+  return (
     &lt;div className="min-w-[290px] md:min-w-0 bg-white rounded-2xl border border-line p-5 animate-pulse"&gt;
       &lt;div className="flex justify-between mb-4"&gt;
         &lt;div className="w-12 h-12 bg-slate-200 rounded-xl" /&gt;
@@ -299,11 +303,11 @@ function <span class="fstat-no" title="function not covered" >TrackSkeleton() {<
   )
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >TracksSection({</span> tracks, loading }: TracksSectionProps) {
-  const <span class="cstat-no" title="statement not covered" >sectionRef = useRef&lt;HTMLElement&gt;(null)</span>
-  const <span class="cstat-no" title="statement not covered" >isInView = useInView(sectionRef, { once: true, margin: '-60px' })</span>
+function TracksSection({ tracks, loading }: TracksSectionProps) {
+  const sectionRef = useRef&lt;HTMLElement&gt;(null)
+  const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;section ref={sectionRef} className="bg-white py-20 overflow-hidden"&gt;
       &lt;div className="mx-auto max-w-7xl px-4 sm:px-6"&gt;
         {/* Section header */}
@@ -327,8 +331,8 @@ export default function <span class="fstat-no" title="function not covered" >Tra
         {/* Mobile: horizontal scroll | Desktop: 3-col grid */}
         {loading ? (
           &lt;div className="flex md:grid md:grid-cols-3 gap-5 overflow-x-auto md:overflow-visible pb-2 md:pb-0"&gt;
-            {Array.from({ length: 3 }).<span class="fstat-no" title="function not covered" >map((_</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >              &lt;TrackSkeleton key={i} /&gt;</span>
+            {Array.from({ length: 3 }).map((_, i) =&gt; (
+              &lt;TrackSkeleton key={i} /&gt;
             ))}
           &lt;/div&gt;
         ) : tracks.length === 0 ? (
@@ -337,8 +341,8 @@ export default function <span class="fstat-no" title="function not covered" >Tra
           &lt;/p&gt;
         ) : (
           &lt;div className="flex md:grid md:grid-cols-3 gap-5 overflow-x-auto md:overflow-visible pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}&gt;
-            {tracks.<span class="fstat-no" title="function not covered" >map((t</span>rack, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >              &lt;TrackCard key={track.id} track={track} index={i} /&gt;</span>
+            {tracks.map((track, i) =&gt; (
+              &lt;TrackCard key={track.id} track={track} index={i} /&gt;
             ))}
           &lt;/div&gt;
         )}
@@ -363,6 +367,8 @@ export default function <span class="fstat-no" title="function not covered" >Tra
     &lt;/section&gt;
   )
 }
+&nbsp;
+export default memo(TracksSection)
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -370,7 +376,7 @@ export default function <span class="fstat-no" title="function not covered" >Tra
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

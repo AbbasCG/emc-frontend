@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -156,25 +156,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -200,7 +181,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -217,7 +197,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -239,26 +239,26 @@ import { fetchEmailIntegration, sendEmailSmokeTest } from '@/api/integrationsApi
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import type { EmailIntegrationPreview } from '@/types/phase7'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >EmailIntegrationPage() {</span>
-  const [model, <span class="cstat-no" title="statement not covered" >setModel] = useState&lt;EmailIntegrationPreview | null&gt;(null)</span>
+export default function EmailIntegrationPage() {
+  const [model, setModel] = useState&lt;EmailIntegrationPreview | null&gt;(null)
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-    let cancelled = <span class="cstat-no" title="statement not covered" >false</span>
-    ;<span class="cstat-no" title="statement not covered" >(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-      const m = <span class="cstat-no" title="statement not covered" >await fetchEmailIntegration()</span>
-<span class="cstat-no" title="statement not covered" >      if (!cancelled) <span class="cstat-no" title="statement not covered" >setModel(m)</span></span>
+  useEffect(() =&gt; {
+    let cancelled = false
+    ;(async () =&gt; {
+      const m = await fetchEmailIntegration()
+      if (!cancelled) setModel(m)
     })()
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      cancelled = true</span>
+    return () =&gt; {
+      cancelled = true
     }
   }, [])
 &nbsp;
-  async function <span class="fstat-no" title="function not covered" >onTest() {</span>
-<span class="cstat-no" title="statement not covered" >    await sendEmailSmokeTest()</span>
-<span class="cstat-no" title="statement not covered" >    toast.success('تمت جدولة رسالة الاختبار عبر الخادم')</span>
+  async function onTest() {
+    await sendEmailSmokeTest()
+    toast.success('تمت جدولة رسالة الاختبار عبر الخادم')
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="mx-auto max-w-4xl"&gt;
       &lt;motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-wrap items-center justify-between gap-4"&gt;
         &lt;div&gt;
@@ -284,7 +284,7 @@ export default function <span class="fstat-no" title="function not covered" >Ema
           &lt;/div&gt;
           &lt;button
             type="button"
-<span class="fstat-no" title="function not covered" >            onClick={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid onTest()}</span>
+            onClick={() =&gt; void onTest()}
             className="rounded-xl bg-customBlue px-5 py-2.5 text-xs font-black text-white shadow-md transition hover:opacity-95"
           &gt;
             إرسال بريد اختبار
@@ -300,8 +300,8 @@ export default function <span class="fstat-no" title="function not covered" >Ema
               &lt;/tr&gt;
             &lt;/thead&gt;
             &lt;tbody className="divide-y divide-slate-100"&gt;
-              {(model?.templates ?? []).<span class="fstat-no" title="function not covered" >map((t</span>) =&gt; (
-<span class="cstat-no" title="statement not covered" >                &lt;tr key={t.id} className="hover:bg-slate-50/70"&gt;</span>
+              {(model?.templates ?? []).map((t) =&gt; (
+                &lt;tr key={t.id} className="hover:bg-slate-50/70"&gt;
                   &lt;td className="px-4 py-3 font-black text-deepBlue"&gt;{t.name_ar}&lt;/td&gt;
                   &lt;td className="px-4 py-3 font-mono text-xs font-bold text-slate-600" dir="ltr"&gt;
                     {t.slug}
@@ -322,7 +322,7 @@ export default function <span class="fstat-no" title="function not covered" >Ema
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

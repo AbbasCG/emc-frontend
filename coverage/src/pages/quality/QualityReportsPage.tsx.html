@@ -25,12 +25,12 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>0/0</span>
             </div>
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -184,7 +184,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -244,11 +243,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -259,7 +255,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -268,7 +263,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -298,7 +298,7 @@ import {
 } from 'lucide-react'
 import toast from '@/lib/toast'
 &nbsp;
-const reports = <span class="cstat-no" title="statement not covered" >[</span>
+const reports = [
   {
     icon: BookOpen,
     title: 'تقرير جودة الورش',
@@ -357,12 +357,12 @@ const reports = <span class="cstat-no" title="statement not covered" >[</span>
   },
 ]
 &nbsp;
-function <span class="fstat-no" title="function not covered" >ExportButton({</span> label, icon: Icon }: { label: string; icon: typeof Download }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+function ExportButton({ label, icon: Icon }: { label: string; icon: typeof Download }) {
+  return (
     &lt;button
-<span class="fstat-no" title="function not covered" >      onClick={() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        toast.message('جاري التحضير...')</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >        setTimeout(() =&gt; <span class="cstat-no" title="statement not covered" >t</span>oast.message('ميزة التصدير قيد التطوير'), 6</span>00)</span>
+      onClick={() =&gt; {
+        toast.message('جاري التحضير...')
+        setTimeout(() =&gt; toast.message('ميزة التصدير قيد التطوير'), 600)
       }}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
     &gt;
@@ -372,8 +372,8 @@ function <span class="fstat-no" title="function not covered" >ExportButton({</sp
   )
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >QualityReportsPage() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export default function QualityReportsPage() {
+  return (
     &lt;div dir="rtl" className="min-h-screen bg-slate-50 p-6"&gt;
       &lt;div className="mb-6"&gt;
         &lt;h1 className="text-xl font-black text-deepBlue"&gt;مركز التقارير&lt;/h1&gt;
@@ -381,8 +381,8 @@ export default function <span class="fstat-no" title="function not covered" >Qua
       &lt;/div&gt;
 &nbsp;
       &lt;div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"&gt;
-        {reports.<span class="fstat-no" title="function not covered" >map((r</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;motion.div</span>
+        {reports.map((r, i) =&gt; (
+          &lt;motion.div
             key={r.title}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -412,7 +412,7 @@ export default function <span class="fstat-no" title="function not covered" >Qua
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

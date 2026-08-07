@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -152,7 +152,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,7 +166,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -189,7 +187,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -210,7 +207,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -221,7 +217,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -236,8 +236,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >CrudCardTable({</span> children, className }: { children: React.ReactNode; className?: string }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export function CrudCardTable({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
     &lt;div
       dir="rtl"
       className={cn(
@@ -251,8 +251,8 @@ export function <span class="fstat-no" title="function not covered" >CrudCardTab
 }
 &nbsp;
 /** جدول CRUD باتجاه RTL موحّد للأعمدة والمقاطع النصية. */
-export function <span class="fstat-no" title="function not covered" >CrudTable({</span> children, className }: { children: React.ReactNode; className?: string }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export function CrudTable({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
     &lt;table
       dir="rtl"
       className={cn(
@@ -266,7 +266,7 @@ export function <span class="fstat-no" title="function not covered" >CrudTable({
   )
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >Th({</span>
+export function Th({
   children,
   className,
   ...props
@@ -274,7 +274,7 @@ export function <span class="fstat-no" title="function not covered" >Th({</span>
   /** Optional for decorative empty header slots */
   children?: ReactNode
 }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;th
       className={cn(
         'sticky top-0 z-[1] border-b border-ink-100 bg-slate-50/96 px-4 py-3.5 text-right text-[11px] font-black uppercase tracking-wide text-muted-500 backdrop-blur rtl:text-right',
@@ -287,7 +287,7 @@ export function <span class="fstat-no" title="function not covered" >Th({</span>
   )
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >Tr({</span>
+export function Tr({
   children,
   muted,
   className,
@@ -295,7 +295,7 @@ export function <span class="fstat-no" title="function not covered" >Tr({</span>
 }: ComponentPropsWithoutRef&lt;'tr'&gt; &amp; {
   muted?: boolean
 }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;tr
       className={cn('group transition-colors', muted ? 'opacity-85' : 'hover:bg-brand-500/[0.03]', className)}
       {...props}
@@ -305,8 +305,8 @@ export function <span class="fstat-no" title="function not covered" >Tr({</span>
   )
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >Td({</span> children, className, ...props }: ComponentPropsWithoutRef&lt;'td'&gt;) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export function Td({ children, className, ...props }: ComponentPropsWithoutRef&lt;'td'&gt;) {
+  return (
     &lt;td
       className={cn(
         'border-b border-ink-100/[0.7] px-4 py-3.5 align-middle text-right text-[13px] font-semibold rtl:text-right',
@@ -325,7 +325,7 @@ export function <span class="fstat-no" title="function not covered" >Td({</span>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -25,12 +25,12 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>0/0</span>
             </div>
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -224,7 +224,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -273,7 +272,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -287,8 +285,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -309,7 +305,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -379,7 +379,7 @@ import { ArrowLeft, ArrowLeftCircle, BriefcaseBusiness, GraduationCap, Users } f
 import PageHeader from '../components/PageHeader'
 import { fadeUp } from '../utils/course'
 &nbsp;
-const paths = <span class="cstat-no" title="statement not covered" >[</span>
+const paths = [
   {
     icon: GraduationCap,
     title: 'مسار الطالب',
@@ -427,8 +427,8 @@ const paths = <span class="cstat-no" title="statement not covered" >[</span>
   },
 ]
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >Paths() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export default function Paths() {
+  return (
     &lt;main className="bg-slate-50 pt-20"&gt;
       &lt;PageHeader
         title="المسارات التعليمية"
@@ -441,15 +441,15 @@ export default function <span class="fstat-no" title="function not covered" >Pat
 &nbsp;
       &lt;section className="px-4 py-20 sm:px-6 lg:px-8"&gt;
         &lt;div className="mx-auto max-w-7xl space-y-12"&gt;
-          {paths.<span class="fstat-no" title="function not covered" >map((p</span>ath, pi) =&gt; {
-            const Icon = <span class="cstat-no" title="statement not covered" >path.icon</span>
-<span class="cstat-no" title="statement not covered" >            return (</span>
+          {paths.map((path, pi) =&gt; {
+            const Icon = path.icon
+            return (
               &lt;motion.article
                 key={path.title}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
+                viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
                 transition={{ duration: 0.5, delay: pi * 0.08 }}
                 className="overflow-hidden rounded-2xl bg-white shadow-xl shadow-slate-200/70 ring-1 ring-slate-100 lg:grid lg:grid-cols-[1fr_380px]"
               &gt;
@@ -463,8 +463,8 @@ export default function <span class="fstat-no" title="function not covered" >Pat
                   &lt;p className="mt-5 text-lg leading-9 text-slate-600"&gt;{path.description}&lt;/p&gt;
 &nbsp;
                   &lt;div className="mt-7 grid gap-3 sm:grid-cols-2"&gt;
-                    {path.steps.<span class="fstat-no" title="function not covered" >map((s</span>tep, si) =&gt; (
-<span class="cstat-no" title="statement not covered" >                      &lt;div key={step.label} className="flex items-start gap-3 rounded-xl bg-slate-50 p-4"&gt;</span>
+                    {path.steps.map((step, si) =&gt; (
+                      &lt;div key={step.label} className="flex items-start gap-3 rounded-xl bg-slate-50 p-4"&gt;
                         &lt;span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black text-white ${path.accent}`}&gt;
                           {si + 1}
                         &lt;/span&gt;
@@ -505,7 +505,7 @@ export default function <span class="fstat-no" title="function not covered" >Pat
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.5 }}
         &gt;
           &lt;div&gt;
@@ -535,7 +535,7 @@ export default function <span class="fstat-no" title="function not covered" >Pat
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

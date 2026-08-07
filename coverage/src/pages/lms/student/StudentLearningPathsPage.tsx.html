@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -279,29 +279,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -328,7 +315,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -365,13 +351,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -476,30 +476,30 @@ import {
 import { fetchStudentLearningPaths, type StudentEnrollment } from '../../../api/learningPathsApi'
 import { fmtDate } from '@/components/lms/lmsFormatters'
 &nbsp;
-function <span class="fstat-no" title="function not covered" >fmt(n</span>: number) {
-<span class="cstat-no" title="statement not covered" >  return new Intl.NumberFormat('en-US').format(n)</span>
+function fmt(n: number) {
+  return new Intl.NumberFormat('en-US').format(n)
 }
 &nbsp;
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >StudentLearningPathsPage() {</span>
-  const [enrollments, <span class="cstat-no" title="statement not covered" >setEnrollments] = useState&lt;StudentEnrollment[]&gt;([])</span>
-  const [loading, <span class="cstat-no" title="statement not covered" >setLoading] = useState(true)</span>
+export default function StudentLearningPathsPage() {
+  const [enrollments, setEnrollments] = useState&lt;StudentEnrollment[]&gt;([])
+  const [loading, setLoading] = useState(true)
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    fetchStudentLearningPaths()</span>
+  useEffect(() =&gt; {
+    fetchStudentLearningPaths()
       .then(setEnrollments)
-      .<span class="fstat-no" title="function not covered" >finally(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etLoading(false))</span>
+      .finally(() =&gt; setLoading(false))
   }, [])
 &nbsp;
-  const <span class="cstat-no" title="statement not covered" >stats = <span class="fstat-no" title="function not covered" >useMemo(() =&gt; {</span></span>
-    const total = <span class="cstat-no" title="statement not covered" >enrollments.length</span>
-    const completed = <span class="cstat-no" title="statement not covered" >enrollments.<span class="fstat-no" title="function not covered" >filter((e</span>) =&gt; <span class="cstat-no" title="statement not covered" >e.enrollment_status === 'completed')</span>.length</span>
-    const active = <span class="cstat-no" title="statement not covered" >total - completed</span>
-    const certCount = <span class="cstat-no" title="statement not covered" >enrollments.<span class="fstat-no" title="function not covered" >filter((e</span>) =&gt; <span class="cstat-no" title="statement not covered" >e.learning_path.certificate_name)</span>.length</span>
-<span class="cstat-no" title="statement not covered" >    return { total, completed, active, certCount }</span>
+  const stats = useMemo(() =&gt; {
+    const total = enrollments.length
+    const completed = enrollments.filter((e) =&gt; e.enrollment_status === 'completed').length
+    const active = total - completed
+    const certCount = enrollments.filter((e) =&gt; e.learning_path.certificate_name).length
+    return { total, completed, active, certCount }
   }, [enrollments])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-6 pb-16 text-right" dir="rtl"&gt;
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       &lt;motion.section
@@ -525,8 +525,8 @@ export default function <span class="fstat-no" title="function not covered" >Stu
                 { label: 'نشط', value: stats.active, color: 'text-[#F28C00]' },
                 { label: 'مكتمل', value: stats.completed, color: 'text-emerald-400' },
                 { label: 'شهادة', value: stats.certCount, color: 'text-amber-300' },
-              ].<span class="fstat-no" title="function not covered" >map(({</span> label, value, color }) =&gt; (
-<span class="cstat-no" title="statement not covered" >                &lt;div key={label} className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-center backdrop-blur"&gt;</span>
+              ].map(({ label, value, color }) =&gt; (
+                &lt;div key={label} className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-center backdrop-blur"&gt;
                   &lt;p className={`text-[1.4rem] font-black tabular-nums ${color}`}&gt;{fmt(value)}&lt;/p&gt;
                   &lt;p className="mt-0.5 text-[10px] font-bold text-white/60"&gt;{label}&lt;/p&gt;
                 &lt;/div&gt;
@@ -562,14 +562,14 @@ export default function <span class="fstat-no" title="function not covered" >Stu
         &lt;/motion.div&gt;
       ) : (
         &lt;div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"&gt;
-          {enrollments.<span class="fstat-no" title="function not covered" >map((e</span>n, i) =&gt; {
-            const path = <span class="cstat-no" title="statement not covered" >en.learning_path</span>
-            const dur = <span class="cstat-no" title="statement not covered" >path.duration</span>
+          {enrollments.map((en, i) =&gt; {
+            const path = en.learning_path
+            const dur = path.duration
               ? `${path.duration} ${path.duration_unit === 'weeks' ? 'أسبوع' : path.duration_unit === 'months' ? 'شهر' : 'يوم'}`
               : null
-            const isCompleted = <span class="cstat-no" title="statement not covered" >en.enrollment_status === 'completed'</span>
+            const isCompleted = en.enrollment_status === 'completed'
 &nbsp;
-<span class="cstat-no" title="statement not covered" >            return (</span>
+            return (
               &lt;motion.div
                 key={en.enrollment_id}
                 initial={{ opacity: 0, y: 16 }}
@@ -664,7 +664,7 @@ export default function <span class="fstat-no" title="function not covered" >Stu
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

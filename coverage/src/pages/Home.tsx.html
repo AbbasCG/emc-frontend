@@ -25,12 +25,12 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>0/0</span>
             </div>
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -148,7 +148,9 @@
 <a name='L83'></a><a href='#L83'>83</a>
 <a name='L84'></a><a href='#L84'>84</a>
 <a name='L85'></a><a href='#L85'>85</a>
-<a name='L86'></a><a href='#L86'>86</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -162,17 +164,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -181,7 +172,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -246,18 +250,19 @@ import HomePartnersSection from '../components/home/HomePartnersSection'
 import HomeFaqSection from '../components/home/HomeFaqSection'
 import HomeGrandCTA from '../components/home/HomeGrandCTA'
 import PublicSeo from '@/components/public/PublicSeo'
+import { OrganizationJsonLd } from '@/components/public/JsonLd'
 &nbsp;
-const <span class="cstat-no" title="statement not covered" >FeaturedCoursesSection = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../components/home/FeaturedCoursesSection'))</span></span>
-const <span class="cstat-no" title="statement not covered" >HomeEcosystemBento = <span class="fstat-no" title="function not covered" >lazy(() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../components/home/HomeEcosystemBento'))</span></span>
+const FeaturedCoursesSection = lazy(() =&gt; import('../components/home/FeaturedCoursesSection'))
+const HomeEcosystemBento = lazy(() =&gt; import('../components/home/HomeEcosystemBento'))
 &nbsp;
-function <span class="fstat-no" title="function not covered" >SectionFallback() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+function SectionFallback() {
+  return (
     &lt;section className="bg-white px-4 py-16 sm:px-6 lg:px-10" aria-hidden&gt;
       &lt;div className="mx-auto max-w-[1540px]"&gt;
         &lt;div className="mb-12 h-8 w-48 animate-pulse rounded-lg bg-brand-100" /&gt;
         &lt;div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"&gt;
-          {Array.from({ length: 4 }).<span class="fstat-no" title="function not covered" >map((_</span>, i) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;div key={i} className="h-80 animate-pulse rounded-[1.25rem] bg-brand-50/80 ring-1 ring-deepBlue/[0.04]" /&gt;</span>
+          {Array.from({ length: 4 }).map((_, i) =&gt; (
+            &lt;div key={i} className="h-80 animate-pulse rounded-[1.25rem] bg-brand-50/80 ring-1 ring-deepBlue/[0.04]" /&gt;
           ))}
         &lt;/div&gt;
       &lt;/div&gt;
@@ -265,14 +270,15 @@ function <span class="fstat-no" title="function not covered" >SectionFallback() 
   )
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >Home() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export default function Home() {
+  return (
     &lt;main className="bg-white"&gt;
       &lt;PublicSeo
         title="EMC — منصة التعليم والتطوير"
         description="منصة EMC التعليمية العربية—الهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
         path="/"
       /&gt;
+      &lt;OrganizationJsonLd /&gt;
       {/* 1. Cinematic dark hero + orbital visual + stat pills */}
       &lt;HomeCinematicHero /&gt;
 &nbsp;
@@ -325,7 +331,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -155,19 +155,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -206,7 +193,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -237,20 +237,20 @@ import VisibilityBadge from '@/components/platform/VisibilityBadge'
 import EmptyState from '@/components/dashboard/EmptyState'
 import type { KnowledgeArticle } from '@/types/platform'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AdminKnowledgeHubPage() {</span>
-  const [items, <span class="cstat-no" title="statement not covered" >setItems] = useState&lt;KnowledgeArticle[]&gt;([])</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-    let cancelled = <span class="cstat-no" title="statement not covered" >false</span>
-    ;<span class="cstat-no" title="statement not covered" >(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-      const a = <span class="cstat-no" title="statement not covered" >await fetchKnowledgeArticles()</span>
-<span class="cstat-no" title="statement not covered" >      if (!cancelled) <span class="cstat-no" title="statement not covered" >setItems(a)</span></span>
+export default function AdminKnowledgeHubPage() {
+  const [items, setItems] = useState&lt;KnowledgeArticle[]&gt;([])
+  useEffect(() =&gt; {
+    let cancelled = false
+    ;(async () =&gt; {
+      const a = await fetchKnowledgeArticles()
+      if (!cancelled) setItems(a)
     })()
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      cancelled = true</span>
+    return () =&gt; {
+      cancelled = true
     }
   }, [])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="mx-auto max-w-6xl"&gt;
       &lt;div className="mb-8 flex flex-wrap items-end justify-between gap-4"&gt;
         &lt;div&gt;
@@ -288,8 +288,8 @@ export default function <span class="fstat-no" title="function not covered" >Adm
               &lt;/tr&gt;
             &lt;/thead&gt;
             &lt;tbody className="divide-y divide-slate-100"&gt;
-              {items.<span class="fstat-no" title="function not covered" >map((a</span>, idx) =&gt; (
-<span class="cstat-no" title="statement not covered" >                &lt;motion.tr key={a.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }}&gt;</span>
+              {items.map((a, idx) =&gt; (
+                &lt;motion.tr key={a.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }}&gt;
                   &lt;td className="px-5 py-4 font-black text-deepBlue"&gt;{a.title}&lt;/td&gt;
                   &lt;td className="px-5 py-4"&gt;
                     &lt;VisibilityBadge variant="knowledge_visibility" value={a.visibility} /&gt;
@@ -319,7 +319,7 @@ export default function <span class="fstat-no" title="function not covered" >Adm
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

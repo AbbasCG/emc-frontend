@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>3/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -101,19 +101,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -130,20 +130,20 @@ import { useAuth } from '@/contexts/AuthContext'
 import { financeSectionBase } from '@/utils/financeNav'
 import { getUserDisplayName, getUserRoleLabel } from '@/utils/userIdentity'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >FinanceDashboardPage() {</span>
-  const { <span class="cstat-no" title="statement not covered" >pathname } = useLocation()</span>
-  const { <span class="cstat-no" title="statement not covered" >user } = useAuth()</span>
-  const <span class="cstat-no" title="statement not covered" >financeBase = financeSectionBase(pathname)</span>
+export default function FinanceDashboardPage() {
+  const { pathname } = useLocation()
+  const { user } = useAuth()
+  const financeBase = financeSectionBase(pathname)
 &nbsp;
-  const [range, <span class="cstat-no" title="statement not covered" >setRange] = <span class="fstat-no" title="function not covered" >useState(() =&gt; {</span></span>
-    const y = <span class="cstat-no" title="statement not covered" >new Date().getFullYear()</span>
-<span class="cstat-no" title="statement not covered" >    return { from: `${y}-01-01`, to: `${y}-12-31` }</span>
+  const [range, setRange] = useState(() =&gt; {
+    const y = new Date().getFullYear()
+    return { from: `${y}-01-01`, to: `${y}-12-31` }
   })
 &nbsp;
-  const <span class="cstat-no" title="statement not covered" >displayName = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >useMemo(() =&gt; g</span>etUserDisplayName(user) || 'زائر', [</span>user])</span>
-  const <span class="cstat-no" title="statement not covered" >roleLabel = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >useMemo(() =&gt; g</span>etUserRoleLabel(user) || 'مدير المالية', [</span>user])</span>
+  const displayName = useMemo(() =&gt; getUserDisplayName(user) || <span class="branch-1 cbranch-no" title="branch not covered" >'زائر', [</span>user])
+  const roleLabel = useMemo(() =&gt; getUserRoleLabel(user) || 'مدير المالية', [user])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;FinanceCommandCenter
       displayName={displayName}
       roleLabel={roleLabel}
@@ -160,7 +160,7 @@ export default function <span class="fstat-no" title="function not covered" >Fin
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

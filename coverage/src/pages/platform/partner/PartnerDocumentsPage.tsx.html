@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -104,19 +104,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -127,7 +114,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -138,20 +138,20 @@ import { fetchDocuments } from '@/api/documentsApi'
 import DocumentCard from '@/components/platform/DocumentCard'
 import UploadPanel from '@/components/platform/UploadPanel'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >PartnerDocumentsPage() {</span>
-  const [docs, <span class="cstat-no" title="statement not covered" >setDocs] = useState&lt;Awaited&lt;ReturnType&lt;typeof fetchDocuments&gt;&gt;&gt;([])</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-    let c = <span class="cstat-no" title="statement not covered" >false</span>
-    ;<span class="cstat-no" title="statement not covered" >(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-      const d = <span class="cstat-no" title="statement not covered" >await fetchDocuments()</span>
-<span class="cstat-no" title="statement not covered" >      if (!c) <span class="cstat-no" title="statement not covered" >setDocs(d.<span class="fstat-no" title="function not covered" >filter((x</span>) =&gt; <span class="cstat-no" title="statement not covered" >x.visibility === 'partner' || x.related_label)</span>)</span></span>
+export default function PartnerDocumentsPage() {
+  const [docs, setDocs] = useState&lt;Awaited&lt;ReturnType&lt;typeof fetchDocuments&gt;&gt;&gt;([])
+  useEffect(() =&gt; {
+    let c = false
+    ;(async () =&gt; {
+      const d = await fetchDocuments()
+      if (!c) setDocs(d.filter((x) =&gt; x.visibility === 'partner' || x.related_label))
     })()
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      c = true</span>
+    return () =&gt; {
+      c = true
     }
   }, [])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-8"&gt;
       &lt;div&gt;
         &lt;h2 className="text-2xl font-black text-white"&gt;مستندات الشراكة&lt;/h2&gt;
@@ -161,8 +161,8 @@ export default function <span class="fstat-no" title="function not covered" >Par
         &lt;UploadPanel /&gt;
       &lt;/div&gt;
       &lt;div className="grid gap-4 md:grid-cols-2"&gt;
-        {docs.<span class="fstat-no" title="function not covered" >map((d</span>) =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;DocumentCard key={d.id} doc={d} /&gt;</span>
+        {docs.map((d) =&gt; (
+          &lt;DocumentCard key={d.id} doc={d} /&gt;
         ))}
       &lt;/div&gt;
     &lt;/div&gt;
@@ -175,7 +175,7 @@ export default function <span class="fstat-no" title="function not covered" >Par
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -165,29 +165,43 @@
 <a name='L100'></a><a href='#L100'>100</a>
 <a name='L101'></a><a href='#L101'>101</a>
 <a name='L102'></a><a href='#L102'>102</a>
-<a name='L103'></a><a href='#L103'>103</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -270,27 +284,34 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { CheckCircle, Home, Clock, Mail, Hash } from 'lucide-react'
+import PublicSeo from '@/components/public/PublicSeo'
 import type { AmbassadorSubmitResult } from '@/api/ambassadorApplicationApi'
 import { formatDateTime } from '@/utils/dateTime'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AmbassadorApplicationSuccess() {</span>
-  const <span class="cstat-no" title="statement not covered" >location = useLocation()</span>
-  const <span class="cstat-no" title="statement not covered" >navigate = useNavigate()</span>
-  const result = <span class="cstat-no" title="statement not covered" >location.state as AmbassadorSubmitResult | null</span>
+export default function AmbassadorApplicationSuccess() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const result = location.state as AmbassadorSubmitResult | null
 &nbsp;
   // Guard: if no state, the user navigated here directly — redirect to apply
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (!result) {</span>
-<span class="cstat-no" title="statement not covered" >      navigate('/ambassador/apply', { replace: true })</span>
+  useEffect(() =&gt; {
+    if (!result) {
+      navigate('/ambassador/apply', { replace: true })
     }
   }, [result, navigate])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (!result) <span class="cstat-no" title="statement not covered" >return null</span></span>
+  if (!result) return null
 &nbsp;
-  const submittedDate = <span class="cstat-no" title="statement not covered" >result.submitted_at ? formatDateTime(result.submitted_at) : null</span>
+  const submittedDate = result.submitted_at ? formatDateTime(result.submitted_at) : null
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="min-h-screen bg-[#f4f7fb]" dir="rtl"&gt;
+      &lt;PublicSeo
+        title="تم استلام طلبك"
+        description="تأكيد استلام طلب الانضمام لبرنامج سفراء التحول الرقمي — سيراجع فريق EMC طلبك ويتواصل معك عبر البريد الإلكتروني، مع رقم مرجعي لمتابعة الطلب."
+        path="/ambassador/application-success"
+        noIndex
+      /&gt;
       {/* Top bar */}
       &lt;div className="bg-deepBlue px-6 py-4"&gt;
         &lt;Link to="/" className="text-xl font-black text-white"&gt;
@@ -376,7 +397,7 @@ export default function <span class="fstat-no" title="function not covered" >Amb
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -137,7 +137,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -148,13 +148,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,16 +163,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -194,8 +194,8 @@ type RawToken = {
   token_preview?: string
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >normToken(r</span>: RawToken): ApiAccessTokenRow {
-<span class="cstat-no" title="statement not covered" >  return {</span>
+function normToken(r: RawToken): ApiAccessTokenRow {
+  return {
     id:            r.id,
     name:          r.name,
     scopes:        (r.scopes ?? r.abilities ?? []) as ApiTokenScope[],
@@ -205,12 +205,12 @@ function <span class="fstat-no" title="function not covered" >normToken(r</span>
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchApiTokens(): Promise&lt;ApiAccessTokenRow[]&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/developer/api-tokens')</span>
-<span class="cstat-no" title="statement not covered" >    return asList&lt;RawToken&gt;(res.data).map(normToken)</span>
+export async function fetchApiTokens(): Promise&lt;ApiAccessTokenRow[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/developer/api-tokens')
+    return asList&lt;RawToken&gt;(res.data).map(normToken)
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
@@ -219,20 +219,20 @@ export type CreatedApiToken = {
   record: ApiAccessTokenRow
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >createApiToken(b</span>ody: {
+export async function createApiToken(body: {
   name: string
   scopes: ApiTokenScope[]
 }): Promise&lt;CreatedApiToken&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/developer/api-tokens', body)</span>
-  const <span class="cstat-no" title="statement not covered" >data = unwrapData&lt;{ token?: string; token_plain?: string; record?: ApiAccessTokenRow }&gt;(res.data)</span>
-  const plain = <span class="cstat-no" title="statement not covered" >data.token ?? data.token_plain</span>
-<span class="cstat-no" title="statement not covered" >  if (!plain || !data.record) <span class="cstat-no" title="statement not covered" >throw new Error('استجابة إنشاء الرمز غير مكتملة')</span></span>
-<span class="cstat-no" title="statement not covered" >  return { token: plain, record: data.record }</span>
+  const res = await apiClient.post&lt;unknown&gt;('/developer/api-tokens', body)
+  const data = unwrapData&lt;{ token?: string; token_plain?: string; record?: ApiAccessTokenRow }&gt;(res.data)
+  const plain = data.token ?? data.token_plain
+  if (!plain || !data.record) throw new Error('استجابة إنشاء الرمز غير مكتملة')
+  return { token: plain, record: data.record }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >revokeApiToken(i</span>d: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  try {</span>
-<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/developer/api-tokens/${id}`)</span>
+export async function revokeApiToken(id: number): Promise&lt;void&gt; {
+  try {
+    await apiClient.delete(`/developer/api-tokens/${id}`)
   } catch {
     /* optimistic removal handled in UI */
   }
@@ -244,7 +244,7 @@ export async function <span class="fstat-no" title="function not covered" >revok
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

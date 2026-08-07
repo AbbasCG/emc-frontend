@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>6/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -116,22 +116,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,28 +150,28 @@
   fillClass?: string
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >FinanceSparkline({</span>
+export default function FinanceSparkline({
   values,
-  className = <span class="branch-0 cbranch-no" title="branch not covered" >'',</span>
-  strokeClass = <span class="branch-0 cbranch-no" title="branch not covered" >'stroke-customBlue',</span>
-  fillClass = <span class="branch-0 cbranch-no" title="branch not covered" >'fill-customBlue/15',</span>
+  className = '',
+  strokeClass = 'stroke-customBlue',
+  fillClass = 'fill-customBlue/15',
 }: FinanceSparklineProps) {
-  const v = <span class="cstat-no" title="statement not covered" >values.length ? values : [0]</span>
-  const max = <span class="cstat-no" title="statement not covered" >Math.max(...v, 1)</span>
-  const min = <span class="cstat-no" title="statement not covered" >Math.min(...v, 0)</span>
-  const span = <span class="cstat-no" title="statement not covered" >max - min || 1</span>
-  const w = <span class="cstat-no" title="statement not covered" >88</span>
-  const h = <span class="cstat-no" title="statement not covered" >32</span>
-  const pad = <span class="cstat-no" title="statement not covered" >2</span>
-  const pts = <span class="cstat-no" title="statement not covered" >v.<span class="fstat-no" title="function not covered" >map((n</span>, i) =&gt; {</span>
-    const x = <span class="cstat-no" title="statement not covered" >pad + (i / Math.max(v.length - 1, 1)) * (w - pad * 2)</span>
-    const y = <span class="cstat-no" title="statement not covered" >pad + (1 - (n - min) / span) * (h - pad * 2)</span>
-<span class="cstat-no" title="statement not covered" >    return `${x},${y}`</span>
+  const v = values.length ? values : [0]
+  const max = Math.max(...v, 1)
+  const min = Math.min(...v, 0)
+  const span = max - min || <span class="branch-1 cbranch-no" title="branch not covered" >1</span>
+  const w = 88
+  const h = 32
+  const pad = 2
+  const pts = v.map((n, i) =&gt; {
+    const x = pad + (i / Math.max(v.length - 1, 1)) * (w - pad * 2)
+    const y = pad + (1 - (n - min) / span) * (h - pad * 2)
+    return `${x},${y}`
   })
-  const d = <span class="cstat-no" title="statement not covered" >`M ${pts.join(' L ')}`</span>
-  const area = <span class="cstat-no" title="statement not covered" >`${d} L ${w - pad},${h - pad} L ${pad},${h - pad} Z`</span>
+  const d = `M ${pts.join(' L ')}`
+  const area = `${d} L ${w - pad},${h - pad} L ${pad},${h - pad} Z`
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;svg
       viewBox={`0 0 ${w} ${h}`}
       className={`shrink-0 ${className}`}
@@ -190,7 +190,7 @@ export default function <span class="fstat-no" title="function not covered" >Fin
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

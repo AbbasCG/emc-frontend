@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -120,16 +120,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,10 +129,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -168,7 +168,7 @@ export type KpiItem = {
   tone?: 'blue' | 'orange' | 'ink' | 'slate' | 'success' | 'danger'
 }
 &nbsp;
-const toneBg: Record&lt;NonNullable&lt;KpiItem['tone']&gt;, string&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const toneBg: Record&lt;NonNullable&lt;KpiItem['tone']&gt;, string&gt; = {
   blue: 'from-brand-500/12 via-white to-white',
   orange: 'from-accent-400/18 via-white to-white',
   ink: 'from-ink-500/14 via-white to-brand-500/6',
@@ -177,7 +177,7 @@ const toneBg: Record&lt;NonNullable&lt;KpiItem['tone']&gt;, string&gt; = <span c
   danger: 'from-red-100/60 via-white to-white',
 }
 &nbsp;
-const toneAccent: Record&lt;NonNullable&lt;KpiItem['tone']&gt;, string&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const toneAccent: Record&lt;NonNullable&lt;KpiItem['tone']&gt;, string&gt; = {
   blue: 'text-customBlue ring-customBlue/20',
   orange: 'text-accent-700 ring-accent-400/25',
   ink: 'text-deepBlue ring-deepBlue/[0.12]',
@@ -186,11 +186,11 @@ const toneAccent: Record&lt;NonNullable&lt;KpiItem['tone']&gt;, string&gt; = <sp
   danger: 'text-red-800 ring-red-200',
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >KpiCards({</span> items }: { items: KpiItem[] }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export function KpiCards({ items }: { items: KpiItem[] }) {
+  return (
     &lt;&gt;
-      {items.<span class="fstat-no" title="function not covered" >map((k</span>) =&gt; (
-<span class="cstat-no" title="statement not covered" >        &lt;div</span>
+      {items.map((k) =&gt; (
+        &lt;div
           key={k.label}
           className={cn(
             'rounded-2xl border border-ink-100/90 bg-gradient-to-br p-[1px] shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] transition hover:shadow-[0_10px_32px_rgba(15,23,42,0.08)]',
@@ -214,7 +214,7 @@ export function <span class="fstat-no" title="function not covered" >KpiCards({<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

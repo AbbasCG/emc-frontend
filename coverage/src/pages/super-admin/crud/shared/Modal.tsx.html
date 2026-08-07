@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -197,26 +197,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -244,7 +224,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -296,7 +296,7 @@ type ModalProps = {
   footerSlot?: React.ReactNode
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >CrudModal({</span>
+export function CrudModal({
   open,
   title,
   subtitle,
@@ -305,26 +305,26 @@ export function <span class="fstat-no" title="function not covered" >CrudModal({
   children,
   footerSlot,
 }: ModalProps) {
-  const <span class="cstat-no" title="statement not covered" >panelRef = useRef&lt;HTMLDivElement&gt;(null)</span>
-<span class="cstat-no" title="statement not covered" >  useFocusTrap(panelRef, { active: open, onEscape: onClose })</span>
+  const panelRef = useRef&lt;HTMLDivElement&gt;(null)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (!open) <span class="cstat-no" title="statement not covered" >return</span></span>
-    const prev = <span class="cstat-no" title="statement not covered" >document.body.style.overflow</span>
-<span class="cstat-no" title="statement not covered" >    document.body.style.overflow = 'hidden'</span>
-    const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >onKey = (e</span>: KeyboardEvent) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      if (e.key === 'Escape') <span class="cstat-no" title="statement not covered" >onClose()</span></span>
+  useEffect(() =&gt; {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) =&gt; {
+      if (e.key === 'Escape') onClose()
     }
-<span class="cstat-no" title="statement not covered" >    window.addEventListener('keydown', onKey)</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      document.body.style.overflow = prev</span>
-<span class="cstat-no" title="statement not covered" >      window.removeEventListener('keydown', onKey)</span>
+    window.addEventListener('keydown', onKey)
+    return () =&gt; {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
     }
   }, [open, onClose])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (typeof document === 'undefined') <span class="cstat-no" title="statement not covered" >return null</span></span>
+  if (typeof document === 'undefined') return null
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return createPortal(</span>
+  return createPortal(
     &lt;AnimatePresence&gt;
       {open ?
         &lt;&gt;
@@ -352,7 +352,7 @@ export function <span class="fstat-no" title="function not covered" >CrudModal({
                 'max-h-[min(92vh,860px)] w-full overflow-hidden rounded-3xl border border-ink-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.15)]',
                 widthClassName ?? 'max-w-lg',
               )}
-<span class="fstat-no" title="function not covered" >              onClick={(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >e.stopPropagation()}</span>
+              onClick={(e) =&gt; e.stopPropagation()}
             &gt;
               &lt;div dir="rtl" className="flex items-start justify-between gap-3 border-b border-ink-100 bg-gradient-to-l from-white via-brand-50/40 to-white px-5 py-4 text-right"&gt;
                 &lt;div className="min-w-0 text-right"&gt;
@@ -394,7 +394,7 @@ export function <span class="fstat-no" title="function not covered" >CrudModal({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

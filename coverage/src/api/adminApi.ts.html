@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -125,13 +125,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -141,13 +138,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import axios from 'axios'
 import apiClient from './axios'
@@ -165,13 +165,13 @@ import type { AdminDashboardData } from '../types'
  * Response shape: { success: true, message: 'OK', data: AdminDashboardData }
  * `unwrapData` strips the envelope; consumers receive the inner data object.
  */
-export async function <span class="fstat-no" title="function not covered" >fetchAdminDashboard(): Promise&lt;AdminDashboardData&gt; {</span>
+export async function fetchAdminDashboard(): Promise&lt;AdminDashboardData&gt; {
   // `skipErrorToast` lets the page render its own inline error UI (cleaner
   // Arabic message + retry button) instead of double-firing a global toast.
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;{ data: AdminDashboardData }&gt;('/dashboard/admin', {</span>
+  const res = await apiClient.get&lt;{ data: AdminDashboardData }&gt;('/dashboard/admin', {
     skipErrorToast: true,
   })
-<span class="cstat-no" title="statement not covered" >  return unwrapData&lt;AdminDashboardData&gt;(res.data)</span>
+  return unwrapData&lt;AdminDashboardData&gt;(res.data)
 }
 &nbsp;
 /** Discriminant for the inline UI on `AdminDashboard.tsx`. */
@@ -183,14 +183,14 @@ export type AdminDashboardErrorKind =
   | 'unknown'     // anything else
 &nbsp;
 /** Classify an axios error into a stable kind the UI can branch on. */
-export function <span class="fstat-no" title="function not covered" >classifyAdminDashboardError(e</span>rr: unknown): AdminDashboardErrorKind {
-<span class="cstat-no" title="statement not covered" >  if (!axios.isAxiosError(err)) <span class="cstat-no" title="statement not covered" >return 'unknown'</span></span>
-  const status = <span class="cstat-no" title="statement not covered" >err.response?.status</span>
-<span class="cstat-no" title="statement not covered" >  if (!status) <span class="cstat-no" title="statement not covered" >return 'network'</span></span>
-<span class="cstat-no" title="statement not covered" >  if (status === 403) <span class="cstat-no" title="statement not covered" >return 'forbidden'</span></span>
-<span class="cstat-no" title="statement not covered" >  if (status === 404) <span class="cstat-no" title="statement not covered" >return 'notfound'</span></span>
-<span class="cstat-no" title="statement not covered" >  if (status &gt;= 500) <span class="cstat-no" title="statement not covered" >return 'server'</span></span>
-<span class="cstat-no" title="statement not covered" >  return 'unknown'</span>
+export function classifyAdminDashboardError(err: unknown): AdminDashboardErrorKind {
+  if (!axios.isAxiosError(err)) return 'unknown'
+  const status = err.response?.status
+  if (!status) return 'network'
+  if (status === 403) return 'forbidden'
+  if (status === 404) return 'notfound'
+  if (status &gt;= 500) return 'server'
+  return 'unknown'
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -199,7 +199,7 @@ export function <span class="fstat-no" title="function not covered" >classifyAdm
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

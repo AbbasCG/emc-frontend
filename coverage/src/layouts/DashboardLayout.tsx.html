@@ -919,18 +919,7 @@
 <a name='L854'></a><a href='#L854'>854</a>
 <a name='L855'></a><a href='#L855'>855</a>
 <a name='L856'></a><a href='#L856'>856</a>
-<a name='L857'></a><a href='#L857'>857</a>
-<a name='L858'></a><a href='#L858'>858</a>
-<a name='L859'></a><a href='#L859'>859</a>
-<a name='L860'></a><a href='#L860'>860</a>
-<a name='L861'></a><a href='#L861'>861</a>
-<a name='L862'></a><a href='#L862'>862</a>
-<a name='L863'></a><a href='#L863'>863</a>
-<a name='L864'></a><a href='#L864'>864</a>
-<a name='L865'></a><a href='#L865'>865</a>
-<a name='L866'></a><a href='#L866'>866</a>
-<a name='L867'></a><a href='#L867'>867</a>
-<a name='L868'></a><a href='#L868'>868</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L857'></a><a href='#L857'>857</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -975,7 +964,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1716,20 +1704,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1763,10 +1745,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1831,7 +1809,6 @@ import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
-import { DASHBOARD_MAIN_PADDING_TOP } from './dashboardLayoutConstants'
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
 import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
@@ -2136,11 +2113,11 @@ function <span class="fstat-no" title="function not covered" >Sidebar({</span> i
       &lt;aside
         dir="rtl"
         className={[
-          'fixed inset-y-0 right-0 z-sidebar flex w-60 flex-col overflow-hidden',
+          'fixed inset-y-0 right-0 z-sidebar flex w-[252px] flex-col overflow-hidden',
           'bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A]',
           'border-l border-white/[0.06] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
           'transition-transform duration-300 ease-emc-out',
-          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
+          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:static lg:col-start-2 lg:row-start-1',
         ].join(' ')}
       &gt;
         {/* Ambient orbs */}
@@ -2207,23 +2184,23 @@ function <span class="fstat-no" title="function not covered" >Sidebar({</span> i
             const open = <span class="cstat-no" title="statement not covered" >sidebarSearching ? true : collapsibleSectionOpen(group.title, group.collapsible, group.defaultOpen)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >            return (</span>
-            &lt;div key={gi} className={gi &gt; 0 ? 'mt-5' : ''}&gt;
+            &lt;div key={gi} className={gi &gt; 0 ? 'mt-4' : ''}&gt;
               {group.collapsible &amp;&amp; group.title ?
                 &lt;button
                   type="button"
                   aria-expanded={open}
 <span class="fstat-no" title="function not covered" >                  onClick={() =&gt; <span class="cstat-no" title="statement not covered" >t</span>oggleCollapsibleSection(group.title, group.defaultOpen)}</span>
-                  className="group/cap mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-ice/50 transition hover:bg-white/[0.05]"
+                  className="group/cap mb-1 flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.06] hover:text-white"
                 &gt;
+                  &lt;span className="flex-1 text-right text-xs font-bold text-white/70"&gt;{group.title}&lt;/span&gt;
                   &lt;ChevronDown
-                    size={16}
-                    className={`shrink-0 text-customOrange transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
+                    size={14}
+                    className={`shrink-0 text-customOrange/90 transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
                     aria-hidden
                   /&gt;
-                  &lt;span className="font-latin flex-1 text-right leading-tight text-ice/60"&gt;{group.title}&lt;/span&gt;
                 &lt;/button&gt;
               : group.title ?
-                &lt;p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-ice/45 font-latin"&gt;
+                &lt;p className="mb-1 px-3 text-xs font-bold text-white/50 tracking-wide"&gt;
                   {group.title}
                 &lt;/p&gt;
               : null}
@@ -2238,22 +2215,22 @@ function <span class="fstat-no" title="function not covered" >Sidebar({</span> i
                           end={exactMatchSidebarRoutes.has(item.href)}
                           aria-current={active ? 'page' : undefined}
                           className={[
-                            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
+                            'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 ease-emc-out',
                             active
                               ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(0,119,182,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
-                              : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+                              : 'text-white/75 hover:bg-white/[0.07] hover:text-white',
                           ].join(' ')}
                         &gt;
                           {active ?
                             &lt;span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(242,140,0,0.7)]" /&gt;
                           : null}
                           &lt;item.icon
-                            size={17}
-                            className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'}
+                            size={16}
+                            className={active ? 'text-white shrink-0' : 'text-white/60 shrink-0 transition group-hover:text-white'}
                           /&gt;
-                          &lt;span className="flex-1"&gt;{item.label}&lt;/span&gt;
+                          &lt;span className="flex-1 truncate"&gt;{item.label}&lt;/span&gt;
                           {!active ?
-                            &lt;ChevronLeft size={14} className="text-white/25 transition group-hover:text-white/50" /&gt;
+                            &lt;ChevronLeft size={13} className="text-white/25 shrink-0 transition group-hover:text-white/50" /&gt;
                           : null}
                         &lt;/NavLink&gt;
                       &lt;/li&gt;
@@ -2346,7 +2323,7 @@ function <span class="fstat-no" title="function not covered" >Topbar({</span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;header
       dir="rtl"
-      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-deepBlue/[0.07] bg-white/95 px-4 shadow-[0_1px_0_rgba(15,42,67,0.04)] backdrop-blur-2xl lg:right-60 lg:w-[calc(100%-15rem)]"
+      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
     &gt;
       &lt;button
         type="button"
@@ -2358,7 +2335,7 @@ function <span class="fstat-no" title="function not covered" >Topbar({</span>
       &lt;/button&gt;
 &nbsp;
       &lt;div className="min-w-0 flex-1"&gt;
-        &lt;h1 className="truncate text-[15px] font-black tracking-tight text-deepBlue font-display sm:text-base"&gt;{pageTitle}&lt;/h1&gt;
+        &lt;h1 className="line-clamp-2 break-words text-[13px] font-black leading-snug tracking-tight text-deepBlue font-display sm:text-base sm:leading-normal"&gt;{pageTitle}&lt;/h1&gt;
       &lt;/div&gt;
 &nbsp;
       &lt;div className="flex items-center gap-2"&gt;
@@ -2585,18 +2562,12 @@ export default function <span class="fstat-no" title="function not covered" >Das
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;FinancialRequestProvider&gt;
     &lt;StudentDashboardProvider&gt;
-    &lt;div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]"&gt;
-      {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
-      &lt;div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-gradient-to-br from-[#F6F8FB] via-[#F3F7FC] to-[#EEF4FA]"
-      /&gt;
-      &lt;div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-emc-grid bg-grid-32 opacity-[0.4] [mask-image:radial-gradient(ellipse_at_top_left,rgba(0,0,0,0.45),transparent_70%)]"
-      /&gt;
-&nbsp;
+    &lt;div className="emc-shell min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"&gt;
+      &lt;div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_252px] h-full" dir="ltr"&gt;
+        
       &lt;Sidebar isOpen={sidebarOpen} <span class="fstat-no" title="function not covered" >onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etSidebarOpen(false)} /&gt;</span>
+      
+      &lt;main className="col-start-1 row-start-1 min-w-0" dir="rtl" id="dashboard-main-content" tabIndex={-1}&gt;
       &lt;Topbar
 <span class="fstat-no" title="function not covered" >        onMenuClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etSidebarOpen(true)}</span>
 <span class="fstat-no" title="function not covered" >        onOpenSearch={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etPaletteOpen(true)}</span>
@@ -2636,7 +2607,7 @@ export default function <span class="fstat-no" title="function not covered" >Das
       &lt;Link
         to="/ai"
         aria-label="المساعد الذكي"
-        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(15,42,67,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
+        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(6,24,44,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
       &gt;
         &lt;span
           aria-hidden
@@ -2649,16 +2620,12 @@ export default function <span class="fstat-no" title="function not covered" >Das
         &lt;Bot size={26} className="relative" /&gt;
       &lt;/Link&gt;
 &nbsp;
-      &lt;main
-        className={`relative z-content ${DASHBOARD_MAIN_PADDING_TOP} lg:mr-60`}
-        id="dashboard-main-content"
-        tabIndex={-1}
-      &gt;
         &lt;div className="p-5 md:p-7 lg:p-8"&gt;
           &lt;ImpersonationBanner /&gt;
           &lt;Outlet /&gt;
         &lt;/div&gt;
       &lt;/main&gt;
+      &lt;/div&gt;
     &lt;/div&gt;
     &lt;/StudentDashboardProvider&gt;
     &lt;/FinancialRequestProvider&gt;
@@ -2671,7 +2638,7 @@ export default function <span class="fstat-no" title="function not covered" >Das
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

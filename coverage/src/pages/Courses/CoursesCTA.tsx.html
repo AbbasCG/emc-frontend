@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -152,15 +152,16 @@
 <a name='L87'></a><a href='#L87'>87</a>
 <a name='L88'></a><a href='#L88'>88</a>
 <a name='L89'></a><a href='#L89'>89</a>
-<a name='L90'></a><a href='#L90'>90</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -230,7 +231,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -241,15 +241,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useRef } from 'react'
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { memo, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Calendar, ArrowLeft } from 'lucide-react'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >CoursesCTA() {</span>
-  const <span class="cstat-no" title="statement not covered" >ref = useRef&lt;HTMLElement&gt;(null)</span>
-  const <span class="cstat-no" title="statement not covered" >isInView = useInView(ref, { once: true, margin: '-80px' })</span>
+const trustIndicators = [
+  { value: '١٥ دقيقة', label: 'جلسة موجزة عند التوفر' },
+  { value: 'وضوح', label: 'خطة تالية مناسبة لمرحلتك' },
+  { value: 'مهنية', label: 'بدون وعود مبالغ فيها' },
+]
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+function CoursesCTA() {
+  const ref = useRef&lt;HTMLElement&gt;(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
+&nbsp;
+  return (
     &lt;section ref={ref} className="emc-dawn relative overflow-hidden py-24 px-4"&gt;
       {/* Animated geometric orbs */}
       &lt;motion.div
@@ -314,12 +328,8 @@ export default function <span class="fstat-no" title="function not covered" >Cou
 &nbsp;
           {/* Trust indicators */}
           &lt;div className="flex flex-wrap items-center justify-center gap-6 mt-12"&gt;
-            {[
-              { value: '١٥ دقيقة', label: 'جلسة موجزة عند التوفر' },
-              { value: 'وضوح', label: 'خطة تالية مناسبة لمرحلتك' },
-              { value: 'مهنية', label: 'بدون وعود مبالغ فيها' },
-            ].<span class="fstat-no" title="function not covered" >map(i</span>tem =&gt; (
-<span class="cstat-no" title="statement not covered" >              &lt;div key={item.label} className="text-center"&gt;</span>
+            {trustIndicators.map(item =&gt; (
+              &lt;div key={item.label} className="text-center"&gt;
                 &lt;p className="text-xl font-black text-customOrange"&gt;{item.value}&lt;/p&gt;
                 &lt;p className="text-xs text-white/50 mt-0.5"&gt;{item.label}&lt;/p&gt;
               &lt;/div&gt;
@@ -330,6 +340,8 @@ export default function <span class="fstat-no" title="function not covered" >Cou
     &lt;/section&gt;
   )
 }
+&nbsp;
+export default memo(CoursesCTA)
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -337,7 +349,7 @@ export default function <span class="fstat-no" title="function not covered" >Cou
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

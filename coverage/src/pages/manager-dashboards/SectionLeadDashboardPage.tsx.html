@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -132,14 +132,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -151,7 +143,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,15 +190,15 @@ import {
 } from 'lucide-react'
 import { DashboardHero } from '@/components/dashboard'
 &nbsp;
-function <span class="fstat-no" title="function not covered" >hourGreeting(): string {</span>
-  const h = <span class="cstat-no" title="statement not covered" >new Date().getHours()</span>
-<span class="cstat-no" title="statement not covered" >  if (h &lt; 12) <span class="cstat-no" title="statement not covered" >return 'صباح الخير'</span></span>
-<span class="cstat-no" title="statement not covered" >  if (h &lt; 18) <span class="cstat-no" title="statement not covered" >return 'مساء الخير'</span></span>
-<span class="cstat-no" title="statement not covered" >  return 'مساء النور'</span>
+function hourGreeting(): string {
+  const h = new Date().getHours()
+  if (h &lt; 12) return 'صباح الخير'
+  if (h &lt; 18) return 'مساء الخير'
+  return 'مساء النور'
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >QuickLink({</span> href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+function QuickLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
+  return (
     &lt;Link
       to={href}
       className="flex items-center gap-3 rounded-xl border border-deepBlue/[0.07] bg-deepBlue/[0.02] px-4 py-3.5 text-[12px] font-black text-deepBlue shadow-sm transition hover:border-customBlue/35 hover:bg-customBlue/[0.05] hover:shadow-md"
@@ -209,8 +209,8 @@ function <span class="fstat-no" title="function not covered" >QuickLink({</span>
   )
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >SectionLeadDashboardPage() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
+export default function SectionLeadDashboardPage() {
+  return (
     &lt;div dir="rtl" className="space-y-8 text-right"&gt;
       &lt;DashboardHero
         greeting={hourGreeting()}
@@ -247,7 +247,7 @@ export default function <span class="fstat-no" title="function not covered" >Sec
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

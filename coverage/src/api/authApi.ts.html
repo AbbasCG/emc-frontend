@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -133,8 +133,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -149,43 +149,43 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from './axios'
 import type { User } from '../types'
@@ -194,12 +194,12 @@ import { normalizeAuthLoginPayload, normalizeAuthUser } from '../utils/userIdent
 &nbsp;
 type AuthPayload = { token: string; user: User }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >login(e</span>mail: string, password: string): Promise&lt;AuthPayload&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/auth/login', { email, password }, { skipErrorToast: true })</span>
-<span class="cstat-no" title="statement not covered" >  return normalizeAuthLoginPayload(unwrapData(res.data))</span>
+export async function login(email: string, password: string): Promise&lt;AuthPayload&gt; {
+  const res = await apiClient.post&lt;unknown&gt;('/auth/login', { email, password }, { skipErrorToast: true })
+  return normalizeAuthLoginPayload(unwrapData(res.data))
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >registerAccount(i</span>nput: {
+export async function registerAccount(input: {
   name: string
   email: string
   password: string
@@ -211,43 +211,43 @@ export async function <span class="fstat-no" title="function not covered" >regis
   gender: string
   how_did_you_hear_about_us?: string
 }): Promise&lt;AuthPayload&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/auth/register', input, { skipErrorToast: true })</span>
-<span class="cstat-no" title="statement not covered" >  return normalizeAuthLoginPayload(unwrapData(res.data))</span>
+  const res = await apiClient.post&lt;unknown&gt;('/auth/register', input, { skipErrorToast: true })
+  return normalizeAuthLoginPayload(unwrapData(res.data))
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchMe(): Promise&lt;User&gt; {</span>
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/auth/me', { skipErrorToast: true })</span>
-<span class="cstat-no" title="statement not covered" >  return normalizeAuthUser(unwrapData(res.data))</span>
+export async function fetchMe(): Promise&lt;User&gt; {
+  const res = await apiClient.get&lt;unknown&gt;('/auth/me', { skipErrorToast: true })
+  return normalizeAuthUser(unwrapData(res.data))
 }
 &nbsp;
 /** Super Admin only — swaps issued token to target user perspective. */
-export async function <span class="fstat-no" title="function not covered" >postImpersonateUser(u</span>serId: number): Promise&lt;unknown&gt; {
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;(`/admin/impersonate/${userId}`, {}, { skipErrorToast: true })</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapData(res.data)</span>
+export async function postImpersonateUser(userId: number): Promise&lt;unknown&gt; {
+  const res = await apiClient.post&lt;unknown&gt;(`/admin/impersonate/${userId}`, {}, { skipErrorToast: true })
+  return unwrapData(res.data)
 }
 &nbsp;
 /** End impersonation preview — restores super_admin session server-side when supported. */
-export async function <span class="fstat-no" title="function not covered" >postImpersonateStop(): Promise&lt;unknown&gt; {</span>
-  const res = <span class="cstat-no" title="statement not covered" >await apiClient.post&lt;unknown&gt;('/admin/impersonate/stop', {}, { skipErrorToast: true })</span>
-<span class="cstat-no" title="statement not covered" >  return unwrapData(res.data)</span>
+export async function postImpersonateStop(): Promise&lt;unknown&gt; {
+  const res = await apiClient.post&lt;unknown&gt;('/admin/impersonate/stop', {}, { skipErrorToast: true })
+  return unwrapData(res.data)
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >forgotPassword(e</span>mail: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  await apiClient.post('/auth/forgot-password', { email }, { skipErrorToast: true })</span>
+export async function forgotPassword(email: string): Promise&lt;void&gt; {
+  await apiClient.post('/auth/forgot-password', { email }, { skipErrorToast: true })
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >resetPassword(p</span>arams: {
+export async function resetPassword(params: {
   token: string
   email: string
   password: string
   password_confirmation: string
 }): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >  await apiClient.post('/auth/reset-password', params, { skipErrorToast: true })</span>
+  await apiClient.post('/auth/reset-password', params, { skipErrorToast: true })
 }
 &nbsp;
 /** Best-effort server session invalidation; callers must always clear client state regardless of outcome. */
-export async function <span class="fstat-no" title="function not covered" >logoutRemote(): Promise&lt;void&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  await apiClient.post('/auth/logout', undefined, { skipErrorToast: true as const }).<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span>})</span>
+export async function logoutRemote(): Promise&lt;void&gt; {
+  await apiClient.post('/auth/logout', undefined, { skipErrorToast: true as const }).catch(() =&gt; {})
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -256,7 +256,7 @@ export async function <span class="fstat-no" title="function not covered" >logou
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

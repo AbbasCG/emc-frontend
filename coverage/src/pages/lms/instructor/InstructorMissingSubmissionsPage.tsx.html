@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -132,34 +132,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -173,7 +145,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,19 +192,19 @@ import { InstructorHero, InstructorEmptyState } from '@/components/instructor'
 import toast from '@/lib/toast'
 import { formatDateTime } from '@/utils/dateTime'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >InstructorMissingSubmissionsPage() {</span>
-  const [rows, <span class="cstat-no" title="statement not covered" >setRows] = useState&lt;MissingSubmissionsRow[]&gt;([])</span>
-  const [loading, <span class="cstat-no" title="statement not covered" >setLoading] = useState(true)</span>
+export default function InstructorMissingSubmissionsPage() {
+  const [rows, setRows] = useState&lt;MissingSubmissionsRow[]&gt;([])
+  const [loading, setLoading] = useState(true)
 &nbsp;
   // Runs once — `loading` already starts as `true`, so the effect only settles it.
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    fetchMissingSubmissions()</span>
+  useEffect(() =&gt; {
+    fetchMissingSubmissions()
       .then(setRows)
-      .<span class="fstat-no" title="function not covered" >catch(() =&gt; <span class="cstat-no" title="statement not covered" >t</span>oast.error('تعذّر تحميل التسليمات المفقودة'))</span>
-      .<span class="fstat-no" title="function not covered" >finally(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etLoading(false))</span>
+      .catch(() =&gt; toast.error('تعذّر تحميل التسليمات المفقودة'))
+      .finally(() =&gt; setLoading(false))
   }, [])
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-5 pb-16 font-[Cairo,sans-serif]" dir="rtl"&gt;
       &lt;InstructorHero
         title="التسليمات المفقودة"
@@ -214,13 +214,13 @@ export default function <span class="fstat-no" title="function not covered" >Ins
       /&gt;
 &nbsp;
       {loading ? (
-        &lt;div className="space-y-2"&gt;{[1, 2, 3].<span class="fstat-no" title="function not covered" >map((i</span>) =&gt; <span class="cstat-no" title="statement not covered" >&lt;div key={i} className="h-20 animate-pulse rounded-2xl bg-slate-100" /&gt;)</span>}&lt;/div&gt;
+        &lt;div className="space-y-2"&gt;{[1, 2, 3].map((i) =&gt; &lt;div key={i} className="h-20 animate-pulse rounded-2xl bg-slate-100" /&gt;)}&lt;/div&gt;
       ) : rows.length === 0 ? (
         &lt;InstructorEmptyState icon={AlertTriangle} title="لا توجد تسليمات مفقودة" description="جميع الطلاب قاموا بتسليم واجباتهم" /&gt;
       ) : (
         &lt;div className="space-y-3"&gt;
-          {rows.<span class="fstat-no" title="function not covered" >map((r</span>ow) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;div key={row.assignment_id} className="rounded-2xl border border-slate-200 bg-white p-4"&gt;</span>
+          {rows.map((row) =&gt; (
+            &lt;div key={row.assignment_id} className="rounded-2xl border border-slate-200 bg-white p-4"&gt;
               &lt;div className="flex flex-wrap items-center justify-between gap-2"&gt;
                 &lt;div&gt;
                   &lt;p className="text-[13px] font-black text-deepBlue"&gt;{row.assignment_title}&lt;/p&gt;
@@ -233,8 +233,8 @@ export default function <span class="fstat-no" title="function not covered" >Ins
                 &lt;/span&gt;
               &lt;/div&gt;
               &lt;div className="mt-2 flex flex-wrap gap-1.5"&gt;
-                {row.students.<span class="fstat-no" title="function not covered" >map((s</span>) =&gt; (
-<span class="cstat-no" title="statement not covered" >                  &lt;span key={s.user_id} className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-semibold text-deepBlue/60"&gt;</span>
+                {row.students.map((s) =&gt; (
+                  &lt;span key={s.user_id} className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-semibold text-deepBlue/60"&gt;
                     {s.name ?? s.email ?? `#${s.user_id}`}
                   &lt;/span&gt;
                 ))}
@@ -253,7 +253,7 @@ export default function <span class="fstat-no" title="function not covered" >Ins
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

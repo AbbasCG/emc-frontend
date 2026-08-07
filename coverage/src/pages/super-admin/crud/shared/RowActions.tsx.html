@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -144,19 +144,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,22 +152,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -204,26 +204,26 @@ import { cn } from '@/lib/utils'
 &nbsp;
 export type MenuAction = { key: string; label: string; onClick: () =&gt; void; destructive?: boolean; disabled?: boolean }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >RowActionsMenu({</span>
+export function RowActionsMenu({
   ariaLabel,
   actions,
 }: {
   ariaLabel: string
   actions: MenuAction[]
 }) {
-  const [open, <span class="cstat-no" title="statement not covered" >setOpen] = useState(false)</span>
-  const <span class="cstat-no" title="statement not covered" >anchorRef = useRef&lt;HTMLDivElement&gt;(null)</span>
+  const [open, setOpen] = useState(false)
+  const anchorRef = useRef&lt;HTMLDivElement&gt;(null)
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div dir="rtl" className="relative inline-flex justify-end" ref={anchorRef}&gt;
       &lt;button
         type="button"
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="menu"
-<span class="fstat-no" title="function not covered" >        onClick={(e</span>) =&gt; {
-<span class="cstat-no" title="statement not covered" >          e.stopPropagation()</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >          setOpen((o</span>) =&gt; <span class="cstat-no" title="statement not covered" >!o)</span></span>
+        onClick={(e) =&gt; {
+          e.stopPropagation()
+          setOpen((o) =&gt; !o)
         }}
         className="grid h-9 w-9 place-items-center rounded-xl border border-ink-100 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-brand-50"
       &gt;
@@ -232,22 +232,22 @@ export function <span class="fstat-no" title="function not covered" >RowActionsM
       &lt;DropdownPortal
         open={open}
         anchorRef={anchorRef}
-<span class="fstat-no" title="function not covered" >        onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etOpen(false)}</span>
+        onClose={() =&gt; setOpen(false)}
         align="end"
         className="min-w-[10.5rem] overflow-hidden rounded-2xl border border-ink-100 bg-white py-1 text-right shadow-[0_16px_50px_rgba(15,23,42,0.12)]"
       &gt;
         &lt;div role="menu" aria-label={ariaLabel}&gt;
-          {actions.<span class="fstat-no" title="function not covered" >map((a</span>) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;button</span>
+          {actions.map((a) =&gt; (
+            &lt;button
               key={a.key}
               type="button"
               role="menuitem"
               disabled={a.disabled}
-<span class="fstat-no" title="function not covered" >              onClick={(e</span>) =&gt; {
-<span class="cstat-no" title="statement not covered" >                e.stopPropagation()</span>
-<span class="cstat-no" title="statement not covered" >                if (!a.disabled) {</span>
-<span class="cstat-no" title="statement not covered" >                  setOpen(false)</span>
-<span class="cstat-no" title="statement not covered" >                  a.onClick()</span>
+              onClick={(e) =&gt; {
+                e.stopPropagation()
+                if (!a.disabled) {
+                  setOpen(false)
+                  a.onClick()
                 }
               }}
               className={cn(
@@ -271,7 +271,7 @@ export function <span class="fstat-no" title="function not covered" >RowActionsM
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

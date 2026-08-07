@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/33</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -194,30 +194,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -259,7 +247,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -276,16 +263,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -307,31 +307,31 @@ import { useAuditLogsExport } from '@/components/super-admin/audit-logs/useAudit
 import { buildApiQuery, useAuditLogFilters, useAuditLogsData } from '@/components/super-admin/audit-logs/hooks'
 import { formatEnglishCount } from '@/utils/formatEnglishNumber'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >SuperAdminAuditLogsPage() {</span>
-  const { filters, debouncedSearch, patchFilters, resetFilters, <span class="cstat-no" title="statement not covered" >hasActiveFilters } = useAuditLogFilters()</span>
-  const <span class="cstat-no" title="statement not covered" >apiQuery = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >useMemo(() =&gt; b</span>uildApiQuery(filters, debouncedSearch), [</span>filters, debouncedSearch])</span>
+export default function SuperAdminAuditLogsPage() {
+  const { filters, debouncedSearch, patchFilters, resetFilters, hasActiveFilters } = useAuditLogFilters()
+  const apiQuery = useMemo(() =&gt; buildApiQuery(filters, debouncedSearch), [filters, debouncedSearch])
 &nbsp;
   const {
     entries, stats, total, page, perPage, lastPage, from, to,
-    loading, refreshing, error, <span class="cstat-no" title="statement not covered" >reload,</span>
+    loading, refreshing, error, reload,
   } = useAuditLogsData(apiQuery)
 &nbsp;
-  const { exporting, menuOpen, setMenuOpen, <span class="cstat-no" title="statement not covered" >exportAs } = useAuditLogsExport(apiQuery)</span>
-  const [drawerEntry, <span class="cstat-no" title="statement not covered" >setDrawerEntry] = useState&lt;AdminAuditLogEntry | null&gt;(null)</span>
+  const { exporting, menuOpen, setMenuOpen, exportAs } = useAuditLogsExport(apiQuery)
+  const [drawerEntry, setDrawerEntry] = useState&lt;AdminAuditLogEntry | null&gt;(null)
 &nbsp;
-  const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >handlePerPageChange = (n</span>: number) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    try { <span class="cstat-no" title="statement not covered" >localStorage.setItem(AUDIT_LOGS_PER_PAGE_KEY, String(n)) }</span> catch { /* ignore */ }</span>
-<span class="cstat-no" title="statement not covered" >    patchFilters({ per_page: n, page: 1 })</span>
+  const handlePerPageChange = (n: number) =&gt; {
+    try { localStorage.setItem(AUDIT_LOGS_PER_PAGE_KEY, String(n)) } catch { /* ignore */ }
+    patchFilters({ per_page: n, page: 1 })
   }
 &nbsp;
-  const showSkeleton = <span class="cstat-no" title="statement not covered" >loading &amp;&amp; entries.length === 0</span>
+  const showSkeleton = loading &amp;&amp; entries.length === 0
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div dir="rtl" className="min-h-screen bg-[#F8FAFC]"&gt;
       &lt;AuditLogsHeader
         loading={loading || refreshing}
-<span class="fstat-no" title="function not covered" >        onRefresh={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid reload()}</span>
-<span class="fstat-no" title="function not covered" >        onExport={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMenuOpen(true)}</span>
+        onRefresh={() =&gt; void reload()}
+        onExport={() =&gt; setMenuOpen(true)}
         exporting={exporting}
       /&gt;
 &nbsp;
@@ -373,7 +373,7 @@ export default function <span class="fstat-no" title="function not covered" >Sup
           )}
         &lt;/div&gt;
 &nbsp;
-        {error &amp;&amp; &lt;AuditLogsErrorState message={error} <span class="fstat-no" title="function not covered" >onRetry={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid reload()} /&gt;</span>}
+        {error &amp;&amp; &lt;AuditLogsErrorState message={error} onRetry={() =&gt; void reload()} /&gt;}
         {showSkeleton &amp;&amp; &lt;AuditLogsSkeleton /&gt;}
         {!loading &amp;&amp; !error &amp;&amp; entries.length === 0 &amp;&amp; (
           &lt;AuditLogsEmptyState hasActiveFilters={hasActiveFilters} onReset={resetFilters} /&gt;
@@ -390,16 +390,16 @@ export default function <span class="fstat-no" title="function not covered" >Sup
         total={total}
         from={from}
         to={to}
-<span class="fstat-no" title="function not covered" >        onPageChange={(p</span>) =&gt; <span class="cstat-no" title="statement not covered" >patchFilters({ page: p })}</span>
+        onPageChange={(p) =&gt; patchFilters({ page: p })}
         onPerPageChange={handlePerPageChange}
       /&gt;
 &nbsp;
-      &lt;AuditLogDetailDrawer entry={drawerEntry} <span class="fstat-no" title="function not covered" >onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDrawerEntry(null)} /&gt;</span>
+      &lt;AuditLogDetailDrawer entry={drawerEntry} onClose={() =&gt; setDrawerEntry(null)} /&gt;
 &nbsp;
       &lt;AuditLogsExportMenu
         open={menuOpen}
-<span class="fstat-no" title="function not covered" >        onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMenuOpen(false)}</span>
-<span class="fstat-no" title="function not covered" >        onExport={(f</span>ormat) =&gt; <span class="cstat-no" title="statement not covered" >void exportAs(format)}</span>
+        onClose={() =&gt; setMenuOpen(false)}
+        onExport={(format) =&gt; void exportAs(format)}
         exporting={exporting}
       /&gt;
     &lt;/div&gt;
@@ -412,7 +412,7 @@ export default function <span class="fstat-no" title="function not covered" >Sup
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -25,12 +25,12 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>0/0</span>
             </div>
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -117,8 +117,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -128,23 +126,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,9 +163,9 @@ import { createKnowledgeArticle } from '@/api/knowledgeApi'
 import ArticleEditor from '@/components/platform/ArticleEditor'
 import type { KnowledgeArticle } from '@/types/platform'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >AdminKnowledgeArticleCreatePage() {</span>
-  const <span class="cstat-no" title="statement not covered" >nav = useNavigate()</span>
-  const [value, <span class="cstat-no" title="statement not covered" >setValue] = useState&lt;Partial&lt;KnowledgeArticle&gt;&gt;({</span>
+export default function AdminKnowledgeArticleCreatePage() {
+  const nav = useNavigate()
+  const [value, setValue] = useState&lt;Partial&lt;KnowledgeArticle&gt;&gt;({
     title: '',
     slug: '',
     excerpt: '',
@@ -175,23 +175,23 @@ export default function <span class="fstat-no" title="function not covered" >Adm
     status: 'draft',
     tags: [],
   })
-  const [saving, <span class="cstat-no" title="statement not covered" >setSaving] = useState(false)</span>
+  const [saving, setSaving] = useState(false)
 &nbsp;
-  async function <span class="fstat-no" title="function not covered" >save() {</span>
-<span class="cstat-no" title="statement not covered" >    setSaving(true)</span>
-<span class="cstat-no" title="statement not covered" >    await createKnowledgeArticle(value)</span>
-<span class="cstat-no" title="statement not covered" >    setSaving(false)</span>
-<span class="cstat-no" title="statement not covered" >    nav('/dashboard/admin/knowledge')</span>
+  async function save() {
+    setSaving(true)
+    await createKnowledgeArticle(value)
+    setSaving(false)
+    nav('/dashboard/admin/knowledge')
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="mx-auto max-w-4xl"&gt;
       &lt;div className="mb-8 flex flex-wrap items-center justify-between gap-3"&gt;
         &lt;h1 className="text-2xl font-black text-deepBlue"&gt;مقال جديد&lt;/h1&gt;
         &lt;button
           type="button"
           disabled={saving}
-<span class="fstat-no" title="function not covered" >          onClick={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid save()}</span>
+          onClick={() =&gt; void save()}
           className="rounded-xl bg-deepBlue px-5 py-2.5 text-xs font-black text-white shadow-lg disabled:opacity-50"
         &gt;
           حفظ
@@ -211,7 +211,7 @@ export default function <span class="fstat-no" title="function not covered" >Adm
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

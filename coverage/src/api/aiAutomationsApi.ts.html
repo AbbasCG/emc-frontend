@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>15/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -96,55 +96,55 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import apiClient from './axios'
 import { unwrapLms } from './lmsApi'
 import type { AiAutomationFlow, AiAutomationRun } from '@/types/ai'
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchAiAutomations(): Promise&lt;AiAutomationFlow[]&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;('/admin/ai/automations')</span>
-    const <span class="cstat-no" title="statement not covered" >payload = unwrapLms&lt;AiAutomationFlow[] | { automations: AiAutomationFlow[] }&gt;(res.data)</span>
-<span class="cstat-no" title="statement not covered" >    if (Array.isArray(payload)) <span class="cstat-no" title="statement not covered" >return payload</span></span>
-<span class="cstat-no" title="statement not covered" >    if (payload &amp;&amp; typeof payload === 'object' &amp;&amp; Array.isArray(payload.automations)) <span class="cstat-no" title="statement not covered" >return payload.automations</span></span>
-<span class="cstat-no" title="statement not covered" >    return []</span>
+export async function fetchAiAutomations(): Promise&lt;AiAutomationFlow[]&gt; {
+  try {
+    const res = await apiClient.get&lt;unknown&gt;('/admin/ai/automations')
+    const payload = unwrapLms&lt;AiAutomationFlow[] | { automations: AiAutomationFlow[] }&gt;(res.data)
+    if (Array.isArray(payload)) return payload
+    if (payload &amp;&amp; typeof payload === 'object' &amp;&amp; Array.isArray(payload.automations)) return payload.automations
+    return []
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >fetchAiAutomationRuns(a</span>utomationId?: number): Promise&lt;AiAutomationRun[]&gt; {
-<span class="cstat-no" title="statement not covered" >  if (automationId == null) <span class="cstat-no" title="statement not covered" >return []</span></span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await apiClient.get&lt;unknown&gt;(`/admin/ai/automations/${automationId}/executions`)</span>
-    const <span class="cstat-no" title="statement not covered" >payload = unwrapLms&lt;AiAutomationRun[] | { runs: AiAutomationRun[] }&gt;(res.data)</span>
-<span class="cstat-no" title="statement not covered" >    if (Array.isArray(payload)) <span class="cstat-no" title="statement not covered" >return payload</span></span>
-<span class="cstat-no" title="statement not covered" >    if (payload &amp;&amp; typeof payload === 'object' &amp;&amp; Array.isArray(payload.runs)) <span class="cstat-no" title="statement not covered" >return payload.runs</span></span>
-<span class="cstat-no" title="statement not covered" >    return []</span>
+export async function fetchAiAutomationRuns(automationId?: number): Promise&lt;AiAutomationRun[]&gt; {
+  if (automationId == null) return []
+  try {
+    const res = await apiClient.get&lt;unknown&gt;(`/admin/ai/automations/${automationId}/executions`)
+    const payload = unwrapLms&lt;AiAutomationRun[] | { runs: AiAutomationRun[] }&gt;(res.data)
+    if (Array.isArray(payload)) return payload
+    if (payload &amp;&amp; typeof payload === 'object' &amp;&amp; Array.isArray(payload.runs)) return payload.runs
+    return []
   } catch {
-<span class="cstat-no" title="statement not covered" >    return []</span>
+    return []
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -154,7 +154,7 @@ export async function <span class="fstat-no" title="function not covered" >fetch
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

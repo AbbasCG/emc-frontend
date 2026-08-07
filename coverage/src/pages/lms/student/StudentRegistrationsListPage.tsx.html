@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -170,25 +170,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -228,10 +209,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -267,10 +267,10 @@ import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
 import { mapBackendRegStatus } from '@/utils/studentEnrollmentMerge'
 import { StudentBackButton } from '@/components/shared/StudentBackButton'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >StudentRegistrationsListPage() {</span>
-  const { loading, refreshing, loadError, refresh, <span class="cstat-no" title="statement not covered" >registrations } = useStudentDashboardData()</span>
+export default function StudentRegistrationsListPage() {
+  const { loading, refreshing, loadError, refresh, registrations } = useStudentDashboardData()
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="space-y-8 text-right rtl" dir="rtl"&gt;
       &lt;motion.header
         initial={{ opacity: 0, y: 8 }}
@@ -286,7 +286,7 @@ export default function <span class="fstat-no" title="function not covered" >Stu
           &lt;/div&gt;
           &lt;button
             type="button"
-<span class="fstat-no" title="function not covered" >            onClick={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid refresh()}</span>
+            onClick={() =&gt; void refresh()}
             disabled={loading || refreshing}
             className="rounded-2xl border border-white/25 bg-white/10 px-4 py-2 text-[11px] font-black backdrop-blur transition hover:bg-white/20 disabled:opacity-60"
           &gt;
@@ -325,11 +325,11 @@ export default function <span class="fstat-no" title="function not covered" >Stu
                 &lt;/tr&gt;
               &lt;/thead&gt;
               &lt;tbody className="divide-y divide-slate-100"&gt;
-                {registrations.<span class="fstat-no" title="function not covered" >map((r</span>) =&gt; {
-                  const <span class="cstat-no" title="statement not covered" >st = mapBackendRegStatus(r.status)</span>
-                  const label = <span class="cstat-no" title="statement not covered" >st === 'completed' ? 'مكتمل' : st === 'pending' ? 'معلّق' : 'نشط'</span>
-                  const pay = <span class="cstat-no" title="statement not covered" >r.payment_status ?? '—'</span>
-<span class="cstat-no" title="statement not covered" >                  return (</span>
+                {registrations.map((r) =&gt; {
+                  const st = mapBackendRegStatus(r.status)
+                  const label = st === 'completed' ? 'مكتمل' : st === 'pending' ? 'معلّق' : 'نشط'
+                  const pay = r.payment_status ?? '—'
+                  return (
                     &lt;tr key={r.id} className="hover:bg-slate-50/80"&gt;
                       &lt;td className="px-4 py-3 font-bold text-deepBlue"&gt;{r.course_title ?? '—'}&lt;/td&gt;
                       &lt;td className="px-4 py-3"&gt;
@@ -364,7 +364,7 @@ export default function <span class="fstat-no" title="function not covered" >Stu
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

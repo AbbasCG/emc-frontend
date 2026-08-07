@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>5/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -153,13 +153,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -234,14 +234,14 @@ import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/i18n/useLanguage'
 import { useCookieConsent } from '@/contexts/useCookieConsent'
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >CookieBanner() {</span>
-  const { <span class="cstat-no" title="statement not covered" >t } = useTranslation()</span>
-  const { <span class="cstat-no" title="statement not covered" >dir } = useLanguage()</span>
-  const { bannerVisible, acceptAll, rejectNonEssential, <span class="cstat-no" title="statement not covered" >openPreferences } = useCookieConsent()</span>
+export default function CookieBanner() {
+  const { t } = useTranslation()
+  const { dir } = useLanguage()
+  const { bannerVisible, acceptAll, rejectNonEssential, openPreferences } = useCookieConsent()
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (!bannerVisible) <span class="cstat-no" title="statement not covered" >return null</span></span>
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!bannerVisible) <span class="cstat-no" title="statement not covered" >return null</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;motion.div
       role="dialog"
       aria-labelledby="cookie-banner-title"
@@ -252,28 +252,28 @@ export default function <span class="fstat-no" title="function not covered" >Coo
       transition={{ type: 'spring', stiffness: 320, damping: 28 }}
       className="fixed inset-x-0 bottom-0 z-[190] px-4 pb-4 sm:px-6 lg:px-10"
     &gt;
-      &lt;div className="mx-auto max-w-[1540px] overflow-hidden rounded-2xl border border-white/10 bg-[#0C2A4B]/97 text-white shadow-[0_-8px_48px_rgba(15,23,42,0.35)] backdrop-blur-xl"&gt;
+      &lt;div className="mx-auto max-w-[1540px] overflow-hidden rounded-2xl border border-white/10 bg-[#0C2A4B] text-white shadow-[0_-8px_48px_rgba(15,23,42,0.35)]"&gt;
         &lt;div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_100%_0%,rgba(0,119,182,0.22),transparent_55%)]" /&gt;
         &lt;div className="relative flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8"&gt;
           &lt;div className="flex min-w-0 items-start gap-4 text-right"&gt;
-            &lt;span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/20 text-[#0077B6] ring-1 ring-[#0077B6]/30"&gt;
+            &lt;span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0077B6]/20 text-[#A6D6F2] ring-1 ring-[#0077B6]/30"&gt;
               &lt;Cookie className="h-6 w-6" aria-hidden /&gt;
             &lt;/span&gt;
             &lt;div&gt;
-              &lt;div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black text-white/70"&gt;
+              &lt;div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black text-white/80"&gt;
                 &lt;ShieldCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden /&gt;
                 AVG / GDPR
               &lt;/div&gt;
               &lt;h2 id="cookie-banner-title" className="text-base font-black sm:text-lg"&gt;
                 {t('cookie.title')}
               &lt;/h2&gt;
-              &lt;p id="cookie-banner-desc" className="mt-2 max-w-2xl text-[13px] font-medium leading-relaxed text-white/65"&gt;
+              &lt;p id="cookie-banner-desc" className="mt-2 max-w-2xl text-[13px] font-medium leading-relaxed text-white/85"&gt;
                 {t('cookie.description')}{' '}
-                &lt;Link to="/cookies" className="font-black text-[#F28C00] underline-offset-2 hover:underline"&gt;
+                &lt;Link to="/cookies" className="font-black text-[#A6D6F2] underline-offset-2 hover:underline"&gt;
                   {t('cookie.policyLink')}
                 &lt;/Link&gt;
                 {' · '}
-                &lt;Link to="/privacy" className="font-black text-[#0077B6] underline-offset-2 hover:underline"&gt;
+                &lt;Link to="/privacy" className="font-black text-[#A6D6F2] underline-offset-2 hover:underline"&gt;
                   {t('cookie.privacyLink')}
                 &lt;/Link&gt;
               &lt;/p&gt;
@@ -284,7 +284,7 @@ export default function <span class="fstat-no" title="function not covered" >Coo
             &lt;button
               type="button"
               onClick={openPreferences}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/10"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/15"
             &gt;
               &lt;Settings2 className="h-4 w-4" aria-hidden /&gt;
               {t('cookie.managePreferences')}
@@ -292,7 +292,7 @@ export default function <span class="fstat-no" title="function not covered" >Coo
             &lt;button
               type="button"
               onClick={rejectNonEssential}
-              className="rounded-xl border border-white/15 px-4 py-2.5 text-[12px] font-black text-white/90 transition hover:bg-white/10"
+              className="rounded-xl border border-white/25 px-4 py-2.5 text-[12px] font-black text-white transition hover:bg-white/10"
             &gt;
               {t('cookie.rejectNonEssential')}
             &lt;/button&gt;
@@ -316,7 +316,7 @@ export default function <span class="fstat-no" title="function not covered" >Coo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

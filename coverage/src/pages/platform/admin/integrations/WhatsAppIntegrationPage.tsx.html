@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -174,29 +174,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -224,10 +210,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -254,7 +238,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -273,30 +273,30 @@ import type { WhatsAppIntegrationPreview } from '@/types/phase7'
 &nbsp;
 type ProviderChoice = WhatsAppIntegrationPreview['mode']
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >WhatsAppIntegrationPage() {</span>
-  const [model, <span class="cstat-no" title="statement not covered" >setModel] = useState&lt;WhatsAppIntegrationPreview | null&gt;(null)</span>
-  const [provider, <span class="cstat-no" title="statement not covered" >setProvider] = useState&lt;ProviderChoice&gt;('fake')</span>
+export default function WhatsAppIntegrationPage() {
+  const [model, setModel] = useState&lt;WhatsAppIntegrationPreview | null&gt;(null)
+  const [provider, setProvider] = useState&lt;ProviderChoice&gt;('fake')
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  useEffect(() =&gt; {</span></span>
-    let cancelled = <span class="cstat-no" title="statement not covered" >false</span>
-    ;<span class="cstat-no" title="statement not covered" >(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
-      const m = <span class="cstat-no" title="statement not covered" >await fetchWhatsAppIntegration()</span>
-<span class="cstat-no" title="statement not covered" >      if (!cancelled) {</span>
-<span class="cstat-no" title="statement not covered" >        setModel(m)</span>
-<span class="cstat-no" title="statement not covered" >        setProvider(m.mode)</span>
+  useEffect(() =&gt; {
+    let cancelled = false
+    ;(async () =&gt; {
+      const m = await fetchWhatsAppIntegration()
+      if (!cancelled) {
+        setModel(m)
+        setProvider(m.mode)
       }
     })()
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >    return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >      cancelled = true</span>
+    return () =&gt; {
+      cancelled = true
     }
   }, [])
 &nbsp;
-  async function <span class="fstat-no" title="function not covered" >onTest() {</span>
-<span class="cstat-no" title="statement not covered" >    await sendWhatsAppTestMessage({ template: 'emc_smoke_test' })</span>
-<span class="cstat-no" title="statement not covered" >    toast.success('تم إرسال طلب رسالة الاختبار إلى الطابور')</span>
+  async function onTest() {
+    await sendWhatsAppTestMessage({ template: 'emc_smoke_test' })
+    toast.success('تم إرسال طلب رسالة الاختبار إلى الطابور')
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div className="mx-auto max-w-4xl"&gt;
       &lt;motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-wrap items-center justify-between gap-4"&gt;
         &lt;div&gt;
@@ -323,11 +323,11 @@ export default function <span class="fstat-no" title="function not covered" >Wha
               { id: 'fake' as const, title: 'وضع تجريبي / محلي', hint: 'بدون إرسال خارجي' },
               { id: 'local' as const, title: 'مزود داخلي', hint: 'محاكاة داخل الشبكة' },
             ] satisfies { id: ProviderChoice; title: string; hint: string }[]
-          ).<span class="fstat-no" title="function not covered" >map((o</span>pt) =&gt; (
-<span class="cstat-no" title="statement not covered" >            &lt;button</span>
+          ).map((opt) =&gt; (
+            &lt;button
               key={opt.id}
               type="button"
-<span class="fstat-no" title="function not covered" >              onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etProvider(opt.id)}</span>
+              onClick={() =&gt; setProvider(opt.id)}
               className={[
                 'rounded-2xl border px-4 py-4 text-right transition',
                 provider === opt.id
@@ -354,7 +354,7 @@ export default function <span class="fstat-no" title="function not covered" >Wha
 &nbsp;
         &lt;button
           type="button"
-<span class="fstat-no" title="function not covered" >          onClick={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid onTest()}</span>
+          onClick={() =&gt; void onTest()}
           className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-emerald-300/40 transition hover:bg-emerald-700"
         &gt;
           إرسال رسالة اختبار
@@ -370,7 +370,7 @@ export default function <span class="fstat-no" title="function not covered" >Wha
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -86,16 +86,8 @@
 <a name='L21'></a><a href='#L21'>21</a>
 <a name='L22'></a><a href='#L22'>22</a>
 <a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L24'></a><a href='#L24'>24</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -104,16 +96,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -128,36 +110,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * Sentry is optional — only initializes when VITE_SENTRY_DSN is set.
- * Install: npm install @sentry/react
- * Then set VITE_SENTRY_DSN in .env
+ * M7.D — Sentry readiness behind a non-blocking gate: initializes ONLY when
+ * VITE_SENTRY_DSN is set (founder provides the DSN; nothing breaks without it).
+ * The real dynamic import lets Vite split @sentry/react into its own lazy
+ * chunk — zero cost to the initial bundle when the DSN is absent.
  */
 export function <span class="fstat-no" title="function not covered" >initSentry(): void {</span>
   const dsn = <span class="cstat-no" title="statement not covered" >import.meta.env.VITE_SENTRY_DSN as string | undefined</span>
 <span class="cstat-no" title="statement not covered" >  if (!dsn) <span class="cstat-no" title="statement not covered" >return</span></span>
 &nbsp;
-  // Use a variable so tsc doesn't try to resolve '@sentry/react' as a static import.
-  // The chunk is only downloaded at runtime when DSN is present.
-  const pkg = <span class="cstat-no" title="statement not covered" >'@sentry/react'</span>
-<span class="cstat-no" title="statement not covered" >  import(/* @vite-ignore */ pkg)</span>
-    .<span class="fstat-no" title="function not covered" >then((S</span>entry: Record&lt;string, unknown&gt;) =&gt; {
-      const integrations: unknown[] = <span class="cstat-no" title="statement not covered" >[]</span>
-<span class="cstat-no" title="statement not covered" >      if (typeof Sentry['browserTracingIntegration'] === 'function') {</span>
-<span class="cstat-no" title="statement not covered" >        integrations.push((Sentry['browserTracingIntegration'] as () =&gt; unknown)())</span>
-      }
-<span class="cstat-no" title="statement not covered" >      if (typeof Sentry['replayIntegration'] === 'function') {</span>
-<span class="cstat-no" title="statement not covered" >        integrations.push((Sentry['replayIntegration'] as () =&gt; unknown)())</span>
-      }
-      ;<span class="cstat-no" title="statement not covered" >(Sentry['init'] as (opts: Record&lt;string, unknown&gt;) =&gt; void)({</span>
+<span class="cstat-no" title="statement not covered" >  import('@sentry/react')</span>
+    .then((Sentry) =&gt; <span class="fstat-no" title="function not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >      Sentry.init({</span>
         dsn,
         environment: (import.meta.env.VITE_APP_ENV as string | undefined) ?? import.meta.env.MODE,
-        integrations,
+        integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
         tracesSampleRate: 0.1,
         replaysSessionSampleRate: 0.05,
         replaysOnErrorSampleRate: 1.0,
       })
     })
-    .<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span> /* @sentry/react not installed — silent skip */ })
+    .<span class="fstat-no" title="function not covered" >catch(() =&gt; {</span> /* monitoring must never take the app down — silent skip */ })
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -166,7 +139,7 @@ export function <span class="fstat-no" title="function not covered" >initSentry(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -161,20 +161,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -196,16 +182,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -216,7 +192,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -234,14 +234,14 @@ export type FilterBarProps = {
   className?: string
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >CrudFilterBar({</span>
+export function CrudFilterBar({
   searchValue,
   onSearchChange,
-  searchPlaceholder = <span class="branch-0 cbranch-no" title="branch not covered" >'بحث…',</span>
+  searchPlaceholder = 'بحث…',
   children,
   className,
 }: FilterBarProps) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;div
       dir="rtl"
       className={cn('flex flex-col gap-2.5 sm:flex-row sm:items-center', className)}
@@ -254,7 +254,7 @@ export function <span class="fstat-no" title="function not covered" >CrudFilterB
         &lt;input
           dir="rtl"
           value={searchValue}
-<span class="fstat-no" title="function not covered" >          onChange={(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onSearchChange(e.target.value)}</span>
+          onChange={(e) =&gt; onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
           type="search"
           className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/70 ps-10 pe-4 text-right text-[13px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#0077B6]/50 focus:bg-white focus:ring-2 focus:ring-[#0077B6]/12"
@@ -269,23 +269,23 @@ export function <span class="fstat-no" title="function not covered" >CrudFilterB
 }
 &nbsp;
 /** Compact filter pill — no visible label, uses aria-label for a11y. Active state turns blue. */
-export function <span class="fstat-no" title="function not covered" >MiniSelect(p</span>rops: {
+export function MiniSelect(props: {
   label: string
   value: string
   onChange: (v: string) =&gt; void
   options: { value: string; labelAr: string }[]
   disabled?: boolean
 }) {
-  const { label, value, onChange, options, disabled } = <span class="cstat-no" title="statement not covered" >props</span>
-  const isActive = <span class="cstat-no" title="statement not covered" >value !== (options[0]?.value ?? 'all')</span>
+  const { label, value, onChange, options, disabled } = props
+  const isActive = value !== (options[0]?.value ?? 'all')
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;select
       dir="rtl"
       aria-label={label}
       value={value}
       disabled={disabled}
-<span class="fstat-no" title="function not covered" >      onChange={(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange(e.target.value)}</span>
+      onChange={(e) =&gt; onChange(e.target.value)}
       className={cn(
         'h-10 min-w-[7.5rem] cursor-pointer rounded-xl border px-3 pe-7 text-right text-[12.5px] font-semibold outline-none transition appearance-none',
         isActive
@@ -295,8 +295,8 @@ export function <span class="fstat-no" title="function not covered" >MiniSelect(
         disabled &amp;&amp; 'cursor-not-allowed opacity-45',
       )}
     &gt;
-      {options.<span class="fstat-no" title="function not covered" >map((o</span>) =&gt; (
-<span class="cstat-no" title="statement not covered" >        &lt;option key={o.value} value={o.value}&gt;</span>
+      {options.map((o) =&gt; (
+        &lt;option key={o.value} value={o.value}&gt;
           {o.labelAr}
         &lt;/option&gt;
       ))}
@@ -310,7 +310,7 @@ export function <span class="fstat-no" title="function not covered" >MiniSelect(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

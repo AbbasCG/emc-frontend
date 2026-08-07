@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -227,7 +227,12 @@
 <a name='L162'></a><a href='#L162'>162</a>
 <a name='L163'></a><a href='#L163'>163</a>
 <a name='L164'></a><a href='#L164'>164</a>
-<a name='L165'></a><a href='#L165'>165</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -255,11 +260,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -419,6 +429,12 @@ const faqs = <span class="cstat-no" title="statement not covered" >[</span>
   },
 ] as const
 &nbsp;
+const trustBullets = <span class="cstat-no" title="statement not covered" >[</span>
+  'منصة لجميع مستويات الخبرة',
+  'دعم مباشر باللغة العربية',
+  'شهادات معتمدة قابلة للتحقق',
+] as const
+&nbsp;
 export default function <span class="fstat-no" title="function not covered" >HomeFaqSection() {</span>
   const [open, <span class="cstat-no" title="statement not covered" >setOpen] = useState&lt;number | null&gt;(0)</span>
 &nbsp;
@@ -438,13 +454,16 @@ export default function <span class="fstat-no" title="function not covered" >Hom
           &lt;motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.55 }}
             className="text-right lg:sticky lg:top-28 lg:self-start"
           &gt;
             &lt;span className="emc-eyebrow"&gt;أسئلة شائعة&lt;/span&gt;
             &lt;h2 className="emc-title-arc mt-4 font-display text-3xl font-black leading-tight tracking-tight text-deepBlue sm:text-4xl xl:text-[2.5rem]"&gt;
-              كل ما تحتاج&lt;br className="hidden sm:block" /&gt;
+              {/* explicit space: with the &lt;br&gt; hidden on mobile the two lines
+                  used to concatenate into "تحتاجمعرفته" */}
+              كل ما تحتاج{' '}
+              &lt;br className="hidden sm:block" /&gt;
               معرفته قبل البدء
             &lt;/h2&gt;
             &lt;p className="mt-5 text-base font-medium leading-8 text-foreground/60"&gt;
@@ -453,11 +472,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
 &nbsp;
             {/* Trust bullets */}
             &lt;ul className="mt-8 space-y-3.5"&gt;
-              {[
-                'منصة لجميع مستويات الخبرة',
-                'دعم مباشر باللغة العربية',
-                'شهادات معتمدة قابلة للتحقق',
-              ].<span class="fstat-no" title="function not covered" >map((i</span>tem) =&gt; (
+              {trustBullets.<span class="fstat-no" title="function not covered" >map((i</span>tem) =&gt; (
 <span class="cstat-no" title="statement not covered" >                &lt;li key={item} className="flex items-center justify-start gap-3 text-sm font-semibold text-foreground/65"&gt;</span>
                   {item}
                   &lt;span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-customBlue/15"&gt;
@@ -482,7 +497,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
           &lt;motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
             transition={{ duration: 0.55, delay: 0.1 }}
             className="space-y-3"
           &gt;
@@ -562,7 +577,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

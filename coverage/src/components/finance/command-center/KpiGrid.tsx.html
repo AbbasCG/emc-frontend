@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>8/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -196,7 +196,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -223,18 +223,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -251,7 +251,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -259,9 +259,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -279,9 +279,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -323,7 +323,7 @@ import FinanceAnimatedNumber from '../FinanceAnimatedNumber'
 import FinanceSparkline from '../FinanceSparkline'
 import type { FinanceKpiCard } from './types'
 &nbsp;
-const ACCENT: Record&lt;FinanceKpiCard['accent'], { icon: string; spark: string; fill: string; ring: string }&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const ACCENT: Record&lt;FinanceKpiCard['accent'], { icon: string; spark: string; fill: string; ring: string }&gt; = {
   income: {
     icon: 'bg-emerald-500/10 text-emerald-600',
     spark: 'stroke-emerald-500',
@@ -350,18 +350,18 @@ const ACCENT: Record&lt;FinanceKpiCard['accent'], { icon: string; spark: string;
   },
 }
 &nbsp;
-const stagger = <span class="cstat-no" title="statement not covered" >{</span>
+const stagger = {
   hidden: {},
   show: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
 }
 &nbsp;
-const card = <span class="cstat-no" title="statement not covered" >{</span>
+const card = {
   hidden: { opacity: 0, y: 14 },
   show: { opacity: 1, y: 0, transition: { duration: 0.38, ease: [0.22, 0.61, 0.36, 1] as const } },
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >KpiTooltip({</span> text }: { text: string }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+function KpiTooltip({ text }: { text: string }) {
+  return (
     &lt;span
       title={text}
       className="cursor-help text-[10px] font-bold text-slate-400 underline decoration-dotted underline-offset-2"
@@ -371,24 +371,24 @@ function <span class="fstat-no" title="function not covered" >KpiTooltip({</span
   )
 }
 &nbsp;
-export default function <span class="fstat-no" title="function not covered" >KpiGrid({</span>
+export default function KpiGrid({
   cards,
   formatCurrency,
 }: {
   cards: FinanceKpiCard[]
   formatCurrency: (n: number) =&gt; string
 }) {
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;motion.div
       variants={stagger}
       initial="hidden"
       animate="show"
       className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
     &gt;
-      {cards.<span class="fstat-no" title="function not covered" >map((k</span>pi) =&gt; {
-        const style = <span class="cstat-no" title="statement not covered" >ACCENT[kpi.accent]</span>
-        const pos = <span class="cstat-no" title="statement not covered" >kpi.trendPct === null || kpi.trendPct &gt;= 0</span>
-<span class="cstat-no" title="statement not covered" >        return (</span>
+      {cards.map((kpi) =&gt; {
+        const style = ACCENT[kpi.accent]
+        const pos = kpi.trendPct === null || <span class="branch-1 cbranch-no" title="branch not covered" >kpi.trendPct &gt;= 0</span>
+        return (
           &lt;motion.article
             key={kpi.id}
             variants={card}
@@ -406,9 +406,9 @@ export default function <span class="fstat-no" title="function not covered" >Kpi
                 &lt;/div&gt;
                 &lt;p className="mt-2 font-latin text-xl font-black tabular-nums whitespace-nowrap text-deepBlue sm:text-[1.35rem]" dir="ltr"&gt;
                   {kpi.suffix ? (
-                    &lt;FinanceAnimatedNumber value={kpi.value} <span class="fstat-no" title="function not covered" >format={(n</span>) =&gt; <span class="cstat-no" title="statement not covered" >`${Math.round(n)}${kpi.suffix}`} /&gt;</span>
+                    &lt;FinanceAnimatedNumber value={kpi.value} format={(n) =&gt; `${Math.round(n)}${kpi.suffix}`} /&gt;
                   ) : kpi.id === 'paid_students' || kpi.id === 'outstanding_invoices' ? (
-                    &lt;FinanceAnimatedNumber value={kpi.value} <span class="fstat-no" title="function not covered" >format={(n</span>) =&gt; <span class="cstat-no" title="statement not covered" >String(Math.round(n))} /&gt;</span>
+                    &lt;FinanceAnimatedNumber value={kpi.value} format={(n) =&gt; String(Math.round(n))} /&gt;
                   ) : (
                     &lt;FinanceAnimatedNumber value={kpi.value} format={formatCurrency} /&gt;
                   )}
@@ -419,7 +419,7 @@ export default function <span class="fstat-no" title="function not covered" >Kpi
 &nbsp;
             &lt;div className="mt-3 flex items-end justify-between gap-2 border-t border-slate-50 pt-3"&gt;
               {kpi.trendPct !== null ? (
-                &lt;p
+<span class="branch-0 cbranch-no" title="branch not covered" >                &lt;p</span>
                   className={`inline-flex items-center gap-0.5 text-[11px] font-black tabular-nums font-latin ${
                     pos ? 'text-emerald-600' : 'text-rose-600'
                   }`}
@@ -451,7 +451,7 @@ export default function <span class="fstat-no" title="function not covered" >Kpi
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-25T06:55:19.275Z
+                at 2026-08-07T19:19:03.283Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
