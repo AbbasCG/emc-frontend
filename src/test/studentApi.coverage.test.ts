@@ -340,10 +340,10 @@ describe('normalizeStudentLmsDashboard', () => {
     expect(d.counts.learning_paths_count).toBe(0)
 
     // active fallback = current minus completed
-    expect(d.active_courses.map((c) => c.id)).toEqual([2])
+    expect(d.active_courses?.map((c) => c.id)).toEqual([2])
     expect(d.counts.active_courses_count).toBe(1)
     // recent fallback = first 6 current
-    expect(d.recent_courses.map((c) => c.id)).toEqual([1, 2])
+    expect(d.recent_courses?.map((c) => c.id)).toEqual([1, 2])
 
     expect(d.certificates).toBeUndefined()
     expect(d.completed_sessions).toBeUndefined()
