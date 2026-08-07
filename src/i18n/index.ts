@@ -3,8 +3,9 @@
  *
  * Arabic is the SOURCE language and the default: the `ar` catalog holds the
  * exact strings that were previously hardcoded in the components (no
- * rewording), so the app renders 100% identically in Arabic. `en` is a
- * machine draft pending founder approval (see `__meta` in en.json).
+ * rewording), so the app renders 100% identically in Arabic. `en` was approved
+ * by the founder on 2026-08-07 (see `__meta` in en.json); `nl` does not exist
+ * yet and no decision has been taken on it.
  *
  * Import this module once for its side effect (done in src/main.tsx) BEFORE
  * the React tree renders. Resources are bundled inline, so init is

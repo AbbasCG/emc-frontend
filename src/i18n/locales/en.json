@@ -1,6 +1,8 @@
 {
   "__meta": {
-    "status": "draft-pending-founder-approval"
+    "status": "approved",
+    "approvedOn": "2026-08-07",
+    "approvedBy": "founder"
   },
   "brand": {
     "logoAlt": "EMC — Educational Mastar Central"
