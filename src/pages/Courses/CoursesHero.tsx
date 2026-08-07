@@ -14,31 +14,37 @@ export type CoursesHeroStats = {
 
 type CoursesHeroProps = {
   onSearch: (query: string) => void
+  /** Controlled search value — lets page-level «مسح الفلاتر» clear the hero input too. */
+  searchValue?: string
   activeCategory: string
   onCategoryChange: (category: string) => void
   categoryOptions: HeroCategoryOption[]
   stats: CoursesHeroStats
 }
 
+/**
+ * Visible by default (no IntersectionObserver — the band is above the fold);
+ * the count-up starts in a mount effect and re-runs when live stats arrive.
+ */
 const StatCounter = memo(function StatCounter({
   value,
   label,
   suffix,
-  delay,
 }: {
   value: number
   label: string
   suffix: string
-  delay: number
 }) {
   const [count, setCount] = useState(0)
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true })
 
   useEffect(() => {
-    if (!isInView) return
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Async by design (effect-patterns.md): jump straight to the final value on the next frame.
+      const id = requestAnimationFrame(() => setCount(value))
+      return () => cancelAnimationFrame(id)
+    }
     let frame = 0
-    const totalFrames = 80
+    const totalFrames = 60
     const timer = setInterval(() => {
       frame++
       const progress = frame / totalFrames
@@ -47,22 +53,16 @@ const StatCounter = memo(function StatCounter({
       if (frame >= totalFrames) clearInterval(timer)
     }, 20)
     return () => clearInterval(timer)
-  }, [isInView, value])
+  }, [value])
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay }}
-      className="text-center px-4"
-    >
-      <p className="text-3xl md:text-4xl font-black text-white tabular-nums">
-        {count.toLocaleString('en-US')}
+    <div className="px-4 text-center">
+      <p className="text-3xl font-black tabular-nums text-white md:text-4xl" dir="ltr">
         {suffix}
+        {count.toLocaleString('en-US')}
       </p>
-      <p className="text-xs md:text-sm text-brand-300/90 mt-1 font-medium">{label}</p>
-    </motion.div>
+      <p className="mt-1 text-xs font-medium text-brand-300/90 md:text-sm">{label}</p>
+    </div>
   )
 })
 
@@ -70,17 +70,16 @@ const easing: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
 
 function CoursesHero({
   onSearch,
+  searchValue,
   activeCategory,
   onCategoryChange,
   categoryOptions,
   stats,
 }: CoursesHeroProps) {
-  const [query, setQuery] = useState('')
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-40px' })
 
   function handleSearch(e: ChangeEvent<HTMLInputElement>) {
-    setQuery(e.target.value)
     onSearch(e.target.value)
   }
 
@@ -142,7 +141,7 @@ function CoursesHero({
           <Search className="pointer-events-none absolute right-5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-400" />
           <input
             type="search"
-            value={query}
+            value={searchValue ?? ''}
             onChange={handleSearch}
             placeholder="ابحث عن دورة أو مدرّب…"
             className="h-14 w-full rounded-2xl border-2 border-transparent bg-white/95 pr-14 pl-5 text-base font-medium text-deepBlue shadow-xl backdrop-blur-sm placeholder:text-muted-400/80 outline-none transition-all duration-200 focus:border-brand-400"
@@ -184,19 +183,12 @@ function CoursesHero({
           </Link>
         </motion.div>
 
-        <motion.div {...fadeUp(0.5)}>
-          <div className="grid grid-cols-2 gap-6 border-t border-white/10 pt-10 md:grid-cols-4">
-            {statsRow.map((stat, i) => (
-              <StatCounter
-                key={stat.label}
-                value={stat.value}
-                label={stat.label}
-                suffix={stat.suffix}
-                delay={0.5 + i * 0.08}
-              />
-            ))}
-          </div>
-        </motion.div>
+        {/* Stats band — always visible; only the numbers animate (count-up). */}
+        <div className="grid grid-cols-2 gap-6 border-t border-white/10 pt-10 md:grid-cols-4">
+          {statsRow.map((stat) => (
+            <StatCounter key={stat.label} value={stat.value} label={stat.label} suffix={stat.suffix} />
+          ))}
+        </div>
       </div>
     </section>
   )

@@ -38,6 +38,34 @@
     <title>مركز ماستر التعليمي — EMC</title>
   </head>
   <body>
+    <!-- Boot splash — pure inline CSS so it paints before ANY bundle arrives.
+         V3 identity: navy field, official white logo, flying-pages strokes,
+         tricolor sweep. App.tsx removes it once React mounts. -->
+    <div id="boot-splash" aria-hidden="true">
+      <div class="bs-inner">
+        <div class="bs-pages">
+          <span></span><span></span><span></span>
+        </div>
+        <img src="/brand/logos/logo_full_white.png" alt="" width="220" height="88" decoding="async" />
+        <div class="bs-bar"><i></i></div>
+      </div>
+    </div>
+    <style>
+      #boot-splash{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:#0C2A4B;background-image:radial-gradient(ellipse 70% 55% at 78% -8%,rgba(8,159,224,.20),transparent 60%),radial-gradient(ellipse 120% 70% at 50% 120%,rgba(242,140,0,.12),transparent 60%);transition:opacity .45s ease,visibility .45s ease}
+      #boot-splash.bs-done{opacity:0;visibility:hidden;pointer-events:none}
+      .bs-inner{display:flex;flex-direction:column;align-items:center;gap:26px}
+      .bs-inner img{width:min(220px,52vw);height:auto;opacity:0;animation:bsFade .7s ease .15s forwards}
+      .bs-pages{display:flex;gap:7px;height:26px;align-items:flex-end}
+      .bs-pages span{width:17px;height:22px;border-radius:3px 8px 3px 3px;background:linear-gradient(180deg,#A6D6F2,#089FE0);opacity:.9;transform-origin:50% 100%;animation:bsFly 1.15s cubic-bezier(.2,.8,.2,1) infinite}
+      .bs-pages span:nth-child(2){animation-delay:.14s;background:linear-gradient(180deg,#FFD9A0,#F28C00)}
+      .bs-pages span:nth-child(3){animation-delay:.28s}
+      .bs-bar{width:min(220px,52vw);height:3px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.14)}
+      .bs-bar i{display:block;height:100%;width:45%;border-radius:99px;background:linear-gradient(to left,#F28C00 0 30%,#089FE0 30% 75%,#A6D6F2 75% 100%);animation:bsSweep 1.3s ease-in-out infinite}
+      @keyframes bsFly{0%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(-9px) rotate(-7deg)}}
+      @keyframes bsSweep{0%{transform:translateX(160%)}100%{transform:translateX(-260%)}}
+      @keyframes bsFade{to{opacity:1}}
+      @media (prefers-reduced-motion:reduce){.bs-pages span,.bs-bar i{animation:none}.bs-inner img{opacity:1;animation:none}}
+    </style>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

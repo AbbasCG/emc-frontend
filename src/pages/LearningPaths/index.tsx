@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Route } from 'lucide-react'
 import PublicSeo from '@/components/public/PublicSeo'
+import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   fetchPublicLearningPaths,
@@ -178,41 +179,81 @@ export default function LearningPathsPage() {
       <section id="paths-catalog" className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {loading ?
-            <div className="space-y-6" aria-busy="true" aria-label="جارٍ تحميل المسارات">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-                  <div className="h-5 w-1/3 animate-pulse rounded bg-slate-100" />
-                  <div className="mt-4 h-3 w-full animate-pulse rounded bg-slate-100" />
-                  <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-slate-100" />
-                  <div className="mt-6 flex gap-3">
-                    <div className="h-9 w-28 animate-pulse rounded-xl bg-slate-100" />
-                    <div className="h-9 w-20 animate-pulse rounded-xl bg-slate-100" />
+            <div
+              className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
+              aria-busy="true"
+              aria-label="جارٍ تحميل المسارات"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc">
+                  <Skeleton className="aspect-video w-full rounded-none" />
+                  <div className="p-5">
+                    <Skeleton variant="text" className="h-3 w-1/3" />
+                    <Skeleton variant="text" className="mt-3 h-5 w-4/5" />
+                    <div className="mt-5 space-y-3">
+                      {Array.from({ length: 3 }).map((_, s) => (
+                        <div key={s} className="flex items-center gap-3">
+                          <Skeleton variant="circular" width={24} height={24} />
+                          <Skeleton variant="text" className="h-3 w-2/3" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 flex items-center justify-between border-t border-slate-50 pt-4">
+                      <Skeleton className="h-6 w-16 rounded-lg" />
+                      <Skeleton className="h-6 w-24 rounded-lg" />
+                    </div>
+                    <Skeleton className="mt-3 h-11 w-full rounded-xl" />
                   </div>
                 </div>
               ))}
             </div>
           : filteredPaths.length === 0 ?
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
-              <Route className="mb-4 h-12 w-12 text-slate-300" aria-hidden />
-              <p className="text-lg font-black text-slate-600">لا توجد مسارات مطابقة</p>
-              <p className="mt-2 max-w-md text-sm text-slate-500">
+            <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-emc">
+              <span className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-customBlue">
+                <Route className="h-7 w-7" aria-hidden />
+              </span>
+              <h2 className="text-lg font-black text-deepBlue">لا توجد مسارات مطابقة</h2>
+              <p className="mt-2 max-w-md text-sm leading-7 text-slate-500">
                 جرّب تغيير معايير البحث أو تصفح الدورات المتاحة
               </p>
-              <Link
-                to="/courses"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white"
-              >
-                تصفح الدورات
-              </Link>
+              <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
+                <Link
+                  to="/courses"
+                  className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition-colors duration-200 hover:bg-brand-600"
+                >
+                  تصفح الدورات
+                </Link>
+                {(level !== 'all' ||
+                  priceFilter !== 'all' ||
+                  featuredFilter !== 'all' ||
+                  enrollmentFilter !== 'all') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLevel('all')
+                      setPriceFilter('all')
+                      setFeaturedFilter('all')
+                      setEnrollmentFilter('all')
+                      setPage(1)
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600 transition-colors duration-200 hover:border-customBlue hover:text-customBlue"
+                  >
+                    إعادة تعيين الفلاتر
+                  </button>
+                )}
+              </div>
             </div>
           : <>
               <p className="mb-6 text-sm font-semibold text-slate-500">
-                {String(filteredPaths.length)} مسار
+                <span dir="ltr" className="font-black tabular-nums text-deepBlue">
+                  {String(filteredPaths.length)}
+                </span>{' '}
+                مسار
                 {filteredPaths.length !== paths.length ?
                   ` (من ${String(paths.length)} في هذه الصفحة)`
                 : ''}
               </p>
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredPaths.map((path, i) => (
                   <LearningPathJourneyCard
                     key={path.id}

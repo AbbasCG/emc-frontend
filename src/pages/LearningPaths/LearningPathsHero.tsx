@@ -1,5 +1,4 @@
 import { useRef, useState, type ChangeEvent } from 'react'
-import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { Route, Search } from 'lucide-react'
 
@@ -22,9 +21,9 @@ export default function LearningPathsHero({ onSearch, totalPaths, openCount, fea
 
   const easing: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
   const fadeUp = (delay: number) => ({
-    initial: { opacity: 0, y: 32 },
+    initial: { opacity: 0, y: 24 },
     animate: isInView ? { opacity: 1, y: 0 } : {},
-    transition: { duration: 0.6, delay, ease: easing },
+    transition: { duration: 0.55, delay, ease: easing },
   })
 
   const stats = [
@@ -36,7 +35,7 @@ export default function LearningPathsHero({ onSearch, totalPaths, openCount, fea
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-gradient-to-b from-ink-900 via-deepBlue to-[#1a2a3f] pt-28 pb-16"
+      className="relative overflow-hidden bg-gradient-to-b from-ink-900 via-deepBlue to-[#1a2a3f] pt-24 pb-12 md:pt-28"
     >
       <div className="pointer-events-none absolute inset-0 select-none">
         <svg className="absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
@@ -47,8 +46,7 @@ export default function LearningPathsHero({ onSearch, totalPaths, openCount, fea
           </defs>
           <rect width="100%" height="100%" fill="url(#hero-dots-paths)" />
         </svg>
-        <div className="absolute top-0 right-0 h-[600px] w-[600px] -translate-y-1/3 translate-x-1/4 rounded-full bg-brand-500/15 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[400px] w-[400px] translate-y-1/2 rounded-full bg-accent-500/10 blur-3xl" />
+        <div className="absolute top-0 right-0 h-[500px] w-[500px] -translate-y-1/3 translate-x-1/4 rounded-full bg-brand-500/15 blur-3xl" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
@@ -60,16 +58,19 @@ export default function LearningPathsHero({ onSearch, totalPaths, openCount, fea
         </motion.div>
 
         <motion.h1
-          {...fadeUp(0.1)}
-          className="mb-4 text-center text-4xl font-black leading-tight text-white md:text-6xl"
+          {...fadeUp(0.08)}
+          className="mb-4 text-center font-display text-4xl font-black leading-tight text-white [text-wrap:balance] md:text-5xl"
         >
           رحلات تعليمية متكاملة
         </motion.h1>
-        <motion.p {...fadeUp(0.18)} className="mb-10 text-center text-lg leading-relaxed text-white/65 md:text-xl">
+        <motion.p
+          {...fadeUp(0.16)}
+          className="mb-8 text-center text-lg leading-relaxed text-white/65 [text-wrap:balance]"
+        >
           مسارات مرتبة خطوة بخطوة — دورات، شهادات، وتوجيه مهني في رحلة واحدة
         </motion.p>
 
-        <motion.div {...fadeUp(0.26)} className="relative mx-auto mb-8 max-w-2xl">
+        <motion.div {...fadeUp(0.24)} className="relative mx-auto mb-10 max-w-2xl">
           <Search className="pointer-events-none absolute right-5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-400" />
           <input
             type="search"
@@ -80,29 +81,13 @@ export default function LearningPathsHero({ onSearch, totalPaths, openCount, fea
           />
         </motion.div>
 
-        <motion.div {...fadeUp(0.34)} className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => document.getElementById('paths-catalog')?.scrollIntoView({ behavior: 'smooth' })}
-            className="rounded-xl bg-brand-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-600"
-          >
-            استكشف المسارات
-          </motion.button>
-          <Link
-            to="/courses"
-            className="rounded-xl border-2 border-accent-500 px-7 py-3.5 text-sm font-bold text-accent-400 transition hover:bg-accent-500 hover:text-white"
-          >
-            تصفح الدورات
-          </Link>
-        </motion.div>
-
-        <motion.div {...fadeUp(0.42)}>
-          <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-10 md:gap-6">
+        <motion.div {...fadeUp(0.32)}>
+          <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-8 md:gap-6">
             {stats.map((stat) => (
-              <div key={stat.label} className="text-center px-2">
-                <p className="text-2xl font-black text-white tabular-nums md:text-3xl">{String(stat.value)}</p>
+              <div key={stat.label} className="px-2 text-center">
+                <p dir="ltr" className="text-2xl font-black tabular-nums text-white md:text-3xl">
+                  {String(stat.value)}
+                </p>
                 <p className="mt-1 text-xs font-medium text-brand-300/90 md:text-sm">{stat.label}</p>
               </div>
             ))}

@@ -1,22 +1,13 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
-import {
-  BookOpen,
-  Users,
-  Calendar,
-  Monitor,
-  Building2,
-  Sparkles,
-  ArrowUpRight,
-  GraduationCap,
-} from 'lucide-react'
+import { ArrowUpRight, BookOpen, Calendar, Clock, GraduationCap } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
 import { toLatinDigits } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { useAuth } from '@/contexts/AuthContext'
-import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
+import { ENDED_COURSE_LABEL_AR } from '@/utils/courseEnded'
 import {
   buildCourseDetailEnrollHref,
   gatePublicEnrollClick,
@@ -26,20 +17,6 @@ type CourseCardProps = {
   course: CourseItem
   viewMode?: 'grid' | 'list'
   index?: number
-}
-
-// Calm, on-brand chip palette — sea (blue/navy) + a single warm ember tone,
-// never the rainbow. Keeps category chips quiet and consistent.
-const palettes = [
-  { chip: 'bg-brand-50 text-brand-700 border-brand-100' },
-  { chip: 'bg-brand-100/70 text-navy border-brand-200/70' },
-  { chip: 'bg-accent-50 text-accent-700 border-accent-100' },
-]
-
-function accentFromKey(label: string) {
-  let h = 0
-  for (let i = 0; i < label.length; i++) h = (h + label.charCodeAt(i) * (i + 1)) % 1000000
-  return palettes[h % palettes.length]
 }
 
 const startDateFormatter = new Intl.DateTimeFormat('ar-SA', {
@@ -56,176 +33,178 @@ function formatStartAr(iso: string | null): string | null {
   return startDateFormatter.format(d)
 }
 
+function deliveryLabelAr(course: CourseItem): string {
+  switch (course.delivery_key) {
+    case 'online':
+      return 'عن بُعد'
+    case 'offline':
+      return 'حضوري'
+    case 'hybrid':
+      return 'هجين'
+    default:
+      return course.delivery_label_ar
+  }
+}
+
 function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
   const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
-  const accent = accentFromKey(course.category_label)
+  const isList = viewMode === 'list'
+
   const imgSrc = course.thumbnail
     ? resolvePublicAssetUrl(course.thumbnail) ?? course.thumbnail
-    : null
+    : course.cover_placeholder
 
   const startLabel = formatStartAr(course.start_date)
-  const seatsLine =
-    course.seats_count != null
-      ? `${course.registrations_count.toLocaleString('en-US')} / ${course.seats_count.toLocaleString('en-US')} مقعداً`
-      : `${course.registrations_count.toLocaleString('en-US')} تسجيل`
+  const priceLabel = course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))
 
-  const statusBadge =
-    course.status === 'upcoming'
-      ? 'قادمة'
-      : course.status_label_ar ??
-        (course.status === 'archived' ? 'مؤرشفة' : course.status === 'active' ? 'متاحة' : null)
+  const seatsFull =
+    !course.is_ended &&
+    course.seats_count != null &&
+    course.seats_count > 0 &&
+    course.registrations_count >= course.seats_count
+  const registerDisabled = course.is_ended || seatsFull
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 28 }}
-      animate={{ opacity: 1, y: 0 }}
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
-      transition={{ duration: 0.45, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -6 }}
-      className={`group flex overflow-hidden rounded-3xl border border-line bg-white shadow-emc transition-all duration-300 ease-emc-out hover:border-brand-200 hover:shadow-emc-lg ${
-        viewMode === 'list' ? 'flex-row-reverse' : 'flex-col'
-      }`}
+      transition={{ duration: 0.4, delay: (index % 3) * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="h-full"
     >
-      {/* Image */}
-      <div
-        className={`relative shrink-0 overflow-hidden ${
-          viewMode === 'list' ? 'w-56 md:w-64' : 'h-52 w-full'
+      <article
+        className={`group flex h-full overflow-hidden rounded-3xl bg-white ring-1 ring-line shadow-emc-xs transition-all duration-300 ease-emc-out hover:-translate-y-1 hover:shadow-emc-md ${
+          isList ? 'flex-row-reverse' : 'flex-col'
         }`}
       >
-        {imgSrc ? (
+        {/* Cover */}
+        <div
+          className={`relative shrink-0 overflow-hidden ${
+            isList ? 'w-56 md:w-64' : 'aspect-video w-full rounded-t-3xl'
+          }`}
+        >
           <img
             src={imgSrc}
             alt={course.title}
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
-        ) : (
-          <img
-            src={course.cover_placeholder}
-            alt={course.title}
-            className="h-full w-full object-cover"
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy/45 via-navy/5 to-transparent"
           />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-navy/65 via-navy/10 to-transparent" />
 
-        {course.is_ended ?
-          <div className="absolute left-3 top-3 z-10">
-            <CourseStatusBadge isEnded placement="overlay" />
-          </div>
-        : null}
-
-        <div className="absolute right-3 top-3 flex flex-wrap items-center justify-end gap-1.5">
-          {statusBadge && !course.is_ended ?
-            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue shadow-emc-xs backdrop-blur">
-              {statusBadge}
+          {/* Max two overlay chips: price + delivery */}
+          <div className="absolute right-3 top-3 flex items-center gap-1.5">
+            <span
+              dir={course.is_free ? undefined : 'ltr'}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-black tabular-nums text-white shadow-emc-xs ${
+                course.is_free ? 'bg-success' : 'bg-navy/90'
+              }`}
+            >
+              {priceLabel}
             </span>
-          : null}
-          <span className="rounded-full border border-white/30 bg-ink-900/55 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
-            {course.catalog_type_label_ar ?? (course.catalog_type === 'workshop' ? 'ورشة' : 'دورة')}
-          </span>
-        </div>
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-navy shadow-emc-xs backdrop-blur">
+              {deliveryLabelAr(course)}
+            </span>
+          </div>
 
-        <div className="absolute bottom-3 right-3 left-3 flex flex-wrap items-end justify-between gap-2">
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-black shadow-emc-xs ${
-              course.is_free ? 'bg-customBlue text-white' : 'bg-white/95 text-accent-700'
-            }`}
-          >
-            {course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col p-6 text-right">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${accent.chip}`}
-          >
-            {course.category_label}
-          </span>
-          <span className="text-[11px] font-semibold text-muted-500">{course.level_label_ar}</span>
-          {course.language && (
-            <span className="text-[11px] text-muted-400">· {course.language}</span>
+          {/* Availability state — subtle scrim, no internal status copy */}
+          {(seatsFull || course.is_ended) && (
+            <div className="absolute inset-0 flex items-end justify-center bg-night/45 pb-3 backdrop-blur-[1px]">
+              <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-black text-navy shadow-emc-xs">
+                {course.is_ended ? ENDED_COURSE_LABEL_AR : 'اكتملت المقاعد'}
+              </span>
+            </div>
           )}
         </div>
 
-        <h3 className="mb-2 line-clamp-2 font-display text-lg font-black leading-snug tracking-tight text-ink-900 transition group-hover:text-brand-600 md:text-xl">
-          {course.title}
-        </h3>
+        {/* Body */}
+        <div className="flex min-w-0 flex-1 flex-col p-5 text-right">
+          <h3 className="line-clamp-2 font-display text-lg font-black leading-snug tracking-tight text-ink-900 transition-colors duration-200 group-hover:text-brand-600">
+            {course.title}
+          </h3>
 
-        <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-600">{course.short_description}</p>
-
-        <div className="mb-4 flex flex-wrap gap-2 text-[11px] text-muted-600">
-          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50/70 px-2 py-1 font-semibold text-deepBlue">
-            <GraduationCap className="h-3.5 w-3.5 text-brand-500" />
-            {course.trainer.name}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50/70 px-2 py-1 font-medium">
-            {course.delivery_key === 'online' ? (
-              <Monitor className="h-3.5 w-3.5 text-brand-500" />
-            ) : (
-              <Building2 className="h-3.5 w-3.5 text-accent-500" />
-            )}
-            {course.delivery_label_ar}
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50/70 px-2 py-1 font-medium">
-            <Sparkles className="h-3.5 w-3.5 text-brand-400" />
-            {course.duration_label}
-          </span>
-        </div>
-
-        <div className="mb-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 text-xs text-muted-500">
-          <span className="flex items-center gap-1.5 font-medium">
-            <Calendar className="h-3.5 w-3.5 shrink-0 text-brand-500" />
-            {startLabel ?? 'انضم إلى الدورة القادمة'}
-          </span>
-          <span className="flex items-center gap-1.5 font-medium">
-            <Users className="h-3.5 w-3.5 shrink-0 text-accent-500" />
-            {seatsLine}
-          </span>
-        </div>
-
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-          <div>
-            <p className="text-[10px] font-bold text-muted-400">الاستثمار</p>
-            <p className={`font-latin text-lg font-black tabular-nums ${course.is_free ? 'text-customBlue' : 'text-accent-700'}`} dir="ltr">
-              {course.is_free ? 'مجاناً بالكامل' : toLatinDigits(formatEuroInteger(course.price, 'ar'))}
+          {course.short_description && (
+            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-600">
+              {course.short_description}
             </p>
+          )}
+
+          {/* Single meta row: instructor · duration · start date */}
+          <div className="mb-5 mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs font-medium text-ink-400">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <GraduationCap className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{course.trainer.name}</span>
+            </span>
+            <span aria-hidden className="text-ink-200">
+              ·
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {course.duration_label}
+            </span>
+            {startLabel && (
+              <>
+                <span aria-hidden className="text-ink-200">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  {startLabel}
+                </span>
+              </>
+            )}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to={`/courses/${course.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-line bg-white px-4 py-2.5 text-xs font-black text-deepBlue transition hover:border-brand-300 hover:bg-brand-50"
-            >
-              تفاصيل
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-            <button
-              type="button"
-              disabled={course.is_ended}
-              onClick={() => {
-                if (course.is_ended) return
-                gatePublicEnrollClick({
-                  isAuthenticated,
-                  role: user?.role,
-                  redirectPath: buildCourseDetailEnrollHref(course.slug),
-                  navigate,
-                  onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
-                })
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black shadow-md transition ${
-                course.is_ended
-                  ? 'cursor-not-allowed bg-slate-200 text-slate-500 shadow-none'
-                  : 'bg-brand-500 text-white shadow-brand-500/25 hover:bg-brand-600'
+
+          {/* Footer pinned to bottom so buttons align across the row */}
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+            <p
+              dir={course.is_free ? undefined : 'ltr'}
+              className={`font-latin text-base font-black tabular-nums ${
+                course.is_free ? 'text-success' : 'text-navy'
               }`}
             >
-              <BookOpen className="h-3.5 w-3.5" />
-              سجل الآن
-            </button>
+              {priceLabel}
+            </p>
+
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/courses/${course.slug}`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-black text-navy transition-colors duration-200 hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1"
+              >
+                تفاصيل
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+              <button
+                type="button"
+                disabled={registerDisabled}
+                onClick={() => {
+                  if (registerDisabled) return
+                  gatePublicEnrollClick({
+                    isAuthenticated,
+                    role: user?.role,
+                    redirectPath: buildCourseDetailEnrollHref(course.slug),
+                    navigate,
+                    onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
+                  })
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-1 ${
+                  registerDisabled
+                    ? 'cursor-not-allowed bg-slate-200 text-slate-500'
+                    : 'bg-accent-500 text-white shadow-md shadow-accent-500/25 hover:brightness-[1.07]'
+                }`}
+              >
+                <BookOpen className="h-3.5 w-3.5" aria-hidden />
+                سجل الآن
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.article>
+      </article>
+    </motion.div>
   )
 }
 

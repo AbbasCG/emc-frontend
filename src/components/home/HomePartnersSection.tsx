@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
@@ -15,13 +16,13 @@ const partners = [
 
 export default function HomePartnersSection() {
   return (
-    <section dir="rtl" className="border-y border-deepBlue/[0.06] bg-emcBg px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+    <section dir="rtl" className="border-y border-deepBlue/[0.06] bg-emcBg px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
       <div className="mx-auto max-w-[1540px]">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.5 }}
           className="mb-12 text-right"
         >
@@ -75,16 +76,16 @@ export default function HomePartnersSection() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.45, delay: 0.2 }}
           className="mt-10 flex justify-center"
         >
-          <a
-            href="/partnerships"
+          <Link
+            to="/partnerships"
             className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/10 bg-white px-6 py-3 text-sm font-black text-deepBlue shadow-emc-xs transition hover:border-customBlue/30 hover:text-customBlue"
           >
             انضم كشريك مؤسسي
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

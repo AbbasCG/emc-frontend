@@ -1,11 +1,15 @@
 import { lazy, Suspense } from 'react'
 import HomeCinematicHero from '../components/home/HomeCinematicHero'
 import HomeImpactMetrics from '../components/home/HomeImpactMetrics'
-import HomeTrustStrip from '../components/home/HomeTrustStrip'
+// M10: hidden — partner marquee duplicated HomePartnersSection (kept the grid as the single partners scene)
+// import HomeTrustStrip from '../components/home/HomeTrustStrip'
 import HomeLearningTracks from '../components/home/HomeLearningTracks'
-import HomeLearningJourney from '../components/home/HomeLearningJourney'
-import WhyChooseSection from '../components/home/WhyChooseSection'
-import HomeAiSection from '../components/home/HomeAiSection'
+// M10: hidden — 4-step journey strip; the narrative is carried by the tracks tabs (duration → certificate)
+// import HomeLearningJourney from '../components/home/HomeLearningJourney'
+// M10: hidden — dark editorial grid overlapping the kept EcosystemBento capability moment
+// import WhyChooseSection from '../components/home/WhyChooseSection'
+// M10: hidden — second dark capability section duplicating EcosystemBento (bento kept as the stronger one)
+// import HomeAiSection from '../components/home/HomeAiSection'
 import HomeTestimonialsCarousel from '../components/home/HomeTestimonialsCarousel'
 import HomePartnersSection from '../components/home/HomePartnersSection'
 import HomeFaqSection from '../components/home/HomeFaqSection'
@@ -40,47 +44,35 @@ export default function Home() {
         path="/"
       />
       <OrganizationJsonLd />
-      {/* 1. Cinematic dark hero + orbital visual + stat pills */}
+      {/* 1. Cinematic dark hero — headline + the team's 12-themes orbit («منظومة EMC») + stat pills */}
       <HomeCinematicHero />
 
-      {/* 2. Featured courses from API — near the top so users see real content immediately */}
+      {/* 2. Featured courses from API (light) — real content immediately after the hero */}
       <Suspense fallback={<SectionFallback />}>
         <FeaturedCoursesSection />
       </Suspense>
 
-      {/* 3. Impact metrics — dark strip, animated counters */}
+      {/* 3. Impact metrics — dark interlude #1, animated counters */}
       <HomeImpactMetrics />
 
-      {/* 4. Partner marquee trust strip */}
-      <HomeTrustStrip />
-
-      {/* 5. Learning tracks — 5 premium cards, 3-col layout */}
+      {/* 4. Learning tracks & certificates (light) — tabs: 9 professional tracks / academic / languages / children */}
       <HomeLearningTracks />
 
-      {/* 6. Learning journey — Workshop → Course → Track → Outcome */}
-      <HomeLearningJourney />
-
-      {/* 7. Platform capabilities bento (dark, glass) */}
+      {/* 5. Platform capabilities bento — the ONE dark capability moment */}
       <Suspense fallback={<SectionFallback />}>
         <HomeEcosystemBento />
       </Suspense>
 
-      {/* 8. Why EMC — dark editorial grid */}
-      <WhyChooseSection />
-
-      {/* 9. AI & Innovation — near-black, kinetic */}
-      <HomeAiSection />
-
-      {/* 10. Testimonials — 2-up on desktop */}
+      {/* 6. Testimonials (light) — highlighted quote + 2-up supporting cards */}
       <HomeTestimonialsCarousel />
 
-      {/* 11. Partners */}
+      {/* 7. Partners (light) — the single partners scene */}
       <HomePartnersSection />
 
-      {/* 12. FAQ — split layout, premium accordion */}
+      {/* 8. FAQ (light) — compact two-column: sticky intro + accordion */}
       <HomeFaqSection />
 
-      {/* 13. Final CTA */}
+      {/* 9. Grand CTA — dark gradient finale */}
       <HomeGrandCTA />
     </main>
   )

@@ -217,7 +217,7 @@ export default function HomeEcosystemBento() {
   return (
     <section
       dir="rtl"
-      className="emc-dawn relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-32"
+      className="emc-dawn relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-28"
     >
       {/* Ambient glows */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
@@ -237,7 +237,7 @@ export default function HomeEcosystemBento() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >

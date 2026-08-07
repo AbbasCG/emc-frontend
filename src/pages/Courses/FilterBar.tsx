@@ -57,16 +57,19 @@ type FilterBarProps = {
   totalCount: number
   apiEmpty: boolean
   loadError: boolean
+
+  /** Optional: page-level reset (also clears state the bar doesn't own, e.g. hero search/category). */
+  onResetAll?: () => void
 }
 
 const priceFilters = [
-  { value: 'all', label: 'الكل' },
+  { value: 'all', label: 'السعر' },
   { value: 'free', label: 'مجاني' },
   { value: 'paid', label: 'مدفوع' },
 ]
 
 const availabilityFilters = [
-  { value: 'all', label: 'الكل' },
+  { value: 'all', label: 'الحالة' },
   { value: 'active', label: 'متاحة' },
   { value: 'ended', label: 'انتهت' },
 ]
@@ -80,6 +83,50 @@ const sortOptions = [
   { value: 'duration', label: 'المدة' },
   { value: 'name_az', label: 'الاسم أ-ي' },
 ]
+
+/** Compact rounded select-pill; highlights when a non-default value is chosen. */
+function SelectPill({
+  label,
+  value,
+  options,
+  onChange,
+  defaultValue = 'all',
+}: {
+  label: string
+  value: string
+  options: SelectOption[]
+  onChange: (v: string) => void
+  defaultValue?: string
+}) {
+  const active = value !== defaultValue
+  return (
+    <div className="relative shrink-0">
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`h-9 max-w-[11rem] cursor-pointer appearance-none truncate rounded-full border pe-8 ps-3.5 text-xs font-bold outline-none transition-colors duration-200 focus:border-brand-400 ${
+          active
+            ? 'border-brand-300 bg-brand-50 text-brand-700'
+            : 'border-line bg-white text-ink-500 hover:border-brand-200'
+        }`}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {/* A bare «الكل» first option reads ambiguously on a closed pill — show the group name instead. */}
+            {opt.value === 'all' && opt.label === 'الكل' ? label : opt.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        aria-hidden
+        className={`pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${
+          active ? 'text-brand-600' : 'text-muted-400'
+        }`}
+      />
+    </div>
+  )
+}
 
 function FilterBar({
   search,
@@ -114,233 +161,174 @@ function FilterBar({
   totalCount,
   apiEmpty,
   loadError,
+  onResetAll,
 }: FilterBarProps) {
   const showProgramType = programTypeOptions && programTypeOptions.length > 1 && onProgramTypeChange && activeProgramType !== undefined
+  const showCategory = categoryOptions && categoryOptions.length > 1 && onCategoryChange
+  const showLanguage = languageOptions && languageOptions.length > 1 && onLanguageChange
+  const showInstructor = instructorOptions && instructorOptions.length > 1 && onInstructorChange
+
+  const hasActiveFilters =
+    activePrice !== 'all' ||
+    activeAvailability !== 'all' ||
+    activeLevel !== 'all' ||
+    activeDelivery !== 'all' ||
+    (activeProgramType !== undefined && activeProgramType !== 'all') ||
+    (activeCategory !== undefined && activeCategory !== 'all') ||
+    (activeLanguage !== undefined && activeLanguage !== 'all') ||
+    (activeInstructor !== undefined && activeInstructor !== 'all') ||
+    Boolean(search && search.trim()) ||
+    sortBy !== 'popular'
+
+  function resetAll() {
+    if (onResetAll) {
+      onResetAll()
+      return
+    }
+    onPriceChange('all')
+    onAvailabilityChange('all')
+    onLevelChange('all')
+    onDeliveryChange('all')
+    onProgramTypeChange?.('all')
+    onCategoryChange?.('all')
+    onLanguageChange?.('all')
+    onInstructorChange?.('all')
+    onSearchChange?.('')
+    onSortChange('popular')
+  }
 
   return (
     <div className="sticky top-[4.5rem] z-30 border-b border-line bg-white/90 shadow-emc-sm backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
         {loadError && (
-          <div className="mb-4 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="mb-3 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>تعذّر تحميل الكتالوج من الخادم. تحقق من الاتصال ثم أعد تحميل الصفحة.</span>
           </div>
         )}
         {apiEmpty && !loadError && (
-          <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-muted-600">
+          <div className="mb-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-muted-600">
             لا توجد دورات منشورة في الكتالوج حالياً. تُحدَّث القائمة تلقائياً عند إضافة برامج جديدة.
           </div>
         )}
 
-        {/* Search row */}
+        {/* Search row (only when the page routes search through the bar, e.g. /programs) */}
         {onSearchChange !== undefined && (
-          <div className="mb-4 flex items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-400" />
-              <input
-                type="search"
-                value={search ?? ''}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="ابحث بالاسم، المدرب، التصنيف..."
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-2.5 pr-10 pl-10 text-sm text-deepBlue outline-none transition placeholder:text-muted-400 focus:border-brand-400 focus:bg-white"
-                dir="rtl"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => onSearchChange('')}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-400 hover:text-muted-600"
-                  aria-label="مسح البحث"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <span className="shrink-0 text-xs font-semibold text-muted-500">
-              <span className="font-black text-deepBlue">{resultCount.toLocaleString('en-US')}</span>
-              {' / '}
-              <span className="font-black text-deepBlue">{totalCount.toLocaleString('en-US')}</span>
-              {' دورة'}
-            </span>
+          <div className="relative mb-2.5">
+            <Search className="pointer-events-none absolute end-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-400" />
+            <input
+              type="search"
+              value={search ?? ''}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="ابحث بالاسم، المدرب، التصنيف..."
+              className="w-full rounded-2xl border border-line bg-paper/70 py-2.5 pe-10 ps-10 text-sm text-deepBlue outline-none transition placeholder:text-muted-400 focus:border-brand-400 focus:bg-white"
+              dir="rtl"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => onSearchChange('')}
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-400 hover:text-muted-600"
+                aria-label="مسح البحث"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         )}
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          {/* Chip groups */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">السعر</span>
-              <div className="flex items-center gap-1.5 rounded-full bg-slate-100/90 p-1">
-                {priceFilters.map((tag) => (
-                  <button
-                    key={tag.value}
-                    type="button"
-                    onClick={() => onPriceChange(tag.value)}
-                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                      activePrice === tag.value
-                        ? 'bg-customBlue text-white shadow-md shadow-customBlue/25 scale-[1.02]'
-                        : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
-                    }`}
-                  >
-                    {tag.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Single toolbar row — wraps on mobile */}
+        <div className="flex flex-wrap items-center gap-2">
+          <SelectPill label="السعر" value={activePrice} options={priceFilters} onChange={onPriceChange} />
+          <SelectPill label="الحالة" value={activeAvailability} options={availabilityFilters} onChange={onAvailabilityChange} />
+          <SelectPill label="المستوى" value={activeLevel} options={levelOptions} onChange={onLevelChange} />
+          <SelectPill label="نمط التقديم" value={activeDelivery} options={deliveryOptions} onChange={onDeliveryChange} />
+          {showProgramType && (
+            <SelectPill
+              label="نوع البرنامج"
+              value={activeProgramType!}
+              options={programTypeOptions!}
+              onChange={onProgramTypeChange!}
+            />
+          )}
+          {showCategory && (
+            <SelectPill
+              label="التصنيف"
+              value={activeCategory ?? 'all'}
+              options={categoryOptions!}
+              onChange={onCategoryChange!}
+            />
+          )}
+          {showLanguage && (
+            <SelectPill
+              label="اللغة"
+              value={activeLanguage ?? 'all'}
+              options={languageOptions!}
+              onChange={onLanguageChange!}
+            />
+          )}
+          {showInstructor && (
+            <SelectPill
+              label="المدرب"
+              value={activeInstructor ?? 'all'}
+              options={instructorOptions!}
+              onChange={onInstructorChange!}
+            />
+          )}
 
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">الحالة</span>
-              <div className="flex items-center gap-1.5 rounded-full bg-slate-100/90 p-1">
-                {availabilityFilters.map((tag) => (
-                  <button
-                    key={tag.value}
-                    type="button"
-                    onClick={() => onAvailabilityChange(tag.value)}
-                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                      activeAvailability === tag.value
-                        ? 'bg-deepBlue text-white shadow-md shadow-deepBlue/20 scale-[1.02]'
-                        : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
-                    }`}
-                  >
-                    {tag.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <span aria-hidden className="hidden h-5 w-px shrink-0 bg-line sm:inline-block" />
+
+          <SelectPill
+            label="ترتيب النتائج"
+            value={sortBy}
+            options={sortOptions}
+            onChange={onSortChange}
+            defaultValue="popular"
+          />
+
+          <div className="flex h-9 shrink-0 items-center overflow-hidden rounded-full border border-line">
+            <button
+              type="button"
+              onClick={() => onViewModeChange('grid')}
+              className={`flex h-full items-center px-2.5 transition-colors ${
+                viewMode === 'grid' ? 'bg-deepBlue text-white' : 'bg-white text-muted-500 hover:bg-slate-50'
+              }`}
+              aria-label="عرض شبكة"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange('list')}
+              className={`flex h-full items-center px-2.5 transition-colors ${
+                viewMode === 'list' ? 'bg-deepBlue text-white' : 'bg-white text-muted-500 hover:bg-slate-50'
+              }`}
+              aria-label="عرض قائمة"
+            >
+              <List className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Selects + view toggle */}
-          <div className="flex flex-1 flex-wrap items-end justify-end gap-2 md:gap-2.5">
-            <div className="flex min-w-[130px] flex-col gap-1">
-              <span className="text-[10px] font-bold text-muted-500">المستوى</span>
-              <select
-                value={activeLevel}
-                onChange={(e) => onLevelChange(e.target.value)}
-                className="cursor-pointer rounded-xl border border-line bg-paper2/70 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none transition focus:border-brand-400"
-              >
-                {levelOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex min-w-[140px] flex-col gap-1">
-              <span className="text-[10px] font-bold text-muted-500">نمط التقديم</span>
-              <select
-                value={activeDelivery}
-                onChange={(e) => onDeliveryChange(e.target.value)}
-                className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
-              >
-                {deliveryOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {categoryOptions && categoryOptions.length > 1 && onCategoryChange && (
-              <div className="flex min-w-[150px] flex-col gap-1">
-                <span className="text-[10px] font-bold text-muted-500">التصنيف</span>
-                <select
-                  value={activeCategory ?? 'all'}
-                  onChange={(e) => onCategoryChange(e.target.value)}
-                  className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
-                >
-                  {categoryOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {languageOptions && languageOptions.length > 1 && onLanguageChange && (
-              <div className="flex min-w-[120px] flex-col gap-1">
-                <span className="text-[10px] font-bold text-muted-500">اللغة</span>
-                <select
-                  value={activeLanguage ?? 'all'}
-                  onChange={(e) => onLanguageChange(e.target.value)}
-                  className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
-                >
-                  {languageOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {instructorOptions && instructorOptions.length > 1 && onInstructorChange && (
-              <div className="flex min-w-[150px] flex-col gap-1">
-                <span className="text-[10px] font-bold text-muted-500">المدرب</span>
-                <select
-                  value={activeInstructor ?? 'all'}
-                  onChange={(e) => onInstructorChange(e.target.value)}
-                  className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
-                >
-                  {instructorOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {showProgramType && (
-              <div className="flex min-w-[140px] flex-col gap-1">
-                <span className="text-[10px] font-bold text-muted-500">نوع البرنامج</span>
-                <select
-                  value={activeProgramType}
-                  onChange={(e) => onProgramTypeChange!(e.target.value)}
-                  className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50/90 py-2.5 pr-3 pl-8 text-xs font-semibold text-deepBlue outline-none focus:border-brand-400"
-                >
-                  {programTypeOptions!.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="relative min-w-[160px]">
-              <select
-                value={sortBy}
-                onChange={(e) => onSortChange(e.target.value)}
-                className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-white py-2.5 pr-3 pl-9 text-xs font-semibold text-deepBlue outline-none transition focus:border-brand-400"
-              >
-                {sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-500" />
-            </div>
-
-            <div className="flex items-center overflow-hidden rounded-xl border border-line">
-              <button
-                type="button"
-                onClick={() => onViewModeChange('grid')}
-                className={`p-2.5 transition-colors ${
-                  viewMode === 'grid' ? 'bg-deepBlue text-white' : 'bg-white text-muted-500 hover:bg-slate-50'
-                }`}
-                aria-label="عرض شبكة"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => onViewModeChange('list')}
-                className={`p-2.5 transition-colors ${
-                  viewMode === 'list' ? 'bg-deepBlue text-white' : 'bg-white text-muted-500 hover:bg-slate-50'
-                }`}
-                aria-label="عرض قائمة"
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Count (only when no search row above) */}
-            {!onSearchChange && (
-              <span className="hidden text-xs font-medium whitespace-nowrap text-muted-500 sm:block">
-                <span className="font-black text-deepBlue">{resultCount.toLocaleString('en-US')}</span>
-                {' من '}
-                <span className="font-black text-deepBlue">{totalCount.toLocaleString('en-US')}</span>
-                {' دورة'}
+          <div className="ms-auto flex items-center gap-3">
+            <span className="whitespace-nowrap text-xs font-semibold text-muted-500" aria-live="polite">
+              <span className="font-black tabular-nums text-deepBlue" dir="ltr">
+                {resultCount.toLocaleString('en-US')}
               </span>
+              {' من '}
+              <span className="font-black tabular-nums text-deepBlue" dir="ltr">
+                {totalCount.toLocaleString('en-US')}
+              </span>
+              {' دورة'}
+            </span>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetAll}
+                className="whitespace-nowrap text-xs font-bold text-brand-600 underline-offset-4 transition-colors duration-200 hover:text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
+              >
+                مسح الفلاتر
+              </button>
             )}
           </div>
         </div>

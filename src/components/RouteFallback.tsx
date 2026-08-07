@@ -1,6 +1,10 @@
 import { Skeleton } from './ui/Skeleton'
 
-/** Full-page fallback while lazy route layouts chunk loads */
+/**
+ * Full-page fallback while a lazy route chunk loads.
+ * V3 identity: the flying-pages mark + tricolor sweep over layout-shaped
+ * skeletons — the same loading language as the boot splash in index.html.
+ */
 export default function RouteFallback() {
   return (
     <div
@@ -11,6 +15,18 @@ export default function RouteFallback() {
       aria-label="جارٍ تحميل الصفحة"
       dir="rtl"
     >
+      {/* Branded loading mark — flying pages + tricolor sweep */}
+      <div className="pointer-events-none fixed inset-x-0 top-[42vh] z-10 flex flex-col items-center gap-4">
+        <div className="emc-load-pages" aria-hidden>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div className="emc-load-bar" aria-hidden>
+          <i></i>
+        </div>
+      </div>
+
       {/* Header Skeleton */}
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 pb-8 pt-4">
         <Skeleton className="h-10 w-36 rounded-xl" />

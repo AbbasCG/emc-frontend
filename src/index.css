@@ -473,6 +473,51 @@ a {
   }
   .emc-corner-pages-white::after { background-image: url('/brand/patterns/corner_pages_white.png'); }
 
+  /* Route-loading mark — flying pages + tricolor sweep (matches the boot splash). */
+  .emc-load-pages {
+    display: flex;
+    gap: 7px;
+    height: 26px;
+    align-items: flex-end;
+  }
+  .emc-load-pages span {
+    width: 17px;
+    height: 22px;
+    border-radius: 3px 8px 3px 3px;
+    background: linear-gradient(180deg, #a6d6f2, #089fe0);
+    opacity: 0.9;
+    transform-origin: 50% 100%;
+    animation: emc-page-fly 1.15s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  }
+  .emc-load-pages span:nth-child(2) {
+    animation-delay: 0.14s;
+    background: linear-gradient(180deg, #ffd9a0, #f28c00);
+  }
+  .emc-load-pages span:nth-child(3) { animation-delay: 0.28s; }
+  .emc-load-bar {
+    width: 180px;
+    height: 3px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(12, 42, 75, 0.12);
+  }
+  .emc-load-bar i {
+    display: block;
+    height: 100%;
+    width: 45%;
+    border-radius: 999px;
+    background: linear-gradient(to left, #f28c00 0 30%, #089fe0 30% 75%, #a6d6f2 75% 100%);
+    animation: emc-bar-sweep 1.3s ease-in-out infinite;
+  }
+  @keyframes emc-page-fly {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    45% { transform: translateY(-9px) rotate(-7deg); }
+  }
+  @keyframes emc-bar-sweep {
+    0% { transform: translateX(160%); }
+    100% { transform: translateX(-260%); }
+  }
+
   /* Ghost numbers — huge Sans Black at 5% navy, behind section numbering. */
   .emc-ghost-num {
     font-family: "Thmanyah", "IBM Plex Sans Arabic", sans-serif;

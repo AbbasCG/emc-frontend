@@ -168,23 +168,27 @@ export default function HomeLearningTracks() {
   const [activeTab, setActiveTab] = useState<'professional' | 'academic' | 'languages' | 'children'>('professional')
 
   return (
-    <section id="tracks" dir="rtl" className="scroll-mt-28 bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+    <section id="tracks" dir="rtl" className="scroll-mt-28 bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
       <div className="mx-auto max-w-[1540px]">
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-customBlue/20 bg-customBlue/5 px-4 py-1.5">
-            <BadgeCheck className="h-4 w-4 text-customBlue" />
-            <span className="text-xs font-black uppercase tracking-widest text-customBlue">
-              دليل المسارات الرسمي — EMC
-            </span>
-          </div>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-deepBlue sm:text-4xl lg:text-5xl">
+        {/* Header — canonical eyebrow + title-arc language */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
+          className="mb-10 text-center"
+        >
+          <span className="emc-eyebrow">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+            دليل المسارات الرسمي — EMC
+          </span>
+          <h2 className="emc-title-arc is-center mt-4 font-display text-3xl font-black tracking-tight text-deepBlue [text-wrap:balance] sm:text-4xl lg:text-[2.75rem]">
             مسارات التعلّم <span className="text-customBlue">والشهادات المعتمدة</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-slate-600">
+          <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-relaxed text-slate-600">
             تأهيل شامل يمتد من 6 إلى 8 أشهر ينتهي بمشروع وتقييم عملي وشهادة معتمدة رسمياً من EMC.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tab Navigation */}
         <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-slate-100/80 p-2 shadow-inner">
@@ -278,7 +282,7 @@ export default function HomeLearningTracks() {
                       {track.title}
                     </h3>
                     <p className="mt-1 text-xs font-semibold text-slate-400">{track.titleEn}</p>
-                    <p className="mt-3 text-xs leading-relaxed text-slate-600">{track.focus}</p>
+                    <p className="mt-3 flex-1 text-xs leading-relaxed text-slate-600">{track.focus}</p>
 
                     {/* Tags */}
                     <div className="mt-4 flex flex-wrap gap-1.5">
@@ -289,7 +293,7 @@ export default function HomeLearningTracks() {
                       ))}
                     </div>
 
-                    {/* Certified Badge */}
+                    {/* Certified Badge — pinned above the CTA so buttons align across the row */}
                     <div className="mt-6 flex items-center gap-2 border-t border-slate-100 pt-4 text-xs font-black text-deepBlue">
                       <Award size={16} className="shrink-0 text-customOrange" />
                       <span className="truncate">{track.certificate}</span>
@@ -334,10 +338,10 @@ export default function HomeLearningTracks() {
                       <Icon size={24} />
                     </div>
                     <h3 className="mt-4 text-lg font-black text-deepBlue">{unit.title}</h3>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-600">{unit.desc}</p>
+                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-600">{unit.desc}</p>
                     <Link
                       to="/courses"
-                      className="mt-6 flex items-center justify-between text-xs font-black text-customBlue hover:underline"
+                      className="mt-auto flex items-center justify-between pt-6 text-xs font-black text-customBlue hover:underline"
                     >
                       <span>عرض برامج الوحدة</span>
                       <ArrowLeft size={14} />
@@ -371,10 +375,10 @@ export default function HomeLearningTracks() {
                       <Icon size={24} />
                     </div>
                     <h3 className="mt-4 text-lg font-black text-deepBlue">{lang.title}</h3>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-600">{lang.desc}</p>
+                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-600">{lang.desc}</p>
                     <Link
                       to="/courses"
-                      className="mt-6 flex items-center justify-between text-xs font-black text-customBlue hover:underline"
+                      className="mt-auto flex items-center justify-between pt-6 text-xs font-black text-customBlue hover:underline"
                     >
                       <span>استكشف الدورات</span>
                       <ArrowLeft size={14} />
@@ -408,10 +412,10 @@ export default function HomeLearningTracks() {
                       <Icon size={24} />
                     </div>
                     <h3 className="mt-4 text-lg font-black text-deepBlue">{prog.title}</h3>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-600">{prog.desc}</p>
+                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-600">{prog.desc}</p>
                     <Link
                       to="/courses"
-                      className="mt-6 flex items-center justify-between text-xs font-black text-customBlue hover:underline"
+                      className="mt-auto flex items-center justify-between pt-6 text-xs font-black text-customBlue hover:underline"
                     >
                       <span>برامج الأطفال</span>
                       <ArrowLeft size={14} />

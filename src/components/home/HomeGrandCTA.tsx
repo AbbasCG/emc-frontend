@@ -29,7 +29,7 @@ const particles = [
 export default function HomeGrandCTA() {
   const { t } = useTranslation()
   return (
-    <section dir="rtl" className="relative isolate overflow-hidden px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+    <section dir="rtl" className="relative isolate overflow-hidden px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
       {/* Main gradient card */}
       <div
         className="relative mx-auto max-w-[1540px] overflow-hidden rounded-[2rem] px-8 py-16 text-white sm:px-14 sm:py-20 lg:px-20 lg:py-24"

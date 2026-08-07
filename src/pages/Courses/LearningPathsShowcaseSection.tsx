@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { ChevronLeft, Route, Sparkles } from 'lucide-react'
+import Skeleton from '@/components/ui/Skeleton'
 import type { LearningPath } from '@/api/learningPathsApi'
 import LearningPathShowcaseCard from './LearningPathShowcaseCard'
 
@@ -13,12 +14,35 @@ type Props = {
 
 function ShowcaseSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-1">
+    <div className="grid grid-cols-1 gap-6">
       {Array.from({ length: 2 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-[420px] animate-pulse overflow-hidden rounded-3xl border border-slate-100 bg-white lg:h-[260px]"
-        />
+        <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc">
+          <div className="grid lg:grid-cols-[minmax(0,280px)_1fr_minmax(0,230px)]">
+            <Skeleton className="aspect-video rounded-none lg:aspect-auto lg:h-full" />
+            <div className="p-6">
+              <Skeleton variant="text" className="h-3 w-1/4" />
+              <Skeleton variant="text" className="mt-3 h-6 w-3/5" />
+              <div className="mt-6 space-y-3">
+                {Array.from({ length: 3 }).map((_, s) => (
+                  <div key={s} className="flex items-center gap-3">
+                    <Skeleton variant="circular" width={24} height={24} />
+                    <Skeleton variant="text" className="h-3 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden flex-col justify-between border-s border-slate-100 p-5 lg:flex">
+              <div>
+                <Skeleton variant="text" className="h-7 w-24" />
+                <div className="mt-4 flex gap-2">
+                  <Skeleton className="h-6 w-20 rounded-lg" />
+                  <Skeleton className="h-6 w-16 rounded-lg" />
+                </div>
+              </div>
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -71,7 +95,14 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
             <div className="text-right">
               <p className="text-xs font-bold text-slate-400">عرض مميز</p>
               <p className="text-sm font-black text-deepBlue">
-                {loading ? '…' : `${sortedPaths.length.toLocaleString('ar-EG')} مسار متاح`}
+                {loading ? '…' : (
+                  <>
+                    <span dir="ltr" className="tabular-nums">
+                      {sortedPaths.length.toLocaleString('en-US')}
+                    </span>
+                    {' مسار متاح'}
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -96,7 +127,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
             initial={{ opacity: 0, y: 12 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.45, delay: 0.25 }}
-            className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+            className="mt-8 flex justify-center"
           >
             <Link
               to="/learning-paths"
@@ -104,12 +135,6 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
             >
               ابدأ رحلتك التعليمية
               <ChevronLeft className="h-4 w-4" aria-hidden />
-            </Link>
-            <Link
-              to="/learning-paths"
-              className="inline-flex items-center gap-2 rounded-2xl border-2 border-deepBlue px-8 py-3.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue hover:text-white"
-            >
-              استكشف جميع المسارات
             </Link>
           </motion.div>
         )}

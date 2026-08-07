@@ -1,7 +1,6 @@
-import { useState, useEffect, memo } from 'react'
-import { Link } from 'react-router'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Search, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
+import { useState, memo } from 'react'
+import { AnimatePresence } from 'framer-motion'
+import { RotateCcw, Search } from 'lucide-react'
 import CourseCard from './CourseCard'
 import type { CourseItem } from '@/services/coursesApi'
 import { CourseGridSkeleton } from '@/components/ui/CourseCardSkeleton'
@@ -13,25 +12,29 @@ type CoursesGridProps = {
   viewMode: 'grid' | 'list'
   embedded?: boolean
   sectionId?: string
+  /** Optional: lets the empty state offer a one-click filter reset. */
+  onResetFilters?: () => void
 }
 
-function useItemsPerPage() {
-  const [n, setN] = useState(3)
-  useEffect(() => {
-    const update = () =>
-      setN(window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3)
-    update()
-    window.addEventListener('resize', update, { passive: true })
-    return () => window.removeEventListener('resize', update)
-  }, [])
-  return n
+const PAGE_SIZE = 12
+
+function gridClassFor(viewMode: 'grid' | 'list') {
+  return viewMode === 'grid'
+    ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
+    : 'flex flex-col gap-5'
 }
 
-function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
+function EmptyState({
+  apiEmpty,
+  onResetFilters,
+}: {
+  apiEmpty: boolean
+  onResetFilters?: () => void
+}) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 py-16 text-center">
+    <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-line bg-paper/70 py-16 text-center">
       <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-inner">
-        <Search className="h-8 w-8 text-muted-300" />
+        <Search className="h-8 w-8 text-muted-300" aria-hidden />
       </div>
       {apiEmpty ? (
         <>
@@ -42,107 +45,78 @@ function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
         </>
       ) : (
         <>
-          <h3 className="mb-2 text-xl font-black text-deepBlue">لا توجد نتائج مطابقة</h3>
-          <p className="max-w-xs text-sm text-muted-500">
-            جرّب تعديل البحث أو إعادة ضبط الفلاتر في الشريط أعلاه.
+          <h3 className="mb-2 text-xl font-black text-deepBlue">لا برامج تطابق فلاترك</h3>
+          <p className="max-w-xs text-sm leading-7 text-muted-500">
+            جرّب تعديل البحث أو إعادة ضبط الفلاتر.
           </p>
+          {onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-black text-white shadow-md shadow-brand-500/25 transition-colors duration-200 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden />
+              مسح الفلاتر
+            </button>
+          )}
         </>
       )}
     </div>
   )
 }
 
-function CoursesCarousel({
+/** Full responsive grid: all filtered courses, first 12 up front + «عرض المزيد» appending 12 more. */
+function AllCoursesGrid({
   courses,
   viewMode,
 }: {
   courses: CourseItem[]
   viewMode: 'grid' | 'list'
 }) {
-  const itemsPerPage = useItemsPerPage()
-  const [page, setPage] = useState(0)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
-  // Back to the first page whenever the result set or the page size changes —
-  // adjusted during render (react.dev "adjusting state when a prop changes") so a
-  // filtered list never paints on the previous page index first.
-  const [seen, setSeen] = useState({ courses, itemsPerPage })
-  if (seen.courses !== courses || seen.itemsPerPage !== itemsPerPage) {
-    setSeen({ courses, itemsPerPage })
-    setPage(0)
+  // Reset pagination whenever the filtered result set changes — adjusted during
+  // render (react.dev "adjusting state when a prop changes") so a new filter
+  // never paints with the previous expanded count first.
+  const [seen, setSeen] = useState(courses)
+  if (seen !== courses) {
+    setSeen(courses)
+    setVisibleCount(PAGE_SIZE)
   }
 
-  const totalPages = Math.max(1, Math.ceil(courses.length / itemsPerPage))
-  const clamped = Math.min(page, totalPages - 1)
-  const visible = courses.slice(clamped * itemsPerPage, (clamped + 1) * itemsPerPage)
-
-  const gridClass =
-    viewMode === 'grid'
-      ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
-      : 'flex flex-col gap-5'
-
-  const from = clamped * itemsPerPage + 1
-  const to = Math.min((clamped + 1) * itemsPerPage, courses.length)
+  const visible = courses.slice(0, visibleCount)
+  const hasMore = courses.length > visible.length
 
   return (
     <div>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={`${clamped}-${itemsPerPage}`}
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 16 }}
-          transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className={gridClass}
-        >
-          {visible.map((course, i) => (
-            <CourseCard key={course.id} course={course} index={i} viewMode={viewMode === 'list' ? 'list' : 'grid'} />
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <div className={gridClassFor(viewMode)}>
+        {visible.map((course, i) => (
+          <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
+        ))}
+      </div>
 
-      {totalPages > 1 && (
-        <div className="mt-7 flex items-center justify-center gap-3" dir="ltr">
+      {hasMore && (
+        <div className="mt-9 flex flex-col items-center gap-2.5">
           <button
             type="button"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={clamped === 0}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
-            aria-label="السابق"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="inline-flex items-center gap-2 rounded-2xl border border-line bg-white px-7 py-3 text-sm font-black text-navy shadow-emc-xs transition-colors duration-200 hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
           >
-            <ChevronLeft className="h-4 w-4" />
+            عرض المزيد
           </button>
-
-          <div className="flex items-center gap-1.5">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setPage(i)}
-                aria-label={`صفحة ${String(i + 1)}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === clamped
-                    ? 'w-7 bg-brand-500'
-                    : 'w-2 bg-slate-300 hover:bg-slate-400'
-                }`}
-              />
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={clamped === totalPages - 1}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-35"
-            aria-label="التالي"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          <p className="text-xs text-muted-500" dir="rtl">
+            عرض{' '}
+            <span className="tabular-nums" dir="ltr">
+              {visible.length.toLocaleString('en-US')}
+            </span>{' '}
+            من{' '}
+            <span className="tabular-nums" dir="ltr">
+              {courses.length.toLocaleString('en-US')}
+            </span>{' '}
+            دورة
+          </p>
         </div>
       )}
-
-      <p className="mt-3 text-center text-xs text-muted-500" dir="rtl">
-        عرض {from}–{to} من {courses.length} دورة
-      </p>
     </div>
   )
 }
@@ -154,19 +128,15 @@ function CoursesGrid({
   viewMode,
   embedded = false,
   sectionId = 'catalog-courses',
+  onResetFilters,
 }: CoursesGridProps) {
-  const gridClass =
-    viewMode === 'grid'
-      ? 'grid grid-cols-1 gap-7 sm:grid-cols-2 xl:grid-cols-3'
-      : 'flex flex-col gap-6'
-
   const gridBody = (
     <>
       {loading && <CourseGridSkeleton count={6} />}
 
       {!loading && courses.length === 0 && (
-        <div className={gridClass}>
-          <EmptyState apiEmpty={totalFromApi === 0} />
+        <div className={gridClassFor(viewMode)}>
+          <EmptyState apiEmpty={totalFromApi === 0} onResetFilters={onResetFilters} />
         </div>
       )}
 
@@ -174,7 +144,7 @@ function CoursesGrid({
         embedded ? (
           /* /programs and other embedded contexts: flat grid of all results */
           <>
-            <div className={gridClass}>
+            <div className={gridClassFor(viewMode)}>
               <AnimatePresence>
                 {courses.map((course, i) => (
                   <CourseCard key={course.id} course={course} index={i} viewMode={viewMode} />
@@ -186,24 +156,8 @@ function CoursesGrid({
             </p>
           </>
         ) : (
-          /* /courses discovery page: carousel + link to /programs */
-          <>
-            <CoursesCarousel courses={courses} viewMode={viewMode} />
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="mt-6 flex justify-center"
-            >
-              <Link
-                to="/programs"
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-deepBlue shadow-sm transition hover:border-brand-400 hover:bg-brand-50"
-              >
-                <LayoutGrid className="h-4 w-4 text-brand-500" />
-                عرض الكل ({courses.length.toLocaleString('en-US')} دورة)
-              </Link>
-            </motion.div>
-          </>
+          /* /courses discovery page: every filtered course, load-more past 12 */
+          <AllCoursesGrid courses={courses} viewMode={viewMode} />
         )
       )}
     </>

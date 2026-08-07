@@ -1,5 +1,5 @@
 ﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
@@ -323,6 +323,16 @@ function SectionBoundary() {
 }
 
 function App() {
+  // Boot splash (index.html) fades out once the React tree is mounted; the
+  // node is removed after its 450ms transition so it never intercepts events.
+  useEffect(() => {
+    const splash = document.getElementById('boot-splash')
+    if (!splash) return
+    splash.classList.add('bs-done')
+    const t = window.setTimeout(() => splash.remove(), 600)
+    return () => window.clearTimeout(t)
+  }, [])
+
   return (
     <ErrorBoundary>
       <CookieConsentProvider>

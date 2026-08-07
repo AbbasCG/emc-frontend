@@ -1,5 +1,6 @@
 import type { LearningPath, LearningPathCourse } from '@/api/learningPathsApi'
 import { formatEuroInteger } from '@/utils/currency'
+import { toLatinDigits } from '@/utils/publicDetailFormat'
 
 const LEVEL_AR: Record<string, string> = {
   beginner: 'مبتدئ',
@@ -60,35 +61,47 @@ export function formatPathPrice(path: LearningPath): {
   }
 }
 
-export function curriculumPreview(path: LearningPath): LearningPathCourse[] {
-  const courses = path.courses ?? []
-  return [...courses].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).slice(0, 4)
-}
-
 export function coursesCountLabel(path: LearningPath): string | null {
   const n = path.courses_count
   if (!Number.isFinite(n) || n <= 0) return null
   return `${String(n)} ${n === 1 ? 'دورة' : 'دورات'}`
 }
 
-export function includedCoursesHeading(path: LearningPath): string | null {
-  const n = path.courses_count
-  if (!Number.isFinite(n) || n <= 0) return null
-  return `${String(n)} ${n === 1 ? 'دورة ضمن المسار' : 'دورات ضمن المسار'}`
+// ─── Journey rail (stations) ──────────────────────────────────────────────────
+
+/** Some payload shapes ship `order` / `course_image` instead of the typed keys. */
+type RawStationKeys = { order?: number | null }
+
+function stationOrder(course: LearningPathCourse): number {
+  const raw = course as LearningPathCourse & RawStationKeys
+  const v = raw.sort_order ?? raw.order
+  return typeof v === 'number' && Number.isFinite(v) ? v : 0
 }
 
-export function coursePreviewItems(
+/**
+ * Ordered course stations for the journey rail. `extra` counts collapsed
+ * courses beyond `max` — the total still comes from the real list, so the
+ * rail never invents stations from a stale `courses_count`.
+ */
+export function journeyStations(
   path: LearningPath,
-  previewCount = 3,
+  max = 4,
 ): { items: LearningPathCourse[]; extra: number } {
-  const sorted = [...(path.courses ?? [])].sort(
-    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
-  )
-  const total =
-    path.courses_count > 0 ? path.courses_count
-    : sorted.length > 0 ? sorted.length
-    : 0
-  const items = sorted.slice(0, previewCount)
-  const extra = Math.max(0, total - items.length)
-  return { items, extra }
+  const rows = [...(path.courses ?? [])].sort((a, b) => stationOrder(a) - stationOrder(b))
+  const items = rows.slice(0, max)
+  return { items, extra: Math.max(0, rows.length - items.length) }
+}
+
+/**
+ * Per-course duration for a rail station. A bare number carries no unit —
+ * showing it would be noise — so only labelled strings pass through,
+ * normalised to Latin digits.
+ */
+export function courseDurationLabel(course: LearningPathCourse): string | null {
+  const raw = course.duration
+  if (raw == null) return null
+  const t = String(raw).trim()
+  if (!t) return null
+  if (Number.isFinite(Number(t))) return null
+  return toLatinDigits(t)
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import CoursesHero from './CoursesHero'
 import FilterBar from './FilterBar'
 import CoursesGrid from './CoursesGrid'
@@ -39,6 +39,17 @@ export default function CoursesPage() {
   const [activeAvailability, setActiveAvailability] = useState('all')
   const [sortBy, setSortBy] = useState('popular')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const resetFilters = useCallback(() => {
+    setSearchQuery('')
+    setActiveCategory('all')
+    setActivePrice('all')
+    setActiveDelivery('all')
+    setActiveLevel('all')
+    setActiveProgramType('all')
+    setActiveAvailability('all')
+    setSortBy('popular')
+  }, [])
 
   const categoryOptions = useMemo(() => {
     const m = new Map<string, string>()
@@ -173,6 +184,9 @@ export default function CoursesPage() {
         result.sort((a, b) => ts(a) - ts(b))
         break
       }
+      case 'name_az':
+        result.sort((a, b) => a.title.localeCompare(b.title, 'ar'))
+        break
     }
 
     return result
@@ -197,13 +211,12 @@ export default function CoursesPage() {
       />
       <CoursesHero
         onSearch={setSearchQuery}
+        searchValue={searchQuery}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
         categoryOptions={categoryOptions}
         stats={liveStats}
       />
-
-      <LearningPathsTeaserSection paths={learningPaths} loading={pathsLoading} />
 
       <FilterBar
         activePrice={activePrice}
@@ -227,6 +240,7 @@ export default function CoursesPage() {
         totalCount={courses.length}
         apiEmpty={!coursesLoading && courses.length === 0}
         loadError={loadError}
+        onResetAll={resetFilters}
       />
 
       <CoursesGrid
@@ -234,10 +248,15 @@ export default function CoursesPage() {
         totalFromApi={courses.length}
         loading={coursesLoading}
         viewMode={viewMode}
+        onResetFilters={resetFilters}
       />
+
+      {/* Paths teaser deliberately AFTER the grid — courses are the hero product. */}
+      <LearningPathsTeaserSection paths={learningPaths} loading={pathsLoading} />
 
       <WorkshopSpotlight workshops={workshops} loading={workshopsLoading} />
 
+      {/* CoursesPricingSection / CoursesRegistrationSection stay out of the flow (redundant static copy; files kept for reversibility). */}
       <CoursesCTA />
     </main>
   )

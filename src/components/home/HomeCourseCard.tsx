@@ -38,9 +38,9 @@ function HomeCourseCard({ course }: Props) {
   return (
     <motion.article
       variants={staggerItem}
-      whileHover={{ y: -7 }}
+      whileHover={{ y: -4 }}
       aria-label={course.title}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/40 hover:shadow-[0_16px_45px_-10px_rgba(0,119,182,0.18)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/40 hover:bg-[#FBFAF7] hover:shadow-[0_16px_45px_-10px_rgba(0,119,182,0.18)]"
     >
       {/* Invisible cover link — makes entire card clickable while inner buttons keep their own events */}
       <Link
@@ -55,7 +55,7 @@ function HomeCourseCard({ course }: Props) {
           <img
             src={imgSrc}
             alt={course.title}
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             loading="lazy"
           />
         ) : (
@@ -72,7 +72,7 @@ function HomeCourseCard({ course }: Props) {
           </div>
         : null}
 
-        {/* Badges — top-start (right in RTL) */}
+        {/* Badges — top-start (right in RTL), max 2 per card: price + mode, or price + ended overlay */}
         <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
           <span
             className={`rounded-lg px-2.5 py-1 text-[10px] font-black text-white shadow-sm ${
@@ -81,9 +81,11 @@ function HomeCourseCard({ course }: Props) {
           >
             {isFree ? 'مجاناً' : formatPrice(course.price)}
           </span>
-          <span className="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-black text-deepBlue backdrop-blur-sm">
-            {isOnline ? 'أونلاين' : 'حضوري'}
-          </span>
+          {!isEnded && (
+            <span className="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-black text-deepBlue backdrop-blur-sm">
+              {isOnline ? 'أونلاين' : 'حضوري'}
+            </span>
+          )}
         </div>
       </div>
 

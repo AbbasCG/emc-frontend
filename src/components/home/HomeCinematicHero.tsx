@@ -16,6 +16,7 @@ import {
   Smile,
   Handshake,
   ArrowLeft,
+  ChevronDown,
 } from 'lucide-react'
 
 // ── 12 EMC Core Themes Orbit (Matching Image 1) ─────────────────────────────
@@ -138,7 +139,7 @@ function OrbitalVisual() {
                 onClick={() => setActiveIndex(i)}
                 className={`group relative flex items-center justify-center transition-all duration-300 ${
                   isActive
-                    ? 'h-13 w-13 rounded-full bg-[#0C2A4B] shadow-[0_0_25px_rgba(0,119,182,0.6)] ring-2 ring-white scale-110'
+                    ? 'h-[3.25rem] w-[3.25rem] rounded-full bg-[#0C2A4B] shadow-[0_0_25px_rgba(0,119,182,0.6)] ring-2 ring-white scale-110'
                     : 'h-10 w-10 rounded-full bg-white shadow-md hover:scale-110'
                 }`}
                 aria-label={item.title}
@@ -166,7 +167,7 @@ function OrbitalVisual() {
       </div>
 
       {/* Active Theme Showcase Glass Card (Bottom of Orbit) */}
-      <div className="relative mt-2 w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/[0.1] p-5 shadow-2xl backdrop-blur-xl">
+      <div className="relative mt-6 w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/[0.1] p-5 shadow-2xl backdrop-blur-xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeItem.id}
@@ -279,7 +280,7 @@ function DotGrid() {
 
 function StatPill({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-md">
+    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.09]">
       <span className="font-latin text-2xl font-black tabular-nums text-white" dir="ltr">{value}</span>
       <span className="text-xs font-bold leading-4 text-white/55">{label}</span>
     </div>
@@ -295,6 +296,9 @@ export default function HomeCinematicHero() {
       dir="rtl"
       className="relative isolate min-h-[100svh] overflow-hidden bg-deepBlue pt-[4.75rem] lg:pt-[5.25rem]"
     >
+      {/* V3 signature (the scene's one brand mark): tricolor hairline pinned to the top edge */}
+      <div aria-hidden className="emc-tricolor-on-dark absolute inset-x-0 top-0 z-10" />
+
       {/* Canvas dot grid */}
       <DotGrid />
 
@@ -335,7 +339,7 @@ export default function HomeCinematicHero() {
           {/* Headline */}
           <motion.h1
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 0.61, 0.36, 1] } } }}
-            className="font-display text-[2.6rem] font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.8rem] xl:text-[4.2rem]"
+            className="font-display text-[2.5rem] font-black leading-[1.1] tracking-tight text-white [text-wrap:balance] sm:text-[3rem] lg:text-[3.4rem] xl:text-[3.8rem]"
           >
             {t('home.hero.titleLine1')}
             <br />
@@ -403,6 +407,13 @@ export default function HomeCinematicHero() {
         >
           <OrbitalVisual />
         </motion.div>
+      </div>
+
+      {/* Scroll cue — existing soft-float keyframes; global reduced-motion CSS stills it */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-5 z-10 hidden justify-center lg:flex">
+        <span className="animate-soft-float flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white/50 backdrop-blur-md">
+          <ChevronDown size={17} />
+        </span>
       </div>
 
       {/* Bottom edge gradient */}

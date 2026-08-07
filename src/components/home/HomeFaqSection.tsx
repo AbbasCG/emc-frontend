@@ -45,13 +45,13 @@ export default function HomeFaqSection() {
       <div aria-hidden className="pointer-events-none absolute -bottom-10 -left-10 h-56 w-56 rounded-full bg-customOrange/[0.06] blur-[60px]" />
 
       <div className="relative mx-auto max-w-[1540px]">
-        <div className="grid gap-14 lg:grid-cols-[1fr_1.5fr] lg:gap-20">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">
 
           {/* Left column — section info */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.55 }}
             className="text-right lg:sticky lg:top-28 lg:self-start"
           >
@@ -112,7 +112,7 @@ export default function HomeFaqSection() {
                   <button
                     type="button"
                     onClick={() => setOpen(isOpen ? null : i)}
-                    className="flex w-full items-center gap-4 px-6 py-5 text-right"
+                    className="flex w-full items-center gap-4 px-5 py-4 text-right sm:px-6"
                     aria-expanded={isOpen}
                   >
                     {/* Number */}
@@ -152,7 +152,7 @@ export default function HomeFaqSection() {
                         transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
                         className="overflow-hidden border-t border-customBlue/10"
                       >
-                        <p className="px-6 pb-6 pt-4 text-right text-[15px] font-medium leading-8 text-foreground/65">
+                        <p className="px-5 pb-5 pt-3.5 text-right text-sm font-medium leading-7 text-foreground/65 sm:px-6">
                           {item.a}
                         </p>
                       </motion.div>

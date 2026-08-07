@@ -3,7 +3,8 @@ import { Link } from 'react-router'
 import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, SearchX, X } from 'lucide-react'
 import PublicCatalogHero from '@/components/public/PublicCatalogHero'
 import PublicSeo from '@/components/public/PublicSeo'
-import WorkshopCard from '@/components/public/WorkshopCard'
+import Skeleton from '@/components/ui/Skeleton'
+import WorkshopListCard from './WorkshopListCard'
 import {
   fetchPublicWorkshopsPage,
   type PublicWorkshop,
@@ -244,38 +245,67 @@ export default function WorkshopsPage() {
         ) : loading ? (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جارٍ تحميل الورش">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-                <div className="h-40 animate-pulse bg-slate-100" />
-                <div className="space-y-3 p-5">
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
-                  <div className="h-3 w-full animate-pulse rounded bg-slate-100" />
-                  <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+              <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc">
+                <Skeleton className="aspect-video w-full rounded-none" />
+                <div className="p-5">
+                  <Skeleton variant="text" className="h-5 w-4/5" />
+                  <Skeleton variant="text" className="mt-2.5 h-3 w-1/2" />
+                  <div className="mt-4 flex gap-2">
+                    <Skeleton className="h-6 w-32 rounded-lg" />
+                    <Skeleton className="h-6 w-16 rounded-lg" />
+                  </div>
+                  <Skeleton className="mt-4 h-1 w-full rounded-full" />
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-50 pt-4">
+                    <Skeleton className="h-8 w-14 rounded-lg" />
+                    <div className="flex gap-2">
+                      <Skeleton className="h-9 w-20 rounded-xl" />
+                      <Skeleton className="h-9 w-28 rounded-xl" />
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : pageRows.length === 0 ? (
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
-            <span className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-customBlue">
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-emc">
+            <span className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-customBlue">
               <SearchX className="h-7 w-7" aria-hidden />
             </span>
             <h2 className="text-lg font-black text-deepBlue">
               {hasFilters ? 'لا توجد ورش مطابقة' : 'لا توجد ورش حالياً'}
             </h2>
             <p className="mt-2 text-sm font-bold leading-7 text-slate-500">{emptyMessage}</p>
-            <Link
-              to="/courses"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition hover:opacity-90"
-            >
-              تصفح الدورات التدريبية
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
+              <Link
+                to="/courses"
+                className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition-colors duration-200 hover:bg-brand-600"
+              >
+                تصفح الدورات التدريبية
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('')
+                    setSearch('')
+                    setLocationFilter('all')
+                    setPriceFilter('all')
+                    setStatusFilter('all')
+                    setInstructorFilter('all')
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600 transition-colors duration-200 hover:border-customBlue hover:text-customBlue"
+                >
+                  مسح الفلاتر
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {pageRows.map((w, i) => (
-                <WorkshopCard key={w.id} workshop={w} index={(safePage - 1) * CLIENT_PER_PAGE + i} />
+                <WorkshopListCard key={w.id} workshop={w} index={i} />
               ))}
             </div>
 

@@ -264,8 +264,14 @@ export async function fetchUpcomingWorkshops() {
               ? String((w.instructor as Record<string, unknown>).name)
               : 'فريق EMC',
         is_online: Boolean(w.is_online),
-        spots_remaining: typeof w.spots_remaining === 'number' ? w.spots_remaining : 0,
+        // seats aliases — the backend (and the public normalizers) use seats_remaining/seats_total;
+        // missing them here stranded the /courses spotlight at «0 مقعد» (real alias bug).
+        spots_remaining: typeof w.spots_remaining === 'number' ? w.spots_remaining
+          : typeof w.seats_remaining === 'number' ? w.seats_remaining
+          : typeof w.available_seats === 'number' ? w.available_seats
+          : 0,
         total_spots: typeof w.total_spots === 'number' ? w.total_spots
+          : typeof w.seats_total === 'number' ? w.seats_total
           : typeof w.seats === 'number' ? w.seats
           : 0,
       }))
