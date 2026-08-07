@@ -68,8 +68,18 @@ const supporting = [testimonials[1], testimonials[2]] as const
 
 export default function HomeTestimonialsCarousel() {
   return (
-    <section dir="rtl" className="bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-      <div className="mx-auto max-w-[1540px]">
+    <section dir="rtl" className="relative overflow-hidden bg-accent-50/30 px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
+      {/* V3 decorative layer — one fire orb (ember rising from the bottom-left) + ghost numeral */}
+      <div
+        aria-hidden
+        className="animate-soft-float pointer-events-none absolute -bottom-32 -left-32 h-[24rem] w-[24rem] rounded-full bg-customOrange/10 blur-3xl"
+        style={{ animationDelay: '1.2s' }}
+      />
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        03
+      </span>
+
+      <div className="relative mx-auto max-w-[1540px]">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -80,7 +90,7 @@ export default function HomeTestimonialsCarousel() {
         >
           <span className="emc-eyebrow">آراء المجتمع</span>
           <h2 className="emc-title-arc mt-4 font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">
-            شهادات من الميدان
+            شهادات من <span className="text-ember">الميدان</span>
           </h2>
         </motion.div>
 

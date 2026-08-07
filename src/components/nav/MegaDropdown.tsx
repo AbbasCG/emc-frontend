@@ -47,6 +47,8 @@ type MegaDropdownProps = {
   isActive: boolean
   pathname: string
   locationHash: string
+  /** Adaptive navbar: white-on-dark trigger styling while the bar sits over a dark hero. */
+  dark?: boolean
 }
 
 export default function MegaDropdown({
@@ -57,6 +59,7 @@ export default function MegaDropdown({
   isActive,
   pathname,
   locationHash,
+  dark = false,
 }: MegaDropdownProps) {
   const { t } = useTranslation()
   return (
@@ -68,9 +71,13 @@ export default function MegaDropdown({
         aria-haspopup="menu"
         className={[
           'group/mega relative flex min-h-[2.625rem] items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-all duration-200 ease-emc-out',
-          isOpen || isActive
-            ? 'bg-customBlue/[0.1] text-customBlue shadow-[inset_0_0_0_1px_rgba(0,119,182,0.28)] backdrop-blur-sm'
-            : 'text-deepBlue hover:bg-customBlue/[0.06] hover:text-customBlue hover:shadow-emc-xs',
+          dark
+            ? isOpen || isActive
+              ? 'bg-white/15 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]'
+              : 'text-white/85 hover:bg-white/10 hover:text-white'
+            : isOpen || isActive
+              ? 'bg-customBlue/[0.1] text-customBlue shadow-[inset_0_0_0_1px_rgba(0,119,182,0.28)] backdrop-blur-sm'
+              : 'text-deepBlue hover:bg-customBlue/[0.06] hover:text-customBlue hover:shadow-emc-xs',
         ].join(' ')}
       >
         {label}

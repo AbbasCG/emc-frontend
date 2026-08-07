@@ -40,9 +40,17 @@ export default function HomeFaqSection() {
       dir="rtl"
       className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f4f7fb] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
-      {/* Decorative blobs */}
-      <div aria-hidden className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-customBlue/[0.07] blur-[80px]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-10 -left-10 h-56 w-56 rounded-full bg-customOrange/[0.06] blur-[60px]" />
+      {/* Decorative blobs — sea drifting from the top-right, ember pulsing from the bottom-left */}
+      <div aria-hidden className="animate-soft-float pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-customBlue/[0.07] blur-[80px]" />
+      <div
+        aria-hidden
+        className="animate-slow-pulse pointer-events-none absolute -bottom-10 -left-10 h-56 w-56 rounded-full bg-customOrange/[0.06] blur-[60px]"
+        style={{ animationDelay: '0.9s' }}
+      />
+      {/* Ghost numeral */}
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        05
+      </span>
 
       <div className="relative mx-auto max-w-[1540px]">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">

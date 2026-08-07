@@ -538,6 +538,33 @@ a {
   }
 }
 
+/* ── Branded scrollbar — slim navy thumb on a transparent track (replaces the
+      default black bar, which clashed with the identity). ── */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(12, 42, 75, 0.35) transparent;
+}
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(12, 42, 75, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 119, 182, 0.55);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* ── RTL polish: nudge a couple of legacy mirrored utilities ── */
 [dir="rtl"] .lucide-chevron-left { transform: scaleX(-1); }
 

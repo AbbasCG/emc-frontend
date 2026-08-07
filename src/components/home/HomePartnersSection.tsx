@@ -16,8 +16,19 @@ const partners = [
 
 export default function HomePartnersSection() {
   return (
-    <section dir="rtl" className="border-y border-deepBlue/[0.06] bg-emcBg px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
-      <div className="mx-auto max-w-[1540px]">
+    <section
+      dir="rtl"
+      className="emc-corner-pages relative overflow-hidden border-y border-deepBlue/[0.06] bg-emcBg px-4 py-20 sm:px-6 lg:px-10 lg:py-24"
+    >
+      {/* Ghost numeral — anchored opposite the corner-pages badge */}
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        04
+      </span>
+
+      <div className="relative mx-auto max-w-[1540px]">
+        {/* Seam divider — tricolor hairline marking the light→light transition */}
+        <div aria-hidden className="emc-tricolor mx-auto mb-12 h-1 w-24 rounded-full" />
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

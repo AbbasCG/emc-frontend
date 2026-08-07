@@ -16,6 +16,7 @@ import {
   Smile,
   Handshake,
   ArrowLeft,
+  Award,
   ChevronDown,
 } from 'lucide-react'
 
@@ -383,6 +384,27 @@ export default function HomeCinematicHero() {
               >
                 {t('home.hero.ctaSecondary')}
               </Link>
+            </motion.div>
+            {/* Third CTA — glass chip anchor to the learning-tracks section (founder ask) */}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
+              <a
+                href="#learning-tracks"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById('learning-tracks')?.scrollIntoView({
+                    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                  })
+                }}
+                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 px-8 py-4 text-[15px] font-extrabold text-white backdrop-blur-md transition-all hover:border-white/30 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-2 focus-visible:ring-offset-deepBlue sm:w-auto"
+              >
+                <Award size={17} className="text-amber-300" aria-hidden />
+                مسارات التعلّم والشهادات المعتمدة
+                <ChevronDown
+                  size={15}
+                  className="text-white/60 transition-transform duration-300 group-hover:translate-y-0.5"
+                  aria-hidden
+                />
+              </a>
             </motion.div>
           </motion.div>
 

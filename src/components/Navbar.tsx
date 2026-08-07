@@ -111,6 +111,14 @@ const dashboardIconClass =
 const loginIconClass =
   'relative size-[15px] shrink-0 text-white/85 transition-colors duration-200 group-hover/login:text-white'
 
+/* Over-dark (home hero) variants — fire CTA pops on the navy field; the rest goes glass. */
+const loginBtnDarkClass =
+  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-customOrange px-5 text-[13px] font-bold tracking-tight text-white shadow-[0_4px_18px_-4px_rgba(242,140,0,0.55)] transition-all duration-200 hover:brightness-105 hover:shadow-[0_8px_28px_-6px_rgba(242,140,0,0.6)] active:scale-[0.98]'
+const dashboardBtnDarkClass =
+  'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 text-[13px] font-semibold tracking-tight text-white backdrop-blur-sm transition-colors duration-200 hover:border-white/35 hover:bg-white/15'
+const utilityDarkChip =
+  'border-white/20 bg-white/10 text-white backdrop-blur-md hover:border-white/35 hover:bg-white/15'
+
 function Navbar() {
   const { t } = useTranslation()
   const { lang, dir, setLang } = useLanguage()
@@ -130,6 +138,13 @@ function Navbar() {
 
   const navRef = useRef<HTMLElement>(null)
   const { pathname, hash } = useLocation()
+  /**
+   * Adaptive shell: over the home page's dark cinematic hero the bar melts into
+   * the field (dark glass, white items, white logo, fire login CTA) and turns
+   * into the familiar light glass once the user scrolls. Light-hero pages keep
+   * the light shell in both states.
+   */
+  const overDark = pathname === '/' && !scrolled
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -190,30 +205,56 @@ function Navbar() {
       dir={dir}
       className={[
         'fixed inset-x-0 top-0 z-50 border-b transition-[box-shadow,border-color,background,backdrop-filter] duration-500 ease-emc-out',
-        scrolled
-          ? 'border-b border-white/40 bg-white/80 shadow-lg shadow-deepBlue/[0.04] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-deepBlue/[0.03]'
-          : 'border-b border-white/20 bg-white/70 backdrop-blur-lg backdrop-saturate-150 ring-1 ring-white/50',
+        overDark
+          ? 'border-white/[0.08] bg-deepBlue/25 backdrop-blur-md'
+          : scrolled
+            ? 'border-b border-white/40 bg-white/80 shadow-lg shadow-deepBlue/[0.04] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-deepBlue/[0.03]'
+            : 'border-b border-white/20 bg-white/70 backdrop-blur-lg backdrop-saturate-150 ring-1 ring-white/50',
       ].join(' ')}
     >
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:h-[4.25rem] lg:px-8">
         <Link
           to="/"
           aria-label={t('nav.aria.homeLink')}
-          className="relative z-20 flex shrink-0 items-center rounded-2xl p-1.5 ring-1 ring-transparent transition-all duration-200 ease-emc-out hover:bg-emcBg/90 hover:ring-customBlue/18 hover:shadow-emc-xs"
+          className={[
+            'relative z-20 flex shrink-0 items-center rounded-2xl p-1.5 ring-1 ring-transparent transition-all duration-200 ease-emc-out',
+            overDark ? 'hover:bg-white/10 hover:ring-white/20' : 'hover:bg-emcBg/90 hover:ring-customBlue/18 hover:shadow-emc-xs',
+          ].join(' ')}
         >
-          <img src="/brand/logos/logo_full_color.png" alt={t('brand.logoAlt')} className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
+          <img src={overDark ? '/brand/logos/logo_full_white.png' : '/brand/logos/logo_full_color.png'} alt={t('brand.logoAlt')} className="h-10 w-auto sm:h-12 lg:h-[3.25rem]" width={180} height={52} loading="eager" fetchPriority="high" />
         </Link>
 
         <nav
           className="hidden flex-1 items-center justify-center px-4 lg:flex"
           aria-label={t('nav.aria.mainMenu')}
         >
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-deepBlue/[0.065] bg-white/[0.55] px-2 py-1.5 shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75 backdrop-blur-2xl backdrop-saturate-150">
-            <NavLink to="/" end className={({ isActive }) => [navLinkBase, isActive ? navLinkActive : ''].join(' ')}>
+          <div
+            className={[
+              'pointer-events-auto flex flex-wrap items-center justify-center gap-0.5 rounded-2xl border px-2 py-1.5 backdrop-blur-2xl backdrop-saturate-150',
+              overDark
+                ? 'border-white/15 bg-white/[0.08] ring-1 ring-white/10'
+                : 'border-deepBlue/[0.065] bg-white/[0.55] shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white/75',
+            ].join(' ')}
+          >
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) =>
+                overDark
+                  ? [
+                      'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-all duration-200 ease-emc-out',
+                      isActive
+                        ? 'bg-white/15 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]'
+                        : 'text-white/85 hover:bg-white/10 hover:text-white',
+                    ].join(' ')
+                  : [navLinkBase, isActive ? navLinkActive : ''].join(' ')
+              }
+            >
               {t('nav.home')}
             </NavLink>
 
             <MegaDropdown
+              dark={overDark}
               label={t('nav.about.label')}
               items={aboutItems}
               isOpen={openMega === 'about'}
@@ -223,6 +264,7 @@ function Navbar() {
               locationHash={hash}
             />
             <MegaDropdown
+              dark={overDark}
               label={t('nav.programs.label')}
               items={programsItems}
               isOpen={openMega === 'programs'}
@@ -232,6 +274,7 @@ function Navbar() {
               locationHash={hash}
             />
             <MegaDropdown
+              dark={overDark}
               label={t('nav.join.label')}
               items={joinItems}
               isOpen={openMega === 'join'}
@@ -248,12 +291,22 @@ function Navbar() {
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex h-11 items-center gap-2.5 rounded-2xl border border-deepBlue/[0.1] bg-white/80 px-4 text-[13px] font-bold text-deepBlue shadow-sm backdrop-blur-md transition-all duration-200 hover:border-customBlue/35 hover:bg-customBlue/[0.06] hover:text-customBlue"
+            className={[
+              'flex h-11 items-center gap-2.5 rounded-2xl border px-4 text-[13px] font-bold transition-all duration-200',
+              overDark
+                ? utilityDarkChip
+                : 'border-deepBlue/[0.1] bg-white/80 text-deepBlue shadow-sm backdrop-blur-md hover:border-customBlue/35 hover:bg-customBlue/[0.06] hover:text-customBlue',
+            ].join(' ')}
             aria-label="البحث السريع (Ctrl + K)"
           >
-            <Search size={15} className="text-customBlue shrink-0" />
+            <Search size={15} className={overDark ? 'shrink-0 text-amber' : 'text-customBlue shrink-0'} />
             <span className="whitespace-nowrap">بحث سريع</span>
-            <kbd className="rounded-lg border border-slate-200/90 bg-slate-100/90 px-2 py-0.5 font-latin text-[10px] font-extrabold text-slate-500 shadow-inner">
+            <kbd
+              className={[
+                'rounded-lg border px-2 py-0.5 font-latin text-[10px] font-extrabold shadow-inner',
+                overDark ? 'border-white/20 bg-white/10 text-white/70' : 'border-slate-200/90 bg-slate-100/90 text-slate-500',
+              ].join(' ')}
+            >
               Ctrl K
             </kbd>
           </button>
@@ -262,8 +315,8 @@ function Navbar() {
             (isAuthenticated && user ? (
               <>
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
-                  <Link to="/dashboard" className={dashboardBtnClass}>
-                    <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
+                  <Link to="/dashboard" className={overDark ? dashboardBtnDarkClass : dashboardBtnClass}>
+                    <LayoutDashboard strokeWidth={2} className={overDark ? 'relative size-[15px] shrink-0 text-amber' : dashboardIconClass} aria-hidden />
                     <span className="whitespace-nowrap">{t('nav.auth.dashboard')}</span>
                   </Link>
                 </motion.span>
@@ -334,7 +387,7 @@ function Navbar() {
             ) : (
               <>
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
-                  <Link to="/login" className={loginBtnClass}>
+                  <Link to="/login" className={overDark ? loginBtnDarkClass : loginBtnClass}>
                     <LogIn strokeWidth={2} className={loginIconClass} aria-hidden />
                     <span className="whitespace-nowrap">{t('nav.auth.login')}</span>
                   </Link>
@@ -356,12 +409,16 @@ function Navbar() {
               aria-label={t('nav.aria.changeLanguage')}
               className={[
                 'flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-[13px] font-semibold transition-all duration-200',
-                langMenuOpen
-                  ? 'border-customBlue/35 bg-customBlue/[0.08] text-customBlue shadow-emc-xs backdrop-blur-sm'
-                  : 'border-deepBlue/[0.1] bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-emcBg/90',
+                overDark
+                  ? langMenuOpen
+                    ? 'border-white/35 bg-white/15 text-white'
+                    : utilityDarkChip
+                  : langMenuOpen
+                    ? 'border-customBlue/35 bg-customBlue/[0.08] text-customBlue shadow-emc-xs backdrop-blur-sm'
+                    : 'border-deepBlue/[0.1] bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-emcBg/90',
               ].join(' ')}
             >
-              <Globe size={15} strokeWidth={2} className="shrink-0 text-customBlue opacity-95" aria-hidden />
+              <Globe size={15} strokeWidth={2} className={overDark ? 'shrink-0 text-amber' : 'shrink-0 text-customBlue opacity-95'} aria-hidden />
               <span className="whitespace-nowrap">{currentLang.label}</span>
               <ChevronDown
                 size={14}
@@ -409,7 +466,12 @@ function Navbar() {
             type="button"
             onClick={() => setSearchOpen(true)}
             aria-label="البحث السريع"
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-customBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-customBlue/[0.08]"
+            className={[
+              'flex h-11 w-11 items-center justify-center rounded-xl border transition',
+              overDark
+                ? utilityDarkChip
+                : 'border-deepBlue/[0.1] bg-white/70 text-customBlue shadow-emc-xs backdrop-blur-md hover:border-customBlue/25 hover:bg-customBlue/[0.08]',
+            ].join(' ')}
           >
             <Search size={20} />
           </button>
@@ -418,7 +480,12 @@ function Navbar() {
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? t('nav.aria.closeMenu') : t('nav.aria.openMenu')}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md transition hover:border-customBlue/25 hover:bg-emcBg/90"
+            className={[
+              'flex h-11 w-11 items-center justify-center rounded-xl border transition',
+              overDark
+                ? utilityDarkChip
+                : 'border-deepBlue/[0.1] bg-white/70 text-deepBlue shadow-emc-xs backdrop-blur-md hover:border-customBlue/25 hover:bg-emcBg/90',
+            ].join(' ')}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>

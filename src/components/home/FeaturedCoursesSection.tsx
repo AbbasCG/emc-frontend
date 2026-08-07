@@ -94,9 +94,18 @@ export default function FeaturedCoursesSection() {
     <section
       ref={sectionRef}
       dir="rtl"
-      className="border-y border-deepBlue/[0.05] bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      className="relative overflow-hidden border-y border-deepBlue/[0.05] bg-paper px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
-      <div className="mx-auto max-w-[1540px]">
+      {/* V3 decorative layer — one sea orb (light from the top-right) + ghost numeral */}
+      <div
+        aria-hidden
+        className="animate-soft-float pointer-events-none absolute -right-32 -top-32 h-[26rem] w-[26rem] rounded-full bg-customBlue/10 blur-3xl"
+      />
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        01
+      </span>
+
+      <div className="relative mx-auto max-w-[1540px]">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

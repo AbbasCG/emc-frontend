@@ -219,8 +219,12 @@ export default function HomeEcosystemBento() {
       dir="rtl"
       className="emc-dawn relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-28"
     >
-      {/* Ambient glows */}
+      {/* Ambient glows — sea from the top-right, a separate fire ember from the bottom-left */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
+      <div
+        aria-hidden
+        className="animate-slow-pulse pointer-events-none absolute -bottom-24 -left-32 h-96 w-96 rounded-full bg-customOrange/[0.06] blur-[110px]"
+      />
 
       {/* Subtle grid overlay */}
       <div

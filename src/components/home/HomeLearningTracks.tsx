@@ -168,8 +168,18 @@ export default function HomeLearningTracks() {
   const [activeTab, setActiveTab] = useState<'professional' | 'academic' | 'languages' | 'children'>('professional')
 
   return (
-    <section id="tracks" dir="rtl" className="scroll-mt-28 bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-      <div className="mx-auto max-w-[1540px]">
+    <section
+      id="learning-tracks"
+      dir="rtl"
+      className="relative scroll-mt-24 overflow-hidden bg-brand-50/40 px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+    >
+      {/* V3 decorative layer — flying-pages texture + ghost numeral (scene signatures, max 2) */}
+      <div aria-hidden className="emc-pages-light pointer-events-none absolute inset-0 opacity-[0.05]" />
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        02
+      </span>
+
+      <div className="relative mx-auto max-w-[1540px]">
         {/* Header — canonical eyebrow + title-arc language */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -256,17 +266,21 @@ export default function HomeLearningTracks() {
               transition={{ duration: 0.3 }}
               className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {PROFESSIONAL_TRACKS.map((track) => {
+              {PROFESSIONAL_TRACKS.map((track, i) => {
                 const Icon = track.icon
                 return (
-                  <div
+                  <motion.div
                     key={track.id}
-                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1.5 hover:border-customBlue/40 hover:shadow-xl"
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
+                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1.5 hover:border-customBlue/40 hover:shadow-emc-md"
                   >
                     {/* Header: Icon & Duration */}
                     <div className="flex items-center justify-between gap-3">
                       <div
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md"
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                         style={{ backgroundColor: track.badgeColor }}
                       >
                         <Icon size={24} />
@@ -309,7 +323,7 @@ export default function HomeLearningTracks() {
                         <ArrowLeft size={14} />
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </motion.div>
@@ -324,15 +338,19 @@ export default function HomeLearningTracks() {
               transition={{ duration: 0.3 }}
               className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {ACADEMIC_UNITS.map((unit) => {
+              {ACADEMIC_UNITS.map((unit, i) => {
                 const Icon = unit.icon
                 return (
-                  <div
+                  <motion.div
                     key={unit.title}
-                    className="flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:border-customBlue/30 hover:shadow-md"
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
+                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-customBlue/30 hover:shadow-emc-md"
                   >
                     <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md"
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                       style={{ backgroundColor: unit.color }}
                     >
                       <Icon size={24} />
@@ -346,7 +364,7 @@ export default function HomeLearningTracks() {
                       <span>عرض برامج الوحدة</span>
                       <ArrowLeft size={14} />
                     </Link>
-                  </div>
+                  </motion.div>
                 )
               })}
             </motion.div>
@@ -361,15 +379,19 @@ export default function HomeLearningTracks() {
               transition={{ duration: 0.3 }}
               className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
             >
-              {LANGUAGE_PROGRAMS.map((lang) => {
+              {LANGUAGE_PROGRAMS.map((lang, i) => {
                 const Icon = lang.icon
                 return (
-                  <div
+                  <motion.div
                     key={lang.title}
-                    className="flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:border-customBlue/30 hover:shadow-md"
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
+                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-customBlue/30 hover:shadow-emc-md"
                   >
                     <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md"
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                       style={{ backgroundColor: lang.color }}
                     >
                       <Icon size={24} />
@@ -383,7 +405,7 @@ export default function HomeLearningTracks() {
                       <span>استكشف الدورات</span>
                       <ArrowLeft size={14} />
                     </Link>
-                  </div>
+                  </motion.div>
                 )
               })}
             </motion.div>
@@ -398,15 +420,19 @@ export default function HomeLearningTracks() {
               transition={{ duration: 0.3 }}
               className="grid gap-6 sm:grid-cols-3"
             >
-              {CHILDREN_PROGRAMS.map((prog) => {
+              {CHILDREN_PROGRAMS.map((prog, i) => {
                 const Icon = prog.icon
                 return (
-                  <div
+                  <motion.div
                     key={prog.title}
-                    className="flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:border-customBlue/30 hover:shadow-md"
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
+                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-customBlue/30 hover:shadow-emc-md"
                   >
                     <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md"
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                       style={{ backgroundColor: prog.color }}
                     >
                       <Icon size={24} />
@@ -420,7 +446,7 @@ export default function HomeLearningTracks() {
                       <span>برامج الأطفال</span>
                       <ArrowLeft size={14} />
                     </Link>
-                  </div>
+                  </motion.div>
                 )
               })}
             </motion.div>

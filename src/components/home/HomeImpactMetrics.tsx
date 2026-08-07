@@ -48,8 +48,12 @@ export default function HomeImpactMetrics() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.05]"
       />
-      {/* Glows */}
+      {/* Glows — sea from the top-right, a separate fire ember from the bottom-left */}
       <div aria-hidden className="pointer-events-none absolute -right-40 -top-20 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
+      <div
+        aria-hidden
+        className="animate-slow-pulse pointer-events-none absolute -bottom-32 -left-32 h-[22rem] w-[22rem] rounded-full bg-customOrange/[0.07] blur-[100px]"
+      />
 
       <div className="relative mx-auto max-w-[1540px]">
         <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
