@@ -60,6 +60,10 @@ export function useExamLockdown({
   const [fullscreenExitCount, setFullscreenExitCount] = useState(0)
   const hasEnteredFullscreenRef = useRef(false)
   const maxExitsReachedRef = useRef(false)
+  // Authoritative exit tally. The count must be derived outside the state updater:
+  // React re-invokes updaters (StrictMode, and any concurrent re-render), so reporting
+  // from inside one logged every exit to the server twice. See the handler below.
+  const exitCountRef = useRef(0)
 
   function report(type: ExamViolationType, meta?: Record<string, unknown>) {
     setViolationCount((c) => c + 1)
@@ -169,17 +173,20 @@ export function useExamLockdown({
       // the initial not-yet-entered state (e.g. request rejected by the browser).
       if (!hasEnteredFullscreenRef.current) return
 
-      setFullscreenExitCount((prev) => {
-        const next = prev + 1
-        report('fullscreen_exit', { exit_count: next })
-        toast.warning(`تم الخروج من وضع ملء الشاشة (${next}/${maxFullscreenExits}). يرجى العودة فوراً.`)
+      // Side effects stay in the event handler (which runs once per event) and the
+      // updater stays pure — a violation reported from inside the updater was logged
+      // and toasted twice per exit under StrictMode's double invocation.
+      const next = exitCountRef.current + 1
+      exitCountRef.current = next
+      setFullscreenExitCount(next)
 
-        if (next >= maxFullscreenExits && !maxExitsReachedRef.current) {
-          maxExitsReachedRef.current = true
-          onMaxExitsReached?.()
-        }
-        return next
-      })
+      report('fullscreen_exit', { exit_count: next })
+      toast.warning(`تم الخروج من وضع ملء الشاشة (${next}/${maxFullscreenExits}). يرجى العودة فوراً.`)
+
+      if (next >= maxFullscreenExits && !maxExitsReachedRef.current) {
+        maxExitsReachedRef.current = true
+        onMaxExitsReached?.()
+      }
     }
 
     document.addEventListener('fullscreenchange', onFullscreenChange)
