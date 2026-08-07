@@ -11,10 +11,10 @@
 | lint | `npx eslint . --quiet` | **0 أخطاء** |
 | أنواع صارمة | `npm run typecheck:strict` | **0** (strict كامل على `src` منذ M7.B) |
 | اختبارات | `npm test` | الكل أخضر (تشمل عتبات التغطية لكل مجلد في `vitest.config.ts`) |
-| بناء | `npm run build` | ينتج `dist/` |
+| بناء | `npm run build` | ينتج `dist/` (**لا** prerender — انظر §6b) |
 | سقّاطة الحزم | `npm run check:bundle` | أكبر chunk أولي < **250KB gz** |
 | فحص تسريب | `npm run check:secrets` | نظيف (أسرار + `console.*` غير محروس) |
-| E2E | `npx playwright test` | 28/28 (الرحلات + smoke، حاسوب + 375px) |
+| E2E | `npx playwright test` | **122/122** (الرحلات + smoke + ألبوم M5.5، حاسوب + 375px) |
 | أصول SEO | `npm run seo:assets` | sitemap/robots من `scripts/public-routes.mjs` عند تغيّر المسارات العامة |
 
 CI (`.github/workflows/ci.yml`) يشغّل هذه الخطوات كلها؛ **أي تعديل يُضعف بوابة منها يتطلب commit مستقلاً موثَّقاً ببوابة مؤسس** (خطة §2.4).
@@ -27,11 +27,12 @@ CI (`.github/workflows/ci.yml`) يشغّل هذه الخطوات كلها؛ **أ
 | `VITE_APP_ENV` | لا | `development` / `staging` / `production` |
 | `VITE_SENTRY_DSN` | لا | **بوابة لا تعطّل**: Sentry لا يُهيَّأ إلا بوجوده (chunk كسول، صفر كلفة بدونه) |
 
-## 3) الخطوط (حسّاس — بوابة ترخيص)
+## 3) الخطوط
 
-- `public/fonts/*.woff2` (عائلات "Thmanyah"/"ThmanyahDisplay"): ارتكبها الفريق في دمج 2026-08 وتخدم الإنتاج.
-- `public/fonts/thmanyah/` (OTF ثمانية الكاملة): **خارج git عمداً** (بوابة الترخيص رقم 1 في STATE) — لا تُزال من `.gitignore` ولا تُرتكب قبل نص الترخيص.
-- سلاسل الخطوط في `tailwind.config.js` تجعل غياب أيٍّ من الطبقتين ينحدر بأمان إلى IBM Plex.
+- **طبقة واحدة فقط:** `public/fonts/*.woff2` (عائلات "Thmanyah"/"ThmanyahDisplay") — هي الوحيدة التي تُشحن، وسلاسل `tailwind.config.js` تنحدر منها بأمان إلى IBM Plex.
+- `public/fonts/thmanyah/` (OTF الكاملة، 3.6MB): **خارج git** وغير مُشار إليها من أي CSS. الترخيص أُكّد (2026-08-07) لكنها **زائدة عن الحاجة** — الـwoff2 نفس المحارف وتغطي كل وزن مستعمل. إضافة plugin في `vite.config.ts` تحذفها من `dist/` كي يبقى البناء المحلي مطابقاً للمنشور.
+  - ⚠️ **سابقة تُتجنَّب:** كانت عشر قواعد `@font-face` تشير إليها ⇒ **عشرة طلبات 404 في الإنتاج** عند كل تحميل، و3.6MB تدخل `dist` محلياً فتجعل كل قياس أداء غير ممثِّل. لا تُعِد إدخال أصول غير متتبَّعة في CSS.
+- الوزن 300 (Light) **غير محمَّل عمداً**: `font-light` بلا أي استعمال.
 
 ## 4) ترويسات الخادم
 
