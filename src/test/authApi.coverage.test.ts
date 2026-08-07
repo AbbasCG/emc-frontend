@@ -66,12 +66,12 @@ describe('login', () => {
     expect(out.user.permissions).toEqual(['courses.view', 'tasks.manage'])
   })
 
-  it('normalizes a malformed payload to an empty-safe shape instead of crashing', async () => {
+  it('rejects a malformed payload instead of fabricating a ghost session', async () => {
+    // Contract hardened (M10.3): the old lenient normalization produced a nameless
+    // "ghost user" that rendered an authenticated navbar with no identity. A payload
+    // carrying no usable user record must throw so callers route to a clean logout.
     mockedApi.post.mockResolvedValueOnce({ data: 'nonsense' })
-    const out = await login('a@b.c', 'pw')
-    expect(out.token).toBe('')
-    expect(out.user.id).toBe(0)
-    expect(out.user.name).toBe('')
+    await expect(login('a@b.c', 'pw')).rejects.toThrow(/no usable user record/)
   })
 
   it('propagates authentication errors', async () => {

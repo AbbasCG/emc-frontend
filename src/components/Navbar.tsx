@@ -311,7 +311,19 @@ function Navbar() {
             </kbd>
           </button>
 
-          {!isLoading &&
+          {/* Never an empty gap: cached-user sessions render the dashboard cluster
+              instantly (background /auth/me corrects later); a token with no cached
+              user shows a placeholder chip instead of nothing; guests get the login
+              button immediately (isLoading is false without a token). */}
+          {isLoading && !user ? (
+            <span
+              aria-hidden
+              className={[
+                'h-11 w-28 animate-pulse rounded-2xl',
+                overDark ? 'border border-white/15 bg-white/10' : 'border border-deepBlue/[0.08] bg-deepBlue/[0.05]',
+              ].join(' ')}
+            />
+          ) : (
             (isAuthenticated && user ? (
               <>
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
@@ -393,7 +405,8 @@ function Navbar() {
                   </Link>
                 </motion.span>
               </>
-            ))}
+            ))
+          )}
 
           {/* M3: language switcher — trailing utility at the outer edge of the cluster */}
           <div className="relative">
@@ -604,7 +617,11 @@ function Navbar() {
                 </div>
               </div>
 
-              {!isLoading && (
+              {isLoading && !user ? (
+                <div className="grid gap-3 border-t border-deepBlue/[0.07] pt-4">
+                  <span aria-hidden className="h-12 w-full animate-pulse rounded-2xl border border-deepBlue/[0.08] bg-deepBlue/[0.05]" />
+                </div>
+              ) : (
                 <div className="grid gap-3 border-t border-deepBlue/[0.07] pt-4">
                   {isAuthenticated && user ? (
                     <>

@@ -51,9 +51,17 @@ export function normalizeAuthUser(payload: unknown): User {
   const outer = payload && typeof payload === 'object' && !Array.isArray(payload)
     ? (payload as Record<string, unknown>)
     : {}
-  const r = extractUserRecord(payload) ?? {}
+  const extracted = extractUserRecord(payload)
+  const r = extracted ?? {}
   const name = trimStr(r.name ?? r.full_name ?? r.fullName)
   const email = trimStr(r.email ?? r.email_address ?? r.mail)
+  // Session-integrity guard (M4.5 follow-up): a payload with NO user record, or a
+  // record carrying neither id nor email nor name, is not a session — building a
+  // nameless "ghost user" from it would render an authenticated shell with no
+  // identity. Throwing routes callers (hydrate/readCachedUser) to a clean logout.
+  if (extracted == null || (r.id == null && !email && !name)) {
+    throw new Error('normalizeAuthUser: payload contains no usable user record')
+  }
   const roleRaw = r.role
   const role =
     roleRaw != null && String(roleRaw).trim() !== '' ? String(roleRaw).trim() : undefined
