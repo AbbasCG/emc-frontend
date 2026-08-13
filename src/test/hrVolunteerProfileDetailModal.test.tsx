@@ -44,8 +44,12 @@ function fullProfile(overrides: Partial<VolunteerHrProfile> = {}): VolunteerHrPr
     department: { id: 1, name: 'التقنية' }, department_id: 1, job_title: 'مطور برمجيات',
     employment_type: 'volunteer', join_date: '2026-08-06', availability: 'مساءً', weekly_hours: 5,
     skills: 'PHP, React', languages: ['العربية', 'الإنجليزية'], education: 'بكالوريوس',
-    experience: '3 سنوات', motivation: 'حب العطاء', linkedin_url: 'https://linkedin.com/in/ahmad',
+    university_specialization: 'علوم الحاسوب',
+    experience: '3 سنوات', motivation: 'حب العطاء', professional_bio: 'مطور برمجيات شغوف',
+    linkedin_url: 'https://linkedin.com/in/ahmad',
     portfolio_url: 'https://ahmad.dev',
+    photo_publication_consent: true, photo_consent_at: '2026-08-06T09:00:00Z',
+    professional_profile_consent: true, professional_profile_consent_at: '2026-08-06T09:00:00Z',
     cv: { available: true, file_name: 'Ahmad-CV.pdf', mime_type: 'application/pdf', size: 204800, uploaded_at: '2026-08-06T10:00:00Z' },
     status: 'submitted', submitted_at: '2026-08-06T09:00:00Z', reviewed_at: null, reviewed_by: null,
     rejection_reason: null, approved_at: null, approved_by: null, team_profile_id: null,
@@ -132,7 +136,7 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     expect(screen.getByText('سجل المراجعة')).toBeInTheDocument()
 
     expect(screen.getByText('أمستردام')).toBeInTheDocument()
-    expect(screen.getByText('هولندي')).toBeInTheDocument()
+    expect(screen.getAllByText(/هولندا/).length).toBeGreaterThan(0)
     expect(screen.getByText('بكالوريوس')).toBeInTheDocument()
     expect(screen.getByText('3 سنوات')).toBeInTheDocument()
     expect(screen.getByText('حب العطاء')).toBeInTheDocument()
@@ -184,7 +188,7 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     const previewButtons = await screen.findAllByRole('button', { name: 'معاينة السيرة الذاتية' })
     await user.click(previewButtons[0])
 
-    await waitFor(() => expect(screen.getByText('المعاينة غير متاحة لهذا النوع من الملفات، يمكنك تحميل الملف')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/معاينة ملفات Word \(DOC\/DOCX\) غير متاحة/)).toBeInTheDocument())
     expect(mockFetchCvBlob).not.toHaveBeenCalled()
   })
 
@@ -324,6 +328,15 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     }
   })
 
+  it('maps canonical education codes to Arabic labels in skills card', async () => {
+    mockFetchProfile.mockResolvedValue(fullProfile({ education: 'bachelor' }))
+    renderAtDetail()
+
+    await screen.findByText('المهارات واللغات')
+    expect(screen.getByText('بكالوريوس')).toBeInTheDocument()
+    expect(screen.queryByText('bachelor')).not.toBeInTheDocument()
+  })
+
   it('country renders flag once with ISO code and localized name (no NL NL)', async () => {
     mockFetchProfile.mockResolvedValue(fullProfile({
       country: 'هولندا', country_code: 'NL', nationality: 'هولندي',
@@ -336,7 +349,8 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     expect(text.match(/NL/g)?.length).toBe(1)
     expect(text).toMatch(/هولندا/)
     expect(countryValues[0].querySelector('img[aria-hidden]')).toBeTruthy()
-    expect(screen.getByText('هولندي')).toBeInTheDocument()
+    // Legacy masculine demonym resolves to ISO + country name (not demonym adjective).
+    expect(screen.getAllByText(/هولندا/).length).toBeGreaterThan(0)
   })
 
   it('nationality maps when stored as a country name/code, not from phone code', async () => {

@@ -386,6 +386,12 @@ function CourseCard({ course: c, index }: { course: TeachingCourseLms; index: nu
     },
     ...(needsPlacement ? [
       {
+        label: 'الاختبارات القصيرة',
+        icon:  ClipboardCheck,
+        href:  `/dashboard/instructor/courses/${c.id}/quizzes`,
+        cls:   'text-amber-600 hover:bg-amber-50',
+      },
+      {
         label: 'تحديد المستوى',
         icon:  ClipboardCheck,
         href:  `/dashboard/instructor/courses/${c.id}/placement-students`,

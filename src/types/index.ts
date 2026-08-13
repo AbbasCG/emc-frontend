@@ -26,6 +26,8 @@ export type User = {
   permissions?: string[]
   /** True when user has at least one active TeamProfile with is_leader=true. Populated from /auth/me. */
   is_department_leader?: boolean
+  /** True when this instructor teaches at least one course with requires_placement_test=true. Populated from /auth/me. Gates English Institute UI. */
+  has_english_courses?: boolean
 }
 
 export type Course = {

@@ -126,6 +126,11 @@ export function normalizeAuthUser(payload: unknown): User {
   const is_department_leader: boolean | undefined =
     typeof rawLeader === 'boolean' ? rawLeader : undefined
 
+  // has_english_courses may live on the outer envelope (sibling to `user`) or directly on `r`
+  const rawHasEnglish = outer.has_english_courses ?? r.has_english_courses
+  const has_english_courses: boolean | undefined =
+    typeof rawHasEnglish === 'boolean' ? rawHasEnglish : undefined
+
   return {
     id: finiteId(r.id),
     name,
@@ -145,6 +150,7 @@ export function normalizeAuthUser(payload: unknown): User {
     role,
     permissions,
     is_department_leader,
+    has_english_courses,
   }
 }
 

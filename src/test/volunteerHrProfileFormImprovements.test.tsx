@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import VolunteerHrProfilePage from '@/pages/dashboard/VolunteerHrProfilePage'
 
@@ -42,6 +42,24 @@ describe('VolunteerHrProfilePage — emergency contact removal, languages, depar
     expect(screen.queryByText('جهة الاتصال للطوارئ')).not.toBeInTheDocument()
     expect(screen.queryByText('اسم جهة الاتصال')).not.toBeInTheDocument()
     expect(screen.queryByText(/رقم هاتف جهة الاتصال/)).not.toBeInTheDocument()
+  })
+
+  it('renders المؤهل العلمي as a custom animated dropdown (not a native <select>) with an "other" free-text field', async () => {
+    const user = userEvent.setup()
+    render(<VolunteerHrProfilePage />)
+    await waitFor(() => expect(screen.getByLabelText('المؤهل العلمي')).toBeInTheDocument())
+
+    const trigger = screen.getByLabelText('المؤهل العلمي')
+    expect(trigger.tagName).toBe('BUTTON')
+    expect(screen.queryByLabelText('يرجى تحديد المؤهل العلمي')).not.toBeInTheDocument()
+
+    await user.click(trigger)
+    const listbox = within(screen.getByRole('listbox'))
+    expect(listbox.getByRole('option', { name: 'بكالوريوس' })).toBeInTheDocument()
+    expect(listbox.getByRole('option', { name: 'أخرى' })).toBeInTheDocument()
+
+    await user.click(listbox.getByRole('option', { name: 'أخرى' }))
+    expect(screen.getByLabelText('يرجى تحديد المؤهل العلمي')).toBeInTheDocument()
   })
 
   it('renders the languages field as a searchable multi-select (react-select), not a free-text input', async () => {
@@ -110,19 +128,49 @@ describe('VolunteerHrProfilePage — emergency contact removal, languages, depar
     await waitFor(() => expect((screen.getByRole('combobox', { name: 'المسمى الوظيفي' }) as HTMLSelectElement).value).toBe(''))
   })
 
-  it('reuses the signup page\'s country selector (same search placeholder, same component)', async () => {
+  it('renders بلد الإقامة الحالي as a searchable AnimatedSelect without phone dial codes', async () => {
+    const user = userEvent.setup()
     render(<VolunteerHrProfilePage />)
-    await waitFor(() => expect(screen.getByText('الدولة')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('بلد الإقامة الحالي')).toBeInTheDocument())
 
-    // CountrySelect.tsx's exact placeholder text — proves it's the shared component, not a re-implementation.
-    expect(screen.getByText('ابحث بالعربية أو English أو رمز الدولة…')).toBeInTheDocument()
+    const trigger = screen.getByLabelText('بلد الإقامة الحالي')
+    expect(trigger.tagName).toBe('BUTTON')
+    await user.click(trigger)
+
+    expect(screen.getByPlaceholderText('ابحث بالعربية أو English أو ISO…')).toBeInTheDocument()
+    const listbox = within(screen.getByRole('listbox'))
+    const nl = listbox.getByRole('option', { name: /هولندا/ })
+    expect(nl).toBeInTheDocument()
+    // Residence must never show the calling code (+31) — that belongs to the phone field only.
+    expect(nl.textContent).not.toMatch(/\+31/)
   })
 
-  it('reuses the signup page\'s phone input (dial-code prefix + local-number field)', async () => {
+  it('renders الجنسية as a searchable AnimatedSelect with country names and ISO codes', async () => {
+    const user = userEvent.setup()
+    render(<VolunteerHrProfilePage />)
+    await waitFor(() => expect(screen.getByLabelText('الجنسية')).toBeInTheDocument())
+
+    const trigger = screen.getByLabelText('الجنسية')
+    expect(trigger.tagName).toBe('BUTTON')
+    await user.click(trigger)
+
+    const search = screen.getByPlaceholderText('ابحث باسم الدولة أو English أو ISO…')
+    await user.type(search, 'هولندا')
+    const listbox = within(screen.getByRole('listbox'))
+    const exact = listbox.getAllByRole('option').find((el) => {
+      const t = el.textContent ?? ''
+      return t.includes('هولندا') && t.includes('NL') && !t.includes('الكاريبية')
+    })
+    expect(exact).toBeTruthy()
+    expect(exact?.textContent).not.toMatch(/هولندية/)
+  })
+
+  it('keeps the phone dial-code country selector independent from residence', async () => {
     render(<VolunteerHrProfilePage />)
     await waitFor(() => expect(screen.getByText('رقم الهاتف')).toBeInTheDocument())
 
-    // PhoneInput.tsx's exact placeholder — same component signup uses.
+    // Phone field still reuses CountrySelect (with dial-code search placeholder).
+    expect(screen.getAllByText('ابحث بالعربية أو English أو رمز الدولة…').length).toBeGreaterThan(0)
     expect(screen.getByPlaceholderText('000 000 0000')).toBeInTheDocument()
   })
 })

@@ -44,10 +44,11 @@ import MaterialsTab, { type MaterialEntry } from './learn-tabs/MaterialsTab'
 import AssignmentsTab, { type AssignmentEntry } from './learn-tabs/AssignmentsTab'
 import NotesTab from './learn-tabs/NotesTab'
 import ProgressTab from './learn-tabs/ProgressTab'
+import QuizzesTab from './learn-tabs/QuizzesTab'
 
 const NOTES_KEY = (courseId: number) => `emc-student-learn-notes:${courseId}`
 
-type LearnTab = 'modules' | 'sessions' | 'materials' | 'assignments' | 'notes' | 'progress'
+type LearnTab = 'modules' | 'sessions' | 'materials' | 'assignments' | 'quizzes' | 'notes' | 'progress'
 
 type GateError =
   | 'forbidden'
@@ -487,6 +488,7 @@ export default function StudentCourseLearnPage() {
     { id: 'sessions' as LearnTab,    label: 'الجلسات',    icon: Calendar,      badge: sessionsMapped.length > 0 ? sessionsMapped.length : null },
     { id: 'materials' as LearnTab,   label: 'المواد',     icon: FolderOpen,    badge: materials.length > 0 ? materials.length : null },
     { id: 'assignments' as LearnTab, label: 'الواجبات',   icon: ClipboardList, badge: assignments.length > 0 ? assignments.length : null },
+    { id: 'quizzes' as LearnTab,     label: 'الاختبارات القصيرة', icon: ClipboardList, badge: null },
     { id: 'notes' as LearnTab,       label: 'ملاحظاتي',  icon: StickyNote,    badge: null },
     { id: 'progress' as LearnTab,    label: 'التقدم',     icon: TrendingUp,    badge: null },
   ], [modulesLms.length, sessionsMapped.length, materials.length, assignments.length])
@@ -889,6 +891,10 @@ export default function StudentCourseLearnPage() {
               onSubmitAssignment={setActiveAssignment}
               loading={learnLoading}
             />
+          )}
+
+          {activeTab === 'quizzes' && (
+            <QuizzesTab courseId={courseId} />
           )}
 
           {activeTab === 'notes' && (

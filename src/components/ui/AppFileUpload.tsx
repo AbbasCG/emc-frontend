@@ -157,15 +157,15 @@ export default function AppFileUpload({
   const isPdf = file?.type === 'application/pdf'
 
   return (
-    <div className="grid gap-2 text-right">
-      {/* Label row */}
-      <div className="flex items-center justify-between gap-3">
-        <label htmlFor={inputId} className="text-sm font-bold text-deepBlue">
+    <div className="grid min-w-0 gap-2 overflow-hidden text-right">
+      {/* Label row — stacks on narrow screens; never forces horizontal overflow */}
+      <div className="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-1">
+        <label htmlFor={inputId} className="min-w-0 text-sm font-bold text-deepBlue">
           {label}
           {required && <span className="text-red-600"> *</span>}
         </label>
         {hint && (
-          <span id={hintId} className="text-xs font-medium text-slate-500">
+          <span id={hintId} className="min-w-0 flex-1 text-xs font-medium leading-relaxed text-slate-500 sm:text-start">
             {hint}
           </span>
         )}
@@ -173,10 +173,10 @@ export default function AppFileUpload({
 
       {/* Compressing state */}
       {cs.phase === 'compressing' && (
-        <div className="rounded-xl border border-customBlue/20 bg-blue-50 px-4 py-3">
-          <div className="mb-2 flex items-center justify-between">
-            <Loader2 size={15} className="animate-spin text-customBlue" aria-hidden="true" />
-            <span className="text-sm font-bold text-deepBlue">جارٍ ضغط الملف وتحسينه…</span>
+        <div className="min-w-0 rounded-xl border border-customBlue/20 bg-blue-50 px-4 py-3">
+          <div className="mb-2 flex min-w-0 flex-wrap items-center gap-2">
+            <Loader2 size={15} className="shrink-0 animate-spin text-customBlue" aria-hidden="true" />
+            <span className="min-w-0 text-sm font-bold text-deepBlue">جارٍ ضغط الملف وتحسينه…</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
             <div
@@ -194,31 +194,39 @@ export default function AppFileUpload({
 
       {/* File selected (idle / done / error-with-fallback) */}
       {file && cs.phase !== 'compressing' && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-bold text-red-700 transition hover:bg-red-50"
-            >
-              <X size={16} aria-hidden="true" />
-              إزالة
-            </button>
-            <div className="flex min-w-0 items-center gap-2 text-right">
+        <div className="min-w-0 overflow-hidden rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 sm:px-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex min-w-0 flex-1 items-start gap-2 text-right">
               {isPdf
-                ? <FileText size={18} className="shrink-0 text-customBlue" aria-hidden="true" />
-                : <ImagePlus size={18} className="shrink-0 text-[#DD7C02]" aria-hidden="true" />
+                ? <FileText size={18} className="mt-0.5 shrink-0 text-customBlue" aria-hidden="true" />
+                : <ImagePlus size={18} className="mt-0.5 shrink-0 text-[#DD7C02]" aria-hidden="true" />
               }
-              <div className="min-w-0">
-                <p className="truncate font-bold text-deepBlue">{file.name}</p>
+              <div className="min-w-0 flex-1">
+                <p
+                  dir="auto"
+                  className="truncate overflow-hidden text-ellipsis font-bold text-deepBlue"
+                  title={file.name}
+                >
+                  {file.name}
+                </p>
                 <p className="text-xs font-medium text-slate-500">{formatBytes(file.size)}</p>
               </div>
+            </div>
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-bold text-red-700 transition hover:bg-red-50"
+              >
+                <X size={16} aria-hidden="true" />
+                إزالة
+              </button>
             </div>
           </div>
 
           {/* Compression stats */}
           {cs.phase === 'done' && cs.result && cs.result.savedPercent > 0 && (
-            <div className="mt-2.5 flex flex-wrap items-center justify-start gap-2 border-t border-amber-100 pt-2.5 text-xs">
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-amber-100 pt-2.5 text-xs">
               <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 font-black text-emerald-700">
                 <Check size={11} aria-hidden="true" />
                 وفّرنا {cs.result.savedPercent}%

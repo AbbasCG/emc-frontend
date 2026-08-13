@@ -18,8 +18,36 @@ import {
   type VolunteerHrProfile,
   type VolunteerHrProfileFormValues,
 } from '@/api/volunteerHrProfileApi'
+import {
+  EDUCATION_LEVELS,
+  educationFromFormState,
+  educationToFormState,
+} from '@/data/educationLevels'
+import {
+  UNIVERSITY_SPECIALIZATIONS,
+  UNIVERSITY_SPECIALIZATION_OTHER,
+  specializationFromFormState,
+  specializationToFormState,
+} from '@/data/universitySpecializations'
+import { ALL_COUNTRIES } from '@/lib/countries'
+import {
+  buildNationalityOptions,
+  buildResidenceCountryOptions,
+  resolveNationalityCode,
+} from '@/data/nationalities'
+import AnimatedSelect from '@/components/ui/AnimatedSelect'
+import ConsentCard from '@/components/forms/ConsentCard'
 
 const CUSTOM_JOB_TITLE_VALUE = '__custom__'
+const BIO_MAX_LENGTH = 500
+const EDUCATION_OPTIONS = EDUCATION_LEVELS.map((l) => ({ value: l.value, label: l.label }))
+const SPECIALIZATION_OPTIONS = UNIVERSITY_SPECIALIZATIONS.map((s) => ({ value: s, label: s }))
+const RESIDENCE_COUNTRY_OPTIONS = buildResidenceCountryOptions()
+const NATIONALITY_OPTIONS = buildNationalityOptions()
+const GENDER_OPTIONS = [
+  { value: 'male', label: 'ذكر' },
+  { value: 'female', label: 'أنثى' },
+]
 
 const STATUS_CFG: Record<string, { label: string; icon: typeof Clock; cls: string }> = {
   draft:        { label: 'مسودة',        icon: FileText,     cls: 'bg-slate-100 text-slate-600 border-slate-200' },
@@ -33,6 +61,8 @@ const STATUS_CFG: Record<string, { label: string; icon: typeof Clock; cls: strin
 const emptyForm: VolunteerHrProfileFormValues = {
   full_name: '', email: '', phone: '', department_id: 0, job_title: '', join_date: '',
   languages: [], confirmed: false, cv_file: null, profile_photo: null,
+  // Unanswered by default — never pre-checked, the volunteer must choose explicitly.
+  photo_publication_consent: null, professional_profile_consent: null,
 }
 
 export default function VolunteerHrProfilePage() {
@@ -46,8 +76,17 @@ export default function VolunteerHrProfilePage() {
   const [jobTitleOptions, setJobTitleOptions] = useState<JobTitleOption[]>([])
   const [jobTitleSelectValue, setJobTitleSelectValue] = useState('')
   const [jobTitlesLoading, setJobTitlesLoading] = useState(false)
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
+  // Two independent selectors on purpose: the phone dial-code and the
+  // volunteer's actual country of residence are different concepts and must
+  // never be inferred from one another (per the audit — the previous single
+  // "الدولة" field ambiguously drove both at once).
+  const [phoneCountry, setPhoneCountry] = useState<Country | null>(null)
+  const [residenceCountry, setResidenceCountry] = useState<Country | null>(null)
   const [localPhone, setLocalPhone] = useState('')
+  const [educationSelect, setEducationSelect] = useState('')
+  const [educationOther, setEducationOther] = useState('')
+  const [specializationSelect, setSpecializationSelect] = useState('')
+  const [specializationOther, setSpecializationOther] = useState('')
   const topRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -55,6 +94,30 @@ export default function VolunteerHrProfilePage() {
       .then(([mine, depts]) => {
         setProfile(mine)
         setDepartments(depts.map((d) => ({ id: d.id, name_ar: d.name_ar })))
+        // Prefill education select when the volunteer can still edit (draft/rejected).
+        if (mine && (mine.status === 'rejected' || mine.status === 'draft')) {
+          const edu = educationToFormState(mine.education)
+          setEducationSelect(edu.select)
+          setEducationOther(edu.other)
+          const spec = specializationToFormState(mine.university_specialization)
+          setSpecializationSelect(spec.select)
+          setSpecializationOther(spec.other)
+          if (mine.country_code) {
+            const match = ALL_COUNTRIES.find((c) => c.code === mine.country_code)
+            if (match) setResidenceCountry(match)
+          }
+          setForm((f) => ({
+            ...f,
+            education: mine.education ?? undefined,
+            university_specialization: mine.university_specialization ?? undefined,
+            professional_bio: mine.professional_bio ?? undefined,
+            city: mine.city ?? undefined,
+            // Prefer stable ISO; resolve legacy free-text demonyms when possible.
+            nationality: resolveNationalityCode(mine.nationality) ?? mine.nationality ?? undefined,
+            photo_publication_consent: mine.photo_publication_consent,
+            professional_profile_consent: mine.professional_profile_consent,
+          }))
+        }
       })
       .catch((err) => toast.error(getApiErrorMessage(err) || 'تعذر تحميل البيانات'))
       .finally(() => setLoading(false))
@@ -108,13 +171,32 @@ export default function VolunteerHrProfilePage() {
     e.preventDefault()
     setErrors({})
 
+    // Explicit-choice guard, mirrored by the backend's own `required|boolean`
+    // rule — catches it before a round trip, never trusted in place of it.
+    const nextErrors: Record<string, string> = {}
+    if (form.photo_publication_consent === null || form.photo_publication_consent === undefined) {
+      nextErrors.photo_publication_consent = 'يرجى تحديد موافقتك على استخدام الصورة الشخصية'
+    }
+    if (form.professional_profile_consent === null || form.professional_profile_consent === undefined) {
+      nextErrors.professional_profile_consent = 'يرجى تحديد موافقتك على عرض البيانات المهنية'
+    }
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors)
+      return
+    }
+
     const payload: VolunteerHrProfileFormValues = {
       ...form,
       job_title: jobTitleSelectValue === CUSTOM_JOB_TITLE_VALUE ? customJobTitle : form.job_title,
-      phone: buildE164Phone(selectedCountry, localPhone),
-      phone_country_code: selectedCountry?.dialCode,
-      country: selectedCountry?.name,
-      country_code: selectedCountry?.code,
+      education: educationFromFormState(educationSelect, educationOther),
+      university_specialization: specializationFromFormState(specializationSelect, specializationOther),
+      phone: buildE164Phone(phoneCountry, localPhone),
+      phone_country_code: phoneCountry?.dialCode,
+      // Residence, not the phone dial-code country — a fully independent selector.
+      country: residenceCountry?.name,
+      country_code: residenceCountry?.code,
+      // Prefer stable ISO over free-text demonyms.
+      nationality: resolveNationalityCode(form.nationality) ?? form.nationality,
     }
 
     setSubmitting(true)
@@ -230,32 +312,64 @@ export default function VolunteerHrProfilePage() {
         {/* Section 1 — Personal information */}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="mb-4 text-[11px] font-black uppercase tracking-wide text-customBlue">المعلومات الشخصية</p>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
             <Field label="الاسم الكامل" error={errors.full_name} required>
               <input value={form.full_name} onChange={(e) => set('full_name', e.target.value)} className={inputCls} />
             </Field>
             <Field label="البريد الإلكتروني" error={errors.email} required>
               <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} className={inputCls} dir="ltr" />
             </Field>
-            <Field label="الدولة" error={errors.country_code}>
-              <CountrySelector value={selectedCountry} onChange={setSelectedCountry} error={errors.country_code} />
+            <Field label="رقم الهاتف" error={errors.phone} required hint="اختر مفتاح الاتصال الدولي ثم أدخل الرقم">
+              <div className="grid gap-1.5">
+                <CountrySelector value={phoneCountry} onChange={setPhoneCountry} />
+                <PhoneInput country={phoneCountry} value={localPhone} onChange={setLocalPhone} error={errors.phone} />
+              </div>
             </Field>
-            <Field label="رقم الهاتف" error={errors.phone} required>
-              <PhoneInput country={selectedCountry} value={localPhone} onChange={setLocalPhone} error={errors.phone} />
-            </Field>
-            <Field label="المدينة" error={errors.city}>
-              <input value={form.city ?? ''} onChange={(e) => set('city', e.target.value)} className={inputCls} />
-            </Field>
-            <Field label="الجنسية" error={errors.nationality}>
-              <input value={form.nationality ?? ''} onChange={(e) => set('nationality', e.target.value)} className={inputCls} />
+            <Field label="الجنسية" error={errors.nationality} hint="يُحفظ كرمز الدولة — العرض باسم الدولة">
+              <AnimatedSelect
+                ariaLabel="الجنسية"
+                searchable
+                searchPlaceholder="ابحث باسم الدولة أو English أو ISO…"
+                value={form.nationality ?? ''}
+                placeholder="اختر الجنسية"
+                options={NATIONALITY_OPTIONS}
+                onChange={(code) => set('nationality', code)}
+              />
             </Field>
             <EmcDatePicker label="تاريخ الميلاد" value={form.date_of_birth ?? ''} onChange={(v) => set('date_of_birth', v)} layout="stacked" maxDate={new Date().toISOString().slice(0, 10)} showPresets={false} />
             <Field label="الجنس" error={errors.gender}>
-              <select value={form.gender ?? ''} onChange={(e) => set('gender', e.target.value)} className={inputCls}>
-                <option value="">اختر</option>
-                <option value="male">ذكر</option>
-                <option value="female">أنثى</option>
-              </select>
+              <AnimatedSelect
+                ariaLabel="الجنس"
+                value={form.gender ?? ''}
+                placeholder="اختر"
+                options={GENDER_OPTIONS}
+                onChange={(v) => set('gender', v)}
+              />
+            </Field>
+          </div>
+        </section>
+
+        {/* Section 1b — Current residence (deliberately separate from nationality) */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="mb-4 text-[11px] font-black uppercase tracking-wide text-customBlue">مكان الإقامة الحالي</p>
+          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+            <Field label="بلد الإقامة الحالي" error={errors.country_code} hint="أين تقيم حاليًا — قد يختلف عن جنسيتك ورقم الهاتف">
+              <AnimatedSelect
+                ariaLabel="بلد الإقامة الحالي"
+                searchable
+                searchPlaceholder="ابحث بالعربية أو English أو ISO…"
+                value={residenceCountry?.code ?? ''}
+                placeholder="اختر بلد الإقامة"
+                options={RESIDENCE_COUNTRY_OPTIONS}
+                onChange={(code) => {
+                  const match = ALL_COUNTRIES.find((c) => c.code === code) ?? null
+                  setResidenceCountry(match)
+                  setErrors((err) => ({ ...err, country_code: '' }))
+                }}
+              />
+            </Field>
+            <Field label="مدينة الإقامة الحالية" error={errors.city}>
+              <input value={form.city ?? ''} onChange={(e) => set('city', e.target.value)} className={inputCls} placeholder="مثال: Breda / صنعاء" />
             </Field>
           </div>
         </section>
@@ -263,7 +377,7 @@ export default function VolunteerHrProfilePage() {
         {/* Section 2 — Volunteer role */}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="mb-4 text-[11px] font-black uppercase tracking-wide text-customBlue">دور المتطوع</p>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
             <Field label="القسم" error={errors.department_id} required>
               <select aria-label="القسم" value={form.department_id || ''} onChange={(e) => handleDepartmentChange(Number(e.target.value))} className={inputCls}>
                 <option value="">اختر القسم</option>
@@ -313,10 +427,81 @@ export default function VolunteerHrProfilePage() {
             <Field label="اللغات">
               <LanguagesSelect value={form.languages ?? []} onChange={(langs) => set('languages', langs)} error={errors.languages} />
             </Field>
-            <Field label="المؤهل العلمي"><input value={form.education ?? ''} onChange={(e) => set('education', e.target.value)} className={inputCls} /></Field>
+            <Field label="المؤهل العلمي" error={errors.education}>
+              <AnimatedSelect
+                ariaLabel="المؤهل العلمي"
+                value={educationSelect}
+                placeholder="اختر المؤهل العلمي"
+                options={EDUCATION_OPTIONS}
+                onChange={(next) => {
+                  setEducationSelect(next)
+                  if (next !== 'other') setEducationOther('')
+                  set('education', educationFromFormState(next, next === 'other' ? educationOther : ''))
+                  setErrors((err) => ({ ...err, education: '' }))
+                }}
+              />
+            </Field>
+            {educationSelect === 'other' && (
+              <Field label="يرجى تحديد المؤهل العلمي" error={errors.education_other}>
+                <input
+                  value={educationOther}
+                  onChange={(e) => {
+                    setEducationOther(e.target.value)
+                    set('education', educationFromFormState('other', e.target.value))
+                    setErrors((err) => ({ ...err, education: '', education_other: '' }))
+                  }}
+                  className={inputCls}
+                  placeholder="اكتب المؤهل العلمي"
+                  aria-label="يرجى تحديد المؤهل العلمي"
+                />
+              </Field>
+            )}
+            <Field label="التخصص الجامعي" error={errors.university_specialization}>
+              <AnimatedSelect
+                ariaLabel="التخصص الجامعي"
+                value={specializationSelect}
+                placeholder="اختر التخصص الجامعي"
+                options={SPECIALIZATION_OPTIONS}
+                onChange={(next) => {
+                  setSpecializationSelect(next)
+                  if (next !== UNIVERSITY_SPECIALIZATION_OTHER) setSpecializationOther('')
+                  set('university_specialization', specializationFromFormState(next, next === UNIVERSITY_SPECIALIZATION_OTHER ? specializationOther : ''))
+                  setErrors((err) => ({ ...err, university_specialization: '' }))
+                }}
+              />
+            </Field>
+            {specializationSelect === UNIVERSITY_SPECIALIZATION_OTHER && (
+              <Field label="اكتب تخصصك الجامعي">
+                <input
+                  value={specializationOther}
+                  onChange={(e) => {
+                    setSpecializationOther(e.target.value)
+                    set('university_specialization', specializationFromFormState(UNIVERSITY_SPECIALIZATION_OTHER, e.target.value))
+                  }}
+                  className={inputCls}
+                  placeholder="اكتب تخصصك الجامعي"
+                />
+              </Field>
+            )}
             <Field label="الخبرات السابقة"><textarea value={form.experience ?? ''} onChange={(e) => set('experience', e.target.value)} className={`${inputCls} min-h-20`} /></Field>
             <Field label="المهام الحالية / الدافع للتطوع"><textarea value={form.motivation ?? ''} onChange={(e) => set('motivation', e.target.value)} className={`${inputCls} min-h-20`} /></Field>
           </div>
+        </section>
+
+        {/* Section 3b — About the volunteer */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="mb-4 text-[11px] font-black uppercase tracking-wide text-customBlue">نبذة عن المتطوع</p>
+          <Field label="نبذة تعريفية" error={errors.professional_bio} hint="اكتب نبذة قصيرة ومهنية يمكن عرضها في منصة EMC">
+            <textarea
+              value={form.professional_bio ?? ''}
+              onChange={(e) => set('professional_bio', e.target.value.slice(0, BIO_MAX_LENGTH))}
+              maxLength={BIO_MAX_LENGTH}
+              className={`${inputCls} min-h-24`}
+            />
+            <span className="mt-1 block text-left text-[11px] font-bold text-slate-400" dir="ltr">
+              {(form.professional_bio ?? '').length} / {BIO_MAX_LENGTH}
+            </span>
+          </Field>
         </section>
 
         {/* Section 4 — Documents */}
@@ -341,6 +526,7 @@ export default function VolunteerHrProfilePage() {
               onChange={(f) => set('profile_photo', f)}
               error={errors.profile_photo}
               accept="image/*"
+              hint="JPG أو PNG أو WEBP — يمكن استخدام الصورة في الملف التعريفي بعد موافقتك"
               imageContext="avatar"
             />
             <Field label="رابط LinkedIn" error={errors.linkedin_url}>
@@ -349,6 +535,29 @@ export default function VolunteerHrProfilePage() {
             <Field label="رابط معرض الأعمال" error={errors.portfolio_url}>
               <input value={form.portfolio_url ?? ''} onChange={(e) => set('portfolio_url', e.target.value)} className={inputCls} dir="ltr" />
             </Field>
+          </div>
+        </section>
+
+        {/* Section 4b — Consent and privacy — two INDEPENDENT explicit consents, never bundled */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="mb-4 text-[11px] font-black uppercase tracking-wide text-customBlue">الموافقات والخصوصية</p>
+          <div className="grid gap-3">
+            <ConsentCard
+              title="استخدام الصورة الشخصية"
+              question="هل توافق على استخدام ونشر صورتك الشخصية في منصات المركز؟"
+              explanation="قد تُستخدم صورتك في منصة EMC، الموقع الإلكتروني، المجلات والمنشورات، وحسابات التواصل الاجتماعي الرسمية الخاصة بالمركز."
+              value={form.photo_publication_consent ?? null}
+              onChange={(v) => set('photo_publication_consent', v)}
+              error={errors.photo_publication_consent}
+            />
+            <ConsentCard
+              title="عرض البيانات المهنية"
+              question="هل توافق على عرض بياناتك المهنية الأساسية ضمن منصات EMC؟"
+              explanation="سيتم استخدام وعرض المعلومات اللازمة فقط مثل الاسم، الصورة عند الموافقة، القسم، المسمى الوظيفي، التخصص، والنبذة التعريفية. لن يتم نشر بيانات الاتصال الخاصة مثل رقم الهاتف أو البريد الإلكتروني دون حاجة أو صلاحية مناسبة."
+              value={form.professional_profile_consent ?? null}
+              onChange={(v) => set('professional_profile_consent', v)}
+              error={errors.professional_profile_consent}
+            />
           </div>
         </section>
 
@@ -374,13 +583,17 @@ export default function VolunteerHrProfilePage() {
   )
 }
 
-const inputCls = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
+const inputCls = 'box-border min-h-[42px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
 
-function Field({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, error, required, hint, children }: { label: string; error?: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
-    <label className="grid gap-1 text-xs font-black text-deepBlue">
-      {label} {required && <span className="text-red-500">*</span>}
+    <label className="grid min-w-0 gap-1.5 text-xs font-black text-deepBlue">
+      <span className="inline-flex min-h-[1.25rem] items-center gap-1">
+        <span>{label}</span>
+        {required && <span className="text-red-500" aria-hidden="true">*</span>}
+      </span>
       {children}
+      {hint && !error && <span className="text-[11px] font-semibold text-slate-400">{hint}</span>}
       {error && <span className="text-[11px] font-bold text-red-600">{error}</span>}
     </label>
   )

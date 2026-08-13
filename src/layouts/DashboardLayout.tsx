@@ -222,7 +222,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const { canCreate } = useFinancialRequestContext()
 
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
-    const base = getSidebarByRole(user?.role)
+    const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
 
     // Backend is the single source of truth for who may submit financial requests.
     // Inject the department link only when the backend says can_create=true AND

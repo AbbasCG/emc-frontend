@@ -7,6 +7,7 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import DashboardAccessGuard from './components/DashboardAccessGuard'
+import EnglishInstituteGuard from './components/EnglishInstituteGuard'
 import AppToaster from './components/feedback/AppToaster'
 import RouteFallback from './components/RouteFallback'
 import { CookieConsentProvider } from './contexts/CookieConsentContext'
@@ -89,6 +90,7 @@ const InstructorOralAssessmentsPage   = lazy(() => import('./pages/lms/instructo
 const InstructorAvailabilityPage      = lazy(() => import('./pages/lms/instructor/InstructorAvailabilityPage'))
 const InstructorAllStudentsPage       = lazy(() => import('./pages/lms/instructor/InstructorAllStudentsPage'))
 const InstructorCourseStudentsPage    = lazy(() => import('./pages/lms/instructor/InstructorCourseStudentsPage'))
+const InstructorQuizzesPage           = lazy(() => import('./pages/lms/instructor/InstructorQuizzesPage'))
 const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructor/InstructorPlacementTestsPage'))
 const InstructorClassesPage           = lazy(() => import('./pages/lms/instructor/InstructorClassesPage'))
 const InstructorClassWorkspacePage    = lazy(() => import('./pages/lms/instructor/InstructorClassWorkspacePage'))
@@ -531,11 +533,14 @@ function App() {
                   <Route path="/dashboard/instructor/availability" element={<InstructorAvailabilityPage />} />
                   <Route path="/dashboard/instructor/students" element={<InstructorAllStudentsPage />} />
                   <Route path="/dashboard/instructor/courses/:courseId/students" element={<InstructorCourseStudentsPage />} />
+                  <Route path="/dashboard/instructor/courses/:courseId/quizzes" element={<Suspense fallback={<RouteFallback />}><InstructorQuizzesPage /></Suspense>} />
                   <Route path="/dashboard/instructor/placement-tests" element={<InstructorPlacementTestsPage />} />
                   <Route path="/dashboard/instructor/classes" element={<InstructorClassesPage />} />
                   <Route path="/dashboard/instructor/classes/:groupId/:tab" element={<Suspense fallback={<RouteFallback />}><InstructorClassWorkspacePage /></Suspense>} />
                   <Route path="/dashboard/instructor/calendar" element={<Suspense fallback={<RouteFallback />}><InstructorCalendarPage /></Suspense>} />
-                  <Route path="/dashboard/instructor/institute" element={<Suspense fallback={<RouteFallback />}><InstituteTeacherDashboard /></Suspense>} />
+                  <Route element={<EnglishInstituteGuard />}>
+                    <Route path="/dashboard/instructor/institute" element={<Suspense fallback={<RouteFallback />}><InstituteTeacherDashboard /></Suspense>} />
+                  </Route>
                   <Route path="/dashboard/instructor/classes/:groupId/sessions/:sessionId" element={<Suspense fallback={<RouteFallback />}><InstructorSessionDetailPage /></Suspense>} />
                   <Route path="/dashboard/instructor/workshops" element={<InstructorAssignedCoursesPage />} />
                   </Route>

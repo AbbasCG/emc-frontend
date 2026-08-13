@@ -9,9 +9,12 @@ import { formatCountryDisplay, codeToFlag } from '@/lib/countries'
 export default function CountryDisplay({
   code,
   localizedName,
+  nameOverride,
 }: {
   code?: string | null
   localizedName?: string | null
+  /** When set, shown instead of the official country name (e.g. nationality demonym). */
+  nameOverride?: string | null
 }) {
   const { country, label } = formatCountryDisplay(code, localizedName)
 
@@ -29,13 +32,14 @@ export default function CountryDisplay({
   const dataUri = svgMarkup
     ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup)}`
     : null
+  const displayName = nameOverride?.trim() || country.name
 
   return (
     <span
       data-testid="country-value"
       className="inline-flex flex-wrap items-center gap-1.5"
       dir="ltr"
-      aria-label={country.name}
+      aria-label={displayName}
     >
       {dataUri ? (
         <img
@@ -57,7 +61,7 @@ export default function CountryDisplay({
       )}
       <span className="font-black tracking-wide text-deepBlue">{country.code}</span>
       <span className="font-bold text-deepBlue" dir="rtl">
-        ({country.name})
+        ({displayName})
       </span>
     </span>
   )

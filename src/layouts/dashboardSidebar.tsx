@@ -449,8 +449,13 @@ function techAdminSidebar(): SidebarNavGroup[] {
   ]
 }
 
+export interface SidebarContext {
+  /** True when the instructor teaches at least one course with requires_placement_test=true — gates المعهد الإنجليزي. Source of truth: courses.requires_placement_test, never role/department/title. */
+  hasEnglishCourses?: boolean
+}
+
 /** Role-specific sidebar navigation (Arabic RTL labels). */
-export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
+export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext): SidebarNavGroup[] {
   const n = normalizeRole(roleRaw ?? null)
 
   if (n === 'super_admin') return superMasterSidebar()
@@ -680,7 +685,7 @@ export function getSidebarByRole(roleRaw?: string | null): SidebarNavGroup[] {
       {
         items: [
           { label: 'لوحة التحكم',   href: home,                                  icon: LayoutDashboard },
-          { label: 'المعهد الإنجليزي',href: '/dashboard/instructor/institute',     icon: Building2 },
+          ...(ctx?.hasEnglishCourses ? [{ label: 'المعهد الإنجليزي', href: '/dashboard/instructor/institute', icon: Building2 }] : []),
           { label: 'دوراتي',        href: '/dashboard/instructor/courses',         icon: BookMarked      },
           { label: 'مساراتي التعليمية', href: '/dashboard/instructor/learning-paths', icon: GraduationCap },
           { label: 'الجلسات',       href: '/dashboard/instructor/sessions',        icon: Calendar        },

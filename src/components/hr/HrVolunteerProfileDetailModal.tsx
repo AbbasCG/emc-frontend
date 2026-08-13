@@ -19,6 +19,7 @@ import {
   Loader2,
   Pencil,
   Send,
+  ShieldCheck,
   UserRound,
   Users,
   X,
@@ -38,6 +39,8 @@ import {
 import type { VolunteerHrProfile, VolunteerHrProfileStatus } from '@/api/volunteerHrProfileApi'
 import { formatCountryDisplay } from '@/lib/countries'
 import CountryDisplay from '@/components/ui/CountryDisplay'
+import { getEducationLabel } from '@/data/educationLevels'
+import { getNationalityLabel, resolveNationalityCode } from '@/data/nationalities'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 
 /* ── Tokens ─────────────────────────────────────────────────────────── */
@@ -366,7 +369,12 @@ function PersonalInfoCard({
 }) {
   const age = calcAge(profile.date_of_birth)
   // Nationality is independent of residence country — never infer from phone/country_code.
-  const nationalityDisplay = formatCountryDisplay(null, profile.nationality)
+  const nationalityCode = resolveNationalityCode(profile.nationality)
+  const nationalityLabel = nationalityCode
+    ? getNationalityLabel(nationalityCode)
+    : profile.nationality
+  // Keep formatCountryDisplay for legacy free-text that isn't a known demonym/ISO.
+  const nationalityFallback = formatCountryDisplay(null, profile.nationality)
   const rows: { label: string; value: React.ReactNode; trailing?: React.ReactNode }[] = [
     { label: 'الاسم الكامل', value: profile.full_name },
     { label: 'البريد الإلكتروني', value: <span dir="ltr">{profile.email}</span> },
@@ -389,7 +397,9 @@ function PersonalInfoCard({
       ),
     },
     {
-      label: 'الدولة',
+      // Residence, distinct from nationality below — the volunteer's own
+      // "بلد الإقامة الحالي" selector, not inferred from phone/nationality.
+      label: 'بلد الإقامة الحالي',
       value: (profile.country || profile.country_code)
         ? <CountryDisplay code={profile.country_code} localizedName={profile.country} />
         : null,
@@ -398,13 +408,20 @@ function PersonalInfoCard({
       label: 'الجنسية',
       value: profile.nationality
         ? (
-          nationalityDisplay.country
-            ? <CountryDisplay code={nationalityDisplay.country.code} localizedName={nationalityDisplay.country.name} />
-            : <span dir="auto">{profile.nationality}</span>
+          nationalityCode
+            ? (
+              <CountryDisplay
+                code={nationalityCode}
+                nameOverride={nationalityLabel}
+              />
+            )
+            : nationalityFallback.country
+              ? <CountryDisplay code={nationalityFallback.country.code} localizedName={nationalityFallback.country.name} />
+              : <span dir="auto">{profile.nationality}</span>
         )
         : null,
     },
-    { label: 'المدينة', value: profile.city },
+    { label: 'مدينة الإقامة الحالية', value: profile.city },
     { label: 'تاريخ الميلاد', value: profile.date_of_birth ? formatDate(profile.date_of_birth) : null },
     { label: 'العمر', value: age },
     { label: 'الجنس', value: genderLabel(profile.gender) },
@@ -429,6 +446,7 @@ function VolunteerInfoCard({ profile }: { profile: VolunteerHrProfile }) {
   const rows = [
     { label: 'القسم', value: profile.department?.name },
     { label: 'المسمى الوظيفي', value: profile.job_title },
+    { label: 'الدور', value: null },
     { label: 'تاريخ الانضمام', value: profile.join_date ? formatDate(profile.join_date) : null },
     {
       label: 'عدد ساعات العمل الأسبوعية',
@@ -436,6 +454,7 @@ function VolunteerInfoCard({ profile }: { profile: VolunteerHrProfile }) {
     },
     { label: 'التوفر', value: profile.availability },
     { label: 'نوع التطوع', value: employmentLabel(profile.employment_type) },
+    { label: 'مستوى الخبرة', value: null },
   ]
 
   return (
@@ -468,8 +487,10 @@ function SkillsLanguagesCard({ profile }: { profile: VolunteerHrProfile }) {
           </p>
           <Chips items={profile.languages ?? []} tone="sky" />
         </div>
-        <InfoRow label="المؤهل العلمي" value={profile.education} />
+        <InfoRow label="المؤهل العلمي" value={getEducationLabel(profile.education)} />
+        <InfoRow label="التخصص الجامعي" value={profile.university_specialization} />
         <InfoRow label="الخبرات السابقة" value={profile.experience} />
+        <InfoRow label="النبذة التعريفية" value={profile.professional_bio} />
         <InfoRow label="الدافع للتطوع" value={profile.motivation} last />
         {(profile.linkedin_url || profile.portfolio_url) && (
           <div className={`flex flex-wrap gap-2 border-t ${BORDER} pt-3`}>
@@ -500,6 +521,46 @@ function SkillsLanguagesCard({ profile }: { profile: VolunteerHrProfile }) {
   )
 }
 
+function ConsentBadge({ value, at }: { value: boolean | null; at: string | null }) {
+  if (value === true) {
+    return (
+      <div>
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700 ring-1 ring-emerald-200">
+          <CheckCircle2 size={12} aria-hidden /> موافق
+        </span>
+        {at && <p className="mt-1 text-[10px] font-semibold text-slate-400">{formatDateTime(at)}</p>}
+      </div>
+    )
+  }
+  if (value === false) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-500 ring-1 ring-slate-200">
+        <XCircle size={12} aria-hidden /> غير موافق
+      </span>
+    )
+  }
+  // HR must never infer consent from whether a photo/bio happens to exist —
+  // an unanswered legacy row (predating this feature) shows explicitly as such.
+  return <span className="text-[11px] font-semibold text-slate-300">لم تتم الإجابة</span>
+}
+
+function ConsentPrivacyCard({ profile }: { profile: VolunteerHrProfile }) {
+  return (
+    <CardShell title="الموافقات والخصوصية" icon={ShieldCheck}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <p className="mb-1.5 text-[11px] font-bold text-slate-400">استخدام الصورة</p>
+          <ConsentBadge value={profile.photo_publication_consent} at={profile.photo_consent_at} />
+        </div>
+        <div>
+          <p className="mb-1.5 text-[11px] font-bold text-slate-400">عرض البيانات المهنية</p>
+          <ConsentBadge value={profile.professional_profile_consent} at={profile.professional_profile_consent_at} />
+        </div>
+      </div>
+    </CardShell>
+  )
+}
+
 function DocumentsCard({
   profile,
   onPreview,
@@ -514,32 +575,36 @@ function DocumentsCard({
   return (
     <CardShell title="الوثائق" icon={FileText}>
       {profile.cv.available ? (
-        <div className={`flex flex-wrap items-center justify-between gap-3 rounded-[14px] border ${BORDER} bg-[#F7FAFC] p-3`}>
-          <div className="flex min-w-0 items-center gap-3">
+        <div className={`flex min-w-0 flex-col gap-3 rounded-[14px] border ${BORDER} bg-[#F7FAFC] p-3 sm:flex-row sm:items-center`}>
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-customBlue ring-1 ring-[#DCE6F0]">
               <FileText size={18} aria-hidden />
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-black text-deepBlue">
+            <div className="min-w-0 flex-1">
+              <p
+                dir="auto"
+                className="truncate overflow-hidden text-ellipsis text-[13px] font-black text-deepBlue"
+                title={profile.cv.file_name ?? undefined}
+              >
                 {profile.cv.file_name ?? 'السيرة الذاتية'}
               </p>
-              <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
-                {[
-                  profile.cv.mime_type?.includes('pdf') ? 'PDF' : profile.cv.mime_type,
-                  formatFileSize(profile.cv.size),
-                  profile.cv.uploaded_at
-                    ? `تاريخ الرفع ${formatDateTime(profile.cv.uploaded_at).replace(' ', ' - ')}`
-                    : null,
-                ].filter(Boolean).join(' · ')}
+              <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] font-semibold text-slate-400">
+                <span>{profile.cv.mime_type?.includes('pdf') ? 'PDF' : profile.cv.mime_type?.includes('word') || profile.cv.mime_type?.includes('document') ? 'Word' : (profile.cv.mime_type || 'ملف')}</span>
+                <span>{formatFileSize(profile.cv.size)}</span>
+                {profile.cv.uploaded_at ? (
+                  <span>تاريخ الرفع {formatDateTime(profile.cv.uploaded_at)}</span>
+                ) : null}
               </p>
             </div>
           </div>
-          <CvActionButtons
-            onPreview={onPreview}
-            onDownload={onDownload}
-            downloading={downloading}
-            compact
-          />
+          <div className="shrink-0">
+            <CvActionButtons
+              onPreview={onPreview}
+              onDownload={onDownload}
+              downloading={downloading}
+              compact
+            />
+          </div>
         </div>
       ) : (
         <p className="text-[12px] font-semibold text-slate-300">غير متوفر</p>
@@ -881,9 +946,20 @@ export default function HrVolunteerProfileDetailModal({
       URL.revokeObjectURL(objectUrlRef.current)
       objectUrlRef.current = null
     }
-    const supportedMime = (m: string | null) => m === 'application/pdf' || m?.startsWith('image/')
-    if (profile.cv.mime_type && !supportedMime(profile.cv.mime_type)) {
-      setPreview({ kind: 'error', message: 'المعاينة غير متاحة لهذا النوع من الملفات، يمكنك تحميل الملف' })
+    const mime = profile.cv.mime_type?.toLowerCase() ?? ''
+    const isWord =
+      mime.includes('msword') ||
+      mime.includes('wordprocessingml') ||
+      mime.includes('officedocument') ||
+      /\.docx?$/i.test(profile.cv.file_name ?? '')
+    const supportedMime = mime === 'application/pdf' || mime.startsWith('image/')
+    if (mime && !supportedMime) {
+      setPreview({
+        kind: 'error',
+        message: isWord
+          ? 'معاينة ملفات Word (DOC/DOCX) غير متاحة داخل المتصفح. يمكنك تحميل الملف وفتحه محلياً.'
+          : 'المعاينة غير متاحة لهذا النوع من الملفات، يمكنك تحميل الملف.',
+      })
       return
     }
     try {
@@ -974,6 +1050,7 @@ export default function HrVolunteerProfileDetailModal({
                       onDownload={() => void handleDownloadCv()}
                       downloading={downloadingCv}
                     />
+                    <ConsentPrivacyCard profile={profile} />
                     <ReviewHistoryCard profile={profile} />
                   </div>
                 </div>
