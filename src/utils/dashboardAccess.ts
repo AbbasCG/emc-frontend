@@ -116,7 +116,37 @@ const STUDENT_EXTRA_PREFIXES = [
   '/dashboard/quizzes/',
 ]
 
-const INSTRUCTOR_EXTRA_PREFIXES = ['/dashboard/resources']
+/**
+ * Resource Center (مركز الموارد / مكتبة الدورات) — internal staff read/share access.
+ * Single canonical list: sidebar, DashboardAccessGuard, and tests must stay aligned.
+ * Volunteer kept (existing policy treats accepted volunteers as internal members).
+ * Students / partners / public are intentionally excluded.
+ */
+export const RESOURCE_CENTER_ROLES = [
+  'super_admin',
+  'tech_admin',
+  'executive_admin',
+  'admin',
+  'programs_manager',
+  'instructor',
+  'marketing_manager',
+  'support_agent',
+  'hr_manager',
+  'quality_manager',
+  'finance_manager',
+  'operations_manager',
+  'partnerships_manager',
+  'community_manager',
+  'volunteer',
+] as const
+
+export function canAccessResourceCenter(roleRaw: string | null | undefined): boolean {
+  const role = normalizeRole(roleRaw ?? null)
+  if (!role) return false
+  // Mirror DashboardAccessGuard: unrestricted platform roles always pass.
+  if (role === 'super_admin' || role === 'tech_admin') return true
+  return (RESOURCE_CENTER_ROLES as readonly string[]).includes(role)
+}
 
 /** Admin/super_admin “wide” shortcuts (sidebar) — not under /dashboard/admin/. */
 const ADMIN_WIDE_EXACT = new Set([
@@ -231,9 +261,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 
   /* Resource Center (مركز الموارد) — read-only course library for internal staff */
   if (path === '/dashboard/resources' || path.startsWith('/dashboard/resources/')) {
-    return ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'instructor',
-            'hr_manager', 'finance_manager', 'marketing_manager', 'quality_manager',
-            'support_agent', 'volunteer']
+    return [...RESOURCE_CENTER_ROLES]
   }
 
   for (const rule of DASHBOARD_NAMESPACE_RULES) {
@@ -252,8 +280,6 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 
   /* Student LMS paths (/dashboard/courses/:id/modules, lessons, quizzes, …) */
   if (matchesAnyPrefix(path, STUDENT_EXTRA_PREFIXES)) return ['student']
-
-  if (matchesAnyPrefix(path, INSTRUCTOR_EXTRA_PREFIXES)) return ['instructor']
 
   return []
 }

@@ -90,7 +90,7 @@ export default function Contact() {
   const { t } = useTranslation()
   const optionCards = useMemo(() => buildOptionCards(t), [t])
   const location = useLocation()
-  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const highlightTimeoutRef = useRef<number | null>(null)
   const [isFormHighlighted, setIsFormHighlighted] = useState(false)
   const [form, setFormData] = useState({
     name: '', email: '', phone: '', category: 'general', subject: '', message: '',
@@ -112,7 +112,7 @@ export default function Contact() {
       window.scrollTo({ top: y, behavior: 'smooth' })
 
       setIsFormHighlighted(true)
-      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current)
+      if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
       highlightTimeoutRef.current = window.setTimeout(() => setIsFormHighlighted(false), 1300)
     }, 100)
 
@@ -121,7 +121,7 @@ export default function Contact() {
 
   useEffect(() => {
     return () => {
-      if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current)
+      if (highlightTimeoutRef.current) window.clearTimeout(highlightTimeoutRef.current)
     }
   }, [])
 

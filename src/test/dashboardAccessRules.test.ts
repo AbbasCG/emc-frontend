@@ -182,9 +182,30 @@ describe('getAllowedRolesForPath — مسارات التعلّم والمحتو�
     expect(canAccessDashboardPath('student', '/dashboard/courses/12')).toBe(true)
   })
 
-  it('مكتبة الموارد للمدرّب', () => {
-    expect(getAllowedRolesForPath('/dashboard/resources')).toEqual(['instructor'])
-    expect(getAllowedRolesForPath('/dashboard/resources/9')).toEqual(['instructor'])
+  it('مركز الموارد / مكتبة الدورات — أدوار الموظفين الداخليين فقط', () => {
+    const allowed = getAllowedRolesForPath('/dashboard/resources/courses')
+    expect(allowed).toEqual(expect.arrayContaining([
+      'super_admin',
+      'tech_admin',
+      'executive_admin',
+      'admin',
+      'programs_manager',
+      'instructor',
+      'marketing_manager',
+      'support_agent',
+      'hr_manager',
+      'quality_manager',
+      'finance_manager',
+      'operations_manager',
+      'partnerships_manager',
+      'community_manager',
+      'volunteer',
+    ]))
+    expect(allowed).not.toContain('student')
+    expect(allowed).not.toContain('partner')
+    expect(canAccessDashboardPath('programs_manager', '/dashboard/resources/courses')).toBe(true)
+    expect(canAccessDashboardPath('student', '/dashboard/resources/courses')).toBe(false)
+    expect(canAccessDashboardPath(null, '/dashboard/resources/courses')).toBe(false)
   })
 
   it('الاختصارات الإدارية الواسعة تُطابق بالمسار التام فقط', () => {

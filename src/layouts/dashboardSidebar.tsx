@@ -461,6 +461,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
         { label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog },
       ],
     },
+    ...resourceCenterBlock({ collapsible: true }),
   ]
 }
 
@@ -714,13 +715,13 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'الحضور',        href: '/dashboard/instructor/attendance',       icon: UserCheck       },
           { label: 'التسليمات',     href: '/dashboard/instructor/submissions',      icon: ClipboardList   },
           ...(ctx?.hasEnglishCourses ? [{ label: 'الاختبارات القصيرة', href: '/dashboard/instructor/quizzes', icon: ClipboardCheck }] : []),
-          { label: 'مكتبة الدورات', href: '/dashboard/resources/courses',          icon: BookMarked      },
           { label: 'الإشعارات',     href: '/dashboard/notifications',              icon: Bell            },
           { label: 'التقويم',       href: '/calendar',                             icon: CalendarDays    },
           { label: 'الملفات',       href: '/documents',                            icon: FolderOpen      },
           { label: 'الملف الشخصي',  href: '/dashboard/profile',                   icon: UserCog         },
         ],
       },
+      ...resourceCenterBlock(),
     ]
   }
 
@@ -790,6 +791,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'الملف الشخصي', href: '/dashboard/profile',              icon: UserCog      },
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
     ]
   }
 
@@ -814,6 +816,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(),
     ]
   }
@@ -831,6 +834,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(),
     ]
   }
@@ -855,6 +859,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock(),
     ]
   }
