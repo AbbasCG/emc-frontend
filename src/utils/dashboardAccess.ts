@@ -229,6 +229,13 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
             'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager']
   }
 
+  /* Resource Center (مركز الموارد) — read-only course library for internal staff */
+  if (path === '/dashboard/resources' || path.startsWith('/dashboard/resources/')) {
+    return ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'instructor',
+            'hr_manager', 'finance_manager', 'marketing_manager', 'quality_manager',
+            'support_agent', 'volunteer']
+  }
+
   for (const rule of DASHBOARD_NAMESPACE_RULES) {
     if (path === rule.prefix || path.startsWith(`${rule.prefix}/`)) return [...rule.roles]
   }

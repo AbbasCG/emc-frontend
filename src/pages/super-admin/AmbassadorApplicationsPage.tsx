@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Download,
   Filter,
   Globe,
   GraduationCap,
@@ -28,7 +29,11 @@ import {
   type AmbassadorFilterOptions,
 } from '@/api/ambassadorApplicationApi'
 import AmbassadorApplicationDetailModal from '@/components/admin/AmbassadorApplicationDetailModal'
+import AmbassadorExportModal from '@/components/admin/AmbassadorExportModal'
+import { useAuth } from '@/contexts/AuthContext'
 import { formatDate } from '@/utils/dateTime'
+
+const EXPORT_ALLOWED_ROLES = ['super_admin', 'executive_admin', 'hr_manager']
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -211,6 +216,10 @@ export default function AmbassadorApplicationsPage() {
   const [selected, setSelected] = useState<AmbassadorApplication | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [filterOptions, setFilterOptions] = useState<AmbassadorFilterOptions>(EMPTY_OPTIONS)
+  const [exportSelectedIds, setExportSelectedIds] = useState<number[]>([])
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const { user } = useAuth()
+  const canExport = Boolean(user?.role && EXPORT_ALLOWED_ROLES.includes(String(user.role)))
 
   const listBase = window.location.pathname.includes('/hr/')
     ? '/dashboard/hr/ambassador-applications'
@@ -563,15 +572,27 @@ export default function AmbassadorApplicationsPage() {
             <p className="text-xs font-semibold text-slate-500">إدارة ومراجعة طلبات الانضمام لبرنامج السفراء</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void load(listParams)}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
-        >
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-          تحديث
-        </button>
+        <div className="flex items-center gap-2">
+          {canExport && (
+            <button
+              type="button"
+              onClick={() => setExportModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+            >
+              <Download size={15} />
+              تصدير البيانات
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void load(listParams)}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            تحديث
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -771,6 +792,23 @@ export default function AmbassadorApplicationsPage() {
           <table className="w-full min-w-[860px] text-right text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/70">
+                {canExport && (
+                  <th className="w-10 px-4 py-3.5">
+                    <input
+                      type="checkbox"
+                      checked={applications.length > 0 && applications.every((a) => exportSelectedIds.includes(a.id))}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        setExportSelectedIds((prev) =>
+                          e.target.checked
+                            ? Array.from(new Set([...prev, ...applications.map((a) => a.id)]))
+                            : prev.filter((id) => !applications.some((a) => a.id === id)),
+                        )
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 accent-deepBlue"
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3.5 text-xs font-black text-slate-500">#</th>
                 <th className="px-4 py-3.5 text-xs font-black text-slate-500">المتقدم</th>
                 <th className="px-4 py-3.5 text-xs font-black text-slate-500">الجامعة</th>
@@ -833,6 +871,20 @@ export default function AmbassadorApplicationsPage() {
                     onClick={() => openDetail(app.id)}
                     className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50/70"
                   >
+                    {canExport && (
+                      <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={exportSelectedIds.includes(app.id)}
+                          onChange={(e) =>
+                            setExportSelectedIds((prev) =>
+                              e.target.checked ? [...prev, app.id] : prev.filter((id) => id !== app.id),
+                            )
+                          }
+                          className="h-4 w-4 rounded border-slate-300 accent-deepBlue"
+                        />
+                      </td>
+                    )}
                     <td className="px-4 py-3.5 text-xs font-bold text-slate-400">
                       {(pagination.current_page - 1) * (pagination.per_page || 20) + idx + 1}
                     </td>
@@ -882,6 +934,16 @@ export default function AmbassadorApplicationsPage() {
             app={selected}
             onClose={handleCloseModal}
             onUpdated={handleUpdated}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {exportModalOpen && (
+          <AmbassadorExportModal
+            onClose={() => setExportModalOpen(false)}
+            currentSearch={search}
+            selectedIds={exportSelectedIds}
           />
         )}
       </AnimatePresence>

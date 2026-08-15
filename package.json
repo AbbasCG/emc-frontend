@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@sentry/react": "^10.69.0",
+    "@types/qrcode": "^1.5.6",
     "axios": "^1.15.2",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
@@ -39,6 +40,7 @@
     "lucide-react": "^1.11.0",
     "pdf-lib": "^1.17.1",
     "pusher-js": "^8.5.0",
+    "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-helmet-async": "^3.0.0",

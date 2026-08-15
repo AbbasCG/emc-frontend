@@ -103,6 +103,18 @@ function membersNavItem(): SidebarNavItem {
   return { label: 'الأعضاء', href: '/dashboard/members', icon: UserCheck }
 }
 
+function resourceCenterBlock(opts: { collapsible?: boolean } = {}): SidebarNavGroup[] {
+  return [
+    {
+      title: 'مركز الموارد',
+      ...(opts.collapsible ? { collapsible: true, defaultOpen: false } : {}),
+      items: [
+        { label: 'مكتبة الدورات', href: '/dashboard/resources/courses', icon: BookMarked },
+      ],
+    },
+  ]
+}
+
 function communicationsBlock(opts: { collapsible?: boolean } = {}): SidebarNavGroup[] {
   return [
     {
@@ -239,6 +251,8 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
       ],
     },
 
+    ...resourceCenterBlock({ collapsible: true }),
+
     // ── الحساب ───────────────────────────────────────────────────────────────
     {
       title: 'الحساب',
@@ -334,6 +348,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الملف الشخصي', href: '/dashboard/profile', icon: UserCog },
       ],
     },
+    ...resourceCenterBlock({ collapsible: true }),
     ...communicationsBlock({ collapsible: true }),
   ]
 }
@@ -482,6 +497,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock({ collapsible: true }),
     ]
   }
@@ -509,6 +525,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock({ collapsible: true }),
     ]
   }
@@ -558,6 +575,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'الفريق', href: '/dashboard/quality/team', icon: Users },
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock({ collapsible: true }),
     ]
   }
@@ -604,6 +622,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'ملفات الموارد البشرية',    href: '/dashboard/hr/documents',   icon: FolderLock   },
         ],
       },
+      ...resourceCenterBlock({ collapsible: true }),
       ...communicationsBlock({ collapsible: true }),
     ]
   }
@@ -617,6 +636,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock(),
       ...communicationsBlock(),
     ]
   }
@@ -629,6 +649,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock(),
       ...communicationsBlock(),
     ]
   }
@@ -642,6 +663,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
+      ...resourceCenterBlock(),
       ...communicationsBlock(),
     ]
   }
@@ -691,6 +713,8 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'الجلسات',       href: '/dashboard/instructor/sessions',        icon: Calendar        },
           { label: 'الحضور',        href: '/dashboard/instructor/attendance',       icon: UserCheck       },
           { label: 'التسليمات',     href: '/dashboard/instructor/submissions',      icon: ClipboardList   },
+          ...(ctx?.hasEnglishCourses ? [{ label: 'الاختبارات القصيرة', href: '/dashboard/instructor/quizzes', icon: ClipboardCheck }] : []),
+          { label: 'مكتبة الدورات', href: '/dashboard/resources/courses',          icon: BookMarked      },
           { label: 'الإشعارات',     href: '/dashboard/notifications',              icon: Bell            },
           { label: 'التقويم',       href: '/calendar',                             icon: CalendarDays    },
           { label: 'الملفات',       href: '/documents',                            icon: FolderOpen      },

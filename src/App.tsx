@@ -91,6 +91,7 @@ const InstructorAvailabilityPage      = lazy(() => import('./pages/lms/instructo
 const InstructorAllStudentsPage       = lazy(() => import('./pages/lms/instructor/InstructorAllStudentsPage'))
 const InstructorCourseStudentsPage    = lazy(() => import('./pages/lms/instructor/InstructorCourseStudentsPage'))
 const InstructorQuizzesPage           = lazy(() => import('./pages/lms/instructor/InstructorQuizzesPage'))
+const InstructorQuizzesHubPage        = lazy(() => import('./pages/lms/instructor/InstructorQuizzesHubPage'))
 const InstructorPlacementTestsPage    = lazy(() => import('./pages/lms/instructor/InstructorPlacementTestsPage'))
 const InstructorClassesPage           = lazy(() => import('./pages/lms/instructor/InstructorClassesPage'))
 const InstructorClassWorkspacePage    = lazy(() => import('./pages/lms/instructor/InstructorClassWorkspacePage'))
@@ -254,6 +255,7 @@ const VolunteerHrProfilePage           = lazy(() => import('./pages/dashboard/Vo
 const HrVolunteerProfilesPage          = lazy(() => import('./pages/dashboard/HrVolunteerProfilesPage'))
 const AmbassadorApplicationsPage       = lazy(() => import('./pages/super-admin/AmbassadorApplicationsPage'))
 const AmbassadorApplicationDetailPage  = lazy(() => import('./pages/super-admin/AmbassadorApplicationDetailPage'))
+const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/ResourceCenterCoursesPage'))
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
@@ -456,6 +458,7 @@ function App() {
                   <Route path="/dashboard/super-admin/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
                   <Route path="/dashboard/hr/ambassador-applications" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationsPage /></Suspense>} />
+                  <Route path="/dashboard/resources/courses" element={<Suspense fallback={<RouteFallback />}><ResourceCenterCoursesPage /></Suspense>} />
                   <Route path="/dashboard/hr/ambassador-applications/:id" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationDetailPage /></Suspense>} />
                   <Route path="/dashboard/super-admin/audit-logs" element={<SuperAdminAuditLogsPage />} />
                   <Route path="/dashboard/super-admin/product-updates" element={<Suspense fallback={<RouteFallback />}><ProductUpdatesPage /></Suspense>} />
@@ -533,6 +536,7 @@ function App() {
                   <Route path="/dashboard/instructor/availability" element={<InstructorAvailabilityPage />} />
                   <Route path="/dashboard/instructor/students" element={<InstructorAllStudentsPage />} />
                   <Route path="/dashboard/instructor/courses/:courseId/students" element={<InstructorCourseStudentsPage />} />
+                  <Route path="/dashboard/instructor/quizzes" element={<Suspense fallback={<RouteFallback />}><InstructorQuizzesHubPage /></Suspense>} />
                   <Route path="/dashboard/instructor/courses/:courseId/quizzes" element={<Suspense fallback={<RouteFallback />}><InstructorQuizzesPage /></Suspense>} />
                   <Route path="/dashboard/instructor/placement-tests" element={<InstructorPlacementTestsPage />} />
                   <Route path="/dashboard/instructor/classes" element={<InstructorClassesPage />} />
