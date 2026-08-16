@@ -73,7 +73,8 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/admin/volunteers',    roles: ['admin', 'super_admin', 'community_manager'] },
   { prefix: '/dashboard/admin/operations',    roles: ['admin', 'super_admin', 'operations_manager'] },
   { prefix: '/dashboard/admin/knowledge',     roles: ['admin', 'super_admin', 'programs_manager'] },
-  { prefix: '/dashboard/admin/programs',      roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/programs',      roles: ['admin', 'super_admin', 'programs_manager', 'partnerships_manager'] },
+  { prefix: '/dashboard/admin/workshop-requests', roles: ['admin', 'super_admin', 'executive_admin', 'finance_manager', 'quality_manager', 'partnerships_manager', 'operations_manager', 'programs_manager'] },
   { prefix: '/dashboard/admin/partners',      roles: ['admin', 'super_admin', 'partnerships_manager'] },
   { prefix: '/dashboard/admin/meetings',      roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
   { prefix: '/dashboard/admin/reports',       roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager'] },
@@ -83,6 +84,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/admin/kpi',              roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager'] },
   { prefix: '/dashboard/admin/lms',              roles: ['admin', 'super_admin', 'programs_manager'] },
   { prefix: '/dashboard/admin/registrations',    roles: ['admin', 'super_admin', 'tech_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/coupons',          roles: ['admin', 'super_admin', 'finance_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
@@ -203,6 +205,14 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (
     path === '/dashboard/department/hr-requests' ||
     path.startsWith('/dashboard/department/hr-requests/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* Meeting Lounge — any authenticated user */
+  if (
+    path === '/dashboard/department/meeting-lounge' ||
+    path.startsWith('/dashboard/department/meeting-lounge/')
   ) {
     return 'authenticated'
   }

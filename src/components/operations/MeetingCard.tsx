@@ -1,10 +1,18 @@
 import { motion } from 'framer-motion'
-import { Calendar, ChevronLeft } from 'lucide-react'
+import { Calendar, ChevronLeft, FileText } from 'lucide-react'
 import { Link } from 'react-router'
 import type { OpsMeeting } from '@/types/operations'
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 
-export default function MeetingCard({ m }: { m: OpsMeeting }) {
+export default function MeetingCard({ 
+  m, 
+  basePath = '/dashboard/admin/meetings',
+  onReportClick
+}: { 
+  m: OpsMeeting
+  basePath?: string
+  onReportClick?: (id: number) => void 
+}) {
   const cls =
     m.status === 'completed'
       ? 'bg-slate-50 text-slate-600'
@@ -38,13 +46,26 @@ export default function MeetingCard({ m }: { m: OpsMeeting }) {
         <span>{m.department_name ?? '—'}</span>
         <span>منظم: {m.organizer_name ?? '—'}</span>
       </div>
-      <Link
-        to={`/dashboard/admin/meetings/${m.id}`}
-        className="mt-4 flex items-center justify-end gap-1 text-xs font-black text-customBlue hover:text-customOrange"
-      >
-        التفاصيل
-        <ChevronLeft size={14} />
-      </Link>
+      <div className="mt-4 flex items-center justify-between">
+        {onReportClick ? (
+          <button
+            onClick={() => onReportClick(m.id)}
+            className="flex items-center gap-1 rounded-lg bg-deepBlue/5 px-3 py-1.5 text-xs font-black text-deepBlue transition hover:bg-deepBlue hover:text-white"
+          >
+            <FileText size={14} />
+            رفع التقرير
+          </button>
+        ) : (
+          <div />
+        )}
+        <Link
+          to={`${basePath}/${m.id}`}
+          className="flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
+        >
+          التفاصيل
+          <ChevronLeft size={14} />
+        </Link>
+      </div>
     </motion.article>
   )
 }

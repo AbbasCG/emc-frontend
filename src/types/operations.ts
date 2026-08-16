@@ -208,8 +208,25 @@ export type OpsVolunteer = {
 export type PartnerRecord = {
   id: number
   name: string
-  institution_type?: string | null
+  type?: string | null
+  contact_person?: string | null
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+  country?: string | null
+  city?: string | null
   status?: string | null
+  notes?: string | null
+  project_scope: string
+  classification?: string | null
+  field_of_work?: string | null
+  contact_position?: string | null
+  assigned_to?: string | null
+  first_contact_date?: string | null
+  last_contact_date?: string | null
+  rejection_reason?: string | null
+  attachment_url?: string | null
+  created_at?: string | null
   updated_at?: string | null
 }
 

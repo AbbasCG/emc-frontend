@@ -5,6 +5,7 @@ import {
   FileBarChart,
   HeartHandshake,
   Presentation,
+  Users,
 } from 'lucide-react'
 import { DashboardHero } from '@/components/dashboard'
 
@@ -55,6 +56,7 @@ export default function PartnershipsManagerDashboardPage() {
           <QuickLink href="/dashboard/admin/programs"              label="البرامج المشتركة"         icon={BookMarked}    />
           <QuickLink href="/dashboard/admin/reports"               label="التقارير التحليلية"       icon={FileBarChart}  />
           <QuickLink href="/dashboard/admin/workshop-requests"     label="طلبات البرامج التدريبية" icon={Presentation}  />
+          <QuickLink href="/dashboard/department/hr-requests"      label="طلبات الموارد البشرية"    icon={Users}         />
         </div>
       </section>
     </div>

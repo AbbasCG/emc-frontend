@@ -5,9 +5,33 @@ import type { PartnerRecord, PartnershipRequest } from '@/types/operations'
 
 const silent = { skipErrorToast: true as const }
 
-export async function fetchPartners(): Promise<PartnerRecord[]> {
-  const res = await apiClient.get<unknown>('/operations/partners')
-  return asList<PartnerRecord>(res.data)
+export interface PartnersResponse {
+  rows: PartnerRecord[]
+  kpis: {
+    total: number
+    actual: number
+    negotiation: number
+    rejected: number
+  }
+}
+
+export async function fetchPartners(project_scope: string = 'EMC_GENERAL'): Promise<PartnersResponse> {
+  const res = await apiClient.get<unknown>('/operations/partners', { params: { project_scope } })
+  const data = res.data as { data: any[], kpis: any }
+  return {
+    rows: asList<PartnerRecord>(data.data),
+    kpis: data.kpis || { total: 0, actual: 0, negotiation: 0, rejected: 0 }
+  }
+}
+
+export async function createPartner(payload: Partial<PartnerRecord>): Promise<PartnerRecord> {
+  const res = await apiClient.post<unknown>('/operations/partners', payload)
+  return res.data as PartnerRecord
+}
+
+export async function updatePartner(id: number, payload: Partial<PartnerRecord>): Promise<PartnerRecord> {
+  const res = await apiClient.put<unknown>(`/operations/partners/${id}`, payload)
+  return res.data as PartnerRecord
 }
 
 /** GET للسوبر مشرف — بدون سبام Toast؛ يفسِّر الغلق في الواجهة. */
@@ -16,8 +40,9 @@ export async function fetchPartnersForSuperAdmin(): Promise<
   | { ok: false; status?: number }
 > {
   try {
-    const res = await apiClient.get<unknown>('/operations/partners', silent)
-    return { ok: true, rows: asList<PartnerRecord>(res.data) }
+    const res = await apiClient.get<unknown>('/operations/partners', { ...silent, params: { project_scope: 'EMC_GENERAL' } })
+    const data = res.data as { data: any[] }
+    return { ok: true, rows: asList<PartnerRecord>(data.data) }
   } catch (e) {
     if (axios.isAxiosError(e)) return { ok: false, status: e.response?.status }
     return { ok: false }

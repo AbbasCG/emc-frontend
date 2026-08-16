@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
 import { lazy, Suspense, useEffect } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -144,6 +144,7 @@ const OpsTasksMyPage                = lazy(() => import('./pages/operations/admi
 const OpsTasksOverduePage           = lazy(() => import('./pages/operations/admin/OpsTasksOverduePage'))
 const OpsMeetingsPage               = lazy(() => import('./pages/operations/admin/OpsMeetingsPage'))
 const OpsMeetingDetailPage          = lazy(() => import('./pages/operations/admin/OpsMeetingDetailPage'))
+const MeetingLoungePage             = lazy(() => import('./pages/department/MeetingLoungePage'))
 const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
 const OpsFormDetailPage             = lazy(() => import('./pages/operations/admin/OpsFormDetailPage'))
@@ -605,6 +606,8 @@ function App() {
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/department/hr-requests" element={<HrMyRequestsPage />} />
+                  <Route path="/dashboard/department/meeting-lounge" element={<MeetingLoungePage />} />
+                  <Route path="/dashboard/department/meeting-lounge/:id" element={<OpsMeetingDetailPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
                   </Route>
 

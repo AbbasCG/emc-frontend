@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import MeetingCard from '@/components/operations/MeetingCard'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
-import { Calendar } from 'lucide-react'
+import { Calendar, Plus } from 'lucide-react'
+import CreateMeetingForm from '@/components/operations/CreateMeetingForm'
 import { fetchMeetings } from '@/api/meetingsApi'
 import type { OpsMeeting } from '@/types/operations'
 
@@ -14,6 +15,7 @@ export default function OpsMeetingsPage() {
   // Starts in the loading state, so the mount effect never has to flip it synchronously.
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -53,13 +55,28 @@ export default function OpsMeetingsPage() {
 
   return (
     <div className="space-y-8">
-      <header className="rounded-[1.35rem] bg-white p-8 text-right shadow-lg ring-1 ring-deepBlue/[0.06]">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-customBlue">الاجتماعات</p>
-        <h1 className="mt-2 text-2xl font-black text-deepBlue">جدول القيادة والتنسيق</h1>
-        <p className="mt-2 text-sm font-semibold text-slate-600">
-          أنواع الاجتماعات المعتمدة في EMC مع حالة التنفيذ والمالك المؤسسي.
-        </p>
+      <header className="rounded-[1.35rem] bg-white p-8 text-right shadow-lg ring-1 ring-deepBlue/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-customBlue">الاجتماعات</p>
+          <h1 className="mt-2 text-2xl font-black text-deepBlue">جدول القيادة والتنسيق</h1>
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            أنواع الاجتماعات المعتمدة في EMC مع حالة التنفيذ والمالك المؤسسي.
+          </p>
+        </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-3 text-sm font-black text-white transition hover:bg-deepBlue/90 shadow-sm shrink-0"
+        >
+          <Plus size={18} />
+          اجتماع جديد
+        </button>
       </header>
+
+      <CreateMeetingForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => void retry()}
+      />
 
       {items.length === 0 ? (
         <EmptyState icon={Calendar} title="لا اجتماعات مسجلة" />
