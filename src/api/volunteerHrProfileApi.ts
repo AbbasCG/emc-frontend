@@ -88,7 +88,7 @@ export type VolunteerHrProfileFormValues = {
   professional_bio?: string
   linkedin_url?: string
   portfolio_url?: string
-  /** Explicit choice required — must be true or false, never left undefined at submit time. */
+  /** null = no explicit choice made yet — must never be silently treated as false. */
   photo_publication_consent: boolean | null
   professional_profile_consent: boolean | null
   confirmed: boolean
@@ -96,18 +96,24 @@ export type VolunteerHrProfileFormValues = {
   profile_photo?: File | null
 }
 
-function toFormData(values: VolunteerHrProfileFormValues): FormData {
+const BOOLEAN_FIELDS = new Set(['confirmed', 'photo_publication_consent', 'professional_profile_consent'])
+
+export function toFormData(values: VolunteerHrProfileFormValues): FormData {
   const fd = new FormData()
   Object.entries(values).forEach(([key, val]) => {
-    if (val === undefined || val === null || val === '') return
     if (key === 'cv_file' || key === 'profile_photo') {
       if (val instanceof File) fd.append(key, val)
       return
     }
-    if (key === 'confirmed') {
+    if (BOOLEAN_FIELDS.has(key)) {
+      // FormData has no boolean type — every value becomes text. null means
+      // "not answered yet" and must not be sent as the string "null"; the
+      // caller is expected to have blocked submission before this point.
+      if (val === null || val === undefined) return
       fd.append(key, val ? '1' : '0')
       return
     }
+    if (val === undefined || val === null || val === '') return
     if (key === 'languages' && Array.isArray(val)) {
       val.forEach((lang) => fd.append('languages[]', lang))
       return

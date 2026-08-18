@@ -38,8 +38,8 @@ describe('formatLastLogin — future timestamps no longer leak a negative day co
 
   it('falls back to an absolute date once the future gap reaches a week', () => {
     // Pre-fix both fell into `diffDays < 7`, then `diffDays < 30`.
-    expect(formatLastLogin('2026-07-23T08:00:00Z')).toBe('23/07/2026')
-    expect(formatLastLogin('2026-08-16T08:00:00Z')).toBe('16/08/2026')
+    expect(formatLastLogin('2026-07-23T08:00:00Z')).toBe('الخميس، 23 يوليو 2026')
+    expect(formatLastLogin('2026-08-16T08:00:00Z')).toBe('الأحد، 16 أغسطس 2026')
   })
 
   it('never emits a minus sign for any future offset up to a year out', () => {
@@ -61,7 +61,7 @@ describe('formatLastLogin — future timestamps no longer leak a negative day co
     expect(formatLastLogin('2026-07-10T08:00:00Z')).toBe('منذ 6 أيام')
     expect(formatLastLogin('2026-07-09T08:00:00Z')).toBe('منذ 7 يوماً')
     expect(formatLastLogin('2026-06-17T08:00:00Z')).toBe('منذ 29 يوماً')
-    expect(formatLastLogin('2026-06-16T08:00:00Z')).toBe('16/06/2026')
+    expect(formatLastLogin('2026-06-16T08:00:00Z')).toBe('الثلاثاء، 16 يونيو 2026')
     expect(formatLastLogin(null)).toBe('—')
     expect(formatLastLogin('garbage')).toBe('—')
   })

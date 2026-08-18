@@ -14,7 +14,6 @@ import {
   ChevronDown,
   Clock,
   Copy,
-  Download,
   FileText,
   GraduationCap,
   HeartHandshake,
@@ -50,11 +49,6 @@ import {
   type AmbassadorStatus,
   type AmbassadorStatusHistory,
 } from '@/api/ambassadorApplicationApi'
-import {
-  fetchAmbassadorFileBlob,
-  getApplicationFiles,
-  triggerBlobDownload,
-} from '@/api/ambassadorApplicationFilesApi'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 import { AMBASSADOR_STATUS_CFG } from '@/pages/super-admin/ambassadorStatusConfig'
 
@@ -627,7 +621,6 @@ export default function AmbassadorApplicationDetailPage() {
   const [notePrivate, setNotePrivate] = useState(true)
   const [addingNote, setAddingNote] = useState(false)
 
-  const [downloadingAll, setDownloadingAll] = useState(false)
   const [confirmAction, setConfirmAction] = useState<'reject' | 'approve' | null>(null)
 
   // ── Load
@@ -764,26 +757,6 @@ export default function AmbassadorApplicationDetailPage() {
     }
   }
 
-  async function downloadAllFiles() {
-    if (!app) return
-    setDownloadingAll(true)
-    try {
-      const files = await getApplicationFiles(app.id)
-      if (!files.length) { toast.error('لا توجد ملفات للتحميل'); return }
-      for (const file of files) {
-        try {
-          const { blob, filename } = await fetchAmbassadorFileBlob(app.id, file.id, 'download')
-          triggerBlobDownload(blob, filename || file.original_name)
-        } catch { toast.error(`تعذّر تحميل: ${file.original_name}`) }
-      }
-      toast.success('تم بدء تحميل الملفات')
-    } catch {
-      toast.error('تعذّر تحميل الملفات')
-    } finally {
-      setDownloadingAll(false)
-    }
-  }
-
   function goBack() {
     // Prefer browser history so list search/filters/page are restored.
     if (window.history.length > 1) {
@@ -881,19 +854,6 @@ export default function AmbassadorApplicationDetailPage() {
             <ActionBtn size="sm" variant="neutral" onClick={() => void copyEmail()}>
               <Copy className="h-3.5 w-3.5" />
               نسخ البريد
-            </ActionBtn>
-            <ActionBtn
-              size="sm"
-              variant="neutral"
-              disabled={downloadingAll}
-              onClick={() => void downloadAllFiles()}
-            >
-              {downloadingAll ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Download className="h-3.5 w-3.5 text-[#0077B6]" />
-              )}
-              تحميل الملفات
             </ActionBtn>
             <ActionBtn size="sm" variant="neutral" onClick={() => window.print()}>
               <Printer className="h-3.5 w-3.5" />

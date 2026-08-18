@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Clock,
   Copy,
-  Download,
   Eye,
   ExternalLink,
   FileText,
@@ -19,7 +18,6 @@ import {
   Loader2,
   Pencil,
   Send,
-  ShieldCheck,
   UserRound,
   Users,
   X,
@@ -28,7 +26,6 @@ import {
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { LmsPreviewModal, type LmsPreviewState } from '@/components/lms/management/LmsPreviewModal'
-import { triggerBlobDownload } from '@/api/ambassadorApplicationFilesApi'
 import {
   approveVolunteerProfile,
   fetchHrVolunteerProfile,
@@ -142,12 +139,14 @@ function InfoRow({
   trailing,
   last,
   wide,
+  preserveLineBreaks,
 }: {
   label: string
   value: React.ReactNode
   trailing?: React.ReactNode
   last?: boolean
   wide?: boolean
+  preserveLineBreaks?: boolean
 }) {
   const empty = value == null || value === ''
   const cols = wide
@@ -164,7 +163,7 @@ function InfoRow({
       <span className="detail-row__label text-[12px] font-semibold text-slate-400">{label}</span>
       <div className="detail-row__value flex min-w-0 items-start gap-1.5">
         <div
-          className="min-w-0 text-[13px] font-bold text-deepBlue [overflow-wrap:anywhere]"
+          className={`min-w-0 text-[13px] font-bold text-deepBlue [overflow-wrap:anywhere] ${preserveLineBreaks ? 'whitespace-pre-line' : ''}`}
           dir="auto"
         >
           {empty ? <span className="font-semibold text-slate-300">غير متوفر</span> : value}
@@ -217,13 +216,9 @@ function Chips({ items, tone = 'blue' }: { items: string[]; tone?: 'blue' | 'sky
 
 function CvActionButtons({
   onPreview,
-  onDownload,
-  downloading,
   compact,
 }: {
   onPreview: () => void
-  onDownload: () => void
-  downloading: boolean
   compact?: boolean
 }) {
   const btn = compact ? 'px-3 py-2 text-[11px]' : 'px-3.5 py-2.5 text-[12px]'
@@ -236,15 +231,6 @@ function CvActionButtons({
       >
         <Eye size={14} aria-hidden />
         معاينة السيرة الذاتية
-      </button>
-      <button
-        type="button"
-        onClick={onDownload}
-        disabled={downloading}
-        className={`inline-flex items-center gap-1.5 rounded-xl border ${BORDER} bg-white font-black text-deepBlue transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue/30 disabled:opacity-50 ${btn}`}
-      >
-        {downloading ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Download size={14} aria-hidden />}
-        تحميل
       </button>
     </div>
   )
@@ -309,13 +295,9 @@ function VolunteerDetailHeader({
 function VolunteerSummaryCards({
   profile,
   onPreview,
-  onDownload,
-  downloading,
 }: {
   profile: VolunteerHrProfile
   onPreview: () => void
-  onDownload: () => void
-  downloading: boolean
 }) {
   const items = [
     { icon: Briefcase, label: 'المسمى الوظيفي', value: displayOrNull(profile.job_title) ?? 'غير متوفر' },
@@ -353,7 +335,7 @@ function VolunteerSummaryCards({
       </div>
       {profile.cv.available && (
         <div className="flex shrink-0 items-center justify-center lg:justify-end">
-          <CvActionButtons onPreview={onPreview} onDownload={onDownload} downloading={downloading} />
+          <CvActionButtons onPreview={onPreview} />
         </div>
       )}
     </div>
@@ -489,9 +471,8 @@ function SkillsLanguagesCard({ profile }: { profile: VolunteerHrProfile }) {
         </div>
         <InfoRow label="المؤهل العلمي" value={getEducationLabel(profile.education)} />
         <InfoRow label="التخصص الجامعي" value={profile.university_specialization} />
-        <InfoRow label="الخبرات السابقة" value={profile.experience} />
-        <InfoRow label="النبذة التعريفية" value={profile.professional_bio} />
-        <InfoRow label="الدافع للتطوع" value={profile.motivation} last />
+        <InfoRow label="الخبرات السابقة" value={profile.experience} preserveLineBreaks />
+        <InfoRow label="الدافع للتطوع" value={profile.motivation} preserveLineBreaks last />
         {(profile.linkedin_url || profile.portfolio_url) && (
           <div className={`flex flex-wrap gap-2 border-t ${BORDER} pt-3`}>
             {profile.linkedin_url && (
@@ -521,42 +502,49 @@ function SkillsLanguagesCard({ profile }: { profile: VolunteerHrProfile }) {
   )
 }
 
-function ConsentBadge({ value, at }: { value: boolean | null; at: string | null }) {
-  if (value === true) {
-    return (
-      <div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700 ring-1 ring-emerald-200">
-          <CheckCircle2 size={12} aria-hidden /> موافق
-        </span>
-        {at && <p className="mt-1 text-[10px] font-semibold text-slate-400">{formatDateTime(at)}</p>}
-      </div>
-    )
-  }
-  if (value === false) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-500 ring-1 ring-slate-200">
-        <XCircle size={12} aria-hidden /> غير موافق
-      </span>
-    )
-  }
-  // HR must never infer consent from whether a photo/bio happens to exist —
-  // an unanswered legacy row (predating this feature) shows explicitly as such.
-  return <span className="text-[11px] font-semibold text-slate-300">لم تتم الإجابة</span>
+function BioCard({ profile }: { profile: VolunteerHrProfile }) {
+  if (!profile.professional_bio) return null
+  return (
+    <CardShell title="النبذة الشخصية" icon={UserRound}>
+      <InfoRow label="نبذة عن المتطوع" value={profile.professional_bio} preserveLineBreaks last />
+    </CardShell>
+  )
 }
 
-function ConsentPrivacyCard({ profile }: { profile: VolunteerHrProfile }) {
+function consentLabel(v: boolean | null): string {
+  if (v === true) return 'موافق'
+  if (v === false) return 'غير موافق'
+  return 'لم يتم تحديده'
+}
+
+function ConsentsCard({ profile }: { profile: VolunteerHrProfile }) {
+  const rows = [
+    {
+      label: 'استخدام الصورة الشخصية',
+      value: consentLabel(profile.photo_publication_consent),
+      at: profile.photo_consent_at,
+    },
+    {
+      label: 'عرض البيانات المهنية',
+      value: consentLabel(profile.professional_profile_consent),
+      at: profile.professional_profile_consent_at,
+    },
+  ]
   return (
-    <CardShell title="الموافقات والخصوصية" icon={ShieldCheck}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <p className="mb-1.5 text-[11px] font-bold text-slate-400">استخدام الصورة</p>
-          <ConsentBadge value={profile.photo_publication_consent} at={profile.photo_consent_at} />
-        </div>
-        <div>
-          <p className="mb-1.5 text-[11px] font-bold text-slate-400">عرض البيانات المهنية</p>
-          <ConsentBadge value={profile.professional_profile_consent} at={profile.professional_profile_consent_at} />
-        </div>
-      </div>
+    <CardShell title="الموافقات والخصوصية" icon={CheckCircle2}>
+      {rows.map((row, i) => (
+        <InfoRow
+          key={row.label}
+          label={row.label}
+          value={
+            <span className="inline-flex items-center gap-2">
+              {row.value}
+              {row.at && <span className="text-[11px] font-semibold text-slate-400">({formatDateTime(row.at)})</span>}
+            </span>
+          }
+          last={i === rows.length - 1}
+        />
+      ))}
     </CardShell>
   )
 }
@@ -564,13 +552,9 @@ function ConsentPrivacyCard({ profile }: { profile: VolunteerHrProfile }) {
 function DocumentsCard({
   profile,
   onPreview,
-  onDownload,
-  downloading,
 }: {
   profile: VolunteerHrProfile
   onPreview: () => void
-  onDownload: () => void
-  downloading: boolean
 }) {
   return (
     <CardShell title="الوثائق" icon={FileText}>
@@ -597,14 +581,10 @@ function DocumentsCard({
               </p>
             </div>
           </div>
-          <div className="shrink-0">
-            <CvActionButtons
-              onPreview={onPreview}
-              onDownload={onDownload}
-              downloading={downloading}
-              compact
-            />
-          </div>
+          <CvActionButtons
+            onPreview={onPreview}
+            compact
+          />
         </div>
       ) : (
         <p className="text-[12px] font-semibold text-slate-300">غير متوفر</p>
@@ -831,7 +811,6 @@ export default function HrVolunteerProfileDetailModal({
   const [confirmingApprove, setConfirmingApprove] = useState(false)
   const [reason, setReason] = useState('')
   const [preview, setPreview] = useState<LmsPreviewState>({ kind: 'idle' })
-  const [downloadingCv, setDownloadingCv] = useState(false)
   const objectUrlRef = useRef<string | null>(null)
 
   // Route param changed while the modal is open → show the loader again before
@@ -956,9 +935,10 @@ export default function HrVolunteerProfileDetailModal({
     if (mime && !supportedMime) {
       setPreview({
         kind: 'error',
+        // No download action exists (privacy policy) — never point HR at one.
         message: isWord
-          ? 'معاينة ملفات Word (DOC/DOCX) غير متاحة داخل المتصفح. يمكنك تحميل الملف وفتحه محلياً.'
-          : 'المعاينة غير متاحة لهذا النوع من الملفات، يمكنك تحميل الملف.',
+          ? 'معاينة ملفات Word (DOC/DOCX) غير متاحة داخل المتصفح.'
+          : 'المعاينة غير متاحة لهذا النوع من الملفات.',
       })
       return
     }
@@ -969,19 +949,6 @@ export default function HrVolunteerProfileDetailModal({
       setPreview({ kind: 'open', objectUrl: url, fileName: filename || profile.cv.file_name || 'CV', mime })
     } catch {
       setPreview({ kind: 'error', message: 'تعذّر تحميل الملف للمعاينة.' })
-    }
-  }
-
-  async function handleDownloadCv() {
-    if (!profile) return
-    setDownloadingCv(true)
-    try {
-      const { blob, filename } = await fetchVolunteerHrProfileCvBlob(profile.id, 'download')
-      triggerBlobDownload(blob, filename || profile.cv.file_name || 'cv')
-    } catch {
-      toast.error('تعذّر تحميل الملف. حاول مرة أخرى.')
-    } finally {
-      setDownloadingCv(false)
     }
   }
 
@@ -1026,8 +993,6 @@ export default function HrVolunteerProfileDetailModal({
                 <VolunteerSummaryCards
                   profile={profile}
                   onPreview={() => void handlePreviewCv()}
-                  onDownload={() => void handleDownloadCv()}
-                  downloading={downloadingCv}
                 />
 
                 {/*
@@ -1041,16 +1006,15 @@ export default function HrVolunteerProfileDetailModal({
                   <div className="space-y-4" dir="rtl">
                     <PersonalInfoCard profile={profile} onCopyPhone={(p) => void copyPhone(p)} />
                     <SkillsLanguagesCard profile={profile} />
+                    <BioCard profile={profile} />
                   </div>
                   <div className="space-y-4" dir="rtl">
                     <VolunteerInfoCard profile={profile} />
                     <DocumentsCard
                       profile={profile}
                       onPreview={() => void handlePreviewCv()}
-                      onDownload={() => void handleDownloadCv()}
-                      downloading={downloadingCv}
                     />
-                    <ConsentPrivacyCard profile={profile} />
+                    <ConsentsCard profile={profile} />
                     <ReviewHistoryCard profile={profile} />
                   </div>
                 </div>

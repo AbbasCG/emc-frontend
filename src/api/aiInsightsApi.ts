@@ -16,7 +16,7 @@ export async function fetchAiInsights(): Promise<AiInsight[]> {
 
 export async function fetchMeetingIntelligence(meetingId: number): Promise<AiMeetingIntelligence | null> {
   try {
-    const res = await apiClient.get<unknown>(`/ai/meetings/${meetingId}/summary`)
+    const res = await apiClient.get<unknown>(`/ai/meetings/${meetingId}/summary`, { skipErrorToast: true })
     return unwrapLms<AiMeetingIntelligence>(res.data)
   } catch {
     return null

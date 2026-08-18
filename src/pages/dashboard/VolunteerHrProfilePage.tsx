@@ -173,6 +173,7 @@ export default function VolunteerHrProfilePage() {
 
     // Explicit-choice guard, mirrored by the backend's own `required|boolean`
     // rule — catches it before a round trip, never trusted in place of it.
+    // false is a valid explicit answer — only null (no selection yet) blocks submission.
     const nextErrors: Record<string, string> = {}
     if (form.photo_publication_consent === null || form.photo_publication_consent === undefined) {
       nextErrors.photo_publication_consent = 'يرجى تحديد موافقتك على استخدام الصورة الشخصية'
@@ -223,6 +224,10 @@ export default function VolunteerHrProfilePage() {
         } catch {
           /* keep the form visible if even the re-sync fails — better than a blank state */
         }
+        return
+      }
+      if (code === 'already_member') {
+        toast.error('أنت مضاف بالفعل ضمن أعضاء الفريق.')
         return
       }
       const fieldErrors = getLaravelFieldErrors(err)

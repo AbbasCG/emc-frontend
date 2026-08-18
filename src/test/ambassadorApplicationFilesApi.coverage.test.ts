@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import apiClient from '@/api/axios'
 import {
   getApplicationFiles,
   deleteApplicationFile,
   fetchAmbassadorFileBlob,
-  triggerBlobDownload,
   type AmbassadorFileRecord,
 } from '@/api/ambassadorApplicationFilesApi'
 
@@ -43,7 +42,6 @@ describe('getApplicationFiles / deleteApplicationFile', () => {
       has_thumbnail: true,
       has_preview: true,
       preview_url: '/admin/ambassador-applications/3/files/9/preview',
-      download_url: '/admin/ambassador-applications/3/files/9/download',
       thumbnail_url: null,
     }
     mockedApi.get.mockResolvedValueOnce({ data: { success: true, data: [record] } })
@@ -71,23 +69,23 @@ describe('getApplicationFiles / deleteApplicationFile', () => {
   })
 })
 
-/* ── fetchAmbassadorFileBlob ── */
+/* ── fetchAmbassadorFileBlob — preview only, no download mode or endpoint remains ── */
 
 describe('fetchAmbassadorFileBlob', () => {
-  it('downloads an authenticated blob and reads mime + quoted filename from headers', async () => {
+  it('fetches an authenticated preview blob and reads mime + quoted filename from headers', async () => {
     const pdf = new Blob(['pdf-bytes'], { type: 'application/pdf' })
     mockedApi.get.mockResolvedValueOnce({
       data: pdf,
       headers: {
         'content-type': 'application/pdf; charset=utf-8',
-        'content-disposition': 'attachment; filename="report.pdf"',
+        'content-disposition': 'inline; filename="report.pdf"',
       },
     })
 
-    const result = await fetchAmbassadorFileBlob(3, 9, 'download')
+    const result = await fetchAmbassadorFileBlob(3, 9, 'preview')
 
     expect(mockedApi.get).toHaveBeenCalledWith(
-      '/admin/ambassador-applications/3/files/9/download',
+      '/admin/ambassador-applications/3/files/9/preview',
       expect.objectContaining({ responseType: 'blob', skipErrorToast: true }),
     )
     expect(result.mime).toBe('application/pdf') // charset suffix stripped
@@ -95,12 +93,12 @@ describe('fetchAmbassadorFileBlob', () => {
     expect(result.filename).toBe('report.pdf')
   })
 
-  it('uses the preview endpoint for preview mode', async () => {
+  it('defaults to the preview endpoint when no mode is passed', async () => {
     mockedApi.get.mockResolvedValueOnce({
       data: new Blob(['img'], { type: 'image/png' }),
       headers: { 'content-type': 'image/png' },
     })
-    await fetchAmbassadorFileBlob(3, 9, 'preview')
+    await fetchAmbassadorFileBlob(3, 9)
     expect(mockedApi.get).toHaveBeenCalledWith(
       '/admin/ambassador-applications/3/files/9/preview',
       expect.objectContaining({ responseType: 'blob' }),
@@ -112,10 +110,10 @@ describe('fetchAmbassadorFileBlob', () => {
       data: new Blob(['pdf'], { type: 'application/pdf' }),
       headers: {
         'content-type': 'application/pdf',
-        'content-disposition': "attachment; filename*=UTF-8''%D8%AA%D9%82%D8%B1%D9%8A%D8%B1.pdf",
+        'content-disposition': "inline; filename*=UTF-8''%D8%AA%D9%82%D8%B1%D9%8A%D8%B1.pdf",
       },
     })
-    const result = await fetchAmbassadorFileBlob(3, 9, 'download')
+    const result = await fetchAmbassadorFileBlob(3, 9, 'preview')
     expect(result.filename).toBe('تقرير.pdf')
   })
 
@@ -124,10 +122,10 @@ describe('fetchAmbassadorFileBlob', () => {
       data: new Blob(['pdf'], { type: 'application/pdf' }),
       headers: {
         'content-type': 'application/pdf',
-        'content-disposition': "attachment; filename*=UTF-8''%E0%A4%A",
+        'content-disposition': "inline; filename*=UTF-8''%E0%A4%A",
       },
     })
-    const result = await fetchAmbassadorFileBlob(3, 9, 'download')
+    const result = await fetchAmbassadorFileBlob(3, 9, 'preview')
     expect(result.filename).toBe('%E0%A4%A')
   })
 
@@ -136,7 +134,7 @@ describe('fetchAmbassadorFileBlob', () => {
       data: new Blob(['pdf'], { type: 'application/pdf' }),
       headers: { 'content-type': 'application/pdf' },
     })
-    const result = await fetchAmbassadorFileBlob(3, 42, 'download')
+    const result = await fetchAmbassadorFileBlob(3, 42, 'preview')
     expect(result.filename).toBe('file-42')
   })
 
@@ -145,10 +143,10 @@ describe('fetchAmbassadorFileBlob', () => {
       data: new Blob(['img'], { type: 'image/png' }),
       headers: {
         'content-type': 'image/png',
-        'Content-Disposition': 'attachment; filename="صورة.png"',
+        'Content-Disposition': 'inline; filename="صورة.png"',
       },
     })
-    const result = await fetchAmbassadorFileBlob(3, 9, 'download')
+    const result = await fetchAmbassadorFileBlob(3, 9, 'preview')
     expect(result.filename).toBe('صورة.png')
   })
 
@@ -178,7 +176,7 @@ describe('fetchAmbassadorFileBlob', () => {
       data: jsonBlob,
       headers: { 'content-type': 'application/json' },
     })
-    await expect(fetchAmbassadorFileBlob(3, 9, 'download')).rejects.toThrow('الملف غير موجود')
+    await expect(fetchAmbassadorFileBlob(3, 9, 'preview')).rejects.toThrow('الملف غير موجود')
   })
 
   it('throws the default Arabic message when the JSON error body is unparseable', async () => {
@@ -191,50 +189,11 @@ describe('fetchAmbassadorFileBlob', () => {
       data: jsonBlob,
       headers: {},
     })
-    await expect(fetchAmbassadorFileBlob(3, 9, 'download')).rejects.toThrow('تعذّر تحميل الملف.')
+    await expect(fetchAmbassadorFileBlob(3, 9, 'preview')).rejects.toThrow('تعذّر تحميل الملف.')
   })
 
   it('propagates transport errors untouched', async () => {
     mockedApi.get.mockRejectedValueOnce(new Error('Network Error'))
-    await expect(fetchAmbassadorFileBlob(3, 9, 'download')).rejects.toThrow('Network Error')
-  })
-})
-
-/* ── triggerBlobDownload ── */
-
-describe('triggerBlobDownload', () => {
-  const originalCreateObjectURL = URL.createObjectURL
-  const originalRevokeObjectURL = URL.revokeObjectURL
-
-  beforeEach(() => {
-    URL.createObjectURL = vi.fn(() => 'blob:mock-url')
-    URL.revokeObjectURL = vi.fn()
-  })
-
-  afterAll(() => {
-    URL.createObjectURL = originalCreateObjectURL
-    URL.revokeObjectURL = originalRevokeObjectURL
-  })
-
-  it('creates a temporary anchor with download + noopener, clicks it, and revokes the URL', () => {
-    const blob = new Blob(['file-bytes'], { type: 'application/pdf' })
-    const appendSpy = vi.spyOn(document.body, 'appendChild')
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
-
-    triggerBlobDownload(blob, 'تقرير-السفير.pdf')
-
-    expect(URL.createObjectURL).toHaveBeenCalledWith(blob)
-    const anchor = appendSpy.mock.calls[0][0] as HTMLAnchorElement
-    expect(anchor.tagName).toBe('A')
-    expect(anchor.download).toBe('تقرير-السفير.pdf')
-    expect(anchor.rel).toBe('noopener')
-    expect(anchor.href).toContain('blob:mock-url')
-    expect(clickSpy).toHaveBeenCalledTimes(1)
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
-    // the anchor removes itself after the click
-    expect(document.body.contains(anchor)).toBe(false)
-
-    appendSpy.mockRestore()
-    clickSpy.mockRestore()
+    await expect(fetchAmbassadorFileBlob(3, 9, 'preview')).rejects.toThrow('Network Error')
   })
 })

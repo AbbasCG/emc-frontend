@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { ChevronLeft, ExternalLink, Video } from 'lucide-react'
+import { ChevronLeft, ExternalLink, Video, FileText } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import DecisionList from '@/components/operations/DecisionList'
 import ActionItemsList from '@/components/operations/ActionItemsList'
@@ -8,6 +8,7 @@ import { fetchMeeting } from '@/api/meetingsApi'
 import { createTaskFromActionItem } from '@/api/tasksApi'
 import { fetchMeetingIntelligence } from '@/api/aiInsightsApi'
 import AiSummaryPanel from '@/components/ai/AiSummaryPanel'
+import MeetingReportModal from '@/components/operations/MeetingReportModal'
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 import type { OpsMeetingDetail } from '@/types/operations'
 import type { AiMeetingIntelligence } from '@/types/ai'
@@ -23,6 +24,7 @@ export default function OpsMeetingDetailPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [convertMsg, setConvertMsg] = useState('')
   const [aiSummary, setAiSummary] = useState<AiMeetingIntelligence | null>(null)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   // Re-arm the loading state during render when the route id changes (react.dev
   // "adjusting state when a prop changes"), so the fetch effect below never has to
@@ -114,11 +116,21 @@ export default function OpsMeetingDetailPage() {
           {MEETING_TYPE_AR[detail.type]}
         </p>
         <h1 className="mt-2 text-2xl font-black">{detail.title}</h1>
-        <div className="mt-4 flex flex-wrap justify-end gap-4 text-[11px] font-bold text-white/65">
-          <span>{detail.starts_at ?? '—'}</span>
-          <span>{detail.department_name ?? '—'}</span>
-          <span>منظم: {detail.organizer_name ?? '—'}</span>
-        </div>
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-6 border-t border-white/10 pt-6">
+          <div className="flex gap-4 text-[11px] font-bold text-white/65">
+            <span>{detail.starts_at ?? '—'}</span>
+            <span>{detail.department_name ?? '—'}</span>
+            <span>منظم: {detail.organizer_name ?? '—'}</span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-deepBlue shadow-sm transition hover:bg-slate-100 hover:shadow-md"
+            >
+              <FileText size={16} />
+              رفع تقرير الاجتماع
+            </button>
         {detail.recording_link && (
           <a
             href={detail.recording_link}
@@ -131,7 +143,16 @@ export default function OpsMeetingDetailPage() {
             <ExternalLink size={14} />
           </a>
         )}
+          </div>
+        </div>
       </header>
+
+      <MeetingReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        meetingId={mid}
+        onSuccess={() => void retry()}
+      />
 
       {convertMsg && (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-right text-xs font-bold text-amber-900 ring-1 ring-amber-100">

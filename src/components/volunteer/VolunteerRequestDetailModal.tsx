@@ -7,7 +7,6 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
-  Download,
   ExternalLink,
   Eye,
   FileText,
@@ -224,8 +223,7 @@ export default function VolunteerRequestDetailModal({
 
   const skills = useMemo(() => parseSkills(req.skills), [req.skills])
   const cvViewUrl = req.cv_view_url ?? req.cv_file_url ?? null
-  const cvDownloadUrl = req.cv_download_url ?? req.cv_file_url ?? null
-  const hasCv = Boolean(cvDownloadUrl)
+  const hasCv = Boolean(cvViewUrl)
   const whatsappUrl = buildWhatsAppUrl(req.phone)
 
   const handleEscape = useCallback(
@@ -463,16 +461,6 @@ export default function VolunteerRequestDetailModal({
                   >
                     <Eye className="h-4 w-4" />
                     عرض السيرة الذاتية
-                  </a>
-                  <a
-                    href={cvDownloadUrl ?? '#'}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#0C2A4B]/15 bg-white px-4 py-3 text-[12px] font-bold text-[#0C2A4B] transition hover:border-[#0077B6]/40 hover:bg-[#0077B6]/[0.04]"
-                  >
-                    <Download className="h-4 w-4 text-[#0077B6]" />
-                    تحميل السيرة الذاتية
                   </a>
                 </div>
               ) : (
