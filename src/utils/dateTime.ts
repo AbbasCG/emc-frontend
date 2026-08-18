@@ -23,6 +23,23 @@ function timeStr(d: Date, tz: string): string {
   }).format(d)
 }
 
+/** "الاثنين، 6 يوليو 2026" — full Arabic weekday + day + month name + year, Western digits. */
+function longArabicDateStr(d: Date, tz: string): string {
+  return new Intl.DateTimeFormat('ar', {
+    timeZone: tz,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    numberingSystem: 'latn',
+  }).format(d)
+}
+
+/**
+ * Canonical EMC date+time display: "الثلاثاء، 18 أغسطس 2026 — 20:46".
+ * Reuse this (never a one-off Intl.DateTimeFormat call) so every page renders
+ * dates identically across the platform.
+ */
 export function formatDateTime(
   dateStr: string | null | undefined,
   _locale = 'ar',
@@ -32,21 +49,18 @@ export function formatDateTime(
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return '—'
   try {
-    const parts = new Intl.DateTimeFormat('en', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts(date)
-    const y = parts.find((p) => p.type === 'year')?.value ?? '0000'
-    const mo = parts.find((p) => p.type === 'month')?.value ?? '00'
-    const dy = parts.find((p) => p.type === 'day')?.value ?? '00'
-    return `${dy}/${mo}/${y} ${timeStr(date, timezone)}`
+    return `${longArabicDateStr(date, timezone)} — ${timeStr(date, timezone)}`
   } catch {
     return dateStr.slice(0, 16)
   }
 }
 
+/**
+ * Canonical EMC date-only display: "الاثنين، 6 يوليو 2026" — no time, no
+ * leading-zero day, full Arabic month/weekday names. Reuse this everywhere a
+ * date-only value is shown; never format dates inline with a raw
+ * `Intl.DateTimeFormat` call or numeric dd/mm/yyyy.
+ */
 export function formatDate(
   dateStr: string | null | undefined,
   _locale = 'ar',
@@ -56,20 +70,15 @@ export function formatDate(
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return '—'
   try {
-    const parts = new Intl.DateTimeFormat('en', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts(date)
-    const y = parts.find((p) => p.type === 'year')?.value ?? '0000'
-    const mo = parts.find((p) => p.type === 'month')?.value ?? '00'
-    const dy = parts.find((p) => p.type === 'day')?.value ?? '00'
-    return `${dy}/${mo}/${y}`
+    return longArabicDateStr(date, timezone)
   } catch {
     return dateStr.slice(0, 10)
   }
 }
+
+/** Explicit aliases matching the platform-wide naming convention. */
+export const formatArabicDate = formatDate
+export const formatArabicDateTime = formatDateTime
 
 /**
  * Human-relative Arabic date:

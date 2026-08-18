@@ -106,6 +106,7 @@ export type MeetingType =
   | 'partnerships'
   | 'quality'
   | 'external'
+  | 'general'
 
 export type MeetingStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
 
@@ -121,6 +122,10 @@ export type OpsMeeting = {
 }
 
 export type OpsMeetingDetail = OpsMeeting & {
+  meeting_date?: string | null
+  start_time?: string | null
+  end_time?: string | null
+  meeting_url?: string | null
   agenda?: string | null
   attendees?: { name: string; role?: string }[]
   decisions?: { id: number; text: string }[]
@@ -209,6 +214,8 @@ export type PartnerRecord = {
   id: number
   name: string
   type?: string | null
+  /** Institutional category (e.g. university/company/NGO) — distinct from `type` (partnership type). */
+  institution_type?: string | null
   contact_person?: string | null
   email?: string | null
   phone?: string | null

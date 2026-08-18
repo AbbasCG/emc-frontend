@@ -23,10 +23,6 @@ vi.mock('@/api/hrVolunteerProfilesApi', () => ({
   fetchVolunteerHrProfileCvBlob: (...a: unknown[]) => mockFetchCvBlob(...a),
 }))
 
-vi.mock('@/api/ambassadorApplicationFilesApi', () => ({
-  triggerBlobDownload: vi.fn(),
-}))
-
 vi.mock('@/lib/toast', () => ({
   default: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), message: vi.fn() },
 }))
@@ -44,8 +40,13 @@ function fullProfile(overrides: Partial<VolunteerHrProfile> = {}): VolunteerHrPr
     department: { id: 1, name: 'التقنية' }, department_id: 1, job_title: 'مطور برمجيات',
     employment_type: 'volunteer', join_date: '2026-08-06', availability: 'مساءً', weekly_hours: 5,
     skills: 'PHP, React', languages: ['العربية', 'الإنجليزية'], education: 'بكالوريوس',
-    experience: '3 سنوات', motivation: 'حب العطاء', linkedin_url: 'https://linkedin.com/in/ahmad',
+    university_specialization: 'علوم الحاسوب',
+    experience: '3 سنوات', motivation: 'حب العطاء',
+    professional_bio: 'مطور برمجيات مهتم بالتحول الرقمي.',
+    linkedin_url: 'https://linkedin.com/in/ahmad',
     portfolio_url: 'https://ahmad.dev',
+    photo_publication_consent: true, photo_consent_at: '2026-08-06T09:00:00Z',
+    professional_profile_consent: true, professional_profile_consent_at: '2026-08-06T09:00:00Z',
     cv: { available: true, file_name: 'Ahmad-CV.pdf', mime_type: 'application/pdf', size: 204800, uploaded_at: '2026-08-06T10:00:00Z' },
     status: 'submitted', submitted_at: '2026-08-06T09:00:00Z', reviewed_at: null, reviewed_by: null,
     rejection_reason: null, approved_at: null, approved_by: null, team_profile_id: null,
@@ -128,18 +129,43 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     expect(screen.getByText('المعلومات الشخصية')).toBeInTheDocument()
     expect(screen.getByText('معلومات التطوع')).toBeInTheDocument()
     expect(screen.getByText('المهارات واللغات')).toBeInTheDocument()
+    expect(screen.getByText('النبذة الشخصية')).toBeInTheDocument()
     expect(screen.getByText('الوثائق')).toBeInTheDocument()
+    expect(screen.getByText('الموافقات والخصوصية')).toBeInTheDocument()
     expect(screen.getByText('سجل المراجعة')).toBeInTheDocument()
 
     expect(screen.getByText('أمستردام')).toBeInTheDocument()
     expect(screen.getByText('هولندي')).toBeInTheDocument()
     expect(screen.getByText('بكالوريوس')).toBeInTheDocument()
+    expect(screen.getByText('علوم الحاسوب')).toBeInTheDocument()
     expect(screen.getByText('3 سنوات')).toBeInTheDocument()
     expect(screen.getByText('حب العطاء')).toBeInTheDocument()
+    expect(screen.getByText('مطور برمجيات مهتم بالتحول الرقمي.')).toBeInTheDocument()
     expect(screen.getByText('Ahmad-CV.pdf')).toBeInTheDocument()
     expect(screen.getByText('LinkedIn')).toBeInTheDocument()
     expect(screen.getByText('Portfolio')).toBeInTheDocument()
     expect(screen.getByText('ذكر')).toBeInTheDocument()
+  })
+
+  it('shows consent decisions with their timestamps, and "لم يتم تحديده" for null', async () => {
+    mockFetchProfile.mockResolvedValue(fullProfile({
+      photo_publication_consent: false,
+      professional_profile_consent: null,
+      professional_profile_consent_at: null,
+    }))
+    renderAtDetail()
+
+    await waitFor(() => expect(screen.getByText('الموافقات والخصوصية')).toBeInTheDocument())
+    expect(screen.getByText('غير موافق')).toBeInTheDocument()
+    expect(screen.getByText('لم يتم تحديده')).toBeInTheDocument()
+  })
+
+  it('does not render the bio card when no professional_bio is stored', async () => {
+    mockFetchProfile.mockResolvedValue(fullProfile({ professional_bio: null }))
+    renderAtDetail()
+
+    await waitFor(() => expect(screen.getByText('المعلومات الشخصية')).toBeInTheDocument())
+    expect(screen.queryByText('النبذة الشخصية')).not.toBeInTheDocument()
   })
 
   it('renders skills and languages as chips', async () => {
@@ -154,12 +180,12 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     expect(screen.getByText('الإنجليزية')).toBeInTheDocument()
   })
 
-  it('formats dates as dd/MM/yyyy', async () => {
+  it('formats dates using the full Arabic weekday/day/month/year format', async () => {
     mockFetchProfile.mockResolvedValue(fullProfile({ date_of_birth: '2023-08-16', join_date: '2026-08-06' }))
     renderAtDetail()
 
-    await waitFor(() => expect(screen.getByText('16/08/2023')).toBeInTheDocument())
-    expect(screen.getAllByText('06/08/2026').length).toBeGreaterThan(0)
+    await waitFor(() => expect(screen.getByText('الأربعاء، 16 أغسطس 2023')).toBeInTheDocument())
+    expect(screen.getAllByText('الخميس، 6 أغسطس 2026').length).toBeGreaterThan(0)
   })
 
   it('CV preview button fetches and opens the preview modal for a PDF', async () => {
@@ -184,20 +210,16 @@ describe('HrVolunteerProfilesPage — redesigned detail modal', () => {
     const previewButtons = await screen.findAllByRole('button', { name: 'معاينة السيرة الذاتية' })
     await user.click(previewButtons[0])
 
-    await waitFor(() => expect(screen.getByText('المعاينة غير متاحة لهذا النوع من الملفات، يمكنك تحميل الملف')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('المعاينة غير متاحة لهذا النوع من الملفات')).toBeInTheDocument())
     expect(mockFetchCvBlob).not.toHaveBeenCalled()
   })
 
-  it('download still works', async () => {
-    const user = userEvent.setup()
+  it('no download button is rendered — preview only', async () => {
     mockFetchProfile.mockResolvedValue(fullProfile())
-    mockFetchCvBlob.mockResolvedValue({ blob: new Blob(['%PDF']), mime: 'application/pdf', filename: 'Ahmad-CV.pdf' })
     renderAtDetail()
 
-    const downloadButtons = await screen.findAllByRole('button', { name: 'تحميل' })
-    await user.click(downloadButtons[0])
-
-    await waitFor(() => expect(mockFetchCvBlob).toHaveBeenCalledWith(1, 'download'))
+    await screen.findAllByRole('button', { name: 'معاينة السيرة الذاتية' })
+    expect(screen.queryByRole('button', { name: 'تحميل' })).not.toBeInTheDocument()
   })
 
   it('pending status shows approve/reject actions', async () => {

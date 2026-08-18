@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
-  Download,
   Eye,
   FileText,
   Image as ImageIcon,
-  Loader2,
   Trash2,
 } from 'lucide-react'
 import {
   getApplicationFiles,
   deleteApplicationFile,
   fetchAmbassadorFileBlob,
-  triggerBlobDownload,
   type AmbassadorFileRecord,
 } from '@/api/ambassadorApplicationFilesApi'
 import { LmsPreviewModal, type LmsPreviewState } from '@/components/lms/management/LmsPreviewModal'
@@ -54,16 +51,12 @@ const EXTENSION_COLORS: Record<string, string> = {
 
 function FileCard({
   file,
-  downloading,
   onPreview,
-  onDownload,
   onDelete,
   canDelete,
 }: {
   file: AmbassadorFileRecord
-  downloading: boolean
   onPreview: (f: AmbassadorFileRecord) => void
-  onDownload: (f: AmbassadorFileRecord) => void
   onDelete: (f: AmbassadorFileRecord) => void
   canDelete: boolean
 }) {
@@ -133,22 +126,6 @@ function FileCard({
               <Eye size={11} aria-hidden /> معاينة
             </button>
           )}
-          <button
-            type="button"
-            disabled={downloading}
-            onClick={() => onDownload(file)}
-            className="flex items-center gap-1 rounded-lg bg-[#0C2A4B]/6 px-2.5 py-1 text-[11px] font-black text-[#0C2A4B] transition hover:bg-[#0C2A4B]/10 disabled:opacity-50"
-          >
-            {downloading ? (
-              <span className="inline-flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> جاري التحميل…
-              </span>
-            ) : (
-              <>
-                <Download size={11} aria-hidden /> تحميل
-              </>
-            )}
-          </button>
         </div>
       </div>
     </div>
@@ -233,7 +210,6 @@ export default function AmbassadorApplicationFiles({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<AmbassadorFileRecord | null>(null)
-  const [downloadingId, setDownloadingId] = useState<number | null>(null)
   const [preview, setPreview] = useState<LmsPreviewState>({ kind: 'idle' })
   const objectUrlRef = useRef<string | null>(null)
 
@@ -296,18 +272,6 @@ export default function AmbassadorApplicationFiles({
     setPreview({ kind: 'idle' })
   }, [])
 
-  const handleDownload = async (file: AmbassadorFileRecord) => {
-    setDownloadingId(file.id)
-    try {
-      const { blob, filename } = await fetchAmbassadorFileBlob(applicationId, file.id, 'download')
-      triggerBlobDownload(blob, filename || file.original_name)
-    } catch {
-      toast.error('تعذّر تحميل الملف. حاول مرة أخرى.')
-    } finally {
-      setDownloadingId(null)
-    }
-  }
-
   const handleDelete = async () => {
     if (!toDelete) return
     try {
@@ -367,9 +331,7 @@ export default function AmbassadorApplicationFiles({
             <FileCard
               key={file.id}
               file={file}
-              downloading={downloadingId === file.id}
               onPreview={(f) => void handlePreview(f)}
-              onDownload={(f) => void handleDownload(f)}
               onDelete={(f) => setToDelete(f)}
               canDelete={canDelete}
             />

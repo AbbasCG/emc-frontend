@@ -82,10 +82,10 @@ function parseContentDispositionFilename(cd: string | undefined, fallback: strin
   return fallback
 }
 
-/** Role-gated blob fetch for the volunteer's CV (preview inline or forced download) — never a public URL. */
+/** Role-gated blob fetch for the volunteer's CV — preview only, never a public URL or download. */
 export async function fetchVolunteerHrProfileCvBlob(
   profileId: number,
-  mode: 'preview' | 'download',
+  mode: 'preview' = 'preview',
 ): Promise<{ blob: Blob; mime: string; filename: string }> {
   const res = await api.get<Blob>(`/hr/volunteers/${profileId}/cv/${mode}`, {
     responseType: 'blob',

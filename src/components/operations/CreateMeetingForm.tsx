@@ -4,7 +4,7 @@ import { Calendar, X } from 'lucide-react'
 import toast from '@/lib/toast'
 import { createMeeting } from '@/api/meetingsApi'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
-import type { WorkspaceDepartment } from '@/types/operations'
+import type { MeetingType, WorkspaceDepartment } from '@/types/operations'
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 import EmcButton from '@/components/ui/EmcButton'
 
@@ -12,7 +12,7 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  initialType?: string
+  initialType?: MeetingType
   hideTypeSelector?: boolean
 }
 
@@ -123,7 +123,7 @@ export default function CreateMeetingForm({ isOpen, onClose, onSuccess, initialT
                       <select
                         required
                         value={formData.type}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, type: e.target.value as MeetingType })}
                         className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
                       >
                         {Object.entries(MEETING_TYPE_AR).map(([key, label]) => (

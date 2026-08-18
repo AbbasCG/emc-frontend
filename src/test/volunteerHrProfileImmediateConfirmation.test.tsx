@@ -49,8 +49,11 @@ function submittedProfile(overrides: Partial<VolunteerHrProfile> = {}): Voluntee
     gender: null, nationality: null, profile_photo_url: null,
     department: { id: 8, name: 'التقنية' }, department_id: 8, job_title: 'مطور Backend',
     employment_type: null, join_date: '2026-08-06', availability: null, weekly_hours: null,
-    skills: null, languages: [], education: null, experience: null, motivation: null,
+    skills: null, languages: [], education: null, university_specialization: null, experience: null, motivation: null,
+    professional_bio: null,
     linkedin_url: null, portfolio_url: null,
+    photo_publication_consent: true, photo_consent_at: '2026-08-06T10:00:00Z',
+    professional_profile_consent: true, professional_profile_consent_at: '2026-08-06T10:00:00Z',
     cv: { available: true, file_name: 'cv.pdf', mime_type: 'application/pdf', size: 1000, uploaded_at: '2026-08-06T10:00:00Z' },
     status: 'submitted', submitted_at: '2026-08-06T10:00:00Z', reviewed_at: null, reviewed_by: null,
     rejection_reason: null, approved_at: null, approved_by: null, team_profile_id: null,
@@ -75,6 +78,9 @@ async function fillMinimalForm(user: ReturnType<typeof userEvent.setup>) {
   await user.upload(cvInput, file)
   const checkbox = document.querySelector('input[type=checkbox]') as HTMLInputElement
   await user.click(checkbox)
+  for (const btn of screen.getAllByText('نعم، أوافق')) {
+    await user.click(btn)
+  }
 }
 
 describe('VolunteerHrProfilePage — immediate post-submission confirmation (no blank page, no refresh)', () => {

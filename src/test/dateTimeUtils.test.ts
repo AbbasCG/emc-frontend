@@ -50,17 +50,17 @@ afterEach(() => {
 })
 
 describe('formatDateTime', () => {
-  it('renders a UTC instant as dd/mm/yyyy HH:MM in Amsterdam summer time (UTC+2)', () => {
-    expect(formatDateTime('2026-07-16T12:30:00Z')).toBe('16/07/2026 14:30')
+  it('renders a UTC instant as the full Arabic date + 24h time in Amsterdam summer time (UTC+2)', () => {
+    expect(formatDateTime('2026-07-16T12:30:00Z')).toBe('الخميس، 16 يوليو 2026 — 14:30')
   })
 
   it('renders Amsterdam winter time (UTC+1) and rolls the date over midnight', () => {
     // 23:30 UTC on 15 Jan is 00:30 on 16 Jan in Amsterdam.
-    expect(formatDateTime('2026-01-15T23:30:00Z')).toBe('16/01/2026 00:30')
+    expect(formatDateTime('2026-01-15T23:30:00Z')).toBe('الجمعة، 16 يناير 2026 — 00:30')
   })
 
   it('honours an explicit timezone argument instead of Amsterdam', () => {
-    expect(formatDateTime('2026-07-16T12:30:00Z', 'ar', 'UTC')).toBe('16/07/2026 12:30')
+    expect(formatDateTime('2026-07-16T12:30:00Z', 'ar', 'UTC')).toBe('الخميس، 16 يوليو 2026 — 12:30')
   })
 
   it('returns the em-dash placeholder for null, undefined and empty input', () => {
@@ -78,18 +78,18 @@ describe('formatDateTime', () => {
     expect(formatDateTime('2026-07-16T12:30:00Z', 'ar', 'Not/AZone')).toBe('2026-07-16T12:30')
   })
 
-  it('uses Latin digits, never Arabic-Indic ones, even though the UI locale is ar', () => {
-    expect(formatDateTime('2026-07-16T12:30:00Z')).toMatch(/^[0-9/: ]+$/)
+  it('uses Latin digits for the day/year/time, never Arabic-Indic ones, even though the UI locale is ar', () => {
+    expect(formatDateTime('2026-07-16T12:30:00Z')).toMatch(/16.*2026.*14:30/)
   })
 })
 
 describe('formatDate', () => {
   it('rolls a late-evening UTC instant onto the next Amsterdam day', () => {
-    expect(formatDate('2026-07-16T22:15:00Z')).toBe('17/07/2026')
+    expect(formatDate('2026-07-16T22:15:00Z')).toBe('الجمعة، 17 يوليو 2026')
   })
 
   it('keeps a bare date string on the same day', () => {
-    expect(formatDate('2026-07-16')).toBe('16/07/2026')
+    expect(formatDate('2026-07-16')).toBe('الخميس، 16 يوليو 2026')
   })
 
   it('returns the placeholder for empty and invalid input', () => {
@@ -127,8 +127,8 @@ describe('formatRelativeDate', () => {
   })
 
   it('switches to an absolute date at the 7-day boundary in both directions', () => {
-    expect(formatRelativeDate('2026-07-09T08:00:00Z')).toBe('09/07/2026')
-    expect(formatRelativeDate('2026-07-23T08:00:00Z')).toBe('23/07/2026')
+    expect(formatRelativeDate('2026-07-09T08:00:00Z')).toBe('الخميس، 9 يوليو 2026')
+    expect(formatRelativeDate('2026-07-23T08:00:00Z')).toBe('الخميس، 23 يوليو 2026')
   })
 
   it('treats a late-night UTC instant by its Amsterdam calendar day', () => {
@@ -160,8 +160,8 @@ describe('formatLastLogin', () => {
   })
 
   it('switches to an absolute date at exactly 30 days and beyond', () => {
-    expect(formatLastLogin('2026-06-16T08:00:00Z')).toBe('16/06/2026')
-    expect(formatLastLogin('2025-01-02T08:00:00Z')).toBe('02/01/2025')
+    expect(formatLastLogin('2026-06-16T08:00:00Z')).toBe('الثلاثاء، 16 يونيو 2026')
+    expect(formatLastLogin('2025-01-02T08:00:00Z')).toBe('الخميس، 2 يناير 2025')
   })
 
   it('returns the placeholder for null, undefined and invalid input', () => {
@@ -213,23 +213,23 @@ describe('formatAmsterdamDateTimeRange', () => {
   it('collapses a same-day range to one date and two times', () => {
     expect(
       formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', '2026-06-18T10:30:00Z'),
-    ).toBe('18/06/2026، 10:00 - 12:30')
+    ).toBe('الخميس، 18 يونيو 2026، 10:00 - 12:30')
   })
 
   it('repeats the date when the range crosses midnight in Amsterdam', () => {
     // 21:00Z = 23:00 on the 18th; 22:30Z = 00:30 on the 19th.
     expect(
       formatAmsterdamDateTimeRange('2026-06-18T21:00:00Z', '2026-06-18T22:30:00Z'),
-    ).toBe('18/06/2026، 23:00 - 19/06/2026، 00:30')
+    ).toBe('الخميس، 18 يونيو 2026، 23:00 - الجمعة، 19 يونيو 2026، 00:30')
   })
 
   it('renders start only when the end is missing', () => {
-    expect(formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', null)).toBe('18/06/2026، 10:00')
-    expect(formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', undefined)).toBe('18/06/2026، 10:00')
+    expect(formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', null)).toBe('الخميس، 18 يونيو 2026، 10:00')
+    expect(formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', undefined)).toBe('الخميس، 18 يونيو 2026، 10:00')
   })
 
   it('ignores an unparseable end rather than emitting "Invalid Date"', () => {
-    expect(formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', 'broken')).toBe('18/06/2026، 10:00')
+    expect(formatAmsterdamDateTimeRange('2026-06-18T08:00:00Z', 'broken')).toBe('الخميس، 18 يونيو 2026، 10:00')
   })
 
   it('returns the placeholder when the start is missing or invalid', () => {

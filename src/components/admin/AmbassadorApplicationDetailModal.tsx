@@ -7,7 +7,6 @@ import {
   ChevronDown,
   Clock,
   Copy,
-  Download,
   FileText,
   GraduationCap,
   HeartHandshake,
@@ -40,11 +39,6 @@ import {
   type AmbassadorNote,
   type AmbassadorStatus,
 } from '@/api/ambassadorApplicationApi'
-import {
-  fetchAmbassadorFileBlob,
-  getApplicationFiles,
-  triggerBlobDownload,
-} from '@/api/ambassadorApplicationFilesApi'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 import { AMBASSADOR_STATUS_CFG } from '@/components/admin/ambassadorStatusConfig'
 
@@ -366,7 +360,6 @@ export default function AmbassadorApplicationDetailModal({
   const [addingNote, setAddingNote] = useState(false)
 
   const [confirmAction, setConfirmAction] = useState<'reject' | 'approve' | null>(null)
-  const [downloadingAll, setDownloadingAll] = useState(false)
 
   // Re-seed the editing form whenever a different application object arrives
   // (adjust state during render — react.dev's "adjusting state when a prop changes").
@@ -489,30 +482,6 @@ export default function AmbassadorApplicationDetailModal({
     }
   }
 
-  async function downloadAllFiles() {
-    setDownloadingAll(true)
-    try {
-      const files = await getApplicationFiles(app.id)
-      if (!files.length) {
-        toast.error('لا توجد ملفات للتحميل')
-        return
-      }
-      for (const file of files) {
-        try {
-          const { blob, filename } = await fetchAmbassadorFileBlob(app.id, file.id, 'download')
-          triggerBlobDownload(blob, filename || file.original_name)
-        } catch {
-          toast.error(`تعذّر تحميل: ${file.original_name}`)
-        }
-      }
-      toast.success('تم بدء تحميل الملفات')
-    } catch {
-      toast.error('تعذّر تحميل الملفات')
-    } finally {
-      setDownloadingAll(false)
-    }
-  }
-
   const socialLinks = [
     { label: 'إنستغرام', value: app.social_instagram },
     { label: 'لينكدإن', value: app.social_linkedin },
@@ -621,14 +590,6 @@ export default function AmbassadorApplicationDetailModal({
                 واتساب
               </ActionBtn>
             )}
-            <ActionBtn variant="neutral" disabled={downloadingAll} onClick={() => void downloadAllFiles()}>
-              {downloadingAll ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Download className="h-3.5 w-3.5 text-[#0077B6]" />
-              )}
-              تحميل الملفات
-            </ActionBtn>
             <ActionBtn variant="neutral" onClick={() => window.print()}>
               <Printer className="h-3.5 w-3.5" />
               طباعة

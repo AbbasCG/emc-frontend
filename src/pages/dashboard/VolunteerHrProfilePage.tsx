@@ -7,7 +7,8 @@ import { getApiErrorMessage, getLaravelFieldErrors } from '@/api/apiErrors'
 import AppFileUpload from '@/components/ui/AppFileUpload'
 import EmcDatePicker from '@/components/ui/EmcDatePicker'
 import LanguagesSelect from '@/components/forms/LanguagesSelect'
-import CountrySelector, { type Country } from '@/components/ui/CountrySelector'
+import SearchableSelect from '@/components/forms/SearchableSelect'
+import CountrySelector, { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
 import PhoneInput from '@/components/forms/PhoneInput'
 import { buildE164Phone } from '@/components/forms/phoneUtils'
 import { fetchDepartmentOptions, fetchJobTitles, type JobTitleOption } from '@/api/jobTitlesApi'
@@ -21,6 +22,54 @@ import {
 
 const CUSTOM_JOB_TITLE_VALUE = '__custom__'
 
+const NATIONALITY_OPTIONS = Array.from(new Set(COUNTRIES.map((c) => c.name))).sort((a, b) => a.localeCompare(b, 'ar'))
+
+const UNIVERSITY_SPECIALIZATION_OPTIONS = [
+  'هندسة البرمجيات',
+  'علوم الحاسوب',
+  'تقنية المعلومات',
+  'هندسة الشبكات',
+  'إدارة الأعمال',
+  'المحاسبة',
+  'التمويل والمصارف',
+  'التسويق',
+  'القانون',
+  'الطب',
+  'الصيدلة',
+  'طب الأسنان',
+  'التمريض',
+  'التغذية العلاجية',
+  'الهندسة المدنية',
+  'الهندسة الكهربائية',
+  'الهندسة الميكانيكية',
+  'العمارة',
+  'الذكاء الاصطناعي',
+  'علم البيانات',
+  'التربية وعلم النفس',
+  'الإعلام والاتصال',
+  'اللغات والترجمة',
+  'العلاقات الدولية',
+  'أخرى',
+]
+
+const PROFESSIONAL_BIO_MAX_LENGTH = 500
+
+const EDUCATION_OPTIONS = [
+  'بدون مؤهل / لا يوجد',
+  'المرحلة الابتدائية',
+  'المرحلة الإعدادية / المتوسطة',
+  'الثانوية العامة',
+  'دبلوم',
+  'دبلوم عالٍ',
+  'بكالوريوس',
+  'ماجستير',
+  'دكتوراه',
+  'زمالة / بورد مهني',
+  'شهادة مهنية',
+  'طالب جامعي',
+  'أخرى',
+]
+
 const STATUS_CFG: Record<string, { label: string; icon: typeof Clock; cls: string }> = {
   draft:        { label: 'مسودة',        icon: FileText,     cls: 'bg-slate-100 text-slate-600 border-slate-200' },
   submitted:    { label: 'تم الإرسال — قيد الانتظار', icon: Clock, cls: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -33,6 +82,7 @@ const STATUS_CFG: Record<string, { label: string; icon: typeof Clock; cls: strin
 const emptyForm: VolunteerHrProfileFormValues = {
   full_name: '', email: '', phone: '', department_id: 0, job_title: '', join_date: '',
   languages: [], confirmed: false, cv_file: null, profile_photo: null,
+  photo_publication_consent: null, professional_profile_consent: null,
 }
 
 export default function VolunteerHrProfilePage() {
@@ -108,6 +158,19 @@ export default function VolunteerHrProfilePage() {
     e.preventDefault()
     setErrors({})
 
+    // false is a valid explicit answer — only null (no selection yet) blocks submission.
+    const consentErrors: Record<string, string> = {}
+    if (form.photo_publication_consent === null) {
+      consentErrors.photo_publication_consent = 'يرجى تحديد اختيارك بخصوص استخدام الصورة الشخصية'
+    }
+    if (form.professional_profile_consent === null) {
+      consentErrors.professional_profile_consent = 'يرجى تحديد اختيارك بخصوص عرض البيانات المهنية'
+    }
+    if (Object.keys(consentErrors).length) {
+      setErrors(consentErrors)
+      return
+    }
+
     const payload: VolunteerHrProfileFormValues = {
       ...form,
       job_title: jobTitleSelectValue === CUSTOM_JOB_TITLE_VALUE ? customJobTitle : form.job_title,
@@ -141,6 +204,10 @@ export default function VolunteerHrProfilePage() {
         } catch {
           /* keep the form visible if even the re-sync fails — better than a blank state */
         }
+        return
+      }
+      if (code === 'already_member') {
+        toast.error('أنت مضاف بالفعل ضمن أعضاء الفريق.')
         return
       }
       const fieldErrors = getLaravelFieldErrors(err)
@@ -247,7 +314,15 @@ export default function VolunteerHrProfilePage() {
               <input value={form.city ?? ''} onChange={(e) => set('city', e.target.value)} className={inputCls} />
             </Field>
             <Field label="الجنسية" error={errors.nationality}>
-              <input value={form.nationality ?? ''} onChange={(e) => set('nationality', e.target.value)} className={inputCls} />
+              <SearchableSelect
+                instanceId="emc-volunteer-nationality-select"
+                ariaLabel="الجنسية"
+                value={form.nationality ?? ''}
+                onChange={(v) => set('nationality', v)}
+                options={NATIONALITY_OPTIONS}
+                placeholder="ابحث عن الجنسية…"
+                error={errors.nationality}
+              />
             </Field>
             <EmcDatePicker label="تاريخ الميلاد" value={form.date_of_birth ?? ''} onChange={(v) => set('date_of_birth', v)} layout="stacked" maxDate={new Date().toISOString().slice(0, 10)} showPresets={false} />
             <Field label="الجنس" error={errors.gender}>
@@ -313,9 +388,40 @@ export default function VolunteerHrProfilePage() {
             <Field label="اللغات">
               <LanguagesSelect value={form.languages ?? []} onChange={(langs) => set('languages', langs)} error={errors.languages} />
             </Field>
-            <Field label="المؤهل العلمي"><input value={form.education ?? ''} onChange={(e) => set('education', e.target.value)} className={inputCls} /></Field>
+            <Field label="المؤهل العلمي">
+              <SearchableSelect
+                instanceId="emc-volunteer-education-select"
+                ariaLabel="المؤهل العلمي"
+                value={form.education ?? ''}
+                onChange={(v) => set('education', v)}
+                options={EDUCATION_OPTIONS}
+                placeholder="اختر المؤهل العلمي…"
+              />
+            </Field>
+            <Field label="التخصص الجامعي">
+              <SearchableSelect
+                instanceId="emc-volunteer-specialization-select"
+                ariaLabel="التخصص الجامعي"
+                value={form.university_specialization ?? ''}
+                onChange={(v) => set('university_specialization', v)}
+                options={UNIVERSITY_SPECIALIZATION_OPTIONS}
+                placeholder="اختر التخصص الجامعي…"
+              />
+            </Field>
             <Field label="الخبرات السابقة"><textarea value={form.experience ?? ''} onChange={(e) => set('experience', e.target.value)} className={`${inputCls} min-h-20`} /></Field>
             <Field label="المهام الحالية / الدافع للتطوع"><textarea value={form.motivation ?? ''} onChange={(e) => set('motivation', e.target.value)} className={`${inputCls} min-h-20`} /></Field>
+            <Field label="نبذة عن المتطوع">
+              <textarea
+                value={form.professional_bio ?? ''}
+                onChange={(e) => set('professional_bio', e.target.value.slice(0, PROFESSIONAL_BIO_MAX_LENGTH))}
+                maxLength={PROFESSIONAL_BIO_MAX_LENGTH}
+                className={`${inputCls} min-h-24`}
+                placeholder="نبذة مختصرة عن خبراتك واهتماماتك المهنية"
+              />
+              <p className="mt-1 text-left text-[11px] font-semibold text-slate-400" dir="ltr">
+                {(form.professional_bio ?? '').length}/{PROFESSIONAL_BIO_MAX_LENGTH}
+              </p>
+            </Field>
           </div>
         </section>
 
@@ -352,6 +458,22 @@ export default function VolunteerHrProfilePage() {
           </div>
         </section>
 
+        {/* Section 4.5 — Privacy consent */}
+        <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <ConsentQuestion
+            label="هل توافق على استخدام صورتك الشخصية في المواد الترويجية والمنشورات؟"
+            value={form.photo_publication_consent}
+            onChange={(v) => set('photo_publication_consent', v)}
+            error={errors.photo_publication_consent}
+          />
+          <ConsentQuestion
+            label="هل توافق على عرض بياناتك المهنية (الخبرات والمهارات) في ملفك العام؟"
+            value={form.professional_profile_consent}
+            onChange={(v) => set('professional_profile_consent', v)}
+            error={errors.professional_profile_consent}
+          />
+        </section>
+
         {/* Section 5 — Confirmation */}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <label className="flex items-center gap-2 text-xs font-bold text-deepBlue">
@@ -379,9 +501,56 @@ const inputCls = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-
 function Field({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="grid gap-1 text-xs font-black text-deepBlue">
-      {label} {required && <span className="text-red-500">*</span>}
+      <span>
+        {label} {required && <span className="text-red-500">*</span>}
+      </span>
       {children}
       {error && <span className="text-[11px] font-bold text-red-600">{error}</span>}
     </label>
+  )
+}
+
+function ConsentQuestion({
+  label,
+  value,
+  onChange,
+  error,
+}: {
+  label: string
+  value: boolean | null
+  onChange: (v: boolean) => void
+  error?: string
+}) {
+  return (
+    <div>
+      <p className="mb-2 text-xs font-black text-deepBlue">
+        {label} <span className="text-red-500">*</span>
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => onChange(true)}
+          className={`flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+            value === true
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+              : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          نعم، أوافق
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(false)}
+          className={`flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+            value === false
+              ? 'border-slate-400 bg-slate-100 text-slate-700'
+              : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          لا، لا أوافق
+        </button>
+      </div>
+      {error && <p className="mt-1 text-[11px] font-bold text-red-600">{error}</p>}
+    </div>
   )
 }

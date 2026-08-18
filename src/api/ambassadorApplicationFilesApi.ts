@@ -20,7 +20,6 @@ export type AmbassadorFileRecord = {
   has_thumbnail: boolean
   has_preview: boolean
   preview_url: string
-  download_url: string
   thumbnail_url: string | null
 }
 
@@ -58,7 +57,7 @@ function parseContentDispositionFilename(
 export async function fetchAmbassadorFileBlob(
   applicationId: number,
   fileId: number,
-  mode: 'preview' | 'download',
+  mode: 'preview' = 'preview',
 ): Promise<{ blob: Blob; mime: string; filename: string }> {
   const res = await apiClient.get<Blob>(
     `/admin/ambassador-applications/${applicationId}/files/${fileId}/${mode}`,
@@ -91,16 +90,4 @@ export async function fetchAmbassadorFileBlob(
     mime,
     filename: parseContentDispositionFilename(cd, `file-${fileId}`),
   }
-}
-
-export function triggerBlobDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.rel = 'noopener'
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
 }

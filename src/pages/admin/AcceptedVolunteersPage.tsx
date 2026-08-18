@@ -5,7 +5,6 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
-  Download,
   Eye,
   Filter,
   Loader2,
@@ -916,27 +915,17 @@ export default function AcceptedVolunteersPage() {
 
                           {/* CV */}
                           <td className="px-5 py-5">
-                            {r.cv_download_url ? (
+                            {(r.cv_view_url ?? r.cv_download_url) ? (
                               <div className="flex items-center gap-1.5">
                                 <Tooltip label="عرض السيرة">
                                   <a
-                                    href={r.cv_view_url ?? r.cv_download_url}
+                                    href={r.cv_view_url ?? r.cv_download_url ?? undefined}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label="عرض السيرة الذاتية"
                                     className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-muted-400 transition-all duration-150 hover:scale-110 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600"
                                   >
                                     <Eye size={14} />
-                                  </a>
-                                </Tooltip>
-                                <Tooltip label="تنزيل السيرة">
-                                  <a
-                                    href={r.cv_download_url}
-                                    download
-                                    aria-label="تنزيل السيرة الذاتية"
-                                    className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-muted-400 transition-all duration-150 hover:scale-110 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600"
-                                  >
-                                    <Download size={14} />
                                   </a>
                                 </Tooltip>
                               </div>

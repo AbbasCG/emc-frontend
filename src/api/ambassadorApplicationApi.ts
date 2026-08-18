@@ -103,10 +103,8 @@ export type AmbassadorApplication = {
   can_attend_weekly_meetings?: boolean
 
   // Files
-  cv_download_url?: string | null
   cv_view_url?: string | null
   has_student_id?: boolean
-  student_id_download_url?: string | null
   has_photo?: boolean
   photo_url?: string | null
   certificate_count?: number
@@ -566,10 +564,8 @@ function normalizeApplication(raw: Record<string, unknown>): AmbassadorApplicati
     owns_laptop:                  parseBool(raw.owns_laptop),
     has_stable_internet:          parseBool(raw.has_stable_internet),
     can_attend_weekly_meetings:   parseBool(raw.can_attend_weekly_meetings),
-    cv_download_url:         parseStr(raw.cv_download_url),
     cv_view_url:             parseStr(raw.cv_view_url),
     has_student_id:          parseBool(raw.has_student_id),
-    student_id_download_url: parseStr(raw.student_id_download_url),
     has_photo:               parseBool(raw.has_photo),
     photo_url:               parseStr(raw.photo_url),
     certificate_count:       parseNum(raw.certificate_count) ?? 0,

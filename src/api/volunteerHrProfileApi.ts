@@ -34,10 +34,16 @@ export type VolunteerHrProfile = {
   skills: string | null
   languages: string[]
   education: string | null
+  university_specialization: string | null
   experience: string | null
   motivation: string | null
+  professional_bio: string | null
   linkedin_url: string | null
   portfolio_url: string | null
+  photo_publication_consent: boolean | null
+  photo_consent_at: string | null
+  professional_profile_consent: boolean | null
+  professional_profile_consent_at: string | null
   cv: VolunteerHrProfileCv
   status: VolunteerHrProfileStatus
   submitted_at: string | null
@@ -74,27 +80,38 @@ export type VolunteerHrProfileFormValues = {
   skills?: string
   languages?: string[]
   education?: string
+  university_specialization?: string
   experience?: string
   motivation?: string
+  professional_bio?: string
   linkedin_url?: string
   portfolio_url?: string
+  /** null = no explicit choice made yet — must never be silently treated as false. */
+  photo_publication_consent: boolean | null
+  professional_profile_consent: boolean | null
   confirmed: boolean
   cv_file?: File | null
   profile_photo?: File | null
 }
 
-function toFormData(values: VolunteerHrProfileFormValues): FormData {
+const BOOLEAN_FIELDS = new Set(['confirmed', 'photo_publication_consent', 'professional_profile_consent'])
+
+export function toFormData(values: VolunteerHrProfileFormValues): FormData {
   const fd = new FormData()
   Object.entries(values).forEach(([key, val]) => {
-    if (val === undefined || val === null || val === '') return
     if (key === 'cv_file' || key === 'profile_photo') {
       if (val instanceof File) fd.append(key, val)
       return
     }
-    if (key === 'confirmed') {
+    if (BOOLEAN_FIELDS.has(key)) {
+      // FormData has no boolean type — every value becomes text. null means
+      // "not answered yet" and must not be sent as the string "null"; the
+      // caller is expected to have blocked submission before this point.
+      if (val === null || val === undefined) return
       fd.append(key, val ? '1' : '0')
       return
     }
+    if (val === undefined || val === null || val === '') return
     if (key === 'languages' && Array.isArray(val)) {
       val.forEach((lang) => fd.append('languages[]', lang))
       return

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
-import { Briefcase, HeartHandshake, Phone, Building2, UserCircle2, Clock, Plus, Search, Filter, Download } from 'lucide-react'
+import { Briefcase, Phone, UserCircle2, Clock, Plus } from 'lucide-react'
 import { fetchPartners } from '@/api/partnersApi'
 import type { PartnersResponse } from '@/api/partnersApi'
 import type { PartnerRecord } from '@/types/operations'
 import PartnerCrmModal from '@/components/operations/PartnerCrmModal'
+import { formatDate } from '@/utils/dateTime'
 import clsx from 'clsx'
 
 const LOAD_ERROR = 'تعذّر تحميل الشركاء. تحقق من الاتصال وأعد المحاولة.'
@@ -51,57 +51,6 @@ export default function OpsPartnersPage() {
     setIsModalOpen(true)
   }
 
-  const handleExportExcel = () => {
-    if (items.length === 0) return
-    
-    // Create CSV header
-    const headers = [
-      'اسم الجهة',
-      'مجال العمل',
-      'التصنيف',
-      'النوع',
-      'ممثل الجهة',
-      'المنصب',
-      'الجوال',
-      'البريد الإلكتروني',
-      'الدولة',
-      'المدينة',
-      'مسؤول التواصل',
-      'تاريخ أول تواصل',
-      'تاريخ آخر تواصل',
-      'سبب الرفض/التعثر',
-      'ملاحظات'
-    ]
-
-    // Create CSV rows
-    const rows = items.map(p => [
-      p.name || '',
-      p.field_of_work || '',
-      p.classification === 'Actual Partner' ? 'شريك فعلي' : p.classification === 'Potential' ? 'شريك محتمل' : p.classification === 'Under Negotiation' ? 'قيد التفاوض' : p.classification === 'Rejected' ? 'مرفوض' : '',
-      p.type === 'company' ? 'شركة' : p.type === 'university' ? 'جامعة' : p.type === 'school' ? 'مدرسة' : p.type === 'institution' ? 'مؤسسة' : p.type === 'donor' ? 'جهة طبية' : p.type === 'community' ? 'أفراد' : '',
-      p.contact_person || '',
-      p.contact_position || '',
-      p.phone || '',
-      p.email || '',
-      p.country || '',
-      p.city || '',
-      p.assigned_to || '',
-      p.first_contact_date ? p.first_contact_date.split('T')[0] : '',
-      p.last_contact_date ? p.last_contact_date.split('T')[0] : '',
-      p.rejection_reason || '',
-      p.notes || ''
-    ].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')) // escape quotes
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n') // \uFEFF is BOM for Excel Arabic support
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `partners_${activeTab}.csv`
-    link.click()
-    URL.revokeObjectURL(url)
-  }
-
   if (loading && items.length === 0) return <OpsPageSkeleton />
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
@@ -122,13 +71,6 @@ export default function OpsPartnersPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleExportExcel}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-white/20"
-            >
-              <Download size={18} />
-              تصدير
-            </button>
             <button
               onClick={handleAddNew}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-black text-deepBlue shadow-sm transition hover:bg-slate-50 hover:shadow-md"
@@ -243,7 +185,7 @@ export default function OpsPartnersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
                         <Clock size={14} />
-                        {p.last_contact_date ? p.last_contact_date.split('T')[0] : '—'}
+                        {formatDate(p.last_contact_date)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
