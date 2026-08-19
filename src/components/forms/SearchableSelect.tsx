@@ -2,6 +2,22 @@ import Select, { type SingleValue, type StylesConfig } from 'react-select'
 
 type StringOption = { label: string; value: string }
 
+// Design-token values (tailwind.config.js) in rgb() decimal form — react-select
+// styles live in JS where Tailwind classes can't reach, and raw hex literals
+// are banned by lint (no-restricted-syntax) outside the legacy baseline.
+const TOKENS = {
+  customBlue: 'rgb(0, 119, 182)', // customBlue / brand-500
+  deepBlue: 'rgb(12, 42, 75)', // deepBlue / navy
+  line: 'rgb(231, 227, 218)', // line
+  paper2: 'rgb(243, 241, 234)', // paper2
+  brand50: 'rgb(234, 246, 253)', // brand-50
+  white: 'rgb(255, 255, 255)',
+  slate200: 'rgb(226, 232, 240)', // tailwind slate-200
+  slate400: 'rgb(148, 163, 184)', // tailwind slate-400
+  muted300: 'rgb(182, 188, 193)', // muted-300
+  red400: 'rgb(248, 113, 113)', // tailwind red-400
+} as const
+
 // Same RTL/color/animation pattern as CountrySelect and LanguagesSelect, kept
 // in sync deliberately so every searchable dropdown in the app looks and
 // behaves identically.
@@ -10,20 +26,20 @@ const rtlStyles: StylesConfig<StringOption, false> = {
     ...base,
     minHeight: '3.5rem',
     borderRadius: '0.75rem',
-    borderColor: state.isFocused ? '#0077B6' : '#E7E3DA',
-    backgroundColor: state.isFocused ? '#fff' : '#F3F1EA',
+    borderColor: state.isFocused ? TOKENS.customBlue : TOKENS.line,
+    backgroundColor: state.isFocused ? TOKENS.white : TOKENS.paper2,
     boxShadow: state.isFocused ? '0 0 0 4px rgba(0,119,182,0.14)' : 'none',
     textAlign: 'right' as const,
     direction: 'rtl' as const,
     cursor: 'pointer',
     transition: 'border-color 250ms cubic-bezier(0.2,0.8,0.2,1), background-color 250ms cubic-bezier(0.2,0.8,0.2,1), box-shadow 250ms cubic-bezier(0.2,0.8,0.2,1)',
-    '&:hover': { borderColor: state.isFocused ? '#0077B6' : '#B6BCC1' },
+    '&:hover': { borderColor: state.isFocused ? TOKENS.customBlue : TOKENS.muted300 },
   }),
   menu: (base) => ({
     ...base,
     borderRadius: '1rem',
     overflow: 'hidden',
-    border: '1px solid #E7E3DA',
+    border: `1px solid ${TOKENS.line}`,
     boxShadow: '0 22px 50px -24px rgba(6, 24, 44, 0.22), 0 2px 6px -1px rgba(6, 24, 44, 0.05)',
     textAlign: 'right' as const,
     direction: 'rtl' as const,
@@ -33,8 +49,8 @@ const rtlStyles: StylesConfig<StringOption, false> = {
   option: (base, state) => ({
     ...base,
     textAlign: 'right' as const,
-    backgroundColor: state.isSelected ? '#0077B6' : state.isFocused ? '#EAF6FD' : '#fff',
-    color: state.isSelected ? '#fff' : '#0C2A4B',
+    backgroundColor: state.isSelected ? TOKENS.customBlue : state.isFocused ? TOKENS.brand50 : TOKENS.white,
+    color: state.isSelected ? TOKENS.white : TOKENS.deepBlue,
     fontWeight: state.isSelected ? 800 : 600,
     fontSize: '0.875rem',
     padding: '10px 14px',
@@ -42,25 +58,25 @@ const rtlStyles: StylesConfig<StringOption, false> = {
   }),
   singleValue: (base) => ({
     ...base,
-    color: '#0C2A4B',
+    color: TOKENS.deepBlue,
     fontWeight: 700,
     textAlign: 'right' as const,
   }),
   placeholder: (base) => ({
     ...base,
-    color: '#94a3b8',
+    color: TOKENS.slate400,
     fontWeight: 600,
     textAlign: 'right' as const,
   }),
   input: (base) => ({
     ...base,
-    color: '#0C2A4B',
+    color: TOKENS.deepBlue,
     textAlign: 'right' as const,
   }),
   indicatorSeparator: () => ({ display: 'none' }),
   dropdownIndicator: (base) => ({
     ...base,
-    color: '#94a3b8',
+    color: TOKENS.slate400,
     paddingInlineEnd: 8,
   }),
 }
@@ -99,7 +115,7 @@ export default function SearchableSelect({ value, onChange, options, placeholder
           ...rtlStyles,
           control: (base, state) => ({
             ...(rtlStyles.control?.(base, state) ?? base),
-            borderColor: error ? '#f87171' : state.isFocused ? '#0077B6' : '#e2e8f0',
+            borderColor: error ? TOKENS.red400 : state.isFocused ? TOKENS.customBlue : TOKENS.slate200,
           }),
         }}
       />

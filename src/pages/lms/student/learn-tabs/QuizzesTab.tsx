@@ -38,7 +38,7 @@ function FinalGradeCard({ breakdown }: { breakdown: FinalGradeBreakdown }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center gap-2">
-        <Award className="h-4 w-4 text-[#0077B6]" />
+        <Award className="h-4 w-4 text-customBlue" />
         <h3 className="text-[14px] font-black text-deepBlue">النتيجة النهائية</h3>
       </div>
 
@@ -59,7 +59,7 @@ function FinalGradeCard({ breakdown }: { breakdown: FinalGradeBreakdown }) {
         </div>
       </div>
 
-      <div className="mt-3 rounded-2xl bg-gradient-to-l from-[#0C2A4B] to-[#0077B6] p-4 text-center">
+      <div className="mt-3 rounded-2xl bg-gradient-to-l from-deepBlue to-customBlue p-4 text-center">
         <p className="text-[11px] font-black text-white/70">النتيجة النهائية</p>
         <p className="text-[28px] font-black text-white">{breakdown.final_course_score ?? '—'}%</p>
       </div>
@@ -188,7 +188,7 @@ function QuizRow({ quiz, onOpen }: { quiz: StudentQuizSummary; onOpen: () => voi
         type="button"
         disabled={!canTake && !quiz.completed}
         onClick={onOpen}
-        className="h-9 shrink-0 rounded-2xl bg-[#0077B6] px-4 text-[11px] font-black text-white transition disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+        className="h-9 shrink-0 rounded-2xl bg-customBlue px-4 text-[11px] font-black text-white transition disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
       >
         {quiz.completed ? (exhausted ? 'عرض النتيجة' : 'إعادة المحاولة') : canTake ? 'ابدأ الاختبار' : 'غير متاح'}
       </button>
@@ -204,20 +204,36 @@ export default function QuizzesTab({ courseId }: { courseId: number }) {
   const [loading, setLoading] = useState(true)
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null)
 
-  async function load() {
+  const [reloadKey, setReloadKey] = useState(0)
+
+  // Back to the skeleton when the course changes — render-phase adjustment
+  // (docs/04-references/effect-patterns.md §P2), not a setState in the effect.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
     setLoading(true)
-    try {
-      const [q, g] = await Promise.all([fetchStudentQuizzes(courseId), fetchStudentFinalGrade(courseId)])
-      setQuizzes(q)
-      setGrade(g)
-    } catch {
-      toast.error('تعذّر تحميل الاختبارات القصيرة')
-    } finally {
-      setLoading(false)
-    }
   }
 
-  useEffect(() => { void load() }, [courseId])
+  // Manual refresh (button / after quiz submit). A plain handler, so the
+  // synchronous setLoading is allowed; the fetch itself lives in the effect.
+  function load() {
+    setLoading(true)
+    setReloadKey((k) => k + 1)
+  }
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [q, g] = await Promise.all([fetchStudentQuizzes(courseId), fetchStudentFinalGrade(courseId)])
+        setQuizzes(q)
+        setGrade(g)
+      } catch {
+        toast.error('تعذّر تحميل الاختبارات القصيرة')
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [courseId, reloadKey])
 
   if (loading) {
     return (
@@ -232,7 +248,7 @@ export default function QuizzesTab({ courseId }: { courseId: number }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-[14px] font-black text-deepBlue">الاختبارات القصيرة</h2>
-        <button type="button" onClick={() => void load()} className="flex items-center gap-1 text-[11px] font-black text-deepBlue/40 hover:text-deepBlue">
+        <button type="button" onClick={load} className="flex items-center gap-1 text-[11px] font-black text-deepBlue/40 hover:text-deepBlue">
           <RefreshCw className="h-3.5 w-3.5" /> تحديث
         </button>
       </div>
@@ -253,7 +269,7 @@ export default function QuizzesTab({ courseId }: { courseId: number }) {
         <TakeQuizModal
           quizId={activeQuizId}
           onClose={() => setActiveQuizId(null)}
-          onSubmitted={() => void load()}
+          onSubmitted={load}
         />
       )}
     </div>

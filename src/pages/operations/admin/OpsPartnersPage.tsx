@@ -23,23 +23,39 @@ export default function OpsPartnersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingPartner, setEditingPartner] = useState<PartnerRecord | null>(null)
 
-  const loadData = useCallback(async (scope: ProjectScope) => {
+  const [reloadKey, setReloadKey] = useState(0)
+
+  // Reset error/loading when the tab changes — render-phase adjustment
+  // (docs/04-references/effect-patterns.md §P2), not a setState in the effect.
+  const [seenTab, setSeenTab] = useState(activeTab)
+  if (seenTab !== activeTab) {
+    setSeenTab(activeTab)
     setLoadError(null)
     setLoading(true)
-    try {
-      const res = await fetchPartners(scope)
-      setItems(res.rows)
-      setKpis(res.kpis)
-    } catch {
-      setLoadError(LOAD_ERROR)
-    } finally {
-      setLoading(false)
-    }
+  }
+
+  // Manual reload (retry button / after the CRM modal saves). A plain
+  // handler, so the synchronous setState calls are allowed; the fetch itself
+  // lives in the effect below.
+  const reload = useCallback(() => {
+    setLoadError(null)
+    setLoading(true)
+    setReloadKey((k) => k + 1)
   }, [])
 
   useEffect(() => {
-    void loadData(activeTab)
-  }, [activeTab, loadData])
+    void (async () => {
+      try {
+        const res = await fetchPartners(activeTab)
+        setItems(res.rows)
+        setKpis(res.kpis)
+      } catch {
+        setLoadError(LOAD_ERROR)
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [activeTab, reloadKey])
 
   const handleEdit = (p: PartnerRecord) => {
     setEditingPartner(p)
@@ -55,7 +71,7 @@ export default function OpsPartnersPage() {
   if (loadError) return (
     <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
       <p className="font-black text-rose-800">{loadError}</p>
-      <button type="button" onClick={() => void loadData(activeTab)} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+      <button type="button" onClick={reload} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
     </div>
   )
 
@@ -220,7 +236,7 @@ export default function OpsPartnersPage() {
       <PartnerCrmModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => void loadData(activeTab)}
+        onSuccess={reload}
         editingPartner={editingPartner}
       />
     </div>

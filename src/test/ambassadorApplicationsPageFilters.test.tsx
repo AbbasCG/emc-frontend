@@ -25,6 +25,17 @@ vi.mock('@/lib/toast', () => ({
   default: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), message: vi.fn() },
 }))
 
+// The redesigned page calls useAuth() to gate the export flow (EXPORT_ALLOWED_ROLES);
+// the real hook throws outside <AuthProvider>. super_admin also renders the export
+// checkbox column, so the selectors below are exercised against the fullest markup.
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 1, name: 'Super Admin', role: 'super_admin' },
+    isAuthenticated: true,
+    isLoading: false,
+  }),
+}))
+
 vi.mock('react-select', () => ({
   default: ({
     options = [],

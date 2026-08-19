@@ -65,7 +65,7 @@ export default function QuizHelpModal({ onClose }: { onClose: () => void }) {
                 className="group relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100"
               >
                 <motion.div
-                  className="absolute inset-y-0 right-0 rounded-full bg-[#0077B6]"
+                  className="absolute inset-y-0 right-0 rounded-full bg-customBlue"
                   initial={false}
                   animate={{ width: i <= step ? '100%' : '0%' }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -89,7 +89,7 @@ export default function QuizHelpModal({ onClose }: { onClose: () => void }) {
                 transition={{ duration: 0.18, ease: 'easeOut' }}
               >
                 <div className="mb-4 flex items-center gap-2.5">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0077B6] text-[13px] font-black text-white">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-customBlue text-[13px] font-black text-white">
                     {step + 1}
                   </span>
                   <h3 className="text-[15px] font-black text-deepBlue">{STEPS[step].title}</h3>
@@ -97,7 +97,7 @@ export default function QuizHelpModal({ onClose }: { onClose: () => void }) {
                 <ul className="space-y-2.5">
                   {STEPS[step].items.map((item) => (
                     <li key={item} className="flex items-center gap-2.5 rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3">
-                      <Check className="h-4 w-4 shrink-0 text-[#0077B6]" />
+                      <Check className="h-4 w-4 shrink-0 text-customBlue" />
                       <span className="text-[13px] font-bold text-deepBlue/80">{item}</span>
                     </li>
                   ))}
@@ -127,7 +127,7 @@ export default function QuizHelpModal({ onClose }: { onClose: () => void }) {
               <button
                 type="button"
                 onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-                className="flex h-10 items-center gap-1.5 rounded-2xl bg-[#0077B6] px-5 text-[12px] font-black text-white transition hover:opacity-90"
+                className="flex h-10 items-center gap-1.5 rounded-2xl bg-customBlue px-5 text-[12px] font-black text-white transition hover:opacity-90"
               >
                 التالي <ChevronLeft className="h-4 w-4" />
               </button>

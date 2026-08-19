@@ -518,6 +518,91 @@ a {
     100% { transform: translateX(-260%); }
   }
 
+  /* ══ Design Language 2.0 — «التحريرية» (founder directive 2026-08-19: de-box the UI) ══
+     Content separated by typography, hairlines and whitespace — not bordered cards.
+     Boxes remain ONLY where elevation is functional (modals, dropdowns, forms). */
+
+  /* Flying-page clip — the organic image shape replacing rounded-box thumbnails.
+     Asymmetric corners echo the V3 page motif; logical corners flip correctly in RTL. */
+  .emc-page-clip {
+    border-start-start-radius: 0.375rem;
+    border-start-end-radius: 2.25rem;
+    border-end-end-radius: 0.375rem;
+    border-end-start-radius: 2.25rem;
+    overflow: hidden;
+  }
+  .emc-page-clip-sm {
+    border-start-start-radius: 0.25rem;
+    border-start-end-radius: 1.25rem;
+    border-end-end-radius: 0.25rem;
+    border-end-start-radius: 1.25rem;
+    overflow: hidden;
+  }
+
+  /* Editorial row — list item with a hairline seat, no ring/box. Hover: paper tint
+     + a sky accent bar sliding in at the inline-start edge. */
+  .emc-row {
+    position: relative;
+    border-bottom: 1px solid #e7e3da;
+    transition: background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .emc-row::before {
+    content: "";
+    position: absolute;
+    inset-block: 12%;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 999px;
+    background: #089fe0;
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .emc-row:hover { background-color: rgba(243, 241, 234, 0.55); }
+  .emc-row:hover::before { transform: scaleY(1); }
+
+  /* Line CTA — text action with an arc underline that draws in on hover
+     (replaces secondary boxed buttons in editorial contexts). */
+  .emc-cta-line {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 800;
+    color: #0077b6;
+  }
+  .emc-cta-line::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -6px;
+    height: 8px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='8' viewBox='0 0 80 8' preserveAspectRatio='none'%3E%3Cpath d='M2 6 Q40 0 78 6' fill='none' stroke='%23F28C00' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    transform: scaleX(0);
+    transform-origin: var(--emc-cta-origin, right);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .emc-cta-line:hover::after,
+  .emc-cta-line:focus-visible::after { transform: scaleX(1); }
+
+  /* Gradient hairline — section seam that fades at both edges (no boxed dividers). */
+  .emc-hairline {
+    height: 1px;
+    background: linear-gradient(to left, transparent, rgba(12, 42, 75, 0.16) 20% 80%, transparent);
+  }
+
+  /* Typographic stat — editorial number statement (replaces KPI chips on public surfaces). */
+  .emc-stat-num {
+    font-family: "Thmanyah Serif Display", "Thmanyah Sans", serif;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: #0c2a4b;
+  }
+
   /* Ghost numbers — huge Sans Black at 5% navy, behind section numbering. */
   .emc-ghost-num {
     font-family: "Thmanyah", "IBM Plex Sans Arabic", sans-serif;

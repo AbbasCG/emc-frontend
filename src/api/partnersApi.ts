@@ -17,7 +17,7 @@ export interface PartnersResponse {
 
 export async function fetchPartners(project_scope: string = 'EMC_GENERAL'): Promise<PartnersResponse> {
   const res = await apiClient.get<unknown>('/operations/partners', { params: { project_scope } })
-  const data = res.data as { data: any[], kpis: any }
+  const data = res.data as { data: unknown; kpis?: PartnersResponse['kpis'] | null }
   return {
     rows: asList<PartnerRecord>(data.data),
     kpis: data.kpis || { total: 0, actual: 0, negotiation: 0, rejected: 0 }
@@ -41,7 +41,7 @@ export async function fetchPartnersForSuperAdmin(): Promise<
 > {
   try {
     const res = await apiClient.get<unknown>('/operations/partners', { ...silent, params: { project_scope: 'EMC_GENERAL' } })
-    const data = res.data as { data: any[] }
+    const data = res.data as { data: unknown }
     return { ok: true, rows: asList<PartnerRecord>(data.data) }
   } catch (e) {
     if (axios.isAxiosError(e)) return { ok: false, status: e.response?.status }

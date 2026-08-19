@@ -90,11 +90,18 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
     columns,
   }), [format, mode, selectedIds, currentSearch, statuses, countries, universities, universityTypes, majors, studyYears, dateField, dateFrom, dateTo, columns])
 
-  // Fetch preview numbers whenever the final step is reached.
+  // Fetch preview numbers whenever the final step is reached. The loading flag
+  // flips during render when `step` changes (render-phase adjustment — see
+  // docs/04-references/effect-patterns.md §P2) so the effect only does the fetch.
+  const [seenStep, setSeenStep] = useState(step)
+  if (seenStep !== step) {
+    setSeenStep(step)
+    if (step === STEPS.length - 1) setPreviewLoading(true)
+  }
+
   useEffect(() => {
     if (step !== STEPS.length - 1) return
     let alive = true
-    setPreviewLoading(true)
     void (async () => {
       try {
         const p = await fetchAmbassadorExportPreview(requestBody)
@@ -156,7 +163,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
         <div className="flex shrink-0 items-center gap-1 px-5 pt-4 sm:px-7">
           {STEPS.map((s, i) => (
             <div key={s} className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-              <motion.div className="absolute inset-y-0 right-0 rounded-full bg-[#0077B6]" initial={false} animate={{ width: i <= step ? '100%' : '0%' }} transition={{ duration: 0.2 }} />
+              <motion.div className="absolute inset-y-0 right-0 rounded-full bg-customBlue" initial={false} animate={{ width: i <= step ? '100%' : '0%' }} transition={{ duration: 0.2 }} />
             </div>
           ))}
         </div>
@@ -168,7 +175,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7">
           {loadingOptions || !options ? (
-            <div className="flex h-40 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-[#0077B6]" /></div>
+            <div className="flex h-40 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-customBlue" /></div>
           ) : (
             <AnimatePresence mode="wait">
               <motion.div key={step} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.16 }}>
@@ -180,9 +187,9 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
                       ['xlsx', 'Excel (.xlsx)', FileSpreadsheet],
                     ] as const).map(([val, label, Icon]) => (
                       <button key={val} type="button" onClick={() => setFormat(val)}
-                        className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-6 transition ${format === val ? 'border-[#0077B6] bg-sky-50' : 'border-slate-200 hover:border-slate-300'}`}
+                        className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-6 transition ${format === val ? 'border-customBlue bg-sky-50' : 'border-slate-200 hover:border-slate-300'}`}
                       >
-                        <Icon className={`h-7 w-7 ${format === val ? 'text-[#0077B6]' : 'text-slate-400'}`} />
+                        <Icon className={`h-7 w-7 ${format === val ? 'text-customBlue' : 'text-slate-400'}`} />
                         <span className="text-[13px] font-black text-deepBlue">{label}</span>
                       </button>
                     ))}
@@ -199,7 +206,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
                     ] as const).map(([val, label]) => {
                       const disabled = (val === 'selected' && selectedIds.length === 0) || (val === 'search' && !currentSearch)
                       return (
-                        <label key={val} className={`flex items-center gap-3 rounded-2xl border p-3.5 transition ${mode === val ? 'border-[#0077B6] bg-sky-50' : 'border-slate-200'} ${disabled ? 'opacity-40' : 'cursor-pointer hover:bg-slate-50'}`}>
+                        <label key={val} className={`flex items-center gap-3 rounded-2xl border p-3.5 transition ${mode === val ? 'border-customBlue bg-sky-50' : 'border-slate-200'} ${disabled ? 'opacity-40' : 'cursor-pointer hover:bg-slate-50'}`}>
                           <input type="radio" disabled={disabled} checked={mode === val} onChange={() => setMode(val)} className="h-4 w-4" />
                           <span className="text-[13px] font-bold text-deepBlue">{label}</span>
                         </label>
@@ -224,7 +231,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {(Object.keys(DATE_FIELD_LABELS) as AmbassadorExportDateField[]).map((f) => (
                           <button key={f} type="button" onClick={() => setDateField(f)}
-                            className={`h-9 rounded-xl text-[11px] font-black transition ${dateField === f ? 'bg-[#0077B6] text-white' : 'border border-slate-200 text-deepBlue/60 hover:bg-slate-50'}`}
+                            className={`h-9 rounded-xl text-[11px] font-black transition ${dateField === f ? 'bg-customBlue text-white' : 'border border-slate-200 text-deepBlue/60 hover:bg-slate-50'}`}
                           >
                             {DATE_FIELD_LABELS[f]}
                           </button>
@@ -234,11 +241,11 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">من تاريخ</label>
-                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-full rounded-2xl border border-slate-200 px-3 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100" />
+                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-full rounded-2xl border border-slate-200 px-3 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100" />
                       </div>
                       <div>
                         <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">إلى تاريخ</label>
-                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-full rounded-2xl border border-slate-200 px-3 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100" />
+                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-full rounded-2xl border border-slate-200 px-3 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100" />
                       </div>
                     </div>
                   </div>
@@ -274,7 +281,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
                         <CheckCircle2 className="h-4 w-4 text-emerald-600" /> معاينة التصدير
                       </div>
                       {previewLoading ? (
-                        <div className="mt-4 flex justify-center"><Loader2 className="h-4 w-4 animate-spin text-[#0077B6]" /></div>
+                        <div className="mt-4 flex justify-center"><Loader2 className="h-4 w-4 animate-spin text-customBlue" /></div>
                       ) : preview ? (
                         <dl className="mt-4 grid grid-cols-2 gap-3 text-[12px]">
                           <PreviewRow label="صيغة الملف" value={format === 'xlsx' ? 'Excel' : 'CSV'} />
@@ -312,7 +319,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
             </button>
           ) : (
             <button type="button" disabled={!canGoNext} onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-              className="flex h-10 items-center gap-1.5 rounded-2xl bg-[#0077B6] px-5 text-[12px] font-black text-white transition hover:opacity-90 disabled:opacity-40"
+              className="flex h-10 items-center gap-1.5 rounded-2xl bg-customBlue px-5 text-[12px] font-black text-white transition hover:opacity-90 disabled:opacity-40"
             >
               التالي <ChevronLeft className="h-4 w-4" />
             </button>
@@ -347,18 +354,18 @@ function FilterCheckboxGroup({ title, allLabel, options, selected, onToggle, onS
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[12px] font-black text-deepBlue">{title}</p>
         {selected.length > 0 && (
-          <button type="button" onClick={() => onSetAll([])} className="text-[11px] font-bold text-[#0077B6] hover:underline">إعادة تعيين</button>
+          <button type="button" onClick={() => onSetAll([])} className="text-[11px] font-bold text-customBlue hover:underline">إعادة تعيين</button>
         )}
       </div>
       <div className={`flex flex-wrap gap-2 ${scrollable ? 'max-h-40 overflow-y-auto rounded-2xl border border-slate-100 p-2' : ''}`}>
-        <label className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition ${allChecked ? 'border-[#0077B6] bg-sky-50 text-[#0077B6]' : 'border-slate-200 text-deepBlue/60'}`}>
+        <label className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition ${allChecked ? 'border-customBlue bg-sky-50 text-customBlue' : 'border-slate-200 text-deepBlue/60'}`}>
           <input type="checkbox" checked={allChecked} onChange={() => onSetAll([])} className="h-3.5 w-3.5" />
           {allLabel}
         </label>
         {options.length === 0 ? (
           <span className="text-[11px] font-semibold text-slate-300">لا توجد بيانات</span>
         ) : options.map((o) => (
-          <label key={o.value} className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition ${selected.includes(o.value) ? 'border-[#0077B6] bg-sky-50 text-[#0077B6]' : 'border-slate-200 text-deepBlue/60 hover:bg-slate-50'}`}>
+          <label key={o.value} className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition ${selected.includes(o.value) ? 'border-customBlue bg-sky-50 text-customBlue' : 'border-slate-200 text-deepBlue/60 hover:bg-slate-50'}`}>
             <input type="checkbox" checked={selected.includes(o.value)} onChange={() => onToggle(o.value)} className="h-3.5 w-3.5" />
             {o.label}
           </label>
@@ -390,7 +397,7 @@ function ColumnPicker({ options, selected, onChange }: {
         <button type="button" onClick={() => onChange(allKeys)} className="rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-deepBlue/70 hover:bg-slate-50">تحديد الكل</button>
         <button type="button" onClick={() => onChange([])} className="rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-deepBlue/70 hover:bg-slate-50">إلغاء تحديد الكل</button>
         <button type="button" onClick={() => onChange(options.default_columns)} className="rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-black text-deepBlue/70 hover:bg-slate-50">إعادة تعيين</button>
-        <span className="mr-auto flex items-center text-[11px] font-black text-[#0077B6]">{selected.length} عمود محدَّد</span>
+        <span className="mr-auto flex items-center text-[11px] font-black text-customBlue">{selected.length} عمود محدَّد</span>
       </div>
 
       {Array.from(grouped.entries()).map(([group, cols]) => (
@@ -404,7 +411,7 @@ function ColumnPicker({ options, selected, onChange }: {
                   onChange={() => onChange(selected.includes(c.key) ? selected.filter((k) => k !== c.key) : [...selected, c.key])}
                   className="h-3.5 w-3.5"
                 />
-                {selected.includes(c.key) && <Check className="h-3 w-3 text-[#0077B6]" />}
+                {selected.includes(c.key) && <Check className="h-3 w-3 text-customBlue" />}
                 {c.label}
               </label>
             ))}

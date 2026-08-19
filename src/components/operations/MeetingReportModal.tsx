@@ -44,8 +44,9 @@ export default function MeetingReportModal({ isOpen, onClose, meetingId, onSucce
       toast.success('تم رفع تقرير الاجتماع بنجاح وتوثيق المخرجات')
       onSuccess()
       onClose()
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'تعذر رفع التقرير')
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg || 'تعذر رفع التقرير')
     } finally {
       setSubmitting(false)
     }

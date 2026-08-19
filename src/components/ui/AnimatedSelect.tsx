@@ -68,14 +68,22 @@ export default function AnimatedSelect({
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [open])
 
+  // Clear the search + highlight when the menu closes — render-phase
+  // adjustment (docs/04-references/effect-patterns.md §P2), not a setState
+  // inside an effect.
+  const [wasOpen, setWasOpen] = useState(open)
+  if (wasOpen !== open) {
+    setWasOpen(open)
+    if (!open) {
+      setQuery('')
+      setActiveIndex(-1)
+    }
+  }
+
   useEffect(() => {
     if (open && searchable) {
       // Focus search when the menu opens.
       requestAnimationFrame(() => searchRef.current?.focus())
-    }
-    if (!open) {
-      setQuery('')
-      setActiveIndex(-1)
     }
   }, [open, searchable])
 

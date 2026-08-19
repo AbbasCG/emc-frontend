@@ -19,7 +19,7 @@ type Props = {
 export default function CreateMeetingForm({ isOpen, onClose, onSuccess, initialType, hideTypeSelector }: Props) {
   const [departments, setDepartments] = useState<WorkspaceDepartment[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [loadingDepts, setLoadingDepts] = useState(false)
+  const [loadingDepts, setLoadingDepts] = useState(isOpen)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -31,10 +31,19 @@ export default function CreateMeetingForm({ isOpen, onClose, onSuccess, initialT
     meeting_url: '',
   })
 
-  useEffect(() => {
+  // Reset the type + loading flag when the form opens — render-phase adjustment
+  // (docs/04-references/effect-patterns.md §P2), not a setState in the effect.
+  const [wasOpen, setWasOpen] = useState(isOpen)
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen)
     if (isOpen) {
       setFormData(prev => ({ ...prev, type: initialType || 'general' }))
       setLoadingDepts(true)
+    }
+  }
+
+  useEffect(() => {
+    if (isOpen) {
       fetchWorkspaceDepartments()
         .then((res) => setDepartments(res.items))
         .catch((err) => {
@@ -68,8 +77,9 @@ export default function CreateMeetingForm({ isOpen, onClose, onSuccess, initialT
         end_time: '',
         meeting_url: '',
       })
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'تعذر إضافة الاجتماع')
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg || 'تعذر إضافة الاجتماع')
     } finally {
       setSubmitting(false)
     }

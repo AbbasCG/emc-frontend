@@ -46,7 +46,7 @@ function CourseHeroSection({ course, quizCount }: { course: TeachingCourseLms | 
       className="overflow-hidden rounded-3xl border border-slate-200 bg-white"
     >
       <div className="flex flex-col sm:flex-row">
-        <div className="h-32 shrink-0 bg-gradient-to-bl from-[#0C2A4B] to-[#0077B6] sm:h-auto sm:w-48">
+        <div className="h-32 shrink-0 bg-gradient-to-bl from-deepBlue to-customBlue sm:h-auto sm:w-48">
           {(course.image_url ?? course.image ?? course.thumbnail) ? (
             <img
               src={course.image_url ?? course.image ?? course.thumbnail ?? undefined}
@@ -65,10 +65,10 @@ function CourseHeroSection({ course, quizCount }: { course: TeachingCourseLms | 
             <p className="mt-1.5 line-clamp-2 text-[12px] font-semibold leading-relaxed text-deepBlue/50">{course.description}</p>
           )}
           <div className="mt-4 flex flex-wrap gap-4 text-[11px] font-bold text-deepBlue/60">
-            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-[#0077B6]" /> {studentCount} طالب</span>
-            <span className="flex items-center gap-1.5"><ListChecks className="h-3.5 w-3.5 text-[#0077B6]" /> {quizCount} اختبار</span>
+            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-customBlue" /> {studentCount} طالب</span>
+            <span className="flex items-center gap-1.5"><ListChecks className="h-3.5 w-3.5 text-customBlue" /> {quizCount} اختبار</span>
             {sessionsCount != null && (
-              <span className="flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5 text-[#0077B6]" /> {sessionsCount} جلسة</span>
+              <span className="flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5 text-customBlue" /> {sessionsCount} جلسة</span>
             )}
           </div>
         </div>
@@ -90,7 +90,7 @@ function StatCard({ icon: Icon, label, value, index }: { icon: typeof ListChecks
     >
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-wide text-deepBlue/40">{label}</p>
-        <Icon className="h-4 w-4 text-[#0077B6]" />
+        <Icon className="h-4 w-4 text-customBlue" />
       </div>
       <p className="mt-1.5 text-[22px] font-black text-deepBlue">{value}</p>
     </motion.div>
@@ -164,14 +164,14 @@ function QuizFormModal({ courseId, quiz, onClose, onSaved }: {
             <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">عنوان الاختبار</label>
             <input
               value={title} onChange={(e) => setTitle(e.target.value)} dir="rtl"
-              className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+              className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
             />
           </div>
           <div>
             <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">الوصف (اختياري)</label>
             <textarea
               value={description} onChange={(e) => setDescription(e.target.value)} dir="rtl" rows={2}
-              className="w-full rounded-2xl border border-slate-200 px-3.5 py-2 text-[13px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+              className="w-full rounded-2xl border border-slate-200 px-3.5 py-2 text-[13px] font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -179,7 +179,7 @@ function QuizFormModal({ courseId, quiz, onClose, onSaved }: {
               <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">عدد المحاولات المسموحة</label>
               <input
                 type="number" min={1} value={maxAttempts} onChange={(e) => setMaxAttempts(Number(e.target.value))}
-                className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+                className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
               />
             </div>
             <div>
@@ -187,7 +187,7 @@ function QuizFormModal({ courseId, quiz, onClose, onSaved }: {
               <input
                 type="number" min={0} max={100} value={weight}
                 onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
-                className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+                className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
               />
             </div>
           </div>
@@ -273,7 +273,7 @@ function AssessmentSettingsAccordion({ courseId }: { courseId: string }) {
         className="flex w-full items-center justify-between px-5 py-4"
       >
         <div className="flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-[#0077B6]" />
+          <BarChart3 className="h-4 w-4 text-customBlue" />
           <h2 className="text-[14px] font-black text-deepBlue">إعدادات التقييم</h2>
         </div>
         <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
@@ -294,7 +294,7 @@ function AssessmentSettingsAccordion({ courseId }: { courseId: string }) {
                       <input
                         type="number" min={0} max={100} value={quizWeight}
                         onChange={(e) => setQuizWeight(Number(e.target.value))}
-                        className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+                        className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
                       />
                     </div>
                     <div>
@@ -302,7 +302,7 @@ function AssessmentSettingsAccordion({ courseId }: { courseId: string }) {
                       <input
                         type="number" min={0} max={100} value={examWeight}
                         onChange={(e) => setExamWeight(Number(e.target.value))}
-                        className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+                        className="h-10 w-full rounded-2xl border border-slate-200 px-3.5 text-[13px] font-bold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
                       />
                     </div>
                   </div>
@@ -314,7 +314,7 @@ function AssessmentSettingsAccordion({ courseId }: { courseId: string }) {
                         <button
                           key={m} type="button" onClick={() => setMode(m)}
                           className={`h-9 flex-1 rounded-2xl text-[12px] font-black transition ${
-                            mode === m ? 'bg-[#0077B6] text-white' : 'border border-slate-200 text-deepBlue/60 hover:bg-slate-50'
+                            mode === m ? 'bg-customBlue text-white' : 'border border-slate-200 text-deepBlue/60 hover:bg-slate-50'
                           }`}
                         >
                           {m === 'equal' ? 'متساوية' : 'مخصصة'}
@@ -402,24 +402,42 @@ export default function InstructorQuizzesPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  async function load() {
-    if (!courseId) return
-    setLoading(true)
-    try {
-      const [list, courses] = await Promise.all([
-        fetchInstructorQuizzes(Number(courseId)),
-        fetchInstructorCourses(),
-      ])
-      setQuizzes(list)
-      setCourse(courses.find((c) => c.id === Number(courseId)) ?? null)
-    } catch {
-      toast.error('تعذّر تحميل الاختبارات القصيرة')
-    } finally {
-      setLoading(false)
-    }
+  const [reloadKey, setReloadKey] = useState(0)
+
+  // Show the loading skeleton again when the course changes — render-phase
+  // adjustment (docs/04-references/effect-patterns.md §P2), not a setState in
+  // the effect body.
+  const [seenCourseId, setSeenCourseId] = useState(courseId)
+  if (seenCourseId !== courseId) {
+    setSeenCourseId(courseId)
+    if (courseId) setLoading(true)
   }
 
-  useEffect(() => { void load() }, [courseId])
+  // Manual refresh (hero button / after actions). A plain handler, so the
+  // synchronous setLoading is allowed; the fetch itself lives in the effect.
+  function load() {
+    if (!courseId) return
+    setLoading(true)
+    setReloadKey((k) => k + 1)
+  }
+
+  useEffect(() => {
+    if (!courseId) return
+    void (async () => {
+      try {
+        const [list, courses] = await Promise.all([
+          fetchInstructorQuizzes(Number(courseId)),
+          fetchInstructorCourses(),
+        ])
+        setQuizzes(list)
+        setCourse(courses.find((c) => c.id === Number(courseId)) ?? null)
+      } catch {
+        toast.error('تعذّر تحميل الاختبارات القصيرة')
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [courseId, reloadKey])
 
   async function handleAction(action: QuizAction, quiz: InstructorQuizSummary) {
     if (action === 'edit') { setModalQuiz(quiz); return }
@@ -438,7 +456,7 @@ export default function InstructorQuizzesPage() {
         await deleteInstructorQuiz(quiz.id)
       }
       toast.success('تم التنفيذ بنجاح')
-      void load()
+      load()
     } catch (err) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       toast.error(msg ?? 'تعذّر تنفيذ العملية')
@@ -534,7 +552,7 @@ export default function InstructorQuizzesPage() {
           <Search className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث في الاختبارات..."
-            className="h-10 w-full rounded-2xl border border-slate-200 bg-white pr-9 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-sky-100"
+            className="h-10 w-full rounded-2xl border border-slate-200 bg-white pr-9 pl-3.5 text-[12px] font-semibold text-deepBlue outline-none focus:border-customBlue focus:ring-4 focus:ring-sky-100"
           />
         </div>
         <div className="w-48">
@@ -590,7 +608,7 @@ export default function InstructorQuizzesPage() {
             courseId={courseId}
             quiz={modalQuiz === 'new' ? null : modalQuiz}
             onClose={() => setModalQuiz(null)}
-            onSaved={() => void load()}
+            onSaved={load}
           />
         )}
       </AnimatePresence>

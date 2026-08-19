@@ -107,10 +107,13 @@ describe('getAllowedRolesForPath — المسارات العامة وخارج ا
 
 describe('getAllowedRolesForPath — مساحات المديرين الدقيقة', () => {
   it('قاعدة البرامج الدقيقة تفوز على قاعدة الإدارة العامة', () => {
+    // partnerships_manager added deliberately (partnerships-CRM work) — the granular
+    // rule still wins over the generic /dashboard/admin rule (no tech_admin below).
     expect(getAllowedRolesForPath('/dashboard/admin/programs')).toEqual([
       'admin',
       'super_admin',
       'programs_manager',
+      'partnerships_manager',
     ])
     // tech_admin يملك القاعدة العامة لكنه ليس ضمن القاعدة الدقيقة
     expect(getAllowedRolesForPath('/dashboard/admin/programs')).not.toContain('tech_admin')

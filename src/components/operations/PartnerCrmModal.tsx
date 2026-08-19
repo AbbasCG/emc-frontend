@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save } from 'lucide-react'
 import { createPartner, updatePartner } from '@/api/partnersApi'
@@ -33,10 +33,17 @@ const defaultPartner = {
 }
 
 export default function PartnerCrmModal({ isOpen, onClose, onSuccess, editingPartner }: PartnerCrmModalProps) {
-  const [formData, setFormData] = useState<Partial<PartnerRecord>>(defaultPartner)
+  const [formData, setFormData] = useState<Partial<PartnerRecord>>(
+    editingPartner ? { ...defaultPartner, ...editingPartner } : defaultPartner,
+  )
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
+  // Re-seed the form when the target partner or the open state changes —
+  // render-phase adjustment (docs/04-references/effect-patterns.md §P2)
+  // instead of a setState inside an effect.
+  const [seen, setSeen] = useState({ editingPartner, isOpen })
+  if (seen.editingPartner !== editingPartner || seen.isOpen !== isOpen) {
+    setSeen({ editingPartner, isOpen })
     if (editingPartner) {
       setFormData({
         ...defaultPartner,
@@ -45,7 +52,7 @@ export default function PartnerCrmModal({ isOpen, onClose, onSuccess, editingPar
     } else {
       setFormData(defaultPartner)
     }
-  }, [editingPartner, isOpen])
+  }
 
   if (!isOpen) return null
 
