@@ -61,11 +61,10 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
   const startLabel = formatStartAr(course.start_date)
   const priceLabel = course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))
 
-  const seatsFull =
-    !course.is_ended &&
-    course.seats_count != null &&
-    course.seats_count > 0 &&
-    course.registrations_count >= course.seats_count
+  // seats_count from the API means REMAINING seats (cards have always rendered
+  // «registrations / seats_count متبقٍ») — full is when none remain, never when
+  // registrations exceed it.
+  const seatsFull = !course.is_ended && course.seats_count != null && course.seats_count <= 0
   const registerDisabled = course.is_ended || seatsFull
 
   const metaParts: string[] = [`مع ${course.trainer.name}`, course.duration_label]
@@ -145,6 +144,15 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
                     role: user?.role,
                     redirectPath: buildCourseDetailEnrollHref(course.slug),
                     navigate,
+                    // In-context QuickJoin: guests get the 3-field modal instead of leaving the page.
+                    intent: {
+                      kind: 'course',
+                      slug: course.slug,
+                      title: course.title,
+                      isFree: course.is_free,
+                      id: course.id,
+                      price: typeof course.price === 'number' ? course.price : undefined,
+                    },
                     onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
                   })
                 }}

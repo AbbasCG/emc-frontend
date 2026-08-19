@@ -18,6 +18,7 @@ import {
   MessageCircle,
 } from 'lucide-react'
 import toast from '@/lib/toast'
+import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
 import {
   buildPublicLoginHref,
   isStudentUser,
@@ -103,6 +104,18 @@ export default function LearningPathDetail() {
   const handleEnroll = async () => {
     if (!slug) return
     if (!user) {
+      // In-context QuickJoin (3 fields, auto-enroll) — /login only if the host is absent.
+      if (path && hasEnrollIntentHost()) {
+        setEnrollIntent({
+          kind: 'path',
+          slug,
+          title: path.title,
+          isFree: (path.discount_price ?? path.price ?? 0) === 0,
+          id: path.id,
+          price: path.discount_price ?? path.price ?? undefined,
+        })
+        return
+      }
       navigate(buildPublicLoginHref(location.pathname))
       return
     }
