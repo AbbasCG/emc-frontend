@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, ChevronDown } from 'lucide-react'
 
 const faqs = [
   {
@@ -32,13 +32,16 @@ const trustBullets = [
   'شهادات معتمدة قابلة للتحقق',
 ] as const
 
+// Design Language 2.0 — the boxed accordion became question rows on hairline
+// seats (emc-row): the answer slides under the seat and the chevron rotates.
+// aria-expanded + native button keyboard behavior are unchanged.
 export default function HomeFaqSection() {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
     <section
       dir="rtl"
-      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-[#f4f7fb] px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+      className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
       {/* Decorative blobs — sea drifting from the top-right, ember pulsing from the bottom-left */}
       <div aria-hidden className="animate-soft-float pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-customBlue/[0.07] blur-[80px]" />
@@ -75,80 +78,67 @@ export default function HomeFaqSection() {
               إجابات واضحة عن التسجيل، البرامج، وطبيعة تجربة التعلّم في منظومة EMC.
             </p>
 
-            {/* Trust bullets */}
+            {/* Trust bullets — plain sky dots, no chips */}
             <ul className="mt-8 space-y-3.5">
               {trustBullets.map((item) => (
                 <li key={item} className="flex items-center justify-start gap-3 text-sm font-semibold text-foreground/65">
+                  <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-customBlue" />
                   {item}
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-customBlue/15">
-                    <span aria-hidden className="h-2 w-2 rounded-full bg-customBlue" />
-                  </span>
                 </li>
               ))}
             </ul>
 
             <div className="mt-10">
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 text-sm font-black text-customBlue underline-offset-4 hover:underline"
-              >
+              <Link to="/contact" className="emc-cta-line text-sm">
                 سؤال آخر؟ تواصل معنا
                 <ArrowLeft size={15} aria-hidden />
               </Link>
             </div>
           </motion.div>
 
-          {/* Right column — accordion */}
+          {/* Right column — editorial accordion */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
+            viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.55, delay: 0.1 }}
-            className="space-y-3"
           >
+            <div aria-hidden className="emc-hairline" />
             {faqs.map((item, i) => {
               const isOpen = open === i
               return (
-                <div
-                  key={item.q}
-                  className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
-                    isOpen
-                      ? 'border-customBlue/20 bg-white shadow-emc-md'
-                      : 'border-deepBlue/[0.06] bg-white/70 shadow-emc-xs hover:border-deepBlue/10 hover:bg-white'
-                  }`}
-                >
+                <div key={item.q} className="emc-row">
                   <button
                     type="button"
                     onClick={() => setOpen(isOpen ? null : i)}
-                    className="flex w-full items-center gap-4 px-5 py-4 text-right sm:px-6"
+                    className="flex w-full items-center gap-4 py-5 ps-3 text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue sm:py-6 sm:ps-4"
                     aria-expanded={isOpen}
                   >
                     {/* Number */}
                     <span
                       aria-hidden
                       className={`font-latin shrink-0 text-xs font-black tabular-nums transition-colors ${
-                        isOpen ? 'text-customBlue' : 'text-deepBlue/20'
+                        isOpen ? 'text-customBlue' : 'text-deepBlue/25'
                       }`}
                     >
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     {/* Question */}
-                    <span className={`flex-1 text-right text-base font-black leading-relaxed transition-colors ${
-                      isOpen ? 'text-customBlue' : 'text-deepBlue'
-                    }`}>
+                    <span
+                      className={`flex-1 text-right font-display text-base font-black leading-relaxed transition-colors sm:text-lg ${
+                        isOpen ? 'text-customBlue' : 'text-deepBlue'
+                      }`}
+                    >
                       {item.q}
                     </span>
-                    {/* Toggle icon */}
-                    <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
-                        isOpen
-                          ? 'rotate-45 border-customBlue/30 bg-customBlue/10 text-customBlue'
-                          : 'border-deepBlue/10 bg-transparent text-deepBlue/40'
-                      }`}
+                    {/* Chevron — rotates when the answer slides open */}
+                    <ChevronDown
+                      size={18}
                       aria-hidden
-                    >
-                      <Plus size={16} />
-                    </span>
+                      className={`shrink-0 transition-transform duration-300 ${
+                        isOpen ? 'rotate-180 text-customBlue' : 'text-ink-400'
+                      }`}
+                    />
                   </button>
 
                   <AnimatePresence initial={false}>
@@ -158,9 +148,9 @@ export default function HomeFaqSection() {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
-                        className="overflow-hidden border-t border-customBlue/10"
+                        className="overflow-hidden"
                       >
-                        <p className="px-5 pb-5 pt-3.5 text-right text-sm font-medium leading-7 text-foreground/65 sm:px-6">
+                        <p className="pb-6 pe-9 ps-12 text-right text-sm font-medium leading-7 text-foreground/65">
                           {item.a}
                         </p>
                       </motion.div>

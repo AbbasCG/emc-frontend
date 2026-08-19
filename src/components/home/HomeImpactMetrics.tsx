@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 // أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
@@ -34,12 +34,15 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
   }, [target])
 
   return (
-    <span className="font-latin tabular-nums" dir="ltr">
+    <span className="tabular-nums" dir="ltr">
       {suffix}{val.toLocaleString('en-US')}
     </span>
   )
 }
 
+// Design Language 2.0 — the four glass cards became ONE typographic line-up:
+// huge serif numbers (emc-stat-num) on the dark field, separated by thin
+// white/15 vertical hairlines. No boxes; the numbers carry the scene.
 export default function HomeImpactMetrics() {
   return (
     <section dir="rtl" className="emc-dawn relative overflow-hidden px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
@@ -56,30 +59,27 @@ export default function HomeImpactMetrics() {
       />
 
       <div className="relative mx-auto max-w-[1540px]">
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:flex sm:items-stretch sm:justify-between sm:gap-0">
           {metrics.map((m, i) => (
-            <motion.div
-              key={m.label}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-6 text-right backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-sky/30 hover:bg-white/[0.07] sm:p-8"
-            >
-              <div aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-customBlue/15 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
-              {/* Big number (or qualitative check for non-numeric slots) */}
-              <p className="text-[2.6rem] font-black tabular-nums leading-none tracking-tight text-white sm:text-[3.2rem] lg:text-[3.6rem]">
-                {m.raw !== null ? <Counter target={m.raw} suffix={m.suffix} /> : <span aria-hidden>✓</span>}
-              </p>
-              {/* Label */}
-              <p className="mt-4 text-base font-black text-ice sm:text-lg">{m.label}</p>
-              <p className="mt-1 text-xs font-semibold text-white/45">{m.sub}</p>
-              {/* Bottom accent line */}
-              <div
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-[2px] origin-right scale-x-0 bg-gradient-to-l from-customBlue to-transparent transition-transform duration-500 group-hover:scale-x-100"
-              />
-            </motion.div>
+            <Fragment key={m.label}>
+              {i > 0 && (
+                <div aria-hidden className="hidden w-px self-stretch bg-white/15 sm:block" />
+              )}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="text-center sm:flex-1 sm:px-6"
+              >
+                {/* Huge serif number — white overrides the utility's light-surface navy */}
+                <p className="emc-stat-num font-display text-5xl text-white sm:text-6xl">
+                  {m.raw !== null ? <Counter target={m.raw} suffix={m.suffix} /> : <span aria-hidden>✓</span>}
+                </p>
+                <p className="mt-4 text-sm font-black text-ice sm:text-base">{m.label}</p>
+                <p className="mt-1 text-xs font-semibold text-white/45">{m.sub}</p>
+              </motion.div>
+            </Fragment>
           ))}
         </div>
       </div>

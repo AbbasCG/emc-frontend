@@ -136,8 +136,11 @@ export default function LearningPathsPage() {
     return { openCount, featuredCount }
   }, [paths])
 
+  const hasActiveFilters =
+    level !== 'all' || priceFilter !== 'all' || featuredFilter !== 'all' || enrollmentFilter !== 'all'
+
   return (
-    <main className="overflow-x-hidden bg-slate-50" dir="rtl">
+    <main className="overflow-x-hidden bg-paper" dir="rtl">
       <PublicSeo
         title="المسارات التعليمية"
         description="مسارات تعلم متكاملة من EMC — دورات مرتبة، شهادات، وتوجيه مهني بالعربية."
@@ -176,145 +179,140 @@ export default function LearningPathsPage() {
         apiEmpty={!loading && paths.length === 0}
       />
 
-      <section id="paths-catalog" className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          {loading ?
-            <div
-              className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
-              aria-busy="true"
-              aria-label="جارٍ تحميل المسارات"
-            >
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc">
-                  <Skeleton className="aspect-video w-full rounded-none" />
-                  <div className="p-5">
-                    <Skeleton variant="text" className="h-3 w-1/3" />
-                    <Skeleton variant="text" className="mt-3 h-5 w-4/5" />
-                    <div className="mt-5 space-y-3">
+      {/* ── PATHS — full-width alternating editorial bands ─────────────────── */}
+      <section id="paths-catalog">
+        {loading ?
+          <div aria-busy="true" aria-label="جارٍ تحميل المسارات">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className={i % 2 === 1 ? 'bg-brand-50/30' : 'bg-paper'}>
+                <div className="mx-auto grid max-w-7xl items-start gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,400px)_1fr] lg:gap-14 lg:px-8 lg:py-16">
+                  <Skeleton className="emc-page-clip aspect-[4/3] w-full" />
+                  <div>
+                    <Skeleton variant="text" className="h-3 w-1/4" />
+                    <Skeleton variant="text" className="mt-4 h-8 w-3/5" />
+                    <Skeleton variant="text" className="mt-4 h-4 w-4/5" />
+                    <div className="mt-8 space-y-4">
                       {Array.from({ length: 3 }).map((_, s) => (
-                        <div key={s} className="flex items-center gap-3">
-                          <Skeleton variant="circular" width={24} height={24} />
-                          <Skeleton variant="text" className="h-3 w-2/3" />
+                        <div key={s} className="flex items-center gap-3.5">
+                          <Skeleton variant="circular" width={28} height={28} />
+                          <Skeleton variant="text" className="h-3 w-1/2" />
                         </div>
                       ))}
                     </div>
-                    <div className="mt-5 flex items-center justify-between border-t border-slate-50 pt-4">
-                      <Skeleton className="h-6 w-16 rounded-lg" />
-                      <Skeleton className="h-6 w-24 rounded-lg" />
+                    <div className="mt-8 flex items-end justify-between gap-6">
+                      <Skeleton className="h-9 w-24 rounded-lg" />
+                      <Skeleton className="h-11 w-40 rounded-xl" />
                     </div>
-                    <Skeleton className="mt-3 h-11 w-full rounded-xl" />
                   </div>
                 </div>
+                <div className="emc-hairline" aria-hidden />
+              </div>
+            ))}
+          </div>
+        : filteredPaths.length === 0 ?
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center px-6 py-24 text-center">
+            <Route className="mb-6 h-10 w-10 text-customBlue" aria-hidden />
+            <h2 className="font-display text-2xl font-black tracking-tight text-deepBlue">لا توجد مسارات مطابقة</h2>
+            <p className="mt-3 max-w-md text-sm leading-7 text-muted-500">
+              جرّب تغيير معايير البحث أو تصفح الدورات المتاحة
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
+              <Link
+                to="/courses"
+                className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition-colors duration-200 hover:bg-brand-600"
+              >
+                تصفح الدورات
+              </Link>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLevel('all')
+                    setPriceFilter('all')
+                    setFeaturedFilter('all')
+                    setEnrollmentFilter('all')
+                    setPage(1)
+                  }}
+                  className="emc-cta-line text-sm"
+                >
+                  إعادة تعيين الفلاتر
+                </button>
+              )}
+            </div>
+          </div>
+        : <>
+            <p className="mx-auto max-w-7xl px-4 pb-2 pt-8 text-sm font-semibold text-muted-500 sm:px-6 lg:px-8">
+              <span dir="ltr" className="font-black tabular-nums text-deepBlue">
+                {String(filteredPaths.length)}
+              </span>{' '}
+              مسار
+              {filteredPaths.length !== paths.length ?
+                ` (من ${String(paths.length)} في هذه الصفحة)`
+              : ''}
+            </p>
+
+            <div>
+              {filteredPaths.map((path, i) => (
+                <LearningPathJourneyCard
+                  key={path.id}
+                  path={path}
+                  index={i}
+                  enrolled={enrolledIds.has(path.id)}
+                />
               ))}
             </div>
-          : filteredPaths.length === 0 ?
-            <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-emc">
-              <span className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-customBlue">
-                <Route className="h-7 w-7" aria-hidden />
-              </span>
-              <h2 className="text-lg font-black text-deepBlue">لا توجد مسارات مطابقة</h2>
-              <p className="mt-2 max-w-md text-sm leading-7 text-slate-500">
-                جرّب تغيير معايير البحث أو تصفح الدورات المتاحة
-              </p>
-              <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
-                <Link
-                  to="/courses"
-                  className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition-colors duration-200 hover:bg-brand-600"
-                >
-                  تصفح الدورات
-                </Link>
-                {(level !== 'all' ||
-                  priceFilter !== 'all' ||
-                  featuredFilter !== 'all' ||
-                  enrollmentFilter !== 'all') && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLevel('all')
-                      setPriceFilter('all')
-                      setFeaturedFilter('all')
-                      setEnrollmentFilter('all')
-                      setPage(1)
-                    }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600 transition-colors duration-200 hover:border-customBlue hover:text-customBlue"
-                  >
-                    إعادة تعيين الفلاتر
-                  </button>
-                )}
-              </div>
-            </div>
-          : <>
-              <p className="mb-6 text-sm font-semibold text-slate-500">
-                <span dir="ltr" className="font-black tabular-nums text-deepBlue">
-                  {String(filteredPaths.length)}
-                </span>{' '}
-                مسار
-                {filteredPaths.length !== paths.length ?
-                  ` (من ${String(paths.length)} في هذه الصفحة)`
-                : ''}
-              </p>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredPaths.map((path, i) => (
-                  <LearningPathJourneyCard
-                    key={path.id}
-                    path={path}
-                    index={i}
-                    enrolled={enrolledIds.has(path.id)}
-                  />
-                ))}
-              </div>
 
-              {meta.last_page > 1 && (
-                <div className="mt-10 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-customBlue hover:text-customBlue disabled:opacity-40"
-                  >
-                    السابق
-                  </button>
-                  <span className="text-sm text-slate-500">
-                    {String(page)} / {String(meta.last_page)}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={page === meta.last_page}
-                    onClick={() => setPage((p) => p + 1)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-customBlue hover:text-customBlue disabled:opacity-40"
-                  >
-                    التالي
-                  </button>
-                </div>
-              )}
-            </>
-          }
-        </div>
+            {meta.last_page > 1 && (
+              <div className="mx-auto flex max-w-7xl items-center justify-center gap-6 px-4 py-10 sm:px-6 lg:px-8">
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="text-sm font-black text-customBlue transition-colors duration-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:text-muted-300"
+                >
+                  السابق
+                </button>
+                <span dir="ltr" className="text-sm font-semibold tabular-nums text-muted-500">
+                  {String(page)} / {String(meta.last_page)}
+                </span>
+                <button
+                  type="button"
+                  disabled={page === meta.last_page}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="text-sm font-black text-customBlue transition-colors duration-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:text-muted-300"
+                >
+                  التالي
+                </button>
+              </div>
+            )}
+          </>
+        }
       </section>
 
-      <section className="px-4 pb-20 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 rounded-2xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-8 text-right text-white shadow-2xl sm:p-10 lg:flex-row lg:items-center"
-        >
+      {/* ── Advisor band — full-bleed dawn field, editorial (no rounded box) ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.5 }}
+        className="emc-dawn"
+      >
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-16 text-right text-white sm:px-6 lg:flex-row lg:items-center lg:px-8">
           <div>
-            <h2 className="text-3xl font-black sm:text-4xl">غير متأكد من مسارك؟</h2>
-            <p className="mt-4 max-w-xl text-lg leading-9 text-slate-300">
+            <h2 className="font-display text-3xl font-black tracking-tight sm:text-4xl">غير متأكد من مسارك؟</h2>
+            <p className="mt-4 max-w-xl text-lg leading-9 text-ice/85">
               تواصل معنا وسيساعدك أحد مستشارينا في اختيار المسار الأنسب لأهدافك ومستواك الحالي.
             </p>
           </div>
           <Link
             to="/contact"
-            className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-black text-white transition hover:bg-[#d4832e] sm:w-auto"
+            className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-black text-white transition duration-200 hover:brightness-[1.03] sm:w-auto"
           >
             تواصل مع مستشار
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </Link>
-        </motion.div>
-      </section>
+        </div>
+      </motion.section>
     </main>
   )
 }

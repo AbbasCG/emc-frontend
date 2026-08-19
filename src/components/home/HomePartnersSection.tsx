@@ -1,19 +1,21 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
+import { staggerContainer, staggerItem } from '@/utils/animations'
 
-// Partner tiles — styled placeholder blocks since real logos aren't available
+// Partner marks — styled placeholder wordmarks since real logos aren't available
 const partners = [
-  { name: 'جامعة الأولى', abbr: 'UNV', w: 'wide' as const },
-  { name: 'هيئة التطوير', abbr: 'HTA', w: 'normal' as const },
-  { name: 'مختبر الابتكار', abbr: 'LAB', w: 'normal' as const },
-  { name: 'مؤسسة البحث', abbr: 'RES', w: 'wide' as const },
-  { name: 'شركة تقنية رائدة', abbr: 'TEC', w: 'normal' as const },
-  { name: 'برنامج دولي', abbr: 'INT', w: 'normal' as const },
-  { name: 'منظمة الريادة', abbr: 'ENT', w: 'wide' as const },
-  { name: 'مجلس المهنيين', abbr: 'PRO', w: 'normal' as const },
+  { name: 'جامعة الأولى', abbr: 'UNV' },
+  { name: 'هيئة التطوير', abbr: 'HTA' },
+  { name: 'مختبر الابتكار', abbr: 'LAB' },
+  { name: 'مؤسسة البحث', abbr: 'RES' },
+  { name: 'شركة تقنية رائدة', abbr: 'TEC' },
+  { name: 'برنامج دولي', abbr: 'INT' },
+  { name: 'منظمة الريادة', abbr: 'ENT' },
+  { name: 'مجلس المهنيين', abbr: 'PRO' },
 ] as const
 
+// Design Language 2.0 — the chip grid became a plain logo/name row between two
+// fading hairlines. The wordmarks and whitespace carry the scene; no boxes.
 export default function HomePartnersSection() {
   return (
     <section
@@ -26,16 +28,13 @@ export default function HomePartnersSection() {
       </span>
 
       <div className="relative mx-auto max-w-[1540px]">
-        {/* Seam divider — tricolor hairline marking the light→light transition */}
-        <div aria-hidden className="emc-tricolor mx-auto mb-12 h-1 w-24 rounded-full" />
-
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.5 }}
-          className="mb-12 text-right"
+          className="mb-6 text-right"
         >
           <span className="emc-eyebrow">الشراكات</span>
           <h2 className="emc-title-arc mt-4 font-display text-2xl font-black tracking-tight text-deepBlue sm:text-3xl">
@@ -46,44 +45,31 @@ export default function HomePartnersSection() {
           </p>
         </motion.div>
 
-        {/* Partner logos grid */}
+        {/* Partner wordmark row — seated between two fading hairlines */}
         <motion.div
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={viewportOnce}
+          viewport={{ once: true, amount: 0.15 }}
         >
-          {partners.map((p) => (
-            <motion.div
-              key={p.abbr}
-              variants={staggerItem}
-              className={`group flex items-center justify-center rounded-2xl border border-deepBlue/[0.07] bg-white/80 px-6 py-7 shadow-emc-xs backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-customBlue/20 hover:shadow-emc-sm ${
-                p.w === 'wide' ? 'sm:col-span-2' : ''
-              }`}
-            >
-              <div className="text-center">
-                <p className="font-latin text-lg font-black tracking-widest text-deepBlue/20 transition-colors group-hover:text-customBlue/40">
+          <div aria-hidden className="emc-hairline" />
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-8 py-12 sm:gap-x-16">
+            {partners.map((p) => (
+              <motion.div key={p.abbr} variants={staggerItem} className="group text-center">
+                <p className="font-latin text-xl font-black tracking-[0.2em] text-deepBlue/25 transition-colors group-hover:text-customBlue/50 sm:text-2xl">
                   {p.abbr}
                 </p>
-                <p className="mt-0.5 text-xs font-black text-foreground/40">{p.name}</p>
-              </div>
-            </motion.div>
-          ))}
-
-          {/* "More" tile */}
-          <motion.div
-            variants={staggerItem}
-            className="flex items-center justify-center rounded-2xl border border-dashed border-deepBlue/10 bg-white/40 px-6 py-7"
-          >
-            <p className="text-center text-xs font-black text-foreground/30">
-              و<br />
-              المزيد
-            </p>
-          </motion.div>
+                <p className="mt-1 text-[11px] font-bold text-ink-400">{p.name}</p>
+              </motion.div>
+            ))}
+            <motion.p variants={staggerItem} className="text-xs font-black text-ink-400">
+              والمزيد
+            </motion.p>
+          </div>
+          <div aria-hidden className="emc-hairline" />
         </motion.div>
 
-        {/* Partnership CTA */}
+        {/* Partnership CTA — line CTA, no boxed button */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -91,10 +77,7 @@ export default function HomePartnersSection() {
           transition={{ duration: 0.45, delay: 0.2 }}
           className="mt-10 flex justify-center"
         >
-          <Link
-            to="/partnerships"
-            className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/10 bg-white px-6 py-3 text-sm font-black text-deepBlue shadow-emc-xs transition hover:border-customBlue/30 hover:text-customBlue"
-          >
+          <Link to="/partnerships" className="emc-cta-line text-sm">
             انضم كشريك مؤسسي
           </Link>
         </motion.div>

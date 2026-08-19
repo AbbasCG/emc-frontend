@@ -508,7 +508,12 @@ export default function CourseDetails() {
         <PremiumSnapshot items={metrics} />
 
         {/* ── MAIN BODY GRID ── */}
-        <div className="mx-auto max-w-[88rem] px-4 py-4 sm:px-6 lg:px-10 lg:py-5">
+        {/* id="enroll": /courses/{slug}#enroll must land on the action. The enroll panel
+            renders twice (mobile inline + desktop aside), each hidden in the opposite
+            viewport — an id on the panel itself would resolve to a display:none element
+            and noop. This wrapper always has a box: on desktop the sticky enroll aside
+            sits at its top edge, on mobile the fixed enroll bar stays pinned in view. */}
+        <div id="enroll" className="mx-auto max-w-[88rem] scroll-mt-24 px-4 py-4 sm:px-6 lg:px-10 lg:py-5">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
 
             <div className="space-y-3">

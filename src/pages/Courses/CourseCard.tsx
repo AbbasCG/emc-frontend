@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, BookOpen, Calendar, Clock, GraduationCap } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
@@ -15,6 +15,7 @@ import {
 
 type CourseCardProps = {
   course: CourseItem
+  /** Kept for call-site compatibility (/programs passes it) — the editorial row is the one view. */
   viewMode?: 'grid' | 'list'
   index?: number
 }
@@ -46,10 +47,12 @@ function deliveryLabelAr(course: CourseItem): string {
   }
 }
 
-function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
+/** Design Language 2.0 — the course entry is an editorial list row (emc-row), not a boxed card.
+ *  One hairline seat below, hover = paper tint + sliding sky bar; the ONLY box-like element is
+ *  the money action «سجل الآن». */
+function CourseCard({ course, index = 0 }: CourseCardProps) {
   const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
-  const isList = viewMode === 'list'
 
   const imgSrc = course.thumbnail
     ? resolvePublicAssetUrl(course.thumbnail) ?? course.thumbnail
@@ -65,115 +68,69 @@ function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
     course.registrations_count >= course.seats_count
   const registerDisabled = course.is_ended || seatsFull
 
+  const metaParts: string[] = [`مع ${course.trainer.name}`, course.duration_label]
+  if (startLabel) metaParts.push(`يبدأ ${startLabel}`)
+  metaParts.push(deliveryLabelAr(course))
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
-      exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
-      transition={{ duration: 0.4, delay: (index % 3) * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="h-full"
+      exit={{ opacity: 0, y: -8, transition: { duration: 0.18 } }}
+      transition={{ duration: 0.4, delay: (index % 4) * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <article
-        className={`group flex h-full overflow-hidden rounded-3xl bg-white ring-1 ring-line shadow-emc-xs transition-all duration-300 ease-emc-out hover:-translate-y-1 hover:shadow-emc-md ${
-          isList ? 'flex-row-reverse' : 'flex-col'
-        }`}
-      >
-        {/* Cover */}
-        <div
-          className={`relative shrink-0 overflow-hidden ${
-            isList ? 'w-56 md:w-64' : 'aspect-video w-full rounded-t-3xl'
-          }`}
-        >
-          <img
-            src={imgSrc}
-            alt={course.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy/45 via-navy/5 to-transparent"
-          />
-
-          {/* Max two overlay chips: price + delivery */}
-          <div className="absolute right-3 top-3 flex items-center gap-1.5">
-            <span
-              dir={course.is_free ? undefined : 'ltr'}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-black tabular-nums text-white shadow-emc-xs ${
-                course.is_free ? 'bg-success' : 'bg-navy/90'
-              }`}
-            >
-              {priceLabel}
-            </span>
-            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-navy shadow-emc-xs backdrop-blur">
-              {deliveryLabelAr(course)}
-            </span>
-          </div>
-
-          {/* Availability state — subtle scrim, no internal status copy */}
-          {(seatsFull || course.is_ended) && (
-            <div className="absolute inset-0 flex items-end justify-center bg-night/45 pb-3 backdrop-blur-[1px]">
-              <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-black text-navy shadow-emc-xs">
-                {course.is_ended ? ENDED_COURSE_LABEL_AR : 'اكتملت المقاعد'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="flex min-w-0 flex-1 flex-col p-5 text-right">
-          <h3 className="line-clamp-2 font-display text-lg font-black leading-snug tracking-tight text-ink-900 transition-colors duration-200 group-hover:text-brand-600">
-            {course.title}
-          </h3>
-
-          {course.short_description && (
-            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-600">
-              {course.short_description}
-            </p>
-          )}
-
-          {/* Single meta row: instructor · duration · start date */}
-          <div className="mb-5 mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs font-medium text-ink-400">
-            <span className="inline-flex min-w-0 items-center gap-1.5">
-              <GraduationCap className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="truncate">{course.trainer.name}</span>
-            </span>
-            <span aria-hidden className="text-ink-200">
-              ·
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              {course.duration_label}
-            </span>
-            {startLabel && (
-              <>
-                <span aria-hidden className="text-ink-200">
-                  ·
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  {startLabel}
-                </span>
-              </>
+      <article className="emc-row group">
+        <div className="flex flex-col gap-4 py-6 pe-1 ps-3 text-start sm:flex-row sm:items-stretch sm:gap-6 sm:py-7 sm:ps-4">
+          {/* Cover — flying-page clip, not a rounded box */}
+          <div className="emc-page-clip-sm relative aspect-video w-full shrink-0 sm:w-40 md:w-56">
+            <img
+              src={imgSrc}
+              alt={course.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 ease-emc-out group-hover:scale-[1.03]"
+            />
+            {(seatsFull || course.is_ended) && (
+              <div className="absolute inset-0 flex items-end bg-night/55">
+                <p className="w-full pb-2.5 text-center text-xs font-black text-white">
+                  {course.is_ended ? ENDED_COURSE_LABEL_AR : 'اكتملت المقاعد'}
+                </p>
+              </div>
             )}
           </div>
 
-          {/* Footer pinned to bottom so buttons align across the row */}
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+          {/* Content column — title + one calm meta line */}
+          <div className="flex min-w-0 flex-1 flex-col justify-center">
+            <h3 className="line-clamp-2 font-display text-xl font-black leading-snug tracking-tight text-ink-900 transition-colors duration-200 group-hover:text-brand-600 sm:text-2xl">
+              {course.title}
+            </h3>
+            <p className="mt-2.5 text-sm leading-relaxed text-ink-400">
+              {metaParts.map((part, i) => (
+                <span key={part + i}>
+                  {i > 0 && (
+                    <span aria-hidden className="mx-2 text-ink-200">
+                      ·
+                    </span>
+                  )}
+                  {part}
+                </span>
+              ))}
+            </p>
+          </div>
+
+          {/* End column — price above, actions seated on the row baseline */}
+          <div className="flex items-end justify-between gap-4 sm:w-52 sm:shrink-0 sm:flex-col sm:items-end sm:justify-end">
             <p
               dir={course.is_free ? undefined : 'ltr'}
-              className={`font-latin text-base font-black tabular-nums ${
-                course.is_free ? 'text-success' : 'text-navy'
-              }`}
+              className={`emc-stat-num font-display text-2xl ${course.is_free ? 'text-success' : ''}`}
             >
               {priceLabel}
             </p>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-5">
               <Link
                 to={`/courses/${course.slug}`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-black text-navy transition-colors duration-200 hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1"
+                className="emc-cta-line text-sm focus-visible:outline-none"
               >
                 تفاصيل
                 <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
@@ -191,13 +148,12 @@ function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
                     onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
                   })
                 }}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-1 ${
+                className={`rounded-xl px-4 py-2.5 text-sm font-black transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-1 ${
                   registerDisabled
-                    ? 'cursor-not-allowed bg-slate-200 text-slate-500'
-                    : 'bg-accent-500 text-white shadow-md shadow-accent-500/25 hover:brightness-[1.07]'
+                    ? 'cursor-not-allowed bg-paper2 text-ink-300'
+                    : 'bg-accent-500 text-white hover:bg-accent-600'
                 }`}
               >
-                <BookOpen className="h-3.5 w-3.5" aria-hidden />
                 سجل الآن
               </button>
             </div>

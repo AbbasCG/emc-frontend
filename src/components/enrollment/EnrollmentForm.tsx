@@ -12,10 +12,14 @@ import {
   Mail,
   MapPin,
   Phone,
+  Tag,
   User,
+  X,
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { submitCourseRegistration } from '@/api/registrationsApi'
+import { initiateCheckout, validateCoupon, type CouponPricingPreview } from '@/api/checkoutApi'
+import { getApiErrorMessage } from '@/api/apiErrors'
 import { fetchProfileUser, updateProfile } from '@/api/profileApi'
 import { notifyStudentScopeRefresh } from '@/api/studentApi'
 import { notifyNotificationsRefresh } from '@/api/notificationsApi'
@@ -88,6 +92,15 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
   const [notes, setNotes] = useState('')
   const [registrationCode, setRegistrationCode] = useState('')
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('stripe')
+
+  // Coupon (paid path parity with PublicDetailCtaButton): validateCoupon previews,
+  // initiateCheckout applies — the backend re-validates everything at real checkout.
+  const [couponOpen, setCouponOpen] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [couponChecking, setCouponChecking] = useState(false)
+  const [couponError, setCouponError] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponPricingPreview | null>(null)
+  const couponCoversAll = appliedCoupon != null && appliedCoupon.pricing.final_amount === 0
 
   const requiresRegistrationCode = Boolean(course.requires_registration_code)
 
@@ -171,6 +184,28 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
     }
   }, [isAuthenticated, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function applyCoupon() {
+    if (!couponCode.trim() || couponChecking) return
+    setCouponChecking(true)
+    setCouponError('')
+    try {
+      const preview = await validateCoupon(course.id, couponCode.trim())
+      setAppliedCoupon(preview)
+      toast.success('تم تطبيق رمز الخصم بنجاح')
+    } catch (err) {
+      setCouponError(getApiErrorMessage(err) || 'رمز الخصم غير صالح أو منتهي')
+    } finally {
+      setCouponChecking(false)
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
+    setCouponOpen(false)
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setApiError('')
@@ -203,6 +238,35 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
 
     const phone = `${selectedCountry!.dialCode}${localPhone.trim()}`
 
+    /** Shared enrolled-success continuation (free course, or a coupon covering all fees). */
+    const completeEnrolledFlow = async (successMsg: string) => {
+      if (isAuthenticated) {
+        try {
+          await updateProfile({
+            name: fullName.trim(),
+            email: email.trim(),
+            phone,
+            city: city.trim(),
+          })
+          await refreshUser()
+        } catch {
+          /* non-blocking */
+        }
+      }
+      toast.success(successMsg)
+      notifyStudentScopeRefresh()
+      notifyNotificationsRefresh()
+      if (whatsappUrl) {
+        setShowWhatsappSuccess(true)
+        return
+      }
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        navigate('/thank-you')
+      }
+    }
+
     try {
       setIsSubmitting(true)
 
@@ -222,6 +286,32 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
       })
 
       if (result.checkout_url) {
+        if (appliedCoupon) {
+          // Same checkout API as the course-detail CTA: the backend re-validates the
+          // coupon and returns either a discounted session or a completed free enrollment.
+          try {
+            const discounted = await initiateCheckout(course.id, appliedCoupon.coupon.code)
+            if (discounted.free) {
+              await completeEnrolledFlow('غطى رمز الخصم كامل الرسوم — تم تسجيلك بنجاح')
+              return
+            }
+            if (discounted.checkout_url) {
+              notifyStudentScopeRefresh()
+              notifyNotificationsRefresh()
+              toast.success('تم تهيئة جلسة الدفع — ستُكمَل العملية عند إتمام المعاملة.')
+              window.location.assign(discounted.checkout_url)
+              return
+            }
+          } catch (couponErr) {
+            // Never fall through to the full-price session silently.
+            const msg =
+              getApiErrorMessage(couponErr) ||
+              'تعذر تطبيق رمز الخصم عند الدفع. أزل الرمز أو حاول مجدداً.'
+            setApiError(msg)
+            toast.error(msg)
+            return
+          }
+        }
         notifyStudentScopeRefresh()
         notifyNotificationsRefresh()
         toast.success('تم تهيئة جلسة الدفع — ستُكمَل العملية عند إتمام المعاملة.')
@@ -229,32 +319,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
         return
       }
 
-      if (isAuthenticated) {
-        try {
-          await updateProfile({
-            name: fullName.trim(),
-            email: email.trim(),
-            phone,
-            city: city.trim(),
-          })
-          await refreshUser()
-        } catch {
-          /* non-blocking */
-        }
-      }
-
-      toast.success('تم التسجيل بنجاح')
-      notifyStudentScopeRefresh()
-      notifyNotificationsRefresh()
-      if (whatsappUrl) {
-        setShowWhatsappSuccess(true)
-        return
-      }
-      if (onSuccess) {
-        onSuccess()
-      } else {
-        navigate('/thank-you')
-      }
+      await completeEnrolledFlow('تم التسجيل بنجاح')
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const st = err.response?.status
@@ -345,11 +410,74 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
         </div>
       )}
 
-      {/* Price badge for paid */}
+      {/* Fees — editorial block seated on a hairline (no box), with the coupon control */}
       {isPaid && (
-        <div className="mb-6 rounded-2xl bg-accent-50 px-4 py-3 ring-1 ring-accent-100">
-          <span className="text-xs font-black text-muted-500">السعر</span>
-          <strong className="mt-0.5 block font-latin text-xl font-black tabular-nums text-accent-700" dir="ltr">{formatPrice(course.price)}</strong>
+        <div className="mb-8 border-b border-line pb-6 text-right">
+          <span className="text-xs font-black text-muted-500">الرسوم</span>
+          {appliedCoupon ? (
+            <div className="mt-1">
+              <span className="block text-sm font-bold tabular-nums text-muted-400 line-through" dir="ltr">
+                {appliedCoupon.pricing.formatted_original}
+              </span>
+              <strong className="block font-latin text-2xl font-black tabular-nums text-accent-700" dir="ltr">
+                {appliedCoupon.pricing.formatted_final}
+              </strong>
+              <span className="mt-1.5 flex items-center justify-end gap-1.5 text-xs font-bold text-emerald-700">
+                <CheckCircle2 size={14} aria-hidden />
+                خصم {appliedCoupon.pricing.formatted_discount} برمز {appliedCoupon.coupon.code}
+              </span>
+            </div>
+          ) : (
+            <strong className="mt-0.5 block font-latin text-xl font-black tabular-nums text-accent-700" dir="ltr">
+              {formatPrice(course.price)}
+            </strong>
+          )}
+
+          <div className="mt-4">
+            {appliedCoupon ? (
+              <button
+                type="button"
+                onClick={removeCoupon}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-500 transition-colors duration-200 hover:text-red-600"
+              >
+                <X size={13} aria-hidden />
+                إزالة رمز الخصم
+              </button>
+            ) : couponOpen ? (
+              <div>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={couponCode}
+                    dir="ltr"
+                    autoComplete="off"
+                    placeholder="أدخل رمز الخصم"
+                    onChange={(e) => { setCouponCode(e.target.value); setCouponError('') }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        void applyCoupon()
+                      }
+                    }}
+                    className={`h-11 w-full max-w-[14rem] rounded-xl border bg-paper2 px-3 text-left text-sm font-bold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${couponError ? 'border-red-400' : 'border-line focus:border-customBlue'}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void applyCoupon()}
+                    disabled={couponChecking || !couponCode.trim()}
+                    className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-deepBlue px-4 text-xs font-black text-white transition disabled:opacity-50"
+                  >
+                    {couponChecking ? <Loader2 size={14} className="animate-spin" aria-hidden /> : 'تطبيق'}
+                  </button>
+                </div>
+                {couponError && <p className="mt-1.5 text-xs font-bold text-red-600">{couponError}</p>}
+              </div>
+            ) : (
+              <button type="button" onClick={() => setCouponOpen(true)} className="emc-cta-line text-xs">
+                <Tag size={13} aria-hidden />
+                هل لديك رمز خصم؟
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -497,8 +625,13 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           />
         </label>
 
-        {/* طريقة الدفع */}
-        {isPaid && (
+        {/* طريقة الدفع — hidden when the coupon covers the full fee (no payment happens) */}
+        {isPaid && couponCoversAll && (
+          <p className="text-sm font-bold text-emerald-700">
+            لن تحتاج إلى الدفع — رمز الخصم يغطي كامل الرسوم.
+          </p>
+        )}
+        {isPaid && !couponCoversAll && (
           <div>
             <h3 className="text-sm font-black text-deepBlue">طريقة الدفع</h3>
             <div className="mt-3">

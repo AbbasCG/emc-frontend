@@ -25,6 +25,8 @@ type CoursesHeroProps = {
 /**
  * Visible by default (no IntersectionObserver — the band is above the fold);
  * the count-up starts in a mount effect and re-runs when live stats arrive.
+ * Design Language 2.0: the stat is a typographic statement (emc-stat-num),
+ * seated between thin vertical hairlines — no chips, no cards.
  */
 const StatCounter = memo(function StatCounter({
   value,
@@ -56,12 +58,12 @@ const StatCounter = memo(function StatCounter({
   }, [value])
 
   return (
-    <div className="px-4 text-center">
-      <p className="text-3xl font-black tabular-nums text-white md:text-4xl" dir="ltr">
+    <div className="px-5 text-center md:px-10 md:first:border-s-0 md:border-s md:border-white/10">
+      <p className="emc-stat-num font-display text-4xl text-white md:text-5xl" dir="ltr">
         {suffix}
         {count.toLocaleString('en-US')}
       </p>
-      <p className="mt-1 text-xs font-medium text-brand-300/90 md:text-sm">{label}</p>
+      <p className="mt-2 text-xs font-medium text-ice/80 md:text-sm">{label}</p>
     </div>
   )
 })
@@ -91,41 +93,19 @@ function CoursesHero({
 
   const statsRow = [
     { value: stats.totalCourses, label: 'برنامج في الكتالوج', suffix: '' },
-    { value: stats.totalRegistrations, label: 'تسجيل مُسجَّل', suffix: '+' },
+    { value: stats.totalRegistrations, label: 'تسجيل مُسجَّل', suffix: '+' },
     { value: stats.instructors, label: 'مدرّب ومدرّبة', suffix: '+' },
     { value: stats.learningPathsCount, label: 'مسار تعليمي', suffix: '' },
   ]
 
   return (
     <section ref={sectionRef} className="emc-dawn emc-corner-pages emc-corner-pages-white relative overflow-hidden pt-28 pb-16">
-      <div className="absolute inset-0 pointer-events-none select-none">
-        <svg className="absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="hero-dots-courses" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="1.5" cy="1.5" r="1.5" fill="#0077B6" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#hero-dots-courses)" />
-        </svg>
-
-        <div className="absolute top-0 right-0 h-[600px] w-[600px] -translate-y-1/3 translate-x-1/4 rounded-full bg-brand-500/10 blur-3xl" />
-
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(-45deg, #0077B6, #0077B6 1px, transparent 1px, transparent 40px)',
-          }}
-        />
-      </div>
-
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
-        <motion.div {...fadeUp(0)} className="mb-5 flex justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-brand-200 backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-500" />
-            EMC · Educational Mastar Central
-          </span>
-        </motion.div>
+        {/* Eyebrow — plain typography, no badge chrome */}
+        <motion.p {...fadeUp(0)} className="mb-5 flex items-center justify-center gap-2 text-xs font-bold tracking-wide text-brand-200">
+          <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-500" />
+          EMC · Educational Mastar Central
+        </motion.p>
 
         <motion.h1
           {...fadeUp(0.1)}
@@ -137,54 +117,58 @@ function CoursesHero({
           ورش عمل · دورات · مسارات — مصممة لتأخذك من الصفر إلى الشهادة الاحترافية
         </motion.p>
 
-        <motion.div {...fadeUp(0.26)} className="relative mx-auto mb-6 max-w-2xl">
-          <Search className="pointer-events-none absolute right-5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-400" />
+        {/* Search — a form field is functional chrome; kept light, no heavy shadow */}
+        <motion.div {...fadeUp(0.26)} className="relative mx-auto mb-7 max-w-2xl">
+          <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-400" aria-hidden />
           <input
             type="search"
             value={searchValue ?? ''}
             onChange={handleSearch}
             placeholder="ابحث عن دورة أو مدرّب…"
-            className="h-14 w-full rounded-2xl border-2 border-transparent bg-white/95 pr-14 pl-5 text-base font-medium text-deepBlue shadow-xl backdrop-blur-sm placeholder:text-muted-400/80 outline-none transition-all duration-200 focus:border-brand-400"
+            className="h-12 w-full rounded-xl bg-white/95 pe-4 ps-12 text-base font-medium text-deepBlue outline-none transition-colors duration-200 placeholder:text-muted-400/80 focus:bg-white focus:ring-2 focus:ring-brand-400"
           />
         </motion.div>
 
-        <motion.div {...fadeUp(0.34)} className="mb-12 flex flex-wrap justify-center gap-2">
-          {categoryOptions.map((cat) => (
-            <button
-              key={cat.value}
-              type="button"
-              onClick={() => onCategoryChange(cat.value)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-                activeCategory === cat.value
-                  ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/35'
-                  : 'border border-white/10 bg-white/10 text-white/85 hover:bg-white/20'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+        {/* Category tabs — text with the drawn arc under the active one, no pills */}
+        <motion.div {...fadeUp(0.34)} className="mb-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+          {categoryOptions.map((cat) => {
+            const active = activeCategory === cat.value
+            return (
+              <button
+                key={cat.value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onCategoryChange(cat.value)}
+                className={`emc-cta-line text-sm transition-colors duration-200 focus-visible:outline-none ${
+                  active ? 'text-white after:scale-x-100' : 'text-ice/70 hover:text-white'
+                }`}
+              >
+                {cat.label}
+              </button>
+            )
+          })}
         </motion.div>
 
-        <motion.div {...fadeUp(0.42)} className="mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <motion.div {...fadeUp(0.42)} className="mb-16 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-8">
           <motion.button
             type="button"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => document.getElementById('catalog-courses')?.scrollIntoView({ behavior: 'smooth' })}
-            className="rounded-xl bg-brand-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-600"
+            className="rounded-xl bg-brand-500 px-7 py-3.5 text-sm font-bold text-white transition-colors duration-200 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
           >
             تصفح جميع الدورات
           </motion.button>
           <Link
             to="/programs"
-            className="rounded-xl border-2 border-accent-500 px-7 py-3.5 text-sm font-bold text-accent-400 transition hover:bg-accent-500 hover:text-white"
+            className="emc-cta-line text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none"
           >
             جميع البرامج
           </Link>
         </motion.div>
 
-        {/* Stats band — always visible; only the numbers animate (count-up). */}
-        <div className="grid grid-cols-2 gap-6 border-t border-white/10 pt-10 md:grid-cols-4">
+        {/* Stats band — typographic numbers over a single hairline; only the numbers animate (count-up). */}
+        <div className="grid grid-cols-2 gap-y-8 border-t border-white/10 pt-10 md:flex md:items-start md:justify-center">
           {statsRow.map((stat) => (
             <StatCounter key={stat.label} value={stat.value} label={stat.label} suffix={stat.suffix} />
           ))}

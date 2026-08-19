@@ -1,6 +1,7 @@
 import { memo, useRef } from 'react'
+import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
-import { Calendar, ArrowLeft } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 
 const trustIndicators = [
   { value: '١٥ دقيقة', label: 'جلسة موجزة عند التوفر' },
@@ -8,79 +9,62 @@ const trustIndicators = [
   { value: 'مهنية', label: 'بدون وعود مبالغ فيها' },
 ]
 
+/** Design Language 2.0 — closing band as typography over the dawn field (the scene's one
+ *  signature). No boxed panel, no decorative orbs: headline, one money action, one line CTA,
+ *  and a hairline-seated trust row. */
 function CoursesCTA() {
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section ref={ref} className="emc-dawn relative overflow-hidden py-24 px-4">
-      {/* Animated geometric orbs */}
-      <motion.div
-        animate={{ scale: [1, 1.12, 1], opacity: [0.06, 0.1, 0.06] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-0 right-0 w-[500px] h-[500px] bg-customBlue rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"
-      />
-
-      {/* Dot grid */}
-      <div className="absolute inset-0 pointer-events-none">
-        <svg className="w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="cta-dots" x="0" y="0" width="36" height="36" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1.5" fill="white" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#cta-dots)" />
-        </svg>
-      </div>
-
+    <section ref={ref} className="emc-dawn relative overflow-hidden px-4 py-24">
       <div className="relative z-10 mx-auto max-w-3xl text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          {/* Eyebrow */}
-          <span className="inline-flex items-center gap-2 text-customOrange text-sm font-bold mb-4 tracking-wide uppercase">
-            <span className="w-8 h-px bg-customOrange/60" />
+          {/* Eyebrow — plain text between two fading dashes */}
+          <p className="mb-4 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber">
+            <span aria-hidden className="h-px w-8 bg-amber/50" />
             EMC — التعليم الذكي
-            <span className="w-8 h-px bg-customOrange/60" />
-          </span>
-
-          <h2 className="font-display text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.1] mb-5">
-            مش عارف من أين تبدأ؟
-          </h2>
-
-          <p className="text-lg text-ice/80 leading-relaxed mb-10 max-w-xl mx-auto">
-            احجز استشارة مجانية لمدة 15 دقيقة ونساعدك نرسم المسار الصح
-            وفقاً لأهدافك ومستواك الحالي.
+            <span aria-hidden className="h-px w-8 bg-amber/50" />
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2.5 bg-customBlue text-white font-bold px-8 py-4 rounded-xl shadow-emc-glow hover:bg-brand-600 transition-all duration-200"
-            >
-              <Calendar className="w-5 h-5" />
-              احجز استشارتك المجانية
-            </motion.button>
+          <h2 className="mb-5 font-display text-3xl font-black leading-[1.1] tracking-tight text-white md:text-5xl">
+            لست متأكداً من أين تبدأ؟
+          </h2>
 
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 text-white border-2 border-white/20 hover:border-white/50 font-bold px-8 py-4 rounded-xl transition-all duration-200"
+          <p className="mx-auto mb-10 max-w-xl text-lg leading-relaxed text-ice/80">
+            احجز استشارة مجانية لمدة 15 دقيقة، ونرسم معك المسار المناسب لأهدافك ومستواك الحالي.
+          </p>
+
+          <div className="flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-8">
+            <Link
+              to="/contact"
+              className="flex items-center gap-2.5 rounded-xl bg-customBlue px-8 py-4 font-bold text-white transition-colors duration-200 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+            >
+              <Calendar className="h-5 w-5" aria-hidden />
+              احجز استشارتك المجانية
+            </Link>
+
+            <Link
+              to="/learning-paths"
+              className="emc-cta-line text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none"
             >
               عرض جميع المسارات
-              <ArrowLeft className="w-4 h-4" />
-            </motion.button>
+            </Link>
           </div>
 
-          {/* Trust indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-12">
-            {trustIndicators.map(item => (
-              <div key={item.label} className="text-center">
-                <p className="text-xl font-black text-customOrange">{item.value}</p>
-                <p className="text-xs text-white/50 mt-0.5">{item.label}</p>
+          {/* Trust row — typographic, seated on a single hairline */}
+          <div className="mt-14 flex flex-wrap items-start justify-center border-t border-white/10 pt-8">
+            {trustIndicators.map((item) => (
+              <div
+                key={item.label}
+                className="border-s border-white/10 px-6 text-center first:border-s-0 sm:px-10"
+              >
+                <p className="emc-stat-num font-display text-xl text-amber md:text-2xl">{item.value}</p>
+                <p className="mt-1.5 text-xs text-white/60">{item.label}</p>
               </div>
             ))}
           </div>

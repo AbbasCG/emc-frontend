@@ -1,4 +1,4 @@
-import { AlertCircle, Star } from 'lucide-react'
+import { AlertCircle, ChevronDown, Star } from 'lucide-react'
 
 type SelectOption = { value: string; label: string }
 
@@ -19,7 +19,7 @@ type Props = {
 }
 
 const priceFilters = [
-  { value: 'all', label: 'الكل' },
+  { value: 'all', label: 'كل الأسعار' },
   { value: 'free', label: 'مجاني' },
   { value: 'paid', label: 'مدفوع' },
 ]
@@ -30,6 +30,41 @@ const enrollmentFilters = [
   { value: 'closed', label: 'التسجيل مغلق' },
 ]
 
+/** Text dropdown — a bare select styled as typography, no boxed control. */
+function TextSelect({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+}: {
+  value: string
+  onChange: (v: string) => void
+  options: SelectOption[]
+  ariaLabel: string
+}) {
+  return (
+    <span className="relative inline-flex items-center">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={ariaLabel}
+        className="cursor-pointer appearance-none bg-transparent py-2 pe-5 text-xs font-black text-deepBlue outline-none transition-colors duration-200 hover:text-customBlue focus-visible:text-customBlue"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute end-0 h-3.5 w-3.5 text-muted-400" aria-hidden />
+    </span>
+  )
+}
+
+/**
+ * Design 2.0: a typographic filter line seated on a hairline — text dropdowns
+ * separated by thin seams, count as plain text. No segmented boxes, no chips.
+ */
 export default function LearningPathsFilterBar({
   activeLevel,
   onLevelChange,
@@ -48,87 +83,53 @@ export default function LearningPathsFilterBar({
   const featuredOnly = activeFeatured === 'featured'
 
   return (
-    <div className="sticky top-[4.5rem] z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+    <div className="sticky top-[4.5rem] z-30 border-b border-line bg-paper/90 backdrop-blur-md supports-[backdrop-filter]:bg-paper/80">
+      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
         {loadError && (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="mb-2 flex items-start gap-2 text-sm font-bold text-accent-700">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>تعذّر تحميل المسارات. تحقق من الاتصال ثم أعد تحميل الصفحة.</span>
-          </div>
+          </p>
         )}
         {apiEmpty && !loadError && (
-          <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-muted-600">
-            لا توجد مسارات منشورة حالياً.
-          </div>
+          <p className="mb-2 text-sm font-semibold text-muted-500">لا توجد مسارات منشورة حالياً.</p>
         )}
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Price — segmented */}
-          <div className="flex items-center gap-0.5 rounded-xl bg-slate-100 p-1" role="group" aria-label="السعر">
-            {priceFilters.map((tag) => (
-              <button
-                key={tag.value}
-                type="button"
-                onClick={() => onPriceChange(tag.value)}
-                className={`rounded-lg px-3 py-1.5 text-[11px] font-black transition-colors duration-200 ${
-                  activePrice === tag.value ?
-                    'bg-white text-deepBlue shadow-sm'
-                  : 'text-slate-500 hover:text-deepBlue'
-                }`}
-              >
-                {tag.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <TextSelect value={activePrice} onChange={onPriceChange} options={priceFilters} ariaLabel="السعر" />
 
-          {/* Featured — single toggle */}
+          <span className="h-4 w-px bg-line" aria-hidden />
+
+          {/* Featured — text toggle */}
           <button
             type="button"
             aria-pressed={featuredOnly}
             onClick={() => onFeaturedChange(featuredOnly ? 'all' : 'featured')}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-black transition-colors duration-200 ${
-              featuredOnly ?
-                'bg-deepBlue text-white shadow-sm'
-              : 'border border-slate-200 bg-white text-slate-600 hover:border-customBlue/40 hover:text-deepBlue'
+            className={`inline-flex items-center gap-1.5 py-2 text-xs font-black transition-colors duration-200 ${
+              featuredOnly ? 'text-accent-700' : 'text-muted-500 hover:text-deepBlue'
             }`}
           >
-            <Star className={`h-3 w-3 ${featuredOnly ? 'fill-white' : ''}`} aria-hidden />
+            <Star className={`h-3 w-3 ${featuredOnly ? 'fill-current' : ''}`} aria-hidden />
             مميز فقط
           </button>
 
-          <span className="hidden h-6 w-px bg-slate-200 sm:block" aria-hidden />
+          <span className="h-4 w-px bg-line" aria-hidden />
 
-          {/* Level */}
           {levelOptions.length > 1 && (
-            <select
-              value={activeLevel}
-              onChange={(e) => onLevelChange(e.target.value)}
-              aria-label="المستوى"
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white py-2 pe-2 ps-7 text-[11px] font-bold text-deepBlue outline-none transition-colors duration-200 focus:border-brand-400"
-            >
-              {levelOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <>
+              <TextSelect value={activeLevel} onChange={onLevelChange} options={levelOptions} ariaLabel="المستوى" />
+              <span className="h-4 w-px bg-line" aria-hidden />
+            </>
           )}
 
-          {/* Enrollment */}
-          <select
+          <TextSelect
             value={activeEnrollment}
-            onChange={(e) => onEnrollmentChange(e.target.value)}
-            aria-label="حالة التسجيل"
-            className="cursor-pointer rounded-xl border border-slate-200 bg-white py-2 pe-2 ps-7 text-[11px] font-bold text-deepBlue outline-none transition-colors duration-200 focus:border-brand-400"
-          >
-            {enrollmentFilters.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={onEnrollmentChange}
+            options={enrollmentFilters}
+            ariaLabel="حالة التسجيل"
+          />
 
-          {/* Count */}
+          {/* Count — plain text */}
           <span className="ms-auto hidden whitespace-nowrap text-xs font-medium text-muted-500 sm:block">
             <span dir="ltr" className="font-black tabular-nums text-deepBlue">
               {String(resultCount)}

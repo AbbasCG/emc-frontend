@@ -1,5 +1,6 @@
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { buildPublicLoginHref, isStudentUser } from '@/utils/publicEnrollAuth'
+import type { EnrollIntent } from '@/lib/enrollIntent'
 import type { StudentCourseAccess } from '@/api/studentApi'
 
 export type PublicEnrollCta = {
@@ -16,6 +17,13 @@ export type PublicEnrollCta = {
   variant: 'primary' | 'success' | 'muted'
   /** Supporting notice shown near the CTA (payment-required / under-review states). */
   message?: string
+  /**
+   * Present on the guest CTA — pass it to `gatePublicEnrollClick({ intent })` so
+   * the click opens the in-context QuickJoin modal instead of leaving the page.
+   * `href` stays populated as the /login?redirect fallback for hosts without
+   * the modal (and for plain-link rendering).
+   */
+  enrollIntent?: EnrollIntent
 }
 
 const RESUME_PAYMENT_FALLBACK_HREF = '/dashboard/student/registrations'
@@ -95,6 +103,8 @@ export function resolveCourseEnrollCta(input: {
   userRole?: string | null
   courseSlug: string
   courseId: number
+  /** Arabic course title — carried into the guest QuickJoin intent (modal header / success state). */
+  courseTitle?: string
   isEnded?: boolean
   /** True when admin keeps registration_open on an ended course (override). */
   allowEndedEnrollment?: boolean
@@ -117,6 +127,7 @@ export function resolveCourseEnrollCta(input: {
     userRole,
     courseSlug,
     courseId,
+    courseTitle,
     isEnded = false,
     allowEndedEnrollment = false,
     isPartOfLearningPath,
@@ -159,10 +170,22 @@ export function resolveCourseEnrollCta(input: {
     }
   }
   if (!isAuthenticated) {
+    // Guest — the minimal-friction path: the click records an enroll intent and the
+    // QuickJoin modal finishes join+enroll in place. `href` remains the classic
+    // /login?redirect fallback when no modal host is mounted.
     return {
-      label: 'تسجيل الدخول للالتحاق',
+      label: 'انضم والتحق الآن',
       disabled: false,
       href: buildCourseLoginHref(courseSlug),
+      enrollIntent: {
+        kind: 'course',
+        slug: courseSlug,
+        id: courseId,
+        title: courseTitle ?? '',
+        isFree: !isPaid,
+        price,
+        currency,
+      },
       variant: 'primary',
     }
   }

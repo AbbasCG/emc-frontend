@@ -38,7 +38,6 @@ export default function CoursesPage() {
   const [activeProgramType, setActiveProgramType] = useState('all')
   const [activeAvailability, setActiveAvailability] = useState('all')
   const [sortBy, setSortBy] = useState('popular')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const resetFilters = useCallback(() => {
     setSearchQuery('')
@@ -234,8 +233,6 @@ export default function CoursesPage() {
         onAvailabilityChange={setActiveAvailability}
         sortBy={sortBy}
         onSortChange={setSortBy}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
         resultCount={filteredCourses.length}
         totalCount={courses.length}
         apiEmpty={!coursesLoading && courses.length === 0}
@@ -247,12 +244,16 @@ export default function CoursesPage() {
         courses={filteredCourses}
         totalFromApi={courses.length}
         loading={coursesLoading}
-        viewMode={viewMode}
         onResetFilters={resetFilters}
       />
 
+      {/* Section seams — fading hairlines, not boxed containers (Design Language 2.0). */}
+      <div className="emc-hairline mx-auto max-w-7xl" aria-hidden />
+
       {/* Paths teaser deliberately AFTER the grid — courses are the hero product. */}
       <LearningPathsTeaserSection paths={learningPaths} loading={pathsLoading} />
+
+      <div className="emc-hairline mx-auto max-w-7xl" aria-hidden />
 
       <WorkshopSpotlight workshops={workshops} loading={workshopsLoading} />
 

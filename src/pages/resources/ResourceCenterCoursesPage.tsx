@@ -328,6 +328,14 @@ export default function ResourceCenterCoursesPage() {
     setError(null)
   }
 
+  const [reloadKey, setReloadKey] = useState(0)
+  /** Toolbar refresh — sync sets are legal in an event handler. */
+  const reload = () => {
+    setLoading(true)
+    setError(null)
+    setReloadKey((k) => k + 1)
+  }
+
   useEffect(() => {
     let alive = true
     void (async () => {
@@ -343,7 +351,7 @@ export default function ResourceCenterCoursesPage() {
     return () => {
       alive = false
     }
-  }, [filters])
+  }, [filters, reloadKey])
 
   const [searchInput, setSearchInput] = useState('')
   useEffect(() => {
@@ -399,7 +407,7 @@ export default function ResourceCenterCoursesPage() {
             Excel
           </button>
           <button
-            onClick={() => void load()}
+            onClick={reload}
             className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-3 py-2 text-xs font-bold text-white transition hover:opacity-90"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />

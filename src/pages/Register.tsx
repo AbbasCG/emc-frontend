@@ -25,7 +25,7 @@ import toast from '@/lib/toast'
 export default function Register() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth()
   const [searchParams] = useSearchParams()
   const accountRedirect = safeEnrollmentRedirect(searchParams.get('redirect'))
 
@@ -36,7 +36,17 @@ export default function Register() {
   const [apiError, setApiError] = useState('')
 
   useEffect(() => {
-    if (!slug) return
+    // Never gate before auth hydration finishes — an authenticated student reloading
+    // this page would otherwise be thrown to /login by the not-yet-restored session.
+    if (authLoading) return
+    if (!slug) {
+      // No course in the URL: a guest must never see the 6-field form (everything
+      // typed is lost at submit). The account-redirect flow renders <Signup /> itself.
+      if (!isAuthenticated && !accountRedirect) {
+        navigate(buildPublicLoginHref('/courses'), { replace: true })
+      }
+      return
+    }
     if (!isAuthenticated) {
       navigate(buildPublicLoginHref(`/courses/${slug}`), { replace: true })
       return
@@ -45,7 +55,7 @@ export default function Register() {
       toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
       navigate(`/courses/${slug}`, { replace: true })
     }
-  }, [slug, isAuthenticated, user?.role, navigate])
+  }, [authLoading, slug, isAuthenticated, user?.role, navigate, accountRedirect])
 
   useEffect(() => {
     if (accountRedirect && !slug) return
@@ -97,7 +107,9 @@ export default function Register() {
   const isPaid = course?.type === 'paid'
   const itemType = course ? resolveItemType(course) : 'course'
 
-  if (isLoading) {
+  // authLoading keeps the skeleton up until the gate effect above has had a chance
+  // to run — a guest never sees a flash of the form before the login redirect.
+  if (isLoading || authLoading) {
     return (
       <main className="bg-paper px-4 pb-20 pt-32 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-emc ring-1 ring-line">

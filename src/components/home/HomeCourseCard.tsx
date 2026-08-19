@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ArrowLeft, BookOpen, Calendar, Clock, GraduationCap, MapPin, Monitor } from 'lucide-react'
+import { ArrowLeft, BookOpen, Calendar, Clock, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../../types'
 import { formatPrice } from '../../utils/course'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
@@ -12,6 +12,10 @@ import { staggerItem } from '@/utils/animations'
 
 type Props = { course: Course; index?: number }
 
+// Design Language 2.0 — the featured course is an editorial ROW, not a card:
+// flying-page thumbnail (emc-page-clip-sm) · serif title · one meta line ·
+// price at the baseline with «تفاصيل الدورة» as a drawing-arc line CTA.
+// The row sits on an emc-row hairline seat (hover: paper tint + sky bar).
 function HomeCourseCard({ course }: Props) {
   const rawImg =
     course.course_image ||
@@ -26,9 +30,6 @@ function HomeCourseCard({ course }: Props) {
   const isOnline = Boolean(course.is_online)
 
   const instructorName = course.instructor?.name || course.instructor_name || null
-  const instructorAvatar = course.instructor?.image
-    ? (resolvePublicAssetUrl(course.instructor.image) ?? null)
-    : null
 
   const startDate = formatPublicDate(course.start_date)
   const hours = course.training_hours ? Math.round(Number(course.training_hours)) : null
@@ -36,131 +37,90 @@ function HomeCourseCard({ course }: Props) {
   const isEnded = resolveCourseIsEnded(course)
 
   return (
-    <motion.article
-      variants={staggerItem}
-      whileHover={{ y: -4 }}
-      aria-label={course.title}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[1.375rem] border border-slate-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] ring-1 ring-slate-100/60 transition-all duration-300 hover:border-customBlue/40 hover:bg-[#FBFAF7] hover:shadow-[0_16px_45px_-10px_rgba(0,119,182,0.18)]"
-    >
-      {/* Invisible cover link — makes entire card clickable while inner buttons keep their own events */}
+    <motion.article variants={staggerItem} aria-label={course.title} className="emc-row group relative">
+      {/* Invisible cover link — the whole row navigates while the CTA keeps focus semantics */}
       <Link
         to={`/courses/${course.slug}`}
         className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2"
         aria-hidden="true"
         tabIndex={-1}
       />
-      {/* Cover image */}
-      <div className="relative z-10 aspect-[16/10] shrink-0 overflow-hidden">
-        {imgSrc ? (
-          <img
-            src={imgSrc}
-            alt={course.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue via-[#0E5A8A] to-customBlue">
-            <BookOpen className="h-14 w-14 text-white/25" aria-hidden />
-          </div>
-        )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06182C]/70 via-[#06182C]/8 to-transparent" />
-
-        {isEnded ?
-          <div className="absolute left-3 top-3 z-10">
-            <CourseStatusBadge isEnded placement="overlay" />
-          </div>
-        : null}
-
-        {/* Badges — top-start (right in RTL), max 2 per card: price + mode, or price + ended overlay */}
-        <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
-          <span
-            className={`rounded-lg px-2.5 py-1 text-[10px] font-black text-white shadow-sm ${
-              isFree ? 'bg-customBlue/90' : 'bg-customOrange/90'
-            }`}
-          >
-            {isFree ? 'مجاناً' : formatPrice(course.price)}
-          </span>
-          {!isEnded && (
-            <span className="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-black text-deepBlue backdrop-blur-sm">
-              {isOnline ? 'أونلاين' : 'حضوري'}
-            </span>
+      <div className="relative flex items-center gap-4 py-5 ps-3 sm:gap-6 sm:py-6 sm:ps-4">
+        {/* Thumbnail — flying-page mask instead of a rounded box */}
+        <div className="emc-page-clip-sm relative aspect-[16/10] w-24 shrink-0 sm:w-36">
+          {imgSrc ? (
+            <img
+              src={imgSrc}
+              alt={course.title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-deepBlue to-customBlue">
+              <BookOpen className="h-7 w-7 text-white/25 sm:h-9 sm:w-9" aria-hidden />
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-1 flex-col p-5 text-right">
-        {/* Certificate label */}
-        {course.certificate && (
-          <p className="mb-1.5 text-[10px] font-bold tracking-wide text-customBlue">
-            {course.certificate}
-          </p>
-        )}
+        {/* Content */}
+        <div className="min-w-0 flex-1 text-right">
+          {course.certificate && (
+            <p className="mb-1 hidden text-[10px] font-bold tracking-wide text-customBlue sm:block">
+              {course.certificate}
+            </p>
+          )}
 
-        {/* Title */}
-        <h3 className="line-clamp-2 text-base font-black leading-snug text-deepBlue transition group-hover:text-customBlue md:text-[17px]">
-          {course.title}
-        </h3>
+          {/* Serif title */}
+          <h3 className="line-clamp-2 font-display text-base font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:line-clamp-1 sm:text-xl">
+            {course.title}
+          </h3>
 
-        {/* Short description */}
-        {course.short_description && (
-          <p className="mt-2 line-clamp-2 text-[11px] font-medium leading-[1.65] text-foreground/60">
-            {course.short_description}
-          </p>
-        )}
-
-        {/* Instructor */}
-        {instructorName && (
-          <div className="mt-3 flex items-center justify-start gap-2">
-            {instructorAvatar ? (
-              <img
-                src={instructorAvatar}
-                alt={instructorName}
-                className="h-5 w-5 rounded-full object-cover ring-1 ring-white shadow-sm"
-              />
-            ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-customBlue/10">
-                <GraduationCap size={10} className="text-customBlue" aria-hidden />
+          {/* One meta line */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-ink-400 sm:text-xs">
+            {instructorName && <span className="truncate">مع {instructorName}</span>}
+            {startDate && (
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
+                {startDate}
               </span>
             )}
-            <p className="text-[11px] font-semibold text-foreground/55">مع {instructorName}</p>
-          </div>
-        )}
-
-        {/* Metadata rows */}
-          <div className="mt-3.5 space-y-1.5 border-t border-deepBlue/[0.06] pt-3.5 text-[11px] font-semibold text-foreground/55">
-            {startDate && (
-              <p className="flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5 shrink-0 text-customBlue" aria-hidden />
-                {startDate}
-              </p>
-            )}
             {hours != null && (
-              <p className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 shrink-0 text-accent-700" aria-hidden />
+              <span className="hidden items-center gap-1.5 sm:flex">
+                <Clock className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
                 {String(hours)} ساعة تدريبية
-              </p>
+              </span>
             )}
-            <p className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5">
               {isOnline ? (
-                <Monitor className="h-3.5 w-3.5 shrink-0 text-customBlue" aria-hidden />
+                <Monitor className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
               ) : (
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-accent-700" aria-hidden />
+                <MapPin className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
               )}
               {isOnline ? 'عن بُعد' : course.location || 'حضوري في المركز'}
-            </p>
+            </span>
           </div>
 
-        {/* CTA — full-width button */}
-        <div className="mt-auto pt-5">
-          <Link
-            to={`/courses/${course.slug}`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue px-5 py-3.5 text-sm font-black text-white shadow-emc transition-all duration-200 hover:bg-customBlue"
-          >
-            تفاصيل الدورة
-            <ArrowLeft size={14} aria-hidden />
-          </Link>
+          {/* Baseline: price + line CTA */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <span className="flex items-center gap-2.5">
+              {isFree ? (
+                <span className="text-sm font-black text-customBlue sm:text-base">مجاناً</span>
+              ) : (
+                <span className="font-latin text-base font-black tabular-nums text-deepBlue sm:text-lg" dir="ltr">
+                  {formatPrice(course.price)}
+                </span>
+              )}
+              {isEnded && <CourseStatusBadge isEnded placement="inline" />}
+            </span>
+            <Link
+              to={`/courses/${course.slug}`}
+              className="emc-cta-line relative z-10 text-xs sm:text-sm"
+            >
+              تفاصيل الدورة
+              <ArrowLeft size={14} aria-hidden />
+            </Link>
+          </div>
         </div>
       </div>
     </motion.article>
@@ -168,5 +128,5 @@ function HomeCourseCard({ course }: Props) {
 }
 
 // Memoized: rendered in a list by FeaturedCoursesSection, which re-renders on
-// pagination/resize/in-view state changes while individual course props stay stable.
+// fetch/in-view state changes while individual course props stay stable.
 export default memo(HomeCourseCard)

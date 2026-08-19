@@ -2,6 +2,7 @@ import { Outlet } from 'react-router'
 import { motion } from 'framer-motion'
 import Footer from './Footer'
 import Navbar from './Navbar'
+import QuickJoinModal from './enrollment/QuickJoinModal'
 
 export default function Layout() {
   return (
@@ -44,6 +45,10 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+
+      {/* In-context join+enroll — one host for every public enroll CTA; the modal
+          body chunk loads only when a guest actually records an enroll intent. */}
+      <QuickJoinModal />
     </motion.div>
   )
 }

@@ -22,7 +22,6 @@ import {
   ArrowLeft,
   BadgeCheck,
   Clock,
-  Award,
 } from 'lucide-react'
 
 // ── 1. Professional Tracks (المسارات الاحترافية الـ 9) ──────────────────────
@@ -34,7 +33,6 @@ export interface ProfessionalTrack {
   focus: string
   certificate: string
   icon: React.ComponentType<{ size?: number; className?: string }>
-  badgeColor: string
   tags: string[]
 }
 
@@ -47,7 +45,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'مدخل الذكاء الاصطناعي، Python، أساسيات البيانات، التعلم الآلي والعميق، وتطوير بيئات المشاريع الحقيقية.',
     certificate: 'Certified AI Engineer - EMC',
     icon: Brain,
-    badgeColor: '#0077B6',
     tags: ['Python', 'Machine Learning', 'Deep Learning', 'PyTorch & TensorFlow'],
   },
   {
@@ -58,7 +55,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'تحليل البيانات، الإحصاء، التصوير البياني، بناء النماذج، واستخراج الرؤى العملية لدعم القرار.',
     certificate: 'Certified Data Scientist - EMC',
     icon: CircuitBoard,
-    badgeColor: '#F28C00',
     tags: ['Data Analysis', 'Statistics', 'Data Visualization', 'Predictive Modeling'],
   },
   {
@@ -69,7 +65,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'SQL وقواعد البيانات، خطوط البيانات، عمليات ETL، السحابة، وتجهيز البيانات للتحليل والذكاء الاصطناعي.',
     certificate: 'Certified Data Engineer - EMC',
     icon: Database,
-    badgeColor: '#0E5A8A',
     tags: ['SQL', 'ETL Pipelines', 'Big Data', 'Cloud Data Warehousing'],
   },
   {
@@ -80,7 +75,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'Excel، SQL، Power BI أو Tableau، إعداد التقارير، لوحات المعلومات، ومؤشرات الأداء.',
     certificate: 'Certified Data Analyst - EMC',
     icon: LineChart,
-    badgeColor: '#0E5A8A',
     tags: ['Excel Advanced', 'SQL', 'Power BI / Tableau', 'KPI Dashboarding'],
   },
   {
@@ -91,7 +85,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'هندسة الأوامر، أدوات الذكاء الاصطناعي، الإنتاجية، صناعة المحتوى، الأتمتة، ووكلاء الذكاء الاصطناعي.',
     certificate: 'Certified Generative AI Specialist - EMC',
     icon: Sparkles,
-    badgeColor: '#FFA733',
     tags: ['Prompt Engineering', 'LLM Agents', 'Automation', 'Generative Tools'],
   },
   {
@@ -102,7 +95,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'توظيف الذكاء الاصطناعي في التسويق والإدارة والعمليات وخدمة العملاء واتخاذ القرار والتحول الرقمي.',
     certificate: 'Certified AI Business Specialist - EMC',
     icon: Briefcase,
-    badgeColor: '#0C2A4B',
     tags: ['AI Strategy', 'Business Automation', 'Digital Transformation', 'ROI'],
   },
   {
@@ -113,7 +105,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'تحويل الأفكار إلى مشاريع، نموذج العمل، دراسة السوق، الهوية، التسويق، التمويل، والمنتج الأول.',
     certificate: 'Certified Entrepreneur - EMC',
     icon: Rocket,
-    badgeColor: '#F28C00',
     tags: ['Business Model', 'Market Research', 'Pitching', 'MVP Launch'],
   },
   {
@@ -124,7 +115,6 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'السيرة الذاتية، LinkedIn، المقابلات والتواصل المهني، البحث عن عمل، وبناء الهوية المهنية.',
     certificate: 'Professional Advancement Certificate - EMC',
     icon: UserCheck,
-    badgeColor: '#0E5A8A',
     tags: ['CV & Portfolio', 'LinkedIn Mastery', 'Interview Prep', 'Personal Branding'],
   },
   {
@@ -135,34 +125,93 @@ const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     focus: 'اختيار التخصص، مهارات الدراسة، الكتابة الأكاديمية، البحث العلمي، والتقديم للجامعات والمنح.',
     certificate: 'Academic Advancement Certificate - EMC',
     icon: GraduationCap,
-    badgeColor: '#0077B6',
     tags: ['Academic Writing', 'Research Methods', 'University Prep', 'Scholarships'],
   },
 ]
 
 // ── 2. Academic Specialized Units (الوحدات التخصصية الأكاديمية) ──────────────
 const ACADEMIC_UNITS = [
-  { title: 'الوحدة الطبية', desc: 'برامج وتطوير مهارات التخصصات الطبية والعلوم الصحية المساندة.', icon: Stethoscope, color: '#0077B6' },
-  { title: 'الوحدة الهندسية', desc: 'مهارات وقواعد الهندسة الحديثة والتصميم الهندسي والبرمجي.', icon: Wrench, color: '#F28C00' },
-  { title: 'الوحدة الإدارية والمالية', desc: 'إدارة الأعمال، التخطيط المالي، المحاسبة، والعلوم الإدارية.', icon: Building2, color: '#0E5A8A' },
-  { title: 'وحدة القانون والسياسة', desc: 'الأنظمة القانونية، الحوكمة، السياسات العامة، والعلوم السياسية.', icon: Scale, color: '#B3401E' },
-  { title: 'وحدة العلوم الإنسانية والاجتماعية', desc: 'دراسات السلوك البشري، المجتمع، علم النفس، والتربية.', icon: BookOpen, color: '#0077B6' },
+  { title: 'الوحدة الطبية', desc: 'برامج وتطوير مهارات التخصصات الطبية والعلوم الصحية المساندة.', icon: Stethoscope },
+  { title: 'الوحدة الهندسية', desc: 'مهارات وقواعد الهندسة الحديثة والتصميم الهندسي والبرمجي.', icon: Wrench },
+  { title: 'الوحدة الإدارية والمالية', desc: 'إدارة الأعمال، التخطيط المالي، المحاسبة، والعلوم الإدارية.', icon: Building2 },
+  { title: 'وحدة القانون والسياسة', desc: 'الأنظمة القانونية، الحوكمة، السياسات العامة، والعلوم السياسية.', icon: Scale },
+  { title: 'وحدة العلوم الإنسانية والاجتماعية', desc: 'دراسات السلوك البشري، المجتمع، علم النفس، والتربية.', icon: BookOpen },
 ]
 
 // ── 3. Language Institute (معهد اللغات) ──────────────────────────────────────
 const LANGUAGE_PROGRAMS = [
-  { title: 'مسارات تعليم اللغة الإنجليزية', desc: 'من التأسيس حتى الإتقان الكامل للأغراض الأكاديمية والمهنية.', icon: Languages, color: '#0077B6' },
-  { title: 'مسارات تعليم اللغة الهولندية', desc: 'تعلم الهولندية بأسلوب منظم للاندماج والعمل والدراسة في هولندا.', icon: Languages, color: '#F28C00' },
-  { title: 'مسارات تعليم اللغة العربية', desc: 'برامج تعليم العربية للناطقين بها وبغيرها بأعلى المعايير.', icon: Languages, color: '#0E5A8A' },
-  { title: 'تحضير اختبارات IELTS & NT2', desc: 'دورات مكثفة ومحاكاة لاجتياز اختبارات الكفاءة اللغوية الدولية.', icon: BadgeCheck, color: '#FFA733' },
+  { title: 'مسارات تعليم اللغة الإنجليزية', desc: 'من التأسيس حتى الإتقان الكامل للأغراض الأكاديمية والمهنية.', icon: Languages },
+  { title: 'مسارات تعليم اللغة الهولندية', desc: 'تعلم الهولندية بأسلوب منظم للاندماج والعمل والدراسة في هولندا.', icon: Languages },
+  { title: 'مسارات تعليم اللغة العربية', desc: 'برامج تعليم العربية للناطقين بها وبغيرها بأعلى المعايير.', icon: Languages },
+  { title: 'تحضير اختبارات IELTS & NT2', desc: 'دورات مكثفة ومحاكاة لاجتياز اختبارات الكفاءة اللغوية الدولية.', icon: BadgeCheck },
 ]
 
 // ── 4. Children & Future Minds (مسار الأطفال وعقول المستقبل) ───────────────
 const CHILDREN_PROGRAMS = [
-  { title: 'البرمجة وتطوير الألعاب', desc: 'تعليم منطق البرمجة ولغات مثل Scratch و Python للأطفال بأسلوب ممتع.', icon: Bot, color: '#0077B6' },
-  { title: 'الذكاء الاصطناعي والروبوتات', desc: 'استكشاف التكنولوجيا الذكية والتحكم في الروبوتات وتطبيقات المستقبل.', icon: Brain, color: '#F28C00' },
-  { title: 'الحساب الذهني والأمان الرقمي', desc: 'تنمية قدرات التفكير الرياضي السريع وترسيخ قواعد السلامة الرقمية.', icon: Smile, color: '#F28C00' },
+  { title: 'البرمجة وتطوير الألعاب', desc: 'تعليم منطق البرمجة ولغات مثل Scratch و Python للأطفال بأسلوب ممتع.', icon: Bot },
+  { title: 'الذكاء الاصطناعي والروبوتات', desc: 'استكشاف التكنولوجيا الذكية والتحكم في الروبوتات وتطبيقات المستقبل.', icon: Brain },
+  { title: 'الحساب الذهني والأمان الرقمي', desc: 'تنمية قدرات التفكير الرياضي السريع وترسيخ قواعد السلامة الرقمية.', icon: Smile },
 ]
+
+// Design Language 2.0 — the tab item card became an editorial row:
+// icon · serif name · one-line description · «استكشف» line CTA, all seated
+// on the emc-row hairline (hover: paper tint + sliding sky bar). No boxes.
+function EditorialRow({
+  icon: Icon,
+  title,
+  titleEn,
+  desc,
+  duration,
+  index,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  title: string
+  titleEn?: string
+  desc: string
+  duration?: string
+  index: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.45, delay: index * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
+      className="emc-row"
+    >
+      <Link
+        to="/courses"
+        className="group flex items-center gap-4 py-5 ps-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue sm:gap-6 sm:py-6 sm:ps-4"
+      >
+        <Icon
+          size={22}
+          className="shrink-0 text-customBlue transition-transform duration-300 group-hover:-translate-y-0.5"
+        />
+        <div className="min-w-0 flex-1 text-right">
+          <div className="flex flex-wrap items-baseline gap-x-3">
+            <h3 className="font-display text-lg font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:text-xl">
+              {title}
+            </h3>
+            {titleEn && <span className="font-latin text-[11px] font-bold text-ink-400">{titleEn}</span>}
+          </div>
+          <p className="mt-1 line-clamp-2 text-xs font-semibold leading-6 text-ink-400 sm:line-clamp-1 sm:text-sm">
+            {desc}
+          </p>
+        </div>
+        {duration && (
+          <span className="hidden shrink-0 items-center gap-1.5 text-xs font-bold text-ink-400 lg:flex">
+            <Clock size={14} className="text-customBlue" aria-hidden />
+            {duration}
+          </span>
+        )}
+        <span className="emc-cta-line shrink-0 text-xs sm:text-sm">
+          استكشف
+          <ArrowLeft size={14} aria-hidden />
+        </span>
+      </Link>
+    </motion.div>
+  )
+}
 
 export default function HomeLearningTracks() {
   const [activeTab, setActiveTab] = useState<'professional' | 'academic' | 'languages' | 'children'>('professional')
@@ -200,7 +249,7 @@ export default function HomeLearningTracks() {
           </p>
         </motion.div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation — functional segmented control (kept) */}
         <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-slate-100/80 p-2 shadow-inner">
           <button
             type="button"
@@ -255,7 +304,7 @@ export default function HomeLearningTracks() {
           </button>
         </div>
 
-        {/* Tab Content Display */}
+        {/* Tab Content — editorial row lists (Design Language 2.0) */}
         <AnimatePresence mode="wait">
           {activeTab === 'professional' && (
             <motion.div
@@ -264,68 +313,19 @@ export default function HomeLearningTracks() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {PROFESSIONAL_TRACKS.map((track, i) => {
-                const Icon = track.icon
-                return (
-                  <motion.div
-                    key={track.id}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.1 }}
-                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
-                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1.5 hover:border-customBlue/40 hover:shadow-emc-md"
-                  >
-                    {/* Header: Icon & Duration */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
-                        style={{ backgroundColor: track.badgeColor }}
-                      >
-                        <Icon size={24} />
-                      </div>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                        <Clock size={13} className="text-customBlue" />
-                        {track.duration}
-                      </span>
-                    </div>
-
-                    {/* Title & Focus */}
-                    <h3 className="mt-5 text-xl font-black text-deepBlue group-hover:text-customBlue">
-                      {track.title}
-                    </h3>
-                    <p className="mt-1 text-xs font-semibold text-slate-400">{track.titleEn}</p>
-                    <p className="mt-3 flex-1 text-xs leading-relaxed text-slate-600">{track.focus}</p>
-
-                    {/* Tags */}
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {track.tags.map((tag) => (
-                        <span key={tag} className="rounded-md bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Certified Badge — pinned above the CTA so buttons align across the row */}
-                    <div className="mt-6 flex items-center gap-2 border-t border-slate-100 pt-4 text-xs font-black text-deepBlue">
-                      <Award size={16} className="shrink-0 text-customOrange" />
-                      <span className="truncate">{track.certificate}</span>
-                    </div>
-
-                    {/* Action Link */}
-                    <div className="mt-4">
-                      <Link
-                        to="/courses"
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-deepBlue py-3 text-xs font-black text-white transition hover:bg-customBlue"
-                      >
-                        تفاصيل وتوقيت الانطلاق
-                        <ArrowLeft size={14} />
-                      </Link>
-                    </div>
-                  </motion.div>
-                )
-              })}
+              <div aria-hidden className="emc-hairline" />
+              {PROFESSIONAL_TRACKS.map((track, i) => (
+                <EditorialRow
+                  key={track.id}
+                  icon={track.icon}
+                  title={track.title}
+                  titleEn={track.titleEn}
+                  desc={track.focus}
+                  duration={track.duration}
+                  index={i}
+                />
+              ))}
             </motion.div>
           )}
 
@@ -336,37 +336,11 @@ export default function HomeLearningTracks() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {ACADEMIC_UNITS.map((unit, i) => {
-                const Icon = unit.icon
-                return (
-                  <motion.div
-                    key={unit.title}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.1 }}
-                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
-                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-customBlue/30 hover:shadow-emc-md"
-                  >
-                    <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
-                      style={{ backgroundColor: unit.color }}
-                    >
-                      <Icon size={24} />
-                    </div>
-                    <h3 className="mt-4 text-lg font-black text-deepBlue">{unit.title}</h3>
-                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-600">{unit.desc}</p>
-                    <Link
-                      to="/courses"
-                      className="mt-auto flex items-center justify-between pt-6 text-xs font-black text-customBlue hover:underline"
-                    >
-                      <span>عرض برامج الوحدة</span>
-                      <ArrowLeft size={14} />
-                    </Link>
-                  </motion.div>
-                )
-              })}
+              <div aria-hidden className="emc-hairline" />
+              {ACADEMIC_UNITS.map((unit, i) => (
+                <EditorialRow key={unit.title} icon={unit.icon} title={unit.title} desc={unit.desc} index={i} />
+              ))}
             </motion.div>
           )}
 
@@ -377,37 +351,11 @@ export default function HomeLearningTracks() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
             >
-              {LANGUAGE_PROGRAMS.map((lang, i) => {
-                const Icon = lang.icon
-                return (
-                  <motion.div
-                    key={lang.title}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.1 }}
-                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
-                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-customBlue/30 hover:shadow-emc-md"
-                  >
-                    <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
-                      style={{ backgroundColor: lang.color }}
-                    >
-                      <Icon size={24} />
-                    </div>
-                    <h3 className="mt-4 text-lg font-black text-deepBlue">{lang.title}</h3>
-                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-600">{lang.desc}</p>
-                    <Link
-                      to="/courses"
-                      className="mt-auto flex items-center justify-between pt-6 text-xs font-black text-customBlue hover:underline"
-                    >
-                      <span>استكشف الدورات</span>
-                      <ArrowLeft size={14} />
-                    </Link>
-                  </motion.div>
-                )
-              })}
+              <div aria-hidden className="emc-hairline" />
+              {LANGUAGE_PROGRAMS.map((lang, i) => (
+                <EditorialRow key={lang.title} icon={lang.icon} title={lang.title} desc={lang.desc} index={i} />
+              ))}
             </motion.div>
           )}
 
@@ -418,37 +366,11 @@ export default function HomeLearningTracks() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="grid gap-6 sm:grid-cols-3"
             >
-              {CHILDREN_PROGRAMS.map((prog, i) => {
-                const Icon = prog.icon
-                return (
-                  <motion.div
-                    key={prog.title}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.1 }}
-                    transition={{ duration: 0.45, delay: i * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
-                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-customBlue/30 hover:shadow-emc-md"
-                  >
-                    <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
-                      style={{ backgroundColor: prog.color }}
-                    >
-                      <Icon size={24} />
-                    </div>
-                    <h3 className="mt-4 text-lg font-black text-deepBlue">{prog.title}</h3>
-                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-600">{prog.desc}</p>
-                    <Link
-                      to="/courses"
-                      className="mt-auto flex items-center justify-between pt-6 text-xs font-black text-customBlue hover:underline"
-                    >
-                      <span>برامج الأطفال</span>
-                      <ArrowLeft size={14} />
-                    </Link>
-                  </motion.div>
-                )
-              })}
+              <div aria-hidden className="emc-hairline" />
+              {CHILDREN_PROGRAMS.map((prog, i) => (
+                <EditorialRow key={prog.title} icon={prog.icon} title={prog.title} desc={prog.desc} index={i} />
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
