@@ -153,7 +153,7 @@ function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
           </div>
         </div>
 
-        {/* Price + CTA — pinned */}
+        {/* Price + CTA pinned */}
         <div className="flex flex-col border-t border-slate-100 bg-slate-50/60 p-5 text-right lg:border-t-0 lg:border-s lg:border-slate-100">
           <div>
             {price.hasPrice &&

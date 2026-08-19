@@ -38,7 +38,7 @@ export default function AdminApiTokensPage() {
       setFreshToken(created.token)
       setRows((prev) => [created.record, ...prev])
       setName('')
-      toast.success('تم إنشاء الرمز — انسخه الآن')
+      toast.success('تم إنشاء الرمز انسخه الآن')
     }
   }
 
@@ -77,7 +77,7 @@ export default function AdminApiTokensPage() {
 
       {freshToken && (
         <div className="mt-6 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-inner">
-          <p className="text-sm font-black text-emerald-950">انسخ الرمز الآن — لن يُعرض مجددًا</p>
+          <p className="text-sm font-black text-emerald-950">انسخ الرمز الآن لن يُعرض مجددًا</p>
           <pre className="overflow-auto rounded-xl bg-white p-3 font-mono text-xs font-bold text-emerald-950 ring-1 ring-emerald-100" dir="ltr">
             {freshToken}
           </pre>

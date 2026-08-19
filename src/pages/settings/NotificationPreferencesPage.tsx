@@ -92,7 +92,7 @@ function QuietHoursAndPushPanel() {
         const ok = await subscribeToPush()
         setPushSubscribed(ok)
         if (ok) successToast('تم تفعيل إشعارات الدفع')
-        else errorToast('تعذّر تفعيل إشعارات الدفع — تحقق من إذن المتصفح')
+        else errorToast('تعذّر تفعيل إشعارات الدفع تحقق من إذن المتصفح')
       }
     } catch {
       errorToast('حدث خطأ أثناء تحديث إشعارات الدفع')
@@ -199,7 +199,7 @@ function QuietHoursAndPushPanel() {
           {isRealtimeConfigured() ? (
             <><Wifi className="h-3.5 w-3.5 text-emerald-500" /> التحديث الفوري مفعّل</>
           ) : (
-            <><WifiOff className="h-3.5 w-3.5 text-slate-300" /> التحديث الفوري غير متاح — التحديث كل 90 ثانية</>
+            <><WifiOff className="h-3.5 w-3.5 text-slate-300" /> التحديث الفوري غير متاح التحديث كل 90 ثانية</>
           )}
         </div>
       </div>
@@ -423,7 +423,7 @@ function CategorySection({
         </div>
       </div>
 
-      {/* Column headers — fixed toggle columns */}
+      {/* Column headers fixed toggle columns */}
       <div
         className={`hidden border-b border-slate-100 bg-slate-50/40 px-5 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-400 sm:grid ${hasSms ? 'sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem_6.5rem]' : 'sm:grid-cols-[minmax(0,1fr)_6.5rem_6.5rem]'} sm:gap-4`}
       >

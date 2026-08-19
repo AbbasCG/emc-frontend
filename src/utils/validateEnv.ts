@@ -26,7 +26,7 @@ export function validateEnv(): void {
   const lines: string[] = []
   if (missing.length) lines.push(`Missing: ${missing.join(', ')}`)
   if (invalid.length) lines.push(`Invalid: ${invalid.join('; ')}`)
-  const msg = `[EMC] Environment configuration error — ${lines.join(' · ')}. Check .env.`
+ const msg = `[EMC] Environment configuration error ${lines.join(' · ')}. Check.env.`
 
   if (import.meta.env.DEV) {
     // In development only warn — don't block the dev server

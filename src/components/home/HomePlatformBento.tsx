@@ -47,7 +47,7 @@ export default function HomePlatformBento() {
           <span className="mb-3 inline-block rounded-full border border-customBlue/25 bg-customBlue/[0.08] px-3 py-1 text-xs font-black text-customBlue">
             منظومة EMC
           </span>
-          <h2 className="text-3xl font-black leading-tight text-deepBlue sm:text-4xl">واجهة تشغيل — بين الـ LMS والمؤسسة</h2>
+          <h2 className="text-3xl font-black leading-tight text-deepBlue sm:text-4xl">واجهة تشغيل بين الـ LMS والمؤسسة</h2>
           <p className="mt-5 text-lg font-medium leading-9 text-deepBlue/72">
             تجربة بصرية تربط التعلم بالهيكل التنظيمي: انتقل بين الكتالوج، الخريطة التفاعلية، والمجالات بسلاسة.
           </p>

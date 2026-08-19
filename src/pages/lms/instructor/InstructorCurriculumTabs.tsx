@@ -38,7 +38,7 @@ function FieldError({ errors, field }: { errors: ValidationErrors | null; field:
 function CourseScopeNotice() {
   return (
     <div className="mb-4 rounded-2xl border border-[#0077B6]/15 bg-[#0077B6]/[0.04] px-4 py-3 text-[11px] font-bold text-deepBlue/60">
-      المنهج (الوحدات والدروس) مشترك على مستوى الدورة بالكامل، وليس خاصًا بهذا الصف فقط — أي تعديل هنا سيظهر في جميع صفوف هذه الدورة.
+      المنهج (الوحدات والدروس) مشترك على مستوى الدورة بالكامل، وليس خاصًا بهذا الصف فقط أي تعديل هنا سيظهر في جميع صفوف هذه الدورة.
     </div>
   )
 }
@@ -532,7 +532,7 @@ export function CurriculumOverviewTab({ courseId }: { courseId: number }) {
       <CourseScopeNotice />
       {!modules || modules.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-14 text-center">
-          <p className="text-[13px] font-semibold text-deepBlue/40">لا يوجد منهج بعد — أضف وحدات من تبويب "الوحدات"</p>
+          <p className="text-[13px] font-semibold text-deepBlue/40">لا يوجد منهج بعد أضف وحدات من تبويب "الوحدات"</p>
         </div>
       ) : (
         <div className="space-y-3">

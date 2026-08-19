@@ -37,7 +37,7 @@ export default function DepartmentsTimelineStrip() {
           <h2 className="font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">خط زمني للنضج المؤسسي</h2>
           <span className="mt-4 block h-1 w-20 rounded-full bg-customOrange" />
           <p className="mt-5 text-base font-medium leading-8 text-white/75 sm:text-lg sm:leading-9">
-            صورة تخطيطية لكيفية نضج المنظومة — دون تواريخ ثابتة في الواجهة حتى تتوفر بيانات رسمية من الإدارة.
+            صورة تخطيطية لكيفية نضج المنظومة دون تواريخ ثابتة في الواجهة حتى تتوفر بيانات رسمية من الإدارة.
           </p>
         </motion.div>
 

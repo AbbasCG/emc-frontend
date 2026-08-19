@@ -249,7 +249,7 @@ export default function TechAdminDashboardPage() {
         <div className="relative">
           <p className="mb-1 text-[11px] font-bold text-white/50">{hourGreeting()}</p>
           <h1 className="mb-1 text-xl font-black text-white">لوحة مدير التقنية</h1>
-          <p className="mb-5 text-[12px] text-white/60">مركز التحكم التقني — مراقبة المنصة، الصلاحيات، التكاملات، وسجلات النظام.</p>
+          <p className="mb-5 text-[12px] text-white/60">مركز التحكم التقني مراقبة المنصة، الصلاحيات، التكاملات، وسجلات النظام.</p>
           <div className="flex flex-wrap gap-2">
             {[
               { label: 'المستخدمون',         href: '/dashboard/super-admin/crud/users'      },

@@ -18,7 +18,7 @@ export default function ImpactTimeline() {
           align="right"
           eyebrow="مسار النمو"
           title="رحلة EMC"
-          description="محطات مختصرة تعكس اتجاه التطور — يمكن ربطها لاحقاً بتواريخ رسمية عند نشرها."
+          description="محطات مختصرة تعكس اتجاه التطور يمكن ربطها لاحقاً بتواريخ رسمية عند نشرها."
         />
 
         <motion.ol

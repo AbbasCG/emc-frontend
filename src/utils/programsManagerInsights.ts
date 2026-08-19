@@ -66,10 +66,10 @@ function changePercent(recent: number, previous: number): number | null {
 }
 
 function trendNarrative(domain: string, direction: TrendDirection, pct: number | null, recent: number): string {
-  if (direction === 'unknown' || recent === 0) return `لا نشاط ${domain} في الشهر الأخير — فرصة للتحفيز أو المراجعة.`
+  if (direction === 'unknown' || recent === 0) return `لا نشاط ${domain} في الشهر الأخير فرصة للتحفيز أو المراجعة.`
   if (direction === 'flat') return `${domain} مستقر مقارنة بالشهر السابق (${recent}).`
-  if (direction === 'up') return `${domain} في نمو ${pct != null ? `${Math.abs(pct)}%` : ''} — استمر في دعم الزخم.`
-  return `${domain} تراجع ${pct != null ? `${Math.abs(pct)}%` : ''} — راجع العوائق والتسويق.`
+ if (direction === 'up') return `${domain} في نمو ${pct!= null ? `${Math.abs(pct)}%`: ''} استمر في دعم الزخم.`
+ return `${domain} تراجع ${pct!= null ? `${Math.abs(pct)}%`: ''} راجع العوائق والتسويق.`
 }
 
 export function buildTrendInsight(id: string, domain: string, points: MonthlyPoint[]): TrendInsight {
@@ -128,7 +128,7 @@ export function findRegistrationBottleneck(pipeline: PipelineStage[]): Bottlenec
     label: worst.label,
     count: worst.count,
     sharePercent: share,
-    narrative: `${worst.count} تسجيل (${share}% من المسار) عالق في «${worst.label}» — هذا أكبر عنق زجاجة حالياً.`,
+    narrative: `${worst.count} تسجيل (${share}% من المسار) عالق في «${worst.label}» هذا أكبر عنق زجاجة حالياً.`,
     href: '/dashboard/admin/registrations',
   }
 }
@@ -186,7 +186,7 @@ export function buildActionQueue(data: ProgramsManagerDashboardPayload): ActionI
     items.push({
       id: 'draft-only',
       priority: 'high',
-      title: 'نشر أول دورة — كل المحتوى ما زال مسودة',
+      title: 'نشر أول دورة كل المحتوى ما زال مسودة',
       reason: 'لا يمكن جذب تسجيلات أو تشغيل جلسات بدون دورات منشورة.',
       href: '/dashboard/admin/programs',
       cta: 'إكمال النشر',
@@ -247,7 +247,7 @@ export function buildExecutiveBrief(data: ProgramsManagerDashboardPayload, actio
 
   if (high > 0 || data.summary.pending_reviews > 0) {
     return {
-      headline: 'العمليات تعمل — لكن هناك عناصر تحتاج متابعة',
+      headline: 'العمليات تعمل لكن هناك عناصر تحتاج متابعة',
       subline: `${priorityCount} إجراء${priorityCount !== 1 ? 'ات' : ''} مقترحة لتحسين التسليم والتعلم.`,
       priorityCount,
       tone: 'attention',
@@ -265,7 +265,7 @@ export function buildExecutiveBrief(data: ProgramsManagerDashboardPayload, actio
   }
 
   return {
-    headline: 'لوحة قرار تشغيلية — لا مهام حرجة الآن',
+    headline: 'لوحة قرار تشغيلية لا مهام حرجة الآن',
     subline: 'راجع الاتجاهات الشهرية وخطّط للإطلاقات القادمة.',
     priorityCount,
     tone: 'healthy',
@@ -317,20 +317,20 @@ export function getLearningHealthInsight(summary: ProgramsManagerSummary): {
   else if (attWeak || compWeak) status = 'weak'
 
   const attendanceNarrative = att > 0
-    ? attWeak ? `الحضور ${att}% — أقل من المستوى المتوقع، راجع التذكيرات والجدولة.`
-    : attStrong ? `الحضور ${att}% — أداء قوي في التفاعل المباشر.`
-    : `الحضور ${att}% — مستقر، فرصة لرفعه عبر متابعة الغائبين.`
+    ? attWeak ? `الحضور ${att}% أقل من المستوى المتوقع، راجع التذكيرات والجدولة.`
+: attStrong ? `الحضور ${att}% أداء قوي في التفاعل المباشر.`
+: `الحضور ${att}% مستقر، فرصة لرفعه عبر متابعة الغائبين.`
     : 'لم يُسجّل حضور بعد.'
 
   const completionNarrative = comp > 0
-    ? compWeak ? `إكمال المحتوى ${comp}% — الطلاب يتعثرون قبل النهاية.`
-    : compStrong ? `إكمال المحتوى ${comp}% — مسار تعلم فعّال.`
-    : `إكمال المحتوى ${comp}% — في المسار الصحيح مع مجال للتحسين.`
+    ? compWeak ? `إكمال المحتوى ${comp}% الطلاب يتعثرون قبل النهاية.`
+: compStrong ? `إكمال المحتوى ${comp}% مسار تعلم فعّال.`
+: `إكمال المحتوى ${comp}% في المسار الصحيح مع مجال للتحسين.`
     : 'لم يُقاس تقدم المحتوى بعد.'
 
-  let combinedInsight = 'جودة التعلم متوازنة — راقب الاتجاهات الشهرية.'
+  let combinedInsight = 'جودة التعلم متوازنة راقب الاتجاهات الشهرية.'
   if (status === 'weak') combinedInsight = 'جودة التعلم تحتاج تدخلاً: راجع صعوبة المحتوى ودعم المدربين.'
-  else if (status === 'strong') combinedInsight = 'جودة التعلم ممتازة — حافظ على معايير المراجعة والجلسات.'
+  else if (status === 'strong') combinedInsight = 'جودة التعلم ممتازة حافظ على معايير المراجعة والجلسات.'
 
   return { status, attendanceNarrative, completionNarrative, combinedInsight }
 }

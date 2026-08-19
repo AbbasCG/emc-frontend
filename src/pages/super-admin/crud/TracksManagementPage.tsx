@@ -133,7 +133,7 @@ export default function TracksManagementPage() {
       <EnterpriseCrudHero
         eyebrow="Topology · Catalog structure"
         title="المسارات"
-        subtitle="مسارات الكتالوج من GET /tracks — لا بيانات وهمية عند الخطأ."
+        subtitle="مسارات الكتالوج من GET /tracks لا بيانات وهمية عند الخطأ."
         variant="blue"
         actions={
           <>

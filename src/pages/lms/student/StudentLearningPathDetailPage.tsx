@@ -182,7 +182,7 @@ export default function StudentLearningPathDetailPage() {
                 ) : (
                   <>
                     <PlayCircle className="h-4 w-4 text-[#0077B6]" />
-                    جاري — سُجِّل في {fmtDate(enrollment.enrolled_at)}
+                    جاري سُجِّل في {fmtDate(enrollment.enrolled_at)}
                   </>
                 )}
               </div>
@@ -263,7 +263,7 @@ export default function StudentLearningPathDetailPage() {
           </div>
 
           <div className="relative space-y-0">
-            {/* Vertical connector — aligned to step circles */}
+            {/* Vertical connector aligned to step circles */}
             <div
               aria-hidden
               className="absolute right-[1.15rem] top-9 w-0.5 bg-gradient-to-b from-[#0077B6]/60 via-slate-200 to-transparent"

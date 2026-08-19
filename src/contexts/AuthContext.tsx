@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(nextToken)
       setUser(nextUser)
 
-      toast.success(`تم بدء المعاينة — عرض المنصّة كـ ${nextUser.name || 'مستخدم مستهدَف'}.`)
+      toast.success(`تم بدء المعاينة عرض المنصّة كـ ${nextUser.name || 'مستخدم مستهدَف'}.`)
     } catch (e) {
       clearImpersonationSessionMarks()
       setImpersonationOriginalUser(null)

@@ -245,7 +245,7 @@ export function AddStudentModal({ courseId, courseTitle, onClose, onAdded }: Pro
                     )}
 
                     {searchQ.trim() && !searching && results.length === 0 && (
-                      <p className="mt-2 text-center text-[11px] font-semibold text-slate-400">لا نتائج — جرّب كلمة أخرى</p>
+                      <p className="mt-2 text-center text-[11px] font-semibold text-slate-400">لا نتائج جرّب كلمة أخرى</p>
                     )}
                   </div>
                 )}

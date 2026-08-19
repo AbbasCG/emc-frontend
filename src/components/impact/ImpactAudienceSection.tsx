@@ -41,7 +41,7 @@ export default function ImpactAudienceSection() {
           align="right"
           eyebrow="الجمهور"
           title="جمهورنا الحقيقي"
-          description="مزيج من المتعلّمين والمساهمين والمهتمّين؛ نسب تقريبيّة لمقارنة سريعة — التفاصيل الكاملة في تقارير التشغيل."
+          description="مزيج من المتعلّمين والمساهمين والمهتمّين؛ نسب تقريبيّة لمقارنة سريعة التفاصيل الكاملة في تقارير التشغيل."
         />
 
         <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-12 xl:gap-14">

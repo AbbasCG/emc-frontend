@@ -816,7 +816,7 @@ export default function AdminLmsSessionsPage() {
     <>
     <AdminLmsShell
       title="جلسات الدورات"
-      description="لوحة الجلسات الكاملة — كل الدورات، كل المدربين، تتبع فتح الروابط"
+      description="لوحة الجلسات الكاملة كل الدورات، كل المدربين، تتبع فتح الروابط"
       breadcrumb="الجلسات"
       kpis={[
         { label: 'إجمالي الجلسات', value: fmtNum(total),    icon: CalendarRange,  variant: 'brand' },

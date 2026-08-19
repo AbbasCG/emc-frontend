@@ -34,7 +34,7 @@ export function WrittenExamOverview({ row, liveStats }: Props) {
         </div>
         <div>
           <p className="text-[13px] font-black text-deepBlue">الاختبار الكتابي المكتمل</p>
-          <p className="text-[10px] font-semibold text-deepBlue/45">عرض للقراءة فقط — لا يمكن تعديل الإجابات</p>
+          <p className="text-[10px] font-semibold text-deepBlue/45">عرض للقراءة فقط لا يمكن تعديل الإجابات</p>
         </div>
       </div>
 

@@ -123,7 +123,7 @@ export const themes12: PublicTheme[] = [
       { ar: 'مهارات القيادة في بيئات متغيرة' },
       { ar: 'جلسات إرشاد جماعي وفردي حسب البرنامج' },
     ],
-    suggestedPrograms: [{ ar: 'ورشة رواد — أساسيات ريادة الأعمال' }, { ar: 'برنامج القيادة الخدمية' }],
+    suggestedPrograms: [{ ar: 'ورشة رواد أساسيات ريادة الأعمال' }, { ar: 'برنامج القيادة الخدمية' }],
   },
   {
     id: 'awareness-knowledge',
@@ -179,7 +179,7 @@ export const themes12: PublicTheme[] = [
       { ar: 'ربط النظرية بتجارب حقيقية' },
       { ar: 'فرق عمل وتقارير عرض قصيرة' },
     ],
-    suggestedPrograms: [{ ar: 'يوم ميداني — تعرّف على المؤسسات' }, { ar: 'ورشة التعلم بالمشاريع' }],
+    suggestedPrograms: [{ ar: 'يوم ميداني تعرّف على المؤسسات' }, { ar: 'ورشة التعلم بالمشاريع' }],
   },
   {
     id: 'future-minds',
@@ -382,8 +382,8 @@ export const siteContact = {
   telLink: 'tel:+31686443340',
   email: 'info@edumc.nl',
   supportEmail: 'support@edumc.nl',
-  location: { ar: 'أمستردام، هولندا — خدمة أونلاين ومجتمعات عربية وهولندية' },
-  hours: { ar: 'الأحد — الخميس، 9:00 — 18:00 (بتوقيت أوروبا الوسطى)' },
+  location: { ar: 'أمستردام، هولندا خدمة أونلاين ومجتمعات عربية وهولندية' },
+  hours: { ar: 'الأحد الخميس، 9:00 18:00 (بتوقيت أوروبا الوسطى)' },
   social: {
     website: 'https://edumc.nl',
     linkedin: 'https://www.linkedin.com/company/edumc',

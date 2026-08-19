@@ -72,7 +72,7 @@ export default function ImpactHero() {
             transition={{ delay: 0.14 }}
             className="mt-6 max-w-3xl text-right text-[1.05rem] font-medium leading-[1.9] text-slate-100/92 sm:text-lg"
           >
-            نقيس نجاحنا بحجم الأثر الذي نصنعه في حياة المتعلّمين والمجتمع — عبر برامج منضبطة، شراكات
+            نقيس نجاحنا بحجم الأثر الذي نصنعه في حياة المتعلّمين والمجتمع عبر برامج منضبطة، شراكات
             مهنية، ومنصّة تنمو لتفتح مسارات جديدة.
           </motion.p>
         </motion.div>
@@ -95,7 +95,7 @@ export default function ImpactHero() {
               className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(0,119,182,0.15),transparent_45%)]"
             />
             <p className="relative text-sm font-semibold leading-8 text-slate-100/88">
-              نربط بين التعليم والمهنية والمجتمع — بأدوات تقييم داخلية وشفافية في الطريق نحو أثر أكبر كل
+              نربط بين التعليم والمهنية والمجتمع بأدوات تقييم داخلية وشفافية في الطريق نحو أثر أكبر كل
               عام.
             </p>
           </motion.div>

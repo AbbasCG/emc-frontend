@@ -237,7 +237,7 @@ export default function AttendanceTable({
                   disabled={disabled}
                   value={row.notes ?? ''}
                   onChange={(e) => onChange(row.student_id, { notes: e.target.value || null })}
-                  placeholder={`ملاحظة — ${row.student_name}`}
+                  placeholder={`ملاحظة ${row.student_name}`}
                   className="h-9 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6]"
                 />
                 <button

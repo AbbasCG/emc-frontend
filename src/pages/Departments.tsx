@@ -37,7 +37,7 @@ export default function Departments() {
     <main className="bg-emcBg pt-20">
       <PublicSeo
         title="الإدارات والحوكمة"
-        description="هيكل إداري يضمن جودة البرامج وسلاسة التشغيل واستدامة الشراكات — حوكمة واضحة ومساءلة مهنية من تصميم البرنامج إلى تجربة المشارك."
+        description="هيكل إداري يضمن جودة البرامج وسلاسة التشغيل واستدامة الشراكات حوكمة واضحة ومساءلة مهنية من تصميم البرنامج إلى تجربة المشارك."
         path="/departments"
       />
       <PublicPageHero

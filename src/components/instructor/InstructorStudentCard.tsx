@@ -123,7 +123,7 @@ export function InstructorStudentCard({
         </div>
       </div>
 
-      {/* Course link — routes to correct page based on placement requirement */}
+      {/* Course link routes to correct page based on placement requirement */}
       {s.course_title && (
         courseLink ? (
           <Link
@@ -202,7 +202,7 @@ export function InstructorStudentCard({
             )}
           </div>
 
-          {/* Class assignment — visible whenever the student has at least reached final approval */}
+          {/* Class assignment visible whenever the student has at least reached final approval */}
           {s.final_level && s.class_assignment && (
             s.class_assignment.status === 'assigned' ? (
               <div className="flex items-center gap-1.5 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.06] px-3 py-2">

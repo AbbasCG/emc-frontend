@@ -248,7 +248,7 @@ export default function FinancialRequestDetailView({ request: initialReq, onClos
                       <Upload size={18} className="text-customBlue" />
                       <div>
                         <p className="text-sm font-bold text-customBlue">{uploading ? 'جاري الرفع…' : 'رفع مرفق'}</p>
-                        <p className="text-[11px] text-slate-400">PDF, صور, Word, Excel — حتى 20 MB</p>
+                        <p className="text-[11px] text-slate-400">PDF, صور, Word, Excel حتى 20 MB</p>
                       </div>
                       <input
                         type="file"

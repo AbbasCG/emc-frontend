@@ -12,7 +12,7 @@ import {
   journeyStations,
 } from '@/pages/LearningPaths/learningPathDisplay'
 
-const PLACEHOLDER = 'bg-gradient-to-br from-[#0C2A4B] to-[#0077B6]'
+const PLACEHOLDER = 'bg-gradient-to-br from-deepBlue to-customBlue'
 const MAX_PATHS = 3
 
 type Props = {
@@ -22,7 +22,7 @@ type Props = {
 
 function TeaserSkeleton() {
   return (
-    <div className="grid overflow-hidden rounded-2xl border border-slate-100 bg-white sm:grid-cols-[140px_1fr_auto]">
+    <div className="grid overflow-hidden rounded-2xl border border-line bg-white sm:grid-cols-[140px_1fr_auto]">
       <Skeleton className="min-h-[120px] rounded-none sm:min-h-full" />
       <div className="p-4">
         <Skeleton variant="text" className="h-3 w-20" />
@@ -64,7 +64,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
           </div>
         }
         {path.is_featured && (
-          <span className="absolute start-2 top-2 rounded-md bg-[#F28C00] px-1.5 py-0.5 text-[10px] font-black text-white">
+          <span className="absolute start-2 top-2 rounded-md bg-customOrange px-1.5 py-0.5 text-[10px] font-black text-white">
             مميز
           </span>
         )}
@@ -82,7 +82,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
         {stations.length > 0 ?
           <ol className="relative mt-2.5 space-y-1.5">
             <span
-              className="absolute bottom-2.5 top-2.5 start-[9px] w-[2px] rounded-full bg-[#089FE0]/50"
+              className="absolute bottom-2.5 top-2.5 start-[9px] w-[2px] rounded-full bg-sky/50"
               aria-hidden
             />
             {stations.map((course, i) => (
@@ -175,7 +175,7 @@ function LearningPathsTeaserSection({ paths, loading }: Props) {
   const current = featured[active] ?? featured[0]
 
   return (
-    <section id="learning-paths-teaser" className="scroll-mt-28 border-b border-slate-100 bg-[#f4f8fc] py-8">
+    <section id="learning-paths-teaser" className="scroll-mt-28 border-b border-slate-100 bg-brand-50/60 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-4 flex flex-col gap-3 text-right sm:flex-row sm:items-end sm:justify-between">
           <div>

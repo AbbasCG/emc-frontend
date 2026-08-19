@@ -190,7 +190,7 @@ export default function DepartmentsOrgEcosystem() {
           align="right"
           className="!mr-0 !max-w-3xl !text-right"
           eyebrow="خريطة التشغيل"
-          title="منظومة الإدارات — مركز تحكم مؤسسي"
+          title="منظومة الإدارات مركز تحكم مؤسسي"
           description="تخطيط تفاعلي يربط الإدارة العليا بالوحدات التنفيذية: مرر المؤشر أو اختر إدارة لرؤية مسار الربط والتفاصيل."
         />
 
@@ -433,7 +433,7 @@ function SpotlightPanel({
             <p className="text-xs font-black text-customOrange">وضع الاستكشاف</p>
             <h3 className="mt-2 text-lg font-black text-deepBlue">اختر عقدة في الخريطة</h3>
             <p className="mt-3 text-sm leading-8 text-deepBlue/65">
-              تُظهر اللوحة الجانبية وصف الإدارة ومسؤولياتها فور الاختيار — مع تمييز بصري للخطوط بين الإدارة العليا
+              تُظهر اللوحة الجانبية وصف الإدارة ومسؤولياتها فور الاختيار مع تمييز بصري للخطوط بين الإدارة العليا
               والوحدات المحيطة.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">

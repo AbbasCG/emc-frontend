@@ -32,7 +32,7 @@ type ValueBreakdownProps = {
 }
 
 /* Two token palettes so the block reads correctly on either surface. On the navy
-   dawn field the fire accent is amber (accent-300) — ember is the light-surface
+   dawn field the fire accent is amber (accent-300) ember is the light-surface
    rendition and fails contrast there. */
 const TONE = {
   dark: {
@@ -87,7 +87,7 @@ export default function ValueBreakdown({ path, tone = 'dark', className = '' }: 
           <span dir="ltr" className="tabular-nums line-through">
             {formatEuroInteger(savings.coursesTotal, 'ar')}
           </span>
-          {' — سعر المسار '}
+          {' سعر المسار '}
           <span dir="ltr" className={`font-black tabular-nums ${t.strong}`}>
             {formatEuroInteger(savings.pathPrice, 'ar')}
           </span>{' '}

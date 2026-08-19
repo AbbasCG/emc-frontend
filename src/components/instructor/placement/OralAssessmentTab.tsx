@@ -148,7 +148,7 @@ export function OralAssessmentTab({ row, form, onChange, onSave, saving, canEdit
                 const b = CEFR_MAP[lvl.level]
                 return (
                   <option key={lvl.level} value={lvl.level}>
-                    {b ? `${b.cefr} — ${b.arabic}` : lvl.label}
+ {b ? `${b.cefr} ${b.arabic}`: lvl.label}
                   </option>
                 )
               })}

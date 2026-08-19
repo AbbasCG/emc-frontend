@@ -66,7 +66,7 @@ function WorkshopSpotlight({ workshops, loading }: WorkshopSpotlightProps) {
               ورش العمل المجانية
             </span>
             <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">
-              ورش قادمة — سجّل مجاناً
+              ورش قادمة سجّل مجاناً
             </h2>
           </div>
 
@@ -119,7 +119,7 @@ const WorkshopRow = memo(function WorkshopRow({ workshop, index }: WorkshopRowPr
       transition={{ duration: 0.5, delay: (index % 4) * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       <article className="emc-row group relative">
-        {/* Invisible cover link — the whole row navigates while the CTAs keep focus semantics */}
+        {/* Invisible cover link the whole row navigates while the CTAs keep focus semantics */}
         <Link
           to={detailHref}
           className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2"
@@ -128,7 +128,7 @@ const WorkshopRow = memo(function WorkshopRow({ workshop, index }: WorkshopRowPr
         />
 
         <div className="relative flex flex-col gap-4 py-6 pe-1 ps-3 text-start sm:flex-row sm:items-center sm:gap-6 sm:py-7 sm:ps-4">
-          {/* Thumbnail — flying-page clip, not a rounded box */}
+          {/* Thumbnail flying-page clip, not a rounded box */}
           <div className="emc-page-clip-sm relative aspect-video w-32 shrink-0 sm:w-44">
             <img
               src={EMC_COURSE_COVER_PLACEHOLDER}
@@ -138,7 +138,7 @@ const WorkshopRow = memo(function WorkshopRow({ workshop, index }: WorkshopRowPr
             />
           </div>
 
-          {/* Content — serif title + ONE calm meta line */}
+          {/* Content serif title + ONE calm meta line */}
           <div className="min-w-0 flex-1">
             <h3 className="line-clamp-2 font-display text-lg font-black leading-snug tracking-tight text-ink-900 transition-colors duration-200 group-hover:text-brand-600 sm:text-xl">
               {workshop.title}
@@ -169,7 +169,7 @@ const WorkshopRow = memo(function WorkshopRow({ workshop, index }: WorkshopRowPr
             </p>
           </div>
 
-          {/* End column — price + seats above, actions seated on the row baseline */}
+          {/* End column price + seats above, actions seated on the row baseline */}
           <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 sm:w-56 sm:shrink-0 sm:flex-col sm:items-end sm:justify-end">
             <div className="text-start sm:text-end">
               <p className="emc-stat-num font-display text-xl text-success">مجاناً</p>

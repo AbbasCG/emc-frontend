@@ -303,7 +303,7 @@ export default function RolesPermissionsPage() {
     setUsageLoading(true)
     fetchAdminUsers()
       .then((rows) => setUsageCounts(countUsersByRole(rows)))
-      .catch(() => { /* silent — matrix still works */ })
+.catch(() => { /* silent matrix still works */ })
       .finally(() => setUsageLoading(false))
   }, [])
 
@@ -313,7 +313,7 @@ export default function RolesPermissionsPage() {
     let alive = true
     fetchAdminUsers()
       .then((rows) => { if (alive) setUsageCounts(countUsersByRole(rows)) })
-      .catch(() => { /* silent — matrix still works */ })
+.catch(() => { /* silent matrix still works */ })
       .finally(() => { if (alive) setUsageLoading(false) })
     return () => { alive = false }
   }, [])
@@ -378,7 +378,7 @@ export default function RolesPermissionsPage() {
             <button
               type="button"
               disabled
-              title="يُدار من خلال Laravel — قريبًا"
+              title="يُدار من خلال Laravel قريبًا"
               className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-2.5 text-[12px] font-black text-white/40 cursor-not-allowed"
             >
               إنشاء دور جديد

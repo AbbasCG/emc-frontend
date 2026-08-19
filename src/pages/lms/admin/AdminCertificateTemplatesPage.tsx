@@ -381,7 +381,7 @@ export default function AdminCertificateTemplatesPage() {
           {!loading && templates.length === 0 && (
             <div className="col-span-3 py-16 text-center">
               <FileText size={40} className="mx-auto mb-3 text-[#0C2A4B]/20" />
-              <p className="text-sm font-bold text-[#0C2A4B]/40">لا توجد قوالب — أنشئ أول قالب</p>
+              <p className="text-sm font-bold text-[#0C2A4B]/40">لا توجد قوالب أنشئ أول قالب</p>
             </div>
           )}
         </div>

@@ -147,7 +147,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
           </p>
         )}
 
-        {/* Date+time and duration — one clean chip each */}
+        {/* Date+time and duration one clean chip each */}
         <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] font-bold text-deepBlue">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1 ring-1 ring-slate-100">
             <Calendar className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
@@ -203,7 +203,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
           </p>
         : null}
 
-        {/* Footer — pinned CTA row */}
+        {/* Footer pinned CTA row */}
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
           <div className="min-w-0">
             <p className="text-[10px] font-bold text-slate-400">الرسوم</p>

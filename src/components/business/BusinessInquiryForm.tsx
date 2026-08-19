@@ -100,7 +100,7 @@ async function sendInquiry(values: FormValues, orgTypeLabel: string): Promise<vo
     email: values.email.trim().toLowerCase(),
     phone: values.whatsapp.trim(),
     category: 'partnership',
-    subject: `طلب مؤسسي — ${values.orgName.trim()}`,
+    subject: `طلب مؤسسي ${values.orgName.trim()}`,
     // The contract requires a message; it is composed from the five fields above,
     // never collected from a hidden sixth input.
     message: `جهة: ${values.orgName.trim()} · النوع: ${orgTypeLabel} · المسؤول: ${values.contactName.trim()} · واتساب: ${values.whatsapp.trim()}`,
@@ -151,13 +151,13 @@ export default function BusinessInquiryForm() {
   return (
     <>
       {/* Live region mounted from the first render, so the success sentence is announced
-          when it appears — a region inserted together with its text is unreliable. */}
+          when it appears a region inserted together with its text is unreliable. */}
       <div aria-live="polite">
         {sent ? (
           // Neutral hairline, not an orange rule — orange stays the primary ACTION only (§1)
           <div className="border-t border-line pt-6">
             <p className="font-display text-xl font-black text-navy sm:text-2xl">
-              استلمنا طلبك — نعود إليك خلال يومي عمل
+              استلمنا طلبك نعود إليك خلال يومي عمل
             </p>
             <p className="mt-3 max-w-xl text-sm font-semibold leading-8 text-ink-500">
               نراجع سياق جهتك قبل الرد، فيصلك تصور مبني على حاجتك أنت لا عرض عام.
@@ -293,7 +293,7 @@ export default function BusinessInquiryForm() {
             </p>
           ) : null}
 
-          {/* §1 — the one orange control on the page: the primary action */}
+          {/* §1 the one orange control on the page: the primary action */}
           <button
             type="submit"
             disabled={submitting}

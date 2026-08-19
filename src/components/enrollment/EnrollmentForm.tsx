@@ -292,13 +292,13 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           try {
             const discounted = await initiateCheckout(course.id, appliedCoupon.coupon.code)
             if (discounted.free) {
-              await completeEnrolledFlow('غطى رمز الخصم كامل الرسوم — تم تسجيلك بنجاح')
+              await completeEnrolledFlow('غطى رمز الخصم كامل الرسوم تم تسجيلك بنجاح')
               return
             }
             if (discounted.checkout_url) {
               notifyStudentScopeRefresh()
               notifyNotificationsRefresh()
-              toast.success('تم تهيئة جلسة الدفع — ستُكمَل العملية عند إتمام المعاملة.')
+              toast.success('تم تهيئة جلسة الدفع ستُكمَل العملية عند إتمام المعاملة.')
               window.location.assign(discounted.checkout_url)
               return
             }
@@ -314,7 +314,7 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
         }
         notifyStudentScopeRefresh()
         notifyNotificationsRefresh()
-        toast.success('تم تهيئة جلسة الدفع — ستُكمَل العملية عند إتمام المعاملة.')
+              toast.success('تم تهيئة جلسة الدفع ستُكمَل العملية عند إتمام المعاملة.')
         window.location.assign(result.checkout_url)
         return
       }
@@ -406,11 +406,11 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
       {!isAuthenticated && (
         <div className="mb-6 flex items-start gap-3 rounded-2xl bg-brand-50 p-4 text-sm font-bold text-customBlue ring-1 ring-brand-100">
           <Lock size={18} className="mt-0.5 shrink-0" />
-          <span>سجّل الدخول لإكمال التسجيل — تُعبَّأ بياناتك تلقائياً بعد الدخول.</span>
+          <span>سجّل الدخول لإكمال التسجيل تُعبَّأ بياناتك تلقائياً بعد الدخول.</span>
         </div>
       )}
 
-      {/* Fees — editorial block seated on a hairline (no box), with the coupon control */}
+      {/* Fees editorial block seated on a hairline (no box), with the coupon control */}
       {isPaid && (
         <div className="mb-8 border-b border-line pb-6 text-right">
           <span className="text-xs font-black text-muted-500">الرسوم</span>
@@ -625,10 +625,10 @@ export default function EnrollmentForm({ course, onSuccess }: Props) {
           />
         </label>
 
-        {/* طريقة الدفع — hidden when the coupon covers the full fee (no payment happens) */}
+        {/* طريقة الدفع hidden when the coupon covers the full fee (no payment happens) */}
         {isPaid && couponCoversAll && (
           <p className="text-sm font-bold text-emerald-700">
-            لن تحتاج إلى الدفع — رمز الخصم يغطي كامل الرسوم.
+            لن تحتاج إلى الدفع رمز الخصم يغطي كامل الرسوم.
           </p>
         )}
         {isPaid && !couponCoversAll && (

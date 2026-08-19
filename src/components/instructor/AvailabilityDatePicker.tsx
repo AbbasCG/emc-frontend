@@ -128,7 +128,7 @@ export function AvailabilityDatePicker(props: Props) {
         ? `${weekdayOf(props.value)}، ${dmy(props.value)}`
         : 'اختر التاريخ'
       : props.from && props.to
-        ? `${dmy(props.from)} — ${dmy(props.to)}`
+        ? `${dmy(props.from)} ${dmy(props.to)}`
         : 'اختر نطاق التاريخ'
 
   const rangeFrom = props.mode === 'range' ? (pendingFrom ?? props.from) : undefined

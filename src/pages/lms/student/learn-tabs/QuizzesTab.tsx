@@ -109,7 +109,7 @@ function TakeQuizModal({ quizId, onClose, onSubmitted }: { quizId: number; onClo
     setSubmitting(true)
     try {
       const result = await submitStudentQuiz(quizId, answers)
-      toast.success(`تم التقديم — النتيجة: ${result.score}%`)
+      toast.success(`تم التقديم النتيجة: ${result.score}%`)
       onSubmitted()
       onClose()
     } catch (err) {

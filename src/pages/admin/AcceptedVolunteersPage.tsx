@@ -209,7 +209,7 @@ function Tooltip({ children, label }: { children: React.ReactNode; label: string
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   DepartmentBadge — fixes Arabic text wrapping
+   DepartmentBadge fixes Arabic text wrapping
 ───────────────────────────────────────────────────────────────────────── */
 
 function DepartmentBadge({ dept }: { dept: string }) {
@@ -278,7 +278,7 @@ function KpiCard({ label, value, icon: Icon, iconBg, iconColor, accentGradient, 
       <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${accentGradient} opacity-80`} />
 
       <div className="flex flex-col gap-3">
-        {/* Icon — rotates via Framer variant propagation on parent hover */}
+        {/* Icon rotates via Framer variant propagation on parent hover */}
         <motion.div
           variants={{ hover: { rotate: 8, transition: { duration: 0.25, ease: [0.34, 1.56, 0.64, 1] } } }}
           className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}
@@ -297,7 +297,7 @@ function KpiCard({ label, value, icon: Icon, iconBg, iconColor, accentGradient, 
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   ConvertModal — logic unchanged, UI polished
+   ConvertModal logic unchanged, UI polished
 ───────────────────────────────────────────────────────────────────────── */
 
 function ConvertModal({
@@ -615,7 +615,7 @@ export default function AcceptedVolunteersPage() {
         <div className="rounded-2xl bg-white p-4 shadow-emc-xs ring-1 ring-slate-100">
           <div className="flex flex-wrap items-center gap-2.5">
 
-            {/* Search — grows */}
+            {/* Search grows */}
             <div className="relative min-w-[180px] flex-1">
               <Search size={15} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-400" />
               <input
@@ -937,7 +937,7 @@ export default function AcceptedVolunteersPage() {
                           {/* Actions */}
                           <td className="px-5 py-5">
                             <div className="flex items-center gap-2">
-                              {/* Convert — primary action, first in RTL order */}
+                              {/* Convert primary action, first in RTL order */}
                               {!r.is_converted ? (
                                 <button
                                   type="button"
@@ -955,7 +955,7 @@ export default function AcceptedVolunteersPage() {
                                 </span>
                               )}
 
-                              {/* View — ghost icon button */}
+                              {/* View ghost icon button */}
                               <button
                                 type="button"
                                 onClick={() => setSelected(r)}

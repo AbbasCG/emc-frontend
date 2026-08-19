@@ -56,7 +56,7 @@ export default function ImpersonationBanner() {
               أنت الآن تتصفح المنصّة كمستخدم آخر
             </p>
             <p className="text-[12px] font-bold leading-relaxed text-deepBlue/90">
-              وضع المعاينة مفعّل — أنت تعرض المنصّة كما يراها هذا المستخدم.
+              وضع المعاينة مفعّل أنت تعرض المنصّة كما يراها هذا المستخدم.
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-black text-deepBlue/75">
               <span className="truncate">

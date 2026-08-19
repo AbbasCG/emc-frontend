@@ -274,7 +274,7 @@ export default function EmailSettingsPage() {
       toast.success('تم حفظ الإعدادات بنجاح')
       await load()
     } catch {
-      toast.error('فشل حفظ الإعدادات — حاول مرة أخرى')
+      toast.error('فشل حفظ الإعدادات حاول مرة أخرى')
     } finally {
       setSaving(false)
     }
@@ -386,7 +386,7 @@ export default function EmailSettingsPage() {
         </div>
       )}
 
-      {/* Sticky save bar — only appears once something is dirty */}
+      {/* Sticky save bar only appears once something is dirty */}
       {dirtyCount > 0 && !loading && (
         <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
           <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-2xl shadow-slate-900/10">

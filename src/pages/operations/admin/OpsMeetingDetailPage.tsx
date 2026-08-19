@@ -85,7 +85,7 @@ export default function OpsMeetingDetailPage() {
       setConvertMsg('تم إنشاء المهمة من بنود العمل.')
       navigate('/dashboard/admin/tasks/kanban')
     } catch {
-      setConvertMsg('تعذر التحويل — تأكد من مسار الخادم convert-task أو نفّذ الإنشاء يدوياً.')
+      setConvertMsg('تعذر التحويل تأكد من مسار الخادم convert-task أو نفّذ الإنشاء يدوياً.')
     }
   }
 
@@ -208,7 +208,7 @@ export default function OpsMeetingDetailPage() {
 
       <section className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
         <p className="text-sm font-black text-deepBlue">مرفقات الاجتماع</p>
-        <p className="mt-2 text-xs font-semibold text-slate-500">placeholder — رفع الملفات عبر واجهة التخزين لاحقاً</p>
+        <p className="mt-2 text-xs font-semibold text-slate-500">placeholder رفع الملفات عبر واجهة التخزين لاحقاً</p>
       </section>
     </div>
   )

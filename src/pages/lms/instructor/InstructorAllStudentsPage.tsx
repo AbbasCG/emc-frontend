@@ -118,7 +118,7 @@ export default function InstructorAllStudentsPage() {
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <InstructorHero
         title="جميع طلابي"
-        subtitle="كل الطلاب المسجلين في دوراتك — اضغط على أي طالب للتفاصيل"
+        subtitle="كل الطلاب المسجلين في دوراتك اضغط على أي طالب للتفاصيل"
         backTo="/dashboard/instructor/courses"
         backLabel="الدورات"
         onRefresh={reload}

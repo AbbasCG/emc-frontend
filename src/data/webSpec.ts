@@ -19,7 +19,7 @@ import { toLatinDigits } from '@/utils/publicDetailFormat'
 
 /** §8 — verbatim on every paid product page and at checkout. Never paraphrase. */
 export const LAUNCH_PROMISE =
-  'مقعدك مؤكد فور الدفع. تبدأ دفعتك خلال 30 يوماً كحد أقصى للدورات، و45 يوماً للمسارات — وغالباً أقرب. إن لم ننطلق في الموعد، تسترجع كامل المبلغ أو تحتفظ بمقعدك للدفعة التالية — قرارك أنت.'
+  'مقعدك مؤكد فور الدفع. تبدأ دفعتك خلال 30 يوماً كحد أقصى للدورات، و45 يوماً للمسارات وغالباً أقرب. إن لم ننطلق في الموعد، تسترجع كامل المبلغ أو تحتفظ بمقعدك للدفعة التالية قرارك أنت.'
 
 /** §8 — the guarantee line, rendered directly under the launch promise. */
 export const REFUND_LINE = 'استرجاع كامل خلال 7 أيام من انطلاق الدفعة.'

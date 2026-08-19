@@ -337,7 +337,7 @@ export default function VolunteerRequestsPage() {
         </div>
       </div>
 
-      {/* ── KPI Cards — from server statistics ─────────────────────── */}
+      {/* ── KPI Cards from server statistics ─────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
         {/* All */}
         <button

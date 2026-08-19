@@ -49,7 +49,7 @@ export default function FormRenderer({
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl bg-emerald-50 px-8 py-12 text-center font-black text-emerald-800 ring-1 ring-emerald-100"
       >
-        تم استلام إجاباتك بنجاح — شكراً لتعاونك مع EMC.
+        تم استلام إجاباتك بنجاح شكراً لتعاونك مع EMC.
       </motion.div>
     )
   }
@@ -116,7 +116,7 @@ export default function FormRenderer({
                   onChange={(e) => setValues((v) => ({ ...v, [q.id]: e.target.value }))}
                   className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue outline-none focus:border-customBlue"
                 >
-                  <option value="">— اختر —</option>
+                  <option value=""> اختر </option>
                   {(q.options ?? []).map((o) => (
                     <option key={o} value={o}>
                       {o}

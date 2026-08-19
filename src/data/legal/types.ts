@@ -32,6 +32,6 @@ export const LEGAL_PLACEHOLDERS = {
   legalEntity: '[PLACEHOLDER: الاسم القانوني الكامل للكيان]',
   kvk: '[PLACEHOLDER: رقم KvK]',
   address: '[PLACEHOLDER: العنوان المسجّل في هولندا]',
-  dpo: '[PLACEHOLDER: مسؤول حماية البيانات — إن وُجد]',
-  ap: 'Autoriteit Persoonsgegevens (AP) — autoriteitpersoonsgegevens.nl',
+  dpo: '[PLACEHOLDER: مسؤول حماية البيانات إن وُجد]',
+  ap: 'Autoriteit Persoonsgegevens (AP) autoriteitpersoonsgegevens.nl',
 } as const

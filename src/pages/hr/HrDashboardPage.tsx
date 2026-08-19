@@ -146,7 +146,7 @@ export default function HrDashboardPage() {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-[#0077B6]">EMC — الموارد البشرية</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-[#0077B6]">EMC الموارد البشرية</p>
               <h1 className="mt-1 text-2xl font-black text-[#0C2A4B]">قطاع الموارد البشرية</h1>
               <p className="mt-1 text-sm font-semibold text-slate-500">
                 إدارة الأعضاء، المدربين، المتطوعين، والطلبات الداخلية
@@ -177,7 +177,7 @@ export default function HrDashboardPage() {
         {/* ── KPI Section 1: الأعضاء والفريق ──────────────────────────── */}
         <section>
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
-            1 — الأعضاء والفريق
+            1 الأعضاء والفريق
           </h2>
           {loading ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -196,7 +196,7 @@ export default function HrDashboardPage() {
         {/* ── KPI Section 2: المتطوعون ──────────────────────────────────── */}
         <section>
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
-            2 — المتطوعون والطلبات
+            2 المتطوعون والطلبات
           </h2>
           {loading ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -240,7 +240,7 @@ export default function HrDashboardPage() {
         {/* ── KPI Section 3: المدربون والمهام ────────────────────────────── */}
         <section>
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-400">
-            3 — المدربون والمهام
+            3 المدربون والمهام
           </h2>
           {loading ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">

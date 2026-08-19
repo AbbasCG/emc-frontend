@@ -100,7 +100,7 @@ export function AssignInstructorModal({ open, course, onClose, onAssigned }: Pro
           </div>
         : filtered.length === 0 ?
           <p className="py-8 text-center text-sm font-bold text-slate-500">
-            لا توجد عناصر بعد التحميل وتطبيع الخادم — راجع وحدة تحكم المتصفح (سجلات الاستجابة والمدربين المُطبّعين) أو صلاحيات الجلسة.
+            لا توجد عناصر بعد التحميل وتطبيع الخادم راجع وحدة تحكم المتصفح (سجلات الاستجابة والمدربين المُطبّعين) أو صلاحيات الجلسة.
           </p>
         : <ul className="max-h-[min(420px,55vh)] space-y-3 overflow-y-auto pe-1">
             {filtered.map((ins) => {

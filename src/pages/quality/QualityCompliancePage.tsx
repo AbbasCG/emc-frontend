@@ -155,7 +155,7 @@ export default function QualityCompliancePage() {
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <p className="font-bold text-emerald-800">مستوى الامتثال ممتاز — استمر في المحافظة على هذا المستوى</p>
+                <p className="font-bold text-emerald-800">مستوى الامتثال ممتاز استمر في المحافظة على هذا المستوى</p>
               </div>
             </div>
           )}

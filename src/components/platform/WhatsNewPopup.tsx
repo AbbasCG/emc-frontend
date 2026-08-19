@@ -130,7 +130,7 @@ export function WhatsNewPopup({ onOpen, onUnreadChange }: Props) {
           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
           className="fixed bottom-6 right-6 z-[300] w-full max-w-sm overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.16)] sm:bottom-8 sm:right-8"
         >
-          {/* Gradient top bar — changes color for mandatory */}
+          {/* Gradient top bar changes color for mandatory */}
           <div className={cn('h-1', isMandatory
             ? 'bg-gradient-to-l from-indigo-600 via-indigo-400 to-purple-500'
             : 'bg-gradient-to-l from-customBlue via-brand-400 to-purple-500'

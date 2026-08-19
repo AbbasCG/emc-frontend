@@ -70,7 +70,7 @@ const levels: Station[] = [
   {
     id: 'L4',
     name: 'الزمالة',
-    sentence: '16 أسبوعاً من العمل الحقيقي بإشراف خبراء — بالقبول فقط.',
+    sentence: '16 أسبوعاً من العمل الحقيقي بإشراف خبراء بالقبول فقط.',
     who: 'لمن يعمل في المجال ويريد أثراً موثّقاً لا شهادة إضافية.',
     cta: { label: 'تعرّف على الزمالة', href: '/fellowship' },
   },
@@ -99,7 +99,7 @@ export default function JourneyTimeline() {
               id={station.anchor}
               className="relative scroll-mt-28 pb-10 ps-12 text-right lg:pb-0 lg:pe-8 lg:ps-0 lg:pt-12"
             >
-              {/* The rail — one segment per station, so it stops exactly at L4. */}
+              {/* The rail one segment per station, so it stops exactly at L4. */}
               {!isLast && (
                 <span
                   aria-hidden
@@ -107,7 +107,7 @@ export default function JourneyTimeline() {
                 />
               )}
 
-              {/* Station dot — Latin numeral; the final station is solid customOrange. */}
+              {/* Station dot Latin numeral; the final station is solid customOrange. */}
               <span
                 aria-hidden
                 className={[

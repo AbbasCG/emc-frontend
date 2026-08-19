@@ -136,7 +136,7 @@ export default function Register() {
     <main className="bg-paper pt-20">
       <PublicSeo
         title="التسجيل في الدورات"
-        description="نموذج التسجيل في دورات وورش وبرامج مركز ماستر التعليمي — اختر الدورة المناسبة لك وأكمل بياناتك لإتمام عملية التسجيل بخطوات بسيطة."
+        description="نموذج التسجيل في دورات وورش وبرامج مركز ماستر التعليمي اختر الدورة المناسبة لك وأكمل بياناتك لإتمام عملية التسجيل بخطوات بسيطة."
         path="/register"
       />
       <PageHeader
@@ -217,7 +217,7 @@ export default function Register() {
             </div>
           )}
 
-          {/* Form — only when a course is selected */}
+          {/* Form only when a course is selected */}
           {course ? (
             <div className="mt-9">
               <EnrollmentForm

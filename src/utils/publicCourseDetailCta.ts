@@ -41,9 +41,9 @@ const PAYMENT_REQUIRED_NOTICE = 'يجب إكمال الدفع أولًا قبل 
  * doesn't apply here (free course, or payment already resolved by
  * something other than payment — e.g. placement-test gating, out of this
  * resolver's scope) so the caller falls through to the generic CTA logic.
- */
+   */
 function resolveAccessBlockedCta(access: StudentCourseAccess): PublicEnrollCta | null {
-  if (!access.is_paid_course) return null // free course — untouched, existing behavior applies.
+  if (!access.is_paid_course) return null // free course untouched, existing behavior applies.
 
   if (access.can_access_learning) return null // let the normal "متابعة التعلم" path handle it.
 
@@ -222,5 +222,5 @@ export function resolveCourseEnrollCta(input: {
  * Shared CTA resolver — single source of truth for both the hero and the
  * enrollment sidebar CTA on the public course-detail page (same alias the
  * two callers should use so neither re-implements the state switch).
- */
+   */
 export const resolveCoursePrimaryAction = resolveCourseEnrollCta

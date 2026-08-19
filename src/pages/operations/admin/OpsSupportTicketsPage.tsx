@@ -109,7 +109,7 @@ function fmtDate(d?: string | null) {
 }
 
 function timeAgo(d?: string | null): string {
-  if (!d) return ''
+  if (!d) return '—'
   const diff = Date.now() - new Date(d).getTime()
   const mins = Math.floor(diff / 60000)
   if (mins < 1) return 'الآن'
@@ -362,7 +362,7 @@ function TicketCard({
       className="group relative overflow-hidden rounded-2xl bg-white shadow-[0_1px_12px_rgba(12,42,75,0.06)] ring-1 ring-slate-100 transition-shadow hover:shadow-[0_4px_24px_rgba(12,42,75,0.12)] hover:ring-slate-200 cursor-pointer"
       onClick={onOpen}
     >
-      {/* Priority accent — left vertical bar (start in RTL) */}
+      {/* Priority accent left vertical bar (start in RTL) */}
       <div className={`absolute start-0 top-0 bottom-0 w-[3px] ${priorityBar}`} />
 
       <div className="p-5 ps-6">
@@ -374,7 +374,7 @@ function TicketCard({
               {ticketNum}
             </span>
 
-            {/* Status — inline dropdown */}
+            {/* Status inline dropdown */}
             <InlineDropdown<SupportTicketStatus>
               value={status}
               options={Object.keys(STATUS_AR) as SupportTicketStatus[]}
@@ -394,7 +394,7 @@ function TicketCard({
               )}
             />
 
-            {/* Priority — inline dropdown */}
+            {/* Priority inline dropdown */}
             <InlineDropdown<string>
               value={priority}
               options={Object.keys(PRIORITY_AR)}

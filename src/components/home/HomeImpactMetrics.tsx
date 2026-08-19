@@ -4,9 +4,9 @@ import { Check } from 'lucide-react'
 
 // أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const metrics = [
-  { raw: 13000, suffix: '+', label: 'مستفيد ومستفيدة', sub: 'في المنظومة الآن' },
-  { raw: 9000, suffix: '+', label: 'مسجّل في المخيمات', sub: 'حضورية وعن بُعد' },
-  { raw: 50, suffix: '+', label: 'دولة', sub: 'توزيع جغرافي للمشاركين' },
+  { raw: 20000, suffix: '+', label: 'مستفيد ومستفيدة', sub: 'في المنظومة الآن' },
+  { raw: 17000, suffix: '+', label: 'مسجّل في المخيمات', sub: 'حضورية وعن بُعد' },
+  { raw: 65, suffix: '+', label: 'دولة', sub: 'توزيع جغرافي للمشاركين' },
   { raw: null, suffix: '', label: 'ورش ودورات ومسارات', sub: 'متخصص ومنظّم' },
 ] as const
 
@@ -52,7 +52,7 @@ export default function HomeImpactMetrics() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.05]"
       />
-      {/* Glows — sea from the top-right, a separate fire ember from the bottom-left */}
+      {/* Glows sea from the top-right, a separate fire ember from the bottom-left */}
       <div aria-hidden className="pointer-events-none absolute -right-40 -top-20 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
       <div
         aria-hidden
@@ -73,7 +73,7 @@ export default function HomeImpactMetrics() {
                 transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center sm:flex-1 sm:px-6"
               >
-                {/* Huge serif number — white overrides the utility's light-surface navy */}
+                {/* Huge serif number white overrides the utility's light-surface navy */}
                 <p className="emc-stat-num font-display text-5xl text-white sm:text-6xl">
                   {m.raw !== null ? <Counter target={m.raw} suffix={m.suffix} /> : <Check className="mx-auto h-[0.9em] w-[0.9em]" strokeWidth={2.5} aria-hidden />}
                 </p>

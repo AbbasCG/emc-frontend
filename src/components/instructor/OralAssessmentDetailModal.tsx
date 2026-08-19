@@ -45,7 +45,7 @@ export function OralAssessmentDetailModal({ student, courseId, onClose }: Props)
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label={`التقييم الكامل — ${student.student_name}`}
+            aria-label={`التقييم الكامل ${student.student_name}`}
             initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.96, y: reduceMotion ? 0 : 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96, y: reduceMotion ? 0 : 8 }}
@@ -157,7 +157,7 @@ export function OralAssessmentDetailModal({ student, courseId, onClose }: Props)
                           المستوى السابق: <span className="font-black">{assessment.history.previous_final_level ?? '—'}</span></p>
                         <p className="mt-1 text-amber-700/70">
                           عدّله {assessment.history.edited_by ?? 'المدرب'}
-                          {assessment.history.edited_at ? ` — ${formatAmsterdamDMY(assessment.history.edited_at)} ${formatAmsterdamTime24(assessment.history.edited_at)}` : ''}
+ {assessment.history.edited_at ? ` ${formatAmsterdamDMY(assessment.history.edited_at)} ${formatAmsterdamTime24(assessment.history.edited_at)}`: ''}
                         </p>
                       </div>
                     </div>

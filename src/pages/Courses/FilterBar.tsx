@@ -117,7 +117,7 @@ function TextSelect({
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
-            {/* A bare «الكل» first option reads ambiguously when closed — show the group name instead. */}
+            {/* A bare «الكل» first option reads ambiguously when closed show the group name instead. */}
             {opt.value === 'all' && opt.label === 'الكل' ? label : opt.label}
           </option>
         ))}
@@ -282,7 +282,7 @@ function FilterBar({
           </p>
         )}
 
-        {/* Search row (only when the page routes search through the bar, e.g. /programs) —
+ {/* Search row (only when the page routes search through the bar, e.g. /programs) 
             a form field is functional chrome, kept as a hairline-underlined input. */}
         {onSearchChange !== undefined && (
           <div className="relative mb-2.5">
@@ -308,7 +308,7 @@ function FilterBar({
           </div>
         )}
 
-        {/* Single toolbar row — text dropdowns seamed by dots; wraps on mobile */}
+        {/* Single toolbar row text dropdowns seamed by dots; wraps on mobile */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {selects.map(({ key, node }, i) => (
             <Fragment key={key}>

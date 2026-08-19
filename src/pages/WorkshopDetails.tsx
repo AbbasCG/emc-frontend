@@ -52,7 +52,7 @@ function buildMetrics(workshop: PublicWorkshop): MetricWidget[] {
   const startTime = formatPublicTime(workshop.start_time)
   const endTime = formatPublicTime(workshop.end_time)
   const clockRange =
-    startTime && endTime ? `${startTime} — ${endTime}` : startTime || endTime || ''
+ startTime && endTime ? `${startTime} ${endTime}`: startTime || endTime || ''
 
   const deliveryMode = workshop.is_online
     ? 'عن بُعد'
@@ -293,7 +293,7 @@ export default function WorkshopDetailsPage() {
   const isFree = w.is_free
   const priceLabel = isFree ? 'مجانية' : toLatinDigits(formatEuroInteger(price, 'ar'))
   const instructorAvatarUrl = resolvePublicAssetUrl(w.instructor_avatar)
-  const seoDesc = w.short_description ?? (w.description ? w.description.slice(0, 160) : `ورشة ${w.title} — EMC`)
+ const seoDesc = w.short_description ?? (w.description ? w.description.slice(0, 160): `ورشة ${w.title} EMC`)
 
   // ── Sidebar enrollment panel (matches CourseDetails enrollSidebar) ───────────
   const enrollSidebar = (
@@ -477,7 +477,7 @@ export default function WorkshopDetailsPage() {
             {/* ── Left column: content ── */}
             <div className="space-y-3">
 
-              {/* Description — same style as PremiumDescription */}
+              {/* Description same style as PremiumDescription */}
               {(w.description || w.short_description) && (
                 <section
                   aria-label="وصف الورشة"

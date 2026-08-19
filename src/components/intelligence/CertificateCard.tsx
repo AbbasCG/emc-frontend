@@ -40,7 +40,7 @@ export default function CertificateCard({
         <button
           type="button"
           className="inline-flex items-center gap-1 rounded-xl border border-deepBlue/[0.12] bg-white px-4 py-2 text-[11px] font-black text-deepBlue opacity-80"
-          title="placeholder — ربط ملف PDF من الخادم"
+          title="placeholder ربط ملف PDF من الخادم"
         >
           تنزيل
           <Download size={14} />

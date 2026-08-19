@@ -27,7 +27,7 @@ import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
  *  imperative `load` so the two can never drift apart. */
 function partnersLoadErrorMessage(status: number | undefined): string {
   return status === 403
-    ? 'لا تملك صلاحيات كافية لقراءة /operations/partners — تحقَّق من ربط المستخدم بتجربة الموظف المناسب.'
+    ? 'لا تملك صلاحيات كافية لقراءة /operations/partners تحقَّق من ربط المستخدم بتجربة الموظف المناسب.'
     : 'لم يمكن إكمال الاتصال بـ /operations/partners حاليًا؛ راجع حالة الشبكة والخلفية.'
 }
 
@@ -104,7 +104,7 @@ export default function PartnersManagementPage() {
       <SaToolbar
         eyebrow="علاقات المؤسسات"
         title="الشراكات"
-        subtitle="شبكة بطاقات شركاء مع لوحة جانبية للاتصال والإجراءات السريعة — المصدر GET /operations/partners."
+        subtitle="شبكة بطاقات شركاء مع لوحة جانبية للاتصال والإجراءات السريعة المصدر GET /operations/partners."
         actions={
           <>
             <button

@@ -22,7 +22,7 @@ export default function HomePartnersSection() {
       dir="rtl"
       className="emc-corner-pages relative overflow-hidden border-y border-deepBlue/[0.06] bg-emcBg px-4 py-20 sm:px-6 lg:px-10 lg:py-24"
     >
-      {/* Ghost numeral — anchored opposite the corner-pages badge */}
+      {/* Ghost numeral anchored opposite the corner-pages badge */}
       <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
         04
       </span>
@@ -41,11 +41,11 @@ export default function HomePartnersSection() {
             شبكة شركاء تُعزّز كل خطوة في مسيرتك
           </h2>
           <p className="mt-5 max-w-xl text-sm font-semibold leading-7 text-foreground/60">
-            من جامعات معتمدة إلى شركات تقنية رائدة — نبني علاقات مؤسسية تُضيف قيمة حقيقية للمتعلّم.
+            من جامعات معتمدة إلى شركات تقنية رائدة نبني علاقات مؤسسية تُضيف قيمة حقيقية للمتعلّم.
           </p>
         </motion.div>
 
-        {/* Partner wordmark row — seated between two fading hairlines */}
+        {/* Partner wordmark row seated between two fading hairlines */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -69,7 +69,7 @@ export default function HomePartnersSection() {
           <div aria-hidden className="emc-hairline" />
         </motion.div>
 
-        {/* Partnership CTA — line CTA, no boxed button */}
+        {/* Partnership CTA line CTA, no boxed button */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

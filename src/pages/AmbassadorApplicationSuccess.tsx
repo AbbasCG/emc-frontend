@@ -25,7 +25,7 @@ export default function AmbassadorApplicationSuccess() {
     <div className="min-h-screen bg-[#f4f7fb]" dir="rtl">
       <PublicSeo
         title="تم استلام طلبك"
-        description="تأكيد استلام طلب الانضمام لبرنامج سفراء التحول الرقمي — سيراجع فريق EMC طلبك ويتواصل معك عبر البريد الإلكتروني، مع رقم مرجعي لمتابعة الطلب."
+        description="تأكيد استلام طلب الانضمام لبرنامج سفراء التحول الرقمي سيراجع فريق EMC طلبك ويتواصل معك عبر البريد الإلكتروني، مع رقم مرجعي لمتابعة الطلب."
         path="/ambassador/application-success"
         noIndex
       />

@@ -786,7 +786,7 @@ export default function StudentsManagementPage({ pageTitle }: { pageTitle?: stri
       {/* Hero */}
       <EnterpriseCrudHero
         eyebrow="Student Intelligence · admin/users directory"
-        title={pageTitle ?? "الطلاب — لوحة الذكاء الطلابي"}
+        title={pageTitle ?? "الطلاب لوحة الذكاء الطلابي"}
         subtitle="عرض شامل لجميع الطلاب المسجلين مع بياناتهم الكاملة ورحلة التعلم"
         variant="blue"
         actions={

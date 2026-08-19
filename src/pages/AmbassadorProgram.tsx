@@ -96,13 +96,13 @@ export default function AmbassadorProgram() {
     <main className="bg-[#f4f7fb] pt-20">
       <PublicSeo
         title="سفراء التحول الرقمي"
-        description="انضم لشبكة قادة التحول الرقمي في الجامعات العربية — برنامج سفراء EMC للطلاب الجامعيين: تدريب متخصص مجاني، شهادة معتمدة، وقيادة مجتمعية داخل جامعتك."
+        description="انضم لشبكة قادة التحول الرقمي في الجامعات العربية برنامج سفراء EMC للطلاب الجامعيين: تدريب متخصص مجاني، شهادة معتمدة، وقيادة مجتمعية داخل جامعتك."
         path="/ambassador"
       />
       <PublicPageHero
         eyebrow="برنامج القيادة الرقمية"
         title="سفراء التحول الرقمي"
-        subtitle="انضم لشبكة قادة التحول الرقمي في الجامعات العربية — مبادرة EMC لتمكين الجيل القادم من صنّاع التغيير."
+        subtitle="انضم لشبكة قادة التحول الرقمي في الجامعات العربية مبادرة EMC لتمكين الجيل القادم من صنّاع التغيير."
         breadcrumbs={[
           { label: 'الرئيسية', href: '/' },
           { label: 'انضم إلينا', href: '/volunteer' },
@@ -121,7 +121,7 @@ export default function AmbassadorProgram() {
           </div>
           <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">مزايا البرنامج</h2>
           <p className="mb-10 max-w-2xl text-sm leading-8 text-slate-600">
-            أكثر من مجرد لقب — برنامج متكامل يُطور مهاراتك القيادية والرقمية ويفتح أمامك أبواباً مهنية واسعة.
+            أكثر من مجرد لقب برنامج متكامل يُطور مهاراتك القيادية والرقمية ويفتح أمامك أبواباً مهنية واسعة.
           </p>
 
           <motion.div
@@ -210,7 +210,7 @@ export default function AmbassadorProgram() {
           </div>
           <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">رحلتك نحو السفارة الرقمية</h2>
           <p className="mb-12 max-w-2xl text-sm leading-8 text-slate-600">
-            عملية واضحة وشفافة — نحترم وقتك ونبقيك على اطلاع في كل مرحلة.
+            عملية واضحة وشفافة نحترم وقتك ونبقيك على اطلاع في كل مرحلة.
           </p>
 
           <div className="relative">
@@ -251,7 +251,7 @@ export default function AmbassadorProgram() {
           </div>
           <h2 className="mb-2 mt-4 text-2xl font-black text-deepBlue sm:text-3xl">متطلبات القبول</h2>
           <p className="mb-8 max-w-2xl text-sm leading-8 text-slate-600">
-            لا نبحث عن الكمال — نبحث عن الشغف والالتزام والرغبة الحقيقية في إحداث التغيير.
+            لا نبحث عن الكمال نبحث عن الشغف والالتزام والرغبة الحقيقية في إحداث التغيير.
           </p>
 
           <motion.ul
@@ -298,7 +298,7 @@ export default function AmbassadorProgram() {
               ابدأ رحلتك كسفير للتحول الرقمي
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-9 text-slate-300">
-              قدّم طلبك عبر النموذج الإلكتروني — أجب على الأسئلة، ارفع ملفاتك، وسيتواصل معك فريق EMC خلال 10 أيام عمل.
+              قدّم طلبك عبر النموذج الإلكتروني أجب على الأسئلة، ارفع ملفاتك، وسيتواصل معك فريق EMC خلال 10 أيام عمل.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link

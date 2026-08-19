@@ -48,7 +48,7 @@ export default function TracksPageContinued() {
             align="right"
             eyebrow="رحلة التعلم"
             title="ثلاث خطوات بسيطة"
-            description="من اختيار المحور إلى البرنامج المناسب — بدون تعقيد."
+            description="من اختيار المحور إلى البرنامج المناسب بدون تعقيد."
           />
           <motion.ol
             className="mt-10 grid list-none gap-6 p-0 md:grid-cols-3"

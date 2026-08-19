@@ -196,7 +196,7 @@ export function deriveCourseDetail(course: Course): CourseDetailDerived {
 
   const startClock = formatPublicTime(course.start_time ?? apiExtra.start_time)
   const endClock = formatPublicTime(course.end_time ?? apiExtra.end_time)
-  const clockRange = startClock && endClock ? `${startClock} — ${endClock}` : startClock || endClock || ''
+ const clockRange = startClock && endClock ? `${startClock} ${endClock}`: startClock || endClock || ''
   const sessionDurationLabel = formatSessionDurationFromRange(
     course.start_time ?? apiExtra.start_time,
     course.end_time ?? apiExtra.end_time,

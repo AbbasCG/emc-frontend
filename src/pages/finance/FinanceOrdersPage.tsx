@@ -446,7 +446,7 @@ export default function FinanceOrdersPage() {
         )}
       </div>
 
-      {/* Detail drawer — rendered via portal to escape transform stacking context */}
+      {/* Detail drawer rendered via portal to escape transform stacking context */}
       {selected && (
         <OrderDrawer order={selected} onClose={() => setSelected(null)} />
       )}

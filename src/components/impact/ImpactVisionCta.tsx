@@ -25,7 +25,7 @@ export default function ImpactVisionCta() {
           <p className="text-xs font-black text-customOrange sm:text-sm">الرؤية المستقبلية</p>
           <h2 className="mt-4 font-display text-3xl font-black sm:text-5xl">نحو أثر أكبر</h2>
           <p className="mt-6 text-[1.05rem] font-semibold leading-[1.9] text-white/82 sm:text-lg">
-            نواصل بناء EMC كمنصّة تعليمية ومؤسسية تصنع فرصاً حقيقية وتفتح مسارات جديدة للمستقبل — ببوابات
+            نواصل بناء EMC كمنصّة تعليمية ومؤسسية تصنع فرصاً حقيقية وتفتح مسارات جديدة للمستقبل ببوابات
             واضحة للمتعلّم، ولشركاء يبحثون عن جودة مستدامة.
           </p>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="mt-10">

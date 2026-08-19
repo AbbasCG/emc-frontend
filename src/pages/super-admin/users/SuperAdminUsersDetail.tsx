@@ -204,7 +204,7 @@ export default function SuperAdminUsersDetail({ userId }: Props) {
                 تحرير
               </Link>
 
-              {/* Restore button — shown when user is disabled/deleted */}
+              {/* Restore button shown when user is disabled/deleted */}
               {isDisabledUser && (
                 <button
                   type="button"
@@ -217,7 +217,7 @@ export default function SuperAdminUsersDetail({ userId }: Props) {
                 </button>
               )}
 
-              {/* Delete / Disable button — only shown if user is currently active */}
+              {/* Delete / Disable button only shown if user is currently active */}
               {deleteAllowed && !isDisabledUser ? (
                 <button
                   type="button"

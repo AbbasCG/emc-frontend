@@ -43,7 +43,7 @@ function HomeCourseCard({ course }: Props) {
 
   return (
     <motion.article variants={staggerItem} aria-label={course.title} className="emc-row group relative">
-      {/* Invisible cover link — the whole row navigates while the CTA keeps focus semantics */}
+      {/* Invisible cover link the whole row navigates while the CTA keeps focus semantics */}
       <Link
         to={`/courses/${course.slug}`}
         className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2"
@@ -52,7 +52,7 @@ function HomeCourseCard({ course }: Props) {
       />
 
       <div className="relative flex items-center gap-4 py-5 ps-3 sm:gap-6 sm:py-6 sm:ps-4">
-        {/* Thumbnail — flying-page mask instead of a rounded box */}
+        {/* Thumbnail flying-page mask instead of a rounded box */}
         <div className="emc-page-clip-sm relative aspect-[16/10] w-24 shrink-0 sm:w-36">
           {imgSrc ? (
             <img

@@ -97,7 +97,7 @@ export default function StudentExamsPage() {
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/55">مركز الاختبارات</p>
           <h1 className="mt-1 text-[1.7rem] font-black leading-tight text-white">اختباراتي</h1>
           <p className="mt-2 max-w-md text-[13px] font-semibold leading-relaxed text-white/75">
-            نتائج اختبارات تحديد المستوى التي أكملتها — درجاتك ومستوياتك وحالة المقابلات.
+            نتائج اختبارات تحديد المستوى التي أكملتها درجاتك ومستوياتك وحالة المقابلات.
           </p>
         </div>
       </motion.div>

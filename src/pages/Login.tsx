@@ -114,7 +114,7 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
-          {/* ── Left panel — decorative ── */}
+          {/* ── Left panel decorative ── */}
           <div className="relative min-h-80 overflow-hidden bg-deepBlue lg:min-h-[560px]">
             <img
               src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"
@@ -135,7 +135,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* ── Right panel — form ── */}
+          {/* ── Right panel form ── */}
           <div className="p-6 text-right sm:p-10">
             <h1 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue">{t('auth.login.title')}</h1>
 

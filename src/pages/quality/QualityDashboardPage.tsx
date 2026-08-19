@@ -138,7 +138,7 @@ function fmtDate(d: string | null | undefined) {
 }
 
 function timeAgo(d: string | null | undefined) {
-  if (!d) return ''
+  if (!d) return '—'
   const ms = Date.now() - new Date(d).getTime()
   const mins = Math.floor(ms / 60000)
   if (mins < 1) return 'الآن'

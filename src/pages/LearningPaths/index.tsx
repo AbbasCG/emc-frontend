@@ -220,7 +220,7 @@ export default function LearningPathsPage() {
     <main className="overflow-x-hidden bg-paper" dir="rtl">
       <PublicSeo
         title="المسارات التعليمية"
-        description="مسارات تعلم متكاملة من EMC — دورات مرتبة، شهادات، وتوجيه مهني بالعربية."
+        description="مسارات تعلم متكاملة من EMC دورات مرتبة، شهادات، وتوجيه مهني بالعربية."
         path="/learning-paths"
       />
 
@@ -234,7 +234,7 @@ export default function LearningPathsPage() {
         featuredCount={heroStats.featuredCount}
       />
 
-      {/* §6.1 — the compact comparison, above the list: لمن؟ · المدة · المتطلب المسبق · المخرَج الوظيفي */}
+      {/* §6.1 the compact comparison, above the list: لمن؟ · المدة · المتطلب المسبق · المخرَج الوظيفي */}
       <TracksComparisonTable paths={filteredPaths} />
 
       <div className="emc-hairline" aria-hidden />
@@ -261,7 +261,7 @@ export default function LearningPathsPage() {
         apiEmpty={!loading && paths.length === 0}
       />
 
-      {/* ── PATHS — full-width alternating editorial bands ─────────────────── */}
+      {/* ── PATHS full-width alternating editorial bands ─────────────────── */}
       <section id="paths-catalog">
         {loading ?
           <div aria-busy="true" aria-label="جارٍ تحميل المسارات">
@@ -339,7 +339,7 @@ export default function LearningPathsPage() {
                    card that carries the name, the transformation sentence, the price
                    block, the «تسجيل مفتوح» badge and the seats line. The tint mirrors
                    the card's own alternating band colour so lead and card read as one
-                   surface — the two must stay in sync. */
+                   surface the two must stay in sync. */
                 <div
                   key={path.id}
                   id={`path-${String(path.id)}`}
@@ -378,7 +378,7 @@ export default function LearningPathsPage() {
         }
       </section>
 
-      {/* ── Advisor band — full-bleed dawn field, editorial (no rounded box) ── */}
+      {/* ── Advisor band full-bleed dawn field, editorial (no rounded box) ── */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

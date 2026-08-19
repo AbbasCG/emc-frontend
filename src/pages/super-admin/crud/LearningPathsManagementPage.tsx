@@ -541,7 +541,7 @@ function FormModal({
         style={{ maxHeight: 'min(90vh, 820px)' }}
         dir="rtl"
       >
-        {/* Header — sticky */}
+        {/* Header sticky */}
         <div className="shrink-0 flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="h-5 w-5" />
@@ -551,7 +551,7 @@ function FormModal({
           </h2>
         </div>
 
-        {/* Step tabs — sticky */}
+        {/* Step tabs sticky */}
         <div className="shrink-0 flex border-b border-slate-100 px-6 bg-white">
           {steps.map((s) => (
             <button
@@ -576,10 +576,10 @@ function FormModal({
           ))}
         </div>
 
-        {/* Step content — scrollable */}
+        {/* Step content scrollable */}
         <div className="flex-1 overflow-y-auto">
         <div className="space-y-5 p-6">
-          {/* Step 1 — Basic info + Instructor */}
+          {/* Step 1 Basic info + Instructor */}
           {step === 1 && (
             <div className="space-y-4">
               <div>
@@ -676,7 +676,7 @@ function FormModal({
             </div>
           )}
 
-          {/* Step 2 — Media + Pricing */}
+          {/* Step 2 Media + Pricing */}
           {step === 2 && (
             <div className="space-y-4">
               <div>
@@ -692,7 +692,7 @@ function FormModal({
                     <>
                       <ImageIcon className="mb-3 h-10 w-10 text-slate-300" />
                       <p className="text-sm font-semibold text-slate-500">اضغط لرفع صورة الغلاف</p>
-                      <p className="mt-1 text-xs text-slate-400">PNG, JPG, WEBP — حتى 4MB</p>
+                      <p className="mt-1 text-xs text-slate-400">PNG, JPG, WEBP حتى 4MB</p>
                     </>
                   )}
                   <input type="file" accept="image/*" className="hidden" onChange={handleImage} />
@@ -735,7 +735,7 @@ function FormModal({
             </div>
           )}
 
-          {/* Step 3 — Educational details */}
+          {/* Step 3 Educational details */}
           {step === 3 && (
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -872,7 +872,7 @@ function FormModal({
                       onChange={(e) => set('study_days_per_week', e.target.value)}
                       className="w-full rounded-xl border border-slate-200 p-3 text-right text-sm focus:border-[#0077B6] focus:outline-none"
                     >
-                      <option value="">— غير محدد —</option>
+                      <option value=""> غير محدد </option>
                       {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                         <option key={n} value={String(n)}>{en(n)}</option>
                       ))}
@@ -933,7 +933,7 @@ function FormModal({
             </div>
           )}
 
-          {/* Step 4 — Course selector */}
+          {/* Step 4 Course selector */}
           {step === 4 && (
             <CourseSelector
               value={form.course_ids}
@@ -1158,7 +1158,7 @@ export default function LearningPathsManagementPage() {
         </button>
       </div>
 
-      {/* Stats strip — English numerals */}
+      {/* Stats strip English numerals */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: 'إجمالي المسارات', value: meta.total,                                               icon: GraduationCap, color: 'text-[#0077B6]' },
@@ -1300,14 +1300,14 @@ export default function LearningPathsManagementPage() {
                       )}
                     </td>
 
-                    {/* Courses — English number */}
+                    {/* Courses English number */}
                     <td className="hidden px-4 py-4 lg:table-cell">
                       <span className="inline-flex items-center gap-1 rounded-full bg-[#0077B6]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#0077B6]" dir="ltr">
                         <BookOpen className="h-3 w-3" /> {en(p.courses_count)}
                       </span>
                     </td>
 
-                    {/* Students — clickable to show drawer */}
+                    {/* Students clickable to show drawer */}
                     <td className="hidden px-4 py-4 lg:table-cell">
                       <button
                         type="button"
@@ -1321,7 +1321,7 @@ export default function LearningPathsManagementPage() {
                       </button>
                     </td>
 
-                    {/* Price — English number */}
+                    {/* Price English number */}
                     <td className="hidden px-4 py-4 md:table-cell">
                       <span className="font-bold text-[#0C2A4B]" dir="ltr">
                         {p.price != null ? enPrice(p.price) : '—'}
@@ -1333,7 +1333,7 @@ export default function LearningPathsManagementPage() {
                       <StatusBadge status={p.status} />
                     </td>
 
-                    {/* Actions — stopPropagation prevents row click */}
+                    {/* Actions stopPropagation prevents row click */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1">
                         <button
@@ -1393,7 +1393,7 @@ export default function LearningPathsManagementPage() {
           </div>
         )}
 
-        {/* Pagination — English numerals */}
+        {/* Pagination English numerals */}
         {meta.last_page > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
             <p className="text-xs text-slate-400" dir="ltr">

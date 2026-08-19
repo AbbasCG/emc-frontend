@@ -1173,7 +1173,7 @@ export default function AmbassadorApplicationDetailPage() {
           </SectionCard>
         )}
 
-        {/* D. دوافع الترشح — long free-text, full width, collapsible */}
+        {/* D. دوافع الترشح long free-text, full width, collapsible */}
         <SectionCard title="دوافع الترشح" icon={<HeartHandshake className="h-3.5 w-3.5" />} className="md:col-span-2">
           <div className="grid gap-4 sm:grid-cols-2">
             <ExpandableProse label="لماذا يريد الانضمام؟" text={app.motivation_why} />
@@ -1184,7 +1184,7 @@ export default function AmbassadorApplicationDetailPage() {
           </div>
         </SectionCard>
 
-        {/* H. المرفقات والملفات — full width */}
+        {/* H. المرفقات والملفات full width */}
         <SectionCard title="المرفقات والملفات" icon={<FileText className="h-3.5 w-3.5" />} className="md:col-span-2">
           <AmbassadorApplicationFiles
             applicationId={app.id}
@@ -1193,7 +1193,7 @@ export default function AmbassadorApplicationDetailPage() {
           />
         </SectionCard>
 
-        {/* I. ملاحظات داخلية — full width */}
+        {/* I. ملاحظات داخلية full width */}
         <SectionCard title="ملاحظات داخلية" icon={<MessageSquare className="h-3.5 w-3.5" />} className="md:col-span-2">
           <div className="space-y-4">
             {canManage && (
@@ -1236,7 +1236,7 @@ export default function AmbassadorApplicationDetailPage() {
           </div>
         </SectionCard>
 
-        {/* J. سجل الأحداث — full width */}
+        {/* J. سجل الأحداث full width */}
         <SectionCard title="سجل الأحداث" icon={<Clock className="h-3.5 w-3.5" />} className="md:col-span-2">
           <Timeline items={timeline} />
         </SectionCard>

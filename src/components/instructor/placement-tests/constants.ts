@@ -19,8 +19,8 @@ export const PIPELINE_STAGES: PipelineStage[] = [
   { id: 'waiting_written',   label: 'بانتظار الاختبار الكتابي', dot: 'bg-slate-400',    description: 'لم يكمل الطالب الاختبار بعد' },
   { id: 'written_completed', label: 'اكتمل الاختبار الكتابي',   dot: 'bg-sky-500',      description: 'بانتظار حجز المقابلة الشفوية' },
   { id: 'waiting_oral',      label: 'بانتظار المقابلة الشفوية', dot: 'bg-violet-500',  description: 'المقابلة محجوزة أو قريبة' },
-  { id: 'oral_assessment',   label: 'التقييم الشفوي',           dot: 'bg-amber-500',   description: 'تمت المقابلة — بانتظار الاعتماد' },
-  { id: 'ready_assignment',  label: 'جاهز للإسناد',             dot: 'bg-emerald-500',  description: 'المستوى معتمد — يمكن إسناد صف' },
+  { id: 'oral_assessment', label: 'التقييم الشفوي', dot: 'bg-amber-500', description: 'تمت المقابلة بانتظار الاعتماد' },
+  { id: 'ready_assignment', label: 'جاهز للإسناد', dot: 'bg-emerald-500', description: 'المستوى معتمد يمكن إسناد صف' },
   { id: 'assigned',          label: 'مُسند إلى صف',             dot: 'bg-[#0077B6]',    description: 'تم إسناد الطالب إلى صف' },
 ]
 

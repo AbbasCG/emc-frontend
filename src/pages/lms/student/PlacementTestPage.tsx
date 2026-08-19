@@ -192,7 +192,7 @@ export default function PlacementTestPage() {
     setShowConfirm(false)
     try {
       const result = await submitPlacementTest(courseId, answers)
-      if (reason === 'timeout') toast.warning('انتهى وقت الاختبار — تم الإرسال تلقائياً')
+      if (reason === 'timeout') toast.warning('انتهى وقت الاختبار تم الإرسال تلقائياً')
       else if (reason === 'violations') toast.error('تم إنهاء الاختبار تلقائياً بسبب تجاوز الحد المسموح من مخالفات الأمان.')
       else toast.success('تم تسليم الاختبار بنجاح')
       setSubmitResult(result)
@@ -379,7 +379,7 @@ export default function PlacementTestPage() {
           <div className="mx-auto mb-2 flex max-w-3xl items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2">
             <div className="flex items-center gap-2 text-[11px] font-bold text-amber-700">
               <ShieldAlert className="h-4 w-4 shrink-0" />
-              أنت خارج وضع ملء الشاشة — يُرجى العودة إليه لمتابعة الاختبار بأمان.
+              أنت خارج وضع ملء الشاشة يُرجى العودة إليه لمتابعة الاختبار بأمان.
             </div>
             <button
               type="button"

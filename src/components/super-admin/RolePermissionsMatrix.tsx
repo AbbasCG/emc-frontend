@@ -58,7 +58,7 @@ function mergeCatalogWithRoleKeys(
   return sortPermissionGroups(merged)
 }
 
-const CATALOG_EMPTY_ERROR = 'لم يُرجع الخادم أي صلاحيات — تحقق من GET /admin/permissions.'
+const CATALOG_EMPTY_ERROR = 'لم يُرجع الخادم أي صلاحيات تحقق من GET /admin/permissions.'
 
 type CatalogOutcome =
   | { ok: true; groups: AdminPermissionGroup[]; error: string | null }
@@ -423,7 +423,7 @@ export function RolePermissionsMatrix({ roleSlug, canEdit, open = true, onGrante
 
       {!canEdit && (
         <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px] font-semibold text-slate-500">
-          عرض فقط — لا تملك صلاحية تعديل أدوار النظام أو صلاحيات الأدوار.
+          عرض فقط لا تملك صلاحية تعديل أدوار النظام أو صلاحيات الأدوار.
         </p>
       )}
     </div>

@@ -5,7 +5,7 @@ export const complaintsDoc: LegalDocument = {
   slug: 'complaints',
   route: '/complaints',
   title: 'إجراءات الشكاوى',
-  subtitle: 'كيف تقدّم شكوى وتتابع معالجتها — باحترام وشفافية.',
+  subtitle: 'كيف تقدّم شكوى وتتابع معالجتها باحترام وشفافية.',
   eyebrow: 'القانونية · EMC',
   badge: 'Complaints',
   lastUpdated: '12 يونيو 2026',
@@ -28,9 +28,9 @@ export const complaintsDoc: LegalDocument = {
         {
           type: 'ol',
           items: [
-            'أرسل بريداً إلى ' + LEGAL_CONTACT.general + ' بعنوان «شكوى — [موضوع]»',
+            'أرسل بريداً إلى ' + LEGAL_CONTACT.general + ' بعنوان «شكوى [موضوع]»',
             'اذكر اسمك، بريدك، رقم التسجيل إن وُجد، ووصفاً واضحاً للواقعة',
-            'أرفق أي مستندات داعمة (فاتورة، لقطات شاشة — دون بيانات حساسة غير ضرورية)',
+            'أرفق أي مستندات داعمة (فاتورة، لقطات شاشة دون بيانات حساسة غير ضرورية)',
             'للمشاكل التقنية العاجلة: ' + LEGAL_CONTACT.support + ' (تذكرة دعم)',
           ],
         },
@@ -57,9 +57,9 @@ export const complaintsDoc: LegalDocument = {
         {
           type: 'ol',
           items: [
-            'المستوى 1: فريق الدعم / علاقات المتعلمين — ' + LEGAL_CONTACT.support,
-            'المستوى 2: إدارة الجودة — ' + LEGAL_CONTACT.general,
-            'المستوى 3: الإدارة العليا — عند عدم الرضا عن الحل',
+            'المستوى 1: فريق الدعم / علاقات المتعلمين ' + LEGAL_CONTACT.support,
+            'المستوى 2: إدارة الجودة ' + LEGAL_CONTACT.general,
+            'المستوى 3: الإدارة العليا عند عدم الرضا عن الحل',
             'حقوق GDPR/AVG: شكوى إلى Autoriteit Persoonsgegevens (AP) للمسائل المتعلقة بالخصوصية',
           ],
         },

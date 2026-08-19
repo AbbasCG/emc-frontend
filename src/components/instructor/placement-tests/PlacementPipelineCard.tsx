@@ -56,7 +56,7 @@ export function PlacementPipelineCard({
           : 'border-[#0C2A4B]/[0.06] hover:border-[#0077B6]/20 hover:shadow-[0_8px_24px_-14px_rgba(0,119,182,0.18)]'
       }`}
     >
-      {/* Whole card is the primary interactive surface — opens the full detail
+      {/* Whole card is the primary interactive surface opens the full detail
           modal directly. Inner action buttons stopPropagation so they still
           jump straight to a specific tab without double-firing this click. */}
       <button

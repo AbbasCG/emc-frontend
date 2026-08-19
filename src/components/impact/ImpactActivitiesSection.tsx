@@ -47,7 +47,7 @@ export default function ImpactActivitiesSection() {
           align="right"
           eyebrow="سجل المراجعة"
           title="كل الأنشطة الموثقة"
-          description="قائمة تفاعلية لأبرز الأنشطة المنفّذة—يمكن ضبطها لاحقاً من واجهة الإدارة عند ربط الـ API."
+ description="قائمة تفاعلية لأبرز الأنشطة المنفّذةيمكن ضبطها لاحقاً من واجهة الإدارة عند ربط الـ API."
         />
 
         <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-deepBlue/[0.085] bg-white/[0.9] p-5 shadow-md ring-1 ring-white backdrop-blur-md lg:flex-row-reverse lg:flex-wrap lg:items-center lg:justify-between lg:gap-5 lg:p-6">

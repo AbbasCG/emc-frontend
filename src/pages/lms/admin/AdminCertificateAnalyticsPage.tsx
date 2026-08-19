@@ -332,7 +332,7 @@ export default function AdminCertificateAnalyticsPage() {
           <div>
             <h1 className="text-xl font-black text-[#0C2A4B]">تحليلات الشهادات</h1>
             <p className="mt-0.5 text-[12px] font-medium text-[#0C2A4B]/55">
-              جميع الأرقام من قاعدة البيانات مباشرة — لا بيانات تجريبية
+              جميع الأرقام من قاعدة البيانات مباشرة لا بيانات تجريبية
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">

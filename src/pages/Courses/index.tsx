@@ -205,7 +205,7 @@ export default function CoursesPage() {
     <main className="overflow-x-hidden">
       <PublicSeo
         title="كتالوج الدورات"
-        description="تصفّح دورات EMC المتاحة — فلترة، بحث، وورش عمل من الكتالوج الحقيقي."
+        description="تصفّح دورات EMC المتاحة فلترة، بحث، وورش عمل من الكتالوج الحقيقي."
         path="/courses"
       />
       <CoursesHero
@@ -247,10 +247,10 @@ export default function CoursesPage() {
         onResetFilters={resetFilters}
       />
 
-      {/* Section seams — fading hairlines, not boxed containers (Design Language 2.0). */}
+      {/* Section seams fading hairlines, not boxed containers (Design Language 2.0). */}
       <div className="emc-hairline mx-auto max-w-7xl" aria-hidden />
 
-      {/* Paths teaser deliberately AFTER the grid — courses are the hero product. */}
+      {/* Paths teaser deliberately AFTER the grid courses are the hero product. */}
       <LearningPathsTeaserSection paths={learningPaths} loading={pathsLoading} />
 
       <div className="emc-hairline mx-auto max-w-7xl" aria-hidden />

@@ -200,9 +200,9 @@ export function buildActivityFeed(data: FinanceCommandCenterData): FinanceActivi
       type: p.status === 'refunded' ? 'refund' : 'payment',
       title:
         p.status === 'confirmed' ? `دفع ${student}` :
-        p.status === 'pending' ? `دفع معلق — ${student}` :
-        p.status === 'failed' ? `فشل دفع — ${student}` :
-        `عملية — ${student}`,
+ p.status === 'pending' ? `دفع معلق ${student}`:
+ p.status === 'failed' ? `فشل دفع ${student}`:
+        `عملية ${student}`,
       subtitle: course,
       amount: p.amount,
       currency: p.currency ?? 'EUR',
@@ -269,7 +269,7 @@ export function buildAlerts(data: FinanceCommandCenterData, financeBase: string)
     alerts.push({
       id: `neg-${acc.id}`,
       severity: 'danger',
-      title: `رصيد سالب — ${acc.name}`,
+      title: `رصيد سالب ${acc.name}`,
       description: formatFinanceCurrencyInteger(acc.current_balance),
       href: `${financeBase}/accounts`,
     })
@@ -279,7 +279,7 @@ export function buildAlerts(data: FinanceCommandCenterData, financeBase: string)
     alerts.push({
       id: `low-${acc.id}`,
       severity: 'info',
-      title: `رصيد منخفض — ${acc.name}`,
+      title: `رصيد منخفض ${acc.name}`,
       description: `الرصيد الحالي ${formatFinanceCurrencyInteger(acc.current_balance)}`,
       href: `${financeBase}/accounts`,
     })
@@ -351,7 +351,7 @@ export function buildCalendarItems(data: FinanceCommandCenterData): FinanceCalen
   for (const m of data.manualPayments.filter((x) => x.status === 'pending_review')) {
     items.push({
       id: `cal-man-${m.id}`,
-      title: `مراجعة دفع — ${m.student?.name ?? 'طالب'}`,
+      title: `مراجعة دفع ${m.student?.name ?? 'طالب'}`,
       date: m.payment_date ?? m.created_at,
       type: 'payment',
       amount: m.paid_amount,

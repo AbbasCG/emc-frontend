@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
@@ -14,11 +14,14 @@ import { SITE_INDEX } from './siteIndex'
 type Props = {
   /** Dark shell (over the home hero) inverts the sheet. */
   dark?: boolean
+  /** Which main section is unfolded — owned by the bar so its triggers stay in sync. */
+  activeIndex: number
+  onActiveIndexChange: (index: number) => void
   onClose: () => void
 }
 
-export default function SiteIndexPanel({ dark = false, onClose }: Props) {
-  const [activeIndex, setActiveIndex] = useState(0)
+export default function SiteIndexPanel({ dark = false, activeIndex, onActiveIndexChange, onClose }: Props) {
+  const setActiveIndex = onActiveIndexChange
   const active = SITE_INDEX[activeIndex] ?? SITE_INDEX[0]
 
   useEffect(() => {
@@ -44,7 +47,7 @@ export default function SiteIndexPanel({ dark = false, onClose }: Props) {
       ].join(' ')}
     >
       <div className="mx-auto grid max-w-7xl gap-x-12 px-4 py-9 sm:px-6 lg:grid-cols-[15rem_1fr] lg:px-8">
-        {/* Pane A — the four main sections. This is what gets scanned first. */}
+        {/* Pane A the four main sections. This is what gets scanned first. */}
         <nav aria-label="أقسام الموقع" className="mb-8 lg:mb-0">
           <ul className="space-y-1">
             {SITE_INDEX.map((group, i) => {
@@ -92,7 +95,7 @@ export default function SiteIndexPanel({ dark = false, onClose }: Props) {
           </ul>
         </nav>
 
-        {/* Pane B — only the chosen section's pages. */}
+        {/* Pane B only the chosen section's pages. */}
         <div
           className={[
             'lg:border-s lg:ps-12',

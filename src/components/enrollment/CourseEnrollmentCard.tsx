@@ -366,7 +366,7 @@ export default function CourseEnrollmentCard({
               </span>
             </div>
           </div>
-          {/* §1.3 — the product carries no date: enrollment is simply open. */}
+          {/* §1.3 the product carries no date: enrollment is simply open. */}
           {registrationOpen && !seatsFull && !isEnded ?
             <p className="text-[11px] font-bold text-ocean">{OPEN_ENROLLMENT_LABEL}</p>
           : null}
@@ -494,7 +494,7 @@ export default function CourseEnrollmentCard({
             </>
           }
 
-          {/* §8 — the launch promise and the guarantee, verbatim, in the purchase area. */}
+          {/* §8 the launch promise and the guarantee, verbatim, in the purchase area. */}
           {canEnroll && (
             <div className="mt-4 border-t border-line pt-4 text-right">
               <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>

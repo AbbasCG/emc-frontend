@@ -430,7 +430,7 @@ export default function OpsDepartmentDetailPage() {
         </div>
       </motion.header>
 
-      {/* KPI row — fixed 6-column grid */}
+      {/* KPI row fixed 6-column grid */}
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           icon={Users}
@@ -692,7 +692,7 @@ export default function OpsDepartmentDetailPage() {
       {/* Footer actions */}
       {canManage ? (
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          {/* RTL: first group sits on the right — Edit + Message */}
+          {/* RTL: first group sits on the right Edit + Message */}
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <Link
               to={editHref}
@@ -720,7 +720,7 @@ export default function OpsDepartmentDetailPage() {
               </button>
             )}
           </div>
-          {/* RTL: second group sits on the left — Deactivate + Delete */}
+          {/* RTL: second group sits on the left Deactivate + Delete */}
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <button
               type="button"

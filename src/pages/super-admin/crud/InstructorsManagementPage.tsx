@@ -179,7 +179,7 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
 
   async function toggleActive(row: AdminInstructorDirectoryRow) {
     if (!row.user_id) {
-      toast.error('لا يوجد مستخدم مرتبط بهذا السجل — لا يمكن تغيير حالة التفعيل من هنا.')
+      toast.error('لا يوجد مستخدم مرتبط بهذا السجل لا يمكن تغيير حالة التفعيل من هنا.')
       return
     }
     if (!row.email?.trim()) {
@@ -214,7 +214,7 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
             <h1 className="text-3xl font-black leading-tight md:text-4xl">دليل المدربين</h1>
             <p className="text-[14px] font-semibold leading-relaxed text-white/75">
               مستند إلى <code className="rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">GET /api/admin/instructors</code>
-              — كل سجل في جدول المدربين يُعرَض مع التطبيع المناسب (حتى بدون صورة أو بريد أو ربط مستخدم بعد).
+ كل سجل في جدول المدربين يُعرَض مع التطبيع المناسب (حتى بدون صورة أو بريد أو ربط مستخدم بعد).
             </p>
           </div>
           <div className="flex flex-wrap gap-2 justify-end">
@@ -408,7 +408,7 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
                     <button
                       type="button"
                       disabled={!row.user_id || togglingId === row.user_id}
-                      title={row.user_id ? undefined : 'لا يوجد مستخدم للحساب — أضِف أو اربِط user_id في الخلفية'}
+ title={row.user_id ? undefined: 'لا يوجد مستخدم للحساب أضِف أو اربِط user_id في الخلفية'}
                       onClick={() => void toggleActive(row)}
                       className="rounded-xl border border-slate-800/10 bg-slate-900 px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm disabled:opacity-50"
                     >
@@ -486,7 +486,7 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
                           value={
                             view.user_id ?
                               <span className="font-mono">#{view.user_id}</span>
-                            : '— (غير مربوط)'
+: ' (غير مربوط)'
                           }
                         />
                         <EntityDetailField
@@ -509,7 +509,7 @@ export default function InstructorsManagementPage({ isHrPage = false }: { isHrPa
                             </CrudBadge>
                           ))
                         : (
-                          <span className="text-[12px] font-bold text-slate-500">لا توجد وسوم — عرض مصفوفة فارغة [] في الـ API</span>
+                          <span className="text-[12px] font-bold text-slate-500">لا توجد وسوم عرض مصفوفة فارغة [] في الـ API</span>
                         )}
                       </div>
                     </EntityDetailSection>

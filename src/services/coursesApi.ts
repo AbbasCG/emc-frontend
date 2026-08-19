@@ -95,7 +95,7 @@ export type FetchCoursesParams = {
 const MOCK_CATALOG_ITEMS: CourseItem[] = [
   {
     id: -1,
-    title: 'معاينة — دورة تجريبية',
+    title: 'معاينة دورة تجريبية',
     slug: 'mock-sample-course',
     description: 'تظهر فقط عند تفعيل الوضع التجريبي للواجهة.',
     short_description: 'تظهر فقط عند تفعيل الوضع التجريبي للواجهة.',
@@ -145,7 +145,7 @@ export const mockTracks: TrackItem[] = [
     level: 'intermediate',
     price: 2400,
     original_price: 3200,
-    description: 'من Python إلى نماذج GPT — مسار شامل يبني مهندساً متكاملاً في الذكاء الاصطناعي',
+    description: 'من Python إلى نماذج GPT مسار شامل يبني مهندساً متكاملاً في الذكاء الاصطناعي',
   },
 ]
 

@@ -1,8 +1,8 @@
 import apiClient from './axios'
 
 /* ══════════════════════════════════════════════════════════════════
-   TYPES — canonical shapes for instructor course-content management.
-   Course content (modules/lessons) is COURSE-GLOBAL, not class-owned —
+   TYPES canonical shapes for instructor course-content management.
+ Course content (modules/lessons) is COURSE-GLOBAL, not class-owned 
    the backend InstructorCourseContentController operates on
    /instructor/courses/{course}/... routes, never /classes/{group}/...
    Callers must derive course_id from the already-loaded class detail

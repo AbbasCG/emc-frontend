@@ -15,7 +15,7 @@ const testimonials = [
     org: 'جهة أكاديمية شريكة',
   },
   {
-    quote: 'لوحات المتابعة سهّلت علينا قرارات الجودة. نرى الفجوات قبل أن تتحوّل لمشكلة تشغيلية — هذا ما يميّز EMC.',
+    quote: 'لوحات المتابعة سهّلت علينا قرارات الجودة. نرى الفجوات قبل أن تتحوّل لمشكلة تشغيلية هذا ما يميّز EMC.',
     name: 'م. كريم عوض',
     role: 'مدير برامج التطوير',
     org: 'قطاع غير ربحي',
@@ -28,7 +28,7 @@ const testimonials = [
   },
   // Deliberately unrendered (M10): kept for future rotation without redesign.
   {
-    quote: 'الورش المباشرة والتنسيق مع المدربين كانا على مستوى منصات عالمية — مع لمسة عربية احترافية لا توجد في غيره.',
+    quote: 'الورش المباشرة والتنسيق مع المدربين كانا على مستوى منصات عالمية مع لمسة عربية احترافية لا توجد في غيره.',
     name: 'سارة بنعلي',
     role: 'مسؤولة التعلّم والتطوير',
     org: 'شركة تقنية رائدة',
@@ -41,7 +41,7 @@ const supporting = [testimonials[1], testimonials[2]] as const
 export default function HomeTestimonialsCarousel() {
   return (
     <section dir="rtl" className="relative overflow-hidden bg-accent-50/30 px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-      {/* V3 decorative layer — one fire orb (ember rising from the bottom-left) + ghost numeral */}
+      {/* V3 decorative layer one fire orb (ember rising from the bottom-left) + ghost numeral */}
       <div
         aria-hidden
         className="animate-soft-float pointer-events-none absolute -bottom-32 -left-32 h-[24rem] w-[24rem] rounded-full bg-customOrange/10 blur-3xl"
@@ -66,7 +66,7 @@ export default function HomeTestimonialsCarousel() {
           </h2>
         </motion.div>
 
-        {/* Highlighted pull-quote — the rounded paper2 panel is gone: the quote now
+        {/* Highlighted pull-quote the rounded paper2 panel is gone: the quote now
             sits directly on the section field between two hairline seams, carried
             by type scale and whitespace alone. */}
         <div aria-hidden className="emc-hairline" />
@@ -87,12 +87,12 @@ export default function HomeTestimonialsCarousel() {
             {featured.quote}
           </blockquote>
           <figcaption className="relative mx-auto mt-8 max-w-3xl text-sm font-bold text-ink-400">
-            {featured.name} — {featured.role} · {featured.org}
+            {featured.name} {featured.role} · {featured.org}
           </figcaption>
         </motion.figure>
         <div aria-hidden className="emc-hairline" />
 
-        {/* Supporting pull-quotes — free-floating, separated by a hairline (no cards) */}
+        {/* Supporting pull-quotes free-floating, separated by a hairline (no cards) */}
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_1px_1fr] lg:gap-14">
           {supporting.map((t, i) => (
             <motion.figure
@@ -115,7 +115,7 @@ export default function HomeTestimonialsCarousel() {
                 {t.quote}
               </blockquote>
               <figcaption className="relative mt-5 text-[13px] font-bold text-ink-400">
-                {t.name} — {t.role} · {t.org}
+                {t.name} {t.role} · {t.org}
               </figcaption>
             </motion.figure>
           ))}

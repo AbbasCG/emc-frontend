@@ -136,7 +136,7 @@ export default function ProgressTab({
           </span>
           <div className="flex-1">
             <h3 className={`font-black ${progressPct >= 100 ? 'text-emerald-700' : 'text-[#0C2A4B]'}`}>
-              {progressPct >= 100 ? 'أكملت الدورة بنجاح!' : progressPct > 0 ? `استمر في التعلّم — ${progressPct}% مكتمل` : 'ابدأ رحلة التعلّم'}
+ {progressPct >= 100 ? 'أكملت الدورة بنجاح!': progressPct > 0 ? `استمر في التعلّم ${progressPct}% مكتمل`: 'ابدأ رحلة التعلّم'}
             </h3>
             <p className="mt-0.5 text-[12px] font-semibold text-[#0C2A4B]/50">
               {progressPct >= 100 ? 'يمكنك طلب شهادة إتمام الدورة من الإدارة.' : progressPct > 0 ? 'أكمل الدروس والواجبات للوصول إلى 100%.' : 'ابدأ بمراجعة الوحدات والدروس المتاحة.'}

@@ -33,7 +33,7 @@ export default function Learn() {
   return (
     <main dir="rtl" className="bg-white pb-24">
       <PublicSeo
-        title="ابدأ رحلتك — محطات التعلّم"
+        title="ابدأ رحلتك محطات التعلّم"
         description="خمس محطات تعلّم في EMC، من الورش المجانية إلى الزمالة، وخمسة أسئلة قصيرة تحدد نقطة انطلاقك أنت."
         path="/learn"
       />
@@ -48,7 +48,7 @@ export default function Learn() {
           </h1>
 
           <p className="mt-6 max-w-2xl text-base font-semibold leading-8 text-ink-500">
-            رحلة التعلّم في EMC خمس محطات واضحة. لست مطالباً بالمرور بها كلها — أنت تحتاج محطة
+            رحلة التعلّم في EMC خمس محطات واضحة. لست مطالباً بالمرور بها كلها أنت تحتاج محطة
             واحدة: التي تصف حالك اليوم. هذه الصفحة تريك المحطات الخمس، ثم تسمّي لك واحدة منها.
           </p>
 
@@ -63,10 +63,10 @@ export default function Learn() {
       </header>
 
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        {/* ── §4 — the five stations ─────────────────────────────────────── */}
+        {/* ── §4 the five stations ─────────────────────────────────────── */}
         <JourneyTimeline />
 
-        {/* ── §4 — entering at your own level ────────────────────────────── */}
+        {/* ── §4 entering at your own level ────────────────────────────── */}
         <section className="mt-20 text-right">
           <div aria-hidden className="emc-tricolor" />
 
@@ -88,7 +88,7 @@ export default function Learn() {
           </div>
         </section>
 
-        {/* ── §4 — «حدّد نقطة انطلاقك» (id="placement") ─────────────────── */}
+        {/* ── §4 «حدّد نقطة انطلاقك» (id="placement") ─────────────────── */}
         <PlacementTest />
 
         {/* ── Closing line ───────────────────────────────────────────────── */}

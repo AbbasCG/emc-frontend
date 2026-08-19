@@ -33,7 +33,7 @@ export function PlacementPipelineSection({
         <span className="rounded-full bg-[#0C2A4B]/8 px-2 py-0.5 font-mono text-[11px] font-black tabular-nums text-deepBlue/60">
           {rows.length}
         </span>
-        <span className="hidden text-[10px] font-semibold text-deepBlue/35 sm:inline">— {stage.description}</span>
+        <span className="hidden text-[10px] font-semibold text-deepBlue/35 sm:inline"> {stage.description}</span>
       </div>
       <div className="flex flex-wrap gap-3">
         {rows.map((row, i) => (

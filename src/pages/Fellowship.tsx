@@ -85,7 +85,7 @@ export default function Fellowship() {
         path="/fellowship"
       />
 
-      {/* ── (a) الترويسة — dark, sea-family field (emc-dawn). One decision only. ── */}
+      {/* ── (a) الترويسة dark, sea-family field (emc-dawn). One decision only. ── */}
       <header className="emc-dawn pt-28">
         <div className="mx-auto w-full max-w-5xl px-4 pb-16 text-right sm:px-6">
           <p className="text-xs font-black tracking-[0.18em] text-ice">الزمالة</p>
@@ -95,7 +95,7 @@ export default function Fellowship() {
           </h1>
 
           <p className="mt-6 max-w-2xl text-base font-semibold leading-8 text-ice">
-            {`${toLatinDigits(16)} أسبوعاً من العمل الحقيقي بإشراف خبراء — بالقبول فقط`}
+            {`${toLatinDigits(16)} أسبوعاً من العمل الحقيقي بإشراف خبراء بالقبول فقط`}
           </p>
 
           <a
@@ -152,7 +152,7 @@ export default function Fellowship() {
           </p>
         </section>
 
-        {/* ── (d) تخصصات الدفعة الأولى — empty slot: renders nothing (§11). ── */}
+        {/* ── (d) تخصصات الدفعة الأولى empty slot: renders nothing (§11). ── */}
         <FirstCohortSpecialisations />
 
         {/* ── (e) يوم العرض ──────────────────────────────────────────────── */}
@@ -171,21 +171,21 @@ export default function Fellowship() {
           </p>
         </section>
 
-        {/* ── (f) القاعدة الأخلاقية — verbatim, at full size. ────────────── */}
+        {/* ── (f) القاعدة الأخلاقية verbatim, at full size. ────────────── */}
         <section className="mt-20 text-right">
           <div aria-hidden className="emc-hairline" />
 
           <p className="mt-9 text-xs font-black tracking-[0.18em] text-ocean">قاعدة أخلاقية</p>
 
           <p className="mt-4 max-w-3xl font-display text-xl font-black leading-relaxed text-navy sm:text-2xl">
-            إن عمل الزملاء على مشروع تجاري حقيقي، فلهم مقابل موثّق — تعلم بالممارسة، لا عمالة
+            إن عمل الزملاء على مشروع تجاري حقيقي، فلهم مقابل موثّق تعلم بالممارسة، لا عمالة
             مجانية.
           </p>
 
           <div aria-hidden className="emc-rule-orange" />
         </section>
 
-        {/* ── (g) سعر التأسيس — ABSENT until the founder confirms the figure. ── */}
+        {/* ── (g) سعر التأسيس ABSENT until the founder confirms the figure. ── */}
         {FOUNDING_PRICE ?
           <section className="mt-20 text-right">
             <div aria-hidden className="emc-hairline" />

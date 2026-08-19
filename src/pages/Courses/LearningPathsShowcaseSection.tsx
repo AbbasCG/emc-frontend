@@ -83,7 +83,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
             </span>
             <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">المسارات الاحترافية</h2>
             <p className="mt-5 text-sm leading-7 text-slate-600 md:text-base">
-              الدورة = تدريب واحد · المسار = رحلة مهنية كاملة — دورات مترابطة، شهادة معتمدة، ومسار واضح من
+              الدورة = تدريب واحد · المسار = رحلة مهنية كاملة دورات مترابطة، شهادة معتمدة، ومسار واضح من
               البداية إلى الاحتراف.
             </p>
           </div>

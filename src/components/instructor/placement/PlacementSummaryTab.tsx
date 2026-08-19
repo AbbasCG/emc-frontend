@@ -63,7 +63,7 @@ export function PlacementSummaryTab({ row, oralForm }: Props) {
 
   return (
     <div className="space-y-5">
-      {/* KPI cards — row 1 */}
+      {/* KPI cards row 1 */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard icon={BarChart3} label="الاختبار الكتابي" value={`${summary.writtenScore ?? '—'}/${summary.writtenMax}`} sub={summary.writtenPct != null ? `${summary.writtenPct}%` : undefined} accent="#0077B6" />
         <KpiCard icon={TrendingUp} label="المقابلة الشفوية" value={summary.oralScore != null ? `${summary.oralScore}/100` : '—'} accent="#7c3aed" />
@@ -71,7 +71,7 @@ export function PlacementSummaryTab({ row, oralForm }: Props) {
         <KpiCard icon={Lightbulb} label="الدرجة الإجمالية" value={summary.overallScore != null ? `${summary.overallScore}%` : '—'} sub={`ثقة ${summary.confidenceScore ?? '—'}%`} accent="#10b981" />
       </div>
 
-      {/* KPI cards — row 2 */}
+      {/* KPI cards row 2 */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard icon={Layers} label="الصف المقترح" value={summary.recommendedClass ?? '—'} accent="#0077B6" />
         <KpiCard icon={Layers} label="المسار الموصى به" value={summary.recommendedTrack ?? '—'} accent="#0C2A4B" />

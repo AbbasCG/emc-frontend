@@ -61,7 +61,7 @@ export default function LearningPathsHero({ onSearch, totalPaths, openCount, fea
           {...fadeUp(0.16)}
           className="mb-8 text-center text-lg leading-relaxed text-white/65 [text-wrap:balance]"
         >
-          اختر مسارك وتقدّم فيه خطوة بخطوة — دورات مرتبة وتوجيه مهني في رحلة واحدة
+          اختر مسارك وتقدّم فيه خطوة بخطوة دورات مرتبة وتوجيه مهني في رحلة واحدة
         </motion.p>
 
         <motion.div {...fadeUp(0.24)} className="relative mx-auto mb-10 max-w-2xl">

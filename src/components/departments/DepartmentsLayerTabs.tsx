@@ -39,7 +39,7 @@ export default function DepartmentsLayerTabs() {
           align="right"
           className="!mr-0 !max-w-3xl !text-right"
           eyebrow="طبقات التشغيل"
-          title="ثلاث طبقات — تفاعل منظم"
+          title="ثلاث طبقات تفاعل منظم"
           description="اختر طبقة لرؤية كيف تتراكب الأدوار: ليست صناديق معزولة، بل شبكة مسؤوليات متصلة بالإدارة العليا."
         />
 

@@ -72,7 +72,7 @@ export function FilterToolbar({
               <option value="">جميع المستويات</option>
               {CEFR_LEVELS.map((l) => (
                 <option key={l} value={l}>
-                  {l} — {CEFR_MAP[l]?.arabic ?? l}
+                  {l} {CEFR_MAP[l]?.arabic ?? l}
                 </option>
               ))}
             </select>

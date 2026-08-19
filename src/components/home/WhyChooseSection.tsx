@@ -14,7 +14,7 @@ const features = [
     num: '01',
     icon: BookOpen,
     title: 'محتوى مرتبط بالسوق',
-    desc: 'كل برنامج مصمّم بالتعاون مع خبراء القطاع — لا محتوى أكاديمياً منفصلاً عن الواقع.',
+    desc: 'كل برنامج مصمّم بالتعاون مع خبراء القطاع لا محتوى أكاديمياً منفصلاً عن الواقع.',
   },
   {
     num: '02',
@@ -26,7 +26,7 @@ const features = [
     num: '03',
     icon: Globe,
     title: 'مرونة حضورية وعن بُعد',
-    desc: 'برامجنا متاحة بالصيغتين — اختر ما يناسب جدولك دون التضحية بجودة التجربة.',
+    desc: 'برامجنا متاحة بالصيغتين اختر ما يناسب جدولك دون التضحية بجودة التجربة.',
   },
   {
     num: '04',
@@ -38,13 +38,13 @@ const features = [
     num: '05',
     icon: CheckCircle2,
     title: 'تسجيل سهل وواضح',
-    desc: 'من الاطّلاع على البرنامج إلى التسجيل — عملية مبسّطة تأخذ دقائق لا ساعات.',
+    desc: 'من الاطّلاع على البرنامج إلى التسجيل عملية مبسّطة تأخذ دقائق لا ساعات.',
   },
   {
     num: '06',
     icon: TrendingUp,
     title: 'منصة تنمو معك',
-    desc: 'EMC وجهتك الشاملة — ورشة اليوم تُلهمك مسار الغد وشراكة المستقبل.',
+    desc: 'EMC وجهتك الشاملة ورشة اليوم تُلهمك مسار الغد وشراكة المستقبل.',
   },
 ] as const
 
@@ -59,12 +59,12 @@ export default function WhyChooseSection() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-emc-grid bg-grid-32 opacity-[0.06] [mask-image:radial-gradient(ellipse_at_center,white_30%,transparent_70%)]"
       />
-      {/* Ambient glows — sea-only on the depth field */}
+      {/* Ambient glows sea-only on the depth field */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.08] blur-[100px]" />
       <div aria-hidden className="pointer-events-none absolute -bottom-32 left-0 h-72 w-72 rounded-full bg-sky/[0.07] blur-[80px]" />
 
       <div className="relative mx-auto max-w-[1540px]">
-        {/* Header — split layout */}
+        {/* Header split layout */}
         <div className="mb-16 grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-end">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -75,7 +75,7 @@ export default function WhyChooseSection() {
           >
             <span className="emc-eyebrow border-amber/25 bg-amber/10 text-amber">لماذا EMC</span>
             <h2 className="mt-4 font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl xl:text-[2.8rem]">
-              ليس مجرّد منصة —<br /> تجربة تعليمية كاملة
+              ليس مجرّد منصة <br /> تجربة تعليمية كاملة
             </h2>
             <div
               aria-hidden
@@ -89,7 +89,7 @@ export default function WhyChooseSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-right text-lg font-semibold leading-9 text-white/55 lg:text-xl"
           >
-            اخترنا أن نبني تجربة تنبع من فهم عميق لاحتياجات المتعلّم العربي — نظرية متصلة بسوق العمل، ومجتمع يدفعك للأمام.
+            اخترنا أن نبني تجربة تنبع من فهم عميق لاحتياجات المتعلّم العربي نظرية متصلة بسوق العمل، ومجتمع يدفعك للأمام.
           </motion.p>
         </div>
 

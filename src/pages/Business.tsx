@@ -68,7 +68,7 @@ export default function Business() {
         path="/business"
       />
 
-      {/* ── Editorial header — sea family only, no blend with the fire family (§1) ── */}
+      {/* ── Editorial header sea family only, no blend with the fire family (§1) ── */}
       <header className="emc-depth pt-28">
         <div className="mx-auto w-full max-w-5xl px-4 pb-16 text-right sm:px-6">
           <p className="text-xs font-black tracking-[0.18em] text-ice">EMC للمؤسسات</p>
@@ -76,13 +76,13 @@ export default function Business() {
             تدريب مؤسسي يُبنى على حاجة فريقك
           </h1>
           <p className="mt-5 max-w-2xl text-base font-semibold leading-9 text-ice sm:text-lg">
-            تكتب لنا سياق جهتك وحاجتها، فنعود إليك بتصور مبني عليها — لا عرضاً عاماً.
+            تكتب لنا سياق جهتك وحاجتها، فنعود إليك بتصور مبني عليها لا عرضاً عاماً.
           </p>
         </div>
       </header>
 
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
-        {/* ── 1. الجهات التي نعمل معها — editorial rows ── */}
+        {/* ── 1. الجهات التي نعمل معها editorial rows ── */}
         <section aria-labelledby="business-audiences" className="pt-16 sm:pt-20">
           <h2
             id="business-audiences"
@@ -116,7 +116,7 @@ export default function Business() {
           </ul>
         </section>
 
-        {/* ── 2. البرامج المؤسسية — six short entries, no prices ── */}
+        {/* ── 2. البرامج المؤسسية six short entries, no prices ── */}
         <section aria-labelledby="business-products" className="pt-16 sm:pt-20">
           <h2
             id="business-products"
@@ -139,7 +139,7 @@ export default function Business() {
                   {toLatinDigits(product.id)}
                 </span>
                 <h3 className="mt-2 text-base font-black text-navy">{product.slot}</h3>
-                {/* Approved name + one-line description land here — never invented copy */}
+                {/* Approved name + one-line description land here never invented copy */}
                 <p className="mt-2 text-xs font-bold text-ink-400">{CATALOGUE_PENDING_NOTE}</p>
               </li>
             ))}

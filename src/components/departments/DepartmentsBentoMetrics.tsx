@@ -51,7 +51,7 @@ export default function DepartmentsBentoMetrics() {
           align="right"
           className="!mr-0 !max-w-3xl !text-right"
           eyebrow="لوحة مؤشرات"
-          title="مؤشرات تشغيلية — أسلوب منصات التعلم الراقية"
+          title="مؤشرات تشغيلية أسلوب منصات التعلم الراقية"
           description="بنية bento تعرض أهم محاور التشغيل دون أرقام وهمية: تركيز على الجودة، الأمان، والتنسيق بين الفرق."
         />
 

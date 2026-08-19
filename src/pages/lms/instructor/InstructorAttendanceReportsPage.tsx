@@ -153,7 +153,7 @@ export default function InstructorAttendanceReportsPage() {
         </div>
       </div>
 
-      {/* KPI cards — all backend-computed */}
+      {/* KPI cards all backend-computed */}
       {summary && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -217,7 +217,7 @@ export default function InstructorAttendanceReportsPage() {
           </div>
 
           <div className="flex items-center justify-between text-[11px] font-bold text-deepBlue/50">
-            <span>صفحة {result.meta.current_page} من {result.meta.last_page} — {result.meta.total} سجل</span>
+            <span>صفحة {result.meta.current_page} من {result.meta.last_page} {result.meta.total} سجل</span>
             <div className="flex gap-2">
               <button type="button" disabled={result.meta.current_page <= 1} onClick={() => updateFilter('page', (filters.page ?? 1) - 1)}
                 className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-30">السابق</button>

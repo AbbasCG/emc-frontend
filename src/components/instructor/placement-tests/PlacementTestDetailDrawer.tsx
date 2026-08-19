@@ -140,7 +140,7 @@ export function PlacementTestDetailDrawer({ row, initialTab = 'overview', onClos
                       <span className="rounded-lg bg-white/15 px-2 py-0.5 text-[10px] font-black">{row.course_title}</span>
                       <span className="rounded-lg bg-white/15 px-2 py-0.5 text-[10px] font-black">{STATUS_AR[row.status] ?? row.status}</span>
                     </div>
-                    {/* Three separate badges — never conflate estimated vs. final vs. current class. */}
+                    {/* Three separate badges never conflate estimated vs. final vs. current class. */}
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <HeaderBadge label="المستوى التقديري" value={row.written_level} tone="neutral" />
                       <HeaderBadge label="النتيجة النهائية" value={row.final_level} tone="final" fallback="لم يتم اعتماد المستوى النهائي بعد" />
@@ -159,7 +159,7 @@ export function PlacementTestDetailDrawer({ row, initialTab = 'overview', onClos
               </div>
             </div>
 
-            {/* Fixed tab bar — equal-width grid, no horizontal scroll ever */}
+            {/* Fixed tab bar equal-width grid, no horizontal scroll ever */}
             <div role="tablist" className="grid shrink-0 grid-cols-5 gap-1 border-b border-slate-100 p-2">
               {TABS.map(({ id, label, icon: Icon }) => (
                 <button
@@ -376,7 +376,7 @@ function TimelineTab({ row }: { row: InstructorPlacementTestRow }) {
   const events = buildEvents(row)
   return (
     <div className="p-4 sm:p-6">
-      {/* Line sits at right-[7px] (dot center), text starts at pr-7 — the dot
+      {/* Line sits at right-[7px] (dot center), text starts at pr-7 the dot
           (14px) never overlaps the label regardless of content length. */}
       <ol className="relative border-r-2 border-slate-100 pr-7">
         {events.map((ev) => {

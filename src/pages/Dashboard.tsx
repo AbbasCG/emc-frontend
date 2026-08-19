@@ -412,14 +412,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 text-right rtl" dir="rtl">
-      {/* ── G5: first-visit welcome band — editorial paper2 strip, hairlines not a card ── */}
+      {/* ── G5: first-visit welcome band editorial paper2 strip, hairlines not a card ── */}
       {showWelcome && (
         <section aria-label="ترحيب بالطالب الجديد" className="bg-paper2">
           <div className="emc-hairline" aria-hidden />
           <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4 px-5 py-6 sm:px-7">
             <div className="min-w-0">
               <p className="font-display text-lg font-black tracking-tight text-deepBlue">
-                أهلاً بك في EMC — رحلتك تبدأ بخطوة
+                أهلاً بك في EMC رحلتك تبدأ بخطوة
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <Link to="/courses" className="emc-cta-line text-sm">
@@ -463,7 +463,7 @@ export default function Dashboard() {
             : loadError
               ? loadError
               : counts.enrolled_courses_count === 0
-                ? 'لم تسجل بعد — تصفّح الدورات المتاحة وابدأ.'
+                ? 'لم تسجل بعد تصفّح الدورات المتاحة وابدأ.'
                 : `تقدّمك: ${Math.round(lmsDashboard.progress_percent)}%`
         }
         quickStats={heroStats}
@@ -640,7 +640,7 @@ export default function Dashboard() {
       {/* ── My Courses ─────────────────────────────────────────────────────── */}
       <DashboardSection
         title="دوراتي"
-        subtitle="الدورات المسجّل فيها — مزامنة من بيانات التسجيل الحقيقية."
+        subtitle="الدورات المسجّل فيها مزامنة من بيانات التسجيل الحقيقية."
         action={
           displayCourses.length > 8
             ? { label: 'عرض الكل', href: '/dashboard/student/courses' }

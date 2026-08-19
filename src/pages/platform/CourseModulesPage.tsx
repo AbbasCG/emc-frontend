@@ -71,7 +71,7 @@ export default function CourseModulesPage() {
                   <div className="min-w-0 flex-1">
                     <h2 className="text-lg font-black text-deepBlue">{m.title}</h2>
                     <p className="mt-2 text-xs font-bold text-slate-400">
-                      الدروس {m.lessons_count} — المكتمل {m.completed_lessons ?? 0}
+                      الدروس {m.lessons_count} المكتمل {m.completed_lessons ?? 0}
                     </p>
                     <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
                       <motion.div

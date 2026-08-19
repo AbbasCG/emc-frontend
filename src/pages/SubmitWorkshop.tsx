@@ -799,7 +799,7 @@ export default function SubmitWorkshop() {
                         {/* Header + copy button */}
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.04] px-4 py-3">
                           <p className="text-[12px] font-black uppercase tracking-[0.14em] text-[#0077B6]">
-                            المواعيد المقترحة — موعد واحد مطلوب والخياران الآخران اختياريان
+                            المواعيد المقترحة موعد واحد مطلوب والخياران الآخران اختياريان
                           </p>
                           {(form.proposed_date_1 || form.proposed_start_time_1) && (
                             <button

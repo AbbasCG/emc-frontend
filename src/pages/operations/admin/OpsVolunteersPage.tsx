@@ -56,7 +56,7 @@ export default function OpsVolunteersPage() {
       <header className="rounded-[1.35rem] bg-white p-8 text-right shadow-lg ring-1 ring-deepBlue/[0.06]">
         <h1 className="text-2xl font-black text-deepBlue">المتطوعون والموارد البشرية</h1>
         <p className="mt-2 text-sm font-semibold text-slate-600">
-          مسارات الانضمام، الجاهزية، وسجل الساعات — بواجهة تشبه أفضل أنظمة التشغيل الداخلية.
+          مسارات الانضمام، الجاهزية، وسجل الساعات بواجهة تشبه أفضل أنظمة التشغيل الداخلية.
         </p>
       </header>
 

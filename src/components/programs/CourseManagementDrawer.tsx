@@ -616,7 +616,7 @@ export function CourseManagementDrawer({
               label="رمز التسجيل"
               value={
                 d.requires_registration_code
-                  ? (d.registration_code ? `مفعّل · ${formatEnglishDetailText(d.registration_code)}` : 'مفعّل · —')
+ ? (d.registration_code ? `مفعّل · ${formatEnglishDetailText(d.registration_code)}`: 'مفعّل · ')
                   : 'غير مطلوب'
               }
             />

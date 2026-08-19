@@ -634,7 +634,7 @@ export default function AdminCertificateDetailPage() {
           {/* ── Two-column body ───────────────────────────────────────────────── */}
           <div className="grid gap-5 lg:grid-cols-3">
 
-            {/* Left column — metadata */}
+            {/* Left column metadata */}
             <div className="space-y-5 lg:col-span-2">
 
               {/* Recipient */}
@@ -672,7 +672,7 @@ export default function AdminCertificateDetailPage() {
 
             </div>
 
-            {/* Right column — timeline */}
+            {/* Right column timeline */}
             <div>
               <Section title="التسلسل الزمني">
                 <div className="relative space-y-4 border-r-2 border-[#0077B6]/20 pr-4">

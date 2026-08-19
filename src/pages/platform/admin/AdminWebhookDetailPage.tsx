@@ -97,7 +97,7 @@ export default function AdminWebhookDetailPage() {
         </Link>
       </motion.div>
 
-      <SecretWarningPanel body="إذا فقدت سر التوقيع، أنشئ نقطة نهاية جديدة أو أعد التدوير من الخادم — الواجهة لا تعرض السر الكامل بعد الإنشاء." />
+      <SecretWarningPanel body="إذا فقدت سر التوقيع، أنشئ نقطة نهاية جديدة أو أعد التدوير من الخادم الواجهة لا تعرض السر الكامل بعد الإنشاء." />
 
       {loading ? (
         <LoadingSkeletonStack rows={4} />

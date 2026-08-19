@@ -557,7 +557,7 @@ export default function AdminLmsProgressPage() {
 
       <AdminLmsShell
         title="إدارة التقدم"
-        description="متابعة تقدم المتعلمين عبر الدورات والمسارات — انقر على صف للاطلاع على التفاصيل"
+        description="متابعة تقدم المتعلمين عبر الدورات والمسارات انقر على صف للاطلاع على التفاصيل"
         breadcrumb="التقدم"
         kpis={[
           { label: 'إجمالي السجلات', value: fmtNum(total),       icon: Activity,    variant: 'brand'   },

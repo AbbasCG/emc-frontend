@@ -9,7 +9,7 @@ const FIELDS: { key: keyof AttendanceSettingsData; label: string; suffix: string
   { key: 'at_risk_percentage', label: 'عتبة الخطر', suffix: '%', hint: 'أقل من هذه النسبة يُصنَّف الطالب معرضاً للخطر' },
   { key: 'repeated_absence_threshold', label: 'حد الغياب المتكرر', suffix: 'جلسات متتالية', hint: 'عدد مرات الغياب المتتالية لإرسال تنبيه' },
   { key: 'low_attendance_notification_threshold', label: 'عتبة تنبيه انخفاض الحضور', suffix: '%', hint: 'النسبة التي يُرسل عندها تنبيه انخفاض الحضور' },
-  { key: 'certificate_attendance_percentage', label: 'نسبة الحضور لأهلية الشهادة', suffix: '%', hint: 'محفوظة للعرض فقط — لا تُستخدم حالياً في منطق إصدار الشهادات' },
+  { key: 'certificate_attendance_percentage', label: 'نسبة الحضور لأهلية الشهادة', suffix: '%', hint: 'محفوظة للعرض فقط لا تُستخدم حالياً في منطق إصدار الشهادات' },
 ]
 
 export default function AttendanceSettingsPage() {

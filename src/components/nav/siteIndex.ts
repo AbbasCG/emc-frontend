@@ -16,13 +16,13 @@ export type IndexGroup = {
 export const SITE_INDEX: readonly IndexGroup[] = [
   {
     title: 'تعلّم',
-    lead: 'من أول ورشة مجانية إلى تخصص مهني كامل',
+ lead: 'الدورات والمسارات والزمالة والورش كل ما تتعلّمه هنا',
     links: [
       { href: '/learn', label: 'رحلة التعلّم', description: 'خمس محطات واختبار يحدّد نقطة انطلاقك' },
       { href: '/courses', label: 'الدورات', description: 'مهارة محددة في أسابيع، بمشروع تسلّمه' },
       { href: '/learning-paths', label: 'المسارات', description: 'تخصص مهني كامل بملف أعمال' },
       { href: '/workshops', label: 'الورش المجانية', description: 'بث مباشر شهري وشهادة حضور' },
-      { href: '/fellowship', label: 'الزمالة', description: 'عمل حقيقي بإشراف خبراء — بالقبول فقط' },
+      { href: '/fellowship', label: 'الزمالة', description: 'عمل حقيقي بإشراف خبراء بالقبول فقط' },
       { href: '/tracks', label: 'المجالات', description: 'اثنا عشر محوراً تغطي منظومة EMC' },
     ],
   },

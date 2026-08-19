@@ -859,14 +859,14 @@ function UserAccountModal({
                 </div>
                 <p className="text-lg font-black text-deepBlue">تم إنشاء الحساب بنجاح</p>
                 <p className="text-[12px] font-semibold text-slate-500">
-                  {createResult.user?.name} — {createResult.user?.email}
+                  {createResult.user?.name} {createResult.user?.email}
                 </p>
               </div>
 
               {createResult.temporary_password && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                   <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-amber-700">
-                    كلمة المرور المؤقتة — تظهر مرة واحدة فقط
+                    كلمة المرور المؤقتة تظهر مرة واحدة فقط
                   </p>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 rounded-xl border border-amber-200 bg-white px-3 py-2 text-[14px] font-black tracking-wider text-deepBlue">
@@ -1090,7 +1090,7 @@ function ProfileModal({
                   dir="rtl"
                   className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pr-3 pl-8 text-sm font-semibold text-deepBlue outline-none focus:border-customBlue"
                 >
-                  <option value="">— اختر الإدارة —</option>
+                  <option value=""> اختر الإدارة </option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.name_ar}

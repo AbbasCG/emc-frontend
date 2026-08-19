@@ -198,7 +198,7 @@ export function parseCourseFaqs(course: Course, derived: CourseDetailDerived): C
     items.push({
       id: 'schedule',
       question: 'متى يبدأ البرنامج؟',
-      answer: clock ? `${start} — ${clock}` : start,
+ answer: clock ? `${start} ${clock}`: start,
     })
   }
 

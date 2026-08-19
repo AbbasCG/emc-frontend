@@ -73,7 +73,7 @@ export default function OperationsDashboard({ data }: { data: OperationsDashboar
         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/45">مركز العمليات</p>
         <h1 className="mt-3 text-3xl font-black leading-tight">لوحة القيادة التشغيلية</h1>
         <p className="mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-white/70">
-          رؤية موحّدة للإدارات، المهام، الاجتماعات، الشراكات، التسويق، والدعم — بنفس هوية EMC العربية
+          رؤية موحّدة للإدارات، المهام، الاجتماعات، الشراكات، التسويق، والدعم بنفس هوية EMC العربية
           والاحتراف المعهود.
         </p>
         <div className="mt-6 flex flex-wrap justify-end gap-2">

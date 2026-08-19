@@ -175,7 +175,7 @@ export default function FinancePremiumKPIGrid({
         icon={AlertTriangle}
         label="العمليات الفاشلة"
         value={String(data.failed_count)}
-        sub="عدد العمليات — من الملخص"
+        sub="عدد العمليات من الملخص"
         series={series.length >= 4 ? series.slice(-4) : [0, data.failed_count, data.failed_count * 0.7, data.failed_count]}
         accent="orange"
       />

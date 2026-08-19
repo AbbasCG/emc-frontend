@@ -104,7 +104,7 @@ export default function InstructorCourseStudentsPage() {
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       <InstructorHero
         title={courseTitle || 'طلاب الدورة'}
-        subtitle="طلاب مسجلون — اضغط على أي طالب لعرض تفاصيله"
+        subtitle="طلاب مسجلون اضغط على أي طالب لعرض تفاصيله"
         backTo="/dashboard/instructor/courses"
         backLabel="الدورات"
         onRefresh={load}

@@ -566,10 +566,10 @@ export default function InstructorClassesPage() {
                       dir="rtl"
                       className="h-10 w-full rounded-xl border border-[#0C2A4B]/10 bg-white px-3 text-[12px] font-bold text-[#0C2A4B] outline-none focus:border-[#0077B6]"
                     >
-                      <option value="">— اختر —</option>
+                      <option value=""> اختر </option>
                       {CEFR_LEVELS.map((l) => (
                         <option key={l} value={l}>
-                          {l} — {CEFR_MAP[l]?.arabic ?? l}
+                          {l} {CEFR_MAP[l]?.arabic ?? l}
                         </option>
                       ))}
                     </select>
@@ -621,7 +621,7 @@ export default function InstructorClassesPage() {
                             dir="rtl"
                             className="h-9 w-full rounded-lg border border-[#0C2A4B]/10 bg-white px-2 text-[11px] font-bold outline-none focus:border-[#0077B6]"
                           >
-                            <option value="">— اليوم —</option>
+                            <option value=""> اليوم </option>
                             {Object.entries(WEEKDAYS_AR).map(([k, v]) => (
                               <option key={k} value={k}>{v}</option>
                             ))}

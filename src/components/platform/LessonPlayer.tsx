@@ -51,7 +51,7 @@ export default function LessonPlayer({ lesson, modules }: Props) {
               className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-8 py-6 text-white backdrop-blur transition hover:bg-white/15"
             >
               <PlayCircle size={44} />
-              <span className="text-sm font-black">معاينة وسائط — ربط الفيديو لاحقاً</span>
+              <span className="text-sm font-black">معاينة وسائط ربط الفيديو لاحقاً</span>
               {lesson.video_placeholder_url && (
                 <span className="max-w-xs truncate text-[11px] font-bold text-white/60" dir="ltr">
                   {lesson.video_placeholder_url}

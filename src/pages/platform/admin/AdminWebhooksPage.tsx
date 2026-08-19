@@ -72,7 +72,7 @@ export default function AdminWebhooksPage() {
         </Link>
       </motion.div>
 
-      <SecretWarningPanel title="سر التوقيع يُعرض مرة واحدة فقط" body="انسخ القيمة فور الإنشاء واحفظها في مدير أسرار معتمد — لن نتمكن من إظهارها لاحقًا من الواجهة." />
+      <SecretWarningPanel title="سر التوقيع يُعرض مرة واحدة فقط" body="انسخ القيمة فور الإنشاء واحفظها في مدير أسرار معتمد لن نتمكن من إظهارها لاحقًا من الواجهة." />
 
       {freshSecret && (
         <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 font-mono text-xs font-black text-emerald-950 shadow-inner" dir="ltr">

@@ -191,7 +191,7 @@ function fmtDateShort(d?: string | null) {
 }
 
 function timeAgo(d?: string | null): string {
-  if (!d) return ''
+  if (!d) return '—'
   const diff = Date.now() - new Date(d).getTime()
   const mins = Math.floor(diff / 60000)
   if (mins < 1) return 'الآن'
@@ -272,7 +272,7 @@ function CopyBtn({ text }: { text: string }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Portal Dropdown — renders to body to avoid z-index issues
+   Portal Dropdown renders to body to avoid z-index issues
 ───────────────────────────────────────────────────────────────────────── */
 
 interface PortalDropdownProps {
@@ -957,7 +957,7 @@ function TicketDetailsCard({
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Sidebar: Attachments card (placeholder — no attachment system yet)
+   Sidebar: Attachments card (placeholder no attachment system yet)
 ───────────────────────────────────────────────────────────────────────── */
 
 function AttachmentsCard() {
@@ -1085,7 +1085,7 @@ function DateSeparator({ label }: { label: string }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Thread card — professional email-reply style
+   Thread card professional email-reply style
 ───────────────────────────────────────────────────────────────────────── */
 
 function ThreadCard({
@@ -1429,7 +1429,7 @@ export default function OpsSupportTicketDetailPage() {
         transition={{ duration: 0.2 }}
         className="min-h-screen bg-[#F0F4F8]"
       >
-        {/* ── STICKY COMPACT HEADER — back button, ticket #, status/priority badges, always visible while scrolling ── */}
+        {/* ── STICKY COMPACT HEADER back button, ticket #, status/priority badges, always visible while scrolling ── */}
         <div className="sticky top-0 z-20 border-b border-slate-200/70 bg-[#F0F4F8]/90 backdrop-blur-sm">
           <div className="mx-auto flex max-w-[1700px] items-center gap-2.5 px-3 py-2.5 sm:px-6 sm:py-3 lg:px-8">
             <Link
@@ -1544,7 +1544,7 @@ export default function OpsSupportTicketDetailPage() {
               </div>
             </div>
 
-            {/* Action bar — primary actions (Reply / Change Status / Resolve) always
+            {/* Action bar primary actions (Reply / Change Status / Resolve) always
                 reachable and full-width on mobile; secondary/destructive actions
                 (Refresh, Copy Link, Print, Delete) collapse into a "More" menu so
                 they don't compete for thumb reach on a small screen. */}
@@ -1585,7 +1585,7 @@ export default function OpsSupportTicketDetailPage() {
                 </motion.button>
               )}
 
-              {/* More menu — Refresh / Copy Link / Print / Delete */}
+              {/* More menu Refresh / Copy Link / Print / Delete */}
               <div ref={moreMenuTriggerRef} className="relative">
                 <motion.button
                   type="button"
@@ -1669,8 +1669,8 @@ export default function OpsSupportTicketDetailPage() {
           {/* ══ TWO COLUMN LAYOUT ══════════════════════════════════════════
               `order` puts the conversation first on mobile (no large empty
               sidebar stack before it) while preserving the existing RTL
-              desktop grid — right column (sidebar) first, left column
-              (conversation) second — via DOM order at xl and above. ── */}
+              desktop grid right column (sidebar) first, left column
+              (conversation) second via DOM order at xl and above. ── */}
           <div dir="rtl" className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-[340px_1fr]">
 
             {/* ── RIGHT: Sidebar (xl: first in DOM → right column in RTL) ──── */}
@@ -1689,7 +1689,7 @@ export default function OpsSupportTicketDetailPage() {
             {/* ── LEFT: Main content (xl: second in DOM → left column in RTL) ── */}
             <div className="order-1 min-w-0 space-y-4 sm:space-y-5 xl:order-2">
 
-              {/* Conversation — original message + all replies, oldest→newest */}
+              {/* Conversation original message + all replies, oldest→newest */}
               <MCard delay={0.08}>
                 <MCardHeader
                   icon={MessageSquare}
@@ -1809,7 +1809,7 @@ export default function OpsSupportTicketDetailPage() {
                         }}
                         rows={5}
                         className="w-full resize-none bg-transparent px-5 py-4 text-[14px] leading-relaxed text-slate-800 placeholder:text-slate-400 focus:outline-none"
-                        placeholder={internal ? 'ملاحظة داخلية — لن يراها مقدم الطلب...' : 'اكتب ردك هنا...'}
+ placeholder={internal ? 'ملاحظة داخلية لن يراها مقدم الطلب...': 'اكتب ردك هنا...'}
                       />
                     </div>
 

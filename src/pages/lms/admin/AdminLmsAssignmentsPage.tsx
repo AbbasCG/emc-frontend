@@ -195,7 +195,7 @@ function AssignmentModal({
               error={errors.course_id}
             />
 
-            {/* Due date — modern picker */}
+            {/* Due date modern picker */}
             <EmcDateTimePicker
               label="موعد التسليم"
               value={form.due_date}

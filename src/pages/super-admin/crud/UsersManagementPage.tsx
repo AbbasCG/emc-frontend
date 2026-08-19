@@ -679,7 +679,7 @@ export default function UsersManagementPage() {
 
       {!forbidden && !serverPaginated && total > perPage && (
         <div className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-[12px] font-semibold text-amber-950">
-          الخادم لا يُرجع ترقيمًا (`meta.total` / `current_page`). يُحمَّل الجدول محليًا — لتحسين الأداء أضف دعم{' '}
+          الخادم لا يُرجع ترقيمًا (`meta.total` / `current_page`). يُحمَّل الجدول محليًا لتحسين الأداء أضف دعم{' '}
           <code className="rounded bg-white/80 px-1 font-mono text-[11px]">GET /admin/users?page&amp;per_page&amp;search&amp;role&amp;status</code>.
         </div>
       )}
@@ -753,13 +753,13 @@ export default function UsersManagementPage() {
         onEdit={(id) => void openEdit(id)}
       />
 
-      {/* Create — EMC معالج متعدد الخطوات */}
+      {/* Create EMC معالج متعدد الخطوات */}
       <>
         <FormWizardShell
           open={modal === 'create' && !createSuccessOpen}
           onClose={closeModal}
           title="مستخدم جديد"
-          subtitle="POST /admin/users — نفس الحقول السابقة مع تجربة إرسال موحّدة."
+          subtitle="POST /admin/users نفس الحقول السابقة مع تجربة إرسال موحّدة."
           eyebrow="Users · IAM"
           stepsMeta={USER_CREATE_STEP_META}
           currentStep={createWizardStep}
@@ -865,7 +865,7 @@ export default function UsersManagementPage() {
                 {createWizardStep === 1 ?
                   <p>أدخل اسمًا واضحًا وبريدًا فعّالًا؛ بقية الحقول تساعد الفرق الداخلية ولا تُفرض على الخادم.</p>
                 : createWizardStep === 2 ?
-                  <p>الدور يضبط صلاحيات الوصول الافتراضية وفق سياسة Laravel — اختر ما يملكه المستخدم فعليًا.</p>
+                  <p>الدور يضبط صلاحيات الوصول الافتراضية وفق سياسة Laravel اختر ما يملكه المستخدم فعليًا.</p>
                 : createWizardStep === 3 ?
                   <p>استخدم أدوات التوليد للحصول على كلمة مرور قوية؛ احفظ التأكيد مطابقًا.</p>
                 : <p>بعد الإنشاء يمكن التعديل من الجدول أو بطاقة Enterprise.</p>}
@@ -935,7 +935,7 @@ export default function UsersManagementPage() {
         open={modal === 'delete' && focusedId != null}
         onClose={closeModal}
         title="تأكيد الحذف"
-        subtitle={focusedUser ? `حذف ${focusedUser.name} — DELETE /admin/users/${focusedId}` : 'DELETE /admin/users/{id}'}
+ subtitle={focusedUser ? `حذف ${focusedUser.name} DELETE /admin/users/${focusedId}`: 'DELETE /admin/users/{id}'}
         footerSlot={
           <div className="flex flex-wrap justify-end gap-2">
             <button type="button" onClick={closeModal} className="rounded-xl border border-slate-200 px-4 py-2.5 text-[12px] font-semibold text-slate-600 transition hover:bg-slate-50">
@@ -985,7 +985,7 @@ function PasswordInlineTools({
     const next = generateSecurePassword()
     setPw(next)
     setPwConf(next)
-    toast.message('تم توليد كلمة مرور — راجع قبل الحفظ أو النسخ')
+    toast.message('تم توليد كلمة مرور راجع قبل الحفظ أو النسخ')
   }
 
   async function copy() {

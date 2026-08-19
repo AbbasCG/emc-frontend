@@ -72,7 +72,7 @@ export default function MeetingLoungePage() {
           <div>
             <h1 className="text-2xl font-black text-deepBlue">صالة الاجتماعات الذكية</h1>
             <p className="mt-1 text-sm font-semibold text-slate-500">
-              {user?.department ? `إدارة ${user.department}` : 'إدارتك الحالية'} — جدولة وإدارة تقارير الاجتماعات
+ {user?.department ? `إدارة ${user.department}`: 'إدارتك الحالية'} جدولة وإدارة تقارير الاجتماعات
             </p>
           </div>
         </div>

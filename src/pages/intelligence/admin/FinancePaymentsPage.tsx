@@ -179,7 +179,7 @@ function PaymentDrawer({ payment, onClose }: { payment: FinancePaymentRow; onClo
               )}
               <div>
                 <p className="text-base font-black text-deepBlue">{name}</p>
-                <p className="text-xs font-semibold text-slate-500">{itemLabel} — {itemTitle}</p>
+                <p className="text-xs font-semibold text-slate-500">{itemLabel} {itemTitle}</p>
               </div>
             </div>
 

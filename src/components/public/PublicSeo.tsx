@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { LANGS, type LangCode } from '@/i18n'
 import { useLanguage } from '@/i18n/useLanguage'
 
-const SITE_NAME = 'EMC — مركز ماستر التعليمي'
+const SITE_NAME = 'EMC مركز ماستر التعليمي'
 
 /** M3 i18n: og:locale per supported language — Arabic remains the default. */
 const OG_LOCALES: Record<LangCode, string> = {
@@ -55,7 +55,7 @@ export default function PublicSeo({
       : null}
       <link rel="canonical" href={url} />
       {/* M3 i18n: language is client-side for now, so every hreflang points at the
-          same canonical URL — the forward-compatible baseline for per-locale URLs. */}
+          same canonical URL the forward-compatible baseline for per-locale URLs. */}
       {LANGS.map((l) => (
         <link key={l.code} rel="alternate" hrefLang={l.code} href={url} />
       ))}

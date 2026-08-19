@@ -32,7 +32,7 @@ export default function RevenueChart({
         })}
       </div>
       <p className="mt-4 text-center text-[10px] font-bold text-slate-400">
-        مخطط تقديري — يُستبدل بمكتبة رسوم عند ربط البيانات الحية
+        مخطط تقديري يُستبدل بمكتبة رسوم عند ربط البيانات الحية
       </p>
     </div>
   )

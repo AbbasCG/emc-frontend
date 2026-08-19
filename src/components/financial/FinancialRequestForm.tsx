@@ -222,7 +222,7 @@ export default function FinancialRequestForm({ initial, onClose, onSaved }: Prop
                             onChange={e => setDepartmentId(Number(e.target.value))}
                             className={`${INPUT_BASE} appearance-none pr-10 border-slate-200`}
                           >
-                            <option value="">— اختر القسم —</option>
+                            <option value=""> اختر القسم </option>
                             {ctx.departments.map(d => (
                               <option key={d.id} value={d.id}>{d.name}{d.is_leader ? ' (قائد)' : ''}</option>
                             ))}
@@ -362,13 +362,13 @@ export default function FinancialRequestForm({ initial, onClose, onSaved }: Prop
               {/* ── Section 4: المرفقات (create only) ── */}
               {!initial && (
                 <div>
-                  <SectionHeader title="المرفقات" subtitle="اختياري — يمكن إضافتها لاحقاً" />
+                  <SectionHeader title="المرفقات" subtitle="اختياري يمكن إضافتها لاحقاً" />
                   <div className="space-y-3">
                     <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 px-4 py-4 transition-colors hover:border-customBlue hover:bg-blue-50">
                       <Upload size={18} className="text-customBlue" />
                       <div>
                         <p className="text-sm font-bold text-customBlue">اختر ملفات</p>
-                        <p className="text-[11px] text-slate-400">PDF, صور, Word, Excel — حتى 20 MB</p>
+                        <p className="text-[11px] text-slate-400">PDF, صور, Word, Excel حتى 20 MB</p>
                       </div>
                       <input
                         ref={fileInputRef}

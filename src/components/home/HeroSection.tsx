@@ -41,7 +41,7 @@ export default function HeroSection() {
         badge="Educational Master Central"
         title={
           <>
-            EMC — Guiding Minds, Building Futures
+            EMC Guiding Minds, Building Futures
             <span className="mt-3 block text-xl font-black text-customOrange sm:text-2xl lg:text-[1.65rem]">
               نظام تشغيل تعليمي رقمي
             </span>
@@ -55,9 +55,9 @@ export default function HeroSection() {
         tertiaryCtaText="اطلب ورشة"
         tertiaryCtaLink="/submit-workshop"
         statsCards={[
-          { number: '+13,000', label: 'مستفيد ومستفيدة' },
-          { number: '+9,000', label: 'مسجّل في المخيمات' },
-          { number: '+50', label: 'دولة' },
+          { number: '+20,000', label: 'مستفيد ومستفيدة' },
+          { number: '+17,000', label: 'مسجّل في المخيمات' },
+          { number: '+65', label: 'دولة' },
         ]}
       />
 

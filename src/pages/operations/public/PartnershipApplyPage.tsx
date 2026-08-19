@@ -91,7 +91,7 @@ export default function PartnershipApplyPage() {
       errs.phone = 'رقم الجوال مطلوب.'
     } else {
       const parsed = parsePhoneNumberFromString(form.phone, country?.code as never)
-      if (!parsed?.isValid()) errs.phone = 'رقم الجوال غير صالح — أدخل رقماً دولياً صحيحاً.'
+      if (!parsed?.isValid()) errs.phone = 'رقم الجوال غير صالح أدخل رقماً دولياً صحيحاً.'
     }
     if (!country) errs.country = 'الدولة مطلوبة.'
     if (form.website.trim() && !/^https?:\/\/.+\..+/.test(
@@ -191,7 +191,7 @@ export default function PartnershipApplyPage() {
     <main dir="rtl" className="bg-[#f4f7fb] pt-20">
       <PublicSeo
         title="طلب شراكة مؤسسية"
-        description="عرّف بمؤسستك واقترح فكرة التعاون عبر نموذج طلب الشراكة — يدرس فريق الشراكات في EMC طلبكم ثم يتواصل معكم عبر البريد الإلكتروني لمناقشة الخطوات التالية."
+        description="عرّف بمؤسستك واقترح فكرة التعاون عبر نموذج طلب الشراكة يدرس فريق الشراكات في EMC طلبكم ثم يتواصل معكم عبر البريد الإلكتروني لمناقشة الخطوات التالية."
         path="/partnerships/apply"
       />
       <PageHeader
@@ -262,7 +262,7 @@ export default function PartnershipApplyPage() {
                 className={`${inputCls} ${fieldErrors.type ? errorInputCls : ''}`}
                 {...fieldProps('type')}
               >
-                <option value="">— اختر —</option>
+                <option value=""> اختر </option>
                 {ORG_TYPES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <FieldError name="type" message={fieldErrors.type} />
@@ -368,7 +368,7 @@ export default function PartnershipApplyPage() {
                 className={`${inputCls} ${fieldErrors.partnership_type ? errorInputCls : ''}`}
                 {...fieldProps('partnership_type')}
               >
-                <option value="">— اختر —</option>
+                <option value=""> اختر </option>
                 {PARTNERSHIP_TYPES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <FieldError name="partnership_type" message={fieldErrors.partnership_type} />

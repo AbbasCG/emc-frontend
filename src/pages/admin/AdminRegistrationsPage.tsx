@@ -138,7 +138,7 @@ function DetailDrawer({
     if (!open || !registrationId) return
     fetchAdminRegistrationDetail(registrationId)
       .then(setDetail)
-      .catch(() => {/* ignore — show whatever we have */})
+.catch(() => {/* ignore show whatever we have */})
       .finally(() => setLoading(false))
   }, [open, registrationId])
 
@@ -178,7 +178,7 @@ function DetailDrawer({
         onClick={onClose}
         style={{ animation: 'fadeIn 0.2s ease-out' }}
       />
-      {/* Drawer — right side */}
+      {/* Drawer right side */}
       <div
         className="fixed bottom-0 right-0 top-0 z-50 flex w-full flex-col bg-white shadow-2xl sm:w-[480px] overflow-hidden"
         style={{ animation: 'slideInDrawer 0.25s cubic-bezier(0.25,0.46,0.45,0.94)' }}

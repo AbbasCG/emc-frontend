@@ -436,7 +436,7 @@ export default function VolunteerRequestDetailModal({
               </div>
             </SectionCard>
 
-            {/* 5. Motivation — full width on md when paired with empty slot, span 2 if alone */}
+            {/* 5. Motivation full width on md when paired with empty slot, span 2 if alone */}
             <SectionCard
               title="الدافع للتطوع"
               icon={<HeartHandshake className="h-3.5 w-3.5" />}
@@ -471,12 +471,12 @@ export default function VolunteerRequestDetailModal({
               )}
             </SectionCard>
 
-            {/* Accepted status notice — link to accepted volunteers page */}
+            {/* Accepted status notice link to accepted volunteers page */}
             {req.status === 'accepted' && (
               <div className="md:col-span-2 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-3">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                 <p className="flex-1 text-[12px] font-bold text-emerald-800">
-                  تم قبول الطلب — يمكن تحويل المتطوع إلى عضو من قائمة المتطوعين المقبولين.
+                  تم قبول الطلب يمكن تحويل المتطوع إلى عضو من قائمة المتطوعين المقبولين.
                 </p>
                 <Link
                   to="/dashboard/volunteer"
@@ -489,7 +489,7 @@ export default function VolunteerRequestDetailModal({
               </div>
             )}
 
-            {/* 7. Admin actions — in scroll on mobile, also sticky footer below */}
+            {/* 7. Admin actions in scroll on mobile, also sticky footer below */}
             <SectionCard
               title="إجراءات الإدارة"
               icon={<UserCheck className="h-3.5 w-3.5" />}
@@ -565,11 +565,11 @@ export default function VolunteerRequestDetailModal({
           </div>
         </div>
 
-        {/* Sticky save hint when dirty — compact footer */}
+        {/* Sticky save hint when dirty compact footer */}
         {dirty && (
           <footer className="shrink-0 border-t border-[#F28C00]/20 bg-[#F28C00]/[0.06] px-4 py-2.5 sm:px-6">
             <p className="text-center text-[11px] font-medium text-[#0C2A4B]">
-              لديك تغييرات غير محفوظة — اضغط «حفظ التغييرات» قبل الإغلاق
+              لديك تغييرات غير محفوظة اضغط «حفظ التغييرات» قبل الإغلاق
             </p>
           </footer>
         )}

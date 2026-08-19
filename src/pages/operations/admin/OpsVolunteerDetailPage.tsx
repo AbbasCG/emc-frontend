@@ -20,7 +20,7 @@ export default function OpsVolunteerDetailPage() {
   const [depts, setDepts] = useState<WorkspaceDepartment[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [notes] = useState('مساحة الملاحظات الداخلية — قيد ربط الـ API.')
+  const [notes] = useState('مساحة الملاحظات الداخلية قيد ربط الـ API.')
 
   // Re-arm the loading state during render when the route id changes (react.dev
   // "adjusting state when a prop changes"), so the fetch effect below never has to
@@ -142,7 +142,7 @@ export default function OpsVolunteerDetailPage() {
               onChange={(e) => patchDept(e.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue"
             >
-              <option value="">— اختر —</option>
+              <option value=""> اختر </option>
               {depts.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.title}

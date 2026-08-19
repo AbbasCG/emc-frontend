@@ -492,7 +492,7 @@ export default function VolunteerApply() {
     <div className="bg-paper pt-20" dir="rtl">
       <PublicSeo
         title="تقديم طلب التطوع"
-        description="قدّم طلب التطوع مع فريق EMC عبر نموذج إلكتروني بسيط: بياناتك، الإدارة التي تفضّل المساهمة فيها، خبراتك ومدى توفرك الأسبوعي — ويتواصل معك الفريق بعد المراجعة."
+        description="قدّم طلب التطوع مع فريق EMC عبر نموذج إلكتروني بسيط: بياناتك، الإدارة التي تفضّل المساهمة فيها، خبراتك ومدى توفرك الأسبوعي ويتواصل معك الفريق بعد المراجعة."
         path="/volunteer/apply"
       />
       <PageHeader
@@ -695,7 +695,7 @@ export default function VolunteerApply() {
                       <Textarea
                         value={form.previous_experience}
                         onChange={(v) => set('previous_experience', v)}
-                        placeholder="اختياري — اذكر أي تجارب تطوع سابقة"
+                        placeholder="اختياري اذكر أي تجارب تطوع سابقة"
                         rows={3}
                       />
                     </Field>
@@ -748,7 +748,7 @@ export default function VolunteerApply() {
                       <Textarea
                         value={form.notes}
                         onChange={(v) => set('notes', v)}
-                        placeholder="اختياري — أي شيء آخر تودّ إضافته"
+                        placeholder="اختياري أي شيء آخر تودّ إضافته"
                         rows={3}
                       />
                     </Field>

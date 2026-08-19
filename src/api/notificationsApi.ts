@@ -193,7 +193,7 @@ function resolveReadAt(raw: Record<string, unknown>): string | null {
  * "يوليو 2026، 09:00" as orphaned text with the wrong day gone.
  */
 function sanitizeNotificationBody(body: string): string {
-  return body.replace(/—\s*الموعد:\s*(\d{4}-\d{2}-\d{2}T[^\s،"]+)/g, (_match, raw: string) => {
+ return body.replace(/\s*الموعد:\s*(\d{4}-\d{2}-\d{2}T[^\s،"]+)/g, (_match, raw: string) => {
     const d = new Date(raw)
     if (!Number.isNaN(d.getTime())) {
       try {
@@ -207,7 +207,7 @@ function sanitizeNotificationBody(body: string): string {
           minute: '2-digit',
           hour12: false,
         }).format(d)
-        return `— الموعد: ${formatted}`
+        return ` الموعد: ${formatted}`
       } catch {
         return ''
       }
@@ -322,9 +322,9 @@ export async function deleteNotification(id: number): Promise<void> {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   Notification Center — filtered/paginated fetch + pin/archive/bulk.
+   Notification Center filtered/paginated fetch + pin/archive/bulk.
    Additive to the functions above (which remain used as-is by the
-   notification bell/drawer/dashboard hook — unchanged signatures).
+   notification bell/drawer/dashboard hook unchanged signatures).
 ══════════════════════════════════════════════════════════════════ */
 
 export type NotificationArchivedFilter = '0' | '1' | 'all'

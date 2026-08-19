@@ -321,7 +321,7 @@ export default function Contact() {
             )}
 
             <form onSubmit={handleSubmit} noValidate className="mt-7 grid gap-5">
-              {/* honeypot — invisible to real users, bots auto-fill it */}
+              {/* honeypot invisible to real users, bots auto-fill it */}
               <input name="_honey" type="text" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" aria-hidden="true" />
 
               <div className="grid gap-5 sm:grid-cols-2">

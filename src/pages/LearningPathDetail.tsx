@@ -363,7 +363,7 @@ export default function LearningPathDetail() {
     durationLabel || weeklyLoad ?
       [[durationLabel, weeklyLoad].filter(Boolean).join(' · '), commitmentNote]
         .filter(Boolean)
-        .join(' — ')
+.join(' ')
     : null
 
   const whatsappCourses = (path.courses ?? []).filter((c) => c.whatsapp_community_url)
@@ -461,7 +461,7 @@ export default function LearningPathDetail() {
                 <span className="text-white">{path.title}</span>
               </nav>
 
-              {/* Kicker — plain text meta, no chips */}
+              {/* Kicker plain text meta, no chips */}
               <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold tracking-wide text-brand-200">
                 <span>مسار تعليمي</span>
                 {path.is_featured && (
@@ -506,14 +506,14 @@ export default function LearningPathDetail() {
                 </p>
               )}
 
-              {/* المدة بالأشهر + الحمل الأسبوعي — the head's load-bearing statement */}
+              {/* المدة بالأشهر + الحمل الأسبوعي the head's load-bearing statement */}
               {commitmentLine && (
                 <p className="mb-8 max-w-2xl font-display text-2xl font-black leading-snug tracking-tight text-white sm:text-3xl">
                   {commitmentLine}
                 </p>
               )}
 
-              {/* Quick stats — plain text with icons */}
+              {/* Quick stats plain text with icons */}
               <div className="flex flex-wrap gap-6 text-sm">
                 {durationLabel && (
                   <div className="flex items-center gap-2">
@@ -543,7 +543,7 @@ export default function LearningPathDetail() {
               </div>
             </motion.div>
 
-            {/* ── 2 · صندوق الشراء — whitespace + hairlines, not a card ── */}
+            {/* ── 2 · صندوق الشراء whitespace + hairlines, not a card ── */}
             <motion.div
               variants={fadeUp}
               initial="hidden"
@@ -576,11 +576,11 @@ export default function LearningPathDetail() {
                 )}
               </div>
 
-              {/* Components-alone vs the track — collapsed, and only when every
+              {/* Components-alone vs the track collapsed, and only when every
                   component price is real (the component gates itself). */}
               <ValueBreakdown path={path} tone="dark" className="mt-4" />
 
-              {/* §1.3 — seats are the only urgency, and only when the number is real. */}
+              {/* §1.3 seats are the only urgency, and only when the number is real. */}
               {seatsUrgency && (
                 <p className="mt-4 text-sm font-bold text-accent-300">{seatsUrgency}</p>
               )}
@@ -591,7 +591,7 @@ export default function LearningPathDetail() {
                   <p className="mt-2 text-center text-xs text-accent-300">{enrollMsg}</p>
                 )}
 
-                {/* §8 — the launch promise and the guarantee, verbatim from webSpec. */}
+                {/* §8 the launch promise and the guarantee, verbatim from webSpec. */}
                 <div className="mt-5 border-t border-white/15 pt-4">
                   <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
                   <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
@@ -640,7 +640,7 @@ export default function LearningPathDetail() {
           </motion.section>
         )}
 
-        {/* ── 4 · رحلتك شهراً بشهر — the centrepiece, full page width.
+        {/* ── 4 · رحلتك شهراً بشهر the centrepiece, full page width.
             The wrapper is gated on the same condition the component uses, so an
             empty path never leaves a block of dead vertical space behind. ── */}
         {(path.courses ?? []).length > 0 && (
@@ -658,7 +658,7 @@ export default function LearningPathDetail() {
               </motion.div>
             )}
 
-            {/* ── 6 · the professional-outcome statement — verbatim, calm, bounded ── */}
+            {/* ── 6 · the professional-outcome statement verbatim, calm, bounded ── */}
             {professionalOutcome && (
               <motion.section {...inViewProps}>
                 <div className="emc-hairline" aria-hidden />
@@ -695,7 +695,7 @@ export default function LearningPathDetail() {
               </motion.section>
             )}
 
-            {/* Schedule info — plain rows, no box (§1.3: study rhythm, never a start date) */}
+            {/* Schedule info plain rows, no box (§1.3: study rhythm, never a start date) */}
             {(path.study_days_per_week != null ||
               (path.study_days && path.study_days.length > 0) ||
               path.study_time ||
@@ -731,7 +731,7 @@ export default function LearningPathDetail() {
               </motion.section>
             )}
 
-            {/* WhatsApp communities for enrolled students — editorial rows */}
+            {/* WhatsApp communities for enrolled students editorial rows */}
             {enrollStatus.enrolled && whatsappCourses.length > 0 && (
               <motion.section {...inViewProps}>
                 <h2 className={SECTION_TITLE}>مجتمعات الواتساب للدورات</h2>
@@ -756,7 +756,7 @@ export default function LearningPathDetail() {
               </motion.section>
             )}
 
-            {/* Instructor — plain row */}
+            {/* Instructor plain row */}
             {path.instructor && (
               <motion.section {...inViewProps}>
                 <h2 className={SECTION_TITLE}>المدرب</h2>
@@ -781,7 +781,7 @@ export default function LearningPathDetail() {
               </motion.section>
             )}
 
-            {/* ── 7a · شهادة الإتمام — editorial statement between hairlines ── */}
+            {/* ── 7a · شهادة الإتمام editorial statement between hairlines ── */}
             {path.certificate_name && (
               <motion.section {...inViewProps}>
                 <div className="emc-hairline" aria-hidden />
@@ -801,7 +801,7 @@ export default function LearningPathDetail() {
               </motion.section>
             )}
 
-            {/* ── 7b · الأسئلة الشائعة — path data only ── */}
+            {/* ── 7b · الأسئلة الشائعة path data only ── */}
             {faq.length > 0 && (
               <motion.section {...inViewProps}>
                 <h2 className={SECTION_TITLE}>الأسئلة الشائعة</h2>
@@ -820,7 +820,7 @@ export default function LearningPathDetail() {
             )}
           </div>
 
-          {/* Sticky re-offer — the same single decision, never a competing one */}
+          {/* Sticky re-offer the same single decision, never a competing one */}
           <aside className="hidden lg:block">
             <div className="sticky top-28 text-right">
               <div className="emc-hairline" aria-hidden />
@@ -896,13 +896,13 @@ export default function LearningPathDetail() {
         </div>
       </div>
 
-      {/* ── 7c · closing CTA — the hesitant reader's exit that still converts ── */}
+      {/* ── 7c · closing CTA the hesitant reader's exit that still converts ── */}
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="emc-hairline" aria-hidden />
         <div className="flex flex-col gap-6 py-10 text-right lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="font-display text-xl font-black leading-snug tracking-tight text-deepBlue sm:text-2xl">
-              متردد؟ ابدأ بدورة واحدة — وقيمتها تُخصم من المسار لاحقاً
+              متردد؟ ابدأ بدورة واحدة وقيمتها تُخصم من المسار لاحقاً
             </p>
             <p className="mt-2 text-sm leading-7 text-ink-400">{UPGRADE_COUPON_NOTE}</p>
           </div>
@@ -917,7 +917,7 @@ export default function LearningPathDetail() {
         <div className="emc-hairline" aria-hidden />
       </section>
 
-      {/* Mobile CTA bar — the only persistent CTA on phones: it MUST enroll */}
+      {/* Mobile CTA bar the only persistent CTA on phones: it MUST enroll */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-white p-4 lg:hidden">
         <div className="flex items-center justify-between gap-4">
           <p dir="ltr" className="emc-stat-num text-2xl">

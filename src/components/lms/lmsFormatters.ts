@@ -43,7 +43,7 @@ export function fmtDateTime(raw: string | null | undefined): string {
   try {
     const d = new Date(raw)
     if (isNaN(d.getTime())) return raw
-    return `${arLong(d)} — ${en24h.format(d)}`
+    return `${arLong(d)} ${en24h.format(d)}`
   } catch { return raw ?? '—' }
 }
 
@@ -132,15 +132,15 @@ export function formatStudentDateTimeRange(
     if (isNaN(start.getTime())) return '—'
     const datePart  = arLong(start)
     const startTime = en24h.format(start)
-    if (!endsAt) return `${datePart} — ${startTime}`
+    if (!endsAt) return `${datePart} ${startTime}`
     const end = new Date(endsAt)
-    if (isNaN(end.getTime())) return `${datePart} — ${startTime}`
+    if (isNaN(end.getTime())) return `${datePart} ${startTime}`
     const endTime = en24h.format(end)
     const dayFmt = new Intl.DateTimeFormat('en', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
     if (dayFmt.format(start) === dayFmt.format(end)) {
-      return `${datePart} — ${startTime} - ${endTime}`
+      return `${datePart} ${startTime} - ${endTime}`
     }
-    return `${datePart} — ${startTime} - ${arLong(end)} — ${endTime}`
+    return `${datePart} ${startTime} - ${arLong(end)} ${endTime}`
   } catch { return startsAt ?? '—' }
 }
 

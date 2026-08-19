@@ -328,7 +328,7 @@ export function ProductUpdateDetailDrawer({
 
               {item.update_type === 'mandatory_update' && (
                 <div className="mt-5 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-xs font-bold leading-relaxed text-indigo-700">
-                  هذا التحديث إلزامي — يجب على المستخدم الضغط على «فهمت» قبل الاستمرار.
+                  هذا التحديث إلزامي يجب على المستخدم الضغط على «فهمت» قبل الاستمرار.
                 </div>
               )}
 
@@ -338,10 +338,10 @@ export function ProductUpdateDetailDrawer({
                 </p>
               )}
 
-              {/* Next action — browse all updates */}
+              {/* Next action browse all updates */}
               <section
                 className="mt-8 border-t border-ink-100/90 pt-8 pb-8"
-                aria-label="الإجراء التالي — عرض جميع التحديثات"
+                aria-label="الإجراء التالي عرض جميع التحديثات"
               >
                 <motion.div
                   initial={reduce ? false : { opacity: 0, y: 10 }}

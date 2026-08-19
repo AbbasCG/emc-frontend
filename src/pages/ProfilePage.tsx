@@ -302,13 +302,13 @@ export default function ProfilePage() {
     >
       {error ?
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-900">
-          تعذّر قراءة بيانات الملف الشخصي — يُكمَل النموذج من الجلسة الحالية.
+          تعذّر قراءة بيانات الملف الشخصي يُكمَل النموذج من الجلسة الحالية.
         </div>
       : null}
 
       {/* Page header */}
       <div className="border-b border-[#0C2A4B]/[0.07] pb-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#0077B6]">EMC — مركز التعلم</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#0077B6]">EMC مركز التعلم</p>
         <h1 className="mt-2 text-[1.75rem] font-black leading-tight tracking-tight text-[#0C2A4B]">
           الملف الشخصي
         </h1>
@@ -463,7 +463,7 @@ export default function ProfilePage() {
             </div>
           </motion.section>
 
-          {/* نبذة عني — for instructors only */}
+          {/* نبذة عني for instructors only */}
           {isInstructorUser ?
             <motion.section
               layout

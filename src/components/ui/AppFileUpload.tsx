@@ -158,7 +158,7 @@ export default function AppFileUpload({
 
   return (
     <div className="grid min-w-0 gap-2 overflow-hidden text-right">
-      {/* Label row — stacks on narrow screens; never forces horizontal overflow */}
+      {/* Label row stacks on narrow screens; never forces horizontal overflow */}
       <div className="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-1">
         <label htmlFor={inputId} className="min-w-0 text-sm font-bold text-deepBlue">
           {label}

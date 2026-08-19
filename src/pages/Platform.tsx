@@ -102,7 +102,7 @@ export default function Platform() {
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.55 }}
           >
-            {/* Local V3 dawn-gradient panel (sea palette only) — replaces the former
+            {/* Local V3 dawn-gradient panel (sea palette only) replaces the former
                 externally-hotlinked Unsplash photo, which was brand-foreign and rendered
                 as a broken block when the third-party host was blocked. */}
             <div

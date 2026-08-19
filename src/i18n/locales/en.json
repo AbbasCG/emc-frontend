@@ -5,7 +5,7 @@
     "approvedBy": "founder"
   },
   "brand": {
-    "logoAlt": "EMC — Educational Mastar Central"
+    "logoAlt": "EMC Educational Mastar Central"
   },
   "nav": {
     "home": "Home",
@@ -15,7 +15,7 @@
     "workshops": "Free Workshops",
     "startJourney": "Start Your Journey",
     "aria": {
-      "homeLink": "EMC — Home page",
+      "homeLink": "EMC Home page",
       "mainMenu": "Main menu",
       "openMenu": "Open menu",
       "closeMenu": "Close menu",
@@ -95,8 +95,8 @@
   "about": {
     "hero": {
       "badge": "About EMC",
-      "title": "We are not starting over — we are completing what we built",
-      "subtitle": "An educational and development platform building bridges between knowledge, skills, and opportunities — in professional Arabic and to global standards.",
+      "title": "We are not starting over we are completing what we built",
+      "subtitle": "An educational and development platform building bridges between knowledge, skills, and opportunities in professional Arabic and to global standards.",
       "breadcrumbCurrent": "About EMC",
       "primaryCta": "Explore Programs",
       "secondaryCta": "Contact Us",
@@ -118,7 +118,7 @@
     "who": {
       "eyebrow": "Who We Are",
       "title": "An Empowerment-Through-Education Platform",
-      "paragraph": "We support individuals through transitions — study, work, migration, or re-setting priorities — with programs and paths that are continuously updated to reflect market and community needs.",
+      "paragraph": "We support individuals through transitions study, work, migration, or re-setting priorities with programs and paths that are continuously updated to reflect market and community needs.",
       "glanceTitle": "Quick Glance",
       "glance": {
         "academic": {
@@ -141,7 +141,7 @@
     },
     "journey": {
       "title": "Your Journey with EMC",
-      "subtitle": "From the first step to continuous growth — at a clear pace without complexity.",
+      "subtitle": "From the first step to continuous growth at a clear pace without complexity.",
       "steps": {
         "explore": {
           "title": "Explore",
@@ -173,7 +173,7 @@
     "roadmap": {
       "eyebrow": "Toward the Future",
       "title": "The EMC Roadmap",
-      "description": "Stages of developing the ecosystem with professional honesty — we update priorities as we learn from the community and partners.",
+      "description": "Stages of developing the ecosystem with professional honesty we update priorities as we learn from the community and partners.",
       "milestones": {
         "unify": {
           "title": "Unifying the digital experience",
@@ -181,7 +181,7 @@
         },
         "partnerships": {
           "title": "Expanding institutional partnerships",
-          "description": "Clear agreements with universities, institutions, and trainers — with documented quality and governance standards."
+          "description": "Clear agreements with universities, institutions, and trainers with documented quality and governance standards."
         },
         "impact": {
           "title": "Periodic impact reports",
@@ -196,14 +196,14 @@
     "leadership": {
       "eyebrow": "From Management",
       "title": "A Word to the Learning Community",
-      "description": "An institutional commitment to quality and transparency — no fictitious names; official staffing updates are announced through approved channels.",
-      "quote": "We believe good education starts with respecting the learner: clarity of expectations, content that gets updated, and a team accountable to the community. Our goal is not \"biggest, fastest\" — but building a lasting professional Arabic reference.",
-      "attribution": "Senior Management — Educational Master Central (EMC)"
+      "description": "An institutional commitment to quality and transparency no fictitious names; official staffing updates are announced through approved channels.",
+      "quote": "We believe good education starts with respecting the learner: clarity of expectations, content that gets updated, and a team accountable to the community. Our goal is not \"biggest, fastest\" but building a lasting professional Arabic reference.",
+      "attribution": "Senior Management Educational Master Central (EMC)"
     },
     "differentiators": {
       "eyebrow": "Distinction",
       "title": "What Sets EMC Apart?",
-      "subtitle": "We distinguish ourselves by connecting content, guidance, and partnerships — not by quick promises or false claims.",
+      "subtitle": "We distinguish ourselves by connecting content, guidance, and partnerships not by quick promises or false claims.",
       "items": {
         "ecosystem": {
           "title": "An ecosystem, not a catalog",
@@ -211,7 +211,7 @@
         },
         "audience": {
           "title": "A broad audience with real needs",
-          "description": "Students, migrants, professionals, and growth seekers — we design practical paths for them, not empty slogans."
+          "description": "Students, migrants, professionals, and growth seekers we design practical paths for them, not empty slogans."
         },
         "ai": {
           "title": "AI with responsibility",
@@ -272,7 +272,7 @@
     },
     "cta": {
       "title": "Join the EMC Community",
-      "description": "Whether you are a learner, partner, or volunteer — there is a path for you within our ecosystem.",
+      "description": "Whether you are a learner, partner, or volunteer there is a path for you within our ecosystem.",
       "primary": "Explore the Fields",
       "secondary": "Partnership"
     }
@@ -281,7 +281,7 @@
     "hero": {
       "eyebrow": "We're Here to Help",
       "title": "Contact Us",
-      "subtitle": "Choose the right contact path: general, program, partnership, volunteering, or technical support — then send your message.",
+      "subtitle": "Choose the right contact path: general, program, partnership, volunteering, or technical support then send your message.",
       "breadcrumbCurrent": "Contact Us",
       "faqCta": "FAQ"
     },
@@ -350,12 +350,12 @@
     },
     "workshopCard": {
       "title": "Request a Workshop or Program",
-      "body": "To ensure we receive all details (audience, time, location, price…), use the dedicated submission form — without breaking API integration.",
+      "body": "To ensure we receive all details (audience, time, location, price…), use the dedicated submission form without breaking API integration.",
       "cta": "Go to the Workshop Form"
     },
     "social": {
       "title": "Social Channels",
-      "description": "Official links will be added here once approved — please rely on the official email until then.",
+      "description": "Official links will be added here once approved please rely on the official email until then.",
       "notePrefix": "For extra safety, prefer contacting us via the approved email"
     },
     "location": {
@@ -375,7 +375,7 @@
   "tracks": {
     "header": {
       "title": "The Twelve Tracks",
-      "subtitle": "EMC's official tracks — one matrix uniting academic, global, digital, and professional education in a premium Arabic experience.",
+      "subtitle": "EMC's official tracks one matrix uniting academic, global, digital, and professional education in a premium Arabic experience.",
       "breadcrumbCurrent": "Tracks"
     },
     "eyebrow": "Tracks",
@@ -386,18 +386,18 @@
     "hero": {
       "eyebrow": "Organizational Structure",
       "title": "EMC Departments",
-      "subtitle": "An administrative structure that ensures program quality, smooth operations, and sustainable partnerships — with clear governance and professional accountability.",
+      "subtitle": "An administrative structure that ensures program quality, smooth operations, and sustainable partnerships with clear governance and professional accountability.",
       "breadcrumbCurrent": "Departments"
     },
     "why": {
       "eyebrow": "Why do we need specialized departments?",
       "title": "Organization That Serves Learning Quality",
-      "description": "Educational programs need planning, operations, technology, and partnerships — all of which require specialized teams collaborating under a unified vision.",
-      "body": "Dividing work into departments does not mean complexity — it means every decision is tied to clear accountability: from program design to participant experience, and from institutional communication to quality and compliance."
+      "description": "Educational programs need planning, operations, technology, and partnerships all of which require specialized teams collaborating under a unified vision.",
+      "body": "Dividing work into departments does not mean complexity it means every decision is tied to clear accountability: from program design to participant experience, and from institutional communication to quality and compliance."
     },
     "flow": {
       "title": "How Do the Departments Work Together?",
-      "description": "An institutional collaboration model: Programs designs the content, Operations executes, Technology supports, Quality reviews — and Partnerships expands the impact.",
+      "description": "An institutional collaboration model: Programs designs the content, Operations executes, Technology supports, Quality reviews and Partnerships expands the impact.",
       "phaseBadge": "Phase {{num}}",
       "phases": {
         "design": {
@@ -416,7 +416,7 @@
     },
     "governance": {
       "title": "Governance & Quality",
-      "description": "Quality and governance management is not a slogan — it is a mechanism for reviewing policies, managing risks, and improving the experience based on participant and partner feedback.",
+      "description": "Quality and governance management is not a slogan it is a mechanism for reviewing policies, managing risks, and improving the experience based on participant and partner feedback.",
       "points": {
         "policies": "Clear policies for privacy, safety, and complaints.",
         "review": "Periodic review of content quality and the learning experience.",
@@ -426,7 +426,7 @@
     },
     "cta": {
       "title": "Join the EMC Team",
-      "description": "If you have experience in training, operations, technology, or marketing — you can have a role within one of the departments.",
+      "description": "If you have experience in training, operations, technology, or marketing you can have a role within one of the departments.",
       "primary": "Volunteering & Joining Page",
       "secondary": "Contact About a Job/Collaboration"
     }
@@ -435,13 +435,13 @@
     "hero": {
       "eyebrow": "A Responsible Collaboration Model",
       "title": "Partnerships",
-      "subtitle": "We welcome universities, schools, companies, trainers, community initiatives, and supporting organizations — on terms of clarity and a shared goal.",
+      "subtitle": "We welcome universities, schools, companies, trainers, community initiatives, and supporting organizations on terms of clarity and a shared goal.",
       "breadcrumbCurrent": "Partnerships"
     },
     "why": {
       "title": "Why Partner with EMC?",
-      "description": "Because we work on connecting quality education to real needs: individuals seeking a path, and institutions seeking impact — within a framework of quality and respect for the learner.",
-      "body": "We believe a successful partnership is built on defined goals, clear roles, and measurable outcomes. We do not promise \"huge instant results\" — we commit to professionalism in design, execution, and follow-up."
+      "description": "Because we work on connecting quality education to real needs: individuals seeking a path, and institutions seeking impact within a framework of quality and respect for the learner.",
+      "body": "We believe a successful partnership is built on defined goals, clear roles, and measurable outcomes. We do not promise \"huge instant results\" we commit to professionalism in design, execution, and follow-up."
     },
     "typesTitle": "Partnership Types",
     "benefits": {
@@ -456,7 +456,7 @@
     },
     "process": {
       "title": "The Collaboration Path",
-      "description": "Simple steps that reduce ambiguity and speed up the start — with flexibility per partner type.",
+      "description": "Simple steps that reduce ambiguity and speed up the start with flexibility per partner type.",
       "stageBadge": "Phase {{num}}",
       "steps": {
         "initial": {
@@ -488,7 +488,7 @@
     },
     "contactBlock": {
       "title": "Contact & Partnership Block",
-      "body": "Send us your partnership idea, organization type, and target audience. We will reply with a message clarifying the potential for collaboration and the next step — with no commitment before mutual agreement."
+      "body": "Send us your partnership idea, organization type, and target audience. We will reply with a message clarifying the potential for collaboration and the next step with no commitment before mutual agreement."
     },
     "cta": {
       "title": "Start the Partnership Conversation",
@@ -501,7 +501,7 @@
     "hero": {
       "eyebrow": "Join the Impact",
       "title": "Volunteering & Joining the EMC Team",
-      "subtitle": "An opportunity to contribute to high-quality educational programs — with hands-on learning and a disciplined team experience.",
+      "subtitle": "An opportunity to contribute to high-quality educational programs with hands-on learning and a disciplined team experience.",
       "breadcrumbCurrent": "Volunteering",
       "primaryCta": "Apply to Volunteer",
       "secondaryCta": "Meet the Team"
@@ -526,7 +526,7 @@
     "roles": {
       "badge": "Available Areas",
       "title": "Roles and Areas Where You Can Contribute",
-      "description": "We do not promise thousands of \"magical\" hours — we define roles tied to our departments based on the programs' actual needs."
+      "description": "We do not promise thousands of \"magical\" hours we define roles tied to our departments based on the programs' actual needs."
     },
     "journey": {
       "badge": "Your Journey with Us",
@@ -535,7 +535,7 @@
       "steps": {
         "interest": {
           "title": "Express interest",
-          "description": "Send us a brief on your experience, field, and available time — with no commitment."
+          "description": "Send us a brief on your experience, field, and available time with no commitment."
         },
         "interview": {
           "title": "Short interview",
@@ -559,7 +559,7 @@
         "time": {
           "title": "A defined weekly time",
           "lines": {
-            "range": "Usually between 2—6 hours depending on the role and stage.",
+ "range": "Usually between 26 hours depending on the role and stage.",
             "scheduling": "Advance scheduling with room for reasonable adjustment."
           }
         },
@@ -580,7 +580,7 @@
         "communication": "Clear communication in Arabic (English is a plus when needed).",
         "punctuality": "Discipline with deadlines and documentation.",
         "privacy": "Respect for participants' privacy and platform policies.",
-        "expertise": "Experience in training, editing, design, or operations — depending on the role.",
+        "expertise": "Experience in training, editing, design, or operations depending on the role.",
         "learning": "A desire to learn and benefit from guidance.",
         "teamwork": "A collaborative spirit within a diverse team."
       }
@@ -588,7 +588,7 @@
     "cta": {
       "badge": "Ready to join?",
       "title": "Start Your Volunteering Journey with EMC",
-      "description": "Submit your application via the dedicated form — enter your details, choose your department, and share your experience. We will review your application and contact you soon.",
+      "description": "Submit your application via the dedicated form enter your details, choose your department, and share your experience. We will review your application and contact you soon.",
       "primary": "Apply to Volunteer",
       "secondary": "Meet the Team"
     }
@@ -596,13 +596,13 @@
   "platform": {
     "header": {
       "title": "The Platform",
-      "subtitle": "The EMC platform — an integrated learning environment designed to help you grow with confidence and professionalism.",
+      "subtitle": "The EMC platform an integrated learning environment designed to help you grow with confidence and professionalism.",
       "breadcrumbCurrent": "The Platform"
     },
     "intro": {
       "eyebrow": "A global digital learning platform",
       "title": "Why EMC?",
-      "body": "The EMC platform is designed to be your companion at every step of your learning journey — from choosing a program to earning your certificate and landing your opportunity. We combine academic expertise, professional training, and personal support in one integrated environment.",
+      "body": "The EMC platform is designed to be your companion at every step of your learning journey from choosing a program to earning your certificate and landing your opportunity. We combine academic expertise, professional training, and personal support in one integrated environment.",
       "imageAlt": "The digital learning environment at EMC",
       "tags": {
         "hybrid": "Online and in-person",
@@ -673,7 +673,7 @@
       "titleLine1": "Build your career",
       "titleLine2": "with a method that goes deep",
       "titleLine3": "not just content",
-      "subtitle": "Hands-on workshops, accredited courses, integrated paths — supervised by specialized trainers and a professional LMS that tracks every step.",
+      "subtitle": "Hands-on workshops, accredited courses, integrated paths supervised by specialized trainers and a professional LMS that tracks every step.",
       "ctaPrimary": "Explore Programs & Paths",
       "ctaSecondary": "Create a Free Account",
       "stats": {
@@ -686,7 +686,7 @@
           "label": "camp registrants"
         },
         "countries": {
-          "value": "+56",
+          "value": "+65",
           "label": "countries"
         }
       },
@@ -716,7 +716,7 @@
       "titlePrefix": "Ready to turn",
       "titleHighlight": "your ambition",
       "titleSuffix": "into a real career?",
-      "description": "Join more than 9,000 learners building their skills every day on the EMC platform — your first workshop starts today.",
+      "description": "Join more than 9,000 learners building their skills every day on the EMC platform your first workshop starts today.",
       "primary": "Browse Programs & Courses",
       "secondary": "Talk to the Team",
       "footnote": "Free to join · Arabic support · Instant start"
@@ -745,7 +745,7 @@
       "reasons": {
         "session": "Your session has expired, please log in again",
         "suspended": "This account has been suspended, please contact the administration",
-        "impersonationExpired": "The preview session has ended — your admin account has been restored.",
+        "impersonationExpired": "The preview session has ended your admin account has been restored.",
         "resetSuccess": "Your password has been reset, you can log in now."
       }
     },
@@ -875,7 +875,7 @@
       "eyebrow": "{{kind}} · Quick enrollment",
       "title": "Join and start",
       "titleWithProgram": "Join and start: {{title}}",
-      "freeNote": "Completely free — one account is all that stands between you and starting",
+      "freeNote": "Completely free one account is all that stands between you and starting",
       "stepNote": "One step stands between you and starting"
     },
     "close": "Close",
@@ -895,8 +895,8 @@
       "registerSubmitting": "Creating your account…",
       "loginSubmit": "Log in and continue",
       "loginSubmitting": "Logging in…",
-      "switchToLogin": "I have an account — log in",
-      "switchToRegister": "I don't have an account — create a new one"
+      "switchToLogin": "I have an account log in",
+      "switchToRegister": "I don't have an account create a new one"
     },
     "validation": {
       "nameRequired": "Name is required",
@@ -943,6 +943,6 @@
     }
   },
   "seo": {
-    "defaultDescription": "The EMC learning platform: courses, workshops, and Arabic-language learning paths from the Netherlands — professional education and skills development."
+    "defaultDescription": "The EMC learning platform: courses, workshops, and Arabic-language learning paths from the Netherlands professional education and skills development."
   }
 }

@@ -17,7 +17,7 @@ export default function StudentMaterialsPage() {
         <div>
           <h1 className="text-xl font-black text-deepBlue">المواد التعليمية</h1>
           <p className="mt-2 max-w-2xl text-[13px] font-semibold text-muted-700">
-            مصدر الخادم: <span className="font-mono text-[11px]">GET /student/materials</span> — معروض فقط ما يخص دوراتك
+            مصدر الخادم: <span className="font-mono text-[11px]">GET /student/materials</span> معروض فقط ما يخص دوراتك
             المسجّلة ({registrations.length}).
           </p>
           {loadError ?
@@ -44,7 +44,7 @@ export default function StudentMaterialsPage() {
           <LmsEmptyState
             icon={FolderOpen}
             title="لا توجد مواد بعد"
-            description="لا توجد مواد من الخادم لهذه الدورات حاليًا — لا يتم إنشاء محتوى وهمي هنا."
+            description="لا توجد مواد من الخادم لهذه الدورات حاليًا لا يتم إنشاء محتوى وهمي هنا."
           />
         : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {materialsScoped.map((m) => (

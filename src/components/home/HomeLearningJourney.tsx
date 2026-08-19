@@ -46,11 +46,11 @@ export default function HomeLearningJourney() {
             أربع محطات إلى الاعتماد
           </h2>
           <p className="mt-4 max-w-xl text-base font-semibold leading-8 text-foreground/60">
-            تبدأ بورشة واحدة، وتنتهي بشهادة معتمدة — كل محطة تبني على السابقة.
+            تبدأ بورشة واحدة، وتنتهي بشهادة معتمدة كل محطة تبني على السابقة.
           </p>
         </motion.div>
 
-        {/* Desktop rail — one fading hairline with the stations seated on it */}
+        {/* Desktop rail one fading hairline with the stations seated on it */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -76,7 +76,7 @@ export default function HomeLearningJourney() {
           </div>
         </motion.div>
 
-        {/* Mobile rail — the same flow, vertical along the inline-start edge */}
+        {/* Mobile rail the same flow, vertical along the inline-start edge */}
         <div className="relative mt-10 lg:hidden">
           <div aria-hidden className="absolute inset-y-2 start-5 w-px bg-line" />
           <ul className="space-y-7">

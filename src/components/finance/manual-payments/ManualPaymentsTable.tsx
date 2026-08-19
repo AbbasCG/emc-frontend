@@ -181,7 +181,7 @@ export function MobileManualPaymentCard({
 }) {
   const ref = paymentReference(p)
   const when = p.payment_date
-  const methodLabel = p.payment_method ? (PAYMENT_METHOD_AR[p.payment_method] ?? p.payment_method) : '—'
+            const methodLabel = p.payment_method ? (PAYMENT_METHOD_AR[p.payment_method] ?? p.payment_method) : '—'
 
   return (
     <article

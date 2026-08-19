@@ -39,6 +39,15 @@ function RowSkeleton() {
 // Design Language 2.0 — the card grid + pager became a single editorial list:
 // every course is an emc-row on a hairline seat, so all six read in one scan
 // (fewer clicks between landing and «تفاصيل الدورة»).
+/**
+ * Which programmes take the full width. Pattern: 1 wide → 2 side by side →
+ * 1 wide → 2 side by side … so a six-item list reads as an alternating rhythm
+ * rather than a tall single column with dead space beside it.
+ */
+function featuredSpan(index: number): boolean {
+  return index % 3 === 0
+}
+
 export default function FeaturedCoursesSection() {
   const { t } = useTranslation()
   const [courses, setCourses] = useState<Course[]>([])
@@ -67,7 +76,7 @@ export default function FeaturedCoursesSection() {
       dir="rtl"
       className="relative overflow-hidden border-y border-deepBlue/[0.05] bg-paper px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
-      {/* V3 decorative layer — one sea orb (light from the top-right) + ghost numeral */}
+      {/* V3 decorative layer one sea orb (light from the top-right) + ghost numeral */}
       <div
         aria-hidden
         className="animate-soft-float pointer-events-none absolute -right-32 -top-32 h-[26rem] w-[26rem] rounded-full bg-customBlue/10 blur-3xl"
@@ -91,14 +100,14 @@ export default function FeaturedCoursesSection() {
               {t('home.featured.title')}
             </h2>
           </div>
-          {/* De-boxed view-all — line CTA instead of a navy pill */}
+          {/* De-boxed view-all line CTA instead of a navy pill */}
           <Link to="/courses" className="emc-cta-line shrink-0 text-sm">
             {t('home.featured.viewAll')}
             <ArrowLeftIcon size={15} />
           </Link>
         </motion.div>
 
-        {/* Body — editorial list */}
+        {/* Body editorial list */}
         {loading ? (
           <div>
             <div aria-hidden className="emc-hairline" />
@@ -114,9 +123,17 @@ export default function FeaturedCoursesSection() {
             viewport={{ once: true, amount: 0.15 }}
           >
             <div aria-hidden className="emc-hairline" />
-            {courses.map((course, i) => (
-              <HomeCourseCard key={course.id} course={course} index={i} />
-            ))}
+            {/* Editorial rhythm instead of one long single column: the opening
+                programme runs full width, the next pair sits side by side, and
+                the rhythm alternates from there. Fills the page without turning
+                the list back into a grid of boxes. */}
+            <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
+              {courses.map((course, i) => (
+                <div key={course.id} className={featuredSpan(i) ? 'lg:col-span-2' : ''}>
+                  <HomeCourseCard course={course} index={i} />
+                </div>
+              ))}
+            </div>
           </motion.div>
         ) : (
           <div className="py-14 text-center">

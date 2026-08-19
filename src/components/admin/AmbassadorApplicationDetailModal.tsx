@@ -1014,7 +1014,7 @@ export default function AmbassadorApplicationDetailModal({
         {dirty && canManage && (
           <footer className="shrink-0 border-t border-[#F28C00]/20 bg-[#F28C00]/[0.06] px-4 py-2.5 sm:px-6">
             <p className="text-center text-[11px] font-medium text-[#0C2A4B]">
-              لديك تغييرات غير محفوظة — اضغط «حفظ التغييرات» قبل الإغلاق
+              لديك تغييرات غير محفوظة اضغط «حفظ التغييرات» قبل الإغلاق
             </p>
           </footer>
         )}

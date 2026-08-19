@@ -126,7 +126,7 @@ function TreeNode({ account, level = 0, onAddChild, onEdit, onDelete }: TreeNode
 
           {account.is_system && (
             <span
-              title="حساب نظامي محمي — لا يمكن حذفه أو تغيير رمزه"
+              title="حساب نظامي محمي لا يمكن حذفه أو تغيير رمزه"
               className="rounded-md border border-brand-200/60 bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-800"
             >
               نظامي 🔒
@@ -354,7 +354,7 @@ export default function ChartOfAccountsPage() {
           <div>
             <h1 className="text-2xl font-black tracking-tight text-deepBlue">شجرة الحسابات المحاسبية (Chart of Accounts)</h1>
             <p className="mt-1 text-xs font-semibold text-slate-500">
-              دليل ومخطط الهيكلية المحاسبية لمركز EMC — (أصول، التزامات، مصروفات، وإيرادات)
+              دليل ومخطط الهيكلية المحاسبية لمركز EMC (أصول، التزامات، مصروفات، وإيرادات)
             </p>
           </div>
         </div>

@@ -222,14 +222,14 @@ export default function HomeLearningTracks() {
       dir="rtl"
       className="relative scroll-mt-24 overflow-hidden bg-brand-50/40 px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
-      {/* V3 decorative layer — flying-pages texture + ghost numeral (scene signatures, max 2) */}
+      {/* V3 decorative layer flying-pages texture + ghost numeral (scene signatures, max 2) */}
       <div aria-hidden className="emc-pages-light pointer-events-none absolute inset-0 opacity-[0.05]" />
       <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
         02
       </span>
 
       <div className="relative mx-auto max-w-[1540px]">
-        {/* Header — canonical eyebrow + title-arc language */}
+        {/* Header canonical eyebrow + title-arc language */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -239,7 +239,7 @@ export default function HomeLearningTracks() {
         >
           <span className="emc-eyebrow">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-            دليل المسارات الرسمي — EMC
+            دليل المسارات الرسمي EMC
           </span>
           <h2 className="emc-title-arc is-center mt-4 font-display text-3xl font-black tracking-tight text-deepBlue [text-wrap:balance] sm:text-4xl lg:text-[2.75rem]">
             مسارات التعلّم <span className="text-customBlue">والشهادات المعتمدة</span>
@@ -249,7 +249,7 @@ export default function HomeLearningTracks() {
           </p>
         </motion.div>
 
-        {/* Tab Navigation — functional segmented control (kept) */}
+        {/* Tab Navigation functional segmented control (kept) */}
         <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-line bg-paper2/80 p-2">
           <button
             type="button"
@@ -304,7 +304,7 @@ export default function HomeLearningTracks() {
           </button>
         </div>
 
-        {/* Tab Content — editorial row lists (Design Language 2.0) */}
+        {/* Tab Content editorial row lists (Design Language 2.0) */}
         <AnimatePresence mode="wait">
           {activeTab === 'professional' && (
             <motion.div

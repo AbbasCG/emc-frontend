@@ -96,7 +96,7 @@ export default function PlacementTest() {
 
       {result === null ? (
         <div className="mt-8 max-w-2xl">
-          {/* Progress — Latin numerals (§1) */}
+          {/* Progress Latin numerals (§1) */}
           <div className="flex items-baseline justify-between gap-4">
             <p className="text-xs font-black text-ocean">
               السؤال {toLatinDigits(step + 1)} من {toLatinDigits(total)}
@@ -178,7 +178,7 @@ export default function PlacementTest() {
           </h3>
           <p className="mt-3 text-sm font-semibold leading-8 text-ink-500">{result.reason}</p>
 
-          {/* §1 — the ONE primary decision on this screen. */}
+          {/* §1 the ONE primary decision on this screen. */}
           <Link
             to={result.cta.href}
             className="emc-focus-ring mt-7 inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-base font-black text-white transition duration-250 ease-emc hover:brightness-[1.03] sm:w-auto sm:px-10"
@@ -196,7 +196,7 @@ export default function PlacementTest() {
 
           <div aria-hidden className="emc-hairline mt-10" />
 
-          {/* Optional, additive — the result above was already given in full. */}
+          {/* Optional, additive the result above was already given in full. */}
           <form onSubmit={handleEmailSubmit} className="mt-8">
             <label htmlFor="placement-email" className="block text-sm font-black text-navy">
               أرسل النتيجة إلى بريدي

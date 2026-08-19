@@ -19,5 +19,5 @@ export function initSentry(): void {
         replaysOnErrorSampleRate: 1.0,
       })
     })
-    .catch(() => { /* monitoring must never take the app down — silent skip */ })
+.catch(() => { /* monitoring must never take the app down silent skip */ })
 }

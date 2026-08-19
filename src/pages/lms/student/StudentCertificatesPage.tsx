@@ -85,7 +85,7 @@ const PHASE_LABELS: Record<DownloadPhase, string> = {
   generating: 'جاري إنشاء الشهادة…',
   preparing:  'جاري التحضير…',
   done:       'تحميل',
-  error:      'فشل — أعد المحاولة',
+  error: 'فشل أعد المحاولة',
 }
 
 function DownloadCardBtn({ cert, large }: { cert: Certificate; large?: boolean }) {
@@ -335,11 +335,11 @@ export default function StudentCertificatesPage() {
                       </p>
                     ) : cert.status === 'rejected' ? (
                       <p className="flex flex-1 items-center justify-center rounded-xl border border-orange-200 bg-orange-50/80 py-2 text-[11px] font-black text-orange-700">
-                        لم يتم اعتماد الشهادة — تواصل مع الإدارة
+                        لم يتم اعتماد الشهادة تواصل مع الإدارة
                       </p>
                     ) : cert.status === 'generation_failed' ? (
                       <p className="flex flex-1 items-center justify-center rounded-xl border border-rose-200 bg-rose-50/80 py-2 text-[11px] font-black text-rose-700">
-                        فشل إنشاء الملف — تواصل مع الإدارة
+                        فشل إنشاء الملف تواصل مع الإدارة
                       </p>
                     ) : cert.status === 'pending_generation' || cert.status === 'approved' ? (
                       <p className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50/80 py-2 text-[11px] font-black text-violet-700">

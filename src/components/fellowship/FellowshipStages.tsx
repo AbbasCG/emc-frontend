@@ -31,7 +31,7 @@ export default function FellowshipStages() {
             key={stage}
             className="relative pb-9 ps-11 text-right last:pb-0 lg:pb-0 lg:pe-8 lg:ps-0 lg:pt-11"
           >
-            {/* The rail — 2px ocean, one segment per gap: vertical on mobile, horizontal at lg. */}
+            {/* The rail 2px ocean, one segment per gap: vertical on mobile, horizontal at lg. */}
             {!isLast && (
               <span
                 aria-hidden
@@ -39,7 +39,7 @@ export default function FellowshipStages() {
               />
             )}
 
-            {/* Stage dot — Latin numeral (§1); the fifth is solid customOrange (§7.1). */}
+            {/* Stage dot Latin numeral (§1); the fifth is solid customOrange (§7.1). */}
             <span
               aria-hidden
               className={[

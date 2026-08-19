@@ -352,7 +352,7 @@ function App() {
         <AuthProvider>
           <Routes>
 
-            {/* ── Public routes — Navbar + Footer layout ── */}
+            {/* ── Public routes Navbar + Footer layout ── */}
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -373,7 +373,7 @@ function App() {
 
               {/* ── SectionErrorBoundary: public catalog cluster ── */}
               <Route element={<SectionBoundary />}>
-              {/* §4 — the orientation page the navbar's «ابدأ رحلتك» points at. */}
+              {/* §4 the orientation page the navbar's «ابدأ رحلتك» points at. */}
               <Route path="/learn" element={<Suspense fallback={<RouteFallback />}><Learn /></Suspense>} />
               <Route path="/courses" element={<Suspense fallback={<RouteFallback />}><Courses /></Suspense>} />
               <Route path="/courses/:slug" element={<Suspense fallback={<RouteFallback />}><CourseDetails /></Suspense>} />
@@ -425,7 +425,7 @@ function App() {
               </Route>
             </Route>
 
-            {/* ── Protected dashboard routes — sidebar + topbar layout ── */}
+            {/* ── Protected dashboard routes sidebar + topbar layout ── */}
             <Route element={<ProtectedRoute />}>
               {/* Pretty aliases → canonical dashboard URLs */}
               <Route path="/settings/notifications" element={<Navigate to="/dashboard/settings/notifications" replace />} />
@@ -777,7 +777,7 @@ function App() {
                   <Route path="/dashboard/admin/workshop-requests/:id" element={<Suspense fallback={<RouteFallback />}><WorkshopRequestDetailPage /></Suspense>} />
                   </Route>
 
-                  {/* ── Admin alias routes (requirement list) — redirect to canonical paths ── */}
+                  {/* ── Admin alias routes (requirement list) redirect to canonical paths ── */}
                   <Route path="/dashboard/admin/workshops" element={<Navigate to="/dashboard/super-admin/crud/workshops" replace />} />
                   <Route path="/dashboard/admin/sessions" element={<Navigate to="/dashboard/admin/lms/sessions" replace />} />
                   <Route path="/dashboard/admin/attendance" element={<Navigate to="/dashboard/admin/lms/attendance" replace />} />
@@ -810,7 +810,7 @@ function App() {
                   <Route path="/dashboard/admin/profile" element={<Navigate to="/dashboard/profile" replace />} />
                   <Route path="/dashboard/admin/members" element={<Navigate to="/dashboard/members" replace />} />
 
-                  {/* ── Admin placeholder routes — sidebar links hidden behind
+                  {/* ── Admin placeholder routes sidebar links hidden behind
                       LEGACY_HIDDEN.comingSoonAdminLinks (src/lib/featureFlags.ts, applied in
                       dashboardSidebar.tsx); routes stay reachable by URL. Deletion gated later. ── */}
                   {/* ── SectionErrorBoundary: admin placeholder / shortcut pages ── */}
@@ -821,7 +821,7 @@ function App() {
                   <Route path="/dashboard/courses" element={<Navigate to="/dashboard/admin/programs" replace />} />
                   <Route path="/dashboard/programs" element={<Navigate to="/dashboard/admin/programs" replace />} />
                   <Route path="/dashboard/reports" element={<Navigate to="/dashboard/admin/reports" replace />} />
-                  <Route path="/dashboard/students" element={<Suspense fallback={<RouteFallback />}><StudentsManagementPage pageTitle="الطلاب — المشرف" /></Suspense>} />
+                  <Route path="/dashboard/students" element={<Suspense fallback={<RouteFallback />}><StudentsManagementPage pageTitle="الطلاب المشرف" /></Suspense>} />
                   <Route path="/dashboard/registrations" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                   <Route path="/dashboard/schedule" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />
                   <Route path="/dashboard/users" element={<Suspense fallback={<RouteFallback />}><AdminComingSoonPage /></Suspense>} />

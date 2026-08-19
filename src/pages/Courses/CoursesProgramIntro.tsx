@@ -24,7 +24,7 @@ function CoursesProgramIntro({ derivedCategories, loading }: Props) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
           title="فئات البرامج"
-          description="تعرض الخانات أدناه توزيعاً حقيقياً مستخرجاً من كتالوج الدورات الحالي — مع شرح سريع لطريقة التصفية."
+          description="تعرض الخانات أدناه توزيعاً حقيقياً مستخرجاً من كتالوج الدورات الحالي مع شرح سريع لطريقة التصفية."
         />
 
         <motion.div
@@ -39,7 +39,7 @@ function CoursesProgramIntro({ derivedCategories, loading }: Props) {
             <Layers className="text-brand-500" size={28} />
             <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">دورات وورش ومسارات</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
-              تجمع الصفحة بين ورش قصيرة ودورات أطول ومسارات تعلم مترابطة — حسب توفرها في الكتالوج الحالي من الخادم.
+              تجمع الصفحة بين ورش قصيرة ودورات أطول ومسارات تعلم مترابطة حسب توفرها في الكتالوج الحالي من الخادم.
             </p>
           </div>
           <div className="rounded-3xl border border-line bg-white p-7 text-right">
@@ -53,7 +53,7 @@ function CoursesProgramIntro({ derivedCategories, loading }: Props) {
             <Sparkles className="text-brand-500" size={28} />
             <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">تصفية ذكية</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
-              استخدم الشريط اللاصق أعلاه للمزج بين السعر، نمط التقديم، المستوى، ونوع البرنامج — كلها مبنية على بياناتك
+              استخدم الشريط اللاصق أعلاه للمزج بين السعر، نمط التقديم، المستوى، ونوع البرنامج كلها مبنية على بياناتك
               الفعلية.
             </p>
           </div>

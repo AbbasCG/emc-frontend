@@ -266,7 +266,7 @@ function DrawerContent({
           )}
         </div>
 
-        {/* Written test answers — opens the full review modal (see PlacementAnswerReviewModal) */}
+        {/* Written test answers opens the full review modal (see PlacementAnswerReviewModal) */}
         {s.attempt_id != null && s.written_score != null && onViewAnswers && (
           <button
             type="button"

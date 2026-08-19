@@ -29,7 +29,7 @@ export default function FinanceDate({ value, showTime = false, className = '' }:
 
   return (
     <span className={cn('inline-flex flex-col items-start', className)}>
-      {/* dir=auto: the formatted date leads with an Arabic month name — forcing LTR
+      {/* dir=auto: the formatted date leads with an Arabic month name forcing LTR
           reordered it to "يوليو 27 2026"; pure-digit strings still lay out LTR. */}
       <span className={FINANCE_DATE_VALUE_CLASS} dir="auto">
         {dateText}

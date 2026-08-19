@@ -47,14 +47,14 @@ export default function NotificationPreferenceRow({ row, disabled, onChange, ind
           checked={!!row.channels.in_app}
           disabled={disabled || !!row.mandatory}
           onChange={() => toggle('in_app')}
-          ariaLabel={`${row.labelAr} — داخل المنصة`}
+          ariaLabel={`${row.labelAr} داخل المنصة`}
         />
         <ToggleCell
           label="البريد الإلكتروني"
           checked={!!row.channels.email}
           disabled={disabled || !!row.mandatory}
           onChange={() => toggle('email')}
-          ariaLabel={`${row.labelAr} — البريد الإلكتروني`}
+          ariaLabel={`${row.labelAr} البريد الإلكتروني`}
         />
         {showSms && (
           <ToggleCell
@@ -62,7 +62,7 @@ export default function NotificationPreferenceRow({ row, disabled, onChange, ind
             checked={!!row.channels.sms}
             disabled={disabled || !!row.mandatory}
             onChange={() => toggle('sms')}
-            ariaLabel={`${row.labelAr} — SMS`}
+            ariaLabel={`${row.labelAr} SMS`}
           />
         )}
       </div>

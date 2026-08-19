@@ -6,7 +6,7 @@ import { fadeUp } from '../../utils/course'
 const metrics = [
   {
     icon: TrendingUp,
-    value: '+13,000',
+    value: '+20,000',
     label: 'مستفيد ومستفيدة',
     desc: 'دعم للطلاب والمهنيين في مساراتهم',
     iconColor: 'text-customBlue',
@@ -15,7 +15,7 @@ const metrics = [
   },
   {
     icon: LayoutGrid,
-    value: '+9,000',
+    value: '+17,000',
     label: 'مسجّل في المخيمات',
     desc: 'ورش ودورات ومسارات',
     iconColor: 'text-customOrange',
@@ -24,7 +24,7 @@ const metrics = [
   },
   {
     icon: Globe,
-    value: '+50',
+    value: '+65',
     label: 'دولة',
     desc: 'توزيع جغرافي واسع للمشاركين',
     iconColor: 'text-customBlue',

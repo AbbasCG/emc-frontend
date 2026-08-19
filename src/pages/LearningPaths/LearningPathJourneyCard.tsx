@@ -57,7 +57,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
       className={tinted ? 'bg-brand-50/30' : 'bg-paper'}
     >
       <div className="mx-auto grid max-w-7xl items-start gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,400px)_1fr] lg:gap-14 lg:px-8 lg:py-16">
-        {/* Image — flying-page mask, floated inline-start */}
+        {/* Image flying-page mask, floated inline-start */}
         <Link to={href} aria-label={path.title} className="group block">
           <div className="emc-page-clip relative aspect-[4/3]">
             {cover ?
@@ -76,7 +76,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
 
         {/* Editorial body */}
         <div className="text-right">
-          {/* Kicker — plain text meta */}
+          {/* Kicker plain text meta */}
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-muted-500">
             <span>مسار تعليمي</span>
             {path.is_featured && (
@@ -110,7 +110,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
             }
           </p>
 
-          {/* §1.3 — seats, never dates, carry the urgency. Hidden when unknown. */}
+          {/* §1.3 seats, never dates, carry the urgency. Hidden when unknown. */}
           {seatsUrgency && !enrolled && (
             <p className="mt-1.5 text-xs font-bold text-ink-400">{seatsUrgency}</p>
           )}
@@ -127,7 +127,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
             </p>
           )}
 
-          {/* Journey rail — the loved numbered stations, drawn on the band itself */}
+          {/* Journey rail the loved numbered stations, drawn on the band itself */}
           <div className="mt-7">
             <p className="mb-3 text-[11px] font-black tracking-wide text-muted-400">محطات المسار</p>
             {stations.length > 0 ?
@@ -188,7 +188,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
             }
           </div>
 
-          {/* Meta — plain text, no chips */}
+          {/* Meta plain text, no chips */}
           {(path.students_count > 0 || duration) && (
             <p className="mt-6 flex flex-wrap items-center gap-x-2 text-sm font-semibold text-muted-500">
               {path.students_count > 0 && (
@@ -202,7 +202,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
             </p>
           )}
 
-          {/* Price + actions — seated at the band foot */}
+          {/* Price + actions seated at the band foot */}
           <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
             <div className="min-w-0">
               {price.hasPrice ?

@@ -41,7 +41,7 @@ const fmtDate = (iso: string | null | undefined): string => {
 }
 
 const fmtTime = (iso: string | null | undefined): string => {
-  if (!iso) return ''
+  if (!iso) return '—'
   try {
     return new Intl.DateTimeFormat('ar', {
       timeZone: 'Europe/Amsterdam',

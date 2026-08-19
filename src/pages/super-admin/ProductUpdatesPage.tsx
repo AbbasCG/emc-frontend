@@ -223,7 +223,7 @@ function TypeSpecificFields({
     case 'mandatory_update':
       return (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 text-xs font-bold text-indigo-700">
-          لا يمكن إغلاق هذا التحديث — المستخدم ملزم بالضغط على "فهمت" قبل الاستمرار.
+          لا يمكن إغلاق هذا التحديث المستخدم ملزم بالضغط على "فهمت" قبل الاستمرار.
         </div>
       )
 
@@ -435,7 +435,7 @@ function UpdateForm({
       {/* Mandatory update notice */}
       {updateType === 'mandatory_update' && (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs font-bold text-indigo-700">
-          ⚡ هذا التحديث إلزامي — لا يمكن للمستخدم تجاهله. يجب الضغط على "فهمت".
+          ⚡ هذا التحديث إلزامي لا يمكن للمستخدم تجاهله. يجب الضغط على "فهمت".
         </div>
       )}
 

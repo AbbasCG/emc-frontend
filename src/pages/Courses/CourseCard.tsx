@@ -74,7 +74,7 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
     >
       <article className="emc-row group">
         <div className="flex flex-col gap-4 py-6 pe-1 ps-3 text-start sm:flex-row sm:items-stretch sm:gap-6 sm:py-7 sm:ps-4">
-          {/* Cover — flying-page clip, not a rounded box */}
+          {/* Cover flying-page clip, not a rounded box */}
           <div className="emc-page-clip-sm relative aspect-video w-full shrink-0 sm:w-40 md:w-56">
             <img
               src={imgSrc}
@@ -91,7 +91,7 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
             )}
           </div>
 
-          {/* Content column — title + one calm meta line */}
+          {/* Content column title + one calm meta line */}
           <div className="flex min-w-0 flex-1 flex-col justify-center">
             {enrollmentOpen && (
               <p className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold">
@@ -118,7 +118,7 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
             </p>
           </div>
 
-          {/* End column — price above, actions seated on the row baseline */}
+          {/* End column price above, actions seated on the row baseline */}
           <div className="flex items-end justify-between gap-4 sm:w-52 sm:shrink-0 sm:flex-col sm:items-end sm:justify-end">
             <p
               dir={course.is_free ? undefined : 'ltr'}

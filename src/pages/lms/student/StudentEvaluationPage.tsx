@@ -76,7 +76,7 @@ export default function StudentEvaluationPage() {
             </div>
             <h1 className="text-2xl font-black text-deepBlue">شاركنا رأيك</h1>
             <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-slate-600">
-              تقييم واحد لكل دورة بعد حضور أو إكمال معقول — مستند إلى تسجيلاتك وبيانات التقدّم الحقيقية.
+              تقييم واحد لكل دورة بعد حضور أو إكمال معقول مستند إلى تسجيلاتك وبيانات التقدّم الحقيقية.
             </p>
             {loadError ?
               <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-950">
@@ -106,7 +106,7 @@ export default function StudentEvaluationPage() {
             onSubmit={handleSubmit}
           />
         : <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-6 text-[13px] font-bold text-rose-900">
-            لا يمكن تقييم هذه الدورة بعد — إما أنها غير مؤهّلة بعد أو سبق إرسال تقييم لها.
+            لا يمكن تقييم هذه الدورة بعد إما أنها غير مؤهّلة بعد أو سبق إرسال تقييم لها.
             <div className="mt-4">
               <Link className="font-black text-customBlue hover:underline" to="/dashboard/student/evaluation">
                 العودة لاختيار دورة
@@ -128,7 +128,7 @@ export default function StudentEvaluationPage() {
               </div>
             : eligible.length === 0 ?
               <p className="mt-6 rounded-xl border border-slate-100 bg-slate-50 px-4 py-5 text-[13px] font-semibold text-muted-700">
-                لا توجد دورات مؤهّلة للتقييم حاليًا — أكمل الجلسات أو انتظر تأكيد التسجيل من الخادم.
+                لا توجد دورات مؤهّلة للتقييم حاليًا أكمل الجلسات أو انتظر تأكيد التسجيل من الخادم.
               </p>
             : <ul className="mt-6 space-y-3">
                 {eligible.map((r) => {

@@ -615,12 +615,12 @@ export default function CreateManualPaymentModal({
                           <FieldError msg={fieldErrors.finance_account_id} />
                         </label>
                       </div>
-                      {/* Currency read-only badge — shown once an account is selected */}
+                      {/* Currency read-only badge shown once an account is selected */}
                       {form.destination_account_id && (
                         <div className="flex items-center gap-2 rounded-xl border border-[#0077B6]/20 bg-[#0077B6]/5 px-3 py-2">
                           <span className="text-[10px] font-black text-slate-500">عملة الحساب:</span>
                           <span className="font-mono text-[13px] font-black text-[#0C2A4B]">{activeCurrency}</span>
-                          <span className="text-[10px] text-slate-400">— أدخل المبلغ بهذه العملة</span>
+                          <span className="text-[10px] text-slate-400"> أدخل المبلغ بهذه العملة</span>
                         </div>
                       )}
                       {form.paid_amount && form.relation_amount != null && (
@@ -634,7 +634,7 @@ export default function CreateManualPaymentModal({
                           {activeCurrency !== 'EUR' && (
                             <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-[11px] font-bold text-blue-800">
                               <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
-                              سعر العنصر {formatFinanceCurrency(form.relation_amount)} — المبلغ المدفوع بعملة مختلفة ({activeCurrency})، تحقق من سعر الصرف
+                              سعر العنصر {formatFinanceCurrency(form.relation_amount)} المبلغ المدفوع بعملة مختلفة ({activeCurrency})، تحقق من سعر الصرف
                             </div>
                           )}
                         </>
@@ -655,7 +655,7 @@ export default function CreateManualPaymentModal({
                     <section className="space-y-3">
                       <div>
                         <h3 className="text-[13px] font-black text-[#0C2A4B]">إثبات الدفع</h3>
-                        <p className="text-[11px] text-slate-500">اختياري — PDF، PNG، JPG حتى 5 ميجابايت</p>
+                        <p className="text-[11px] text-slate-500">اختياري PDF، PNG، JPG حتى 5 ميجابايت</p>
                       </div>
                       <label
                         className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-8 transition hover:border-[#0077B6]/40"

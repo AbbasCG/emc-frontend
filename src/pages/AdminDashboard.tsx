@@ -261,7 +261,7 @@ export default function AdminDashboard() {
         </EmcButton>
       }
     >
-      {/* ── Welcome surface — premium gradient ── */}
+      {/* ── Welcome surface premium gradient ── */}
       <Surface
         variant="inverse"
         elevation={4}
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
               <span className="ms-2 inline-block animate-soft-float">👋</span>
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-7 text-white/70">
-              إليك نظرة شاملة على ما يحدث الآن في منصة EMC — أحدث الإحصاءات، آخر التسجيلات، وأهم الإجراءات السريعة.
+              إليك نظرة شاملة على ما يحدث الآن في منصة EMC أحدث الإحصاءات، آخر التسجيلات، وأهم الإجراءات السريعة.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3 sm:max-w-md lg:justify-self-end">

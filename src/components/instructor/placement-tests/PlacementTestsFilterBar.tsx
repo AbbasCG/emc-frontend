@@ -68,7 +68,7 @@ export function PlacementTestsFilterBar(props: Props) {
 
         <FilterSelect value={filterLevel} onChange={(e) => onLevelChange(e.target.value)} label="المستوى">
           <option value="">جميع المستويات</option>
-          {LEVELS.map((l) => <option key={l} value={l}>{l} — {CEFR_MAP[l]?.arabic ?? l}</option>)}
+          {LEVELS.map((l) => <option key={l} value={l}>{l} {CEFR_MAP[l]?.arabic ?? l}</option>)}
         </FilterSelect>
 
         <FilterSelect value={filterAssignment} onChange={(e) => onAssignmentChange(e.target.value as AssignmentFilter)} label="الإسناد">

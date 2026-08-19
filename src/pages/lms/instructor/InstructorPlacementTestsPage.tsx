@@ -186,7 +186,7 @@ export default function InstructorPlacementTestsPage() {
         <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
           <div className="min-w-0 space-y-6">
             <p className="text-[11px] font-black text-deepBlue/30">
-              مسار التقييم — <span className="font-mono tabular-nums">{filtered.length}</span> طالب
+              مسار التقييم <span className="font-mono tabular-nums">{filtered.length}</span> طالب
             </p>
             {PIPELINE_STAGES.map((stage) => (
               <PlacementPipelineSection

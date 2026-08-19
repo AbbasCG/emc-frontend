@@ -30,7 +30,7 @@ export default function AdminAuditLogsPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">Audit</p>
         <h1 className="text-2xl font-black text-deepBlue">سجل التدقيق</h1>
-        <p className="mt-2 text-sm font-medium text-slate-500">خط زمني بواجهة تشغيلية — الفلاتر تُرسل للـ API عند توفر المسارات.</p>
+        <p className="mt-2 text-sm font-medium text-slate-500">خط زمني بواجهة تشغيلية الفلاتر تُرسل للـ API عند توفر المسارات.</p>
       </motion.div>
 
       <div className="mb-6 grid gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:grid-cols-3">

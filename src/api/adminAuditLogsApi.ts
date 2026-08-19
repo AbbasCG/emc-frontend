@@ -118,14 +118,15 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
     pickStr(r.summary) ||
     pickStr(r.title) ||
     (r.entity_id != null ? `#${pickStr(r.entity_id)}` : '') ||
-    (r.subject_id != null ? `#${pickStr(r.subject_id)}` : '')
+    (r.subject_id != null ? `#${pickStr(r.subject_id)}` : '') ||
+    '—'
 
   const created_at =
     pickStr(r.created_at) ||
     pickStr(r.performed_at) ||
     pickStr(r.happened_at) ||
     pickStr(r.timestamp) ||
-    ''
+    '—'
 
   const old_values =
     'old_values' in r ? coerceJsonMaybe(r.old_values ?? r.old) : coerceJsonMaybe(r.old)
@@ -173,7 +174,7 @@ export function normalizeAdminAuditLogRow(raw: unknown): AdminAuditLogEntry | nu
     metadata: r.metadata ?? null,
     route: pickStr(r.route) || null,
     method: pickStr(r.method) || null,
-    created_at: created_at || '—',
+    created_at: created_at || '',
   }
 }
 

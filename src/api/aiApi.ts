@@ -56,7 +56,7 @@ export async function sendAiMessage(
           ? 'ملخص تحليلي سريع:'
           : 'استجابة مبدئية:'
     return {
-      reply: `${prefix} ${message} — يمكن ربط هذا الرد بتدفق بث حي عند توفر endpoint stream.`,
+      reply: `${prefix} ${message} يمكن ربط هذا الرد بتدفق بث حي عند توفر endpoint stream.`,
       conversation_id: conversationId ?? Date.now(),
       simulated_stream_chunks: ['جارٍ تحليل الطلب...', 'جارٍ بناء الاستجابة...', 'اكتمل.'],
     }

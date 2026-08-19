@@ -99,7 +99,7 @@ export default function CookiePreferencesModal() {
               <CategoryRow
                 icon={BarChart3}
                 title="تحليلات"
-                description="تساعدنا على فهم استخدام المنصة وتحسين التجربة — دون تحميلها قبل موافقتك."
+                description="تساعدنا على فهم استخدام المنصة وتحسين التجربة دون تحميلها قبل موافقتك."
                 checked={analytics}
                 onChange={setAnalytics}
               />

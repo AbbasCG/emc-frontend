@@ -169,7 +169,7 @@ function OperationsChart({ analytics }: { analytics: ProgramsManagerAnalytics })
     return (
       <EmptyInsight
         message="لا اتجاهات كافية بعد"
-        hint="ستظهر منحنيات النمو عند تسجيل نشاط خلال الشهور الأخيرة — التسجيلات، الدورات، أو الجلسات."
+        hint="ستظهر منحنيات النمو عند تسجيل نشاط خلال الشهور الأخيرة التسجيلات، الدورات، أو الجلسات."
         href="/dashboard/admin/programs"
         label="بدء إطلاق المحتوى"
       />
@@ -185,8 +185,8 @@ function OperationsChart({ analytics }: { analytics: ProgramsManagerAnalytics })
 
   const regInsight = buildTrendInsight('reg', 'التسجيلات', analytics.registrations_monthly)
   const chartHint =
-    regInsight.direction === 'up' ? 'التسجيلات في صعود — خطّط للسعة والمدربين.'
-    : regInsight.direction === 'down' ? 'التسجيلات تتراجع — راجع التسويق وعروض البرامج.'
+    regInsight.direction === 'up' ? 'التسجيلات في صعود خطّط للسعة والمدربين.'
+: regInsight.direction === 'down' ? 'التسجيلات تتراجع راجع التسويق وعروض البرامج.'
     : 'راقب تقاطع التسجيلات مع إطلاق الدورات والجلسات.'
 
   return (
@@ -363,7 +363,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
             {declining.length === 0 ?
               <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-5">
                 <CheckCircle2 size={20} className="text-emerald-600" />
-                <p className="text-[12px] font-semibold text-emerald-900">لا مؤشرات تراجع — استمر في المراقبة الشهرية.</p>
+                <p className="text-[12px] font-semibold text-emerald-900">لا مؤشرات تراجع استمر في المراقبة الشهرية.</p>
               </div>
             : (
               <div className="grid gap-3 sm:grid-cols-2">
@@ -416,7 +416,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
           : registration_pipeline.every((p) => p.count === 0) ?
             <EmptyInsight message="لا تسجيلات بعد" hint="عند بدء استقبال الطلبات ستُحدّد هنا أكبر مرحلة تعطّل القبول." href="/dashboard/admin/registrations" label="إعداد التسجيلات" />
           : (
-            <p className="text-[12px] font-semibold text-emerald-800">لا عنق زجاجة حرج — التسجيلات تتدفق بسلاسة.</p>
+            <p className="text-[12px] font-semibold text-emerald-800">لا عنق زجاجة حرج التسجيلات تتدفق بسلاسة.</p>
           )}
         </Panel>
 
@@ -425,7 +425,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
           {program_alerts.length === 0 ?
             <div className="flex items-center gap-3 rounded-xl bg-[#f8fafc] px-4 py-5">
               <Sparkles size={18} className="text-[#0077B6]" />
-              <p className="text-[12px] font-semibold text-[#0C2A4B]/65">لا تنبيهات نشطة — الوضع التشغيلي مستقر.</p>
+              <p className="text-[12px] font-semibold text-[#0C2A4B]/65">لا تنبيهات نشطة الوضع التشغيلي مستقر.</p>
             </div>
           : (
             <div className="space-y-2">{program_alerts.map((a) => <AlertRow key={a.type} alert={a} />)}</div>
@@ -482,7 +482,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
         </Panel>
       )}
 
-      {/* Recent signals — only if meaningful change */}
+      {/* Recent signals only if meaningful change */}
       {signals.length > 0 && (
         <Panel>
           <PanelHeader eyebrow="ماذا تغيّر مؤخراً؟" title="إشارات النشاط" action={<BarChart3 size={18} className="text-[#0C2A4B]/35" />} />
@@ -491,7 +491,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
               <li key={item.id} className="flex flex-wrap items-baseline justify-between gap-2 py-3 first:pt-0 last:pb-0">
                 <p className="text-[12px] font-bold text-[#0C2A4B]">
                   {item.action_label}
-                  {item.entity_name ? ` — ${item.entity_name}` : ''}
+ {item.entity_name ? ` ${item.entity_name}`: ''}
                 </p>
                 <p className="text-[10px] font-medium text-[#0C2A4B]/45">
                   {item.user_name ?? 'النظام'} · {formatDate(item.created_at)}
@@ -502,7 +502,7 @@ export default function ProgramsManagerDashboardView({ data, userName, onRefresh
         </Panel>
       )}
 
-      {/* Footer strip: deep link to CRUD — not the focus */}
+      {/* Footer strip: deep link to CRUD not the focus */}
       <div className="flex flex-wrap items-center justify-center gap-4 rounded-xl border border-[#0C2A4B]/6 bg-[#f8fafc]/80 px-4 py-3">
         <span className="text-[10px] font-bold text-[#0C2A4B]/45">إدارة تفصيلية:</span>
         {[

@@ -156,7 +156,7 @@ export function InstructorMaterialsTab({ courseId, classGroupId, canManage }: { 
       toast.success('تم حذف المادة.')
       load()
     } catch {
-      toast.error('تعذّر حذف المادة — تحقق من صلاحياتك.')
+      toast.error('تعذّر حذف المادة تحقق من صلاحياتك.')
     }
   }
 

@@ -177,7 +177,7 @@ export function PlacementAnswerReviewBody({
         </div>
       </div>
 
-      {/* Question navigator — wraps to multiple rows instead of scrolling
+      {/* Question navigator wraps to multiple rows instead of scrolling
           horizontally, and caps height with a vertical scroll for very long
           tests so it never forces the modal itself to widen or scroll sideways. */}
       <div className="flex max-h-24 shrink-0 flex-wrap gap-1.5 overflow-y-auto border-b border-slate-100 px-4 py-2.5 sm:px-6">

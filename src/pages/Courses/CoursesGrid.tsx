@@ -182,7 +182,7 @@ function CoursesGrid({
           <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">الدورات المتاحة</h2>
         </div>
 
-        {/* Opening seam — the list begins on a fading hairline, not inside a container */}
+        {/* Opening seam the list begins on a fading hairline, not inside a container */}
         <div className="emc-hairline mb-1" aria-hidden />
 
         {listBody}

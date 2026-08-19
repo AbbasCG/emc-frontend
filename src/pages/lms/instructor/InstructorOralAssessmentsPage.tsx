@@ -399,7 +399,7 @@ export default function InstructorOralAssessmentsPage() {
                   >
                     <option value="">اختر المستوى</option>
                     {PLACEMENT_LEVELS.map((lvl) => (
-                      <option key={lvl.level} value={lvl.level}>{lvl.label} — {lvl.description}</option>
+                      <option key={lvl.level} value={lvl.level}>{lvl.label} {lvl.description}</option>
                     ))}
                   </select>
                 </div>

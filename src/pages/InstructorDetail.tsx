@@ -228,7 +228,7 @@ export default function InstructorDetail() {
               )}
             </div>
 
-            {/* Contact — only shown when backend allows it */}
+            {/* Contact only shown when backend allows it */}
             {showContact && (
               <div className="rounded-[1.35rem] border border-deepBlue/[0.08] bg-white p-4 shadow-emc ring-1 ring-line">
                 <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-deepBlue/40">تواصل</p>

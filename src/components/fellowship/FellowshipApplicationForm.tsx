@@ -387,7 +387,7 @@ export default function FellowshipApplicationForm() {
           <FieldError name="motivation" message={errors.motivation} />
         </div>
 
-        {/* رابط GitHub أو السيرة — a URL only: no upload endpoint exists for this form. */}
+        {/* رابط GitHub أو السيرة a URL only: no upload endpoint exists for this form. */}
         <div>
           <label htmlFor="fellowship-portfolio_url" className={LABEL_CLS}>
             رابط GitHub أو السيرة <span className="text-xs font-bold text-ink-400">(اختياري)</span>
@@ -411,7 +411,7 @@ export default function FellowshipApplicationForm() {
         </div>
       </div>
 
-      {/* §1 — the ONE primary action on this page, in the one place it is decided. */}
+      {/* §1 the ONE primary action on this page, in the one place it is decided. */}
       <button
         type="submit"
         disabled={busy}

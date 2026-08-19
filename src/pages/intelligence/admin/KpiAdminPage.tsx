@@ -77,7 +77,7 @@ function EmptyAnalytics({ message }: { message: string }) {
       <LineChart size={28} className="mx-auto text-[#0C2A4B]/25" />
       <p className="mt-3 text-sm font-black text-[#0C2A4B]/65">{message}</p>
       <p className="mx-auto mt-2 max-w-md text-[12px] font-medium text-[#0C2A4B]/45">
-        جميع الأرقام المعروضة تأتي من قاعدة البيانات مباشرة — لا توجد قيم تجريبية.
+        جميع الأرقام المعروضة تأتي من قاعدة البيانات مباشرة لا توجد قيم تجريبية.
       </p>
     </div>
   )
@@ -198,7 +198,7 @@ export default function KpiAdminPage() {
               {isProgramsManager ? 'مؤشرات أداء البرامج والتعلم' : 'مؤشرات الأداء المؤسسية'}
             </h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-white/75">
-              تحليلات مبنية على بيانات حية من الدورات والمسارات والتسجيلات والجلسات — بدون أرقام وهمية.
+              تحليلات مبنية على بيانات حية من الدورات والمسارات والتسجيلات والجلسات بدون أرقام وهمية.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -381,7 +381,7 @@ export default function KpiAdminPage() {
           <section className="rounded-2xl border border-[#0C2A4B]/8 bg-gradient-to-br from-[#f8fafc] to-white p-6">
             <h2 className="text-sm font-black text-[#0C2A4B]">مركز التصدير</h2>
             <p className="mt-2 text-[12px] font-medium text-[#0C2A4B]/55">
-              يمكنك إنشاء تقارير PDF/Excel مفصّلة من لوحة التقارير — البيانات تُسحب من نفس مصادر المؤشرات أعلاه.
+              يمكنك إنشاء تقارير PDF/Excel مفصّلة من لوحة التقارير البيانات تُسحب من نفس مصادر المؤشرات أعلاه.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link to="/dashboard/admin/reports" className="rounded-xl bg-[#0C2A4B] px-4 py-2.5 text-[11px] font-black text-white hover:bg-[#1a2a3d]">

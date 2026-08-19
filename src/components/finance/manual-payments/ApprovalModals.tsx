@@ -144,7 +144,7 @@ export function RejectPaymentModal({
             <h3 className="text-[15px] font-black">رفض الدفعة</h3>
           </div>
           <p className="mt-2 text-[12px] font-semibold text-[#64748B]">
-            المرجع <span className="font-mono font-black" dir="ltr">{ref}</span> — {payment.student?.name}
+            المرجع <span className="font-mono font-black" dir="ltr">{ref}</span> {payment.student?.name}
           </p>
           <label className="mt-4 block text-right">
             <span className="text-[11px] font-black text-[#64748B]">سبب الرفض *</span>

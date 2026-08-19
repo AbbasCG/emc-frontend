@@ -53,7 +53,7 @@ export default function KnowledgeHubPage() {
       />
       <PageHeader
         title="قاعدة المعرفة"
-        subtitle="سياسات، أدلة، قوالب، تقارير، ودروس مستفادة — مساحة عمل تشبه Notion بروح EMC العربية."
+        subtitle="سياسات، أدلة، قوالب، تقارير، ودروس مستفادة مساحة عمل تشبه Notion بروح EMC العربية."
         breadcrumbs={[
           { label: 'الرئيسية', href: '/' },
           { label: 'قاعدة المعرفة' },
@@ -83,7 +83,7 @@ export default function KnowledgeHubPage() {
           ) : articles.length === 0 ? (
             <EmptyState
               title="لا توجد مقالات"
-              description={hasFilters ? 'جرّب تصفية مختلفة أو أعد ضبط التصفية الحالية.' : 'لم تُنشر مقالات بعد — عد لاحقاً أو تواصل مع فريق الدعم.'}
+ description={hasFilters ? 'جرّب تصفية مختلفة أو أعد ضبط التصفية الحالية.': 'لم تُنشر مقالات بعد عد لاحقاً أو تواصل مع فريق الدعم.'}
               action={
                 hasFilters
                   ? { label: 'إعادة ضبط التصفية', onClick: () => { setQ(''); setCat(null) } }

@@ -128,7 +128,7 @@ export default function WorkshopsManagementPage() {
       <SaToolbar
         eyebrow="جدولة التجارب التعليمية"
         title="الورش التدريبية"
-        subtitle="طلبات الورش المرسلة من «تقديم ورشة» — GET /api/workshop-requests (Sanctum + دور إداري) دون احتياط وهمي عند الخطأ."
+        subtitle="طلبات الورش المرسلة من «تقديم ورشة» GET /api/workshop-requests (Sanctum + دور إداري) دون احتياط وهمي عند الخطأ."
         actions={
           <>
             <button
@@ -268,7 +268,7 @@ export default function WorkshopsManagementPage() {
                   </p>
                 :
                   <p className="mt-4 text-[11px] font-semibold text-muted-500">
-                    نقطة الانطلاق لم ترفع عدد ساعات في هذه العيّنة — لا نُحمِّل أي سعة ظرفية مخترعة أمامكم.
+                    نقطة الانطلاق لم ترفع عدد ساعات في هذه العيّنة لا نُحمِّل أي سعة ظرفية مخترعة أمامكم.
                   </p>
                 }
               </SaGlassCard>

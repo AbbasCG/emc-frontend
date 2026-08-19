@@ -5,7 +5,7 @@ export const accessibilityDoc: LegalDocument = {
   slug: 'accessibility',
   route: '/accessibility',
   title: 'بيان إمكانية الوصول',
-  subtitle: 'التزام EMC بجعل التعلم الرقمي أكثر شمولاً — أهدافنا ومسار التحسين.',
+  subtitle: 'التزام EMC بجعل التعلم الرقمي أكثر شمولاً أهدافنا ومسار التحسين.',
   eyebrow: 'الشمولية · EMC',
   badge: 'Accessibility',
   lastUpdated: '12 يونيو 2026',
@@ -88,7 +88,7 @@ export const accessibilityDoc: LegalDocument = {
       id: 'status',
       title: '7. حالة الامتثال',
       blocks: [
-        { type: 'placeholder', label: '[PLACEHOLDER: تاريخ آخر تدقيق إمكانية وصول خارجي — إن وُجد]' },
+        { type: 'placeholder', label: '[PLACEHOLDER: تاريخ آخر تدقيق إمكانية وصول خارجي إن وُجد]' },
         {
           type: 'p',
           text: 'هذا البيان يُحدَّث عند إنجاز تحسينات جوهرية أو تغييرات تنظيمية.',

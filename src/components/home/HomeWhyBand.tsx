@@ -15,7 +15,7 @@ const reasons = [
 export default function HomeWhyBand() {
   return (
     <section dir="rtl" className="relative overflow-hidden bg-navy px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
-      {/* The band's one signature — tricolor hairline at the top seam */}
+      {/* The band's one signature tricolor hairline at the top seam */}
       <div aria-hidden className="emc-tricolor-on-dark absolute inset-x-0 top-0" />
 
       <div className="relative mx-auto max-w-[1540px]">
@@ -29,7 +29,7 @@ export default function HomeWhyBand() {
           لماذا EMC
         </motion.h2>
 
-        {/* Four serif statements — thin separators, no boxes */}
+        {/* Four serif statements thin separators, no boxes */}
         <div className="mt-10 grid lg:grid-cols-4">
           {reasons.map((r, i) => (
             <motion.div

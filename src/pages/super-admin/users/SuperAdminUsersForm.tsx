@@ -130,7 +130,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
           ...meta,
           subtitleAr:
             variant === 'create'
-              ? 'إنشاء مستخدم عبر POST /admin/users — الخادم يتحكم في إسناد دور سوبر مشرف.'
+              ? 'إنشاء مستخدم عبر POST /admin/users الخادم يتحكم في إسناد دور سوبر مشرف.'
               : 'تحديث مستخدم عبر PUT /admin/users/{id}',
         }}
         actionSlot={

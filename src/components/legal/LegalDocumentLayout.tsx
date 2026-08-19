@@ -73,7 +73,7 @@ export default function LegalDocumentLayout({ doc }: Props) {
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">
-          {/* Content column — first in DOM for RTL reading order on mobile; grid places TOC on start (right) on lg */}
+          {/* Content column first in DOM for RTL reading order on mobile; grid places TOC on start (right) on lg */}
           <motion.div
             className="min-w-0 space-y-6 lg:order-1"
             variants={staggerContainer}
@@ -179,7 +179,7 @@ function TrustStrip() {
     >
       <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" aria-hidden />
       <p className="text-[13px] font-semibold leading-relaxed text-white/85">
-        وثائق EMC القانونية معدّة للشفافية قبل الإطلاق الإنتاجي — راجع{' '}
+        وثائق EMC القانونية معدّة للشفافية قبل الإطلاق الإنتاجي راجع{' '}
         <Link to="/privacy" className="font-black text-[#F28C00] hover:underline">الخصوصية</Link>
         {' '}و{' '}
         <Link to="/cookies" className="font-black text-[#0077B6] hover:underline">ملفات تعريف الارتباط</Link>.

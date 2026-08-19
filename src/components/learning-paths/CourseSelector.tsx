@@ -74,7 +74,7 @@ function InlineEditPanel({
       setSuccess(true)
       setTimeout(() => onSaved(updated), 650)
     } catch {
-      setError('فشل الحفظ — تحقق من الاتصال')
+      setError('فشل الحفظ تحقق من الاتصال')
     } finally {
       setSaving(false)
     }

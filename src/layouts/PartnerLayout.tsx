@@ -57,7 +57,7 @@ export default function PartnerLayout() {
         />
         <div className="relative flex h-16 items-center justify-between border-b border-white/[0.08] px-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/brand/logos/logo_full_white.png" alt="EMC — Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" />
+            <img src="/brand/logos/logo_full_white.png" alt="EMC Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" />
           </Link>
           <button
             type="button"

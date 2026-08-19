@@ -46,45 +46,45 @@ export default function Home() {
   return (
     <main className="bg-white">
       <PublicSeo
-        title="EMC — منصة التعليم والتطوير"
-        description="منصة EMC التعليمية العربية—الهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
+        title="EMC منصة التعليم والتطوير"
+ description="منصة EMC التعليمية العربيةالهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
         path="/"
       />
       <OrganizationJsonLd />
-      {/* 1. Cinematic dark hero — headline + the team's 12-themes orbit («منظومة EMC») + stat pills */}
+      {/* 1. Cinematic dark hero headline + the team's 12-themes orbit («منظومة EMC») + stat pills */}
       <HomeCinematicHero />
 
-      {/* 2. Featured courses from API (light) — editorial rows, real content immediately after the hero */}
+      {/* 2. Featured courses from API (light) editorial rows, real content immediately after the hero */}
       <Suspense fallback={<SectionFallback />}>
         <FeaturedCoursesSection />
       </Suspense>
 
-      {/* 3. Learning journey (light) — the purchase story: ورشة → دورة → مسار → شهادة معتمدة on one rail */}
+      {/* 3. Learning journey (light) the purchase story: ورشة → دورة → مسار → شهادة معتمدة on one rail */}
       <HomeLearningJourney />
 
-      {/* 4. Impact metrics — dark moment #1, one typographic line-up of serif numbers */}
+      {/* 4. Impact metrics dark moment #1, one typographic line-up of serif numbers */}
       <HomeImpactMetrics />
 
-      {/* 5. Learning tracks & certificates (light) — tabs kept, items as editorial rows */}
+      {/* 5. Learning tracks & certificates (light) tabs kept, items as editorial rows */}
       <HomeLearningTracks />
 
-      {/* 6+7. Dark moment #2 — capability bento then the merged «لماذا EMC» band; the two
+      {/* 6+7. Dark moment #2 capability bento then the merged «لماذا EMC» band; the two
           navy scenes are adjacent so they read as a single dark passage */}
       <Suspense fallback={<SectionFallback />}>
         <HomeEcosystemBento />
       </Suspense>
       <HomeWhyBand />
 
-      {/* 8. Testimonials (light) — serif pull-quotes, one highlighted on a paper2 field */}
+      {/* 8. Testimonials (light) serif pull-quotes, one highlighted on a paper2 field */}
       <HomeTestimonialsCarousel />
 
-      {/* 9. Partners (light) — plain wordmark row between hairlines */}
+      {/* 9. Partners (light) plain wordmark row between hairlines */}
       <HomePartnersSection />
 
-      {/* 10. FAQ (light) — sticky intro + hairline-seated accordion rows */}
+      {/* 10. FAQ (light) sticky intro + hairline-seated accordion rows */}
       <HomeFaqSection />
 
-      {/* 11. Grand CTA — dark finale */}
+      {/* 11. Grand CTA dark finale */}
       <HomeGrandCTA />
     </main>
   )

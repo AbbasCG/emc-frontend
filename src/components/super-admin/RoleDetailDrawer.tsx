@@ -144,7 +144,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
     }
   }, [open, slug])
 
-  const statusLabel = isSystem ? 'محمي — نظام' : 'نشط'
+ const statusLabel = isSystem ? 'محمي نظام': 'نشط'
 
   return (
     <CrudDrawer
@@ -224,7 +224,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
             <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden />
               <p className="text-[12px] font-semibold text-rose-800">
-                دور نظام محمي — الصلاحيات التفصيلية للعرض فقط ولا يمكن تعديلها من الواجهة.
+                دور نظام محمي الصلاحيات التفصيلية للعرض فقط ولا يمكن تعديلها من الواجهة.
               </p>
             </div>
           )}

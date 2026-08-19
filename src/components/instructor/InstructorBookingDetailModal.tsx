@@ -143,7 +143,7 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
       setRescheduleOpen(false)
       onChanged()
     } catch {
-      toast.error('تعذّر نقل الموعد — قد يكون غير متاح')
+      toast.error('تعذّر نقل الموعد قد يكون غير متاح')
     } finally {
       setBusy(false)
     }
@@ -401,7 +401,7 @@ export function InstructorBookingDetailModal({ slot, availableSlots, onClose, on
                     <div className="space-y-1.5">
                       {b.status_history.map((h, i) => (
                         <div key={i} className="flex items-center justify-between text-[11px] font-semibold text-deepBlue/55">
-                          <span>{PLACEMENT_STATUS_META[resolvePlacementStatusKey(h.to_status)].label}{h.reason ? ` — ${h.reason}` : ''}</span>
+ <span>{PLACEMENT_STATUS_META[resolvePlacementStatusKey(h.to_status)].label}{h.reason ? ` ${h.reason}`: ''}</span>
                           <span className="font-mono text-[10px] text-deepBlue/35">{h.changed_at ? formatAmsterdamDMY(h.changed_at) : ''}</span>
                         </div>
                       ))}

@@ -103,7 +103,7 @@ export default function TracksComparisonTable({ paths }: Props) {
           ستخرج به.
         </p>
 
-        {/* Desktop — a real table on hairlines, scrollable inside its own container */}
+        {/* Desktop a real table on hairlines, scrollable inside its own container */}
         <div className="mt-9 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[46rem] border-collapse">
             <caption className="sr-only">
@@ -155,7 +155,7 @@ export default function TracksComparisonTable({ paths }: Props) {
           </table>
         </div>
 
-        {/* Mobile — the same data as a stacked definition list (no sideways scroll) */}
+        {/* Mobile the same data as a stacked definition list (no sideways scroll) */}
         <div className="mt-8 md:hidden">
           {rows.map((row) => (
             <div key={row.id} className="border-b border-line py-6 first:border-t first:border-line">

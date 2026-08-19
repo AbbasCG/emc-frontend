@@ -205,7 +205,7 @@ export default function ProgramsPage() {
     <main className="overflow-x-hidden bg-[#f8fafc]" dir="rtl">
       <PublicSeo
         title="الدورات التدريبية"
-        description="تصفح جميع الدورات المستقلة المتاحة من EMC — بحث وتصفية متقدمة."
+        description="تصفح جميع الدورات المستقلة المتاحة من EMC بحث وتصفية متقدمة."
         path="/programs"
       />
 

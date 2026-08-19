@@ -661,7 +661,7 @@ export default function AmbassadorApply() {
     <main className="bg-[#f4f7fb] pt-20" ref={topRef}>
       <PublicSeo
         title="طلب الانضمام لبرنامج السفراء"
-        description="نموذج التقديم لبرنامج سفراء التحول الرقمي: بياناتك الشخصية والجامعية، اهتماماتك ومهاراتك التقنية، ودوافعك للانضمام — يراجع الفريق طلبك ثم يتواصل معك."
+        description="نموذج التقديم لبرنامج سفراء التحول الرقمي: بياناتك الشخصية والجامعية، اهتماماتك ومهاراتك التقنية، ودوافعك للانضمام يراجع الفريق طلبك ثم يتواصل معك."
         path="/ambassador/apply"
       />
       <PageHeader
@@ -692,7 +692,7 @@ export default function AmbassadorApply() {
             </div>
           </div>
 
-          {/* ── Step navigation — mobile compact ─────────────────────── */}
+          {/* ── Step navigation mobile compact ─────────────────────── */}
           <div className="mb-8 flex items-center gap-3 sm:hidden">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-deepBlue text-xs font-black text-white">
               {currentStep}
@@ -703,7 +703,7 @@ export default function AmbassadorApply() {
             </div>
           </div>
 
-          {/* ── Step navigation — desktop flex-wrap (no scroll) ──────── */}
+          {/* ── Step navigation desktop flex-wrap (no scroll) ──────── */}
           <div className="mb-8 hidden sm:flex sm:flex-wrap sm:gap-2">
             {STEPS.map((s) => {
               const Icon   = s.icon
@@ -795,7 +795,7 @@ export default function AmbassadorApply() {
                 })()}
               </div>
 
-              {/* Error summary — appears at top of card when Next fails */}
+              {/* Error summary appears at top of card when Next fails */}
               <div ref={errorSummaryRef}>
                 <ErrorSummary errors={errors} />
               </div>
@@ -1269,14 +1269,14 @@ export default function AmbassadorApply() {
                       file={form.student_id_file}
                       onFile={(f) => set('student_id_file', f)}
                       accept="image/*,.pdf"
-                      hint="صورة واضحة أو PDF — اختياري"
+                      hint="صورة واضحة أو PDF اختياري"
                     />
                     <FileUploadZone
                       label="صورة شخصية رسمية"
                       file={form.photo_file}
                       onFile={(f) => set('photo_file', f)}
                       accept="image/jpeg,image/png,image/webp"
-                      hint="JPG أو PNG أو WebP، حجم أقصى 2 ميغابايت — اختياري"
+                      hint="JPG أو PNG أو WebP، حجم أقصى 2 ميغابايت اختياري"
                     />
                   </>
                 )}

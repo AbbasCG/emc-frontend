@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
-import { Globe2, Sparkles, UserPlus } from 'lucide-react'
+import { Building2, Globe2, Sparkles, UserPlus } from 'lucide-react'
 import ImpactStatCard from '@/components/impact/ImpactStatCard'
 import SectionHeader from '@/components/sections/SectionHeader'
 import type { ImpactMainStat } from '@/data/impactDashboard'
@@ -11,6 +11,7 @@ const iconFor: Record<ImpactMainStat['id'], LucideIcon> = {
   beneficiaries: UserPlus,
   'camp-registrations': Sparkles,
   countries: Globe2,
+  cities: Building2,
 }
 
 const toneCycle: ('blue' | 'orange' | 'ink')[] = ['blue', 'orange', 'ink']
@@ -26,7 +27,7 @@ export default function ImpactOverviewSection() {
           description="بطاقات موثقة تعكس جانباً من حجم المنظومة: التسجيل، التنفيذ، التوزيع الجغرافي، والشراكات."
         />
         <motion.div
-          className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -40,7 +41,7 @@ export default function ImpactOverviewSection() {
               end={stat.value}
               suffix={stat.suffix ?? ''}
               subtitle={stat.hintAr}
-              tone={toneCycle[i] ?? 'blue'}
+              tone={toneCycle[i % toneCycle.length] ?? 'blue'}
             />
           ))}
         </motion.div>

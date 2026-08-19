@@ -100,7 +100,7 @@ export default function ManualPaymentFilters({
         </div>
       </div>
 
-      {/* Search — always visible */}
+      {/* Search always visible */}
       <div className="px-5 pb-3">
         <div className="relative">
           <Search
@@ -117,7 +117,7 @@ export default function ManualPaymentFilters({
         </div>
       </div>
 
-      {/* Status pill rail — always visible, scrollable on mobile */}
+      {/* Status pill rail always visible, scrollable on mobile */}
       <div className="px-5 pb-4">
         <div className="overflow-x-auto scrollbar-none">
           <div className="flex min-w-max items-center gap-1 rounded-xl bg-[#F6F8FB] p-1 ring-1 ring-[#E2E8F0]">
@@ -139,7 +139,7 @@ export default function ManualPaymentFilters({
         </div>
       </div>
 
-      {/* Separator — the structural break between primary and advanced filters */}
+      {/* Separator the structural break between primary and advanced filters */}
       <div className="border-t border-[#E2E8F0]" />
 
       {/* Mobile toggle for advanced filters */}
@@ -153,7 +153,7 @@ export default function ManualPaymentFilters({
         {advancedOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
       </button>
 
-      {/* Advanced filter grid — always visible on desktop, toggled on mobile */}
+      {/* Advanced filter grid always visible on desktop, toggled on mobile */}
       <div className={`px-5 pb-5 pt-4 ${advancedOpen ? 'block' : 'hidden'} md:block`}>
         <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
           <div>

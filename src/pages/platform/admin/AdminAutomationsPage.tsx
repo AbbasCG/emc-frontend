@@ -103,7 +103,7 @@ export default function AdminAutomationsPage() {
         </Link>
       </motion.div>
 
-      <SecretWarningPanel title="تنبيه تشغيلي" body="تتحقق المنصّة من صلاحيات المسؤول قبل تنفيذ أي قواعد على البيانات الحية — راقب السجل للتأكد من نجاح كل تشغيل." />
+      <SecretWarningPanel title="تنبيه تشغيلي" body="تتحقق المنصّة من صلاحيات المسؤول قبل تنفيذ أي قواعد على البيانات الحية راقب السجل للتأكد من نجاح كل تشغيل." />
 
       <section className="mt-8 rounded-2xl border border-dashed border-customBlue/30 bg-white p-6 shadow-inner shadow-sky-50">
         <div className="grid gap-6 lg:grid-cols-2">
@@ -130,7 +130,7 @@ export default function AdminAutomationsPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <div>
             <h2 className="text-sm font-black text-deepBlue">الإجراءات</h2>
-            <p className="mt-2 text-xs font-bold text-slate-500">اختيار متعدد — يُحوَّل إلى JSON منظم للخادم.</p>
+            <p className="mt-2 text-xs font-bold text-slate-500">اختيار متعدد يُحوَّل إلى JSON منظم للخادم.</p>
             <div className="mt-4">
               <AutomationActionSelector value={selectedActions} onChange={setSelectedActions} />
             </div>
@@ -167,7 +167,7 @@ export default function AdminAutomationsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-black text-deepBlue">آخر عمليات التشغيل</h2>
-            <p className="text-xs font-bold text-slate-500">مقتطف سريع — للتفاصيل الكاملة انتقل إلى صفحة السجل.</p>
+            <p className="text-xs font-bold text-slate-500">مقتطف سريع للتفاصيل الكاملة انتقل إلى صفحة السجل.</p>
           </div>
           <Link to="/dashboard/admin/automations/runs" className="text-xs font-black text-customBlue hover:underline">
             عرض الكل

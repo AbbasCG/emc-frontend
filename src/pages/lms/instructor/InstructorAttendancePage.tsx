@@ -268,7 +268,7 @@ export default function InstructorAttendancePage() {
         setLockInfo({ is_locked: true, locked_at: null, locked_by: null })
       } else {
         if (import.meta.env.DEV) console.error('[attendance] save failed:', err)
-        toast.error('تعذّر الحفظ — تحقق من صلاحياتك أو نقطة النهاية على الخادم.')
+        toast.error('تعذّر الحفظ تحقق من صلاحياتك أو نقطة النهاية على الخادم.')
       }
     } finally {
       setSaving(false)
@@ -330,7 +330,7 @@ export default function InstructorAttendancePage() {
               dir="rtl"
               className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-50"
             >
-              <option value="">— اختر دورة —</option>
+              <option value=""> اختر دورة </option>
               {courses.map((c) => {
                 const sessCount = sessions.filter((s) => s.course_id === c.id).length
                 return (
@@ -342,7 +342,7 @@ export default function InstructorAttendancePage() {
             </select>
           </label>
 
-          {/* Session filter — only active when course is selected */}
+          {/* Session filter only active when course is selected */}
           <label className={`grid min-w-0 gap-1 transition-opacity ${courseId === '' ? 'pointer-events-none opacity-40' : ''}`} style={{ width: 'min(100%, 300px)' }}>
             <span className="flex items-center gap-1.5 text-[10px] font-black text-[#0C2A4B]/70">
               <BookOpen className="h-3.5 w-3.5 text-[#0077B6]" />
@@ -355,7 +355,7 @@ export default function InstructorAttendancePage() {
               dir="rtl"
               className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-[#0C2A4B] outline-none focus:border-[#0077B6] focus:ring-4 focus:ring-[#0077B6]/10 disabled:opacity-50"
             >
-              <option value="">{courseId === '' ? '— اختر دورة أولاً —' : '— اختر جلسة —'}</option>
+ <option value="">{courseId === '' ? ' اختر دورة أولاً ': ' اختر جلسة '}</option>
               {filteredSessions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {formatSessionPickerLabel(s)}
@@ -367,7 +367,7 @@ export default function InstructorAttendancePage() {
           {lockInfo.is_locked ? (
             <div className="flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 text-[12px] font-black text-amber-700">
               <Lock className="h-4 w-4" />
-              تم الحفظ — مقفل
+              تم الحفظ مقفل
             </div>
           ) : (
             <button

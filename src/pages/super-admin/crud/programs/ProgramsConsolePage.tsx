@@ -522,7 +522,7 @@ export default function ProgramsConsolePage() {
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/55">EMC · Course OS</p>
               <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-[1.75rem]">إدارة البرامج والدورات</h1>
               <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-white/78">
-                عرض الصفحة الحالية فقط — استخدم البحث والتصفية للتنقل عبر الكتالوج.
+                عرض الصفحة الحالية فقط استخدم البحث والتصفية للتنقل عبر الكتالوج.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -755,7 +755,7 @@ export default function ProgramsConsolePage() {
             ? 'لا توجد نتائج'
             : meta.last_page === 1
               ? <>تم العثور على <span className="font-black text-[#0C2A4B]">{meta.total}</span> برنامج</>
-              : <>صفحة <span className="font-black text-[#0C2A4B]">{meta.current_page}</span> من <span className="font-black text-[#0C2A4B]">{meta.last_page}</span> — إجمالي <span className="font-black text-[#0C2A4B]">{meta.total}</span> برنامج</>
+: <>صفحة <span className="font-black text-[#0C2A4B]">{meta.current_page}</span> من <span className="font-black text-[#0C2A4B]">{meta.last_page}</span> إجمالي <span className="font-black text-[#0C2A4B]">{meta.total}</span> برنامج</>
           }
         </p>
       )}
@@ -879,12 +879,12 @@ export default function ProgramsConsolePage() {
                             { key: 'e',       label: 'تعديل',              onClick: () => openEdit(c) },
                             { key: 'a',       label: 'تعيين مدرب',         onClick: () => setAssignCourse(c) },
                             { key: 's',       label: 'تحديد موعد',         onClick: () => setScheduleCourse(c) },
-                            { key: 'lms-cms', label: 'محتوى الدورة — LMS', onClick: () => navigate(`/dashboard/super-admin/crud/programs/${c.id}/content`) },
+                            { key: 'lms-cms', label: 'محتوى الدورة LMS', onClick: () => navigate(`/dashboard/super-admin/crud/programs/${c.id}/content`) },
                             ...(c._status === 'archived' ? [
                               { key: 'restore', label: 'استعادة (تحويل لمسودة)', onClick: () => void changeStatus(c, 'draft') },
                             ] : c._status === 'published' ? [
                               { key: 'p',    label: 'إلغاء النشر (تحويل لمسودة)', onClick: () => void togglePublish(c), disabled: c.can_deactivate === false },
-                              { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
+ { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد مرتبط بمسار نشط)': 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                             ] : c._isPaid && c._financeStatus !== 'approved' ? [
                               // Paid course awaiting / needing finance approval
                               ...(c._financeStatus === 'pending' ? [
@@ -894,12 +894,12 @@ export default function ProgramsConsolePage() {
                               ] : [
                                 { key: 'p', label: 'إرسال للمراجعة المالية', onClick: () => void submitForFinanceReview(c) },
                               ]),
-                              { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
+ { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد مرتبط بمسار نشط)': 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                             ] : [
                               { key: 'p',    label: 'نشر البرنامج',   onClick: () => void togglePublish(c) },
-                              { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد — مرتبط بمسار نشط)' : 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
+ { key: 'arch', label: c.can_archive === false ? 'أرشفة (مقيّد مرتبط بمسار نشط)': 'أرشفة', onClick: () => void changeStatus(c, 'archived'), disabled: c.can_archive === false },
                             ]),
-                            { key: 'x', label: c.can_delete === false ? 'حذف (مقيّد — مرتبط بمسار نشط)' : 'حذف', onClick: () => void removeCourse(c), disabled: c.can_delete === false, destructive: true },
+ { key: 'x', label: c.can_delete === false ? 'حذف (مقيّد مرتبط بمسار نشط)': 'حذف', onClick: () => void removeCourse(c), disabled: c.can_delete === false, destructive: true },
                           ]}
                         />
                       </Td>

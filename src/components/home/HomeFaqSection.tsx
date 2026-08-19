@@ -7,23 +7,23 @@ import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 const faqs = [
   {
     q: 'هل EMC منصة دورات فقط؟',
-    a: 'لا. EMC منظومة تشغيل تعليمية متكاملة تجمع بين إدارة البرامج، التسجيل، المسارات التعليمية، شهادات رقمية، وورش مباشرة — مع نظام LMS احترافي مدمج.',
+    a: 'لا. EMC منظومة تشغيل تعليمية متكاملة تجمع بين إدارة البرامج، التسجيل، المسارات التعليمية، شهادات رقمية، وورش مباشرة مع نظام LMS احترافي مدمج.',
   },
   {
     q: 'كيف يتم التسجيل في دورة مدفوعة؟',
-    a: 'تختار الدورة، تكمل بياناتك، وتختار مزود الدفع المناسب. العملية مبسّطة وتأخذ دقائق — وتحصل على تأكيد فوري بعد إتمام الدفع.',
+    a: 'تختار الدورة، تكمل بياناتك، وتختار مزود الدفع المناسب. العملية مبسّطة وتأخذ دقائق وتحصل على تأكيد فوري بعد إتمام الدفع.',
   },
   {
     q: 'هل يمكن للمؤسسات طلب ورشة مخصصة؟',
-    a: 'نعم — استخدم نموذج «تقديم ورشة» لإرسال التفاصيل. يتواصل الفريق بعد المراجعة الداخلية لتصميم البرنامج المناسب لمؤسستك.',
+    a: 'نعم استخدم نموذج «تقديم ورشة» لإرسال التفاصيل. يتواصل الفريق بعد المراجعة الداخلية لتصميم البرنامج المناسب لمؤسستك.',
   },
   {
     q: 'من يستفيد من برامج EMC؟',
-    a: 'طلاب جامعيون، خريجون، محترفون في مسيرة التطوير، رواد أعمال، فرق مؤسسية — أي شخص يريد بناء مهارة حقيقية قابلة للتطبيق.',
+    a: 'طلاب جامعيون، خريجون، محترفون في مسيرة التطوير، رواد أعمال، فرق مؤسسية أي شخص يريد بناء مهارة حقيقية قابلة للتطبيق.',
   },
   {
     q: 'كيف أنشئ حساباً كطالب؟',
-    a: 'من صفحة «إنشاء حساب» أدخل بياناتك ثم انتقل إلى لوحة المتعلّم لمتابعة التسجيلات والجلسات والمواد — كل شيء في مكان واحد.',
+    a: 'من صفحة «إنشاء حساب» أدخل بياناتك ثم انتقل إلى لوحة المتعلّم لمتابعة التسجيلات والجلسات والمواد كل شيء في مكان واحد.',
   },
 ] as const
 
@@ -44,7 +44,7 @@ export default function HomeFaqSection() {
       dir="rtl"
       className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
     >
-      {/* Decorative blobs — sea drifting from the top-right, ember pulsing from the bottom-left */}
+      {/* Decorative blobs sea drifting from the top-right, ember pulsing from the bottom-left */}
       <div aria-hidden className="animate-soft-float pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-customBlue/[0.07] blur-[80px]" />
       <div
         aria-hidden
@@ -59,7 +59,7 @@ export default function HomeFaqSection() {
       <div className="relative mx-auto max-w-[1540px]">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">
 
-          {/* Left column — section info */}
+          {/* Left column section info */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -79,7 +79,7 @@ export default function HomeFaqSection() {
               إجابات واضحة عن التسجيل، البرامج، وطبيعة تجربة التعلّم في منظومة EMC.
             </p>
 
-            {/* Trust bullets — plain sky dots, no chips */}
+            {/* Trust bullets plain sky dots, no chips */}
             <ul className="mt-8 space-y-3.5">
               {trustBullets.map((item) => (
                 <li key={item} className="flex items-center justify-start gap-3 text-sm font-semibold text-foreground/65">
@@ -97,7 +97,7 @@ export default function HomeFaqSection() {
             </div>
           </motion.div>
 
-          {/* Right column — editorial accordion */}
+          {/* Right column editorial accordion */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -132,7 +132,7 @@ export default function HomeFaqSection() {
                     >
                       {item.q}
                     </span>
-                    {/* Chevron — rotates when the answer slides open */}
+                    {/* Chevron rotates when the answer slides open */}
                     <ChevronDown
                       size={18}
                       aria-hidden

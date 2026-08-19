@@ -65,7 +65,7 @@ export default function TrackMonthTimeline({ path }: TrackMonthTimelineProps) {
                 horizontal ? 'lg:flex-col lg:gap-4 lg:px-3 lg:pb-0' : ''
               }`}
             >
-              {/* Rail segment — drawn per station so it never overshoots the last dot. */}
+              {/* Rail segment drawn per station so it never overshoots the last dot. */}
               {!isLast && (
                 <span
                   aria-hidden

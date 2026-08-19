@@ -13,7 +13,7 @@ export default function Layout() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
     >
-      {/* Ambient brand atmosphere — subtle, fixed; sits beneath all content */}
+      {/* Ambient brand atmosphere subtle, fixed; sits beneath all content */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-emcBg via-white to-white"
@@ -27,7 +27,7 @@ export default function Layout() {
         className="pointer-events-none fixed bottom-[-10rem] left-[-12rem] -z-10 h-[28rem] w-[28rem] rounded-full bg-customOrange/[0.06] blur-[110px]"
       />
 
-      {/* Signature page-edge spine — fixed on the inline-start edge, behind content */}
+      {/* Signature page-edge spine fixed on the inline-start edge, behind content */}
       <div
         aria-hidden
         className="emc-spine pointer-events-none fixed inset-y-0 -z-10 hidden w-1 md:block"
@@ -46,7 +46,7 @@ export default function Layout() {
       </main>
       <Footer />
 
-      {/* In-context join+enroll — one host for every public enroll CTA; the modal
+      {/* In-context join+enroll one host for every public enroll CTA; the modal
           body chunk loads only when a guest actually records an enroll intent. */}
       <QuickJoinModal />
     </motion.div>

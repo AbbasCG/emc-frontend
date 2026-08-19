@@ -135,14 +135,14 @@ export default function WorkshopsPage() {
     <div className="min-h-screen bg-slate-50 text-right" dir="rtl">
       <PublicSeo
         title="الورش التدريبية"
-        description="استكشف ورش EMC القادمة — تدريب عملي بالعربية، أونلاين وحضوري، مع شهادات ومسارات مهنية."
+        description="استكشف ورش EMC القادمة تدريب عملي بالعربية، أونلاين وحضوري، مع شهادات ومسارات مهنية."
         path="/workshops"
       />
 
       <PublicCatalogHero
         eyebrow="ورش EMC"
         title="الورش التدريبية"
-        subtitle="ورش قصيرة مركّزة — من الذكاء الاصطناعي إلى المسارات المهنية. سجّل مباشرة أو عبر حسابك في المنصة."
+        subtitle="ورش قصيرة مركّزة من الذكاء الاصطناعي إلى المسارات المهنية. سجّل مباشرة أو عبر حسابك في المنصة."
         breadcrumbs={[
           { label: 'الرئيسية', href: '/' },
           { label: 'الورش' },

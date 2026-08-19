@@ -440,7 +440,7 @@ export default function QualityReviewsPage() {
         </div>
       )}
 
-      {/* ── Detail Drawer — rendered via portal to escape layout stacking context ── */}
+      {/* ── Detail Drawer rendered via portal to escape layout stacking context ── */}
       <AnimatePresence>
         {selected && createPortal(
           <>
@@ -533,7 +533,7 @@ export default function QualityReviewsPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Create Modal — rendered via portal ── */}
+      {/* ── Create Modal rendered via portal ── */}
       <AnimatePresence>
         {showCreate && createPortal(
           <>
@@ -605,7 +605,7 @@ export default function QualityReviewsPage() {
                       </div>
                     </div>
 
-                    {/* Overall score — required */}
+                    {/* Overall score required */}
                     <div>
                       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">الدرجة الكلية</h3>
                       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
@@ -622,7 +622,7 @@ export default function QualityReviewsPage() {
                               fieldErrors.overall_score ? 'border-rose-400 bg-rose-50' : 'border-blue-200 bg-white'
                             }`}
                           />
-                          <span className="text-sm text-slate-500">من 10 — (اجمالي التقييم)</span>
+                          <span className="text-sm text-slate-500">من 10 (اجمالي التقييم)</span>
                         </div>
                         <FieldError errors={fieldErrors} field="overall_score" />
                       </div>

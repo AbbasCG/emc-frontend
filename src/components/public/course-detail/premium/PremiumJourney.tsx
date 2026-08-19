@@ -27,7 +27,7 @@ export default function PremiumJourney({ course, derived }: Props) {
       desc:
         derived.registration.open && !derived.seatsFull
           ? startDate
-            ? `ابدأ التسجيل — يبدأ البرنامج ${startDate}`
+            ? `ابدأ التسجيل يبدأ البرنامج ${startDate}`
             : 'ابدأ التسجيل واحجز مقعدك الآن'
           : startDate
             ? `يبدأ البرنامج ${startDate}`

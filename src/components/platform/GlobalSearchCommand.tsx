@@ -116,7 +116,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
             <div className="max-h-[60vh] overflow-y-auto p-3">
               <div className="mb-3 flex items-center gap-2 rounded-xl bg-gradient-to-l from-customBlue/10 to-transparent px-3 py-2 text-[11px] font-black text-deepBlue ring-1 ring-slate-100">
                 <Sparkles size={14} className="text-customOrange" />
-                بحث موحّد عبر المنظومة — النتائج مجمّعة حسب النوع
+                بحث موحّد عبر المنظومة النتائج مجمّعة حسب النوع
               </div>
               {loading && (
                 <div className="flex items-center justify-center gap-2 py-12 text-sm font-bold text-slate-400">

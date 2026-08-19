@@ -65,7 +65,7 @@ export default function MeetingReportModal({ isOpen, onClose, meetingId, onSucce
             <div>
               <h2 className="text-xl font-black text-deepBlue">تقرير الاجتماع والمخرجات</h2>
               <p className="mt-1 text-xs font-semibold text-slate-500">
-                الخطوة {step} من 3 — توثيق الأداء والمقررات
+                الخطوة {step} من 3 توثيق الأداء والمقررات
               </p>
             </div>
             <button onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition">

@@ -27,7 +27,7 @@ export default function ImpactGeographicSection() {
         />
 
         <div className="mt-10 grid grid-cols-1 items-stretch gap-8 lg:grid-cols-5">
-          {/* في RTL العمود الأول يظهر جهة اليمين — الخريطة 60% */}
+          {/* في RTL العمود الأول يظهر جهة اليمين الخريطة 60% */}
           <motion.div
             className="flex min-h-0 flex-col lg:col-span-3 lg:h-full lg:max-h-[35rem]"
             variants={fadeUp}

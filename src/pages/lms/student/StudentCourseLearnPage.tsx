@@ -852,7 +852,7 @@ export default function StudentCourseLearnPage() {
         Child tab components (Units/Sessions/Materials/etc.) each run their own
         nested Framer Motion animations (skeletons, staggered lists), and a
         nested animation's promise can prevent the parent's exit from ever
-        completing — which silently froze tab-switching entirely (verified
+        completing which silently froze tab-switching entirely (verified
         live: state updated correctly, DOM never re-rendered). A plain keyed
         fade-in gives the same "tab content fade/slide" feel without the risk.
       */}

@@ -423,7 +423,7 @@ export default function NotificationsCenterPage() {
 
           {meta.last_page > 1 && (
             <div className="mt-5 flex items-center justify-between text-[11px] font-bold text-deepBlue/50">
-              <span>صفحة {meta.current_page} من {meta.last_page} — {meta.total} إشعار</span>
+              <span>صفحة {meta.current_page} من {meta.last_page} {meta.total} إشعار</span>
               <div className="flex gap-2">
                 <button type="button" disabled={meta.current_page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-30">السابق</button>
                 <button type="button" disabled={meta.current_page >= meta.last_page} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-30">التالي</button>

@@ -6,9 +6,9 @@ import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
 // أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const bandStats = [
-  { raw: '+13,000', label: 'مستفيد ومستفيدة', icon: Users },
-  { raw: '+9,000', label: 'مسجّل في المخيمات', icon: TrendingUp },
-  { raw: '+50', label: 'دولة', icon: Globe2 },
+  { raw: '+20,000', label: 'مستفيد ومستفيدة', icon: Users },
+  { raw: '+17,000', label: 'مسجّل في المخيمات', icon: TrendingUp },
+  { raw: '+65', label: 'دولة', icon: Globe2 },
   { raw: null, label: 'ورش ودورات ومسارات', icon: BookOpen },
 ] as const
 

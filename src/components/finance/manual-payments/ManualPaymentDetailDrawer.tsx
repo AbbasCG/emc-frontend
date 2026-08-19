@@ -281,9 +281,9 @@ export default function ManualPaymentDetailDrawer({
             <section className="mt-5 rounded-2xl border border-[#E2E8F0] bg-[#F6F8FB] p-4">
               <h3 className="text-[11px] font-black text-[#64748B]">السجل</h3>
               <ul className="mt-3 space-y-2 text-[11px] font-semibold text-[#64748B]">
-                <li>• تم إنشاء الدفعة — <FinanceDate value={payment.created_at} showTime /></li>
+                <li>• تم إنشاء الدفعة <FinanceDate value={payment.created_at} showTime /></li>
                 {payment.status === 'pending_review' && <li>• بانتظار المراجعة</li>}
-                {payment.status === 'confirmed' && payment.reviewed_at && <li>• تمت الموافقة عليها — <FinanceDate value={payment.reviewed_at} showTime /></li>}
+                {payment.status === 'confirmed' && payment.reviewed_at && <li>• تمت الموافقة عليها <FinanceDate value={payment.reviewed_at} showTime /></li>}
                 {payment.status === 'rejected' && <li>• تم رفضها{payment.reviewed_at ? <> — <FinanceDate value={payment.reviewed_at} showTime /></> : ''}</li>}
                 {payment.status === 'cancelled' && <li>• تم إلغاؤها</li>}
               </ul>

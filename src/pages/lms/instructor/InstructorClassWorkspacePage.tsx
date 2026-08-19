@@ -152,7 +152,7 @@ export default function InstructorClassWorkspacePage() {
       const refreshed = await fetchClassGroupDetail(Number(groupId))
       setDetail(refreshed)
     } catch {
-      toast.error('تعذّر حفظ الإعدادات — تحقق من صلاحياتك وحالة الصف.')
+      toast.error('تعذّر حفظ الإعدادات تحقق من صلاحياتك وحالة الصف.')
     } finally {
       setSettingsBusy(false)
     }
@@ -224,7 +224,7 @@ export default function InstructorClassWorkspacePage() {
       setShowSessionForm(false)
       fetchClassGroupSessions(Number(groupId)).then(setSessions).catch(() => {})
     } catch {
-      toast.error('تعذّر إنشاء الجلسة — تحقق من حالة الصف والبيانات المدخلة.')
+      toast.error('تعذّر إنشاء الجلسة تحقق من حالة الصف والبيانات المدخلة.')
     } finally {
       setSessionBusy(false)
     }
@@ -272,7 +272,7 @@ export default function InstructorClassWorkspacePage() {
             </div>
           </motion.div>
 
-          {/* Quick actions — every action's enabled state comes from the
+          {/* Quick actions every action's enabled state comes from the
               backend `permissions` block, never inferred from `status` here. */}
           <QuickActions
             permissions={detail.permissions}
@@ -597,7 +597,7 @@ export default function InstructorClassWorkspacePage() {
                               {ANNOUNCEMENT_STATUS_LABEL[a.status] ?? a.status}
                             </span>
                           </div>
-                          {/* Body is plain text from the backend — rendered as text
+                          {/* Body is plain text from the backend rendered as text
                               content, never dangerouslySetInnerHTML, so there is no
                               HTML/script injection surface here. */}
                           <p className="mt-1.5 whitespace-pre-line text-[11.5px] font-semibold text-deepBlue/70">{a.body}</p>
@@ -801,7 +801,7 @@ function SettingsTab({
   onSave: () => void
 }) {
   if (!detail.permissions.edit) {
-    return <EmptyTab label="لا تملك صلاحية تعديل إعدادات هذا الصف — الصف مكتمل أو مؤرشف" />
+    return <EmptyTab label="لا تملك صلاحية تعديل إعدادات هذا الصف الصف مكتمل أو مؤرشف" />
   }
   return (
     <div className="max-w-md space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
@@ -866,11 +866,11 @@ function QuickActions({
   onViewAnalytics: () => void
 }) {
   const actions: QuickAction[] = [
-    { label: 'إضافة جلسة', icon: Plus, enabled: permissions.create_session, reason: 'غير متاح — الصف ليس في حالة نشطة أو جاهزة', onClick: onAddSession },
-    { label: 'تسجيل الحضور', icon: UserCheck, enabled: permissions.record_attendance, reason: 'غير متاح — الصف ليس في حالة نشطة أو جاهزة', onClick: onRecordAttendance },
-    { label: 'إنشاء واجب', icon: ClipboardCheck, enabled: false, reason: 'قيد التطوير — لا يوجد مسار لإنشاء واجبات خاصة بالصف بعد' },
-    { label: 'رفع مادة', icon: FolderOpen, enabled: false, reason: 'قيد التطوير — لا يوجد مسار لرفع مواد خاصة بالصف بعد' },
-    { label: 'إرسال إعلان', icon: Megaphone, enabled: permissions.send_announcement, reason: 'غير متاح — الصف مكتمل أو مؤرشف', onClick: onSendAnnouncement },
+    { label: 'إضافة جلسة', icon: Plus, enabled: permissions.create_session, reason: 'غير متاح الصف ليس في حالة نشطة أو جاهزة', onClick: onAddSession },
+    { label: 'تسجيل الحضور', icon: UserCheck, enabled: permissions.record_attendance, reason: 'غير متاح الصف ليس في حالة نشطة أو جاهزة', onClick: onRecordAttendance },
+    { label: 'إنشاء واجب', icon: ClipboardCheck, enabled: false, reason: 'قيد التطوير لا يوجد مسار لإنشاء واجبات خاصة بالصف بعد' },
+    { label: 'رفع مادة', icon: FolderOpen, enabled: false, reason: 'قيد التطوير لا يوجد مسار لرفع مواد خاصة بالصف بعد' },
+    { label: 'إرسال إعلان', icon: Megaphone, enabled: permissions.send_announcement, reason: 'غير متاح الصف مكتمل أو مؤرشف', onClick: onSendAnnouncement },
     { label: 'تصدير', icon: Download, enabled: false, reason: 'قيد التطوير' },
     { label: 'طباعة', icon: Printer, enabled: false, reason: 'قيد التطوير' },
     { label: 'التحليلات', icon: Eye, enabled: true, onClick: onViewAnalytics },
@@ -921,7 +921,7 @@ function SessionGenerationPanel({ groupId, onGenerated }: { groupId: string; onG
       setPreview(rows)
       if (rows.length === 0) toast.error('لا يوجد جدول أسبوعي نشط لهذا الصف، أو الصف غير نشط حالياً.')
     } catch {
-      toast.error('تعذّر تحميل المعاينة — تحقق من التواريخ المدخلة.')
+      toast.error('تعذّر تحميل المعاينة تحقق من التواريخ المدخلة.')
     } finally {
       setBusy(false)
     }

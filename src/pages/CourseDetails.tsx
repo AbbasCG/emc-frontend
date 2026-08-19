@@ -111,7 +111,7 @@ function buildMetrics(
   const startClock = formatPublicTime(course.start_time ?? x.start_time)
   const endClock = formatPublicTime(course.end_time ?? x.end_time)
   const clockRange =
-    startClock && endClock ? `${startClock} — ${endClock}` : startClock || endClock || ''
+ startClock && endClock ? `${startClock} ${endClock}`: startClock || endClock || ''
   if (clockRange) push('time', Clock3, 'الوقت', clockRange, 'blue')
   if (seats.capacity != null && seats.capacity > 0) {
     push('capacity', Users, 'إجمالي المقاعد', formatPublicCount(seats.capacity, 'مقعد'), 'green')
@@ -402,7 +402,7 @@ export default function CourseDetails() {
       >
         <PublicSeo
           title="الدورة غير موجودة"
-          description="لم نتمكن من العثور على هذه الدورة — تصفح كتالوج الدورات المتاح."
+          description="لم نتمكن من العثور على هذه الدورة تصفح كتالوج الدورات المتاح."
           path="/courses"
           noIndex
         />
@@ -527,7 +527,7 @@ export default function CourseDetails() {
           <AppAlert type={enrollCta.disabled ? 'info' : 'error'} title={enrollCta.message} />
         )}
 
-        {/* §8 — the launch promise, verbatim from webSpec, on a hairline seam. No box. */}
+        {/* §8 the launch promise, verbatim from webSpec, on a hairline seam. No box. */}
         <div className="emc-hairline" aria-hidden />
         <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
         <p className="text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>
@@ -599,7 +599,7 @@ export default function CourseDetails() {
         {/* ── MAIN BODY GRID ── */}
         {/* id="enroll": /courses/{slug}#enroll must land on the action. The enroll panel
             renders twice (mobile inline + desktop aside), each hidden in the opposite
-            viewport — an id on the panel itself would resolve to a display:none element
+            viewport an id on the panel itself would resolve to a display:none element
             and noop. This wrapper always has a box: on desktop the sticky enroll aside
             sits at its top edge, on mobile the fixed enroll bar stays pinned in view. */}
         <div id="enroll" className="mx-auto max-w-[88rem] scroll-mt-24 px-4 py-4 sm:px-6 lg:px-10 lg:py-5">
@@ -646,7 +646,7 @@ export default function CourseDetails() {
           </div>
         </div>
 
-        {/* ── G4 UPSELL BAND — this course is a station in a path (editorial seam, no box).
+        {/* ── G4 UPSELL BAND this course is a station in a path (editorial seam, no box).
             Renders nothing while loading / when no path contains the course, and mounts
             below the enroll area so nothing above it ever shifts. ── */}
         {!upsellLoading && upsell && upsellPath && (
@@ -661,7 +661,7 @@ export default function CourseDetails() {
             <div className="flex flex-col gap-5 py-8 text-right lg:flex-row lg:items-center lg:justify-between lg:gap-8">
               <div>
                 <p className="font-display text-lg font-black tracking-tight text-deepBlue sm:text-xl">
-                  هذه الدورة محطة في {upsellPath.title} —{' '}
+                  هذه الدورة محطة في {upsellPath.title} {' '}
                   {upsell.savingsPercent != null ?
                     <>
                       وفّر{' '}
@@ -676,7 +676,7 @@ export default function CourseDetails() {
                   <span dir="ltr" className="tabular-nums">{upsellStations}</span> محطة
                   {upsellDuration ? ` · ${upsellDuration}` : ''}
                 </p>
-                {/* §11 — the price never stands bare: the course value carries into the path. */}
+                {/* §11 the price never stands bare: the course value carries into the path. */}
                 <p className="mt-2 text-[13px] font-semibold leading-6 text-ink-400">
                   {UPGRADE_COUPON_NOTE}
                 </p>

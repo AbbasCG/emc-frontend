@@ -110,7 +110,7 @@ export default function MaterialCard({ material }: { material: LmsMaterial }) {
         <p className="line-clamp-2 text-[12px] font-medium leading-relaxed text-slate-600">{material.description}</p>
       )}
 
-      {/* Meta row: updated date + size — plain text, not boxed chips */}
+      {/* Meta row: updated date + size plain text, not boxed chips */}
       {(updatedLabel !== '—' || material.size_label) && (
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] font-semibold text-[#0C2A4B]/45">
           {updatedLabel !== '—' && <span className="tabular-nums">{updatedLabel}</span>}

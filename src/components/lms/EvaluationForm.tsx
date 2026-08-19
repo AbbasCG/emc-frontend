@@ -86,7 +86,7 @@ export default function EvaluationForm({
         animate={{ opacity: 1, scale: 1 }}
         className="rounded-2xl bg-emerald-50 px-6 py-8 text-center font-black text-emerald-800 ring-1 ring-emerald-100"
       >
-        شكراً لك — تم استلام تقييمك بنجاح.
+        شكراً لك تم استلام تقييمك بنجاح.
       </motion.div>
     )
   }

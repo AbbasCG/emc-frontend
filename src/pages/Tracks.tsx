@@ -59,7 +59,7 @@ export default function Tracks() {
     <main dir="rtl" className="bg-white pt-[4.75rem] lg:pt-[5rem]">
       <PublicSeo
         title="المحاور الاثنا عشر"
-        description="محاور EMC الاثنا عشر — مصفوفة واحدة تجمع التعليم الأكاديمي والعالمي والرقمي والمهني، وكل محور يربطك مباشرة بكتالوج البرامج والدورات."
+        description="محاور EMC الاثنا عشر مصفوفة واحدة تجمع التعليم الأكاديمي والعالمي والرقمي والمهني، وكل محور يربطك مباشرة بكتالوج البرامج والدورات."
         path="/tracks"
       />
       <PageHeader

@@ -89,7 +89,7 @@ export default function EmcButton({
       )}
       {...rest}
     >
-      {/* Subtle top-edge sheen — calm, brand-clean (no fire/sea blend). */}
+      {/* Subtle top-edge sheen calm, brand-clean (no fire/sea blend). */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent opacity-70"

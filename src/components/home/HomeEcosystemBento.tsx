@@ -25,7 +25,7 @@ const capabilities = [
   {
     id: 'lms',
     title: 'LMS موحّد للمسارات',
-    desc: 'جلسات ذكية، واجبات تفاعلية، تتبّع تقدّم آني — تجربة متعلّم مبنية على بيانات حقيقية.',
+    desc: 'جلسات ذكية، واجبات تفاعلية، تتبّع تقدّم آني تجربة متعلّم مبنية على بيانات حقيقية.',
     href: '/platform',
     icon: BookOpen,
   },
@@ -39,28 +39,28 @@ const capabilities = [
   {
     id: 'admin',
     title: 'لوحات إدارية',
-    desc: 'رؤية تشغيلية كاملة للبرامج والفرق والامتثال — جاهزة للعرض القيادي.',
+    desc: 'رؤية تشغيلية كاملة للبرامج والفرق والامتثال جاهزة للعرض القيادي.',
     href: '/departments',
     icon: LayoutDashboard,
   },
   {
     id: 'portal',
     title: 'بوابة الطالب',
-    desc: 'تسجيل، جداول، مواد، واجبات — كل ما يحتاجه المتعلّم في مكان واحد.',
+    desc: 'تسجيل، جداول، مواد، واجبات كل ما يحتاجه المتعلّم في مكان واحد.',
     href: '/dashboard',
     icon: UserRound,
   },
   {
     id: 'analytics',
     title: 'تحليلات وتقارير',
-    desc: 'مؤشرات أداء تعليمي متقدمة — استخرج القرار من البيانات لا من التخمين.',
+    desc: 'مؤشرات أداء تعليمي متقدمة استخرج القرار من البيانات لا من التخمين.',
     href: '/impact',
     icon: BarChart3,
   },
   {
     id: 'workshops',
     title: 'ورش مباشرة',
-    desc: 'تنسيق حضور، بث مباشر، وتسجيلات تلقائية — كل ورشة موثّقة ومتاحة.',
+    desc: 'تنسيق حضور، بث مباشر، وتسجيلات تلقائية كل ورشة موثّقة ومتاحة.',
     href: '/submit-workshop',
     icon: Video,
   },
@@ -229,7 +229,7 @@ export default function HomeEcosystemBento() {
       dir="rtl"
       className="emc-dawn relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-28"
     >
-      {/* Ambient glows — sea from the top-right, a separate fire ember from the bottom-left */}
+      {/* Ambient glows sea from the top-right, a separate fire ember from the bottom-left */}
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
       <div
         aria-hidden
@@ -258,16 +258,16 @@ export default function HomeEcosystemBento() {
           <div className="text-right">
             <span className="emc-eyebrow border-sky/25 bg-sky/10 text-sky">قدرات المنصة</span>
             <h2 className="mt-4 font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl xl:text-[2.8rem]">
-              كل أداة تحتاجها —{' '}
+              كل أداة تحتاجها {' '}
               <span className="bg-gradient-to-r from-ice to-sky bg-clip-text text-transparent">
                 في منظومة واحدة
               </span>
             </h2>
             <p className="mt-5 max-w-xl text-base font-medium leading-8 text-white/55">
-              وحدات متكاملة تعمل كمنصة SaaS تعليمية — هوية واحدة، جودة موحّدة، وتكامل تقني بلا احتكاك.
+              وحدات متكاملة تعمل كمنصة SaaS تعليمية هوية واحدة، جودة موحّدة، وتكامل تقني بلا احتكاك.
             </p>
           </div>
-          {/* De-boxed section action — line CTA instead of a glass pill */}
+          {/* De-boxed section action line CTA instead of a glass pill */}
           <Link
             to="/platform"
             className="emc-cta-line shrink-0 self-start text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none lg:self-end"
@@ -277,7 +277,7 @@ export default function HomeEcosystemBento() {
           </Link>
         </motion.div>
 
-        {/* Capability list — hairline seats, two-up from lg, no tiles */}
+        {/* Capability list hairline seats, two-up from lg, no tiles */}
         <div aria-hidden className={DARK_SEAM} />
         <motion.div
           variants={staggerContainer}

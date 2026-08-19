@@ -199,7 +199,7 @@ function AddTransactionModal({ account, onClose, onAdded }: {
     <form dir="rtl" onSubmit={submit} className="space-y-4">
       <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-bold text-deepBlue">
         الحساب: <span className="text-customBlue">{account.name}</span>
-        &nbsp;—&nbsp; الرصيد الحالي: <span dir="ltr">{fmtBalance(account.current_balance, account.currency)}</span>
+ &nbsp;&nbsp; الرصيد الحالي: <span dir="ltr">{fmtBalance(account.current_balance, account.currency)}</span>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Field label="نوع العملية">
@@ -212,7 +212,7 @@ function AddTransactionModal({ account, onClose, onAdded }: {
         </Field>
         <Field label="التصنيف">
           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className={inputCls}>
-            <option value="">— بدون —</option>
+            <option value=""> بدون </option>
             <option value="courses">دورات</option>
             <option value="workshops">ورش</option>
             <option value="salaries">رواتب</option>
@@ -264,7 +264,7 @@ function AddTransactionModal({ account, onClose, onAdded }: {
       {err && <p className="text-xs font-bold text-rose-600">{err}</p>}
       <ModalActions busy={busy} onClose={onClose} label="إضافة العملية" />
     </form>,
-    `إضافة عملية — ${account.name}`, onClose
+    `إضافة عملية ${account.name}`, onClose
   )
 }
 

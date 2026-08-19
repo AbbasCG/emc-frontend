@@ -8,7 +8,7 @@ import { staggerContainer, staggerItem } from '@/utils/motion'
 const steps = [
   {
     title: 'اختيار البرنامج',
-    body: 'راجع الوصف، المدة، والمتطلبات — ثم انتقل لصفحة تفاصيل الدورة.',
+    body: 'راجع الوصف، المدة، والمتطلبات ثم انتقل لصفحة تفاصيل الدورة.',
   },
   {
     title: 'التسجيل',
@@ -26,7 +26,7 @@ function CoursesRegistrationSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
           title="كيف يعمل التسجيل؟"
-          description="مسار موحّد: تصفح — تفاصيل — تسجيل — متابعة. أي تحديثات مستقبلية على المنصة ستظهر هنا تلقائياً عبر نفس الروابط."
+          description="مسار موحّد: تصفح تفاصيل تسجيل متابعة. أي تحديثات مستقبلية على المنصة ستظهر هنا تلقائياً عبر نفس الروابط."
         />
 
         <motion.div

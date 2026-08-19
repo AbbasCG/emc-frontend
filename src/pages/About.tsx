@@ -92,7 +92,7 @@ export default function About() {
     <main className="bg-[#f4f7fb] pt-20">
       <PublicSeo
         title="عن المركز"
-        description="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة والمهارة والفرص — رؤية ورسالة وخارطة طريق مؤسسية بلغة عربية احترافية ومعايير عالمية."
+        description="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة والمهارة والفرص رؤية ورسالة وخارطة طريق مؤسسية بلغة عربية احترافية ومعايير عالمية."
         path="/about"
       />
       <PublicPageHero
@@ -113,7 +113,7 @@ export default function About() {
         ]}
       />
 
-      {/* من نحن — split band */}
+      {/* من نحن split band */}
       <section id="about" className="scroll-mt-28 py-16 sm:py-20">
         <PageShell>
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -166,7 +166,7 @@ export default function About() {
         </PageShell>
       </section>
 
-      {/* Process — light break */}
+      {/* Process light break */}
       <section className="border-y border-slate-200/60 bg-white py-16 sm:py-20">
         <PageShell>
           <ProcessSteps
@@ -287,7 +287,7 @@ export default function About() {
         </PageShell>
       </section>
 
-      {/* AI / digital — full width band */}
+      {/* AI / digital full width band */}
       <section className="bg-white py-16 sm:py-20">
         <PageShell>
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">

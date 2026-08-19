@@ -42,7 +42,7 @@ function UsersDataTableInner({ users, getRowActions, onRowClick }: Props) {
               <Td colSpan={10} className="p-0">
                 <EmptyPanel
                   title="لا توجد نتائج مطابقة"
-                  subtitle="جرّب تعديل البحث أو المرشّحات — النتائج تُحمَّل من الخادم عند توفر الترقيم."
+                  subtitle="جرّب تعديل البحث أو المرشّحات النتائج تُحمَّل من الخادم عند توفر الترقيم."
                 />
               </Td>
             </tr>

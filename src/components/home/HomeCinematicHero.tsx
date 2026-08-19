@@ -167,7 +167,7 @@ function OrbitalVisual() {
         })}
       </div>
 
-      {/* Active theme readout — the glass card lost its frame: the content now sits
+      {/* Active theme readout the glass card lost its frame: the content now sits
           on a single hairline seat under the orbit. The switcher bar and the
           «استكشف» action below it stay boxed, since both are functional controls. */}
       <div className="relative mt-6 w-full max-w-lg border-t border-white/15 pt-5">
@@ -290,7 +290,7 @@ function DotGrid() {
 // + bg-white/[0.06] + backdrop blur) became one typographic line-up: serif
 // numbers on the field, separated by 1px hairlines. `text-white` overrides
 // emc-stat-num's light-surface navy, exactly as HomeImpactMetrics does.
-// The value stays a single text node — «+13,000» is e2e-pinned.
+// The value stays a single text node — «+20,000» is e2e-pinned.
 function HeroStat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-right">
@@ -402,7 +402,7 @@ export default function HomeCinematicHero() {
                 {t('home.hero.ctaSecondary')}
               </Link>
             </motion.div>
-            {/* Third CTA — glass chip anchor to the learning-tracks section (founder ask) */}
+            {/* Third CTA glass chip anchor to the learning-tracks section (founder ask) */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
               <a
                 href="#learning-tracks"
@@ -425,7 +425,7 @@ export default function HomeCinematicHero() {
             </motion.div>
           </motion.div>
 
-          {/* Stats row — typographic line-up seated on hairlines, no pills */}
+          {/* Stats row typographic line-up seated on hairlines, no pills */}
           <motion.div
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.1 } } }}
             className="mt-12 flex flex-wrap items-stretch justify-start gap-x-7 gap-y-8 border-t border-white/[0.08] pt-10"
@@ -450,7 +450,7 @@ export default function HomeCinematicHero() {
         </motion.div>
       </div>
 
-      {/* Scroll cue — existing soft-float keyframes; global reduced-motion CSS stills it */}
+      {/* Scroll cue existing soft-float keyframes; global reduced-motion CSS stills it */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-5 z-10 hidden justify-center lg:flex">
         {/* De-glassed: the scroll cue is the chevron itself, not a bordered chip */}
         <span className="animate-soft-float flex h-9 w-9 items-center justify-center text-white/45">

@@ -78,7 +78,7 @@ function fmtShort(d: string | null | undefined): string {
 }
 
 function timeAgo(d: string | null | undefined): string {
-  if (!d) return ''
+  if (!d) return '—'
   const diff = Date.now() - new Date(d).getTime()
   const m = Math.floor(diff / 60000)
   if (m < 1) return 'الآن'

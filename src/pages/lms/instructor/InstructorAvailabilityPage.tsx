@@ -257,7 +257,7 @@ export default function InstructorAvailabilityPage() {
       if (resolved.every((w) => w === null)) errs.timeWindows = 'يرجى تحديد فترة زمنية صحيحة واحدة على الأقل'
     }
     if (previews.length === 0 && Object.keys(errs).length === 0)
-      errs.general = 'لا توجد مواعيد ستُنشأ — يرجى مراجعة التاريخ والوقت'
+      errs.general = 'لا توجد مواعيد ستُنشأ يرجى مراجعة التاريخ والوقت'
     return errs
   }
 

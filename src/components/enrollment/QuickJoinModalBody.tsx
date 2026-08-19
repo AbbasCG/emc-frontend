@@ -357,7 +357,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
         className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white shadow-emc-xl outline-none"
         dir="rtl"
       >
-        {/* Navy header strip — the program the visitor is joining, always in view. */}
+        {/* Navy header strip the program the visitor is joining, always in view. */}
         <div className="bg-navy px-7 pb-6 pt-5 text-start text-white">
           <div className="flex items-start justify-between gap-3">
             <p className="text-[11px] font-black tracking-wide text-ice/85">

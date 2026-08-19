@@ -10,7 +10,7 @@ export function OrganizationJsonLd() {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
-    name: 'EMC — Educational Mastar Central',
+    name: 'EMC Educational Mastar Central',
     alternateName: 'مركز ماستر التعليمي',
     url: ORIGIN,
     logo: `${ORIGIN}/brand/og-default.png`,
@@ -51,7 +51,7 @@ export function CourseJsonLd({ name, description, slug, image }: CourseJsonLdPro
     ...(image ? { image } : {}),
     provider: {
       '@type': 'EducationalOrganization',
-      name: 'EMC — Educational Mastar Central',
+    name: 'EMC Educational Mastar Central',
       url: ORIGIN,
     },
   }

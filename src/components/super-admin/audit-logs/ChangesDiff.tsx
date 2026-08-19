@@ -57,7 +57,7 @@ export function ChangesDiffTable({ entry }: { entry: AdminAuditLogEntry }) {
     const entries = Object.entries(vals).filter(([k]) => !TIMESTAMP_SKIP.has(k))
     return (
       <div className="space-y-1">
-        <p className="mb-2 text-[11px] font-black text-red-700">تم حذف السجل — بيانات ما قبل الحذف</p>
+        <p className="mb-2 text-[11px] font-black text-red-700">تم حذف السجل بيانات ما قبل الحذف</p>
         <table className="w-full text-right text-[11px]">
           <thead>
             <tr className="border-b border-slate-100">

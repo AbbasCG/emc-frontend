@@ -771,7 +771,7 @@ export default function AdminCertificateIssuePage() {
                           رقم الدفعة: <span className="font-mono font-black text-[#0077B6]">{issuedBatch.batch_code}</span>
                         </p>
                         <p className="mt-1 text-[12px] text-slate-400">
-                          تم حفظ سجلات الشهادات. جاري إنشاء ملفات الشهادات في الخلفية — سيتلقى الطلاب إشعاراً عند اكتمال التوليد.
+                          تم حفظ سجلات الشهادات. جاري إنشاء ملفات الشهادات في الخلفية سيتلقى الطلاب إشعاراً عند اكتمال التوليد.
                         </p>
                       </div>
                       <div className="flex justify-center gap-3">

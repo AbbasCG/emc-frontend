@@ -179,7 +179,7 @@ export function UsersEnterpriseDetailDrawer({
                   <Kv
                     k="تأكيد البريد"
                     v={
-                      emailVerifiedTs ? `موثّق — ${fmtDate(user.email_verified_at)}` : 'غير موثّق'
+ emailVerifiedTs ? `موثّق ${fmtDate(user.email_verified_at)}`: 'غير موثّق'
                     }
                   />
                   <Kv k="مسجّل في" v={fmtDate(user.created_at)} />
@@ -196,7 +196,7 @@ export function UsersEnterpriseDetailDrawer({
             : tab === 'permissions' ?
               <div className="rounded-[22px] border border-white/85 bg-white/90 p-4 shadow-sm ring-1 ring-ink-100/65">
                 <p className="text-[11px] font-black text-muted-600 rtl:text-right">
-                  ملخص مبني على قالب الأدوار الظاهري — السياسة النهائية تبقى في Laravel Policies.
+                  ملخص مبني على قالب الأدوار الظاهري السياسة النهائية تبقى في Laravel Policies.
                 </p>
                 {!permissionChips.length ?
                   <p className="mt-3 text-[12px] font-semibold text-muted-700 rtl:text-right">لا تعريف لهذا الدور ضمن شبكة الصلاحيات.</p>

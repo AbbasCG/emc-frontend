@@ -15,7 +15,7 @@ export default function RouteFallback() {
       aria-label="جارٍ تحميل الصفحة"
       dir="rtl"
     >
-      {/* Branded loading mark — flying pages + tricolor sweep */}
+      {/* Branded loading mark flying pages + tricolor sweep */}
       <div className="pointer-events-none fixed inset-x-0 top-[42vh] z-10 flex flex-col items-center gap-4">
         <div className="emc-load-pages" aria-hidden>
           <span></span>

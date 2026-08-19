@@ -170,7 +170,7 @@ export default function SessionCalendar({
         <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />)}</div>
       ) : error ? (
         <div className="rounded-3xl border border-dashed border-red-200 bg-red-50/40 py-14 text-center text-[13px] font-semibold text-red-500">
-          تعذّر تحميل التقويم — حاول مرة أخرى
+          تعذّر تحميل التقويم حاول مرة أخرى
         </div>
       ) : events.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-14 text-center text-[13px] font-semibold text-deepBlue/40">

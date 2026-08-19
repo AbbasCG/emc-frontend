@@ -105,7 +105,7 @@ export default function LearningPathsFilterBar({
 
           <span className="h-4 w-px bg-line" aria-hidden />
 
-          {/* Featured — text toggle. Active state in the sea family: orange is the
+          {/* Featured text toggle. Active state in the sea family: orange is the
               primary action's colour only. */}
           <button
             type="button"
@@ -135,7 +135,7 @@ export default function LearningPathsFilterBar({
             ariaLabel="حالة التسجيل"
           />
 
-          {/* Count — plain text */}
+          {/* Count plain text */}
           <span className="ms-auto hidden whitespace-nowrap text-xs font-medium text-muted-500 sm:block">
             <span dir="ltr" className="font-black tabular-nums text-deepBlue">
               {toLatinDigits(resultCount)}

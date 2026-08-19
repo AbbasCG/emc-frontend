@@ -34,7 +34,7 @@ export default function AdminIntegrationsPage() {
           <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">Integrations</p>
           <h1 className="text-3xl font-black text-deepBlue">مركز التكاملات</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-500">
-            صِل EMC بواجهات الدفع، الرسائل، التقويم، والمطوّرين — كل بطاقة تعرض حالة الاتصال الحالية مع مسار الإعدادات المناسب.
+            صِل EMC بواجهات الدفع، الرسائل، التقويم، والمطوّرين كل بطاقة تعرض حالة الاتصال الحالية مع مسار الإعدادات المناسب.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

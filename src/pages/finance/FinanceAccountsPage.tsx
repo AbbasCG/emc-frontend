@@ -290,7 +290,7 @@ function AccountModal({ account, onClose, onSaved }: AccountModalProps) {
               <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-600">
                 <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
                 <p>
-                  {PROTECTED_ACCOUNT_TOOLTIP}. النوع والعملة وبوابة الدفع ثابتة لهذا الحساب —
+ {PROTECTED_ACCOUNT_TOOLTIP}. النوع والعملة وبوابة الدفع ثابتة لهذا الحساب 
                   يمكنك فقط تعديل الاسم والملاحظات وحالة التفعيل.
                 </p>
               </div>

@@ -38,7 +38,7 @@ export default function ProgramsHero({ coursesCount }: Props) {
           transition={{ delay: 0.1 }}
           className="mx-auto mt-4 max-w-2xl text-base leading-8 text-white/70 md:text-lg"
         >
-          تصفح جميع الدورات المستقلة المتاحة — مع أدوات بحث وتصفية متقدمة.
+          تصفح جميع الدورات المستقلة المتاحة مع أدوات بحث وتصفية متقدمة.
         </motion.p>
 
         <motion.div

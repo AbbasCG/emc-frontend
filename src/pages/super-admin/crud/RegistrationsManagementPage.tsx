@@ -262,7 +262,7 @@ export default function RegistrationsManagementPage() {
       <EnterpriseCrudHero
         eyebrow="Enrollment · GET /admin/registrations"
         title="التسجيلات الأكاديمية"
-        subtitle="قائمة حقيقية من جدول registrations مع الدورة والمتعلم — تسجيلات الضيوف مميّزة بوضوح."
+        subtitle="قائمة حقيقية من جدول registrations مع الدورة والمتعلم تسجيلات الضيوف مميّزة بوضوح."
         variant="orange"
         actions={
           <div className="flex flex-wrap gap-2">

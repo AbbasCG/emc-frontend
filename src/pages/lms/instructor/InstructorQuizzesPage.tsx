@@ -183,7 +183,7 @@ function QuizFormModal({ courseId, quiz, onClose, onSaved }: {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">وزن مخصص (%) — اختياري</label>
+              <label className="mb-1.5 block text-[11px] font-black text-deepBlue/60">وزن مخصص (%) اختياري</label>
               <input
                 type="number" min={0} max={100} value={weight}
                 onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
@@ -442,7 +442,7 @@ export default function InstructorQuizzesPage() {
   async function handleAction(action: QuizAction, quiz: InstructorQuizSummary) {
     if (action === 'edit') { setModalQuiz(quiz); return }
     if (action === 'results') {
-      toast.message(`أكمل ${quiz.completed_students_count} طالب — المتوسط ${quiz.average_score != null ? `${quiz.average_score}%` : 'لا يوجد بعد'}`)
+ toast.message(`أكمل ${quiz.completed_students_count} طالب المتوسط ${quiz.average_score!= null ? `${quiz.average_score}%`: 'لا يوجد بعد'}`)
       return
     }
     try {

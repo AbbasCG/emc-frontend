@@ -308,7 +308,7 @@ export function ScheduleTabPanel({ course, derived }: { course: Course; derived:
   if (end) rows.push({ label: 'تاريخ النهاية', value: end })
   const startClock = formatPublicTime(course.start_time ?? x.start_time)
   const endClock = formatPublicTime(course.end_time ?? x.end_time)
-  if (startClock || endClock) rows.push({ label: 'الوقت', value: [startClock, endClock].filter(Boolean).join(' — ') })
+  if (startClock || endClock) rows.push({ label: 'الوقت', value: [startClock, endClock].filter(Boolean).join(' ') })
   if (derived.displayDuration) rows.push({ label: 'المدة', value: formatPublicText(derived.displayDuration) })
   if (derived.sessionsLabel) rows.push({ label: 'الجلسات', value: formatPublicText(derived.sessionsLabel) })
   if (derived.hoursLabel) rows.push({ label: 'ساعات التدريب', value: formatPublicText(derived.hoursLabel) })

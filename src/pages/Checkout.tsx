@@ -280,7 +280,7 @@ export default function Checkout() {
     const result = await initiateCheckout(course.id, code)
     if (result.free) {
       trackPurchase(code, 0)
-      toast.success('تم تأكيد مقعدك — غطى رمز الخصم كامل القيمة.')
+      toast.success('تم تأكيد مقعدك غطى رمز الخصم كامل القيمة.')
       navigate('/thank-you')
       return true
     }
@@ -380,10 +380,10 @@ export default function Checkout() {
 
   return (
     <main dir="rtl" className="bg-white pb-24 pt-24">
-      <PublicSeo title={`إتمام الطلب — ${course.title}`} path={`/checkout/${course.slug}`} noIndex />
+      <PublicSeo title={`إتمام الطلب ${course.title}`} path={`/checkout/${course.slug}`} noIndex />
 
       <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-        {/* Header — the product, its access price in context, and seats-only urgency */}
+        {/* Header the product, its access price in context, and seats-only urgency */}
         <header className="text-right">
           <p className="text-xs font-black text-customBlue">إتمام الطلب</p>
           <h1 className="mt-2 font-display text-2xl font-black leading-snug text-navy sm:text-3xl">
@@ -415,7 +415,7 @@ export default function Checkout() {
           />
         </div>
 
-        {/* ── Step 1 — بياناتك ───────────────────────────────────────────── */}
+        {/* ── Step 1 بياناتك ───────────────────────────────────────────── */}
         <section className="mt-8 rounded-2xl border border-line bg-white p-5 text-right sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-lg font-black text-navy">بياناتك</h2>
@@ -563,7 +563,7 @@ export default function Checkout() {
           )}
         </section>
 
-        {/* ── Step 2 — الدفع ─────────────────────────────────────────────── */}
+        {/* ── Step 2 الدفع ─────────────────────────────────────────────── */}
         <section className="mt-5 rounded-2xl border border-line bg-white p-5 text-right sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-lg font-black text-navy">الدفع</h2>
@@ -624,7 +624,7 @@ export default function Checkout() {
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-black text-navy">تحويل بنكي محلي</span>
                     <span className="block text-xs font-bold text-muted-500">
-                      متاح لبلدك — تأكيد المقعد بعد مطابقة التحويل
+                      متاح لبلدك تأكيد المقعد بعد مطابقة التحويل
                     </span>
                   </span>
                 </button>
@@ -650,13 +650,13 @@ export default function Checkout() {
           )}
         </section>
 
-        {/* ── Step 3 — التأكيد ───────────────────────────────────────────── */}
+        {/* ── Step 3 التأكيد ───────────────────────────────────────────── */}
         <section className="mt-5 rounded-2xl border border-line bg-white p-5 text-right sm:p-6">
           <h2 className="font-display text-lg font-black text-navy">التأكيد</h2>
 
           {step === 3 ? (
             <div className="mt-5 grid gap-6">
-              {/* Order summary — the price never appears bare (§11) */}
+              {/* Order summary the price never appears bare (§11) */}
               <dl className="grid gap-2 border-b border-line pb-5 text-sm font-semibold">
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-500">البرنامج</dt>
@@ -684,7 +684,7 @@ export default function Checkout() {
                 </div>
               </dl>
 
-              {/* رمز الخصم — preview only; the backend re-validates at checkout */}
+              {/* رمز الخصم preview only; the backend re-validates at checkout */}
               <div>
                 {appliedCoupon ? (
                   <button
@@ -754,7 +754,7 @@ export default function Checkout() {
                 )}
               </div>
 
-              {/* وعد الانطلاق — verbatim, from the single shared module */}
+              {/* وعد الانطلاق verbatim, from the single shared module */}
               <div className="rounded-xl border border-line bg-paper2 p-4 text-right">
                 <p className="text-sm font-semibold leading-7 text-ink-500">{LAUNCH_PROMISE}</p>
                 <p className="mt-3 text-sm font-black text-navy">{REFUND_LINE}</p>
@@ -773,7 +773,7 @@ export default function Checkout() {
                 <div>
                   {couponCoversAll ? (
                     <p className="mb-3 text-sm font-black text-success">
-                      رمز الخصم يغطي كامل القيمة — لن تحتاج إلى الدفع.
+                      رمز الخصم يغطي كامل القيمة لن تحتاج إلى الدفع.
                     </p>
                   ) : null}
                   <button

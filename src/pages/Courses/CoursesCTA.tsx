@@ -24,10 +24,10 @@ function CoursesCTA() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          {/* Eyebrow — plain text between two fading dashes */}
+          {/* Eyebrow plain text between two fading dashes */}
           <p className="mb-4 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber">
             <span aria-hidden className="h-px w-8 bg-amber/50" />
-            EMC — التعليم الذكي
+            EMC التعليم الذكي
             <span aria-hidden className="h-px w-8 bg-amber/50" />
           </p>
 
@@ -56,7 +56,7 @@ function CoursesCTA() {
             </Link>
           </div>
 
-          {/* Trust row — typographic, seated on a single hairline */}
+          {/* Trust row typographic, seated on a single hairline */}
           <div className="mt-14 flex flex-wrap items-start justify-center border-t border-white/10 pt-8">
             {trustIndicators.map((item) => (
               <div

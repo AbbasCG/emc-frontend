@@ -72,7 +72,7 @@ function LevelLadder({ activeKey, score, total }: { activeKey: string; score: nu
                   {lvl.cefr}
                 </p>
 
-                {/* Track row — fixed height so all nodes stay on the same horizontal line */}
+                {/* Track row fixed height so all nodes stay on the same horizontal line */}
                 <div className="flex h-10 w-full items-center">
                   {/* Left connector */}
                   {i > 0 && (
@@ -438,7 +438,7 @@ export default function PlacementResultPage() {
                 </div>
               )}
 
-              {/* Meeting link — never left blank */}
+              {/* Meeting link never left blank */}
               <div className="pt-1">
                 {oralBooking.meeting_link ? (
                   <a

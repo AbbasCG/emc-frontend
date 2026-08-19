@@ -315,7 +315,7 @@ export default function InstructorLearningPathsPage() {
         </div>
       )}
 
-      {/* Empty — no paths assigned */}
+      {/* Empty no paths assigned */}
       {!loading && !forbidden && !loadError && (paths.length === 0 || notFound) && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-24 text-center shadow-sm">
           <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#0C2A4B]/5 to-[#0077B6]/10">
@@ -328,7 +328,7 @@ export default function InstructorLearningPathsPage() {
         </div>
       )}
 
-      {/* Empty — search/filter produced no results */}
+      {/* Empty search/filter produced no results */}
       {!loading && !forbidden && paths.length > 0 && filtered.length === 0 && (
         <div className="rounded-3xl border border-slate-200 bg-white py-12 text-center">
           <p className="font-black text-[#0C2A4B]">لا نتائج مطابقة</p>

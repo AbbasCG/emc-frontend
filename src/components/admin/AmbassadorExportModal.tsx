@@ -292,7 +292,7 @@ export default function AmbassadorExportModal({ onClose, currentSearch, selected
                       ) : null}
                       {preview?.truncated && (
                         <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-700">
-                          النتائج تتجاوز الحد الأقصى ({options.max_rows.toLocaleString('ar-EG')} سجل) — سيتم تصدير أول {options.max_rows.toLocaleString('ar-EG')} سجل فقط.
+                          النتائج تتجاوز الحد الأقصى ({options.max_rows.toLocaleString('ar-EG')} سجل) سيتم تصدير أول {options.max_rows.toLocaleString('ar-EG')} سجل فقط.
                         </p>
                       )}
                     </div>

@@ -95,7 +95,7 @@ function FooterAccordion({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between py-3 text-right md:hidden"
       >
-        {/* §1: orange is spent on the primary action only — section eyebrows stay
+        {/* §1: orange is spent on the primary action only section eyebrows stay
             in the sea family. */}
         <span className="text-[11px] font-black tracking-[0.12em] text-ice">{title}</span>
         <ChevronDown className={cn('h-4 w-4 text-white/50 transition', open && 'rotate-180')} aria-hidden />
@@ -130,7 +130,7 @@ export default function Footer() {
 
   return (
     <footer className="relative isolate overflow-hidden bg-navy text-white" dir={dir}>
-      {/* Brand edge — three SOLID segments, never a gradient: §1 forbids blending
+      {/* Brand edge three SOLID segments, never a gradient: §1 forbids blending
           the fire family into the sea family inside one gradient. */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex h-1">
         <span className="w-[22%] bg-customOrange" />
@@ -141,7 +141,7 @@ export default function Footer() {
       <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-6">
           <div className="text-right md:col-span-2 lg:col-span-1">
-            {/* §1: the logo appears ONCE site-wide — in the header. The footer
+            {/* §1: the logo appears ONCE site-wide in the header. The footer
                 carries the wordmark as type, never a second lockup. */}
             <Link
               to="/"

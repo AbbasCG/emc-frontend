@@ -52,7 +52,7 @@ function AvailableCourseCard({
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deepBlue/85 via-deepBlue/15 to-transparent" />
 
-        {/* Status badge — top right */}
+        {/* Status badge top right */}
         <div className="absolute right-3 top-3">
           {isEnrolled ? (
             <span className="rounded-full bg-emerald-600/95 px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-[2px]">
@@ -65,14 +65,14 @@ function AvailableCourseCard({
           )}
         </div>
 
-        {/* Price badge — top left */}
+        {/* Price badge top left */}
         <div className="absolute left-3 top-3">
           <span className={`rounded-full px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-[2px] ${isFree ? 'bg-emerald-600/95' : 'bg-customOrange/95'}`}>
             {priceLabel}
           </span>
         </div>
 
-        {/* Title overlay — bottom */}
+        {/* Title overlay bottom */}
         <div className="absolute bottom-3 left-3 right-3">
           <h4 className="line-clamp-2 text-right text-[15px] font-black leading-snug text-white drop-shadow-sm">
             {course.title}
@@ -170,8 +170,8 @@ export default function StudentAvailableCoursesPage() {
             <h1 className="mt-1 text-xl font-black sm:text-2xl">الدورات المتاحة</h1>
             <p className="mt-2 max-w-2xl text-sm font-semibold text-white/80">
               {registrations.length > 0
-                ? `مسجّل في ${registrations.length} دورة — اكتشف المزيد وأضف إلى مساراتك`
-                : 'ابدأ رحلتك التعليمية — اختر دورتك وسجّل الآن'}
+                ? `مسجّل في ${registrations.length} دورة اكتشف المزيد وأضف إلى مساراتك`
+: 'ابدأ رحلتك التعليمية اختر دورتك وسجّل الآن'}
             </p>
           </div>
           <button

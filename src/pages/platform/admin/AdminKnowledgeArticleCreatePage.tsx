@@ -40,7 +40,7 @@ export default function AdminKnowledgeArticleCreatePage() {
       </div>
       <ArticleEditor value={value} onChange={setValue} />
       <p className="mt-4 text-xs font-bold leading-6 text-slate-400">
-        هذه الواجهة أساس للمحرر الغني لاحقاً — الحفظ الحالي يعمل مع الـ API أو نموذج محلي عند غياب الخادم.
+        هذه الواجهة أساس للمحرر الغني لاحقاً الحفظ الحالي يعمل مع الـ API أو نموذج محلي عند غياب الخادم.
       </p>
     </div>
   )

@@ -312,7 +312,7 @@ export default function CourseContentManagerPage() {
             </h1>
             <p className="mt-3 max-w-xl text-[13px] font-medium leading-relaxed text-white/80">
               {cmsScope === 'instructor'
-                ? 'أضِف الوحدات والجلسات والمواد والواجبات — يظهر المحتوى مباشرة لطلاب الدورة في مساحة التعلم.'
+                ? 'أضِف الوحدات والجلسات والمواد والواجبات يظهر المحتوى مباشرة لطلاب الدورة في مساحة التعلم.'
                 : 'إدارة محتوى الدورة: الوحدات، الجلسات، المواد، والواجبات.'}
             </p>
           </div>
@@ -397,7 +397,7 @@ export default function CourseContentManagerPage() {
           {mods.length === 0 ?
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
               <Layers className="h-10 w-10 text-deepBlue/15" aria-hidden />
-              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد وحدات — أنشئ أول وحدة لتظهر على محتوى التعلّم.</p>
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد وحدات أنشئ أول وحدة لتظهر على محتوى التعلّم.</p>
             </div>
           : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -459,7 +459,7 @@ export default function CourseContentManagerPage() {
                           )}
                         </div>
                       : (
-                        <p className="text-[11px] font-semibold text-slate-400">وحدة فارغة — اضغط + لإضافة محتوى</p>
+                        <p className="text-[11px] font-semibold text-slate-400">وحدة فارغة اضغط + لإضافة محتوى</p>
                       )}
                     </div>
 
@@ -688,7 +688,7 @@ export default function CourseContentManagerPage() {
           {mods.length > 0 && generalSess.length === 0 && generalMats.length === 0 && generalAsgn.length === 0 && (
             <div className="rounded-2xl border border-dashed border-deepBlue/10 bg-slate-50/60 p-4 text-center">
               <p className="text-[11px] font-semibold text-deepBlue/40">
-                لا يوجد محتوى عام للدورة — كل المحتوى منظّم داخل الوحدات
+                لا يوجد محتوى عام للدورة كل المحتوى منظّم داخل الوحدات
               </p>
               <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                 <button type="button"
@@ -731,7 +731,7 @@ export default function CourseContentManagerPage() {
           {sess.length === 0 ?
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
               <Calendar className="h-10 w-10 text-deepBlue/15" aria-hidden />
-              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد جلسات — سيظهر تنبيه نظيف على صفحة الطالب.</p>
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا توجد جلسات سيظهر تنبيه نظيف على صفحة الطالب.</p>
             </div>
           : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -944,7 +944,7 @@ export default function CourseContentManagerPage() {
           {asgn.length === 0 ?
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-deepBlue/15 bg-emcBg/40 px-4 py-14 text-center">
               <ClipboardList className="h-10 w-10 text-deepBlue/15" aria-hidden />
-              <p className="text-[13px] font-semibold text-deepBlue/50">لا واجبات — أنشئ واجبات لتظهر لطلاب هذه الدورة.</p>
+              <p className="text-[13px] font-semibold text-deepBlue/50">لا واجبات أنشئ واجبات لتظهر لطلاب هذه الدورة.</p>
             </div>
           : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1281,7 +1281,7 @@ function SessionModalBody({
     <CmsFormModal
       formId="cms-session-form"
       title={modal.editingId ? 'تعديل الجلسة' : 'جلسة جديدة'}
-      subtitle="حدّد نوع الجلسة — تظهر الحقول المناسبة فقط (أونلاين / حضوري / مختلط)."
+      subtitle="حدّد نوع الجلسة تظهر الحقول المناسبة فقط (أونلاين / حضوري / مختلط)."
       eyebrow="جدولة الجلسات"
       onClose={onClose}
       onSubmit={submit}
@@ -1471,7 +1471,7 @@ function MaterialModalBody({
     <CmsFormModal
       formId="cms-material-form"
       title={modal.editingId ? 'تعديل المادة' : 'مادة تعليمية جديدة'}
-      subtitle="ملف، رابط، أو مستند — يظهر للطلاب حسب إعدادات الظهور."
+      subtitle="ملف، رابط، أو مستند يظهر للطلاب حسب إعدادات الظهور."
       eyebrow="مواد الدورة"
       onClose={onClose}
       onSubmit={submit}
@@ -1514,7 +1514,7 @@ function MaterialModalBody({
           label="رابط خارجي"
           dir="ltr"
           type="url"
-          hint="بديل عن رفع ملف — YouTube، Drive، …"
+          hint="بديل عن رفع ملف YouTube، Drive، …"
           error={fieldErrors.external_url}
           value={d.external_url}
           onChange={(v) => {
@@ -1630,7 +1630,7 @@ function AssignmentModalBody({
     <CmsFormModal
       formId="cms-assignment-form"
       title={modal.editingId ? 'تعديل الواجب' : 'واجب جديد'}
-      subtitle="موعد التسليم، الدرجة، ونوع التسليم — كما يراه الطالب."
+      subtitle="موعد التسليم، الدرجة، ونوع التسليم كما يراه الطالب."
       eyebrow="واجبات الدورة"
       onClose={onClose}
       onSubmit={submit}
@@ -1774,7 +1774,7 @@ function LessonModalBody({
     <CmsFormModal
       formId="cms-lesson-form"
       title="درس جديد"
-      subtitle="أضف درساً داخل هذه الوحدة — يمكن إرفاق فيديو أو وصف نصي."
+      subtitle="أضف درساً داخل هذه الوحدة يمكن إرفاق فيديو أو وصف نصي."
       eyebrow="دروس الوحدة"
       onClose={onClose}
       onSubmit={submit}
@@ -1819,7 +1819,7 @@ function LessonModalBody({
           label="المدة (بالدقائق)"
           dir="ltr"
           type="number"
-          hint="تقريبية — تُعرض للطالب كمعلومة"
+          hint="تقريبية تُعرض للطالب كمعلومة"
           error={fieldErrors.duration_minutes}
           value={d.duration_minutes ?? ''}
           onChange={(v) => {

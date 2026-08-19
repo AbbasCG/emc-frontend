@@ -32,7 +32,7 @@ function n(v: number): string {
 }
 
 function fmt24(iso: string | null | undefined): string {
-  if (!iso) return ''
+  if (!iso) return '—'
   try {
     return new Date(iso).toLocaleTimeString('en-US', {
       hour: '2-digit', minute: '2-digit', hour12: false,
@@ -59,7 +59,7 @@ function todayArabicDate(): string {
 }
 
 function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return ''
+  if (!iso) return '—'
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.round(diff / 60000)
   if (mins < 1) return 'للتو'

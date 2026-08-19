@@ -135,7 +135,7 @@ export default function AdminKnowledgeCategoriesPage() {
         <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">Taxonomy</p>
         <h1 className="mt-1 text-2xl font-black text-deepBlue">فئات المعرفة</h1>
         <p className="mt-2 text-sm font-medium text-slate-500">
-          إجمالي {cats.length} فئة — {cats.reduce((s, c) => s + c.articles_count, 0)} مقالة
+          إجمالي {cats.length} فئة {cats.reduce((s, c) => s + c.articles_count, 0)} مقالة
         </p>
       </motion.div>
 

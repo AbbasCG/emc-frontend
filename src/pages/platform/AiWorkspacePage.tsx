@@ -78,7 +78,7 @@ export default function AiWorkspacePage() {
             <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Operating System</p>
             <h1 className="mt-1 text-3xl font-black text-deepBlue">مساحة الذكاء المؤسسي</h1>
             <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-600">
-              مساعد متعدد الأدوار، بحث دلالي، توصيات ذكية، وتوليد محتوى تشغيلي — ضمن واجهة موحدة.
+              مساعد متعدد الأدوار، بحث دلالي، توصيات ذكية، وتوليد محتوى تشغيلي ضمن واجهة موحدة.
             </p>
           </div>
           <button

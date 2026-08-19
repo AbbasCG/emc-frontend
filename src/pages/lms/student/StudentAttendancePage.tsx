@@ -229,7 +229,7 @@ export default function StudentAttendancePage() {
         </div>
       )}
 
-      {/* Streaks + risk level — backend-computed by AttendanceStatisticsService, never recalculated here. */}
+      {/* Streaks + risk level backend-computed by AttendanceStatisticsService, never recalculated here. */}
       {summary && summary.total > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="تتابع حضور حالي" value={summary.current_attendance_streak} colorClass="border-emerald-200/70 bg-emerald-50/60 text-emerald-700" />

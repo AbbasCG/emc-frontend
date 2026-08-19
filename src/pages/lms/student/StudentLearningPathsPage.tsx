@@ -170,7 +170,7 @@ export default function StudentLearningPathsPage() {
                       )}
                     </div>
 
-                    {/* Instructor — only if assigned */}
+                    {/* Instructor only if assigned */}
                     {path.instructor && (
                       <p className="text-[11px] text-slate-400">
                         المدرب:{' '}

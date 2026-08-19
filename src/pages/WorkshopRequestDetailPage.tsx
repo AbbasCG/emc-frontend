@@ -70,7 +70,7 @@ function formatDate(raw: string | null | undefined): string {
 }
 
 function formatTimeRange(raw: string | null | undefined): string {
-  if (!raw) return ''
+  if (!raw) return '—'
   // Format: "HH:MM - HH:MM" already in 24h English digits
   return raw.trim()
 }
@@ -588,7 +588,7 @@ export default function WorkshopRequestDetailPage() {
               <div className="mt-5">
                 <span className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 text-[13px] font-black text-white/90 ring-1 ring-white/25">
                   <Clock className="h-4 w-4 shrink-0" />
-                  تمت مراجعتك لهذا الطلب — عرض للاطلاع فقط
+                  تمت مراجعتك لهذا الطلب عرض للاطلاع فقط
                 </span>
               </div>
             )}
@@ -598,7 +598,7 @@ export default function WorkshopRequestDetailPage() {
         {/* ── Body grid ───────────────────────────────────────────────────── */}
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
 
-                    {/* Left column — workflow timeline */}
+                    {/* Left column workflow timeline */}
           <div className="lg:col-span-5">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -669,7 +669,7 @@ export default function WorkshopRequestDetailPage() {
             </motion.div>
           </div>
 
-          {/* Right column — detail sections */}
+          {/* Right column detail sections */}
           <div className="space-y-5 lg:col-span-7">
 
             {/* 1. بيانات مقدم الطلب */}
@@ -788,7 +788,7 @@ export default function WorkshopRequestDetailPage() {
                     <p className="mt-0.5 text-[13px] font-semibold text-[#0C2A4B]">
                       {detail.price_type === 'free'
                         ? 'مجاني'
-                        : `مدفوع — ${detail.price_amount ?? ''} ريال`
+: `مدفوع ${detail.price_amount ?? ''} ريال`
                       }
                     </p>
                   </div>

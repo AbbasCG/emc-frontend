@@ -25,20 +25,12 @@ import { useLanguage } from '@/i18n/useLanguage'
 import CommandPalette from '@/components/ai/CommandPalette'
 
 /**
- * EMC-WEB-001 §2 — the main menu is FIVE flat items and nothing else.
- * No mega-dropdowns, no nested groups, no hover surfaces: one tap, one page.
- * «للمؤسسات» / «عن المركز» / «التحقق من الشهادات» live in the footer only.
- *
- * Labels come from the i18n catalog (nav.* in src/i18n/locales/*.json — ar.json
- * is the approved source of truth).
+ * The bar carries «الرئيسية» and ONE «كل الأقسام» trigger; every other
+ * destination lives in the site-index panel, grouped under four main sections
+ * (تعلّم · المركز · انضم إلينا · خدمات ودعم). Founder's call: a single
+ * unfolding column instead of loose links strung across the bar.
  */
-const NAV_ITEMS = [
-  { href: '/', labelKey: 'nav.home', end: true },
-  { href: '/courses', labelKey: 'nav.courses', end: false },
-  { href: '/learning-paths', labelKey: 'nav.tracks', end: false },
-  { href: '/fellowship', labelKey: 'nav.fellowship', end: false },
-  { href: '/workshops', labelKey: 'nav.workshops', end: false },
-] as const
+const NAV_ITEMS = [{ href: '/', labelKey: 'nav.home', end: true }] as const
 
 /* §1: no shadows on public surfaces — depth is carried by 1px hairlines (border/ring). */
 const navLinkBase =
@@ -90,6 +82,7 @@ function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [indexOpen, setIndexOpen] = useState(false)
+  const [openSection, setOpenSection] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -165,7 +158,7 @@ function Navbar() {
       ].join(' ')}
     >
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:h-[4.25rem] lg:px-8">
-        {/* §1: the logo is final and appears ONCE site-wide — here. It is never
+        {/* §1: the logo is final and appears ONCE site-wide here. It is never
             recoloured, redrawn or stretched; only the approved colour/white
             lockups are swapped for contrast. */}
         <Link
@@ -203,36 +196,46 @@ function Navbar() {
               </NavLink>
             ))}
 
-            {/* Site index — every remaining destination the old mega-menus held,
-                one calm trigger instead of four heavy dropdowns. */}
-            <button
-              type="button"
-              onClick={() => {
-                setIndexOpen((v) => !v)
-                setUserMenuOpen(false)
-                setLangMenuOpen(false)
-              }}
-              aria-expanded={indexOpen}
-              aria-haspopup="menu"
-              className={[
-                overDark ? navLinkDarkBase : navLinkBase,
-                overDark
-                  ? indexOpen
-                    ? navLinkDarkActive
-                    : navLinkDarkIdle
-                  : indexOpen
-                    ? navLinkActive
-                    : '',
-                'gap-1.5',
-              ].join(' ')}
-            >
-              كل الأقسام
-              <ChevronDown
-                size={14}
-                className={`transition-transform duration-300 ease-emc-out ${indexOpen ? '-rotate-180' : 'opacity-60'}`}
-                aria-hidden
-              />
-            </button>
+            {/* The four main sections sit on the bar; each opens the index panel
+                already showing its own pages. */}
+            {SITE_INDEX.map((group, i) => {
+              const isOpen = indexOpen && openSection === i
+              return (
+                <button
+                  key={group.title}
+                  type="button"
+                  onClick={() => {
+                    setOpenSection(i)
+                    setIndexOpen(!(indexOpen && openSection === i))
+                    setUserMenuOpen(false)
+                    setLangMenuOpen(false)
+                  }}
+                  onMouseEnter={() => {
+                    if (indexOpen) setOpenSection(i)
+                  }}
+                  aria-expanded={isOpen}
+                  aria-haspopup="menu"
+                  className={[
+                    overDark ? navLinkDarkBase : navLinkBase,
+                    overDark
+                      ? isOpen
+                        ? navLinkDarkActive
+                        : navLinkDarkIdle
+                      : isOpen
+                        ? navLinkActive
+                        : '',
+                    'gap-1',
+                  ].join(' ')}
+                >
+                  {group.title}
+                  <ChevronDown
+                    size={13}
+                    className={`transition-transform duration-300 ease-emc-out ${isOpen ? '-rotate-180' : 'opacity-50'}`}
+                    aria-hidden
+                  />
+                </button>
+              )
+            })}
           </div>
 
           {/* The one primary decision on every public screen. */}
@@ -357,7 +360,7 @@ function Navbar() {
             ))
           )}
 
-          {/* M3: language switcher — trailing utility at the outer edge of the cluster */}
+          {/* M3: language switcher trailing utility at the outer edge of the cluster */}
           <div className="relative">
             <button
               type="button"
@@ -453,12 +456,17 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Desktop site index — the destinations the old mega-menus carried, in one
+      {/* Desktop site index the destinations the old mega-menus carried, in one
           editorial sheet instead of four dropdowns. */}
       <AnimatePresence>
         {indexOpen && (
           <div className="hidden lg:block">
-            <SiteIndexPanel dark={overDark} onClose={() => setIndexOpen(false)} />
+            <SiteIndexPanel
+              dark={overDark}
+              activeIndex={openSection}
+              onActiveIndexChange={setOpenSection}
+              onClose={() => setIndexOpen(false)}
+            />
           </div>
         )}
       </AnimatePresence>
@@ -473,7 +481,7 @@ function Navbar() {
             className="max-h-[min(88vh,600px)] overflow-y-auto border-t border-line bg-white/[0.97] backdrop-blur-2xl backdrop-saturate-150 lg:hidden"
           >
             <div className="space-y-1.5 px-4 py-4">
-              {/* §2: the same five flat items — the drawer mirrors the bar, no accordions. */}
+              {/* §2: the same five flat items the drawer mirrors the bar, no accordions. */}
               {NAV_ITEMS.map((item) => (
                 <NavLink
                   key={item.href}
@@ -501,7 +509,7 @@ function Navbar() {
                 <ArrowLeftIcon size={15} className="shrink-0 opacity-90" />
               </Link>
 
-              {/* Site index on mobile — the same destinations as the desktop sheet,
+              {/* Site index on mobile the same destinations as the desktop sheet,
                   so a phone visitor never loses a page the old drawer reached. */}
               {SITE_INDEX.map((group) => (
                 <div key={group.title} className="pt-3">

@@ -144,7 +144,7 @@ function EventDrawer({
             <Clock size={16} className="mt-0.5 shrink-0 text-[#F28C00]" />
             <span>
               {formatCalendarTime(event.start_at)}
-              {event.end_at ? ` — ${formatCalendarTime(event.end_at)}` : ''}
+ {event.end_at ? ` ${formatCalendarTime(event.end_at)}`: ''}
             </span>
           </p>
         </div>
@@ -551,7 +551,7 @@ export default function CalendarPage() {
             <p className="text-[11px] font-black uppercase tracking-widest text-[#F28C00]">Calendar</p>
             <h1 className="text-3xl font-black">التقويم</h1>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-white/70">
-              الجلسات والورش والاجتماعات والمهام — بيانات حية من حسابك.
+              الجلسات والورش والاجتماعات والمهام بيانات حية من حسابك.
             </p>
             {!loading && fetchOk && (
               <p className="mt-3 text-sm font-bold text-[#F28C00]">

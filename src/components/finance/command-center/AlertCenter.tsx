@@ -64,7 +64,7 @@ export default function AlertCenter({ alerts }: { alerts: FinanceAlert[] }) {
       ) : (
         <div className="flex items-center justify-center gap-3 rounded-xl bg-emerald-50 py-8 text-emerald-800">
           <ShieldAlert size={20} />
-          <p className="text-sm font-black">لا توجد تنبيهات عاجلة — الوضع المالي مستقر</p>
+          <p className="text-sm font-black">لا توجد تنبيهات عاجلة الوضع المالي مستقر</p>
         </div>
       )}
     </SectionShell>

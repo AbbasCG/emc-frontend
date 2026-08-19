@@ -779,7 +779,7 @@ export function AdminModulesPage() {
             <p className="text-[11px] font-black uppercase tracking-widest text-[#0077B6]">Admin LMS</p>
             <h1 className="text-2xl font-black text-[#0C2A4B]">إدارة الوحدات</h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
-              إنشاء وتعديل وحذف وحدات الدورات — مصدر البيانات الموحد مع صفحة محتوى الدورة.
+              إنشاء وتعديل وحذف وحدات الدورات مصدر البيانات الموحد مع صفحة محتوى الدورة.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -872,7 +872,7 @@ export function AdminModulesPage() {
           <div className="rounded-2xl border border-dashed border-[#0C2A4B]/12 bg-white p-12 text-center">
             <Layers className="mx-auto mb-3 h-10 w-10 text-[#0C2A4B]/15" aria-hidden />
             <p className="text-[13px] font-semibold text-[#0C2A4B]/50">
-              {rows.length === 0 ? 'لا توجد وحدات — أنشئ وحدتك الأولى الآن.' : 'لا نتائج تطابق الفلاتر الحالية.'}
+ {rows.length === 0 ? 'لا توجد وحدات أنشئ وحدتك الأولى الآن.': 'لا نتائج تطابق الفلاتر الحالية.'}
             </p>
           </div>
         )}
@@ -1079,7 +1079,7 @@ function LessonModal({
                 onChange={(e) => set('module_id', e.target.value ? Number(e.target.value) : null)}
                 className={[lfieldCls, errors.module_id ? 'border-rose-300 ring-1 ring-rose-200' : ''].join(' ')}
               >
-                <option value="">— اختر وحدة —</option>
+                <option value=""> اختر وحدة </option>
                 {modules.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.title}{(m as ModuleRow).course_title ? ` (${(m as ModuleRow).course_title})` : ''}
@@ -1355,7 +1355,7 @@ export function AdminLessonsPage() {
     <>
     <AdminLmsShell
       title="إدارة الدروس"
-      description="كل دروس الدورات — إنشاء، تعديل، ترتيب، وإدارة مرئية الطلاب"
+      description="كل دروس الدورات إنشاء، تعديل، ترتيب، وإدارة مرئية الطلاب"
       breadcrumb="الدروس"
       kpis={[
         { label: 'إجمالي الدروس', value: fmtNum(total),     icon: BookOpen, variant: 'brand' },
@@ -1492,7 +1492,7 @@ export function AdminQuizzesPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">Admin LMS</p>
         <h1 className="text-2xl font-black text-deepBlue">إدارة الاختبارات</h1>
-        <p className="mt-2 text-sm font-medium text-slate-500">أسئلة وبنوك محتوى — ربط التصحيح الآلي.</p>
+        <p className="mt-2 text-sm font-medium text-slate-500">أسئلة وبنوك محتوى ربط التصحيح الآلي.</p>
       </motion.div>
       {rows.length === 0 ? (
         <EmptyState title="لا اختبارات" />
@@ -1508,7 +1508,7 @@ export function AdminQuizzesPage() {
             >
               <h2 className="text-lg font-black text-deepBlue">{q.title}</h2>
               <p className="mt-2 text-xs font-bold text-slate-500">
-                دورة #{q.course_id} — نجاح {q.passing_score}% — أسئلة {q.questions.length}
+                دورة #{q.course_id} نجاح {q.passing_score}% أسئلة {q.questions.length}
               </p>
             </motion.div>
           ))}

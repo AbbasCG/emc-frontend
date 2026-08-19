@@ -219,7 +219,7 @@ function MaterialModal({ initial, onClose, onSaved }: { initial?: MaterialRow | 
               </select>
             </div>
 
-            {/* Source toggle — hidden for ZIP (always file) and link (always url) */}
+            {/* Source toggle hidden for ZIP (always file) and link (always url) */}
             {form.type !== 'link' && form.type !== 'programming_project' && (
               <div className="flex gap-2">
                 <button
@@ -732,7 +732,7 @@ export default function AdminLmsMaterialsPage() {
       )}
       <AdminLmsShell
         title="إدارة المواد التعليمية"
-        description="معاينة وتحميل المواد المنشورة عبر الدورات — بدون روابط تخزين مباشرة"
+        description="معاينة وتحميل المواد المنشورة عبر الدورات بدون روابط تخزين مباشرة"
         breadcrumb="المواد"
         kpis={[
           { label: 'إجمالي المواد', value: fmtNum(total), icon: FolderOpen, variant: 'brand' },

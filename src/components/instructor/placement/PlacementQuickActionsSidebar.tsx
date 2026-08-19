@@ -25,7 +25,7 @@ export function PlacementQuickActionsSidebar({ row, courseId, onApproveLevel, ca
   }
 
   function handleDownload() {
-    toast.message('جاري تجهيز تقرير PDF — استخدم طباعة → حفظ كـ PDF')
+    toast.message('جاري تجهيز تقرير PDF استخدم طباعة → حفظ كـ PDF')
     window.print()
   }
 

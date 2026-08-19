@@ -48,25 +48,25 @@ const pageTitles: Record<string, string> = {
   '/dashboard/student':      'لوحة الطالب',
   '/dashboard/instructor':      'لوحة المدرب',
   '/dashboard/admin':        'لوحة الإدارة',
-  '/dashboard/super-admin': 'السوبر مشرف — نظرة عامة',
-  '/dashboard/super-admin/audit-logs': 'سجل التغييرات — السوبر مشرف',
+  '/dashboard/super-admin': 'السوبر مشرف نظرة عامة',
+  '/dashboard/super-admin/audit-logs': 'سجل التغييرات السوبر مشرف',
   '/dashboard/super-admin/crud': 'إدارة الكيانات',
   '/dashboard/super-admin/crud/users': 'مركز المستخدمين',
   '/dashboard/super-admin/crud/roles': 'الأدوار والصلاحيات',
   '/dashboard/super-admin/crud/departments': 'الإدارات',
   '/dashboard/super-admin/crud/team': 'إدارة الفريق',
-  '/dashboard/super-admin/crud/students': 'الطلاب — السوبر مشرف',
-  '/dashboard/super-admin/crud/instructors': 'المدربون — السوبر مشرف',
-  '/dashboard/super-admin/crud/programs': 'البرامج — السوبر مشرف',
-  '/dashboard/super-admin/crud/tracks': 'المسارات — السوبر مشرف',
-  '/dashboard/super-admin/crud/workshops': 'الورش — السوبر مشرف',
-  '/dashboard/super-admin/crud/registrations': 'التسجيلات — السوبر مشرف',
-  '/dashboard/super-admin/crud/partners': 'الشراكات — السوبر مشرف',
+  '/dashboard/super-admin/crud/students': 'الطلاب السوبر مشرف',
+  '/dashboard/super-admin/crud/instructors': 'المدربون السوبر مشرف',
+  '/dashboard/super-admin/crud/programs': 'البرامج السوبر مشرف',
+  '/dashboard/super-admin/crud/tracks': 'المسارات السوبر مشرف',
+  '/dashboard/super-admin/crud/workshops': 'الورش السوبر مشرف',
+  '/dashboard/super-admin/crud/registrations': 'التسجيلات السوبر مشرف',
+  '/dashboard/super-admin/crud/partners': 'الشراكات السوبر مشرف',
   '/dashboard/super-admin/product-updates': 'تحديثات المنصة',
   '/dashboard/super-admin/volunteer-requests': 'طلبات التطوع',
   '/dashboard/executive': 'اللوحة التنفيذية',
   '/dashboard/finance': 'لوحة المالية',
-  '/dashboard/quality':                    'لوحة الجودة — المركز القيادي',
+  '/dashboard/quality': 'لوحة الجودة المركز القيادي',
   '/dashboard/quality/reviews':            'مراجعات البرامج',
   '/dashboard/quality/workshops':          'طلبات البرامج التدريبية',
   '/dashboard/quality/incidents':          'الحوادث',
@@ -83,9 +83,9 @@ const pageTitles: Record<string, string> = {
   '/dashboard/support': 'تذاكر الدعم',
   '/dashboard/volunteer': 'المتطوعون',
   '/dashboard/department': 'الإدارات',
-  '/dashboard/department/programs': 'البرامج — الإدارة',
+  '/dashboard/department/programs': 'البرامج الإدارة',
   '/dashboard/tech-admin': 'لوحة مدير التقنية',
-  '/dashboard/tech-admin/learning-paths': 'المسارات التعليمية — التقنية',
+  '/dashboard/tech-admin/learning-paths': 'المسارات التعليمية التقنية',
   '/dashboard/programs-manager': 'لوحة مدير البرامج والمسارات',
   '/dashboard/programs-manager/learning-paths': 'المسارات التعليمية',
   '/dashboard/operations-manager': 'لوحة مدير التشغيل والعمليات',
@@ -124,7 +124,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/lms/assignments': 'إدارة الواجبات',
   '/dashboard/admin/lms/materials':   'إدارة المواد',
   '/dashboard/admin/lms/evaluations': 'التقييمات',
-  '/dashboard/admin/lms/courses':     'محتوى الدورة — إدارة LMS',
+  '/dashboard/admin/lms/courses': 'محتوى الدورة إدارة LMS',
   '/dashboard/admin/lms/progress':    'التقدّم الإداري',
   '/dashboard/admin/operations': 'لوحة العمليات التشغيلية',
   '/dashboard/admin/programs': 'إدارة البرامج والدورات',
@@ -181,8 +181,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/audit-logs': 'سجل التدقيق',
   '/dashboard/admin/platform-scale': 'نمو المنصة',
   '/dashboard/admin/integrations': 'مركز التكاملات',
-  '/dashboard/admin/integrations/whatsapp': 'واتساب — التكامل',
-  '/dashboard/admin/integrations/email': 'البريد — التكامل',
+  '/dashboard/admin/integrations/whatsapp': 'واتساب التكامل',
+  '/dashboard/admin/integrations/email': 'البريد التكامل',
   '/dashboard/admin/calendar': 'تقويم الإدارة',
   '/dashboard/admin/webhooks': 'الويبهوكس',
   '/dashboard/admin/developer/api-tokens': 'رموز المطوّر',
@@ -194,7 +194,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/executive/operations': 'لوحة العمليات التشغيلية',
   '/dashboard/executive/kpi': 'مؤشرات الأداء',
   '/dashboard/executive/reports': 'التقارير التحليلية',
-  '/dashboard/executive/programs': 'البرامج والدورات — التنفيذي',
+  '/dashboard/executive/programs': 'البرامج والدورات التنفيذي',
   '/dashboard/finance/payments': 'المدفوعات',
   '/dashboard/finance/transactions': 'المعاملات المالية',
   '/dashboard/hr/team': 'أعضاء الفريق',
@@ -332,7 +332,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         )}
       </AnimatePresence>
 
-      {/* Sidebar panel — premium gradient + inset highlights + ambient glow */}
+      {/* Sidebar panel premium gradient + inset highlights + ambient glow */}
       <aside
         dir="rtl"
         className={[
@@ -360,7 +360,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         {/* ── Logo ── */}
         <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-white/[0.08] px-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/brand/logos/logo_full_white.png" alt="EMC — Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" fetchPriority="high" />
+            <img src="/brand/logos/logo_full_white.png" alt="EMC Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" fetchPriority="high" />
           </Link>
           <button
             type="button"

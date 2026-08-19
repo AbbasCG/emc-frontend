@@ -28,7 +28,7 @@ export default function QuizResult({ result, courseId = 1 }: Props) {
             <p className="text-xs font-black uppercase tracking-widest text-white/70">نتيجة الاختبار</p>
             <h2 className="mt-2 text-3xl font-black">{result.passed ? 'تم الاجتياز' : 'لم يتم الاجتياز'}</h2>
             <p className="mt-3 max-w-md text-sm font-bold text-white/85">
-              درجتك {result.score}% — درجة النجاح {result.passing_score}%
+              درجتك {result.score}% درجة النجاح {result.passing_score}%
             </p>
           </div>
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">

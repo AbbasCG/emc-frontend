@@ -320,7 +320,7 @@ export default function Signup() {
                     onChange={(e) => setHowHeard(e.target.value)}
                     className={`h-14 w-full cursor-pointer appearance-none rounded-xl border border-line bg-paper2 px-4 pl-10 text-right font-semibold outline-none transition focus:border-customBlue focus:bg-white focus:ring-4 focus:ring-brand-100 ${howHeard ? 'text-deepBlue' : 'text-muted-400'}`}
                   >
-                    {/* NOTE: option VALUES stay as the Arabic literals — they are the API
+                    {/* NOTE: option VALUES stay as the Arabic literals they are the API
                         payload (how_did_you_hear_about_us); only the visible labels are translated. */}
                     <option value="">{t('auth.signup.form.howHeardPlaceholder')}</option>
                     <option value="صديق أو قريب">{t('auth.signup.howHeardOptions.friend')}</option>

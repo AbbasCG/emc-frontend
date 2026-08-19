@@ -140,7 +140,7 @@ export default function OpsFormDetailPage() {
             </table>
           </div>
           <p className="mt-4 text-center text-[11px] font-bold text-slate-400">
-            تصدير CSV / Excel — placeholder عبر مسار الخادم لاحقاً.
+            تصدير CSV / Excel placeholder عبر مسار الخادم لاحقاً.
           </p>
         </DashboardSection>
       )}

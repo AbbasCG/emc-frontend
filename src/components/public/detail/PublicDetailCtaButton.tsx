@@ -141,7 +141,7 @@ export default function PublicDetailCtaButton({
       try {
         const result = await initiateCheckout(courseId, coupon?.coupon.code ?? null)
         if (result.free) {
-          toast.success('تم إتمام تسجيلك في الدورة بنجاح — الخصم غطى كامل السعر.')
+          toast.success('تم إتمام تسجيلك في الدورة بنجاح الخصم غطى كامل السعر.')
           window.location.href = '/dashboard/student/courses'
           return
         }

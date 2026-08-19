@@ -151,7 +151,7 @@ export default function InstructorSessionDetailPage() {
         </div>
       ) : error || !session ? (
         <div className="rounded-3xl border border-dashed border-red-200 bg-red-50/40 py-16 text-center text-[13px] font-semibold text-red-500">
-          تعذّر تحميل بيانات الجلسة — حاول مرة أخرى
+          تعذّر تحميل بيانات الجلسة حاول مرة أخرى
         </div>
       ) : (
         <>
@@ -171,7 +171,7 @@ export default function InstructorSessionDetailPage() {
             </div>
           </motion.div>
 
-          {/* Transition + management actions — every button here is gated by backend permissions/allowed_transitions, never inferred locally. */}
+          {/* Transition + management actions every button here is gated by backend permissions/allowed_transitions, never inferred locally. */}
           <div className="flex flex-wrap gap-2">
             {session.allowed_transitions.map((status) => {
               const cfg = TRANSITION_LABEL[status]

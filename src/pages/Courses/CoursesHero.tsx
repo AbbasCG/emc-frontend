@@ -101,7 +101,7 @@ function CoursesHero({
   return (
     <section ref={sectionRef} className="emc-dawn emc-corner-pages emc-corner-pages-white relative overflow-hidden pt-28 pb-16">
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6">
-        {/* Eyebrow — plain typography, no badge chrome */}
+        {/* Eyebrow plain typography, no badge chrome */}
         <motion.p {...fadeUp(0)} className="mb-5 flex items-center justify-center gap-2 text-xs font-bold tracking-wide text-brand-200">
           <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-500" />
           EMC · Educational Mastar Central
@@ -114,10 +114,10 @@ function CoursesHero({
           استكشف برامجنا
         </motion.h1>
         <motion.p {...fadeUp(0.18)} className="mb-10 text-center text-lg leading-relaxed text-ice/80 md:text-xl">
-          ورش عمل · دورات · مسارات — مصممة لتأخذك من الصفر إلى الشهادة الاحترافية
+          ورش عمل · دورات · مسارات مصممة لتأخذك من الصفر إلى الشهادة الاحترافية
         </motion.p>
 
-        {/* Search — a form field is functional chrome; kept light, no heavy shadow */}
+        {/* Search a form field is functional chrome; kept light, no heavy shadow */}
         <motion.div {...fadeUp(0.26)} className="relative mx-auto mb-7 max-w-2xl">
           <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-400" aria-hidden />
           <input
@@ -129,7 +129,7 @@ function CoursesHero({
           />
         </motion.div>
 
-        {/* Category tabs — text with the drawn arc under the active one, no pills */}
+        {/* Category tabs text with the drawn arc under the active one, no pills */}
         <motion.div {...fadeUp(0.34)} className="mb-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
           {categoryOptions.map((cat) => {
             const active = activeCategory === cat.value
@@ -167,7 +167,7 @@ function CoursesHero({
           </Link>
         </motion.div>
 
-        {/* Stats band — typographic numbers over a single hairline; only the numbers animate (count-up). */}
+        {/* Stats band typographic numbers over a single hairline; only the numbers animate (count-up). */}
         <div className="grid grid-cols-2 gap-y-8 border-t border-white/10 pt-10 md:flex md:items-start md:justify-center">
           {statsRow.map((stat) => (
             <StatCounter key={stat.label} value={stat.value} label={stat.label} suffix={stat.suffix} />

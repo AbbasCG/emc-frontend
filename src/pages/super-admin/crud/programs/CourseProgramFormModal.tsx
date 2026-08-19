@@ -451,7 +451,7 @@ function BulletListCounter({ text, field }: { text: string; field: CourseBulletF
     <p className={`mt-1 text-[10px] font-semibold ${stats.invalid ? 'text-rose-600' : 'text-[#5a6b7d]'}`}>
       {stats.count > 0 ? `${stats.count} نقطة · ` : 'لا توجد نقاط بعد · '}
       أطول نقطة: {stats.maxItemLength}/{max} حرف
-      {stats.invalid && stats.message ? ` — ${stats.message}` : null}
+ {stats.invalid && stats.message ? ` ${stats.message}`: null}
     </p>
   )
 }
@@ -1291,7 +1291,7 @@ export function CourseProgramFormModal({
     if (currentStep === 2) {
       return (
         <>
-          <p>ابحث عن المدرب بالاسم أو البريد — لا حاجة لمعرّف رقمي. اتركه فارغًا إن لم يُحدد بعد.</p>
+          <p>ابحث عن المدرب بالاسم أو البريد لا حاجة لمعرّف رقمي. اتركه فارغًا إن لم يُحدد بعد.</p>
           <p>المواعيد كلها اختيارية؛ الفراغ يدعم عبارة «انضم إلى الدورة القادمة» في الموقع العام عند عدم وجود جدول.</p>
         </>
       )
@@ -1299,7 +1299,7 @@ export function CourseProgramFormModal({
     if (currentStep === 3) {
       return (
         <>
-          <p>«ماذا ستتعلم»: سطر لكل نقطة — تُحفظ كقائمة في واجهة البرنامج عند دعم الخادم لها.</p>
+          <p>«ماذا ستتعلم»: سطر لكل نقطة تُحفظ كقائمة في واجهة البرنامج عند دعم الخادم لها.</p>
           <p>المتطلبات والمخرجات والمحاور تظهر للمتعلم عند توفرها في الاستجابة من API.</p>
         </>
       )
@@ -1383,7 +1383,7 @@ export function CourseProgramFormModal({
                   <ImagePlus className="h-7 w-7" aria-hidden />
                 </span>
                 <span className="text-sm font-black text-[#0C2A4B]">اسحب صورة الغلاف أو اضغط للرفع</span>
-                <span className="text-[11px] font-semibold text-slate-500">PNG أو JPG — يُرسل الملف للخادم عند الحفظ</span>
+                <span className="text-[11px] font-semibold text-slate-500">PNG أو JPG يُرسل الملف للخادم عند الحفظ</span>
               </label>
             )}
           </div>
@@ -1509,7 +1509,7 @@ export function CourseProgramFormModal({
             <label className="block text-[11px] font-black text-[#0C2A4B]">
               الإدارة
               <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
-                <option value="">— اختياري —</option>
+                <option value=""> اختياري </option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -1592,7 +1592,7 @@ export function CourseProgramFormModal({
           : null}
 
           <div className="space-y-3 border-t border-slate-200/80 pt-4">
-            <p className="text-[12px] font-bold text-slate-600">اختيار المدرب — قائمة المدربين فقط</p>
+            <p className="text-[12px] font-bold text-slate-600">اختيار المدرب قائمة المدربين فقط</p>
             <div className="relative">
               <Search className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
               <input
@@ -1633,7 +1633,7 @@ export function CourseProgramFormModal({
               >
                 {filteredInstructors.length === 0 ?
                   <li className="px-3 py-4 text-center text-[12px] font-semibold text-slate-500">
-                    لا يمكن عرض المدربين بعد التحميل — راجع وحدة التحكم (استجابة GET /admin/instructors) أو أضِف صفًا في جدول المدربين.
+                    لا يمكن عرض المدربين بعد التحميل راجع وحدة التحكم (استجابة GET /admin/instructors) أو أضِف صفًا في جدول المدربين.
                   </li>
                 : filteredInstructors.map((u) => (
                     <li key={u.id}>
@@ -1811,7 +1811,7 @@ export function CourseProgramFormModal({
               </div>
             )}
 
-            {/* Duration & training hours — hidden for one-session workshops */}
+            {/* Duration & training hours hidden for one-session workshops */}
             {!isOneSession && (
               <label className="block text-[11px] font-black text-[#0C2A4B]">
                 المدة (نص للزائر)
@@ -1826,22 +1826,22 @@ export function CourseProgramFormModal({
               </label>
             )}
 
-            {/* Language — dropdown */}
+            {/* Language dropdown */}
             <label className="block text-[11px] font-black text-[#0C2A4B]">
               لغة الدورة
               <select value={language} onChange={(e) => setLanguage(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
-                <option value="">— اختياري —</option>
+                <option value=""> اختياري </option>
                 <option value="عربي">عربي</option>
                 <option value="إنجليزي">إنجليزي</option>
               </select>
             </label>
 
-            {/* Level — dropdown, hidden for workshops */}
+            {/* Level dropdown, hidden for workshops */}
             {!isWorkshop && (
               <label className="block text-[11px] font-black text-[#0C2A4B]">
                 المستوى
                 <select value={level} onChange={(e) => setLevel(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
-                  <option value="">— اختياري —</option>
+                <option value=""> اختياري </option>
                   <option value="مبتدئ">مبتدئ</option>
                   <option value="متوسط">متوسط</option>
                   <option value="متقدم">متقدم</option>
@@ -1855,11 +1855,11 @@ export function CourseProgramFormModal({
               <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className={EMC_WIZARD_INPUT_BASE} />
             </label>
 
-            {/* Certificate — dropdown */}
+            {/* Certificate dropdown */}
             <label className="block text-[11px] font-black text-[#0C2A4B]">
               الشهادة المتاحة
               <select value={certificate} onChange={(e) => setCertificate(e.target.value)} className={EMC_WIZARD_INPUT_BASE}>
-                <option value="">— اختياري —</option>
+                <option value=""> اختياري </option>
                 <option value="لا توجد شهادة">لا توجد شهادة</option>
                 <option value="شهادة حضور">شهادة حضور</option>
                 <option value="شهادة إتمام">شهادة إتمام</option>
@@ -1897,7 +1897,7 @@ export function CourseProgramFormModal({
             </div>
           </div>
 
-          {/* What you'll learn — always shown */}
+          {/* What you'll learn always shown */}
           <label className="block text-[11px] font-black text-[#0C2A4B]">
             ماذا ستتعلم؟ (نقطة قصيرة لكل سطر)
             <textarea
@@ -1950,7 +1950,7 @@ export function CourseProgramFormModal({
                 />
                 <BulletListCounter text={learningOutcomes} field="learning_outcomes" />
                 <p className="mt-1 text-[10px] font-medium text-[#5a6b7d]">
-                  للفقرات الطويلة استخدم «الوصف الكامل» في الخطوة 1 — لا تضعها هنا.
+                  للفقرات الطويلة استخدم «الوصف الكامل» في الخطوة 1 لا تضعها هنا.
                 </p>
                 {fieldErrorFor(fieldErrors, 'learning_outcomes') ?
                   <span className="mt-1 block text-[11px] font-bold text-rose-600">{fieldErrorFor(fieldErrors, 'learning_outcomes')}</span>
@@ -2315,7 +2315,7 @@ export function CourseProgramFormModal({
             : null}
             {localDraftSavedAt ?
               <div className="mb-2 flex items-center justify-end rounded-2xl border border-emerald-200/90 bg-emerald-50/90 px-4 py-2 text-[11px] font-black text-emerald-900">
-                تم حفظ المسودة — {localDraftSavedAt}
+                تم حفظ المسودة {localDraftSavedAt}
               </div>
             : null}
             {draftHint && !editing ?
