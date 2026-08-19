@@ -56,7 +56,9 @@
         "impact": "Impact",
         "partnerships": "Partnerships",
         "volunteer": "Volunteering",
-        "contact": "Contact"
+        "contact": "Contact",
+        "ambassador": "EMC Ambassadors",
+        "departments": "Departments"
       },
       "programs": {
         "courses": "Courses",
@@ -67,7 +69,8 @@
         "platform": "Platform",
         "submitWorkshop": "Submit a Workshop",
         "support": "Support",
-        "knowledge": "Knowledge Base"
+        "knowledge": "Knowledge Base",
+        "instructors": "Instructors"
       }
     },
     "legal": {
@@ -92,15 +95,24 @@
   "about": {
     "hero": {
       "badge": "About EMC",
-      "title": "About the Center",
+      "title": "We are not starting over — we are completing what we built",
       "subtitle": "An educational and development platform building bridges between knowledge, skills, and opportunities — in professional Arabic and to global standards.",
       "breadcrumbCurrent": "About EMC",
       "primaryCta": "Explore Programs",
       "secondaryCta": "Contact Us",
       "stats": {
-        "fields": { "value": "12", "label": "learning fields within the EMC ecosystem" },
-        "programs": { "value": "Diverse", "label": "programs and workshops per the catalog" },
-        "transparency": { "value": "Transparency", "label": "impact and data without exaggeration" }
+        "fields": {
+          "value": "12",
+          "label": "learning fields within the EMC ecosystem"
+        },
+        "programs": {
+          "value": "Diverse",
+          "label": "programs and workshops per the catalog"
+        },
+        "transparency": {
+          "value": "Transparency",
+          "label": "impact and data without exaggeration"
+        }
       }
     },
     "who": {
@@ -109,20 +121,44 @@
       "paragraph": "We support individuals through transitions — study, work, migration, or re-setting priorities — with programs and paths that are continuously updated to reflect market and community needs.",
       "glanceTitle": "Quick Glance",
       "glance": {
-        "academic": { "label": "Academic and professional paths", "sub": "Planning and guidance" },
-        "digital": { "label": "Digital empowerment", "sub": "Tools and skills" },
-        "community": { "label": "A learning community", "sub": "Support and partnerships" },
-        "lifelong": { "label": "Continuous learning", "sub": "Workshops and programs" }
+        "academic": {
+          "label": "Academic and professional paths",
+          "sub": "Planning and guidance"
+        },
+        "digital": {
+          "label": "Digital empowerment",
+          "sub": "Tools and skills"
+        },
+        "community": {
+          "label": "A learning community",
+          "sub": "Support and partnerships"
+        },
+        "lifelong": {
+          "label": "Continuous learning",
+          "sub": "Workshops and programs"
+        }
       }
     },
     "journey": {
       "title": "Your Journey with EMC",
       "subtitle": "From the first step to continuous growth — at a clear pace without complexity.",
       "steps": {
-        "explore": { "title": "Explore", "description": "Identify your need through the programs or a brief conversation." },
-        "choose": { "title": "Choose a Path", "description": "A course, workshop, or learning path that fits your stage." },
-        "apply": { "title": "Learn and Apply", "description": "Practical sessions and resources that support application, not just memorization." },
-        "grow": { "title": "Follow Up and Grow", "description": "Feedback and next steps within the EMC ecosystem." }
+        "explore": {
+          "title": "Explore",
+          "description": "Identify your need through the programs or a brief conversation."
+        },
+        "choose": {
+          "title": "Choose a Path",
+          "description": "A course, workshop, or learning path that fits your stage."
+        },
+        "apply": {
+          "title": "Learn and Apply",
+          "description": "Practical sessions and resources that support application, not just memorization."
+        },
+        "grow": {
+          "title": "Follow Up and Grow",
+          "description": "Feedback and next steps within the EMC ecosystem."
+        }
       }
     },
     "visionMission": {
@@ -139,10 +175,22 @@
       "title": "The EMC Roadmap",
       "description": "Stages of developing the ecosystem with professional honesty — we update priorities as we learn from the community and partners.",
       "milestones": {
-        "unify": { "title": "Unifying the digital experience", "description": "Connecting the catalog, registration, and follow-up in a single path the learner understands and that makes the operations team's work easier." },
-        "partnerships": { "title": "Expanding institutional partnerships", "description": "Clear agreements with universities, institutions, and trainers — with documented quality and governance standards." },
-        "impact": { "title": "Periodic impact reports", "description": "Publishing realistic impact summaries for the community and partners, while respecting participants' privacy." },
-        "tracks": { "title": "Developing paths across the twelve fields", "description": "Stronger links between fields and paths so the learner moves confidently through predictable steps." }
+        "unify": {
+          "title": "Unifying the digital experience",
+          "description": "Connecting the catalog, registration, and follow-up in a single path the learner understands and that makes the operations team's work easier."
+        },
+        "partnerships": {
+          "title": "Expanding institutional partnerships",
+          "description": "Clear agreements with universities, institutions, and trainers — with documented quality and governance standards."
+        },
+        "impact": {
+          "title": "Periodic impact reports",
+          "description": "Publishing realistic impact summaries for the community and partners, while respecting participants' privacy."
+        },
+        "tracks": {
+          "title": "Developing paths across the twelve fields",
+          "description": "Stronger links between fields and paths so the learner moves confidently through predictable steps."
+        }
       }
     },
     "leadership": {
@@ -157,10 +205,22 @@
       "title": "What Sets EMC Apart?",
       "subtitle": "We distinguish ourselves by connecting content, guidance, and partnerships — not by quick promises or false claims.",
       "items": {
-        "ecosystem": { "title": "An ecosystem, not a catalog", "description": "We connect language, path, skills, and digital empowerment in a sequential, measurable experience." },
-        "audience": { "title": "A broad audience with real needs", "description": "Students, migrants, professionals, and growth seekers — we design practical paths for them, not empty slogans." },
-        "ai": { "title": "AI with responsibility", "description": "We use digital tools to accelerate learning, with clear guardrails and usage ethics." },
-        "guidance": { "title": "Practical guidance", "description": "Workshops, consultations, and follow-up that help you turn learning into decisions and steps." }
+        "ecosystem": {
+          "title": "An ecosystem, not a catalog",
+          "description": "We connect language, path, skills, and digital empowerment in a sequential, measurable experience."
+        },
+        "audience": {
+          "title": "A broad audience with real needs",
+          "description": "Students, migrants, professionals, and growth seekers — we design practical paths for them, not empty slogans."
+        },
+        "ai": {
+          "title": "AI with responsibility",
+          "description": "We use digital tools to accelerate learning, with clear guardrails and usage ethics."
+        },
+        "guidance": {
+          "title": "Practical guidance",
+          "description": "Workshops, consultations, and follow-up that help you turn learning into decisions and steps."
+        }
       }
     },
     "digital": {
@@ -178,12 +238,30 @@
       "title": "Who Do We Serve?",
       "subtitle": "A diverse community united around one goal: building a clearer path through quality learning.",
       "cards": {
-        "students": { "title": "Students and graduates", "body": "Academic planning, languages, and preparation for the next stage." },
-        "newcomers": { "title": "Migrants and newcomers", "body": "Language, professional, and community support attuned to the reality of transition." },
-        "professionals": { "title": "Professionals and growth seekers", "body": "Practical skills, entrepreneurship, and responsible digital empowerment." },
-        "families": { "title": "Families and youth", "body": "Age-appropriate programs with supervision and safe design." },
-        "organizations": { "title": "Institutions and teams", "body": "Training workshops and partnerships with defined goals." },
-        "trainers": { "title": "Trainers and experts", "body": "Content partnerships within quality and governance standards." }
+        "students": {
+          "title": "Students and graduates",
+          "body": "Academic planning, languages, and preparation for the next stage."
+        },
+        "newcomers": {
+          "title": "Migrants and newcomers",
+          "body": "Language, professional, and community support attuned to the reality of transition."
+        },
+        "professionals": {
+          "title": "Professionals and growth seekers",
+          "body": "Practical skills, entrepreneurship, and responsible digital empowerment."
+        },
+        "families": {
+          "title": "Families and youth",
+          "body": "Age-appropriate programs with supervision and safe design."
+        },
+        "organizations": {
+          "title": "Institutions and teams",
+          "body": "Training workshops and partnerships with defined goals."
+        },
+        "trainers": {
+          "title": "Trainers and experts",
+          "body": "Content partnerships within quality and governance standards."
+        }
       }
     },
     "midCta": {
@@ -215,11 +293,31 @@
       "title": "Contact Options",
       "description": "Quick tip: if your request concerns submitting an official workshop, the dedicated form ensures all required fields are collected.",
       "cards": {
-        "general": { "title": "General inquiry", "body": "Questions about programs, services, or general information about EMC.", "hint": "Use the form below and choose \"General inquiry\"." },
-        "program": { "title": "Request a program or workshop", "body": "For institutions and individuals who want to propose a program or an organized workshop.", "hint": "Go to the workshop submission form" },
-        "partnership": { "title": "Partnership", "body": "For universities, companies, trainers, and community initiatives.", "hint": "Partnerships page" },
-        "volunteer": { "title": "Volunteering", "body": "To join as a contributor in one of the departments or activities.", "hint": "Volunteering page" },
-        "support": { "title": "Technical support", "body": "Issues with login, links, or the platform experience.", "hint": "Support email: {{email}}" }
+        "general": {
+          "title": "General inquiry",
+          "body": "Questions about programs, services, or general information about EMC.",
+          "hint": "Use the form below and choose \"General inquiry\"."
+        },
+        "program": {
+          "title": "Request a program or workshop",
+          "body": "For institutions and individuals who want to propose a program or an organized workshop.",
+          "hint": "Go to the workshop submission form"
+        },
+        "partnership": {
+          "title": "Partnership",
+          "body": "For universities, companies, trainers, and community initiatives.",
+          "hint": "Partnerships page"
+        },
+        "volunteer": {
+          "title": "Volunteering",
+          "body": "To join as a contributor in one of the departments or activities.",
+          "hint": "Volunteering page"
+        },
+        "support": {
+          "title": "Technical support",
+          "body": "Issues with login, links, or the platform experience.",
+          "hint": "Support email: {{email}}"
+        }
       }
     },
     "form": {
@@ -302,9 +400,18 @@
       "description": "An institutional collaboration model: Programs designs the content, Operations executes, Technology supports, Quality reviews — and Partnerships expands the impact.",
       "phaseBadge": "Phase {{num}}",
       "phases": {
-        "design": { "title": "Design and approval", "body": "The Programs department builds the path, and Quality ensures compliance with standards before launch." },
-        "execute": { "title": "Execution and experience", "body": "Operations manages schedules and services, and Marketing delivers the message transparently." },
-        "sustain": { "title": "Sustainability and development", "body": "Finance and HR support continuity, and Technology maintains security." }
+        "design": {
+          "title": "Design and approval",
+          "body": "The Programs department builds the path, and Quality ensures compliance with standards before launch."
+        },
+        "execute": {
+          "title": "Execution and experience",
+          "body": "Operations manages schedules and services, and Marketing delivers the message transparently."
+        },
+        "sustain": {
+          "title": "Sustainability and development",
+          "body": "Finance and HR support continuity, and Technology maintains security."
+        }
       }
     },
     "governance": {
@@ -352,10 +459,22 @@
       "description": "Simple steps that reduce ambiguity and speed up the start — with flexibility per partner type.",
       "stageBadge": "Phase {{num}}",
       "steps": {
-        "initial": { "title": "Initial contact", "description": "We define the goal, audience, and expected timeline." },
-        "proposal": { "title": "Proposal", "description": "We present a program or partnership plan with deliverables and responsibilities." },
-        "execution": { "title": "Approval and execution", "description": "Approving the scope of work, then operating with quality follow-up." },
-        "evaluation": { "title": "Evaluation and improvement", "description": "Participant and partner feedback enters the improvement cycle." }
+        "initial": {
+          "title": "Initial contact",
+          "description": "We define the goal, audience, and expected timeline."
+        },
+        "proposal": {
+          "title": "Proposal",
+          "description": "We present a program or partnership plan with deliverables and responsibilities."
+        },
+        "execution": {
+          "title": "Approval and execution",
+          "description": "Approving the scope of work, then operating with quality follow-up."
+        },
+        "evaluation": {
+          "title": "Evaluation and improvement",
+          "description": "Participant and partner feedback enters the improvement cycle."
+        }
       }
     },
     "examples": {
@@ -390,9 +509,18 @@
     "why": {
       "badge": "Why join EMC?",
       "items": {
-        "impact": { "title": "Real impact", "description": "Contributing to learning experiences that benefit people from diverse backgrounds." },
-        "experience": { "title": "Professional experience", "description": "Learn how programs, operations, and quality are organized from the inside." },
-        "community": { "title": "A supportive community", "description": "A respectful volunteering environment with clear boundaries for time and tasks." }
+        "impact": {
+          "title": "Real impact",
+          "description": "Contributing to learning experiences that benefit people from diverse backgrounds."
+        },
+        "experience": {
+          "title": "Professional experience",
+          "description": "Learn how programs, operations, and quality are organized from the inside."
+        },
+        "community": {
+          "title": "A supportive community",
+          "description": "A respectful volunteering environment with clear boundaries for time and tasks."
+        }
       }
     },
     "roles": {
@@ -405,10 +533,22 @@
       "title": "The Volunteer Journey",
       "description": "Clear steps that reduce ambiguity and build the right commitment on both sides.",
       "steps": {
-        "interest": { "title": "Express interest", "description": "Send us a brief on your experience, field, and available time — with no commitment." },
-        "interview": { "title": "Short interview", "description": "A brief introduction session to clarify available roles and expectations on both sides." },
-        "trial": { "title": "Structured trial", "description": "You start with defined tasks under supervision from the Programs or Operations department." },
-        "growth": { "title": "Evaluation and growth", "description": "Periodic feedback to improve the experience and possibly move to a broader role." }
+        "interest": {
+          "title": "Express interest",
+          "description": "Send us a brief on your experience, field, and available time — with no commitment."
+        },
+        "interview": {
+          "title": "Short interview",
+          "description": "A brief introduction session to clarify available roles and expectations on both sides."
+        },
+        "trial": {
+          "title": "Structured trial",
+          "description": "You start with defined tasks under supervision from the Programs or Operations department."
+        },
+        "growth": {
+          "title": "Evaluation and growth",
+          "description": "Periodic feedback to improve the experience and possibly move to a broader role."
+        }
       }
     },
     "commitment": {
@@ -474,21 +614,51 @@
     "features": {
       "title": "Platform Features",
       "items": {
-        "hybrid": { "title": "Flexible hybrid learning", "description": "Choose between in-person attendance, remote learning, or a mix of both, according to your schedule and goals." },
-        "trainers": { "title": "Specialized trainers", "description": "A team of certified trainers experienced in education, professional training, and consulting." },
-        "content": { "title": "Continuously updated content", "description": "Curricula that keep pace with the modern job market and are updated regularly to reflect the latest professional requirements." },
-        "certificates": { "title": "Accredited certificates", "description": "Earn accredited completion certificates that strengthen your professional profile and open new doors." },
-        "support": { "title": "Ongoing follow-up and support", "description": "A system of notifications, reminders, and personal support that keeps your learning journey uninterrupted." },
-        "security": { "title": "A safe, trusted environment", "description": "A platform protected by modern security protocols that safeguard trainees' data and privacy." }
+        "hybrid": {
+          "title": "Flexible hybrid learning",
+          "description": "Choose between in-person attendance, remote learning, or a mix of both, according to your schedule and goals."
+        },
+        "trainers": {
+          "title": "Specialized trainers",
+          "description": "A team of certified trainers experienced in education, professional training, and consulting."
+        },
+        "content": {
+          "title": "Continuously updated content",
+          "description": "Curricula that keep pace with the modern job market and are updated regularly to reflect the latest professional requirements."
+        },
+        "certificates": {
+          "title": "Accredited certificates",
+          "description": "Earn accredited completion certificates that strengthen your professional profile and open new doors."
+        },
+        "support": {
+          "title": "Ongoing follow-up and support",
+          "description": "A system of notifications, reminders, and personal support that keeps your learning journey uninterrupted."
+        },
+        "security": {
+          "title": "A safe, trusted environment",
+          "description": "A platform protected by modern security protocols that safeguard trainees' data and privacy."
+        }
       }
     },
     "steps": {
       "title": "How Do You Start?",
       "items": {
-        "account": { "title": "Create an account", "description": "Sign up in minutes and complete your profile to receive personalized recommendations." },
-        "choose": { "title": "Choose your program", "description": "Browse courses and paths and pick what fits your goal and level." },
-        "learn": { "title": "Start learning", "description": "Join your sessions, interact with the trainer, and complete your practical assignments." },
-        "certificate": { "title": "Get your certificate", "description": "Complete the program and receive your accredited certificate to boost your career." }
+        "account": {
+          "title": "Create an account",
+          "description": "Sign up in minutes and complete your profile to receive personalized recommendations."
+        },
+        "choose": {
+          "title": "Choose your program",
+          "description": "Browse courses and paths and pick what fits your goal and level."
+        },
+        "learn": {
+          "title": "Start learning",
+          "description": "Join your sessions, interact with the trainer, and complete your practical assignments."
+        },
+        "certificate": {
+          "title": "Get your certificate",
+          "description": "Complete the program and receive your accredited certificate to boost your career."
+        }
       }
     },
     "cta": {
@@ -507,9 +677,18 @@
       "ctaPrimary": "Explore Programs & Paths",
       "ctaSecondary": "Create a Free Account",
       "stats": {
-        "beneficiaries": { "value": "+13,000", "label": "beneficiaries" },
-        "campRegistrants": { "value": "+9,000", "label": "camp registrants" },
-        "countries": { "value": "+50", "label": "countries" }
+        "beneficiaries": {
+          "value": "+13,000",
+          "label": "beneficiaries"
+        },
+        "campRegistrants": {
+          "value": "+9,000",
+          "label": "camp registrants"
+        },
+        "countries": {
+          "value": "+50",
+          "label": "countries"
+        }
       },
       "orbit": {
         "workshops": "Workshops",

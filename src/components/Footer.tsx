@@ -26,6 +26,8 @@ const NAV_MAIN = [
   { key: 'impact', href: '/impact' },
   { key: 'partnerships', href: '/partnerships' },
   { key: 'volunteer', href: '/volunteer' },
+  { key: 'ambassador', href: '/ambassador' },
+  { key: 'departments', href: '/departments' },
   { key: 'contact', href: '/contact' },
 ] as const
 
@@ -35,6 +37,7 @@ const NAV_PROGRAMS = [
   { key: 'fellowship', href: '/fellowship' },
   { key: 'workshops', href: '/workshops' },
   { key: 'programs', href: '/programs' },
+  { key: 'instructors', href: '/instructors' },
   { key: 'platform', href: '/platform' },
   { key: 'submitWorkshop', href: '/submit-workshop' },
   { key: 'support', href: '/support' },
