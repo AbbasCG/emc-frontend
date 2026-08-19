@@ -33,7 +33,7 @@ function Card({
     violet: 'border-violet-100/80 bg-gradient-to-l from-violet-50/40 to-white/90',
   }
   return (
-    <div className={cn('rounded-2xl border p-3 shadow-sm', accents[accent ?? 'default'], className)}>
+    <div className={cn('rounded-2xl border p-3', accents[accent ?? 'default'], className)}>
       <h3 className="text-[9px] font-black uppercase tracking-wider text-[#0C2A4B]/45">{title}</h3>
       <div className="mt-2">{children}</div>
     </div>
@@ -166,7 +166,7 @@ function CurriculumAccordionGroup({ group }: { group: CurriculumGroup }) {
   if (items.length === 0) return null
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/8 bg-white/90 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-navy/[0.08] bg-white/90">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -409,7 +409,7 @@ export function ReviewsTabPanel({
 
       <div className="space-y-2">
         {reviews.map((r) => (
-          <article key={r.id} className="rounded-2xl border border-[#0C2A4B]/8 bg-white/90 p-4 text-right shadow-sm">
+          <article key={r.id} className="rounded-2xl border border-navy/[0.08] bg-white/90 p-4 text-right">
             <div className="flex items-center justify-between gap-2">
               <p className="font-black text-[#0C2A4B]">{r.author}</p>
               <span className="inline-flex items-center gap-1 text-[12px] font-black tabular-nums text-[#F28C00]">
@@ -428,7 +428,7 @@ export function ReviewsTabPanel({
 function FaqItem({ item }: { item: CourseFaqItem }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#0C2A4B]/8 bg-white/90 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-navy/[0.08] bg-white/90">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -464,7 +464,7 @@ export function TrainingStatsStrip({ derived }: { derived: CourseDetailDerived }
       {derived.trainingStats.map((s) => (
         <span
           key={s.label}
-          className="rounded-xl border border-[#0C2A4B]/10 bg-white/90 px-3 py-1.5 text-[11px] font-black tabular-nums text-[#0C2A4B] shadow-sm"
+          className="rounded-xl border border-navy/10 bg-white/90 px-3 py-1.5 text-[11px] font-black tabular-nums text-navy"
         >
           {s.label}: {formatPublicText(s.value)}
         </span>

@@ -165,7 +165,7 @@ export default function HomeAiSection() {
           </p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white shadow-emc-glow transition-all hover:bg-[#1e7dab]"
+            className="inline-flex items-center gap-2 rounded-xl bg-customBlue px-6 py-3 text-sm font-black text-white transition-all hover:bg-ocean"
           >
             انضم الآن
             <ArrowLeft size={15} aria-hidden />

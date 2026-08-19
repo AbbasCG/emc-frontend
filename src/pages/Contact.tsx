@@ -261,7 +261,7 @@ export default function Contact() {
                 <motion.article
                   key={card.key}
                   variants={staggerItem}
-                  className="rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition duration-250 ease-emc hover:shadow-emc-md"
+                  className="rounded-3xl bg-white p-7 text-right ring-1 ring-line transition duration-250 ease-emc hover:ring-customBlue/25"
                 >
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-customBlue ring-1 ring-brand-100">
                     <Icon size={22} />
@@ -280,10 +280,10 @@ export default function Contact() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.9fr]">
           <motion.article
             id="general-contact-form"
-            className={`rounded-3xl bg-white p-6 text-right shadow-xl ring-1 sm:p-8 transition-[box-shadow,ring-color] duration-300 ${
+            className={`rounded-3xl bg-white p-6 text-right ring-1 sm:p-8 transition-[ring-color] duration-300 ${
               isFormHighlighted
-                ? 'ring-2 ring-[#0077B6]/55 shadow-[0_0_28px_rgba(0,119,182,0.38)]'
-                : 'ring-slate-100'
+                ? 'ring-2 ring-customBlue/55'
+                : 'ring-line'
             }`}
             initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -364,7 +364,7 @@ export default function Contact() {
                 type="submit"
                 disabled={isSubmitting}
                 whileHover={isSubmitting ? undefined : { scale: 1.02 }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white transition duration-250 ease-emc hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
               >
                 <Send size={20} />
                 {isSubmitting ? t('contact.form.submitting') : t('contact.form.submit')}
@@ -374,7 +374,7 @@ export default function Contact() {
 
           <div className="grid gap-6">
             <motion.article
-              className="rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line sm:p-8"
+              className="rounded-3xl bg-white p-7 text-right ring-1 ring-line sm:p-8"
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
@@ -419,7 +419,7 @@ export default function Contact() {
             </motion.article>
 
             <motion.article
-              className="emc-dawn rounded-3xl p-8 text-right text-white shadow-emc-lg"
+              className="emc-dawn rounded-3xl p-8 text-right text-white"
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
@@ -436,7 +436,7 @@ export default function Contact() {
               <motion.div whileHover={{ scale: 1.03 }} className="mt-7">
                 <Link
                   to="/submit-workshop"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white transition duration-250 ease-emc hover:brightness-[1.03]"
                 >
                   {t('contact.workshopCard.cta')}
                 </Link>
@@ -455,7 +455,7 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
+            className="rounded-3xl bg-white p-8 text-right ring-1 ring-line"
           >
             <p className="text-foreground/70 leading-8">
               {t('contact.social.notePrefix')}{' '}
@@ -480,7 +480,7 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
-            className="grid min-h-64 place-items-center rounded-3xl bg-white text-center shadow-emc-inset ring-1 ring-line"
+            className="grid min-h-64 place-items-center rounded-3xl bg-white text-center ring-1 ring-line"
           >
             <div className="px-6 py-10">
               <MapPin size={40} className="mx-auto text-customBlue" />
@@ -504,7 +504,7 @@ export default function Contact() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
+            className="rounded-3xl bg-white p-8 text-right ring-1 ring-line"
           >
             <ul className="space-y-4 text-sm font-semibold leading-8 text-foreground/80">
               {(['unsure', 'techDetails', 'noSensitive'] as const).map((key) => (

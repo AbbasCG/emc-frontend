@@ -54,7 +54,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
   return (
     <Link
       to={`/learning-paths/${path.slug}`}
-      className="group grid overflow-hidden rounded-2xl border border-line bg-white shadow-emc transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-emc-md sm:grid-cols-[140px_1fr_auto]"
+      className="group grid overflow-hidden rounded-2xl border border-line bg-white transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-brand-200 sm:grid-cols-[140px_1fr_auto]"
     >
       <div className="relative min-h-[120px] overflow-hidden sm:min-h-full">
         {cover ?
@@ -64,7 +64,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
           </div>
         }
         {path.is_featured && (
-          <span className="absolute start-2 top-2 rounded-md bg-[#F28C00] px-1.5 py-0.5 text-[10px] font-black text-white shadow-sm">
+          <span className="absolute start-2 top-2 rounded-md bg-[#F28C00] px-1.5 py-0.5 text-[10px] font-black text-white">
             مميز
           </span>
         )}

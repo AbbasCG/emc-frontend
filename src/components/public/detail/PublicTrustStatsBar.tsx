@@ -12,7 +12,7 @@ export default function PublicTrustStatsBar({ stats }: { stats: TrustStat[] }) {
   return (
     <section
       aria-label="مؤشرات الثقة"
-      className="-mt-4 relative z-10 mx-auto max-w-6xl rounded-3xl border border-slate-100 bg-white px-4 py-4 shadow-[0_20px_50px_-24px_rgba(15,23,42,0.25)] ring-1 ring-slate-100 sm:px-6"
+      className="-mt-4 relative z-10 mx-auto max-w-6xl rounded-3xl border border-line bg-white px-4 py-4 ring-1 ring-line sm:px-6"
     >
       <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5">
         {stats.map((stat, i) => {

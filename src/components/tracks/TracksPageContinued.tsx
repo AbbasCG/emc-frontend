@@ -26,7 +26,7 @@ export default function TracksPageContinued() {
         />
         <div className="relative mx-auto max-w-[1540px]">
           <motion.div
-            className="grid gap-6 rounded-[1.75rem] border border-deepBlue/[0.07] bg-white p-8 shadow-emc-md shadow-deepBlue/[0.05] ring-1 ring-white sm:grid-cols-3 sm:p-10"
+            className="grid gap-6 rounded-[1.75rem] border border-deepBlue/[0.07] bg-white p-8 ring-1 ring-white sm:grid-cols-3 sm:p-10"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
@@ -60,7 +60,7 @@ export default function TracksPageContinued() {
             {journey.map((step, i) => (
               <li
                 key={step.title}
-                className="relative rounded-3xl border border-deepBlue/[0.06] bg-white p-7 text-right shadow-emc-sm shadow-deepBlue/[0.04] ring-1 ring-white"
+                className="relative rounded-3xl border border-deepBlue/[0.06] bg-white p-7 text-right ring-1 ring-white"
               >
                 <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent-50 text-sm font-black text-customOrange ring-1 ring-customOrange/25">
                   {i + 1}
@@ -75,7 +75,7 @@ export default function TracksPageContinued() {
 
       <section className="px-4 pb-20 sm:px-6 lg:px-10">
         <motion.div
-          className="relative mx-auto max-w-[1540px] overflow-hidden rounded-[1.85rem] border border-deepBlue/[0.08] bg-deepBlue px-6 py-12 text-white shadow-emc-xl ring-1 ring-white/10 sm:p-14"
+          className="relative mx-auto max-w-[1540px] overflow-hidden rounded-[1.85rem] border border-deepBlue/[0.08] bg-deepBlue px-6 py-12 text-white ring-1 ring-white/10 sm:p-14"
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
@@ -97,7 +97,7 @@ export default function TracksPageContinued() {
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.99 }}>
                 <Link
                   to="/courses"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-deepBlue shadow-emc-lg transition hover:bg-emcBg"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-deepBlue transition hover:bg-emcBg"
                 >
                   استكشف البرامج
                   <ArrowLeft size={18} aria-hidden />

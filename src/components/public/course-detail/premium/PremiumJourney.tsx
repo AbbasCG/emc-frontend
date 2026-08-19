@@ -95,8 +95,8 @@ export default function PremiumJourney({ course, derived }: Props) {
               className={cn(
                 'relative z-10 flex h-12 w-12 items-center justify-center rounded-full border',
                 step.isOrange
-                  ? 'border-customOrange/25 bg-customOrange/[0.10] text-customOrange shadow-[0_6px_18px_-6px_rgba(242,140,0,0.28)]'
-                  : 'border-customBlue/25 bg-customBlue/[0.10] text-customBlue shadow-[0_6px_18px_-6px_rgba(0,119,182,0.28)]',
+                  ? 'border-customOrange/25 bg-customOrange/[0.10] text-ember'
+                  : 'border-customBlue/25 bg-customBlue/[0.10] text-customBlue',
               )}
             >
               <step.icon className="h-5 w-5" />

@@ -26,7 +26,7 @@ export default function StatCard({
       whileInView="visible"
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.45, delay }}
-      className="rounded-3xl bg-white p-7 text-center shadow-md ring-1 ring-slate-100"
+      className="rounded-3xl bg-white p-7 text-center ring-1 ring-line"
     >
       {Icon && <Icon size={30} className={`mx-auto mb-3 ${accentClass}`} />}
       {value && <p className={`text-2xl font-black sm:text-3xl ${accentClass}`}>{value}</p>}

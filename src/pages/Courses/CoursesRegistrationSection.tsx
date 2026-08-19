@@ -52,7 +52,7 @@ function CoursesRegistrationSection() {
 
           <motion.div
             variants={staggerItem}
-            className="flex flex-col justify-center rounded-3xl bg-deepBlue p-8 text-right text-white shadow-xl"
+            className="flex flex-col justify-center rounded-3xl bg-deepBlue p-8 text-right text-white"
           >
             <UserPlus className="text-customOrange" size={32} />
             <h3 className="mt-4 text-xl font-black">جاهز للبدء؟</h3>

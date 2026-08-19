@@ -62,7 +62,7 @@ export default function CourseDetailCompactHero({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="emc-dawn relative max-h-[400px] overflow-hidden rounded-[1.5rem] border border-white/10 text-white shadow-emc-lg"
+      className="emc-dawn relative max-h-[400px] overflow-hidden rounded-[1.5rem] border border-white/10 text-white"
     >
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -end-12 top-0 h-48 w-48 rounded-full bg-[#0077B6]/25 blur-3xl" />
@@ -86,7 +86,7 @@ export default function CourseDetailCompactHero({
                 className="absolute inset-0 flex items-center justify-center bg-black/15 transition hover:bg-black/25"
                 aria-label="معاينة الفيديو"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0077B6] shadow-lg">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-customBlue">
                   <Play className="h-4 w-4 fill-current" />
                 </span>
               </button>

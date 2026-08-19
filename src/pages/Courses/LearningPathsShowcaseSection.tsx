@@ -16,7 +16,7 @@ function ShowcaseSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6">
       {Array.from({ length: 2 }).map((_, i) => (
-        <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc">
+        <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white">
           <div className="grid lg:grid-cols-[minmax(0,280px)_1fr_minmax(0,230px)]">
             <Skeleton className="aspect-video rounded-none lg:aspect-auto lg:h-full" />
             <div className="p-6">
@@ -88,7 +88,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
             </p>
           </div>
 
-          <div className="hidden shrink-0 items-center gap-3 rounded-2xl border border-customBlue/15 bg-white/80 px-5 py-4 shadow-sm md:flex">
+          <div className="hidden shrink-0 items-center gap-3 rounded-2xl border border-customBlue/15 bg-white/80 px-5 py-4 md:flex">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-customBlue/10">
               <Route className="h-5 w-5 text-customBlue" aria-hidden />
             </div>
@@ -131,7 +131,7 @@ export default function LearningPathsShowcaseSection({ paths, loading, enrolledI
           >
             <Link
               to="/learning-paths"
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-8 py-3.5 text-sm font-black text-white shadow-emc-glow-accent transition hover:bg-accent-600"
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#F28C00] px-8 py-3.5 text-sm font-black text-white transition hover:bg-accent-600"
             >
               ابدأ رحلتك التعليمية
               <ChevronLeft className="h-4 w-4" aria-hidden />

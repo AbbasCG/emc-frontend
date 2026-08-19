@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Check } from 'lucide-react'
 
 // أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const metrics = [
@@ -74,7 +75,7 @@ export default function HomeImpactMetrics() {
               >
                 {/* Huge serif number — white overrides the utility's light-surface navy */}
                 <p className="emc-stat-num font-display text-5xl text-white sm:text-6xl">
-                  {m.raw !== null ? <Counter target={m.raw} suffix={m.suffix} /> : <span aria-hidden>✓</span>}
+                  {m.raw !== null ? <Counter target={m.raw} suffix={m.suffix} /> : <Check className="mx-auto h-[0.9em] w-[0.9em]" strokeWidth={2.5} aria-hidden />}
                 </p>
                 <p className="mt-4 text-sm font-black text-ice sm:text-base">{m.label}</p>
                 <p className="mt-1 text-xs font-semibold text-white/45">{m.sub}</p>

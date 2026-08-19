@@ -117,7 +117,7 @@ export default function HomeGrandCTA() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white shadow-emc-glow-accent transition-all hover:brightness-105"
+                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-customOrange px-8 py-[18px] text-center text-base font-extrabold text-white transition-all hover:brightness-105"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/15 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 {t('home.grandCta.primary')}

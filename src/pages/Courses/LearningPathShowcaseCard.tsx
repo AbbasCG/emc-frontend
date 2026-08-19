@@ -39,7 +39,7 @@ function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, delay: index * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="group overflow-hidden rounded-3xl border border-line bg-white shadow-emc transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-emc-lg"
+      className="group overflow-hidden rounded-3xl border border-line bg-white transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand-200"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,280px)_1fr_minmax(0,230px)]">
         {/* Cover */}
@@ -57,7 +57,7 @@ function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0C2A4B]/75 via-[#0C2A4B]/20 to-transparent" />
 
           {path.is_featured && (
-            <span className="absolute start-3 top-3 rounded-md bg-[#F28C00] px-2 py-1 text-[10px] font-black text-white shadow-sm">
+            <span className="absolute start-3 top-3 rounded-md bg-[#F28C00] px-2 py-1 text-[10px] font-black text-white">
               مميز
             </span>
           )}
@@ -131,7 +131,7 @@ function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
                 )}
                 {path.certificate_name && (
                   <li className="flex items-center gap-3">
-                    <span className="relative z-[1] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm">
+                    <span className="relative z-[1] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white">
                       <Award className="h-3.5 w-3.5" aria-hidden />
                     </span>
                     <span className="min-w-0">
@@ -191,7 +191,7 @@ function LearningPathShowcaseCard({ path, index, enrolled }: Props) {
           <div className="mt-5 lg:mt-auto lg:pt-5">
             <Link
               to={primaryHref}
-              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white shadow-emc transition-colors duration-200 ${
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white transition-colors duration-200 ${
                 enrolled ?
                   'bg-emerald-600 hover:bg-emerald-700'
                 : 'bg-customBlue hover:bg-brand-600'

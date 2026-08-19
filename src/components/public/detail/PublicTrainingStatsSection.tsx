@@ -29,7 +29,7 @@ export default function PublicTrainingStatsSection({ stats }: { stats: TrainingS
               className={`rounded-3xl bg-gradient-to-br p-5 text-right ring-1 ${accentCls[accent]}`}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-sm">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl border border-line bg-white/80">
                   <Icon size={20} aria-hidden />
                 </span>
                 <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">{stat.label}</p>

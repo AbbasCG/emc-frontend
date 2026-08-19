@@ -33,11 +33,11 @@ export default function PublicWorkshopRegistrationCard({
 
   function renderCta() {
     const cls =
-      'inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-black text-white shadow-md'
+      'inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-black text-white'
 
     if (!registrationOpen) {
       return (
-        <span className={`${cls} cursor-not-allowed bg-slate-300 text-slate-500 shadow-none`}>
+        <span className={`${cls} cursor-not-allowed bg-slate-300 text-slate-500`}>
           التسجيل مغلق
         </span>
       )
@@ -102,7 +102,7 @@ export default function PublicWorkshopRegistrationCard({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100">
+    <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
       <div className="border-b border-slate-100 bg-gradient-to-l from-sky-50/90 to-white px-5 py-4 text-right sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-black text-deepBlue">التسجيل</h3>

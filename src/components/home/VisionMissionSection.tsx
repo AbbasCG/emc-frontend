@@ -47,7 +47,7 @@ export default function VisionMissionSection() {
                 whileInView="visible"
                 viewport={viewportOnce}
                 transition={{ duration: 0.5, delay: i * 0.12 }}
-                className={`rounded-3xl border-t-4 bg-white p-8 text-right shadow-lg shadow-slate-200/60 ring-1 ring-slate-100 ${item.accentBorder}`}
+                className={`rounded-3xl border-t-4 bg-white p-8 text-right ring-1 ring-line ${item.accentBorder}`}
               >
                 <div
                   className={`mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl ${item.iconBg} ${item.iconColor}`}

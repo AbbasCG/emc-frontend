@@ -28,7 +28,7 @@ export default function PremiumLearnGrid({ items }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04, duration: 0.32, ease: [0.2, 0.8, 0.2, 1] }}
               className={cn(
-                'flex items-start gap-3 rounded-xl border p-3.5 text-right transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-emc',
+                'flex items-start gap-3 rounded-xl border p-3.5 text-right transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5',
                 isOrange
                   ? 'border-customOrange/13 bg-gradient-to-br from-customOrange/[0.06] to-white'
                   : 'border-customBlue/12 bg-gradient-to-br from-customBlue/[0.06] to-white',

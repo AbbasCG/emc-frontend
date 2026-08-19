@@ -13,7 +13,7 @@ export default function HomeCTASection() {
           whileInView="visible"
           viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.55 }}
-          className="rounded-3xl bg-gradient-to-l from-deepBlue via-[#1c3f5e] to-[#162334] px-8 py-16 text-center text-white shadow-2xl md:px-16"
+          className="rounded-3xl bg-gradient-to-l from-deepBlue via-brand-700 to-night px-8 py-16 text-center text-white md:px-16"
         >
           <h2 className="text-3xl font-black leading-tight sm:text-5xl">
             ابدأ رحلتك مع EMC اليوم
@@ -27,7 +27,7 @@ export default function HomeCTASection() {
             <motion.div whileHover={{ scale: 1.02 }}>
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white shadow-xl shadow-orange-900/20 transition hover:bg-[#d9822f]"
+                className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-extrabold text-white transition hover:bg-accent-600"
               >
                 <BookOpen size={20} aria-hidden="true" />
                 التسجيل في البرامج

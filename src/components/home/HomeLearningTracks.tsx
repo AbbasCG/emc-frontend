@@ -250,13 +250,13 @@ export default function HomeLearningTracks() {
         </motion.div>
 
         {/* Tab Navigation — functional segmented control (kept) */}
-        <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-slate-100/80 p-2 shadow-inner">
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-line bg-slate-100/80 p-2">
           <button
             type="button"
             onClick={() => setActiveTab('professional')}
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'professional'
-                ? 'bg-deepBlue text-white shadow-md scale-[1.02]'
+                ? 'bg-deepBlue text-white scale-[1.02]'
                 : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
@@ -269,7 +269,7 @@ export default function HomeLearningTracks() {
             onClick={() => setActiveTab('academic')}
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'academic'
-                ? 'bg-deepBlue text-white shadow-md scale-[1.02]'
+                ? 'bg-deepBlue text-white scale-[1.02]'
                 : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
@@ -282,7 +282,7 @@ export default function HomeLearningTracks() {
             onClick={() => setActiveTab('languages')}
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'languages'
-                ? 'bg-deepBlue text-white shadow-md scale-[1.02]'
+                ? 'bg-deepBlue text-white scale-[1.02]'
                 : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
@@ -295,7 +295,7 @@ export default function HomeLearningTracks() {
             onClick={() => setActiveTab('children')}
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'children'
-                ? 'bg-deepBlue text-white shadow-md scale-[1.02]'
+                ? 'bg-deepBlue text-white scale-[1.02]'
                 : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
             }`}
           >

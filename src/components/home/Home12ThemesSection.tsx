@@ -49,7 +49,7 @@ export default function Home12ThemesSection() {
               <div className="lg:col-span-8">
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg"
+                    className="flex h-14 w-14 items-center justify-center rounded-2xl text-white"
                     style={{ backgroundColor: activeTheme.color }}
                   >
                     <activeTheme.icon size={28} />
@@ -75,7 +75,7 @@ export default function Home12ThemesSection() {
               <div className="flex items-center justify-start lg:col-span-4 lg:justify-end">
                 <Link
                   to={activeTheme.link}
-                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-black text-white shadow-lg transition-transform duration-200 hover:scale-[1.03]"
+                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-black text-white transition-transform duration-200 hover:scale-[1.03]"
                   style={{ backgroundColor: activeTheme.color }}
                 >
                   <span>استكشف برامج المحور</span>
@@ -99,7 +99,7 @@ export default function Home12ThemesSection() {
                 onClick={() => setActiveTheme(item)}
                 className={`group relative flex flex-col items-center rounded-2xl border p-4 text-center transition-all duration-300 ${
                   isSelected
-                    ? 'border-white/50 bg-white/15 shadow-xl scale-[1.04] ring-2 ring-white/30'
+                    ? 'border-white/50 bg-white/15 scale-[1.04] ring-2 ring-white/30'
                     : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10'
                 }`}
               >

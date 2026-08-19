@@ -15,7 +15,7 @@ function AccordionModule({ group, index }: { group: CurriculumGroup; index: numb
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.045, duration: 0.32, ease: [0.2, 0.8, 0.2, 1] }}
-      className="overflow-hidden rounded-xl border border-line bg-white shadow-emc-xs transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-customBlue/25 hover:shadow-emc"
+      className="overflow-hidden rounded-xl border border-line bg-white transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-customBlue/25"
     >
       <button
         type="button"

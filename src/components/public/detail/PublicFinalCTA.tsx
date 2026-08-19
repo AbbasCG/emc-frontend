@@ -29,7 +29,7 @@ export default function PublicFinalCTA({
       viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
       transition={{ duration: 0.45 }}
       className={`overflow-hidden bg-gradient-to-l from-[#0C2A4B] via-[#1c4567] to-[#162334] ring-1 ring-white/10 ${
-        compact ? 'mt-8 rounded-2xl shadow-lg' : 'mt-10 rounded-[2rem] shadow-2xl'
+        compact ? 'mt-8 rounded-2xl' : 'mt-10 rounded-[2rem]'
       }`}
     >
       <div
@@ -60,7 +60,7 @@ export default function PublicFinalCTA({
             src={coverUrl}
             alt=""
             loading="lazy"
-            className="h-52 w-full rounded-3xl object-cover opacity-90 shadow-2xl ring-1 ring-white/10 lg:h-64"
+            className="h-52 w-full rounded-3xl object-cover opacity-90 ring-1 ring-white/10 lg:h-64"
           />
         )}
       </div>

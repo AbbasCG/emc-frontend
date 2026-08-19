@@ -22,9 +22,9 @@ const sizeCls = {
 }
 
 const variantCls = {
-  primary: 'bg-customOrange text-white shadow-lg shadow-customOrange/25 hover:bg-[#d4832e]',
-  success: 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-700',
-  muted: 'cursor-not-allowed bg-slate-200 text-slate-500 shadow-none',
+  primary: 'bg-customOrange text-white hover:bg-accent-600',
+  success: 'bg-emerald-600 text-white hover:bg-emerald-700',
+  muted: 'cursor-not-allowed bg-slate-200 text-slate-500',
 }
 
 /** هل لديك رمز خصم؟ — apply/preview only, never trusted as the final price. Backend revalidates everything at actual checkout. */

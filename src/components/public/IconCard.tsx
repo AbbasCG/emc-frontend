@@ -25,7 +25,7 @@ export default function IconCard({
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.45, delay }}
       whileHover={{ y: -3 }}
-      className="rounded-3xl bg-white p-7 text-right shadow-lg shadow-slate-200/60 ring-1 ring-slate-100"
+      className="rounded-3xl bg-white p-7 text-right ring-1 ring-line"
     >
       <div className={`mb-5 grid h-12 w-12 place-items-center rounded-2xl ${iconWrapClass}`}>
         <Icon size={24} />

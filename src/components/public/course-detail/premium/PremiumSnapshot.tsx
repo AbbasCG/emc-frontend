@@ -35,7 +35,7 @@ export default function PremiumSnapshot({ items }: Props) {
     <section
       aria-label="ملخص الدورة"
       dir="rtl"
-      className="border-b border-line bg-white/95 px-4 py-4 shadow-emc-sm backdrop-blur-sm sm:px-6 lg:px-10"
+      className="border-b border-line bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-10"
     >
       <div className="mx-auto max-w-[88rem]">
         <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide sm:gap-2.5 lg:flex-wrap lg:overflow-visible">

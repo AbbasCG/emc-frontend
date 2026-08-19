@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Route } from 'lucide-react'
+import { Route } from 'lucide-react'
 import PublicSeo from '@/components/public/PublicSeo'
 import Skeleton from '@/components/ui/Skeleton'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import TracksComparisonTable from '@/components/tracks/TracksComparisonTable'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   fetchPublicLearningPaths,
@@ -11,10 +13,85 @@ import {
   type LearningPath,
 } from '@/api/learningPathsApi'
 import { normalizeRole } from '@/utils/dashboardAccess'
-import { formatPathPrice } from './learningPathDisplay'
+import { toLatinDigits } from '@/utils/publicDetailFormat'
+import { formatPathDuration, formatPathPrice } from './learningPathDisplay'
 import LearningPathsHero from './LearningPathsHero'
 import LearningPathsFilterBar from './LearningPathsFilterBar'
 import LearningPathJourneyCard from './LearningPathJourneyCard'
+
+/**
+ * A count the payload may or may not carry, read defensively: a number is taken
+ * as-is, a list is counted. Anything else yields null so the strip item simply
+ * disappears — §11 forbids inventing a figure the API never sent.
+ */
+function optionalCount(path: LearningPath, keys: readonly string[]): number | null {
+  const raw = path as unknown as Record<string, unknown>
+  for (const key of keys) {
+    const value = raw[key]
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return Math.round(value)
+    if (Array.isArray(value) && value.length > 0) return value.length
+  }
+  return null
+}
+
+function weeklyLoadLabel(days: number): string {
+  if (days === 1) return 'يوم'
+  if (days === 2) return 'يومان'
+  return 'أيام'
+}
+
+/**
+ * §6.1 — the band's opening line: the duration in bold display type, followed by
+ * the availability strip (عدد الوحدات · عدد المشاريع · الحمل الأسبوعي).
+ *
+ * Every item is built from a field the API actually sends; a field the payload
+ * omits is absent from the strip entirely — never «—» guessed into a number,
+ * never «قريباً».
+ */
+function TrackBandLead({ path }: { path: LearningPath }) {
+  const duration = formatPathDuration(path)
+  const units = Number.isFinite(path.courses_count) && path.courses_count > 0 ? path.courses_count : null
+  const projects = optionalCount(path, ['projects_count', 'projects'])
+  const weeklyDays =
+    typeof path.study_days_per_week === 'number' && path.study_days_per_week > 0 ?
+      Math.round(path.study_days_per_week)
+    : null
+
+  const strip: Array<{ label: string; value: string }> = []
+  if (units != null) strip.push({ label: 'الوحدات', value: toLatinDigits(units) })
+  if (projects != null) strip.push({ label: 'المشاريع', value: toLatinDigits(projects) })
+  if (weeklyDays != null) {
+    strip.push({
+      label: 'الحمل الأسبوعي',
+      value: `${toLatinDigits(weeklyDays)} ${weeklyLoadLabel(weeklyDays)}`,
+    })
+  }
+
+  if (!duration && strip.length === 0) return null
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8 lg:pt-16">
+      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3 border-b border-line pb-4">
+        {duration && <p className="emc-stat-num text-3xl sm:text-4xl">{toLatinDigits(duration)}</p>}
+        {strip.length > 0 && (
+          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs font-bold text-ink-400">
+            {strip.map((item, i) => (
+              <span key={item.label} className="inline-flex items-baseline gap-1.5">
+                {i > 0 && (
+                  <span className="me-1.5 text-ink-200" aria-hidden>
+                    ·
+                  </span>
+                )}
+                <span>{item.label}</span>
+                <span className="font-black tabular-nums text-ink-600">{item.value}</span>
+              </span>
+            ))}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function LearningPathsPage() {
   const { isAuthenticated, user } = useAuth()
@@ -157,6 +234,11 @@ export default function LearningPathsPage() {
         featuredCount={heroStats.featuredCount}
       />
 
+      {/* §6.1 — the compact comparison, above the list: لمن؟ · المدة · المتطلب المسبق · المخرَج الوظيفي */}
+      <TracksComparisonTable paths={filteredPaths} />
+
+      <div className="emc-hairline" aria-hidden />
+
       <LearningPathsFilterBar
         activeLevel={level}
         onLevelChange={(v) => {
@@ -243,22 +325,29 @@ export default function LearningPathsPage() {
         : <>
             <p className="mx-auto max-w-7xl px-4 pb-2 pt-8 text-sm font-semibold text-muted-500 sm:px-6 lg:px-8">
               <span dir="ltr" className="font-black tabular-nums text-deepBlue">
-                {String(filteredPaths.length)}
+                {toLatinDigits(filteredPaths.length)}
               </span>{' '}
               مسار
               {filteredPaths.length !== paths.length ?
-                ` (من ${String(paths.length)} في هذه الصفحة)`
+                ` (من ${toLatinDigits(paths.length)} في هذه الصفحة)`
               : ''}
             </p>
 
             <div>
               {filteredPaths.map((path, i) => (
-                <LearningPathJourneyCard
+                /* Each track is one full-width band: the lead line, then the journey
+                   card that carries the name, the transformation sentence, the price
+                   block, the «تسجيل مفتوح» badge and the seats line. The tint mirrors
+                   the card's own alternating band colour so lead and card read as one
+                   surface — the two must stay in sync. */
+                <div
                   key={path.id}
-                  path={path}
-                  index={i}
-                  enrolled={enrolledIds.has(path.id)}
-                />
+                  id={`path-${String(path.id)}`}
+                  className={`scroll-mt-32 ${i % 2 === 1 ? 'bg-brand-50/30' : 'bg-paper'}`}
+                >
+                  <TrackBandLead path={path} />
+                  <LearningPathJourneyCard path={path} index={i} enrolled={enrolledIds.has(path.id)} />
+                </div>
               ))}
             </div>
 
@@ -273,7 +362,7 @@ export default function LearningPathsPage() {
                   السابق
                 </button>
                 <span dir="ltr" className="text-sm font-semibold tabular-nums text-muted-500">
-                  {String(page)} / {String(meta.last_page)}
+                  {toLatinDigits(page)} / {toLatinDigits(meta.last_page)}
                 </span>
                 <button
                   type="button"
@@ -309,7 +398,7 @@ export default function LearningPathsPage() {
             className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 font-black text-white transition duration-200 hover:brightness-[1.03] sm:w-auto"
           >
             تواصل مع مستشار
-            <ChevronLeft className="h-5 w-5" aria-hidden />
+            <ArrowLeftIcon size={18} />
           </Link>
         </div>
       </motion.section>

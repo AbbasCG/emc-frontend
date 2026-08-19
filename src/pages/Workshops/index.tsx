@@ -153,7 +153,7 @@ export default function WorkshopsPage() {
       />
 
       {/* Filter bar */}
-      <div className="sticky top-[4.5rem] z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md">
+      <div className="sticky top-[4.5rem] z-30 border-b border-line bg-white/90 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
           {/* Row 1: chips */}
           <div className="flex flex-wrap items-center gap-2">
@@ -188,7 +188,7 @@ export default function WorkshopsPage() {
               <select
                 value={instructorFilter}
                 onChange={(e) => setInstructorFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0077B6]/30"
+                className="rounded-xl border border-line bg-white px-3 py-1.5 text-[12px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-customBlue/30"
               >
                 {instructorOptions.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -245,7 +245,7 @@ export default function WorkshopsPage() {
         ) : loading ? (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جارٍ تحميل الورش">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-emc">
+              <div key={i} className="overflow-hidden rounded-3xl border border-line bg-white">
                 <Skeleton className="aspect-video w-full rounded-none" />
                 <div className="p-5">
                   <Skeleton variant="text" className="h-5 w-4/5" />
@@ -267,7 +267,7 @@ export default function WorkshopsPage() {
             ))}
           </div>
         ) : pageRows.length === 0 ? (
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-emc">
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center rounded-3xl border border-line bg-white px-6 py-16 text-center">
             <span className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-customBlue">
               <SearchX className="h-7 w-7" aria-hidden />
             </span>
@@ -356,8 +356,8 @@ function Chip({
       onClick={onClick}
       className={`rounded-xl px-3 py-1.5 text-[11px] font-black transition ${
         active
-          ? 'bg-deepBlue text-white shadow-sm'
-          : 'border border-slate-200 bg-white text-slate-600 hover:border-[#0077B6]/40'
+          ? 'bg-deepBlue text-white'
+          : 'border border-line bg-white text-slate-600 hover:border-customBlue/40'
       }`}
     >
       {label}

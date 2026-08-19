@@ -8,7 +8,6 @@ import {
   BookOpen,
   Award,
   Users,
-  ChevronLeft,
   CheckCircle,
   Loader2,
   Star,
@@ -19,7 +18,6 @@ import {
 import toast from '@/lib/toast'
 import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
 import { trackFunnelEvent } from '@/lib/funnelEvents'
-import { computePathSavings } from '@/utils/pathUpsell'
 import {
   buildPublicLoginHref,
   isStudentUser,
@@ -36,7 +34,40 @@ import { formatEuroInteger } from '../utils/currency'
 import { useAuth } from '../contexts/AuthContext'
 import PublicSeo from '@/components/public/PublicSeo'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
-import { LAUNCH_PROMISE, OPEN_ENROLLMENT_LABEL, REFUND_LINE, seatsLine } from '@/data/webSpec'
+import TrackMonthTimeline from '@/components/tracks/TrackMonthTimeline'
+import TrackOutcomesGrid from '@/components/tracks/TrackOutcomesGrid'
+import ValueBreakdown from '@/components/tracks/ValueBreakdown'
+import { formatPathDuration } from '@/pages/LearningPaths/learningPathDisplay'
+import {
+  formatNumberEn,
+  formatSessionDurationArabic,
+  toLatinDigits,
+} from '@/utils/publicDetailFormat'
+import {
+  LAUNCH_PROMISE,
+  OPEN_ENROLLMENT_LABEL,
+  REFUND_LINE,
+  UPGRADE_COUPON_NOTE,
+  seatsLine,
+} from '@/data/webSpec'
+
+/**
+ * EMC-WEB-001 §6.2 — the track detail template.
+ *
+ * Section order is the spec's order, and nothing here is decorative:
+ *   1  رأس الصفحة    — name · transformation sentence · months + weekly load · «تسجيل مفتوح»
+ *   2  صندوق الشراء  — price · ValueBreakdown · seats · ONE primary action · promise · refund
+ *   3  لمن هذا المسار — personas + a frank «ليس لك إذا…»
+ *   4  رحلتك شهراً بشهر — the month-by-month rail (the centrepiece)
+ *   5  ماذا يحمل خريج المسار — outcomes + certificate
+ *   6  the professional-outcome statement, verbatim between hairlines
+ *   7  certificate · FAQ · closing CTA
+ *
+ * §1.3 governs the whole page: a paid product shows NO dates — «تسجيل مفتوح»
+ * instead — and the only urgency is a real remaining-seat count. Every block
+ * below is fed by real API fields; when a field is absent the block is absent
+ * too. Nothing is invented and «قريباً» is never written.
+ */
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -50,10 +81,137 @@ const inViewProps = {
   viewport: { once: true, amount: 0.15 },
 }
 
-function DurationLabel(path: LearningPath) {
-  if (!path.duration) return null
-  const unit = path.duration_unit === 'weeks' ? 'أسبوع' : path.duration_unit === 'months' ? 'شهر' : 'يوم'
-  return `${path.duration} ${unit}`
+const SECTION_TITLE =
+  'emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue'
+
+/**
+ * Free-text field read defensively off the payload — the public path type does
+ * not declare the editorial fields §6.2 asks for, and a missing one must yield
+ * `null` (render nothing) rather than a placeholder.
+ *
+ * `latinize` is on by default (§1 — digits are always Latin) and turned OFF for
+ * copy that must reach the page verbatim.
+ */
+function readText(path: LearningPath, keys: readonly string[], latinize = true): string | null {
+  const raw = path as unknown as Record<string, unknown>
+  for (const key of keys) {
+    const value = raw[key]
+    if (typeof value === 'string' && value.trim()) {
+      const text = value.trim()
+      return latinize ? toLatinDigits(text) : text
+    }
+  }
+  return null
+}
+
+/** List field read defensively — an array of strings, or one string on separate lines. */
+function readList(path: LearningPath, keys: readonly string[]): string[] {
+  const raw = path as unknown as Record<string, unknown>
+  for (const key of keys) {
+    const value = raw[key]
+    if (Array.isArray(value)) {
+      const items = value
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+        .filter(Boolean)
+        .map(toLatinDigits)
+      if (items.length) return items
+    }
+    if (typeof value === 'string' && value.trim()) {
+      const items = value
+        .split(/\r?\n|؛|\|/)
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map(toLatinDigits)
+      if (items.length) return items
+    }
+  }
+  return []
+}
+
+type FaqItem = { question: string; answer: string }
+
+/**
+ * §6.2 — the FAQ comes wholly from path data, which is also why the freeze-policy
+ * question appears only when the API actually ships it: there is no hardcoded
+ * question list to fall back to.
+ */
+function readFaq(path: LearningPath): FaqItem[] {
+  const raw = path as unknown as Record<string, unknown>
+  const source = raw.faq ?? raw.faqs ?? raw.questions
+  if (!Array.isArray(source)) return []
+  const items: FaqItem[] = []
+  for (const entry of source) {
+    if (!entry || typeof entry !== 'object') continue
+    const row = entry as Record<string, unknown>
+    const question = [row.question, row.q, row.title].find(
+      (value) => typeof value === 'string' && value.trim(),
+    )
+    const answer = [row.answer, row.a, row.body, row.content].find(
+      (value) => typeof value === 'string' && value.trim(),
+    )
+    if (typeof question === 'string' && typeof answer === 'string') {
+      items.push({ question: toLatinDigits(question.trim()), answer: toLatinDigits(answer.trim()) })
+    }
+  }
+  return items
+}
+
+/**
+ * §6.2 — the head states the duration in MONTHS. Only clean whole/half values
+ * become a phrase; any other fraction falls back to the shared duration label
+ * rather than rounding a real number into a wrong one.
+ */
+function monthsPhrase(value: number): string | null {
+  if (!Number.isFinite(value) || value <= 0) return null
+  const whole = Math.floor(value)
+  const fraction = value - whole
+  const hasHalf = Math.abs(fraction - 0.5) < 0.01
+  if (!hasHalf && fraction > 0.01) return null
+  if (hasHalf) {
+    if (whole === 0) return 'نصف شهر'
+    if (whole === 1) return 'شهر ونصف'
+    if (whole <= 9) return `${toLatinDigits(whole)} أشهر ونصف`
+    return `${toLatinDigits(whole)} شهراً ونصف`
+  }
+  if (whole === 1) return 'شهر واحد'
+  if (whole === 2) return 'شهران'
+  if (whole <= 10) return `${toLatinDigits(whole)} أشهر`
+  return `${toLatinDigits(whole)} شهراً`
+}
+
+/** Months when the API counts in months, otherwise the real label in its own unit. */
+function durationHeadline(path: LearningPath): string | null {
+  const unit = (path.duration_unit ?? '').toLowerCase()
+  const value = Number(path.duration)
+  if (unit === 'months' && Number.isFinite(value)) {
+    const phrase = monthsPhrase(value)
+    if (phrase) return phrase
+  }
+  return formatPathDuration(path)
+}
+
+/**
+ * §6.2 — the weekly load that sits beside the months. A number becomes a proper
+ * Arabic hour phrase; a string (typically a range like «6–8») passes through and
+ * only gains the unit when it does not already carry one. No field, no line.
+ */
+function weeklyLoadLabel(path: LearningPath): string | null {
+  const raw = path as unknown as Record<string, unknown>
+  const value =
+    raw.weekly_hours ??
+    raw.hours_per_week ??
+    raw.weekly_load ??
+    raw.study_hours_per_week ??
+    raw.weekly_commitment
+  if (value == null || value === '') return null
+  if (typeof value === 'number') {
+    const label = formatSessionDurationArabic(value)
+    return label ? `${label} أسبوعياً` : null
+  }
+  if (typeof value !== 'string') return null
+  const text = toLatinDigits(value.trim())
+  if (!text) return null
+  return /ساع/.test(text) ? text : `${text} ساعات أسبوعياً`
 }
 
 /**
@@ -64,6 +222,25 @@ function remainingSeats(path: LearningPath): number | null {
   const raw = path as unknown as Record<string, unknown>
   const value = raw.seats_remaining ?? raw.remaining_seats ?? raw.available_seats
   return typeof value === 'number' ? value : null
+}
+
+/**
+ * §6.2 — an installment line ONLY when the API exposes one. A written note is
+ * rendered as given; a bare installment count becomes the plain statement of
+ * that count. Absent otherwise — instalments are never implied.
+ */
+function installmentLine(path: LearningPath): string | null {
+  const raw = path as unknown as Record<string, unknown>
+  const note = ['installment_note', 'installment_plan', 'payment_plan', 'installments_note']
+    .map((key) => raw[key])
+    .find((value) => typeof value === 'string' && value.trim())
+  if (typeof note === 'string') return toLatinDigits(note.trim())
+  const rawCount = raw.installments ?? raw.installments_count
+  const count = typeof rawCount === 'number' ? rawCount : Number(String(rawCount ?? '').trim())
+  if (Number.isFinite(count) && count >= 2) {
+    return `الدفع على ${toLatinDigits(Math.round(count))} دفعات`
+  }
+  return null
 }
 
 export default function LearningPathDetail() {
@@ -161,37 +338,65 @@ export default function LearningPathDetail() {
 
   if (!path) return null
 
+  // ── Derived display values ──────────────────────────────────────────────────
   const effectivePrice = path.discount_price ?? path.price
-  const durationLabel = DurationLabel(path)
+  const durationLabel = durationHeadline(path)
+  const weeklyLoad = weeklyLoadLabel(path)
+  // §6.2 — «المدة بالأشهر + الحمل الأسبوعي» in bold display type. When the weekly
+  // load is absent the months stand alone; the closing clause is an API field, so
+  // no positioning claim is ever written on the platform's behalf.
+  const commitmentNote = readText(path, ['designed_for', 'audience_note', 'commitment_note'])
+  const commitmentLine =
+    durationLabel || weeklyLoad ?
+      [[durationLabel, weeklyLoad].filter(Boolean).join(' · '), commitmentNote]
+        .filter(Boolean)
+        .join(' — ')
+    : null
+
   const whatsappCourses = (path.courses ?? []).filter((c) => c.whatsapp_community_url)
   const enrolledHref = `/dashboard/student/learning-paths/${path.id}`
   const enrollDisabled = enrolling || !path.enrollment_open
+  // REGIONAL PRICING SEAM — the public path API exposes one price today, so this
+  // is the single place the displayed number is decided (mirrors Checkout).
   const priceText =
     effectivePrice === 0 || effectivePrice == null ? 'مجاناً' : formatEuroInteger(effectivePrice, 'ar')
+  // §11 — the price never stands bare: the struck reference value is one of the
+  // sanctioned contexts (never a «خصم %» headline).
   const struckOriginal =
     path.discount_price != null && path.price != null && path.price > path.discount_price ?
       formatEuroInteger(path.price, 'ar')
     : null
-  // G4 — revenue clarity: courses-bought-alone vs the full path. Strictly null
-  // whenever any course price is missing/non-numeric (never invented numbers).
-  const savings = computePathSavings(path)
   // §1.3 — «تسجيل مفتوح» replaces any date, and seats are the only urgency.
   const seatsUrgency = path.enrollment_open ? seatsLine(remainingSeats(path)) : null
+  const installment = installmentLine(path)
+
+  const personas = readList(path, ['target_audience', 'audience', 'who_is_this_for', 'personas'])
+  const notForYou = readList(path, ['not_for', 'not_suitable_for', 'not_for_you', 'who_is_not_for'])
+  // §6.2 (6) — rendered VERBATIM: no latinisation, no rewording, no truncation.
+  const professionalOutcome = readText(
+    path,
+    ['professional_outcome', 'career_outcome', 'outcome_statement', 'professional_statement'],
+    false,
+  )
+  const certificateNote = readText(path, ['certificate_note', 'certificate_description'])
+  const faq = readFaq(path)
 
   /**
-   * The one real enroll action — hero, sidebar and mobile bar all render THIS
-   * (same handleEnroll, same disabled/enrolled states). No CTA points at /contact.
+   * The one real enroll action — head, sidebar, closing block and mobile bar all
+   * render THIS (same handleEnroll, same disabled/enrolled states). Guests see the
+   * action label, not a login demand: §1 forbids a mandatory account before payment,
+   * and the handler opens in-context QuickJoin.
    */
   const renderEnrollAction = (
     idleLabel: string,
     closedLabel: string,
     className = '',
-    guestLabel = 'سجّل دخولك للتسجيل في المسار',
+    guestLabel = idleLabel,
   ) =>
     enrollStatus.enrolled ?
       <Link
         to={enrolledHref}
-        className={`inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 text-center font-black text-white transition-colors duration-200 hover:bg-emerald-700 ${className}`}
+        className={`inline-flex items-center justify-center gap-2 rounded-xl bg-success px-6 py-3.5 text-center font-black text-white transition duration-200 hover:brightness-[1.06] ${className}`}
       >
         <CheckCircle className="h-4 w-4" aria-hidden />
         ادخل إلى مساري
@@ -220,7 +425,8 @@ export default function LearningPathDetail() {
         image={path.featured_image}
         type="article"
       />
-      {/* ── HERO — dawn field, editorial two-column (no pricing card) ─────────── */}
+
+      {/* ══ 1 · رأس الصفحة  +  2 · صندوق الشراء ═══════════════════════════════ */}
       <section className="emc-dawn relative overflow-hidden py-20 text-white">
         {path.featured_image && (
           <img
@@ -231,15 +437,14 @@ export default function LearningPathDetail() {
           />
         )}
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr_380px]">
-            {/* Title column */}
+          <div className="grid items-start gap-12 lg:grid-cols-[1fr_380px]">
+            {/* ── 1 · رأس الصفحة ── */}
             <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ duration: 0.5 }}>
-              {/* Breadcrumb */}
               <nav className="mb-6 flex items-center gap-2 text-sm text-ice/80">
                 <Link to="/" className="transition-colors hover:text-white">الرئيسية</Link>
-                <ChevronLeft className="h-4 w-4" aria-hidden />
+                <ArrowLeftIcon size={14} className="shrink-0" />
                 <Link to="/learning-paths" className="transition-colors hover:text-white">المسارات التعليمية</Link>
-                <ChevronLeft className="h-4 w-4" aria-hidden />
+                <ArrowLeftIcon size={14} className="shrink-0" />
                 <span className="text-white">{path.title}</span>
               </nav>
 
@@ -275,16 +480,23 @@ export default function LearningPathDetail() {
                     </span>
                   </>
                 )}
-                {seatsUrgency && <span className="text-ice/80">{seatsUrgency}</span>}
               </p>
 
               <h1 className="mb-4 font-display text-4xl font-black leading-tight tracking-tight [text-wrap:balance] sm:text-5xl">
                 {path.title}
               </h1>
 
+              {/* The transformation sentence */}
               {path.short_description && (
-                <p className="mb-8 max-w-2xl text-lg leading-9 text-ice/90">
+                <p className="mb-7 max-w-2xl text-lg leading-9 text-ice/90">
                   {path.short_description}
+                </p>
+              )}
+
+              {/* المدة بالأشهر + الحمل الأسبوعي — the head's load-bearing statement */}
+              {commitmentLine && (
+                <p className="mb-8 max-w-2xl font-display text-2xl font-black leading-snug tracking-tight text-white sm:text-3xl">
+                  {commitmentLine}
                 </p>
               )}
 
@@ -298,13 +510,13 @@ export default function LearningPathDetail() {
                 )}
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-5 w-5 text-accent-300" aria-hidden />
-                  <span>{path.courses_count} دورة</span>
+                  <span>{toLatinDigits(path.courses_count)} دورة</span>
                 </div>
                 {path.students_count > 0 && (
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-ice" aria-hidden />
                     <span>
-                      <span dir="ltr" className="tabular-nums">{new Intl.NumberFormat('en-US').format(path.students_count)}</span>
+                      <span dir="ltr" className="tabular-nums">{formatNumberEn(path.students_count)}</span>
                       {' '}طالب
                     </span>
                   </div>
@@ -318,7 +530,7 @@ export default function LearningPathDetail() {
               </div>
             </motion.div>
 
-            {/* Editorial summary column — whitespace + hairlines, not a card */}
+            {/* ── 2 · صندوق الشراء — whitespace + hairlines, not a card ── */}
             <motion.div
               variants={fadeUp}
               initial="hidden"
@@ -346,121 +558,160 @@ export default function LearningPathDetail() {
                 <p dir="ltr" className="text-right font-display text-4xl font-black tabular-nums tracking-tight text-white">
                   {priceText}
                 </p>
-                {/* G4 comparison strip — editorial two lines, only when every number is real.
-                    Savings tint: accent-300 (amber) is the fire accent that passes AA on this
-                    navy field — ember (#C97208) is the light-surface rendition and fails here. */}
-                {savings && (
-                  <div className="mt-3 text-sm">
-                    <p className="font-semibold text-ice/80">
-                      الدورات منفردة:{' '}
-                      <span dir="ltr" className="tabular-nums line-through">
-                        {formatEuroInteger(savings.coursesTotal, 'ar')}
-                      </span>
-                    </p>
-                    <p className="mt-1 font-bold text-white">
-                      المسار الكامل:{' '}
-                      <span dir="ltr" className="tabular-nums">
-                        {formatEuroInteger(savings.pathPrice, 'ar')}
-                      </span>
-                      {' — '}
-                      <span className="text-accent-300">
-                        توفير{' '}
-                        <span dir="ltr" className="tabular-nums">
-                          {savings.savingsPercent}%
-                        </span>
-                      </span>
-                    </p>
-                  </div>
+                {struckOriginal && (
+                  <p className="mt-1 text-xs font-bold text-ice/70">سعر EMC للوصول</p>
                 )}
               </div>
 
-              <dl className="mt-5 text-sm">
-                {durationLabel && (
-                  <div className="flex items-center justify-between border-t border-white/15 py-2.5">
-                    <dt className="font-semibold text-ice/80">المدة</dt>
-                    <dd className="font-bold text-white">{durationLabel}</dd>
-                  </div>
-                )}
-                <div className="flex items-center justify-between border-t border-white/15 py-2.5">
-                  <dt className="font-semibold text-ice/80">المحتوى</dt>
-                  <dd className="font-bold text-white">{path.courses_count} دورة</dd>
-                </div>
-                {path.certificate_name && (
-                  <div className="flex items-center justify-between border-t border-white/15 py-2.5">
-                    <dt className="font-semibold text-ice/80">شهادة إتمام</dt>
-                    <dd className="font-bold text-ice">مرفقة</dd>
-                  </div>
-                )}
-              </dl>
+              {/* Components-alone vs the track — collapsed, and only when every
+                  component price is real (the component gates itself). */}
+              <ValueBreakdown path={path} tone="dark" className="mt-4" />
+
+              {/* §1.3 — seats are the only urgency, and only when the number is real. */}
+              {seatsUrgency && (
+                <p className="mt-4 text-sm font-bold text-accent-300">{seatsUrgency}</p>
+              )}
 
               <div className="mt-5">
-                {renderEnrollAction('سجّل في المسار', 'التسجيل مغلق حالياً', 'w-full')}
+                {renderEnrollAction('احجز مقعدك في المسار', 'التسجيل مغلق حالياً', 'w-full')}
                 {enrollMsg && (
                   <p className="mt-2 text-center text-xs text-accent-300">{enrollMsg}</p>
                 )}
 
-                {/* §8 — the launch promise, verbatim from webSpec, on a hairline seam. */}
+                {/* §8 — the launch promise and the guarantee, verbatim from webSpec. */}
                 <div className="mt-5 border-t border-white/15 pt-4">
                   <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
                   <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
+                  {installment && (
+                    <p className="mt-2 text-[12px] leading-6 text-ice/80">{installment}</p>
+                  )}
                 </div>
-
-                <p className="mt-3 text-center text-xs text-ice/70">
-                  <Link to="/contact" className="text-ice underline-offset-4 transition-colors hover:text-white hover:underline">
-                    تواصل معنا للاستفسار
-                  </Link>
-                </p>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ── BODY ─────────────────────────────────────────────────────────────── */}
+      {/* ══ BODY ══════════════════════════════════════════════════════════════ */}
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        {/* ── 3 · لمن هذا المسار ── */}
+        {(personas.length > 0 || notForYou.length > 0) && (
+          <motion.section {...inViewProps} className="mb-16">
+            <h2 className={SECTION_TITLE}>لمن هذا المسار</h2>
+            {personas.length > 0 && (
+              <ul className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
+                {personas.map((persona, i) => (
+                  <li key={i} className="emc-row flex items-start gap-3 px-2 py-4">
+                    <ArrowLeftIcon size={14} className="mt-1.5 shrink-0 text-customBlue" />
+                    <span className="text-sm leading-7 text-ink-500">{persona}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {notForYou.length > 0 && (
+              <div className="mt-10">
+                <div className="emc-hairline" aria-hidden />
+                <h3 className="mt-6 font-display text-lg font-black tracking-tight text-deepBlue">
+                  ليس لك إذا…
+                </h3>
+                <ul className="mt-3 space-y-2.5">
+                  {notForYou.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm leading-7 text-ink-400">
+                      <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" aria-hidden />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </motion.section>
+        )}
+
+        {/* ── 4 · رحلتك شهراً بشهر — the centrepiece, full page width.
+            The wrapper is gated on the same condition the component uses, so an
+            empty path never leaves a block of dead vertical space behind. ── */}
+        {(path.courses ?? []).length > 0 && (
+          <motion.div {...inViewProps} className="mb-16">
+            <TrackMonthTimeline path={path} />
+          </motion.div>
+        )}
+
         <div className="grid gap-12 lg:grid-cols-[1fr_360px]">
           <div className="space-y-14">
+            {/* ── 5 · ماذا يحمل خريج المسار ── */}
+            {((path.learning_outcomes ?? []).length > 0 || path.certificate_name) && (
+              <motion.div {...inViewProps}>
+                <TrackOutcomesGrid path={path} />
+              </motion.div>
+            )}
+
+            {/* ── 6 · the professional-outcome statement — verbatim, calm, bounded ── */}
+            {professionalOutcome && (
+              <motion.section {...inViewProps}>
+                <div className="emc-hairline" aria-hidden />
+                <p className="py-8 font-display text-lg leading-9 text-deepBlue sm:text-xl">
+                  {professionalOutcome}
+                </p>
+                <div className="emc-hairline" aria-hidden />
+              </motion.section>
+            )}
+
             {/* Description */}
             {path.full_description && (
               <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">عن هذا المسار</h2>
+                <h2 className={SECTION_TITLE}>عن هذا المسار</h2>
                 <div
-                  className="prose prose-slate max-w-none text-right leading-9 text-foreground/80"
+                  className="prose prose-slate max-w-none text-right leading-9 text-ink-500"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(path.full_description) }}
                 />
               </motion.section>
             )}
 
-            {/* Schedule info — plain rows, no box */}
+            {/* Requirements */}
+            {(path.requirements ?? []).length > 0 && (
+              <motion.section {...inViewProps}>
+                <h2 className={SECTION_TITLE}>المتطلبات</h2>
+                <ul className="space-y-2">
+                  {(path.requirements ?? []).map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-ink-500">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-customOrange" aria-hidden />
+                      {toLatinDigits(item)}
+                    </li>
+                  ))}
+                </ul>
+              </motion.section>
+            )}
+
+            {/* Schedule info — plain rows, no box (§1.3: study rhythm, never a start date) */}
             {(path.study_days_per_week != null ||
               (path.study_days && path.study_days.length > 0) ||
               path.study_time ||
               path.schedule_note) && (
               <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">جدول الدراسة</h2>
+                <h2 className={SECTION_TITLE}>جدول الدراسة</h2>
                 <div className="space-y-3.5">
                   {path.study_days_per_week != null && (
-                    <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                    <div className="flex items-center gap-3 text-sm font-semibold text-ink-500">
                       <CalendarDays className="h-5 w-5 shrink-0 text-customBlue" aria-hidden />
-                      <span>عدد أيام الدراسة في الأسبوع: {path.study_days_per_week}</span>
+                      <span>عدد أيام الدراسة في الأسبوع: {toLatinDigits(path.study_days_per_week)}</span>
                     </div>
                   )}
                   {path.study_days && path.study_days.length > 0 && (
-                    <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                    <div className="flex items-center gap-3 text-sm font-semibold text-ink-500">
                       <CalendarDays className="h-5 w-5 shrink-0 text-customBlue" aria-hidden />
                       <span>أيام الدراسة: {path.study_days.join('، ')}</span>
                     </div>
                   )}
                   {path.study_time && (
-                    <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                    <div className="flex items-center gap-3 text-sm font-semibold text-ink-500">
                       <Clock className="h-5 w-5 shrink-0 text-customBlue" aria-hidden />
-                      <span>وقت الدراسة: {path.study_time}</span>
+                      <span>وقت الدراسة: {toLatinDigits(path.study_time)}</span>
                     </div>
                   )}
                   {path.schedule_note && (
-                    <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                    <div className="flex items-center gap-3 text-sm font-semibold text-ink-500">
                       <CircleDot className="h-5 w-5 shrink-0 text-customBlue" aria-hidden />
-                      <span>{path.schedule_note}</span>
+                      <span>{toLatinDigits(path.schedule_note)}</span>
                     </div>
                   )}
                 </div>
@@ -470,7 +721,7 @@ export default function LearningPathDetail() {
             {/* WhatsApp communities for enrolled students — editorial rows */}
             {enrollStatus.enrolled && whatsappCourses.length > 0 && (
               <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">مجتمعات الواتساب للدورات</h2>
+                <h2 className={SECTION_TITLE}>مجتمعات الواتساب للدورات</h2>
                 <div>
                   {whatsappCourses.map((c) => (
                     <div
@@ -481,7 +732,7 @@ export default function LearningPathDetail() {
                       <button
                         type="button"
                         onClick={() => window.open(c.whatsapp_community_url!, '_blank', 'noopener,noreferrer')}
-                        className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-4 py-2 text-xs font-black text-white"
+                        className="inline-flex items-center gap-2 rounded-xl bg-success px-4 py-2 text-xs font-black text-white transition duration-200 hover:brightness-[1.06]"
                       >
                         <MessageCircle className="h-4 w-4" aria-hidden />
                         الانضمام
@@ -492,106 +743,10 @@ export default function LearningPathDetail() {
               </motion.section>
             )}
 
-            {/* Learning Journey — the loved numbered stations, drawn as editorial rows */}
-            {(path.courses ?? []).length > 0 && (
-              <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">رحلة التعلم</h2>
-                <ol>
-                  {(path.courses ?? []).map((course, i) => (
-                    <li key={course.id} className="emc-row flex items-start gap-4 px-2 py-5">
-                      {/* Station number */}
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black tabular-nums text-deepBlue ring-2 ring-navy">
-                        {i + 1}
-                      </span>
-                      {/* Course info */}
-                      <div className="flex-1 text-right">
-                        <div className="mb-1 flex flex-wrap items-center justify-start gap-2">
-                          <div className="flex items-center gap-2 text-xs text-muted-400">
-                            {course.duration && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" aria-hidden /> {course.duration}
-                              </span>
-                            )}
-                            {course.level && (
-                              <span className="flex items-center gap-1">
-                                <CircleDot className="h-3 w-3" aria-hidden /> {course.level}
-                              </span>
-                            )}
-                          </div>
-                          <h3 className="font-black text-deepBlue">{course.title}</h3>
-                        </div>
-                        {course.short_description && (
-                          <p className="line-clamp-2 text-sm text-muted-500">{course.short_description}</p>
-                        )}
-                      </div>
-                      {/* Thumbnail */}
-                      {course.image_url && (
-                        <img
-                          src={course.image_url}
-                          alt={course.title}
-                          className="emc-page-clip-sm hidden h-16 w-24 shrink-0 object-cover sm:block"
-                        />
-                      )}
-                    </li>
-                  ))}
-                </ol>
-              </motion.section>
-            )}
-
-            {/* Learning Outcomes — plain check list, no tinted tiles */}
-            {path.learning_outcomes.length > 0 && (
-              <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">ماذا ستتعلم</h2>
-                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                  {path.learning_outcomes.map((item, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-customBlue" aria-hidden />
-                      <span className="text-sm font-medium leading-7 text-foreground">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.section>
-            )}
-
-            {/* Requirements */}
-            {path.requirements.length > 0 && (
-              <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">المتطلبات</h2>
-                <ul className="space-y-2">
-                  {path.requirements.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 text-sm text-foreground/80">
-                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-customOrange" aria-hidden />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </motion.section>
-            )}
-
-            {/* Certificate — editorial statement between hairlines, no gradient card */}
-            {path.certificate_name && (
-              <motion.section {...inViewProps}>
-                <div className="emc-hairline" aria-hidden />
-                <div className="py-8">
-                  <div className="flex items-center gap-4">
-                    <Award className="h-10 w-10 shrink-0 text-accent-700" aria-hidden />
-                    <div className="text-right">
-                      <h2 className="font-display text-xl font-black tracking-tight text-deepBlue">شهادة الإتمام</h2>
-                      <p className="text-sm font-semibold text-accent-700">{path.certificate_name}</p>
-                    </div>
-                  </div>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-foreground/80">
-                    بعد إتمام جميع الدورات في هذا المسار بنجاح، ستحصل على شهادة معتمدة تثبت كفاءتك وتفتح لك أبواباً جديدة في مسيرتك المهنية.
-                  </p>
-                </div>
-                <div className="emc-hairline" aria-hidden />
-              </motion.section>
-            )}
-
             {/* Instructor — plain row */}
             {path.instructor && (
               <motion.section {...inViewProps}>
-                <h2 className="emc-title-arc mb-6 font-display text-2xl font-black tracking-tight text-deepBlue">المدرب</h2>
+                <h2 className={SECTION_TITLE}>المدرب</h2>
                 <div className="flex items-center gap-5">
                   {path.instructor.avatar_url ?
                     <img
@@ -606,32 +761,77 @@ export default function LearningPathDetail() {
                   <div className="text-right">
                     <h3 className="text-lg font-black text-deepBlue">{path.instructor.name}</h3>
                     {path.instructor.title && (
-                      <p className="text-sm text-muted-500">{path.instructor.title}</p>
+                      <p className="text-sm text-ink-400">{path.instructor.title}</p>
                     )}
                   </div>
                 </div>
               </motion.section>
             )}
+
+            {/* ── 7a · شهادة الإتمام — editorial statement between hairlines ── */}
+            {path.certificate_name && (
+              <motion.section {...inViewProps}>
+                <div className="emc-hairline" aria-hidden />
+                <div className="py-8">
+                  <div className="flex items-center gap-4">
+                    <Award className="h-10 w-10 shrink-0 text-ember" aria-hidden />
+                    <div className="text-right">
+                      <h2 className="font-display text-xl font-black tracking-tight text-deepBlue">شهادة الإتمام</h2>
+                      <p className="text-sm font-semibold text-ember">{path.certificate_name}</p>
+                    </div>
+                  </div>
+                  {certificateNote && (
+                    <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-500">{certificateNote}</p>
+                  )}
+                </div>
+                <div className="emc-hairline" aria-hidden />
+              </motion.section>
+            )}
+
+            {/* ── 7b · الأسئلة الشائعة — path data only ── */}
+            {faq.length > 0 && (
+              <motion.section {...inViewProps}>
+                <h2 className={SECTION_TITLE}>الأسئلة الشائعة</h2>
+                <div>
+                  {faq.map((item, i) => (
+                    <details key={i} className="emc-row px-2 py-4">
+                      <summary className="flex cursor-pointer list-none items-start gap-3 text-sm font-black text-deepBlue [&::-webkit-details-marker]:hidden">
+                        <ArrowLeftIcon size={14} className="mt-1.5 shrink-0 text-customBlue" />
+                        {item.question}
+                      </summary>
+                      <p className="mt-3 pe-7 text-sm leading-7 text-ink-500">{item.answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </motion.section>
+            )}
           </div>
 
-          {/* Sticky sidebar — editorial summary, REAL enroll action (was a dead /contact link) */}
+          {/* Sticky re-offer — the same single decision, never a competing one */}
           <aside className="hidden lg:block">
             <div className="sticky top-28 text-right">
               <div className="emc-hairline" aria-hidden />
               <div className="pt-6">
                 {struckOriginal && (
-                  <p dir="ltr" className="text-right text-sm font-semibold tabular-nums text-muted-400 line-through">
+                  <p dir="ltr" className="text-right text-sm font-semibold tabular-nums text-ink-400 line-through">
                     {struckOriginal}
                   </p>
                 )}
                 <p dir="ltr" className="emc-stat-num text-right text-5xl">
                   {priceText}
                 </p>
+                {struckOriginal && (
+                  <p className="mt-2 text-xs font-bold text-ink-400">سعر EMC للوصول</p>
+                )}
+
+                {seatsUrgency && (
+                  <p className="mt-3 text-sm font-bold text-ember">{seatsUrgency}</p>
+                )}
 
                 <div className="mt-6">
-                  {renderEnrollAction('سجّل في المسار الآن', 'التسجيل مغلق حالياً', 'w-full')}
+                  {renderEnrollAction('احجز مقعدك في المسار', 'التسجيل مغلق حالياً', 'w-full')}
                   {enrollMsg && (
-                    <p className="mt-2 text-center text-xs text-accent-700">{enrollMsg}</p>
+                    <p className="mt-2 text-center text-xs text-ember">{enrollMsg}</p>
                   )}
                 </div>
 
@@ -644,27 +844,36 @@ export default function LearningPathDetail() {
                 <dl className="mt-7 text-sm">
                   {durationLabel && (
                     <div className="flex items-center justify-between border-t border-line py-3">
-                      <dt className="flex items-center gap-2 text-muted-500">
+                      <dt className="flex items-center gap-2 text-ink-400">
                         <Clock className="h-4 w-4 text-customBlue" aria-hidden />
                         المدة
                       </dt>
                       <dd className="font-bold text-deepBlue">{durationLabel}</dd>
                     </div>
                   )}
+                  {weeklyLoad && (
+                    <div className="flex items-center justify-between border-t border-line py-3">
+                      <dt className="flex items-center gap-2 text-ink-400">
+                        <CalendarDays className="h-4 w-4 text-customBlue" aria-hidden />
+                        الحمل الأسبوعي
+                      </dt>
+                      <dd className="font-bold text-deepBlue">{weeklyLoad}</dd>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between border-t border-line py-3">
-                    <dt className="flex items-center gap-2 text-muted-500">
+                    <dt className="flex items-center gap-2 text-ink-400">
                       <BookOpen className="h-4 w-4 text-customBlue" aria-hidden />
                       المحتوى
                     </dt>
-                    <dd className="font-bold text-deepBlue">{path.courses_count} دورة</dd>
+                    <dd className="font-bold text-deepBlue">{toLatinDigits(path.courses_count)} دورة</dd>
                   </div>
                   {path.certificate_name && (
                     <div className="flex items-center justify-between border-t border-line py-3">
-                      <dt className="flex items-center gap-2 text-muted-500">
-                        <Award className="h-4 w-4 text-accent-700" aria-hidden />
+                      <dt className="flex items-center gap-2 text-ink-400">
+                        <Award className="h-4 w-4 text-ember" aria-hidden />
                         الشهادة
                       </dt>
-                      <dd className="font-bold text-accent-700">شهادة مرفقة</dd>
+                      <dd className="font-bold text-ember">شهادة مرفقة</dd>
                     </div>
                   )}
                 </dl>
@@ -674,13 +883,34 @@ export default function LearningPathDetail() {
         </div>
       </div>
 
+      {/* ── 7c · closing CTA — the hesitant reader's exit that still converts ── */}
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="emc-hairline" aria-hidden />
+        <div className="flex flex-col gap-6 py-10 text-right lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="font-display text-xl font-black leading-snug tracking-tight text-deepBlue sm:text-2xl">
+              متردد؟ ابدأ بدورة واحدة — وقيمتها تُخصم من المسار لاحقاً
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ink-400">{UPGRADE_COUPON_NOTE}</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-6">
+            <Link to="/courses" className="emc-cta-line text-sm">
+              <ArrowLeftIcon size={16} />
+              تصفّح الدورات
+            </Link>
+            {renderEnrollAction('احجز مقعدك في المسار', 'التسجيل مغلق حالياً')}
+          </div>
+        </div>
+        <div className="emc-hairline" aria-hidden />
+      </section>
+
       {/* Mobile CTA bar — the only persistent CTA on phones: it MUST enroll */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-white p-4 lg:hidden">
         <div className="flex items-center justify-between gap-4">
           <p dir="ltr" className="emc-stat-num text-2xl">
             {priceText}
           </p>
-          {renderEnrollAction('سجّل الآن', 'التسجيل مغلق', 'flex-1', 'سجّل الآن')}
+          {renderEnrollAction('احجز مقعدك', 'التسجيل مغلق', 'flex-1')}
         </div>
       </div>
 

@@ -44,7 +44,7 @@ export default function HomeTrustStrip() {
             {allItems.map((item, i) => (
               <span
                 key={i}
-                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-deepBlue/[0.08] bg-white/70 px-4 py-2 text-xs font-black text-foreground/60 shadow-emc-xs"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-deepBlue/[0.08] bg-white/70 px-4 py-2 text-xs font-black text-foreground/60"
               >
                 <span
                   aria-hidden

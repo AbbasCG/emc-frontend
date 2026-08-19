@@ -65,7 +65,7 @@ export default function Departments() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-3xl bg-white p-8 text-right shadow-emc-md ring-1 ring-line sm:p-10 lg:p-12"
+            className="relative overflow-hidden rounded-3xl bg-white p-8 text-right ring-1 ring-line sm:p-10 lg:p-12"
           >
             <div className="pointer-events-none absolute -left-24 top-0 h-56 w-56 rounded-full bg-customBlue/[0.07] blur-3xl" />
             <div className="pointer-events-none absolute -right-16 bottom-0 h-48 w-48 rounded-full bg-customOrange/[0.08] blur-3xl" />
@@ -115,7 +115,7 @@ export default function Departments() {
                   key={b.key}
                   variants={staggerItem}
                   className={[
-                    'relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-emcBg p-7 text-right shadow-emc transition-shadow hover:shadow-emc-md',
+                    'relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-emcBg p-7 text-right transition-colors hover:border-customBlue/25',
                     border,
                   ].join(' ')}
                 >
@@ -147,7 +147,7 @@ export default function Departments() {
             whileInView="visible"
             viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
             transition={{ duration: 0.5 }}
-            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-lg ring-1 ring-white/10 lg:p-10"
+            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white ring-1 ring-white/10 lg:p-10"
           >
             <div className="pointer-events-none absolute left-0 top-0 h-40 w-40 rounded-full bg-customBlue/15 blur-3xl" />
             <div className="pointer-events-none absolute bottom-0 right-0 h-36 w-36 rounded-full bg-customOrange/10 blur-3xl" />

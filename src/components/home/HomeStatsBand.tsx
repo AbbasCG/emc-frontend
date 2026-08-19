@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { BookOpen, Globe2, TrendingUp, Users } from 'lucide-react'
+import { BookOpen, Check, Globe2, TrendingUp, Users } from 'lucide-react'
 import StatCard from '@/components/shared/StatCard'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
@@ -9,7 +9,7 @@ const bandStats = [
   { raw: '+13,000', label: 'مستفيد ومستفيدة', icon: Users },
   { raw: '+9,000', label: 'مسجّل في المخيمات', icon: TrendingUp },
   { raw: '+50', label: 'دولة', icon: Globe2 },
-  { raw: '✓', label: 'ورش ودورات ومسارات', icon: BookOpen },
+  { raw: null, label: 'ورش ودورات ومسارات', icon: BookOpen },
 ] as const
 
 function AnimatedNumber({ value }: { value: string }) {
@@ -65,7 +65,15 @@ export default function HomeStatsBand() {
           const Icon = item.icon
           return (
             <motion.div key={item.label} variants={staggerItem}>
-              <StatCard number={<AnimatedNumber value={item.raw} />} label={item.label} icon={Icon} />
+              <StatCard
+                number={
+                  item.raw !== null
+                    ? <AnimatedNumber value={item.raw} />
+                    : <Check className="mx-auto h-[0.9em] w-[0.9em]" strokeWidth={2.5} aria-hidden />
+                }
+                label={item.label}
+                icon={Icon}
+              />
             </motion.div>
           )
         })}

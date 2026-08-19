@@ -23,7 +23,7 @@ export default function CTASection({
   return (
     <section className="px-4 pb-20 sm:px-6 lg:px-8">
       <motion.div
-        className="relative mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 overflow-hidden rounded-[1.75rem] bg-gradient-to-l from-deepBlue via-deepBlue to-deepBlue p-8 text-right text-white shadow-[0_28px_60px_-24px_rgba(12,42,75,0.35)] ring-1 ring-white/10 sm:p-10 lg:flex-row lg:items-center"
+        className="relative mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 overflow-hidden rounded-[1.75rem] bg-gradient-to-l from-deepBlue via-deepBlue to-deepBlue p-8 text-right text-white ring-1 ring-white/10 sm:p-10 lg:flex-row lg:items-center"
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
@@ -39,7 +39,7 @@ export default function CTASection({
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               to={primaryHref}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white"
             >
               {primaryLabel}
               <ArrowLeft size={20} />

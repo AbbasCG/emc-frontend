@@ -35,21 +35,21 @@ function CoursesProgramIntro({ derivedCategories, loading }: Props) {
           transition={{ duration: 0.5 }}
           className="mb-8 grid gap-4 lg:grid-cols-3"
         >
-          <div className="rounded-3xl border border-line bg-white p-7 text-right shadow-emc-md">
+          <div className="rounded-3xl border border-line bg-white p-7 text-right">
             <Layers className="text-brand-500" size={28} />
             <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">دورات وورش ومسارات</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
               تجمع الصفحة بين ورش قصيرة ودورات أطول ومسارات تعلم مترابطة — حسب توفرها في الكتالوج الحالي من الخادم.
             </p>
           </div>
-          <div className="rounded-3xl border border-line bg-white p-7 text-right shadow-emc-md">
+          <div className="rounded-3xl border border-line bg-white p-7 text-right">
             <BookOpen className="text-accent-500" size={28} />
             <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">محاذاة مع مجالات EMC</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
               اطلع على صفحة المجالات الاثنا عشر لفهم كيف تتكامل البرامج مع منظومة EMC الأوسع.
             </p>
           </div>
-          <div className="rounded-3xl border border-line bg-white p-7 text-right shadow-emc-md">
+          <div className="rounded-3xl border border-line bg-white p-7 text-right">
             <Sparkles className="text-brand-500" size={28} />
             <h3 className="mt-4 font-display text-lg font-black tracking-tight text-deepBlue">تصفية ذكية</h3>
             <p className="mt-2 text-sm leading-7 text-muted-600">
@@ -87,7 +87,7 @@ function CoursesProgramIntro({ derivedCategories, loading }: Props) {
                       <p className="truncate text-sm font-black text-deepBlue">{c.label}</p>
                       <p className="mt-1 text-xs text-muted-500">برنامج في هذه الفئة</p>
                     </div>
-                    <div className="flex h-12 min-w-[3rem] shrink-0 items-center justify-center rounded-2xl bg-white/90 px-3 text-lg font-black tabular-nums text-deepBlue shadow-sm">
+                    <div className="flex h-12 min-w-[3rem] shrink-0 items-center justify-center rounded-2xl bg-white/90 px-3 text-lg font-black tabular-nums text-deepBlue">
                       {c.count.toLocaleString('ar-EG')}
                     </div>
                   </div>

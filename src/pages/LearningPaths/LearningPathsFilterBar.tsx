@@ -1,4 +1,5 @@
 import { AlertCircle, ChevronDown, Star } from 'lucide-react'
+import { toLatinDigits } from '@/utils/publicDetailFormat'
 
 type SelectOption = { value: string; label: string }
 
@@ -26,7 +27,7 @@ const priceFilters = [
 
 const enrollmentFilters = [
   { value: 'all', label: 'كل الحالات' },
-  { value: 'open', label: 'التسجيل مفتوح' },
+  { value: 'open', label: 'تسجيل مفتوح' },
   { value: 'closed', label: 'التسجيل مغلق' },
 ]
 
@@ -62,8 +63,12 @@ function TextSelect({
 }
 
 /**
- * Design 2.0: a typographic filter line seated on a hairline — text dropdowns
- * separated by thin seams, count as plain text. No segmented boxes, no chips.
+ * §6.1 — one quiet hairline toolbar. The spec asks for no complex filtering to
+ * distract from the choice, so this stays a single typographic line seated on a
+ * hairline: text dropdowns separated by thin seams, the count as plain text.
+ *
+ * Identity law §1: no shadow, no orange (orange is reserved for the primary
+ * action), and every digit rendered through `toLatinDigits`.
  */
 export default function LearningPathsFilterBar({
   activeLevel,
@@ -86,7 +91,7 @@ export default function LearningPathsFilterBar({
     <div className="sticky top-[4.5rem] z-30 border-b border-line bg-paper/90 backdrop-blur-md supports-[backdrop-filter]:bg-paper/80">
       <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
         {loadError && (
-          <p className="mb-2 flex items-start gap-2 text-sm font-bold text-accent-700">
+          <p className="mb-2 flex items-start gap-2 text-sm font-bold text-danger">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>تعذّر تحميل المسارات. تحقق من الاتصال ثم أعد تحميل الصفحة.</span>
           </p>
@@ -100,13 +105,14 @@ export default function LearningPathsFilterBar({
 
           <span className="h-4 w-px bg-line" aria-hidden />
 
-          {/* Featured — text toggle */}
+          {/* Featured — text toggle. Active state in the sea family: orange is the
+              primary action's colour only. */}
           <button
             type="button"
             aria-pressed={featuredOnly}
             onClick={() => onFeaturedChange(featuredOnly ? 'all' : 'featured')}
             className={`inline-flex items-center gap-1.5 py-2 text-xs font-black transition-colors duration-200 ${
-              featuredOnly ? 'text-accent-700' : 'text-muted-500 hover:text-deepBlue'
+              featuredOnly ? 'text-customBlue' : 'text-muted-500 hover:text-deepBlue'
             }`}
           >
             <Star className={`h-3 w-3 ${featuredOnly ? 'fill-current' : ''}`} aria-hidden />
@@ -132,11 +138,11 @@ export default function LearningPathsFilterBar({
           {/* Count — plain text */}
           <span className="ms-auto hidden whitespace-nowrap text-xs font-medium text-muted-500 sm:block">
             <span dir="ltr" className="font-black tabular-nums text-deepBlue">
-              {String(resultCount)}
+              {toLatinDigits(resultCount)}
             </span>
             {' من '}
             <span dir="ltr" className="font-black tabular-nums text-deepBlue">
-              {String(totalCount)}
+              {toLatinDigits(totalCount)}
             </span>
             {' مسار'}
           </span>

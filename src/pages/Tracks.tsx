@@ -112,7 +112,7 @@ export default function Tracks() {
                     y: -6,
                     transition: { type: 'spring', stiffness: 420, damping: 28 },
                   }}
-                  className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.065] bg-white text-right shadow-emc-md shadow-deepBlue/[0.04] ring-1 ring-white transition-shadow hover:border-customBlue/[0.18] hover:shadow-emc-lg"
+                  className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-deepBlue/[0.065] bg-white text-right ring-1 ring-line transition-colors hover:border-customBlue/[0.18]"
                 >
                   <span
                     aria-hidden
@@ -122,7 +122,7 @@ export default function Tracks() {
                   <div className="flex flex-1 flex-col px-7 pb-8 pt-7">
                     <div className="mb-5 flex items-start justify-between gap-4">
                       <span
-                        className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${accents.chip} shadow-inner transition-transform duration-300 group-hover:scale-[1.04]`}
+                        className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${accents.chip} transition-transform duration-300 group-hover:scale-[1.04]`}
                       >
                         <Icon size={28} strokeWidth={2} aria-hidden />
                       </span>
@@ -154,7 +154,7 @@ export default function Tracks() {
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-8 pt-5">
                       <Link
                         to="/courses"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-[#1c6f98] py-3.5 text-sm font-black text-white shadow-[0_12px_32px_-12px_rgba(0,119,182,0.55)] ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-customBlue to-ocean py-3.5 text-sm font-black text-white ring-1 ring-white/15 transition-[filter] hover:brightness-[1.05]"
                       >
                         {t('tracks.exploreCta')}
                         <ArrowLeft size={17} aria-hidden />

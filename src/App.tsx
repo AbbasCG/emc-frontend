@@ -34,6 +34,7 @@ const InstructorDetail   = lazy(() => import('./pages/InstructorDetail'))
 const Instructors        = lazy(() => import('./pages/Instructors'))
 const Impact             = lazy(() => import('./pages/Impact'))
 const Partnerships       = lazy(() => import('./pages/Partnerships'))
+const Learn              = lazy(() => import('./pages/Learn'))
 const LearningPaths      = lazy(() => import('./pages/LearningPaths'))
 const LearningPathDetail = lazy(() => import('./pages/LearningPathDetail'))
 const Workshops          = lazy(() => import('./pages/Workshops'))
@@ -372,6 +373,8 @@ function App() {
 
               {/* ── SectionErrorBoundary: public catalog cluster ── */}
               <Route element={<SectionBoundary />}>
+              {/* §4 — the orientation page the navbar's «ابدأ رحلتك» points at. */}
+              <Route path="/learn" element={<Suspense fallback={<RouteFallback />}><Learn /></Suspense>} />
               <Route path="/courses" element={<Suspense fallback={<RouteFallback />}><Courses /></Suspense>} />
               <Route path="/courses/:slug" element={<Suspense fallback={<RouteFallback />}><CourseDetails /></Suspense>} />
               <Route path="/workshops" element={<Suspense fallback={<RouteFallback />}><Workshops /></Suspense>} />

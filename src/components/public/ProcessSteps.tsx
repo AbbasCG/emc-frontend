@@ -17,7 +17,7 @@ type ProcessStepsProps = {
 export default function ProcessSteps({ steps, title, subtitle }: ProcessStepsProps) {
   return (
     <motion.div
-      className="rounded-3xl border border-slate-100 bg-white p-8 shadow-lg shadow-slate-200/40 ring-1 ring-slate-100/80 lg:p-10"
+      className="rounded-3xl border border-line bg-white p-8 ring-1 ring-line/80 lg:p-10"
       variants={fadeUp}
       initial="hidden"
       whileInView="visible"
@@ -50,7 +50,7 @@ export default function ProcessSteps({ steps, title, subtitle }: ProcessStepsPro
                 {i + 1}
               </span>
               {Icon && (
-                <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-customBlue shadow-sm">
+                <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-white text-customBlue">
                   <Icon size={20} />
                 </div>
               )}

@@ -31,11 +31,11 @@ export default function CourseDetailMetricsDashboard({ items }: { items: MetricW
           <div
             key={item.id}
             className={cn(
-              'flex h-[72px] max-h-[80px] items-center gap-2 rounded-2xl border bg-gradient-to-l to-white/95 px-2.5 py-2 text-right shadow-emc-xs backdrop-blur-sm transition-shadow duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:shadow-emc',
+              'flex h-[72px] max-h-[80px] items-center gap-2 rounded-2xl border bg-gradient-to-l to-white/95 px-2.5 py-2 text-right backdrop-blur-sm transition-colors duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
               accent,
             )}
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/90 shadow-emc-inset ring-1 ring-deepBlue/5">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/90 ring-1 ring-deepBlue/5">
               <Icon className="h-3 w-3" aria-hidden />
             </span>
             <div className="min-w-0 flex-1">

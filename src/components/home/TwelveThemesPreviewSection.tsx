@@ -58,7 +58,7 @@ export default function TwelveThemesPreviewSection() {
               <motion.div key={theme.id} variants={staggerItem}>
                 <Link
                   to="/tracks"
-                  className="group flex h-full flex-col rounded-3xl bg-white p-6 text-right shadow-md ring-1 ring-slate-100 transition hover:-translate-y-1 hover:shadow-lg"
+                  className="group flex h-full flex-col rounded-3xl bg-white p-6 text-right ring-1 ring-line transition hover:-translate-y-1 hover:ring-customBlue/25"
                 >
                   <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-customBlue transition group-hover:bg-customBlue group-hover:text-white">
                     <Icon size={22} />
@@ -84,7 +84,7 @@ export default function TwelveThemesPreviewSection() {
         >
           <Link
             to="/tracks"
-            className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-8 py-4 text-sm font-black text-white shadow-lg transition hover:bg-deepBlue/90"
+            className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-8 py-4 text-sm font-black text-white transition hover:bg-deepBlue/90"
           >
             عرض جميع المجالات والتفاصيل
           </Link>

@@ -112,7 +112,7 @@ export default function PremiumHero({
             )}
           </div>
 
-          <h1 className="font-display text-[1.75rem] font-black leading-[1.12] tracking-tight text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.38)] sm:text-[2rem] lg:text-[2.5rem]">
+          <h1 className="font-display text-[1.75rem] font-black leading-[1.12] tracking-tight text-white sm:text-[2rem] lg:text-[2.5rem]">
             {course.title}
           </h1>
 
@@ -192,7 +192,7 @@ export default function PremiumHero({
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
           className="hidden shrink-0 flex-col gap-2 lg:flex lg:w-[400px] xl:w-[460px]"
         >
-          <div className="group relative overflow-hidden rounded-2xl border border-white/12 ring-1 ring-white/5 shadow-[0_28px_70px_-20px_rgba(6,24,44,0.6)]">
+          <div className="group relative overflow-hidden rounded-2xl border border-white/12 ring-1 ring-white/5">
             <img
               src={activeImg}
               alt=""
@@ -208,7 +208,7 @@ export default function PremiumHero({
                 aria-label="معاينة الفيديو"
                 className="absolute inset-0 flex items-center justify-center bg-night/0 opacity-0 transition-opacity duration-200 group-hover:bg-night/10 group-hover:opacity-100"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-2xl ring-4 ring-white/25 transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:scale-105">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white ring-4 ring-white/25 transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:scale-105">
                   <Play className="ms-0.5 h-5 w-5 fill-customBlue text-customBlue" />
                 </span>
               </button>
@@ -225,7 +225,7 @@ export default function PremiumHero({
                   className={cn(
                     'h-12 flex-1 overflow-hidden rounded-lg border-2 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
                     activeImg === item.url
-                      ? 'border-customOrange shadow-[0_0_0_2px_rgba(242,140,0,0.2)]'
+                      ? 'border-customOrange'
                       : 'border-white/20 hover:border-white/40',
                   )}
                 >

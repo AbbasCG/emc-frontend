@@ -48,9 +48,9 @@ function InstructorBody({
           src={avatarUrl}
           alt=""
           loading="lazy"
-          className="h-24 w-24 rounded-3xl object-cover shadow-lg ring-4 ring-sky-50 sm:h-28 sm:w-28"
+          className="h-24 w-24 rounded-3xl object-cover ring-4 ring-sky-50 sm:h-28 sm:w-28"
         />
-        <span className="absolute -bottom-2 -start-2 grid h-10 w-10 place-items-center rounded-2xl bg-customBlue text-white shadow-lg">
+        <span className="absolute -bottom-2 -start-2 grid h-10 w-10 place-items-center rounded-2xl bg-customBlue text-white">
           <UserRound size={18} aria-hidden />
         </span>
       </div>
@@ -106,7 +106,7 @@ export default function PublicInstructorCard({
 
   return (
     <div
-      className={`overflow-hidden rounded-3xl bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-100 ${className}`}
+      className={`overflow-hidden rounded-3xl bg-white ring-1 ring-line ${className}`}
     >
       <div className="border-b border-slate-100 px-5 py-4 text-right">
         <h3 className="text-base font-black text-deepBlue">المدرب</h3>

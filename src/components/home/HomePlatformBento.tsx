@@ -68,7 +68,7 @@ export default function HomePlatformBento() {
                 variants={staggerItem}
                 whileHover={{ y: -6, transition: { type: 'spring', stiffness: 380, damping: 20 } }}
                 className={[
-                  'group relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-gradient-to-br p-7 text-right shadow-[0_24px_56px_-32px_rgba(15,42,67,0.22)] ring-1 ring-white/60 backdrop-blur-sm',
+                  'group relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-gradient-to-br p-7 text-right ring-1 ring-white/60 backdrop-blur-sm',
                   b.span,
                   b.accent,
                 ].join(' ')}
@@ -76,7 +76,7 @@ export default function HomePlatformBento() {
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-tl from-white/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="relative flex items-start justify-between gap-4">
                   <div>
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 text-customBlue shadow-sm ring-1 ring-deepBlue/[0.06]">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 text-customBlue ring-1 ring-deepBlue/[0.06]">
                       <Icon size={22} strokeWidth={2.25} />
                     </span>
                     <h3 className="mt-5 text-xl font-black text-deepBlue">{b.title}</h3>

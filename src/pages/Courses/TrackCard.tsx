@@ -46,7 +46,7 @@ function TrackCard({ track, index = 0 }: TrackCardProps) {
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.55, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -6 }}
-      className="group relative bg-white rounded-2xl border border-line hover:border-brand-200 transition-all duration-300 ease-emc-out p-5 flex flex-col cursor-pointer min-w-[290px] md:min-w-0 shadow-emc hover:shadow-emc-lg"
+      className="group relative bg-white rounded-2xl border border-line hover:border-brand-200 transition-all duration-300 ease-emc-out p-5 flex flex-col cursor-pointer min-w-[290px] md:min-w-0"
     >
       {/* Gradient accent overlay */}
       <div
@@ -56,7 +56,7 @@ function TrackCard({ track, index = 0 }: TrackCardProps) {
       <div className="relative z-10 flex flex-col h-full">
         {/* Header: icon + level + duration */}
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 rounded-xl bg-deepBlue group-hover:bg-customBlue transition-colors duration-300 flex items-center justify-center shadow-md">
+          <div className="w-12 h-12 rounded-xl bg-deepBlue group-hover:bg-customBlue transition-colors duration-300 flex items-center justify-center">
             <Icon className="w-6 h-6 text-white" />
           </div>
           <div className="flex flex-col items-end gap-1.5">

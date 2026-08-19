@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
-import { ArrowUpRight, BookOpen, Calendar, Clock, GraduationCap, Users } from 'lucide-react'
+import { BookOpen, Calendar, Clock, GraduationCap, Users } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { Link, useNavigate } from 'react-router'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'
 import { formatEuroInteger } from '@/utils/currency'
@@ -72,7 +73,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, delay: (index % 3) * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-emc transition-[transform,box-shadow,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-brand-200 hover:bg-sky-50/30 hover:shadow-emc-lg"
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-white transition-[transform,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-brand-200 hover:bg-sky-50/30"
     >
       {/* Cover */}
       <div className="relative aspect-video w-full shrink-0 overflow-hidden">
@@ -87,7 +88,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
           {deliveryLabel}
         </span>
         {workshop.is_free && (
-          <span className="absolute bottom-3 start-3 rounded-md bg-white/95 px-2 py-1 text-[10px] font-black text-brand-700 shadow-sm">
+          <span className="absolute bottom-3 start-3 rounded-md bg-white/95 px-2 py-1 text-[10px] font-black text-brand-700">
             مجاناً
           </span>
         )}
@@ -182,10 +183,10 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
           <div className="flex shrink-0 items-center gap-2">
             <Link
               to={`/workshops/${workshop.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-black text-deepBlue transition-colors duration-200 hover:border-brand-300 hover:bg-brand-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-black text-deepBlue transition-colors duration-200 hover:border-brand-300 hover:bg-brand-50"
             >
               تفاصيل
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+              <ArrowLeftIcon size={14} />
             </Link>
             {soldOut ?
               <span className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 py-2.5 text-xs font-black text-slate-400">
@@ -202,7 +203,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
                     onStudent: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
                   })
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-customBlue px-3.5 py-2.5 text-xs font-black text-white shadow-md shadow-customBlue/25 transition-colors duration-200 hover:bg-brand-600"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-customBlue px-3.5 py-2.5 text-xs font-black text-white transition-colors duration-200 hover:bg-brand-600"
               >
                 <BookOpen className="h-3.5 w-3.5" aria-hidden />
                 سجل في الورشة

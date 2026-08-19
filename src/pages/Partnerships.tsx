@@ -66,7 +66,7 @@ export default function Partnerships() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line lg:p-10"
+            className="rounded-3xl bg-white p-8 text-right ring-1 ring-line lg:p-10"
           >
             <p className="text-lg leading-9 text-slate-600">
               {t('partnerships.why.body')}
@@ -91,7 +91,7 @@ export default function Partnerships() {
                 variants={staggerItem}
                 whileHover={{ y: -3 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                className="group relative overflow-hidden rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition-shadow hover:shadow-emc-md"
+                className="group relative overflow-hidden rounded-3xl bg-white p-7 text-right ring-1 ring-line transition-colors hover:ring-customBlue/25"
               >
                 <span aria-hidden className="emc-daylight pointer-events-none absolute inset-x-0 top-0 h-[3px] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-customBlue ring-1 ring-customBlue/15">
@@ -120,7 +120,7 @@ export default function Partnerships() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45, delay: i * 0.05 }}
-                className="flex gap-3 rounded-3xl bg-white p-6 text-right shadow-emc ring-1 ring-line"
+                className="flex gap-3 rounded-3xl bg-white p-6 text-right ring-1 ring-line"
               >
                 <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-customBlue" />
                 <p className="font-semibold leading-8 text-slate-700">{t(`partnerships.benefits.items.${key}`)}</p>
@@ -147,7 +147,7 @@ export default function Partnerships() {
               <motion.li
                 key={key}
                 variants={staggerItem}
-                className="rounded-3xl bg-white p-6 text-right shadow-emc ring-1 ring-line"
+                className="rounded-3xl bg-white p-6 text-right ring-1 ring-line"
               >
                 <span className="emc-num text-xs font-black tabular-nums text-accent-700">{t('partnerships.process.stageBadge', { num: i + 1 })}</span>
                 <p className="mt-2 text-lg font-black text-deepBlue">{t(`partnerships.process.steps.${key}.title`)}</p>
@@ -173,7 +173,7 @@ export default function Partnerships() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45 }}
-                className="rounded-3xl border border-dashed border-customBlue/25 bg-white/80 p-6 text-right leading-8 text-slate-700 shadow-emc-sm"
+                className="rounded-3xl border border-dashed border-customBlue/25 bg-white/80 p-6 text-right leading-8 text-slate-700"
               >
                 {t(`partnerships.examples.items.${key}`)}
               </motion.div>
@@ -189,7 +189,7 @@ export default function Partnerships() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto max-w-7xl rounded-3xl bg-white p-8 text-right shadow-emc-lg ring-1 ring-line lg:p-10"
+          className="mx-auto max-w-7xl rounded-3xl bg-white p-8 text-right ring-1 ring-line lg:p-10"
         >
           <h2 className="emc-title-arc text-2xl font-black text-deepBlue">{t('partnerships.contactBlock.title')}</h2>
           <p className="mt-4 max-w-3xl text-lg leading-9 text-slate-600">

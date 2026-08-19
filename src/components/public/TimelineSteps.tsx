@@ -27,7 +27,7 @@ export default function TimelineSteps({ steps, title }: TimelineStepsProps) {
             variants={staggerItem}
             className="relative pb-10 last:pb-0"
           >
-            <span className="absolute -right-[11px] top-1.5 h-5 w-5 rounded-full border-4 border-white bg-customOrange shadow ring-2 ring-customOrange/30" />
+            <span className="absolute -right-[11px] top-1.5 h-5 w-5 rounded-full border-4 border-white bg-customOrange ring-2 ring-customOrange/30" />
             <span className="mb-1 inline-block text-xs font-black text-customBlue">
               الخطوة {i + 1}
             </span>

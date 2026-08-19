@@ -137,7 +137,7 @@ export default function About() {
             </motion.div>
 
             <motion.div
-              className="rounded-3xl bg-white p-2 shadow-emc-lg ring-1 ring-line"
+              className="rounded-3xl bg-white p-2 ring-1 ring-line"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
@@ -151,7 +151,7 @@ export default function About() {
                     return (
                       <div
                         key={item.key}
-                        className="rounded-2xl border border-slate-100 bg-white p-5 text-right shadow-sm transition hover:border-customBlue/20 hover:shadow-md"
+                        className="rounded-2xl border border-line bg-white p-5 text-right transition hover:border-customBlue/20"
                       >
                         <Icon className="text-customBlue" size={26} />
                         <p className="mt-3 font-black text-deepBlue">{t(`about.who.glance.${item.key}.label`)}</p>
@@ -192,7 +192,7 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-sky-100/50 blur-2xl" />
               <h3 className="relative text-xl font-black text-deepBlue">{t('about.visionMission.visionTitle')}</h3>
@@ -206,7 +206,7 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5, delay: 0.06 }}
-              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-orange-100/40 blur-2xl" />
               <h3 className="relative text-xl font-black text-deepBlue">{t('about.visionMission.missionTitle')}</h3>
@@ -248,7 +248,7 @@ export default function About() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.55 }}
-            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-lg ring-1 ring-white/10 sm:p-10 lg:p-12"
+            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white ring-1 ring-white/10 sm:p-10 lg:p-12"
           >
             <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-customOrange/15 blur-3xl" />
             <Quote className="relative text-customOrange" size={36} aria-hidden />
@@ -310,7 +310,7 @@ export default function About() {
                 {DIGITAL_POINT_KEYS.map((key) => (
                   <li
                     key={key}
-                    className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-7 shadow-sm ring-1 ring-slate-100/80"
+                    className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-7 ring-1 ring-line"
                   >
                     <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-customOrange" />
                     {t(`about.digital.points.${key}`)}
@@ -339,7 +339,7 @@ export default function About() {
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45, delay: i * 0.05 }}
                 whileHover={{ y: -3 }}
-                className="min-h-[160px] rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition-shadow hover:shadow-emc-md"
+                className="min-h-[160px] rounded-3xl bg-white p-7 text-right ring-1 ring-line transition-colors hover:ring-customBlue/25"
               >
                 <h3 className="text-lg font-black text-deepBlue">{t(`about.audience.cards.${key}.title`)}</h3>
                 <p className="mt-3 leading-8 text-slate-600">{t(`about.audience.cards.${key}.body`)}</p>
@@ -353,7 +353,7 @@ export default function About() {
       <section className="pb-16 sm:pb-20">
         <PageShell>
           <motion.div
-            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right shadow-emc-md ring-1 ring-line sm:flex-row sm:items-center sm:p-10"
+            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right ring-1 ring-line sm:flex-row sm:items-center sm:p-10"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
@@ -370,7 +370,7 @@ export default function About() {
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   to="/courses"
-                  className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white"
                 >
                   {t('about.midCta.primary')}
                   <ArrowLeft size={18} />

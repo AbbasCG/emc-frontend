@@ -6,10 +6,10 @@ import {
   Monitor,
   Building2,
   Sparkles,
-  ArrowUpRight,
   GraduationCap,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import type { PublicWorkshop } from '@/api/workshopsApi.public'
 import { formatEuroInteger } from '@/utils/currency'
 import { toLatinDigits } from '@/utils/publicDetailFormat'
@@ -76,7 +76,7 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
       transition={{ duration: 0.45, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -6 }}
-      className={`group flex overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-emc-md ring-1 ring-slate-100/90 transition-all duration-300 hover:border-brand-300/50 hover:shadow-emc-lg ${
+      className={`group flex overflow-hidden rounded-3xl border border-line bg-white ring-1 ring-line/60 transition-all duration-300 hover:border-brand-300/50 ${
         viewMode === 'list' ? 'flex-row-reverse' : 'flex-col'
       }`}
     >
@@ -103,7 +103,7 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
 
         <div className="absolute right-3 top-3 flex flex-wrap items-center justify-end gap-1.5">
           {workshop.registration_open && (
-            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue shadow-sm backdrop-blur">
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-deepBlue backdrop-blur">
               التسجيل مفتوح
             </span>
           )}
@@ -114,7 +114,7 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
 
         <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-end justify-between gap-2">
           <span
-            className={`rounded-full px-3 py-1 text-xs font-black shadow-sm ${
+            className={`rounded-full px-3 py-1 text-xs font-black ${
               workshop.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 text-brand-700'
             }`}
           >
@@ -127,7 +127,7 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
       <div className="flex min-w-0 flex-1 flex-col p-6 text-right">
         {/* Mode + duration row */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center rounded-full border border-[#0077B6]/30 bg-[#0077B6]/8 px-2.5 py-0.5 text-[11px] font-bold text-[#0077B6]">
+          <span className="inline-flex items-center rounded-full border border-customBlue/30 bg-customBlue/[0.08] px-2.5 py-0.5 text-[11px] font-bold text-customBlue">
             {deliveryLabel}
           </span>
           {durationLabel && (
@@ -197,7 +197,7 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
               className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-deepBlue transition hover:border-brand-300 hover:bg-brand-50"
             >
               تفاصيل
-              <ArrowUpRight className="h-3.5 w-3.5" />
+              <ArrowLeftIcon size={14} />
             </Link>
             <button
               type="button"
@@ -212,10 +212,10 @@ export default function WorkshopCard({ workshop, viewMode = 'grid', index = 0 }:
                   onStudent: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
                 })
               }}
-              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black shadow-md transition ${
+              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-black transition ${
                 !workshop.registration_open
-                  ? 'cursor-not-allowed bg-slate-200 text-slate-500 shadow-none'
-                  : 'bg-brand-500 text-white shadow-brand-500/25 hover:bg-brand-600'
+                  ? 'cursor-not-allowed bg-slate-200 text-slate-500'
+                  : 'bg-brand-500 text-white hover:bg-brand-600'
               }`}
             >
               <BookOpen className="h-3.5 w-3.5" />

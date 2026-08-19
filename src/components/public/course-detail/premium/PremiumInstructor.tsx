@@ -36,13 +36,13 @@ export default function PremiumInstructor({ instructor, course }: Props) {
         عن المدرب
       </h2>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-customBlue/[0.06] to-white shadow-emc">
+      <div className="overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-customBlue/[0.06] to-white">
         <div className="flex items-start gap-4 p-5 text-right">
           <img
             src={instructor.avatarUrl ?? AVATAR_PLACEHOLDER}
             alt=""
             loading="lazy"
-            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-emc-sm ring-2 ring-customBlue/18"
+            className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-2 ring-customBlue/18"
           />
           <div className="min-w-0 flex-1">
             <p className="text-base font-black text-deepBlue">{instructor.name}</p>

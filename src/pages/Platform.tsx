@@ -88,7 +88,7 @@ export default function Platform() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               {INTRO_TAG_KEYS.map((tag) => (
-                <span key={tag} className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-black text-deepBlue shadow-emc ring-1 ring-line">
+                <span key={tag} className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-black text-deepBlue ring-1 ring-line">
                   <BadgeCheck size={14} className="text-customBlue" />
                   {t(`platform.intro.tags.${tag}`)}
                 </span>
@@ -96,7 +96,7 @@ export default function Platform() {
             </div>
           </motion.div>
           <motion.div
-            className="order-1 overflow-hidden rounded-3xl shadow-emc-lg ring-1 ring-line lg:order-2"
+            className="order-1 overflow-hidden rounded-3xl ring-1 ring-line lg:order-2"
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, amount: 0.25 }}
@@ -138,9 +138,9 @@ export default function Platform() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.25 }}
                   transition={{ duration: 0.45, delay: index * 0.07 }}
-                  className="group rounded-2xl bg-white p-6 text-right shadow-emc ring-1 ring-line transition duration-300 ease-emc hover:-translate-y-1 hover:shadow-emc-md hover:ring-customBlue/20"
+                  className="group rounded-2xl bg-white p-6 text-right ring-1 ring-line transition duration-300 ease-emc hover:-translate-y-1 hover:ring-customBlue/20"
                 >
-                  <div className={`mb-4 grid h-12 w-12 place-items-center rounded-xl shadow-inner transition duration-300 group-hover:scale-105 ${feat.color}`}>
+                  <div className={`mb-4 grid h-12 w-12 place-items-center rounded-xl transition duration-300 group-hover:scale-105 ${feat.color}`}>
                     <Icon size={24} />
                   </div>
                   <h3 className="font-display text-xl font-black tracking-tight text-deepBlue">{feat.title}</h3>
@@ -167,9 +167,9 @@ export default function Platform() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
-                className="group rounded-2xl bg-white p-6 text-right shadow-emc ring-1 ring-line transition duration-300 ease-emc hover:-translate-y-1 hover:shadow-emc-md hover:ring-customBlue/20"
+                className="group rounded-2xl bg-white p-6 text-right ring-1 ring-line transition duration-300 ease-emc hover:-translate-y-1 hover:ring-customBlue/20"
               >
-                <span className="emc-depth mb-4 flex h-12 w-12 items-center justify-center rounded-full font-latin text-xl font-black tabular-nums text-white shadow-emc">
+                <span className="emc-depth mb-4 flex h-12 w-12 items-center justify-center rounded-full font-latin text-xl font-black tabular-nums text-white">
                   {step.number}
                 </span>
                 <h3 className="font-display text-lg font-black tracking-tight text-deepBlue">{step.title}</h3>
@@ -182,7 +182,7 @@ export default function Platform() {
 
       <section className="px-4 pb-20 sm:px-6 lg:px-8">
         <motion.div
-          className="emc-depth mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-xl ring-1 ring-white/10 sm:p-10 lg:flex-row lg:items-center"
+          className="emc-depth mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 overflow-hidden rounded-3xl p-8 text-right text-white ring-1 ring-white/10 sm:p-10 lg:flex-row lg:items-center"
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
@@ -198,7 +198,7 @@ export default function Platform() {
           <motion.div whileHover={{ scale: 1.04 }}>
             <Link
               to="/register"
-              className="inline-flex items-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white shadow-emc-md transition"
+              className="inline-flex items-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white transition"
             >
               {t('platform.cta.button')}
               <ArrowLeft size={20} />

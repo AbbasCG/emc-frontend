@@ -55,7 +55,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
             type="button"
             disabled={!canPrev}
             onClick={() => scrollBy(-280)}
-            className="rounded-xl border border-line bg-white/90 p-2 text-deepBlue shadow-emc-xs transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-customBlue/30 hover:text-customBlue disabled:opacity-30"
+            className="rounded-xl border border-line bg-white/90 p-2 text-deepBlue transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-customBlue/30 hover:text-customBlue disabled:opacity-30"
             aria-label="السابق"
           >
             <ChevronRight className="h-4 w-4" />
@@ -64,7 +64,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
             type="button"
             disabled={!canNext}
             onClick={() => scrollBy(280)}
-            className="rounded-xl border border-line bg-white/90 p-2 text-deepBlue shadow-emc-xs transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-customBlue/30 hover:text-customBlue disabled:opacity-30"
+            className="rounded-xl border border-line bg-white/90 p-2 text-deepBlue transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:border-customBlue/30 hover:text-customBlue disabled:opacity-30"
             aria-label="التالي"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -80,7 +80,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
             <Link
               key={course.id}
               to={`/courses/${course.slug}`}
-              className="group w-[min(100%,280px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-emc backdrop-blur-sm transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-emc-md"
+              className="group w-[min(100%,280px)] shrink-0 overflow-hidden rounded-[1.5rem] border border-line bg-white backdrop-blur-sm transition duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:border-customBlue/30"
             >
               <div className="relative h-32 overflow-hidden">
                 <img
@@ -91,7 +91,7 @@ export default function CourseDetailRelatedCarousel({ courses, currentSlug }: Pr
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-deepBlue/50 to-transparent" />
                 <span className={cn(
-                  'absolute right-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 font-latin text-[10px] font-black tabular-nums shadow-emc-sm',
+                  'absolute right-2.5 top-2.5 rounded-full border border-line bg-white/95 px-2.5 py-1 font-latin text-[10px] font-black tabular-nums',
                   isFree ? 'text-customBlue' : 'text-accent-700',
                 )}>
                   {isFree ? 'مجانية' : formatPrice(course.price)}

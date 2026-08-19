@@ -160,7 +160,7 @@ export default function Volunteer() {
                 <motion.div
                   key={item.key}
                   variants={staggerItem}
-                  className="group relative overflow-hidden rounded-3xl bg-white p-8 text-right shadow-[0_4px_24px_-4px_rgba(12,42,75,0.08)] ring-1 ring-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_48px_-12px_rgba(12,42,75,0.14)]"
+                  className="group relative overflow-hidden rounded-3xl bg-white p-8 text-right ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:ring-customBlue/25"
                 >
                   <div className={`absolute inset-x-0 top-0 h-[3px] ${item.accentBar}`} />
                   <div
@@ -202,7 +202,7 @@ export default function Volunteer() {
               <motion.article
                 key={dept.id}
                 variants={staggerItem}
-                className="group relative overflow-hidden rounded-2xl bg-white p-6 text-right shadow-emc ring-1 ring-line transition-all duration-300 hover:shadow-emc-md hover:ring-customBlue/20"
+                className="group relative overflow-hidden rounded-2xl bg-white p-6 text-right ring-1 ring-line transition-all duration-300 hover:ring-customBlue/20"
               >
                 <div className="absolute inset-y-0 right-0 w-[3px] rounded-r-2xl bg-gradient-to-b from-customBlue/60 to-customBlue/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="flex items-start gap-4">
@@ -254,11 +254,11 @@ export default function Volunteer() {
                   className="flex items-start gap-5 sm:gap-6"
                 >
                   <div className="relative shrink-0">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-deepBlue text-white shadow-emc-md shadow-deepBlue/25 sm:h-12 sm:w-12">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-deepBlue text-white sm:h-12 sm:w-12">
                       <span className="emc-num text-sm font-black tabular-nums">{step.step}</span>
                     </div>
                   </div>
-                  <div className="flex-1 rounded-2xl bg-white p-5 text-right shadow-emc ring-1 ring-line sm:p-6">
+                  <div className="flex-1 rounded-2xl bg-white p-5 text-right ring-1 ring-line sm:p-6">
                     <h3 className="text-base font-black text-deepBlue">{step.title}</h3>
                     <p className="mt-2 text-sm leading-7 text-slate-600">{step.description}</p>
                   </div>
@@ -292,7 +292,7 @@ export default function Volunteer() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.45 }}
-                  className="rounded-3xl bg-white p-8 text-right shadow-emc ring-1 ring-line"
+                  className="rounded-3xl bg-white p-8 text-right ring-1 ring-line"
                 >
                   <div
                     className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${block.accentBg}`}
@@ -338,7 +338,7 @@ export default function Volunteer() {
               <motion.li
                 key={skill}
                 variants={staggerItem}
-                className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-emc-sm ring-1 ring-line"
+                className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 ring-1 ring-line"
               >
                 <Check className="h-4 w-4 shrink-0 text-customBlue" />
                 {t(`volunteer.skills.items.${skill}`)}
@@ -356,7 +356,7 @@ export default function Volunteer() {
           whileInView="visible"
           viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.5 }}
-          className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-deepBlue text-right text-white shadow-2xl"
+          className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-deepBlue text-right text-white"
         >
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_110%_-10%,rgba(0,119,182,0.38),transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_-10%_110%,rgba(242,140,0,0.18),transparent_52%)]" />
@@ -376,7 +376,7 @@ export default function Volunteer() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 to="/volunteer/apply"
-                className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg shadow-orange-900/30 transition hover:brightness-110"
+                className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white transition hover:brightness-110"
               >
                 {t('volunteer.cta.primary')}
                 <ArrowLeft size={16} />

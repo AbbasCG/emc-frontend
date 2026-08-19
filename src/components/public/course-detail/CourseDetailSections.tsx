@@ -20,7 +20,7 @@ function SectionBlock({ id, title, children }: { id: string; title: string; chil
   return (
     <section
       id={id}
-      className="scroll-mt-20 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm sm:p-4"
+      className="scroll-mt-20 rounded-2xl border border-line bg-white/90 p-3 backdrop-blur-sm sm:p-4"
     >
       <h2 className="mb-2.5 flex items-center gap-2 text-sm font-black text-[#0C2A4B]">
         <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
@@ -364,7 +364,10 @@ export function ReviewsSection({
           <article key={r.id} className="rounded-xl border border-[#0C2A4B]/6 bg-[#f8fafc] px-2.5 py-2 text-right">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[12px] font-black text-[#0C2A4B]">{r.author}</p>
-              <span className="text-[10px] font-black tabular-nums text-[#F28C00]">{formatPublicText(r.rating)} ★</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-black tabular-nums text-ember" dir="ltr">
+                {formatPublicText(r.rating)}
+                <Star className="h-3 w-3 fill-current" aria-hidden />
+              </span>
             </div>
             <p className="mt-0.5 line-clamp-2 text-[11px] leading-5 text-slate-600">{r.body}</p>
           </article>

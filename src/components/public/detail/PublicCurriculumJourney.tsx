@@ -36,12 +36,12 @@ export default function PublicCurriculumJourney({
               {group.items.map((item, step) => (
                 <li key={`${group.id}-${item}`} className="relative pb-6 last:pb-0">
                   <span
-                    className="absolute -start-[1.65rem] top-0 flex h-8 w-8 items-center justify-center rounded-full bg-customBlue text-xs font-black text-white shadow-md shadow-customBlue/25"
+                    className="absolute -start-[1.65rem] top-0 flex h-8 w-8 items-center justify-center rounded-full bg-customBlue text-xs font-black text-white"
                     aria-hidden
                   >
                     {step + 1}
                   </span>
-                  <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3.5 text-right shadow-sm ring-1 ring-slate-100/80">
+                  <div className="rounded-2xl border border-line bg-white px-4 py-3.5 text-right ring-1 ring-line/80">
                     <p className="text-sm font-bold leading-7 text-deepBlue">{item}</p>
                   </div>
                 </li>

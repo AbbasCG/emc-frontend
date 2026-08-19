@@ -203,13 +203,13 @@ export default function WorkshopDetailsPage() {
   // ── CTA button (same pattern as CourseDetails) ──────────────────────────────
   function renderCta(size: 'sm' | 'lg' = 'lg') {
     const sm = size === 'sm'
-    const base = `inline-flex items-center justify-center gap-2 rounded-xl font-extrabold text-white shadow-lg transition ${
+    const base = `inline-flex items-center justify-center gap-2 rounded-xl font-extrabold text-white transition ${
       sm ? 'px-5 py-2.5 text-sm' : 'px-7 py-3.5 text-sm'
     }`
 
     if (!registrationOpen || seatsFull) {
       return (
-        <span className={`${base} cursor-not-allowed bg-slate-300 text-slate-500 shadow-none`}>
+        <span className={`${base} cursor-not-allowed bg-slate-300 text-slate-500`}>
           {seatsFull ? 'اكتمل العدد' : 'التسجيل مغلق'}
         </span>
       )
@@ -298,9 +298,9 @@ export default function WorkshopDetailsPage() {
   // ── Sidebar enrollment panel (matches CourseDetails enrollSidebar) ───────────
   const enrollSidebar = (
     <div className="overflow-hidden text-right">
-      <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-[#0077B6]/8 via-white to-[#F28C00]/5 px-5 py-4">
+      <div className="border-b border-navy/[0.06] bg-gradient-to-l from-customBlue/[0.08] to-white px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-black text-[#0C2A4B]">سجّل في الورشة</h3>
+          <h3 className="text-base font-black text-navy">سجّل في الورشة</h3>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
             !registrationOpen || seatsFull
               ? 'bg-orange-50 text-orange-800 ring-orange-100'
@@ -385,7 +385,7 @@ export default function WorkshopDetailsPage() {
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full border border-white/35 bg-white/20 px-3 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-sm">
+              <span className="inline-flex items-center rounded-full border border-white/35 bg-white/20 px-3 py-1 text-[11px] font-black text-white backdrop-blur-sm">
                 ورشة تدريبية
               </span>
               {certificateAvailability?.hasCertificate && certificateAvailability.badgeLabel && (
@@ -403,7 +403,7 @@ export default function WorkshopDetailsPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl font-black leading-[1.2] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:text-3xl lg:text-[2.25rem]">
+            <h1 className="text-2xl font-black leading-[1.2] tracking-tight text-white sm:text-3xl lg:text-[2.25rem]">
               {w.title}
             </h1>
 
@@ -451,7 +451,7 @@ export default function WorkshopDetailsPage() {
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
             className="hidden shrink-0 flex-col gap-2 lg:flex lg:w-[400px] xl:w-[460px]"
           >
-            <div className="group relative overflow-hidden rounded-2xl border border-white/15 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.35)]">
+            <div className="group relative overflow-hidden rounded-2xl border border-white/15">
               <img
                 src={coverUrl}
                 alt=""
@@ -482,7 +482,7 @@ export default function WorkshopDetailsPage() {
                 <section
                   aria-label="وصف الورشة"
                   dir="rtl"
-                  className="rounded-2xl border border-white/80 bg-white/90 p-3.5 shadow-sm sm:p-4"
+                  className="rounded-2xl border border-line bg-white/90 p-3.5 sm:p-4"
                 >
                   <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-[#0C2A4B]">
                     <span className="h-4 w-1 rounded-full bg-[#0077B6]" aria-hidden />
@@ -504,7 +504,7 @@ export default function WorkshopDetailsPage() {
 
               {/* Mobile enrollment card */}
               <div ref={enrollRef} id="enroll" className="scroll-mt-[calc(4.25rem+1rem)] lg:hidden">
-                <div className="overflow-hidden rounded-[1.25rem] border border-white/80 bg-white shadow-[0_16px_48px_-16px_rgba(12,42,75,0.18)] backdrop-blur-xl ring-1 ring-[#0C2A4B]/5">
+                <div className="overflow-hidden rounded-[1.25rem] border border-line bg-white backdrop-blur-xl ring-1 ring-navy/5">
                   {enrollSidebar}
                 </div>
               </div>
@@ -512,7 +512,7 @@ export default function WorkshopDetailsPage() {
 
             {/* ── Right sidebar: sticky enrollment panel ── */}
             <aside className={`hidden lg:sticky ${STICKY_TOP} lg:block lg:self-start`}>
-              <div className="overflow-hidden rounded-[1.25rem] border border-white/80 bg-white shadow-[0_16px_48px_-16px_rgba(12,42,75,0.18)] backdrop-blur-xl ring-1 ring-[#0C2A4B]/5">
+              <div className="overflow-hidden rounded-[1.25rem] border border-line bg-white backdrop-blur-xl ring-1 ring-navy/5">
                 {enrollSidebar}
               </div>
             </aside>

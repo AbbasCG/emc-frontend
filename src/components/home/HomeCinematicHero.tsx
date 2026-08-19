@@ -19,6 +19,7 @@ import {
   Award,
   ChevronDown,
 } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 
 // ── 12 EMC Core Themes Orbit (Matching Image 1) ─────────────────────────────
 
@@ -90,9 +91,9 @@ function OrbitalVisual() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="relative z-10 flex h-32 w-32 flex-col items-center justify-center rounded-full border border-white/30 bg-gradient-to-br from-[#0C2A4B] via-[#0077B6] to-[#0E5A8A] p-3 text-center shadow-[0_0_50px_rgba(0,119,182,0.45)] backdrop-blur-md"
+          className="relative z-10 flex h-32 w-32 flex-col items-center justify-center rounded-full border border-white/30 bg-gradient-to-br from-navy via-customBlue to-ocean p-3 text-center backdrop-blur-md"
         >
-          <img src="/brand/logos/logo_icon_white.png" alt="EMC" className="h-9 w-auto drop-shadow-md" />
+          <img src="/brand/logos/logo_icon_white.png" alt="EMC" className="h-9 w-auto" />
           <span className="mt-1 text-[9px] font-black text-white/90">اثنا عشر محوراً</span>
         </motion.div>
 
@@ -140,8 +141,8 @@ function OrbitalVisual() {
                 onClick={() => setActiveIndex(i)}
                 className={`group relative flex items-center justify-center transition-all duration-300 ${
                   isActive
-                    ? 'h-[3.25rem] w-[3.25rem] rounded-full bg-[#0C2A4B] shadow-[0_0_25px_rgba(0,119,182,0.6)] ring-2 ring-white scale-110'
-                    : 'h-10 w-10 rounded-full bg-white shadow-md hover:scale-110'
+                    ? 'h-[3.25rem] w-[3.25rem] rounded-full bg-navy ring-2 ring-white scale-110'
+                    : 'h-10 w-10 rounded-full bg-white ring-1 ring-line hover:scale-110'
                 }`}
                 aria-label={item.title}
               >
@@ -156,7 +157,7 @@ function OrbitalVisual() {
                   <motion.span
                     initial={{ scale: 0, y: 5 }}
                     animate={{ scale: 1, y: 0 }}
-                    className="absolute -bottom-2 font-latin text-[9px] font-black rounded-full bg-white px-1.5 py-0.5 text-deepBlue shadow-md ring-1 ring-slate-200"
+                    className="absolute -bottom-2 font-latin text-[9px] font-black rounded-full bg-white px-1.5 py-0.5 text-deepBlue ring-1 ring-line"
                   >
                     {item.num}
                   </motion.span>
@@ -168,7 +169,7 @@ function OrbitalVisual() {
       </div>
 
       {/* Active Theme Showcase Glass Card (Bottom of Orbit) */}
-      <div className="relative mt-6 w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/[0.1] p-5 shadow-2xl backdrop-blur-xl">
+      <div className="relative mt-6 w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/[0.1] p-5 backdrop-blur-xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeItem.id}
@@ -180,7 +181,7 @@ function OrbitalVisual() {
           >
             <div className="flex items-center gap-3">
               <div
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-md"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white"
                 style={{ backgroundColor: activeItem.color }}
               >
                 <activeItem.icon size={22} />
@@ -196,9 +197,10 @@ function OrbitalVisual() {
 
             <Link
               to={activeItem.link}
-              className="shrink-0 rounded-full bg-customOrange px-4 py-2 text-xs font-black text-white shadow-md transition hover:bg-customOrange/90"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-customOrange px-4 py-2 text-xs font-black text-white transition hover:bg-customOrange/90"
             >
-              استكشف ←
+              استكشف
+              <ArrowLeftIcon size={13} />
             </Link>
           </motion.div>
         </AnimatePresence>
@@ -370,7 +372,7 @@ export default function HomeCinematicHero() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/courses"
-                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white shadow-[0_16px_40px_-12px_rgba(0,119,182,0.6)] transition-all duration-300 hover:bg-brand-600 hover:shadow-[0_24px_50px_-14px_rgba(0,119,182,0.7)]"
+                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white transition-all duration-300 hover:bg-brand-600"
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 {t('home.hero.ctaPrimary')}

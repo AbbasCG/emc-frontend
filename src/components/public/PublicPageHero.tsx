@@ -55,7 +55,7 @@ export default function PublicPageHero({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Link
             to={primaryAction.href}
-            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_32px_-8px_rgba(242,140,0,0.45)] transition hover:brightness-105"
+            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-3.5 text-sm font-extrabold text-white transition hover:brightness-105"
           >
             {primaryAction.label}
             <ArrowLeft size={18} />
@@ -87,7 +87,7 @@ export default function PublicPageHero({
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 text-right shadow-lg backdrop-blur-md"
+            className="rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 text-right backdrop-blur-md"
           >
             <p className="text-lg font-black text-amber sm:text-xl">{s.value}</p>
             <p className="mt-1 text-xs font-bold leading-relaxed text-white/70">{s.label}</p>
@@ -103,7 +103,7 @@ export default function PublicPageHero({
           variants={fadeUp}
           className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-black text-white/95 backdrop-blur-sm"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-customOrange shadow-[0_0_10px_rgba(242,140,0,0.6)]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
           {badge}
         </motion.span>
       ) : (
