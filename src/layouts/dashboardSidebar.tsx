@@ -76,8 +76,10 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/support',
   '/dashboard/volunteer',
   '/dashboard/department',
+  '/dashboard/department/permissions',
   '/dashboard/super-admin',
   '/dashboard/super-admin/audit-logs',
+  '/dashboard/super-admin/crud/permissions',
   '/dashboard/super-admin/product-updates',
   '/dashboard/admin/operations',
   '/dashboard/tech-admin',
@@ -281,6 +283,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'المستخدمون', href: '/dashboard/super-admin/crud/users', icon: Users },
         { label: 'الأدوار والصلاحيات', href: '/dashboard/super-admin/crud/roles', icon: ShieldCheck },
+        { label: 'صلاحيات النظام', href: '/dashboard/super-admin/crud/permissions', icon: ShieldCheck },
         { label: 'الإدارات', href: '/dashboard/super-admin/crud/departments', icon: Building2 },
         { label: 'الفريق', href: '/dashboard/super-admin/crud/team', icon: UserCheck },
         membersNavItem(),
@@ -682,10 +685,16 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'البرامج والدورات', href: '/dashboard/department/programs', icon: BookMarked },
           { label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet },
           { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
-        { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests', icon: Users },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
-          membersNavItem(),
         ],
+      },
+      {
+        title: 'إدارة الموظفين',
+        items: [
+          { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
+          membersNavItem(),
+        ]
       },
       ...communicationsBlock(),
     ]

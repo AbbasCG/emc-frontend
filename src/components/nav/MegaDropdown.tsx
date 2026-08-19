@@ -117,6 +117,7 @@ export default function MegaDropdown({
                     key={item.href}
                     to={item.href}
                     role="menuitem"
+                    onClick={onToggle}
                     className={[
                       'group flex gap-3.5 rounded-xl p-3 text-right transition-all duration-200 ease-emc-out',
                       itemActive

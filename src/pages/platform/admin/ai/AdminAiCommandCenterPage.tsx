@@ -58,6 +58,9 @@ export default function AdminAiCommandCenterPage() {
             <Link to="/dashboard/admin/ai/insights" className="rounded-xl bg-white px-3 py-2 text-xs font-black text-deepBlue ring-1 ring-slate-200">
               AI Insights
             </Link>
+            <Link to="/dashboard/admin/ai/expert-applications" className="rounded-xl bg-white px-3 py-2 text-xs font-black text-customBlue ring-1 ring-slate-200 hover:bg-slate-50">
+              طلبات الخبراء
+            </Link>
             <Link to="/dashboard/admin/ai/usage" className="rounded-xl bg-deepBlue px-3 py-2 text-xs font-black text-white">
               AI Usage
             </Link>

@@ -64,7 +64,7 @@ const PROGRAMS_ITEM_DEFS: readonly MegaItemDef[] = [
 const JOIN_ITEM_DEFS: readonly MegaItemDef[] = [
   { href: '/partnerships', key: 'partnerships', icon: Handshake },
   { href: '/signup', key: 'student', icon: UserCircle },
-  { href: '/contact#trainer', key: 'trainer', icon: GraduationCap },
+  { href: '/join-expert', key: 'trainer', icon: GraduationCap },
   { href: '/partnerships/apply', key: 'partner', icon: Handshake },
   { href: '/volunteer', key: 'volunteer', icon: HeartHandshake },
   { href: '/ambassador', key: 'ambassador', icon: Sparkles },
@@ -155,9 +155,9 @@ function Navbar() {
   // Collapse every open surface on navigation. Adjusted during render (react.dev
   // "adjusting state when a prop changes") so the new route never paints with the
   // previous route's menus still open.
-  const [seenPath, setSeenPath] = useState(pathname)
-  if (seenPath !== pathname) {
-    setSeenPath(pathname)
+  const [seenPath, setSeenPath] = useState(pathname + hash)
+  if (seenPath !== pathname + hash) {
+    setSeenPath(pathname + hash)
     setOpenMega(null)
     setUserMenuOpen(false)
     setLangMenuOpen(false)

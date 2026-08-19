@@ -51,6 +51,8 @@ const Volunteer          = lazy(() => import('./pages/Volunteer'))
 const AmbassadorProgram           = lazy(() => import('./pages/AmbassadorProgram'))
 const AmbassadorApply             = lazy(() => import('./pages/AmbassadorApply'))
 const AmbassadorApplicationSuccess = lazy(() => import('./pages/AmbassadorApplicationSuccess'))
+const ExpertApply                 = lazy(() => import('./pages/ExpertApply'))
+const ExpertApplicationSuccess    = lazy(() => import('./pages/ExpertApplicationSuccess'))
 const LegalPage          = lazy(() => import('./pages/legal/LegalPage'))
 
 // ── Lazy: dashboard layout (code-split entry point) ──────────────────────────
@@ -118,6 +120,7 @@ const FinanceAccountsPage           = lazy(() => import('./pages/finance/Finance
 const FinanceManualPaymentsPage     = lazy(() => import('./pages/finance/FinanceManualPaymentsPage'))
 const ProgramApprovalsPage          = lazy(() => import('./pages/finance/ProgramApprovalsPage'))
 const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
+const DepartmentPermissionTreePage = lazy(() => import('./pages/department/DepartmentPermissionTree'))
 const ExecutiveFinancialRequestsPage  = lazy(() => import('./pages/executive/ExecutiveFinancialRequestsPage'))
 const SuperAdminFinancialRequestsPage = lazy(() => import('./pages/super-admin/SuperAdminFinancialRequestsPage'))
 
@@ -214,6 +217,7 @@ const AdminWebhookDetailPage    = lazy(() => import('./pages/platform/admin/Admi
 const AdminApiTokensPage        = lazy(() => import('./pages/platform/admin/developer/AdminApiTokensPage'))
 const AdminMobileReadinessPage  = lazy(() => import('./pages/platform/admin/AdminMobileReadinessPage'))
 const AdminAiCommandCenterPage  = lazy(() => import('./pages/platform/admin/ai/AdminAiCommandCenterPage'))
+const AdminExpertApplicationsPage = lazy(() => import('./pages/platform/admin/ai/AdminExpertApplicationsPage'))
 const AdminAiAutomationsPage    = lazy(() => import('./pages/platform/admin/ai/AdminAiAutomationsPage'))
 const AdminAiInsightsPage       = lazy(() => import('./pages/platform/admin/ai/AdminAiInsightsPage'))
 const AdminAiUsagePage          = lazy(() => import('./pages/platform/admin/ai/AdminAiUsagePage'))
@@ -260,6 +264,7 @@ const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/Re
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
+const AdminPermissionConfigTreePage = lazy(() => import('./pages/super-admin/crud/AdminPermissionConfigTree'))
 const DepartmentsManagementPage   = lazy(() => import('./pages/super-admin/crud/DepartmentsManagementPage'))
 const TeamManagementPage          = lazy(() => import('./pages/super-admin/crud/TeamManagementPage'))
 const StudentsManagementPage      = lazy(() => import('./pages/super-admin/crud/StudentsManagementPage'))
@@ -401,6 +406,8 @@ function App() {
               <Route path="/ambassador"                      element={<Suspense fallback={<RouteFallback />}><AmbassadorProgram /></Suspense>} />
               <Route path="/ambassador/apply"            element={<Suspense fallback={<RouteFallback />}><AmbassadorApply /></Suspense>} />
               <Route path="/ambassador/application-success" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationSuccess /></Suspense>} />
+              <Route path="/join-expert"            element={<Suspense fallback={<RouteFallback />}><ExpertApply /></Suspense>} />
+              <Route path="/join-expert/success" element={<Suspense fallback={<RouteFallback />}><ExpertApplicationSuccess /></Suspense>} />
               <Route path="/support" element={<Suspense fallback={<RouteFallback />}><SupportPage /></Suspense>} />
               <Route path="/forms/:slug" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
               <Route path="/partnerships/apply" element={<Suspense fallback={<RouteFallback />}><PartnershipApplyPage /></Suspense>} />
@@ -474,6 +481,7 @@ function App() {
 
                   <Route path="/dashboard/super-admin/crud/users" element={<UsersManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/roles" element={<RolesPermissionsPage />} />
+                  <Route path="/dashboard/super-admin/crud/permissions" element={<Suspense fallback={<RouteFallback />}><AdminPermissionConfigTreePage /></Suspense>} />
                   <Route path="/dashboard/super-admin/crud/departments" element={<DepartmentsManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/team" element={<TeamManagementPage />} />
                   <Route path="/dashboard/super-admin/crud/students" element={<StudentsManagementPage />} />
@@ -617,6 +625,7 @@ function App() {
                   <Route path="/dashboard/department/hr-requests" element={<HrMyRequestsPage />} />
                   <Route path="/dashboard/department/meeting-lounge" element={<MeetingLoungePage />} />
                   <Route path="/dashboard/department/meeting-lounge/:id" element={<OpsMeetingDetailPage />} />
+                  <Route path="/dashboard/department/permissions" element={<Suspense fallback={<RouteFallback />}><DepartmentPermissionTreePage /></Suspense>} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
                   </Route>
 
@@ -759,6 +768,7 @@ function App() {
                   <Route path="/dashboard/admin/developer/api-tokens" element={<AdminApiTokensPage />} />
                   <Route path="/dashboard/admin/mobile-readiness" element={<AdminMobileReadinessPage />} />
                   <Route path="/dashboard/admin/ai" element={<AdminAiCommandCenterPage />} />
+                  <Route path="/dashboard/admin/ai/expert-applications" element={<AdminExpertApplicationsPage />} />
                   <Route path="/dashboard/admin/ai/automations" element={<AdminAiAutomationsPage />} />
                   <Route path="/dashboard/admin/ai/insights" element={<AdminAiInsightsPage />} />
                   <Route path="/dashboard/admin/ai/usage" element={<AdminAiUsagePage />} />

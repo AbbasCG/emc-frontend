@@ -23,6 +23,7 @@ export const EMC_DASHBOARD_ROLES = [
   'partnerships_manager',
   'community_manager',
   'section_lead',
+  'ai_manager',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
@@ -59,6 +60,7 @@ const ROLE_HOME: Record<string, string> = {
   partnerships_manager: '/dashboard/partnerships-manager',
   community_manager: '/dashboard/community-manager',
   section_lead: '/dashboard/section-lead',
+  ai_manager: '/dashboard/admin/ai',
 }
 
 /**
@@ -85,6 +87,7 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/admin/lms',              roles: ['admin', 'super_admin', 'programs_manager'] },
   { prefix: '/dashboard/admin/registrations',    roles: ['admin', 'super_admin', 'tech_admin', 'programs_manager'] },
   { prefix: '/dashboard/admin/coupons',          roles: ['admin', 'super_admin', 'finance_manager'] },
+  { prefix: '/dashboard/admin/ai',               roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
