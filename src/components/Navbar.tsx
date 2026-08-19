@@ -17,6 +17,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { dropdownMotion, mobileMenuMotion } from '@/utils/animations'
 import { UserAvatar } from '@/components/UserAvatar'
+import SiteIndexPanel from '@/components/nav/SiteIndexPanel'
+import { SITE_INDEX } from '@/components/nav/siteIndex'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { LANGS } from '@/i18n'
 import { useLanguage } from '@/i18n/useLanguage'
@@ -40,13 +42,13 @@ const NAV_ITEMS = [
 
 /* §1: no shadows on public surfaces — depth is carried by 1px hairlines (border/ring). */
 const navLinkBase =
-  'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight text-deepBlue transition-colors duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue'
-const navLinkActive = 'bg-customBlue/[0.11] text-customBlue ring-1 ring-customBlue/35 backdrop-blur-sm'
+  'relative inline-flex min-h-[2.625rem] items-center px-1 py-2 text-[13.5px] font-bold tracking-tight text-ink-500 transition-colors duration-200 ease-emc-out hover:text-customBlue'
+const navLinkActive = 'text-deepBlue emc-cta-line after:scale-x-100'
 
 const navLinkDarkBase =
-  'inline-flex min-h-[2.625rem] items-center rounded-xl px-3.5 py-2 text-[13px] font-semibold tracking-tight transition-colors duration-200 ease-emc-out'
-const navLinkDarkActive = 'bg-white/15 text-white ring-1 ring-white/25'
-const navLinkDarkIdle = 'text-white/85 hover:bg-white/10 hover:text-white'
+  'relative inline-flex min-h-[2.625rem] items-center px-1 py-2 text-[13.5px] font-bold tracking-tight transition-colors duration-200 ease-emc-out'
+const navLinkDarkActive = 'text-white emc-cta-line after:scale-x-100'
+const navLinkDarkIdle = 'text-white/70 hover:text-white'
 
 /**
  * §1: orange is the primary-action colour and nothing else. It is spent once per
@@ -62,19 +64,19 @@ const startJourneyMobileClass = `${startJourneyBase} h-12 w-full text-sm`
 
 /** Lightweight secondary actions — the primary decision stays the orange CTA. */
 const loginBtnClass =
-  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-customBlue px-5 text-[13px] font-bold tracking-tight text-white transition-colors duration-200 hover:bg-deepBlue'
+  'group/login inline-flex h-11 items-center justify-center gap-2 px-2 text-[13px] font-bold tracking-tight text-ink-500 transition-colors duration-200 hover:text-customBlue'
 
 const dashboardBtnClass =
   'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-customBlue/[0.18] bg-white px-5 text-[13px] font-semibold tracking-tight text-deepBlue transition-colors duration-200 hover:border-customBlue/35 hover:bg-customBlue/[0.06]'
 
 const dashboardIconClass = 'relative size-[15px] shrink-0 text-customBlue opacity-95'
 
-const loginIconClass = 'relative size-[15px] shrink-0 text-white/85 transition-colors duration-200 group-hover/login:text-white'
+const loginIconClass = 'relative size-[15px] shrink-0 opacity-80 transition-opacity duration-200 group-hover/login:opacity-100'
 
 /* Over-dark (home hero) variants — the bar melts into the navy field; only the
    orange CTA keeps its fill so the single primary decision stays obvious. */
 const loginBtnDarkClass =
-  'group/login inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-5 text-[13px] font-bold tracking-tight text-white backdrop-blur-sm transition-colors duration-200 hover:border-white/40 hover:bg-white/15'
+  'group/login inline-flex h-11 items-center justify-center gap-2 px-2 text-[13px] font-bold tracking-tight text-white/75 transition-colors duration-200 hover:text-white'
 const dashboardBtnDarkClass =
   'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 text-[13px] font-semibold tracking-tight text-white backdrop-blur-sm transition-colors duration-200 hover:border-white/35 hover:bg-white/15'
 const utilityDarkChip =
@@ -87,6 +89,7 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const [indexOpen, setIndexOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -116,6 +119,7 @@ function Navbar() {
     setSeenPath(pathname)
     setUserMenuOpen(false)
     setLangMenuOpen(false)
+    setIndexOpen(false)
     setMobileOpen(false)
   }
 
@@ -124,6 +128,7 @@ function Navbar() {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false)
         setLangMenuOpen(false)
+        setIndexOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -138,6 +143,7 @@ function Navbar() {
       } else if (e.key === 'Escape') {
         setUserMenuOpen(false)
         setLangMenuOpen(false)
+        setIndexOpen(false)
         setMobileOpen(false)
       }
     }
@@ -179,10 +185,7 @@ function Navbar() {
         >
           <div
             className={[
-              'pointer-events-auto flex items-center justify-center gap-0.5 rounded-2xl border px-2 py-1.5 backdrop-blur-2xl backdrop-saturate-150',
-              overDark
-                ? 'border-white/15 bg-white/[0.08] ring-1 ring-white/10'
-                : 'border-line bg-white/[0.55]',
+              'pointer-events-auto flex items-center justify-center gap-6',
             ].join(' ')}
           >
             {NAV_ITEMS.map((item) => (
@@ -199,6 +202,37 @@ function Navbar() {
                 {t(item.labelKey)}
               </NavLink>
             ))}
+
+            {/* Site index — every remaining destination the old mega-menus held,
+                one calm trigger instead of four heavy dropdowns. */}
+            <button
+              type="button"
+              onClick={() => {
+                setIndexOpen((v) => !v)
+                setUserMenuOpen(false)
+                setLangMenuOpen(false)
+              }}
+              aria-expanded={indexOpen}
+              aria-haspopup="menu"
+              className={[
+                overDark ? navLinkDarkBase : navLinkBase,
+                overDark
+                  ? indexOpen
+                    ? navLinkDarkActive
+                    : navLinkDarkIdle
+                  : indexOpen
+                    ? navLinkActive
+                    : '',
+                'gap-1.5',
+              ].join(' ')}
+            >
+              كل الأقسام
+              <ChevronDown
+                size={14}
+                className={`transition-transform duration-300 ease-emc-out ${indexOpen ? '-rotate-180' : 'opacity-60'}`}
+                aria-hidden
+              />
+            </button>
           </div>
 
           {/* The one primary decision on every public screen. */}
@@ -214,10 +248,8 @@ function Navbar() {
             type="button"
             onClick={() => setSearchOpen(true)}
             className={[
-              'flex h-11 items-center gap-2.5 rounded-2xl border px-4 text-[13px] font-bold transition-colors duration-200',
-              overDark
-                ? utilityDarkChip
-                : 'border-line bg-white/80 text-deepBlue backdrop-blur-md hover:border-customBlue/35 hover:bg-customBlue/[0.06] hover:text-customBlue',
+              'flex h-11 items-center gap-2 px-2 text-[13px] font-bold transition-colors duration-200',
+              overDark ? 'text-white/70 hover:text-white' : 'text-ink-500 hover:text-customBlue',
             ].join(' ')}
             aria-label="البحث السريع (Ctrl + K)"
           >
@@ -337,14 +369,14 @@ function Navbar() {
               aria-haspopup="menu"
               aria-label={t('nav.aria.changeLanguage')}
               className={[
-                'flex h-11 items-center gap-1.5 rounded-2xl border px-3.5 text-[13px] font-semibold transition-colors duration-200',
+                'flex h-11 items-center gap-1.5 px-2 text-[13px] font-semibold transition-colors duration-200',
                 overDark
                   ? langMenuOpen
-                    ? 'border-white/35 bg-white/15 text-white'
-                    : utilityDarkChip
+                    ? 'text-white'
+                    : 'text-white/70 hover:text-white'
                   : langMenuOpen
-                    ? 'border-customBlue/35 bg-customBlue/[0.08] text-customBlue backdrop-blur-sm'
-                    : 'border-line bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-paper',
+                    ? 'text-customBlue'
+                    : 'text-ink-500 hover:text-customBlue',
               ].join(' ')}
             >
               <Globe size={15} strokeWidth={2} className={overDark ? 'shrink-0 text-ice' : 'shrink-0 text-customBlue opacity-95'} aria-hidden />
@@ -421,6 +453,16 @@ function Navbar() {
         </div>
       </div>
 
+      {/* Desktop site index — the destinations the old mega-menus carried, in one
+          editorial sheet instead of four dropdowns. */}
+      <AnimatePresence>
+        {indexOpen && (
+          <div className="hidden lg:block">
+            <SiteIndexPanel dark={overDark} onClose={() => setIndexOpen(false)} />
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -458,6 +500,26 @@ function Navbar() {
                 <span className="whitespace-nowrap">{t('nav.startJourney')}</span>
                 <ArrowLeftIcon size={15} className="shrink-0 opacity-90" />
               </Link>
+
+              {/* Site index on mobile — the same destinations as the desktop sheet,
+                  so a phone visitor never loses a page the old drawer reached. */}
+              {SITE_INDEX.map((group) => (
+                <div key={group.title} className="pt-3">
+                  <p className="px-4 pb-1 text-[11px] font-black tracking-[0.14em] text-ocean">
+                    {group.title}
+                  </p>
+                  {group.links.map((link) => (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block border-b border-line px-4 py-3 text-sm font-bold text-ink-700 last:border-b-0 hover:bg-paper"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
 
               {/* M3: language switcher (mobile) */}
               <div className="flex items-center gap-2 rounded-2xl border border-line bg-paper px-4 py-2.5">

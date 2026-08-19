@@ -3,7 +3,9 @@ import { motion } from 'framer-motion'
 // M10: converted from an auto-advancing 2-up carousel (dots + interval) to a calm,
 // static layout. Design Language 2.0: the card frames are gone — quotes are large
 // serif pull-quotes with an oversized « glyph in ice and the author in ink-400.
-// The ONE highlighted quote keeps its emphasis via a soft paper2 field (borderless).
+// The ONE highlighted quote keeps its emphasis through type scale and whitespace
+// between two hairline seams — it used to sit in a rounded paper2 panel, which
+// was the last frame left in this scene.
 // Same export name kept so Home.tsx's import stays stable.
 const testimonials = [
   {
@@ -64,17 +66,20 @@ export default function HomeTestimonialsCarousel() {
           </h2>
         </motion.div>
 
-        {/* Highlighted pull-quote — soft paper2 field, borderless (no frame, no shadow) */}
+        {/* Highlighted pull-quote — the rounded paper2 panel is gone: the quote now
+            sits directly on the section field between two hairline seams, carried
+            by type scale and whitespace alone. */}
+        <div aria-hidden className="emc-hairline" />
         <motion.figure
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
-          className="relative overflow-hidden rounded-[2rem] bg-paper2 px-6 py-12 sm:px-14 sm:py-16"
+          className="relative px-0 py-12 sm:py-16"
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute -top-10 start-2 select-none font-display text-[9rem] font-black leading-none text-ice sm:text-[12rem]"
+            className="pointer-events-none absolute top-0 start-2 select-none font-display text-[9rem] font-black leading-none text-ice sm:text-[12rem]"
           >
             «
           </span>
@@ -85,6 +90,7 @@ export default function HomeTestimonialsCarousel() {
             {featured.name} — {featured.role} · {featured.org}
           </figcaption>
         </motion.figure>
+        <div aria-hidden className="emc-hairline" />
 
         {/* Supporting pull-quotes — free-floating, separated by a hairline (no cards) */}
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_1px_1fr] lg:gap-14">

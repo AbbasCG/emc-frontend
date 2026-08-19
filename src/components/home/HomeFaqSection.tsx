@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router'
-import { ArrowLeft, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 
 const faqs = [
   {
@@ -91,7 +92,7 @@ export default function HomeFaqSection() {
             <div className="mt-10">
               <Link to="/contact" className="emc-cta-line text-sm">
                 سؤال آخر؟ تواصل معنا
-                <ArrowLeft size={15} aria-hidden />
+                <ArrowLeftIcon size={15} />
               </Link>
             </div>
           </motion.div>

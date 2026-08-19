@@ -4,7 +4,7 @@ import { mockApi, loginAs, COURSE_MAIN, ERROR_BOUNDARY_TEXT } from '../support/m
 /**
  * Journey 1 — browse → course detail → enroll (free course, mocked API).
  *
- * Phase A (guest): home hero renders (confirmed +13,000 stat pill), hero CTA
+ * Phase A (guest): home hero renders (confirmed +20,000 stat pill), hero CTA
  * leads to the catalog, the mocked course card opens the detail page.
  * Phase B (seeded student): the detail CTA becomes "الالتحاق بالدورة",
  * the enrollment form (prefilled from the auth profile) submits against the
@@ -15,8 +15,8 @@ test('guest browses catalog, student enrolls in mocked course', async ({ page })
 
   // ── Phase A: guest on the home page ──
   await page.goto('/')
-  // Confirmed hero stat pill (HomeCinematicHero → <StatPill value="+13,000" label="مستفيد" />)
-  await expect(page.getByText('+13,000').first()).toBeVisible()
+  // Confirmed hero stat pill (HomeCinematicHero → <StatPill value="+20,000" label="مستفيد" />)
+  await expect(page.getByText('+20,000').first()).toBeVisible()
   await expect(page.getByText(ERROR_BOUNDARY_TEXT)).toHaveCount(0)
 
   // Hero CTA → /courses (visible on both desktop and mobile)

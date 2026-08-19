@@ -12,9 +12,10 @@ export type ImpactMainStat = {
 }
 
 export const impactMainStats: ImpactMainStat[] = [
-  { id: 'beneficiaries', value: 13000, suffix: '+', labelAr: 'مستفيد ومستفيدة', hintAr: 'ورش ودورات ومسارات' },
-  { id: 'camp-registrations', value: 9000, suffix: '+', labelAr: 'مسجّل في المخيمات', hintAr: 'سجلات مؤكّدة ضمن المنظومة' },
-  { id: 'countries', value: 50, suffix: '+', labelAr: 'دولة', hintAr: 'توزيع جغرافي للمشاركين' },
+  { id: 'beneficiaries', value: 20000, suffix: '+', labelAr: 'مستفيد ومستفيدة', hintAr: 'ورش ودورات ومسارات' },
+  { id: 'camp-registrations', value: 17000, suffix: '+', labelAr: 'مسجّل في المخيمات', hintAr: 'سجلات مؤكّدة ضمن المنظومة' },
+  { id: 'countries', value: 56, suffix: '+', labelAr: 'دولة', hintAr: 'توزيع جغرافي للمشاركين' },
+  { id: 'cities', value: 508, suffix: '+', labelAr: 'مدينة', hintAr: 'مدن وصل إليها المشاركون' },
 ]
 
 export const impactNetherlandsCities: { city: string; count: number; xPct: number; yPct: number }[] = [

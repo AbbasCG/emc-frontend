@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ArrowLeft, BookOpen } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { useTranslation } from 'react-i18next'
 import HomeCourseCard from './HomeCourseCard'
 import type { Course } from '../../types'
@@ -25,11 +26,11 @@ function sortByPopularity(courses: Course[]): Course[] {
 function RowSkeleton() {
   return (
     <div className="flex animate-pulse items-center gap-4 border-b border-line py-5 ps-3 sm:gap-6 sm:py-6 sm:ps-4">
-      <div className="emc-page-clip-sm aspect-[16/10] w-24 shrink-0 bg-slate-200 sm:w-36" />
+      <div className="emc-page-clip-sm aspect-[16/10] w-24 shrink-0 bg-line sm:w-36" />
       <div className="flex-1 space-y-3">
-        <div className="h-4 w-3/5 rounded bg-slate-200" />
-        <div className="h-3 w-2/5 rounded bg-slate-100" />
-        <div className="h-3 w-1/4 rounded bg-slate-100" />
+        <div className="h-4 w-3/5 rounded bg-line" />
+        <div className="h-3 w-2/5 rounded bg-paper2" />
+        <div className="h-3 w-1/4 rounded bg-paper2" />
       </div>
     </div>
   )
@@ -93,7 +94,7 @@ export default function FeaturedCoursesSection() {
           {/* De-boxed view-all — line CTA instead of a navy pill */}
           <Link to="/courses" className="emc-cta-line shrink-0 text-sm">
             {t('home.featured.viewAll')}
-            <ArrowLeft size={15} aria-hidden />
+            <ArrowLeftIcon size={15} />
           </Link>
         </motion.div>
 

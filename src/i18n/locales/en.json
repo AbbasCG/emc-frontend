@@ -678,15 +678,15 @@
       "ctaSecondary": "Create a Free Account",
       "stats": {
         "beneficiaries": {
-          "value": "+13,000",
+          "value": "+20,000",
           "label": "beneficiaries"
         },
         "campRegistrants": {
-          "value": "+9,000",
+          "value": "+17,000",
           "label": "camp registrants"
         },
         "countries": {
-          "value": "+50",
+          "value": "+56",
           "label": "countries"
         }
       },

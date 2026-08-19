@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { useTranslation } from 'react-i18next'
 
 // Floating particles
@@ -121,7 +121,7 @@ export default function HomeGrandCTA() {
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/15 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 {t('home.grandCta.primary')}
-                <ArrowLeft size={19} className="transition-transform group-hover:-translate-x-1" aria-hidden />
+                <ArrowLeftIcon size={19} className="transition-transform group-hover:-translate-x-1" />
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>

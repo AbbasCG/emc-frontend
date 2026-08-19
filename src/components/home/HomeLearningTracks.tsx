@@ -19,10 +19,10 @@ import {
   Languages,
   Bot,
   Smile,
-  ArrowLeft,
   BadgeCheck,
   Clock,
 } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 
 // ── 1. Professional Tracks (المسارات الاحترافية الـ 9) ──────────────────────
 export interface ProfessionalTrack {
@@ -206,7 +206,7 @@ function EditorialRow({
         )}
         <span className="emc-cta-line shrink-0 text-xs sm:text-sm">
           استكشف
-          <ArrowLeft size={14} aria-hidden />
+          <ArrowLeftIcon size={14} />
         </span>
       </Link>
     </motion.div>
@@ -244,20 +244,20 @@ export default function HomeLearningTracks() {
           <h2 className="emc-title-arc is-center mt-4 font-display text-3xl font-black tracking-tight text-deepBlue [text-wrap:balance] sm:text-4xl lg:text-[2.75rem]">
             مسارات التعلّم <span className="text-customBlue">والشهادات المعتمدة</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-relaxed text-slate-600">
+          <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-400">
             تأهيل شامل يمتد من 6 إلى 8 أشهر ينتهي بمشروع وتقييم عملي وشهادة معتمدة رسمياً من EMC.
           </p>
         </motion.div>
 
         {/* Tab Navigation — functional segmented control (kept) */}
-        <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-line bg-slate-100/80 p-2">
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-line bg-paper2/80 p-2">
           <button
             type="button"
             onClick={() => setActiveTab('professional')}
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'professional'
                 ? 'bg-deepBlue text-white scale-[1.02]'
-                : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
             <Brain size={18} />
@@ -270,7 +270,7 @@ export default function HomeLearningTracks() {
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'academic'
                 ? 'bg-deepBlue text-white scale-[1.02]'
-                : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
             <GraduationCap size={18} />
@@ -283,7 +283,7 @@ export default function HomeLearningTracks() {
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'languages'
                 ? 'bg-deepBlue text-white scale-[1.02]'
-                : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
             <Languages size={18} />
@@ -296,7 +296,7 @@ export default function HomeLearningTracks() {
             className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
               activeTab === 'children'
                 ? 'bg-deepBlue text-white scale-[1.02]'
-                : 'text-slate-600 hover:text-deepBlue hover:bg-white/60'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
             }`}
           >
             <Smile size={18} />

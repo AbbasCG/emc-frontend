@@ -15,7 +15,6 @@ import {
   FlaskConical,
   Smile,
   Handshake,
-  ArrowLeft,
   Award,
   ChevronDown,
 } from 'lucide-react'
@@ -168,8 +167,10 @@ function OrbitalVisual() {
         })}
       </div>
 
-      {/* Active Theme Showcase Glass Card (Bottom of Orbit) */}
-      <div className="relative mt-6 w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/[0.1] p-5 backdrop-blur-xl">
+      {/* Active theme readout — the glass card lost its frame: the content now sits
+          on a single hairline seat under the orbit. The switcher bar and the
+          «استكشف» action below it stay boxed, since both are functional controls. */}
+      <div className="relative mt-6 w-full max-w-lg border-t border-white/15 pt-5">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeItem.id}
@@ -187,7 +188,11 @@ function OrbitalVisual() {
                 <activeItem.icon size={22} />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: activeItem.color }}>
+                {/* Sky, not the per-theme hex: with the glass fill removed this label
+                    sits straight on the navy field, where the darker theme colours
+                    (navy, ocean, ember) would have gone invisible. The tile below
+                    still carries the theme's colour. */}
+                <span className="text-[10px] font-black uppercase tracking-wider text-sky">
                   المحور {activeItem.num} / 12
                 </span>
                 <h3 className="text-base font-black text-white">{activeItem.title}</h3>
@@ -279,13 +284,23 @@ function DotGrid() {
   )
 }
 
-// ── Stat pill ─────────────────────────────────────────────────────────────────
+// ── Hero stat ─────────────────────────────────────────────────────────────────
 
-function StatPill({ value, label }: { value: string; label: string }) {
+// Design Language 2.0 — the three glass KPI pills (rounded-2xl + border-white/10
+// + bg-white/[0.06] + backdrop blur) became one typographic line-up: serif
+// numbers on the field, separated by 1px hairlines. `text-white` overrides
+// emc-stat-num's light-surface navy, exactly as HomeImpactMetrics does.
+// The value stays a single text node — «+13,000» is e2e-pinned.
+function HeroStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.09]">
-      <span className="font-latin text-2xl font-black tabular-nums text-white" dir="ltr">{value}</span>
-      <span className="text-xs font-bold leading-4 text-white/55">{label}</span>
+    <div className="text-right">
+      <span
+        className="emc-stat-num block font-display text-[2rem] text-white sm:text-4xl"
+        dir="ltr"
+      >
+        {value}
+      </span>
+      <span className="mt-2 block text-xs font-bold leading-5 text-white/55">{label}</span>
     </div>
   )
 }
@@ -376,7 +391,7 @@ export default function HomeCinematicHero() {
               >
                 <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
                 {t('home.hero.ctaPrimary')}
-                <ArrowLeft size={19} className="transition-transform group-hover:-translate-x-1" aria-hidden />
+                <ArrowLeftIcon size={19} className="transition-transform group-hover:-translate-x-1" />
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -410,15 +425,17 @@ export default function HomeCinematicHero() {
             </motion.div>
           </motion.div>
 
-          {/* Stats row */}
+          {/* Stats row — typographic line-up seated on hairlines, no pills */}
           <motion.div
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.1 } } }}
-            className="mt-12 flex flex-wrap justify-start gap-3 border-t border-white/[0.08] pt-10"
+            className="mt-12 flex flex-wrap items-stretch justify-start gap-x-7 gap-y-8 border-t border-white/[0.08] pt-10"
           >
             {/* e2e-pinned: ar values are verbatim; numbers stay Latin digits inside the dir=ltr span */}
-            <StatPill value={t('home.hero.stats.beneficiaries.value')} label={t('home.hero.stats.beneficiaries.label')} />
-            <StatPill value={t('home.hero.stats.campRegistrants.value')} label={t('home.hero.stats.campRegistrants.label')} />
-            <StatPill value={t('home.hero.stats.countries.value')} label={t('home.hero.stats.countries.label')} />
+            <HeroStat value={t('home.hero.stats.beneficiaries.value')} label={t('home.hero.stats.beneficiaries.label')} />
+            <div aria-hidden className="hidden w-px self-stretch bg-white/15 sm:block" />
+            <HeroStat value={t('home.hero.stats.campRegistrants.value')} label={t('home.hero.stats.campRegistrants.label')} />
+            <div aria-hidden className="hidden w-px self-stretch bg-white/15 sm:block" />
+            <HeroStat value={t('home.hero.stats.countries.value')} label={t('home.hero.stats.countries.label')} />
           </motion.div>
         </motion.div>
 
@@ -435,8 +452,9 @@ export default function HomeCinematicHero() {
 
       {/* Scroll cue — existing soft-float keyframes; global reduced-motion CSS stills it */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-5 z-10 hidden justify-center lg:flex">
-        <span className="animate-soft-float flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white/50 backdrop-blur-md">
-          <ChevronDown size={17} />
+        {/* De-glassed: the scroll cue is the chevron itself, not a bordered chip */}
+        <span className="animate-soft-float flex h-9 w-9 items-center justify-center text-white/45">
+          <ChevronDown size={22} />
         </span>
       </div>
 

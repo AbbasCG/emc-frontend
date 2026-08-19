@@ -673,15 +673,15 @@
       "ctaSecondary": "إنشاء حساب مجاني",
       "stats": {
         "beneficiaries": {
-          "value": "+13,000",
+          "value": "+20,000",
           "label": "مستفيد"
         },
         "campRegistrants": {
-          "value": "+9,000",
+          "value": "+17,000",
           "label": "مسجّل مخيمات"
         },
         "countries": {
-          "value": "+50",
+          "value": "+56",
           "label": "دولة"
         }
       },
