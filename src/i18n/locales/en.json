@@ -712,6 +712,82 @@
       "backHome": "Back to Home"
     }
   },
+  "quickJoin": {
+    "kind": {
+      "course": "Training course",
+      "path": "Learning path"
+    },
+    "header": {
+      "eyebrow": "{{kind}} · Quick enrollment",
+      "title": "Join and start",
+      "titleWithProgram": "Join and start: {{title}}",
+      "freeNote": "Completely free — one account is all that stands between you and starting",
+      "stepNote": "One step stands between you and starting"
+    },
+    "close": "Close",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "country": "Country",
+      "phone": "Phone number",
+      "city": "City",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "extraFieldsNote": "We need these extra details to finish creating your account.",
+      "registerSubmit": "Create my account and enroll me",
+      "registerSubmitting": "Creating your account…",
+      "loginSubmit": "Log in and continue",
+      "loginSubmitting": "Logging in…",
+      "switchToLogin": "I have an account — log in",
+      "switchToRegister": "I don't have an account — create a new one"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Email is invalid",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "countryRequired": "Select a country",
+      "phoneRequired": "Phone number is required",
+      "cityRequired": "City is required",
+      "genderRequired": "Select a gender"
+    },
+    "paidToast": {
+      "title": "Your account is ready",
+      "description": "Complete the payment from the course page to finish enrolling."
+    },
+    "executing": "Completing your enrollment…",
+    "success": {
+      "title": "Done. You are now enrolled",
+      "titleWithProgram": "Done. You are now in {{title}}",
+      "startLearning": "Start learning",
+      "browseDashboard": "Browse the student dashboard"
+    },
+    "partial": {
+      "title": "Your account is ready",
+      "body": "One step left to complete your enrollment in {{program}}.",
+      "programFallback": "the program",
+      "complete": "Complete enrollment",
+      "later": "Later"
+    },
+    "nonStudent": {
+      "title": "This account{{role}} is not a student account",
+      "body": "Program enrollment is available to student accounts only. You can create a student account with a different email and continue where you left off.",
+      "createStudent": "Create a student account with another email",
+      "stay": "Stay on my current account"
+    },
+    "roles": {
+      "teacher": "Trainer",
+      "instructor": "Trainer",
+      "admin": "Admin",
+      "super_admin": "Super admin",
+      "partner": "Partner",
+      "volunteer": "Volunteer"
+    }
+  },
   "seo": {
     "defaultDescription": "The EMC learning platform: courses, workshops, and Arabic-language learning paths from the Netherlands — professional education and skills development."
   }

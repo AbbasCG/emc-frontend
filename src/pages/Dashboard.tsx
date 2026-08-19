@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Bell,
   BookOpen,
@@ -8,6 +9,7 @@ import {
   Radio,
   ScrollText,
   TrendingUp,
+  X,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router'
@@ -23,6 +25,7 @@ import {
 import { SessionCard } from '@/components/lms'
 import { useAuth } from '../contexts/AuthContext'
 import { useStudentDashboardData } from '@/hooks/useStudentDashboardData'
+import { trackFunnelEvent } from '@/lib/funnelEvents'
 import { studentLearnHref } from '@/utils/studentLearnNavigation'
 import { formatDateTime } from '@/utils/dateTime'
 import { formatLmsDateTime } from '@/components/lms/lmsFormatters'
@@ -31,6 +34,9 @@ import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import type { LmsSession } from '@/types/lms'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
+
+/** G5 — first-visit welcome band: '1' once the student has dismissed it. */
+const WELCOME_DISMISS_KEY = 'emc_welcome_dismissed'
 
 function hourGreeting(): string {
   const h = new Date().getHours()
@@ -369,6 +375,33 @@ export default function Dashboard() {
   const avatarInitials = getUserInitials(user ?? null)
   const displayName    = user?.name?.trim() || 'متعلّم EMC'
 
+  // ── G5: first-visit welcome band — only for students with zero enrollments ──
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(WELCOME_DISMISS_KEY) === '1'
+    } catch {
+      // Storage unavailable (private mode) — don't nag on every render cycle.
+      return true
+    }
+  })
+
+  const showWelcome =
+    !welcomeDismissed &&
+    !loading &&
+    !loadError &&
+    displayCourses.length === 0 &&
+    counts.enrolled_courses_count === 0
+
+  function dismissWelcome() {
+    try {
+      localStorage.setItem(WELCOME_DISMISS_KEY, '1')
+    } catch {
+      // Best-effort persistence — the in-memory dismissal still holds for this visit.
+    }
+    trackFunnelEvent('welcome_dismissed')
+    setWelcomeDismissed(true)
+  }
+
   const heroStats = loading
     ? undefined
     : [
@@ -379,6 +412,46 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 text-right rtl" dir="rtl">
+      {/* ── G5: first-visit welcome band — editorial paper2 strip, hairlines not a card ── */}
+      {showWelcome && (
+        <section aria-label="ترحيب بالطالب الجديد" className="bg-paper2">
+          <div className="emc-hairline" aria-hidden />
+          <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4 px-5 py-6 sm:px-7">
+            <div className="min-w-0">
+              <p className="font-display text-lg font-black tracking-tight text-deepBlue">
+                أهلاً بك في EMC — رحلتك تبدأ بخطوة
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <Link to="/courses" className="emc-cta-line text-sm">
+                  تصفّح الكتالوج
+                </Link>
+                <span aria-hidden className="font-black text-slate-300">
+                  ←
+                </span>
+                <Link to="/courses" className="emc-cta-line text-sm">
+                  اشترك بنقرة
+                </Link>
+                <span aria-hidden className="font-black text-slate-300">
+                  ←
+                </span>
+                <Link to="/dashboard/student/courses" className="emc-cta-line text-sm">
+                  ابدأ التعلّم
+                </Link>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={dismissWelcome}
+              aria-label="إخفاء الترحيب"
+              className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-deepBlue"
+            >
+              <X size={16} aria-hidden />
+            </button>
+          </div>
+          <div className="emc-hairline" aria-hidden />
+        </section>
+      )}
+
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <DashboardHero
         greeting={hourGreeting()}

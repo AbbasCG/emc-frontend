@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { motion } from 'framer-motion'
 import {
   BadgeCheck,
   BookOpen,
@@ -23,7 +24,11 @@ import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnroll
 import PublicDetailCtaButton from '@/components/public/detail/PublicDetailCtaButton'
 import AppAlert from '@/components/ui/AppAlert'
 import { resolveCourseEnrollCta } from '@/utils/publicCourseDetailCta'
-import { PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import { buildPublicLoginHref, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
+import { trackFunnelEvent } from '@/lib/funnelEvents'
+import { findPathsContainingCourse, type PathUpsellMatch } from '@/utils/pathUpsell'
+import type { LearningPath } from '@/api/learningPathsApi'
 import { deriveCourseDetail } from '@/utils/courseDetailDerived'
 import { fetchStudentRegistrations, type StudentCourseAccess } from '@/api/studentApi'
 import { fetchCoursesFromApi } from '@/api/coursesApi.public'
@@ -135,6 +140,8 @@ function readWishlist(): string[] {
 export default function CourseDetails() {
   const { slug } = useParams()
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const justEnrolled = searchParams.get('enrolled') === '1'
   const { isAuthenticated, user } = useAuth()
 
@@ -206,6 +213,46 @@ export default function CourseDetails() {
   // Errors intentionally ignored (as before): the carousel simply stays empty.
   const { data: relatedCoursesData } = useFetch(() => fetchCoursesFromApi(), [])
   const relatedCourses = relatedCoursesData ?? EMPTY_RELATED
+
+  // G4 — path upsell: which public learning paths include this course. The list
+  // fetch is cached module-level in pathUpsell, so repeat course visits don't
+  // refetch. Errors resolve [] inside the util → the band simply never renders.
+  const { data: upsellMatches, loading: upsellLoading } = useFetch<PathUpsellMatch[]>(
+    () => (slug ? findPathsContainingCourse(slug) : Promise.resolve([])),
+    [slug],
+  )
+  // Prefer a path that is actually open for enrollment; fall back to the first match.
+  const upsell = upsellMatches?.find((m) => m.path.enrollment_open) ?? upsellMatches?.[0] ?? null
+  const upsellPath = upsell?.path ?? null
+
+  // View event only once the band can actually render (course loaded + matches
+  // resolved for THIS slug — useFetch keeps stale data while a slug change loads).
+  useEffect(() => {
+    if (course && upsellPath && !upsellLoading) trackFunnelEvent('upsell_view', { slug: upsellPath.slug })
+  }, [course, upsellPath, upsellLoading])
+
+  /** Upsell «سجّل في المسار»: guests get the in-context PATH intent (mirrors
+   *  LearningPathDetail.handleEnroll); signed-in users go to the path detail,
+   *  which owns the real enroll gating. */
+  function handleUpsellEnroll(path: LearningPath) {
+    trackFunnelEvent('upsell_click', { target: 'path', slug: path.slug })
+    if (!user) {
+      if (hasEnrollIntentHost()) {
+        setEnrollIntent({
+          kind: 'path',
+          slug: path.slug,
+          title: path.title,
+          isFree: (path.discount_price ?? path.price ?? 0) === 0,
+          id: path.id,
+          price: path.discount_price ?? path.price ?? undefined,
+        })
+        return
+      }
+      navigate(buildPublicLoginHref(location.pathname))
+      return
+    }
+    navigate(`/learning-paths/${path.slug}`)
+  }
 
   useEffect(() => {
     if (!isAuthenticated || !course || user?.role !== 'student') return
@@ -394,6 +441,17 @@ export default function CourseDetails() {
   const category = categoryLabel(course, derived)
   const level = levelLabel(course.level ?? (course as Record<string, unknown>).level)
 
+  // G4 upsell band — station count + duration rendered as calm ink meta.
+  const upsellStations = upsellPath ? upsellPath.courses?.length || upsellPath.courses_count : 0
+  const upsellDuration =
+    upsellPath?.duration ?
+      `${upsellPath.duration} ${
+        upsellPath.duration_unit === 'weeks' ? 'أسبوع'
+        : upsellPath.duration_unit === 'months' ? 'شهر'
+        : 'يوم'
+      }`
+    : null
+
   const enrollSidebar = (
     <div className="overflow-hidden text-right">
       <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-brand-50 to-white px-5 py-4">
@@ -556,6 +614,58 @@ export default function CourseDetails() {
             </aside>
           </div>
         </div>
+
+        {/* ── G4 UPSELL BAND — this course is a station in a path (editorial seam, no box).
+            Renders nothing while loading / when no path contains the course, and mounts
+            below the enroll area so nothing above it ever shifts. ── */}
+        {!upsellLoading && upsell && upsellPath && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            className="mx-auto max-w-[88rem] px-4 pb-4 sm:px-6 lg:px-10"
+            dir="rtl"
+          >
+            <div className="emc-hairline" aria-hidden />
+            <div className="flex flex-col gap-5 py-8 text-right lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+              <div>
+                <p className="font-display text-lg font-black tracking-tight text-deepBlue sm:text-xl">
+                  هذه الدورة محطة في {upsellPath.title} —{' '}
+                  {upsell.savingsPercent != null ?
+                    <>
+                      وفّر{' '}
+                      <span dir="ltr" className="tabular-nums">
+                        {upsell.savingsPercent}%
+                      </span>{' '}
+                      مع المسار الكامل
+                    </>
+                  : 'شهادة مسار معتمدة مع المسار الكامل'}
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-ink-400">
+                  <span dir="ltr" className="tabular-nums">{upsellStations}</span> محطة
+                  {upsellDuration ? ` · ${upsellDuration}` : ''}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-6">
+                <Link
+                  to={`/learning-paths/${upsellPath.slug}`}
+                  onClick={() => trackFunnelEvent('upsell_click', { target: 'path', slug: upsellPath.slug })}
+                  className="emc-cta-line text-sm"
+                >
+                  عرض المسار
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleUpsellEnroll(upsellPath)}
+                  className="inline-flex items-center justify-center rounded-xl bg-customOrange px-6 py-3 text-sm font-black text-white transition duration-200 hover:brightness-[1.03]"
+                >
+                  سجّل في المسار
+                </button>
+              </div>
+            </div>
+            <div className="emc-hairline" aria-hidden />
+          </motion.section>
+        )}
 
         {/* Related courses */}
         <div className="mx-auto max-w-[88rem] space-y-3 px-4 pb-4 sm:px-6 lg:px-10">

@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
+import { trackFunnelEvent } from '@/lib/funnelEvents'
+import { computePathSavings } from '@/utils/pathUpsell'
 import {
   buildPublicLoginHref,
   isStudentUser,
@@ -103,6 +105,7 @@ export default function LearningPathDetail() {
 
   const handleEnroll = async () => {
     if (!slug) return
+    trackFunnelEvent('path_enroll_click', { slug })
     if (!user) {
       // In-context QuickJoin (3 fields, auto-enroll) — /login only if the host is absent.
       if (path && hasEnrollIntentHost()) {
@@ -158,6 +161,9 @@ export default function LearningPathDetail() {
     path.discount_price != null && path.price != null && path.price > path.discount_price ?
       formatEuroInteger(path.price, 'ar')
     : null
+  // G4 — revenue clarity: courses-bought-alone vs the full path. Strictly null
+  // whenever any course price is missing/non-numeric (never invented numbers).
+  const savings = computePathSavings(path)
 
   /**
    * The one real enroll action — hero, sidebar and mobile bar all render THIS
@@ -318,6 +324,32 @@ export default function LearningPathDetail() {
                 <p dir="ltr" className="text-right font-display text-4xl font-black tabular-nums tracking-tight text-white">
                   {priceText}
                 </p>
+                {/* G4 comparison strip — editorial two lines, only when every number is real.
+                    Savings tint: accent-300 (amber) is the fire accent that passes AA on this
+                    navy field — ember (#C97208) is the light-surface rendition and fails here. */}
+                {savings && (
+                  <div className="mt-3 text-sm">
+                    <p className="font-semibold text-ice/80">
+                      الدورات منفردة:{' '}
+                      <span dir="ltr" className="tabular-nums line-through">
+                        {formatEuroInteger(savings.coursesTotal, 'ar')}
+                      </span>
+                    </p>
+                    <p className="mt-1 font-bold text-white">
+                      المسار الكامل:{' '}
+                      <span dir="ltr" className="tabular-nums">
+                        {formatEuroInteger(savings.pathPrice, 'ar')}
+                      </span>
+                      {' — '}
+                      <span className="text-accent-300">
+                        توفير{' '}
+                        <span dir="ltr" className="tabular-nums">
+                          {savings.savingsPercent}%
+                        </span>
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
 
               <dl className="mt-5 text-sm">

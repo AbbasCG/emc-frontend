@@ -707,6 +707,82 @@
       "backHome": "العودة للرئيسية"
     }
   },
+  "quickJoin": {
+    "kind": {
+      "course": "دورة تدريبية",
+      "path": "مسار تعليمي"
+    },
+    "header": {
+      "eyebrow": "{{kind}} · تسجيل سريع",
+      "title": "انضم وابدأ",
+      "titleWithProgram": "انضم وابدأ: {{title}}",
+      "freeNote": "مجانية بالكامل — حساب واحد يفصلك عن البداية",
+      "stepNote": "خطوة واحدة تفصلك عن البداية"
+    },
+    "close": "إغلاق",
+    "form": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "country": "الدولة",
+      "phone": "رقم الجوال",
+      "city": "المدينة",
+      "gender": "الجنس",
+      "genderPlaceholder": "اختر الجنس",
+      "genderMale": "ذكر",
+      "genderFemale": "أنثى",
+      "extraFieldsNote": "نحتاج هذه البيانات الإضافية لإكمال إنشاء حسابك.",
+      "registerSubmit": "أنشئ حسابي وسجّلني",
+      "registerSubmitting": "جارٍ إنشاء حسابك…",
+      "loginSubmit": "تسجيل الدخول والمتابعة",
+      "loginSubmitting": "جارٍ تسجيل الدخول…",
+      "switchToLogin": "لديّ حساب — تسجيل الدخول",
+      "switchToRegister": "ليس لديّ حساب — إنشاء حساب جديد"
+    },
+    "validation": {
+      "nameRequired": "الاسم مطلوب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "البريد الإلكتروني غير صالح",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordMin": "كلمة المرور 8 أحرف على الأقل",
+      "countryRequired": "اختر الدولة",
+      "phoneRequired": "رقم الجوال مطلوب",
+      "cityRequired": "المدينة مطلوبة",
+      "genderRequired": "اختر الجنس"
+    },
+    "paidToast": {
+      "title": "حسابك جاهز",
+      "description": "أكمل الدفع من صفحة الدورة لإتمام الالتحاق."
+    },
+    "executing": "جارٍ إتمام تسجيلك…",
+    "success": {
+      "title": "تم. أنت الآن مسجل",
+      "titleWithProgram": "تم. أنت الآن في {{title}}",
+      "startLearning": "ابدأ التعلّم",
+      "browseDashboard": "تصفّح لوحة الطالب"
+    },
+    "partial": {
+      "title": "حسابك جاهز",
+      "body": "بقيت خطوة واحدة لإتمام تسجيلك في {{program}}.",
+      "programFallback": "البرنامج",
+      "complete": "إكمال التسجيل",
+      "later": "لاحقًا"
+    },
+    "nonStudent": {
+      "title": "هذا الحساب{{role}} ليس حساب طالب",
+      "body": "الالتحاق بالبرامج متاح لحسابات الطلاب فقط. يمكنك إنشاء حساب طالب ببريد إلكتروني آخر والمتابعة من حيث توقفت.",
+      "createStudent": "إنشاء حساب طالب ببريد آخر",
+      "stay": "البقاء على حسابي الحالي"
+    },
+    "roles": {
+      "teacher": "مدرب",
+      "instructor": "مدرب",
+      "admin": "مشرف",
+      "super_admin": "مشرف أعلى",
+      "partner": "شريك",
+      "volunteer": "متطوع"
+    }
+  },
   "seo": {
     "defaultDescription": "منصة EMC التعليمية: دورات، ورش، ومسارات تعلم بالعربية من هولندا — تعليم احترافي وتطوير مهارات."
   }

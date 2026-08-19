@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router'
 import { motion, useReducedMotion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   CheckCircle2,
   ChevronDown,
@@ -22,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { countryFromPhone } from '@/lib/countryFromPhone'
 import type { EnrollIntent } from '@/lib/enrollIntent'
+import { trackFunnelEvent } from '@/lib/funnelEvents'
 import toast from '@/lib/toast'
 import type { User } from '@/types'
 import { normalizeRole } from '@/utils/dashboardAccess'
@@ -46,15 +48,6 @@ type Props = {
  */
 type Phase = 'register' | 'login' | 'executing' | 'success' | 'partial' | 'non_student'
 
-const ROLE_AR: Record<string, string> = {
-  teacher: 'مدرب',
-  instructor: 'مدرب',
-  admin: 'مشرف',
-  super_admin: 'مشرف أعلى',
-  partner: 'شريك',
-  volunteer: 'متطوع',
-}
-
 const inputCls = (err?: string) =>
   `emc-focus-ring h-12 w-full rounded-xl border bg-paper2 px-4 text-start font-semibold text-deepBlue outline-none transition focus:bg-white focus:ring-4 focus:ring-brand-100 ${
     err ? 'border-red-400 focus:border-red-400' : 'border-line focus:border-customBlue'
@@ -68,6 +61,7 @@ const PRIMARY_BTN_CLS =
 export default function QuickJoinModalBody({ intent, onClose }: Props) {
   const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
+  const { t } = useTranslation()
   const { user, isAuthenticated, login, registerAccount } = useAuth()
 
   const [phase, setPhase] = useState<Phase>(() =>
@@ -140,6 +134,12 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
     }
   }
 
+  /** The one happy ending — mark the funnel conversion, then show the success state. */
+  function markSuccess() {
+    trackFunnelEvent('quickjoin_success', { kind: intent.kind, slug: intent.slug })
+    setPhase('success')
+  }
+
   /** After auth succeeds, finish what the visitor actually came for. */
   async function executeIntent(authedUser: User) {
     setPhase('executing')
@@ -148,8 +148,8 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
       if (!intent.isFree) {
         // Paid course — hand over to the course page CTA (checkout / payment flow).
         onClose()
-        toast.success('حسابك جاهز', {
-          description: 'أكمل الدفع من صفحة الدورة لإتمام الالتحاق.',
+        toast.success(t('quickJoin.paidToast.title'), {
+          description: t('quickJoin.paidToast.description'),
         })
         navigate(buildCourseDetailEnrollHref(intent.slug))
         return
@@ -179,11 +179,11 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               }
             : {}),
         })
-        setPhase('success')
+        markSuccess()
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 409) {
           // Already registered — same happy destination.
-          setPhase('success')
+          markSuccess()
           return
         }
         // Account is created; the course page's own form owns whatever is missing
@@ -198,7 +198,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
     try {
       const result = await enrollInLearningPath(intent.slug)
       if (result.success || result.enrolled) {
-        setPhase('success')
+        markSuccess()
         return
       }
       setPartialHref(`/learning-paths/${intent.slug}`)
@@ -212,19 +212,20 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError('')
+    trackFunnelEvent('quickjoin_submit', { kind: intent.kind, slug: intent.slug, free: intent.isFree })
 
     const errs: Record<string, string> = {}
-    if (!name.trim()) errs.name = 'الاسم مطلوب'
-    if (!email.trim()) errs.email = 'البريد الإلكتروني مطلوب'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = 'البريد الإلكتروني غير صالح'
-    if (!password) errs.password = 'كلمة المرور مطلوبة'
-    else if (password.length < 8) errs.password = 'كلمة المرور 8 أحرف على الأقل'
+    if (!name.trim()) errs.name = t('quickJoin.validation.nameRequired')
+    if (!email.trim()) errs.email = t('quickJoin.validation.emailRequired')
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = t('quickJoin.validation.emailInvalid')
+    if (!password) errs.password = t('quickJoin.validation.passwordRequired')
+    else if (password.length < 8) errs.password = t('quickJoin.validation.passwordMin')
     if (reveal.phone) {
-      if (!selectedCountry) errs.country_code = 'اختر الدولة'
-      if (!localPhone.trim()) errs.phone = 'رقم الجوال مطلوب'
+      if (!selectedCountry) errs.country_code = t('quickJoin.validation.countryRequired')
+      if (!localPhone.trim()) errs.phone = t('quickJoin.validation.phoneRequired')
     }
-    if (reveal.city && !city.trim()) errs.city = 'المدينة مطلوبة'
-    if (reveal.gender && !gender) errs.gender = 'اختر الجنس'
+    if (reveal.city && !city.trim()) errs.city = t('quickJoin.validation.cityRequired')
+    if (reveal.gender && !gender) errs.gender = t('quickJoin.validation.genderRequired')
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs)
       return
@@ -249,6 +250,18 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
     } catch (err) {
       const raw = getLaravelFieldErrors(err)
       if (Object.keys(raw).length > 0) {
+        // Funnel: which extra fields the register API actually demanded.
+        const demanded: string[] = []
+        if (raw.phone || raw.phone_country_code || raw.country_code || raw.country) demanded.push('phone')
+        if (raw.city) demanded.push('city')
+        if (raw.gender) demanded.push('gender')
+        if (demanded.length > 0) {
+          trackFunnelEvent('quickjoin_fields_expanded', {
+            kind: intent.kind,
+            slug: intent.slug,
+            fields: demanded.join(','),
+          })
+        }
         // Progressive disclosure: expand ONLY the fields the server truly demands.
         setReveal((prev) => ({
           phone:
@@ -271,8 +284,8 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
     setFormError('')
 
     const errs: Record<string, string> = {}
-    if (!email.trim()) errs.email = 'البريد الإلكتروني مطلوب'
-    if (!password) errs.password = 'كلمة المرور مطلوبة'
+    if (!email.trim()) errs.email = t('quickJoin.validation.emailRequired')
+    if (!password) errs.password = t('quickJoin.validation.passwordRequired')
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs)
       return
@@ -305,7 +318,9 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
   }
 
   const roleRaw = blockedRole ?? (typeof user?.role === 'string' ? user.role : '')
-  const roleLabel = ROLE_AR[normalizeRole(roleRaw) ?? ''] ?? roleRaw
+  const roleLabel = roleRaw
+    ? t(`quickJoin.roles.${normalizeRole(roleRaw) ?? ''}`, { defaultValue: roleRaw })
+    : ''
 
   const startHref =
     intent.kind === 'course'
@@ -317,7 +332,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
         : '/dashboard/student'
 
   const anyRevealed = reveal.phone || reveal.city || reveal.gender
-  const kindLabel = intent.kind === 'path' ? 'مسار تعليمي' : 'دورة تدريبية'
+  const kindLabel = intent.kind === 'path' ? t('quickJoin.kind.path') : t('quickJoin.kind.course')
 
   return (
     <motion.div
@@ -346,14 +361,14 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
         <div className="bg-navy px-7 pb-6 pt-5 text-start text-white">
           <div className="flex items-start justify-between gap-3">
             <p className="text-[11px] font-black tracking-wide text-ice/85">
-              {kindLabel} · تسجيل سريع
+              {t('quickJoin.header.eyebrow', { kind: kindLabel })}
             </p>
             <button
               type="button"
               disabled={busy}
               onClick={onClose}
               className="emc-focus-ring -me-1.5 rounded-lg p-1.5 text-ice/85 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
-              aria-label="إغلاق"
+              aria-label={t('quickJoin.close')}
             >
               <X size={18} aria-hidden />
             </button>
@@ -362,11 +377,13 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
             id="quick-join-title"
             className="mt-2 font-display text-xl font-black leading-snug tracking-tight"
           >
-            {intent.title ? `انضم وابدأ: ${intent.title}` : 'انضم وابدأ'}
+            {intent.title
+              ? t('quickJoin.header.titleWithProgram', { title: intent.title })
+              : t('quickJoin.header.title')}
           </h2>
           <p className="mt-2 text-xs font-bold text-ice/90">
             {intent.isFree ? (
-              'مجانية بالكامل — حساب واحد يفصلك عن البداية'
+              t('quickJoin.header.freeNote')
             ) : typeof intent.price === 'number' ? (
               <span dir="ltr" className="font-latin tabular-nums">
                 {!intent.currency || intent.currency === 'EUR'
@@ -374,7 +391,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                   : `${intent.price} ${intent.currency}`}
               </span>
             ) : (
-              'خطوة واحدة تفصلك عن البداية'
+              t('quickJoin.header.stepNote')
             )}
           </p>
         </div>
@@ -389,7 +406,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               )}
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                الاسم
+                {t('quickJoin.form.name')}
                 <span className="relative block">
                   <UserRound
                     size={18}
@@ -411,7 +428,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               </label>
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                البريد الإلكتروني
+                {t('quickJoin.form.email')}
                 <span className="relative block">
                   <Mail
                     size={18}
@@ -434,7 +451,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               </label>
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                كلمة المرور
+                {t('quickJoin.form.password')}
                 <span className="relative block">
                   <LockKeyhole
                     size={18}
@@ -461,7 +478,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                 <>
                   <div className="emc-hairline" aria-hidden />
                   <p className="text-xs font-bold text-muted-500">
-                    نحتاج هذه البيانات الإضافية لإكمال إنشاء حسابك.
+                    {t('quickJoin.form.extraFieldsNote')}
                   </p>
                 </>
               )}
@@ -469,7 +486,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               {reveal.phone && (
                 <>
                   <div className="grid gap-2 text-sm font-black text-deepBlue">
-                    الدولة
+                    {t('quickJoin.form.country')}
                     <CountrySelector
                       value={selectedCountry}
                       onChange={(c) => {
@@ -485,7 +502,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                     )}
                   </div>
                   <div className="grid gap-2 text-sm font-black text-deepBlue">
-                    رقم الجوال
+                    {t('quickJoin.form.phone')}
                     <div onBlur={autofillCountryFromPhone}>
                       <PhoneInput
                         country={selectedCountry}
@@ -506,7 +523,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
 
               {reveal.city && (
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
-                  المدينة
+                  {t('quickJoin.form.city')}
                   <span className="relative block">
                     <MapPin
                       size={18}
@@ -529,7 +546,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
 
               {reveal.gender && (
                 <label className="grid gap-2 text-sm font-black text-deepBlue">
-                  الجنس
+                  {t('quickJoin.form.gender')}
                   <span className="relative block">
                     <ChevronDown
                       size={16}
@@ -544,13 +561,13 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                       className={`${inputCls(fieldErrors.gender)} appearance-none ps-9 ${gender ? 'text-deepBlue' : 'text-muted-400'}`}
                     >
                       <option value="" disabled>
-                        اختر الجنس
+                        {t('quickJoin.form.genderPlaceholder')}
                       </option>
                       <option value="male" className="text-deepBlue">
-                        ذكر
+                        {t('quickJoin.form.genderMale')}
                       </option>
                       <option value="female" className="text-deepBlue">
-                        أنثى
+                        {t('quickJoin.form.genderFemale')}
                       </option>
                     </select>
                   </span>
@@ -564,10 +581,10 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    جارٍ إنشاء حسابك…
+                    {t('quickJoin.form.registerSubmitting')}
                   </>
                 ) : (
-                  'أنشئ حسابي وسجّلني'
+                  t('quickJoin.form.registerSubmit')
                 )}
               </button>
 
@@ -575,13 +592,14 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                 <button
                   type="button"
                   onClick={() => {
+                    trackFunnelEvent('quickjoin_login_switch', { kind: intent.kind, slug: intent.slug })
                     setFieldErrors({})
                     setFormError('')
                     setPhase('login')
                   }}
                   className="emc-cta-line emc-focus-ring text-sm"
                 >
-                  لديّ حساب — تسجيل الدخول
+                  {t('quickJoin.form.switchToLogin')}
                 </button>
               </p>
             </form>
@@ -596,7 +614,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               )}
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                البريد الإلكتروني
+                {t('quickJoin.form.email')}
                 <span className="relative block">
                   <Mail
                     size={18}
@@ -619,7 +637,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               </label>
 
               <label className="grid gap-2 text-sm font-black text-deepBlue">
-                كلمة المرور
+                {t('quickJoin.form.password')}
                 <span className="relative block">
                   <LockKeyhole
                     size={18}
@@ -645,10 +663,10 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    جارٍ تسجيل الدخول…
+                    {t('quickJoin.form.loginSubmitting')}
                   </>
                 ) : (
-                  'تسجيل الدخول والمتابعة'
+                  t('quickJoin.form.loginSubmit')
                 )}
               </button>
 
@@ -662,7 +680,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                   }}
                   className="emc-cta-line emc-focus-ring text-sm"
                 >
-                  ليس لديّ حساب — إنشاء حساب جديد
+                  {t('quickJoin.form.switchToRegister')}
                 </button>
               </p>
             </form>
@@ -671,7 +689,7 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
           {phase === 'executing' && (
             <div className="flex flex-col items-center gap-4 py-8 text-center" aria-live="polite">
               <Loader2 className="h-9 w-9 animate-spin text-customBlue" aria-hidden />
-              <p className="text-sm font-black text-deepBlue">جارٍ إتمام تسجيلك…</p>
+              <p className="text-sm font-black text-deepBlue">{t('quickJoin.executing')}</p>
             </div>
           )}
 
@@ -679,17 +697,19 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
             <div className="flex flex-col items-center gap-5 py-4 text-center" aria-live="polite">
               <CheckCircle2 className="h-14 w-14 text-success" aria-hidden strokeWidth={1.6} />
               <p className="font-display text-xl font-black leading-snug tracking-tight text-deepBlue">
-                {intent.title ? `تم. أنت الآن في ${intent.title}` : 'تم. أنت الآن مسجل'}
+                {intent.title
+                  ? t('quickJoin.success.titleWithProgram', { title: intent.title })
+                  : t('quickJoin.success.title')}
               </p>
               <Link to={startHref} onClick={onClose} className={PRIMARY_BTN_CLS}>
-                ابدأ التعلّم
+                {t('quickJoin.success.startLearning')}
               </Link>
               <Link
                 to="/dashboard/student"
                 onClick={onClose}
                 className="emc-cta-line emc-focus-ring text-sm"
               >
-                تصفّح لوحة الطالب
+                {t('quickJoin.success.browseDashboard')}
               </Link>
             </div>
           )}
@@ -699,10 +719,12 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
               <CheckCircle2 className="h-12 w-12 text-success" aria-hidden strokeWidth={1.6} />
               <div>
                 <p className="font-display text-lg font-black tracking-tight text-deepBlue">
-                  حسابك جاهز
+                  {t('quickJoin.partial.title')}
                 </p>
                 <p className="mt-2 text-sm font-bold leading-7 text-muted-500">
-                  بقيت خطوة واحدة لإتمام تسجيلك في {intent.title || 'البرنامج'}.
+                  {t('quickJoin.partial.body', {
+                    program: intent.title || t('quickJoin.partial.programFallback'),
+                  })}
                 </p>
               </div>
               <Link
@@ -710,10 +732,10 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
                 onClick={onClose}
                 className={PRIMARY_BTN_CLS}
               >
-                إكمال التسجيل
+                {t('quickJoin.partial.complete')}
               </Link>
               <button type="button" onClick={onClose} className="emc-cta-line emc-focus-ring text-sm">
-                لاحقًا
+                {t('quickJoin.partial.later')}
               </button>
             </div>
           )}
@@ -722,19 +744,18 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
             <div className="space-y-5 py-2">
               <div>
                 <p className="font-display text-lg font-black tracking-tight text-deepBlue">
-                  هذا الحساب{roleLabel ? ` (${roleLabel})` : ''} ليس حساب طالب
+                  {t('quickJoin.nonStudent.title', { role: roleLabel ? ` (${roleLabel})` : '' })}
                 </p>
                 <p className="mt-2 text-sm font-bold leading-7 text-muted-500">
-                  الالتحاق بالبرامج متاح لحسابات الطلاب فقط. يمكنك إنشاء حساب طالب ببريد إلكتروني
-                  آخر والمتابعة من حيث توقفت.
+                  {t('quickJoin.nonStudent.body')}
                 </p>
               </div>
               <button type="button" onClick={switchToStudentSignup} className={PRIMARY_BTN_CLS}>
-                إنشاء حساب طالب ببريد آخر
+                {t('quickJoin.nonStudent.createStudent')}
               </button>
               <p className="text-center">
                 <button type="button" onClick={onClose} className="emc-cta-line emc-focus-ring text-sm">
-                  البقاء على حسابي الحالي
+                  {t('quickJoin.nonStudent.stay')}
                 </button>
               </p>
             </div>

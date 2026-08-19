@@ -5,6 +5,7 @@ import {
   registerEnrollIntentHost,
   subscribeEnrollIntent,
 } from '@/lib/enrollIntent'
+import { trackFunnelEvent } from '@/lib/funnelEvents'
 
 // Bundle discipline: the join/login form, country/phone widgets and enrollment
 // calls live in a separate chunk that loads only when a guest actually clicks
@@ -25,6 +26,12 @@ export default function QuickJoinModal() {
   // Presence registration — tells the gate the in-page flow is available, so it
   // stops sending guests on the /login?redirect round-trip.
   useEffect(() => registerEnrollIntentHost(), [])
+
+  // Funnel: each recorded intent (a fresh object per enroll click) opens the
+  // dialog exactly once — side-effect only, no state writes (effects law).
+  useEffect(() => {
+    if (intent) trackFunnelEvent('quickjoin_open', { kind: intent.kind, slug: intent.slug })
+  }, [intent])
 
   if (!intent) return null
 
