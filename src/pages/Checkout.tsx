@@ -11,6 +11,11 @@ import { initiateCheckout, validateCoupon, type CouponPricingPreview } from '@/a
 import { submitCourseRegistration } from '@/api/registrationsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { useAuth } from '@/contexts/AuthContext'
+import {
+  rememberFunnelContact,
+  resolvePriceZone,
+  trackFunnelEvent,
+} from '@/lib/funnelEvents'
 import { ALL_COUNTRIES } from '@/lib/countries'
 import { buildPublicLoginHref } from '@/utils/publicEnrollAuth'
 import { formatEuro } from '@/utils/currency'
@@ -143,6 +148,20 @@ export default function Checkout() {
     }
   }, [slug])
 
+  // §17 — pressing «سجّل الآن» is what lands the visitor on this route, so the
+  // checkout begins the moment the program resolves. Fires once per program: the
+  // dependency is the loaded course object, which `setCourse` writes exactly once
+  // per slug. Side-effect only, no state writes (effects law).
+  useEffect(() => {
+    if (!course) return
+    trackFunnelEvent('checkout_start', {
+      product_id: course.slug,
+      price: resolveDisplayPrice(course, '').amount,
+      zone: resolvePriceZone(),
+    })
+    trackFunnelEvent('checkout_step', { step_number: 1 })
+  }, [course])
+
   // Prefill from the signed-in profile — render-phase adjustment (P2), never a
   // synchronous setState reachable from an effect.
   const [prefilledFor, setPrefilledFor] = useState<number | null>(null)
@@ -182,6 +201,12 @@ export default function Checkout() {
 
   function goToPayment() {
     if (!validateDetails()) return
+    // §17 join — stored as a non-reversible hash only, so a free workshop
+    // registration and this purchase resolve to the same person across sessions.
+    rememberFunnelContact(email || whatsapp)
+    // Announced once, the first time the step is unlocked: moving back through
+    // the rail and forward again never re-fires it.
+    if (reached < 2) trackFunnelEvent('checkout_step', { step_number: 2 })
     setStep(2)
     setReached((r) => (r > 2 ? r : 2))
     // A country outside the local-transfer list can never keep that method selected.
@@ -191,8 +216,24 @@ export default function Checkout() {
   }
 
   function goToConfirm() {
+    if (reached < 3) trackFunnelEvent('checkout_step', { step_number: 3 })
     setStep(3)
     setReached(3)
+  }
+
+  /**
+   * §17 — choosing the local rail is its own outcome: the order will sit
+   * «بانتظار تأكيد التحويل» until the finance team matches the transfer. Guarded,
+   * so re-clicking the already-selected option cannot fire a second event.
+   */
+  function chooseBankTransfer() {
+    if (course && method !== 'bank_transfer') {
+      trackFunnelEvent('bank_transfer_pending', {
+        product_id: course.slug,
+        country: countryCode,
+      })
+    }
+    setMethod('bank_transfer')
   }
 
   async function applyCoupon() {
@@ -202,6 +243,14 @@ export default function Checkout() {
     try {
       const preview = await validateCoupon(course.id, couponCode.trim())
       setAppliedCoupon(preview)
+      // §17 — «قيمة الدورة تُخصم من سعر المسار» (UPGRADE_COUPON_NOTE). The public
+      // coupon payload never names the product the credit came from, so the code
+      // is the only identifier of its origin the API returns.
+      // SEAM: swap `from_product` for the real source slug the day it ships.
+      trackFunnelEvent('upgrade_coupon_applied', {
+        from_product: preview.coupon.code,
+        to_track: course.slug,
+      })
       toast.success('تم تطبيق رمز الخصم')
     } catch (err) {
       setCouponError(getApiErrorMessage(err) || 'رمز الخصم غير صالح أو منتهي')
@@ -210,11 +259,27 @@ export default function Checkout() {
     }
   }
 
+  /**
+   * §17 `purchase` — fired ONLY where a seat is genuinely confirmed. A redirect to
+   * the payment provider is not a purchase, so no call sits on that branch.
+   */
+  function trackPurchase(coupon: string | null, value: number) {
+    if (!course) return
+    trackFunnelEvent('purchase', {
+      product_id: course.slug,
+      value,
+      currency: appliedCoupon?.pricing.currency ?? course.currency ?? 'EUR',
+      zone: resolvePriceZone(countryCode),
+      coupon: coupon ?? undefined,
+    })
+  }
+
   /** POST /courses/{id}/checkout — the course-detail CTA path (coupon + fallback). */
   async function startCheckoutSession(code: string | null): Promise<boolean> {
     if (!course) return false
     const result = await initiateCheckout(course.id, code)
     if (result.free) {
+      trackPurchase(code, 0)
       toast.success('تم تأكيد مقعدك — غطى رمز الخصم كامل القيمة.')
       navigate('/thank-you')
       return true
@@ -263,6 +328,8 @@ export default function Checkout() {
           window.location.assign(registration.checkout_url)
           return
         }
+        // No payment redirect came back: the backend confirmed the seat outright.
+        trackPurchase(null, price?.amount ?? 0)
         toast.success('تم تأكيد مقعدك')
         navigate('/thank-you')
         return
@@ -543,7 +610,7 @@ export default function Checkout() {
               {localTransferAvailable ? (
                 <button
                   type="button"
-                  onClick={() => setMethod('bank_transfer')}
+                  onClick={chooseBankTransfer}
                   aria-pressed={method === 'bank_transfer'}
                   className={`emc-focus-ring flex w-full items-center gap-3 rounded-xl border p-4 text-right transition duration-250 ease-emc ${
                     method === 'bank_transfer' ? 'border-customBlue bg-brand-50' : 'border-line bg-white'

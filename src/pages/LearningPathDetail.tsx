@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import toast from '@/lib/toast'
 import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
-import { trackFunnelEvent } from '@/lib/funnelEvents'
+import { resolvePriceZone, trackFunnelEvent } from '@/lib/funnelEvents'
 import {
   buildPublicLoginHref,
   isStudentUser,
@@ -271,6 +271,19 @@ export default function LearningPathDetail() {
       setLoading(false)
     })
   }, [slug, navigate])
+
+  // §17 — product_view for the track. `setPath` writes once per slug, so this
+  // object identity is the natural once-per-product guard: enrollment-status
+  // refreshes and re-renders can never repeat it. Side-effect only, no state
+  // writes (effects law).
+  useEffect(() => {
+    if (!path) return
+    trackFunnelEvent('product_view', {
+      product_id: path.slug,
+      type: 'track',
+      price_zone: resolvePriceZone(),
+    })
+  }, [path])
 
   /** Imperative re-check after enrolling — called from an event handler. */
   const refreshEnrollStatus = useCallback(async () => {

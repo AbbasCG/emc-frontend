@@ -170,34 +170,45 @@ describe('CookieBanner — solid V3 surface, no orange links', () => {
     )
   }
 
+  // The three guards below keep their original INTENT; only the colour spelling
+  // moved from raw hex to design tokens, because raw hex is now lint-fatal
+  // (bg-[#0C2A4B] -> bg-navy, text-[#A6D6F2] -> text-ice).
   it('renders a solid deep-navy card with no glass blur on the surface', () => {
     const { container } = renderBanner()
-    // Old surface: bg-[#0C2A4B]/97 + backdrop-blur-xl (translucent over light pages).
+    // Old surface: translucent navy + backdrop-blur-xl over light pages.
     expect(container.querySelector('[class*="backdrop-blur"]')).toBeNull()
-    const card = container.querySelector('[class*="bg-[#0C2A4B]"]')
+    const card = container.querySelector('[class*="bg-navy"]')
     expect(card).not.toBeNull()
-    expect(card!.className).not.toMatch(/bg-\[#0C2A4B\]\/\d/)
+    // Solid, never bg-navy/80 and friends.
+    expect(card!.className).not.toMatch(/bg-navy\/\d/)
   })
 
-  it('policy/privacy links are light-blue (#A6D6F2), never orange text', () => {
+  it('policy/privacy links are light-blue (ice), never orange text', () => {
     renderBanner()
     const policy = screen.getByRole('link', { name: 'cookie.policyLink' })
     const privacy = screen.getByRole('link', { name: 'cookie.privacyLink' })
     for (const link of [policy, privacy]) {
-      expect(link.className).not.toMatch(/F28C00|FFA733|C97208/i)
-      expect(link.className).toContain('text-[#A6D6F2]')
+      expect(link.className).not.toMatch(/F28C00|FFA733|C97208|customOrange|amber|ember/i)
+      expect(link.className).toContain('text-ice')
     }
   })
 
-  it('keeps the fire orange ONLY on the solid primary accept button', () => {
+  it('gives accept and refuse EQUAL prominence — no orange nudge on either', () => {
+    // EMC-WEB-001 §17: the consent banner must offer «خيارين متساويي الوضوح»,
+    // with refusal the pre-decision default. Painting «قبول» in the primary
+    // action colour while «رفض» stays plain is exactly the nudge that rule
+    // forbids, so the previous "orange accept button" guard is replaced by this
+    // stricter one: neither decision may carry fire, and both must be built from
+    // one identical class string so prominence is equal by construction.
     const { container } = renderBanner()
-    const orangeBearers = Array.from(container.querySelectorAll('[class*="F28C00"]'))
-    expect(orangeBearers).toHaveLength(1)
+    expect(container.querySelectorAll('[class*="F28C00"]')).toHaveLength(0)
+
     const accept = screen.getByRole('button', { name: 'cookie.acceptAll' })
-    expect(orangeBearers[0]).toBe(accept)
-    // Solid fill, white text — orange as background, not as text.
-    expect(accept.className).toContain('bg-[#F28C00]')
-    expect(accept.className).not.toMatch(/text-\[#F28C00\]/)
+    const reject = screen.getByRole('button', { name: 'cookie.rejectNonEssential' })
+    for (const button of [accept, reject]) {
+      expect(button.className).not.toMatch(/F28C00|FFA733|C97208|customOrange|accent-\d|amber|ember/i)
+    }
+    expect(accept.className).toBe(reject.className)
   })
 
   it('has no WCAG 2.1 A/AA violations', async () => {

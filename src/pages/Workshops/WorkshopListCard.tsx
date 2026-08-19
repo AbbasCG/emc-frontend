@@ -12,6 +12,7 @@ import {
   buildWorkshopDetailEnrollHref,
   gatePublicEnrollClick,
 } from '@/utils/publicEnrollAuth'
+import { rememberFunnelContact, trackFunnelEvent } from '@/lib/funnelEvents'
 
 type Props = {
   workshop: PublicWorkshop
@@ -56,6 +57,39 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
 
   const price = workshop.price ?? 0
   const priceLabel = workshop.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(price, 'ar'))
+
+  /**
+   * §17 `workshop_register`.
+   *
+   * `gatePublicEnrollClick` returns true ONLY for a signed-in student — the one
+   * case where the registration actually goes through for this browser; guests and
+   * non-student accounts are diverted and nothing is counted. Restricted to a FREE
+   * workshop: a paid one is a purchase, and `purchase` is what measures that.
+   *
+   * The contact is remembered (as a non-reversible hash) at the same moment, so
+   * this free registration and a later purchase resolve to the same person — the
+   * join §17 exists for.
+   *
+   * SEAM — the public surface owns no «register for workshop» endpoint of its own:
+   * the flow hands the student over to the workshop's own enrollment panel. The
+   * day a public endpoint ships, move this call onto its success callback; the
+   * property names do not change.
+   */
+  function handleRegisterClick() {
+    const proceeded = gatePublicEnrollClick({
+      isAuthenticated,
+      role: user?.role,
+      redirectPath: buildWorkshopDetailEnrollHref(workshop.slug),
+      navigate,
+      onStudent: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
+    })
+    if (!proceeded || !workshop.is_free) return
+    rememberFunnelContact(user?.email)
+    trackFunnelEvent('workshop_register', {
+      workshop_id: workshop.slug,
+      country: user?.country ?? undefined,
+    })
+  }
 
   const seatsTotal = workshop.seats_total
   const seatsRemaining = workshop.seats_remaining
@@ -194,15 +228,7 @@ export default function WorkshopListCard({ workshop, index = 0 }: Props) {
               </span>
             : <button
                 type="button"
-                onClick={() => {
-                  gatePublicEnrollClick({
-                    isAuthenticated,
-                    role: user?.role,
-                    redirectPath: buildWorkshopDetailEnrollHref(workshop.slug),
-                    navigate,
-                    onStudent: () => navigate(buildWorkshopDetailEnrollHref(workshop.slug)),
-                  })
-                }}
+                onClick={handleRegisterClick}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-customBlue px-3.5 py-2.5 text-xs font-black text-white transition-colors duration-200 hover:bg-brand-600"
               >
                 <BookOpen className="h-3.5 w-3.5" aria-hidden />

@@ -14,6 +14,11 @@ import { Landmark, Paperclip } from 'lucide-react'
  * SEAM — when the backend exposes a public «submit transfer receipt» endpoint,
  * post the picked receipt file plus the order reference where `onMarkTransferred`
  * is called below, before the panel switches to its pending state.
+ *
+ * Measurement (§17): this panel fires NOTHING. `bank_transfer_pending` is emitted
+ * by the parent at the single moment the local-transfer option is CHOSEN, so the
+ * pending state can re-render (or the visitor can step back and forward) without
+ * ever counting the same order twice.
  */
 
 type ApprovedAccount = {

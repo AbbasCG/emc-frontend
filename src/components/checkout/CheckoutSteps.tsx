@@ -6,6 +6,11 @@ import { Check } from 'lucide-react'
  * Brand law: the rail is sea-family only — orange stays reserved for the single
  * primary action on the screen (the pay button), never for navigation chrome.
  * No shadows: public surfaces are drawn with hairlines and tokens only.
+ *
+ * Measurement (§17): this rail is presentation-only and fires NOTHING. `onSelect`
+ * is also how a visitor walks BACK through unlocked steps, so counting here would
+ * inflate the funnel. `checkout_step` belongs to the parent, which announces each
+ * step exactly once — the first time it is unlocked.
  */
 
 export type CheckoutStepId = 1 | 2 | 3

@@ -25,7 +25,8 @@ import AppAlert from '@/components/ui/AppAlert'
 import { resolveCourseEnrollCta } from '@/utils/publicCourseDetailCta'
 import { buildPublicLoginHref, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
 import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
-import { trackFunnelEvent } from '@/lib/funnelEvents'
+import { resolvePriceZone, trackFunnelEvent } from '@/lib/funnelEvents'
+import { resolveItemType } from '@/utils/publicCourseDisplay'
 import { findPathsContainingCourse, type PathUpsellMatch } from '@/utils/pathUpsell'
 import type { LearningPath } from '@/api/learningPathsApi'
 import { deriveCourseDetail } from '@/utils/courseDetailDerived'
@@ -214,6 +215,19 @@ export default function CourseDetails() {
     })()
     return () => controller.abort()
   }, [slug])
+
+  // §17 — product_view. Fires once per program: the dependency is the loaded
+  // course object, which `setCourse` writes exactly once per slug, so a re-render
+  // (wishlist, related carousel, auth hydration) can never repeat it. Side-effect
+  // only, no state writes (effects law).
+  useEffect(() => {
+    if (!course) return
+    trackFunnelEvent('product_view', {
+      product_id: course.slug,
+      type: resolveItemType(course),
+      price_zone: resolvePriceZone(),
+    })
+  }, [course])
 
   // Errors intentionally ignored (as before): the carousel simply stays empty.
   const { data: relatedCoursesData } = useFetch(() => fetchCoursesFromApi(), [])
