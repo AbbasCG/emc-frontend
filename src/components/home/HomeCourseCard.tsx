@@ -1,13 +1,15 @@
 import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { ArrowLeft, BookOpen, Calendar, Clock, MapPin, Monitor } from 'lucide-react'
+import { BookOpen, Clock, MapPin, Monitor } from 'lucide-react'
 import type { Course } from '../../types'
 import { formatPrice } from '../../utils/course'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
-import { formatPublicDate } from '@/utils/publicDetailFormat'
 import CourseStatusBadge from '@/components/shared/CourseStatusBadge'
 import { resolveCourseIsEnded } from '@/utils/courseEnded'
+import { resolveCourseSeatMetrics } from '@/utils/courseDetailPageData'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import { OPEN_ENROLLMENT_LABEL, seatsLine } from '@/data/webSpec'
 import { staggerItem } from '@/utils/animations'
 
 type Props = { course: Course; index?: number }
@@ -31,10 +33,13 @@ function HomeCourseCard({ course }: Props) {
 
   const instructorName = course.instructor?.name || course.instructor_name || null
 
-  const startDate = formatPublicDate(course.start_date)
   const hours = course.training_hours ? Math.round(Number(course.training_hours)) : null
 
   const isEnded = resolveCourseIsEnded(course)
+
+  // §1.3 — no start date on a product row. «تسجيل مفتوح» takes its place, and the
+  // seats line renders only when the API actually reports remaining seats.
+  const seatsUrgency = isEnded ? null : seatsLine(resolveCourseSeatMetrics(course).remaining)
 
   return (
     <motion.article variants={staggerItem} aria-label={course.title} className="emc-row group relative">
@@ -71,6 +76,15 @@ function HomeCourseCard({ course }: Props) {
             </p>
           )}
 
+          {!isEnded && (
+            <p className="mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] font-bold sm:text-[11px]">
+              <span className="rounded-full border border-line px-2 py-0.5 text-ocean">
+                {OPEN_ENROLLMENT_LABEL}
+              </span>
+              {seatsUrgency && <span className="text-ink-400">{seatsUrgency}</span>}
+            </p>
+          )}
+
           {/* Serif title */}
           <h3 className="line-clamp-2 font-display text-base font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:line-clamp-1 sm:text-xl">
             {course.title}
@@ -79,12 +93,6 @@ function HomeCourseCard({ course }: Props) {
           {/* One meta line */}
           <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-ink-400 sm:text-xs">
             {instructorName && <span className="truncate">مع {instructorName}</span>}
-            {startDate && (
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
-                {startDate}
-              </span>
-            )}
             {hours != null && (
               <span className="hidden items-center gap-1.5 sm:flex">
                 <Clock className="h-3 w-3 shrink-0 text-customBlue" aria-hidden />
@@ -118,7 +126,7 @@ function HomeCourseCard({ course }: Props) {
               className="emc-cta-line relative z-10 text-xs sm:text-sm"
             >
               تفاصيل الدورة
-              <ArrowLeft size={14} aria-hidden />
+              <ArrowLeftIcon className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>

@@ -4,6 +4,11 @@
   },
   "nav": {
     "home": "الرئيسية",
+    "courses": "الدورات",
+    "tracks": "المسارات",
+    "fellowship": "الزمالة",
+    "workshops": "الورش المجانية",
+    "startJourney": "ابدأ رحلتك",
     "aria": {
       "homeLink": "EMC — الصفحة الرئيسية",
       "mainMenu": "القائمة الرئيسية",
@@ -13,39 +18,6 @@
     },
     "mega": {
       "quickJump": "انتقال سريع ضمن منظومة EMC"
-    },
-    "about": {
-      "label": "عن EMC",
-      "items": {
-        "about": { "label": "من نحن", "description": "تعريف بالمنصة وأسلوب عملها" },
-        "impact": { "label": "الأثر والإنجازات", "description": "اتجاهات أثر واقعية وشفافة" },
-        "team": { "label": "الفريق", "description": "الهيكل والأدوار والقيم" },
-        "departments": { "label": "الإدارات والحوكمة", "description": "الهيكل التنظيمي وسياسات الجودة والامتثال" },
-        "platform": { "label": "المنصة", "description": "التجربة الرقمية والخدمات" }
-      }
-    },
-    "programs": {
-      "label": "البرامج",
-      "items": {
-        "courses": { "label": "البرامج والدورات", "description": "استعرض البرامج وسجّل مباشرة" },
-        "workshops": { "label": "الورش", "description": "ورش تدريبية قصيرة ومجتمعية" },
-        "learningPaths": { "label": "مسارات التعلم", "description": "مسارات تعليمية مترابطة مع شهادات" },
-        "tracks": { "label": "المجالات والمحاور", "description": "المجالات الاثنا عشر والمحاور التفصيلية" },
-        "instructors": { "label": "المدربون", "description": "تعرّف على خبراء التدريب" }
-      }
-    },
-    "join": {
-      "label": "انضم إلينا",
-      "items": {
-        "partnerships": { "label": "الشراكات — نظرة عامة", "description": "تعرّف على شراكات EMC المؤسسية والخدمية" },
-        "student": { "label": "انضم كطالب", "description": "إنشاء حساب للتعلّم والتسجيل في البرامج" },
-        "trainer": { "label": "انضم كمدرب", "description": "تواصل للانضمام كمدّرب مع EMC" },
-        "partner": { "label": "انضم كشريك", "description": "تقديم طلب شراكة مؤسسية أو خدمية" },
-        "volunteer": { "label": "انضم كمتطوّع", "description": "شارك مهاراتك وفق أطر EMC التطوعية" },
-        "ambassador": { "label": "سفير التحول الرقمي", "description": "برنامج سفراء EMC في الجامعات العربية" },
-        "submitWorkshop": { "label": "تقديم ورشة", "description": "طلب ورشة أو برنامج عبر النموذج الرسمي" },
-        "contact": { "label": "تواصل معنا", "description": "قنوات التواصل والاستفسارات العامّة" }
-      }
     },
     "auth": {
       "dashboard": "لوحة التحكم",
@@ -72,6 +44,8 @@
       "main": {
         "home": "الرئيسية",
         "about": "عن المركز",
+        "business": "للمؤسسات",
+        "verify": "التحقق من الشهادات",
         "tracks": "المجالات",
         "team": "فريق EMC",
         "impact": "الأثر",
@@ -81,8 +55,9 @@
       },
       "programs": {
         "courses": "الدورات",
-        "workshops": "الورش",
-        "learningPaths": "مسارات التعلم",
+        "learningPaths": "المسارات",
+        "fellowship": "الزمالة",
+        "workshops": "الورش المجانية",
         "programs": "البرامج",
         "platform": "المنصة",
         "submitWorkshop": "تقديم ورشة",

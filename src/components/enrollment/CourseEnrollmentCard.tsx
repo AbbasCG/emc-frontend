@@ -21,6 +21,7 @@ import { buildPublicLoginHref, isStudentUser, PUBLIC_ENROLL_STUDENT_ONLY_MSG } f
 import { endedCourseBlocksEnrollment, ENDED_COURSE_DETAIL_MESSAGE, resolveCourseIsEnded } from '@/utils/courseEnded'
 import { formatPrice } from '@/utils/course'
 import { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
+import { LAUNCH_PROMISE, OPEN_ENROLLMENT_LABEL, REFUND_LINE } from '@/data/webSpec'
 
 type MissingField = 'phone' | 'city' | 'gender'
 
@@ -330,7 +331,7 @@ export default function CourseEnrollmentCard({
 
   return (
     <>
-      <div className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 shadow-emc-md backdrop-blur-md ring-1 ring-deepBlue/5">
+      <div className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 backdrop-blur-md ring-1 ring-deepBlue/5">
         <div className="border-b border-deepBlue/[0.06] bg-gradient-to-l from-brand-50 via-white to-brand-50/40 px-5 py-4 text-right sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-display text-base font-black tracking-tight text-deepBlue">الالتحاق</h3>
@@ -365,6 +366,10 @@ export default function CourseEnrollmentCard({
               </span>
             </div>
           </div>
+          {/* §1.3 — the product carries no date: enrollment is simply open. */}
+          {registrationOpen && !seatsFull && !isEnded ?
+            <p className="text-[11px] font-bold text-ocean">{OPEN_ENROLLMENT_LABEL}</p>
+          : null}
           {discountPercent != null && discountPercent > 0 && !isFree ?
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-black text-slate-400">الخصم</span>
@@ -418,7 +423,7 @@ export default function CourseEnrollmentCard({
               </p>
               <Link
                 to={loginHref}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03]"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white transition duration-250 ease-emc hover:brightness-[1.03]"
               >
                 سجّل الدخول لإكمال التسجيل
               </Link>
@@ -467,7 +472,7 @@ export default function CourseEnrollmentCard({
                 whileHover={!submitting ? { scale: 1.02 } : undefined}
                 disabled={submitting}
                 onClick={handlePrimaryClick}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white shadow-emc-md transition duration-250 ease-emc hover:brightness-[1.03] disabled:opacity-60"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-customOrange text-sm font-black text-white transition duration-250 ease-emc hover:brightness-[1.03] disabled:opacity-60"
               >
                 {submitting ?
                   <>
@@ -488,6 +493,14 @@ export default function CourseEnrollmentCard({
               )}
             </>
           }
+
+          {/* §8 — the launch promise and the guarantee, verbatim, in the purchase area. */}
+          {canEnroll && (
+            <div className="mt-4 border-t border-line pt-4 text-right">
+              <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
+              <p className="mt-2 text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>
+            </div>
+          )}
         </div>
       </div>
 

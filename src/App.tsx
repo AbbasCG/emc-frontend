@@ -52,6 +52,10 @@ const AmbassadorProgram           = lazy(() => import('./pages/AmbassadorProgram
 const AmbassadorApply             = lazy(() => import('./pages/AmbassadorApply'))
 const AmbassadorApplicationSuccess = lazy(() => import('./pages/AmbassadorApplicationSuccess'))
 const LegalPage          = lazy(() => import('./pages/legal/LegalPage'))
+const Checkout           = lazy(() => import('./pages/Checkout'))
+const Verify             = lazy(() => import('./pages/Verify'))
+const Fellowship         = lazy(() => import('./pages/Fellowship'))
+const Business           = lazy(() => import('./pages/Business'))
 
 // ── Lazy: dashboard layout (code-split entry point) ──────────────────────────
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'))
@@ -405,6 +409,10 @@ function App() {
               <Route path="/forms/:slug" element={<Suspense fallback={<RouteFallback />}><PublicFormPage /></Suspense>} />
               <Route path="/partnerships/apply" element={<Suspense fallback={<RouteFallback />}><PartnershipApplyPage /></Suspense>} />
               <Route path="/certificates/verify/:code" element={<Suspense fallback={<RouteFallback />}><CertificateVerifyPage /></Suspense>} />
+              <Route path="/checkout/:slug" element={<Suspense fallback={<RouteFallback />}><Checkout /></Suspense>} />
+              <Route path="/verify" element={<Suspense fallback={<RouteFallback />}><Verify /></Suspense>} />
+              <Route path="/fellowship" element={<Suspense fallback={<RouteFallback />}><Fellowship /></Suspense>} />
+              <Route path="/business" element={<Suspense fallback={<RouteFallback />}><Business /></Suspense>} />
               <Route path="/knowledge" element={<Suspense fallback={<RouteFallback />}><KnowledgeHubPage /></Suspense>} />
               <Route path="/knowledge/:slug" element={<Suspense fallback={<RouteFallback />}><KnowledgeArticlePublicPage /></Suspense>} />
               <Route path="/401" element={<Suspense fallback={<RouteFallback />}><UnauthorizedPage /></Suspense>} />

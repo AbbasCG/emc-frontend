@@ -9,6 +9,11 @@
   },
   "nav": {
     "home": "Home",
+    "courses": "Courses",
+    "tracks": "Tracks",
+    "fellowship": "Fellowship",
+    "workshops": "Free Workshops",
+    "startJourney": "Start Your Journey",
     "aria": {
       "homeLink": "EMC — Home page",
       "mainMenu": "Main menu",
@@ -18,39 +23,6 @@
     },
     "mega": {
       "quickJump": "Quick access across the EMC ecosystem"
-    },
-    "about": {
-      "label": "About EMC",
-      "items": {
-        "about": { "label": "Who We Are", "description": "An introduction to the platform and how it works" },
-        "impact": { "label": "Impact & Achievements", "description": "Real, transparent impact trends" },
-        "team": { "label": "The Team", "description": "Structure, roles, and values" },
-        "departments": { "label": "Departments & Governance", "description": "Organizational structure, quality and compliance policies" },
-        "platform": { "label": "The Platform", "description": "The digital experience and services" }
-      }
-    },
-    "programs": {
-      "label": "Programs",
-      "items": {
-        "courses": { "label": "Programs & Courses", "description": "Browse programs and enroll directly" },
-        "workshops": { "label": "Workshops", "description": "Short community training workshops" },
-        "learningPaths": { "label": "Learning Paths", "description": "Connected learning paths with certificates" },
-        "tracks": { "label": "Fields & Tracks", "description": "The twelve fields and their detailed tracks" },
-        "instructors": { "label": "Instructors", "description": "Meet our training experts" }
-      }
-    },
-    "join": {
-      "label": "Join Us",
-      "items": {
-        "partnerships": { "label": "Partnerships — Overview", "description": "Learn about EMC's institutional and service partnerships" },
-        "student": { "label": "Join as a Student", "description": "Create an account to learn and enroll in programs" },
-        "trainer": { "label": "Join as a Trainer", "description": "Get in touch to join EMC as a trainer" },
-        "partner": { "label": "Join as a Partner", "description": "Apply for an institutional or service partnership" },
-        "volunteer": { "label": "Join as a Volunteer", "description": "Share your skills within EMC's volunteering frameworks" },
-        "ambassador": { "label": "Digital Transformation Ambassador", "description": "The EMC ambassadors program across Arab universities" },
-        "submitWorkshop": { "label": "Submit a Workshop", "description": "Request a workshop or program via the official form" },
-        "contact": { "label": "Contact Us", "description": "Contact channels and general inquiries" }
-      }
     },
     "auth": {
       "dashboard": "Dashboard",
@@ -77,6 +49,8 @@
       "main": {
         "home": "Home",
         "about": "About the Center",
+        "business": "For Organizations",
+        "verify": "Verify a Certificate",
         "tracks": "Fields",
         "team": "EMC Team",
         "impact": "Impact",
@@ -86,8 +60,9 @@
       },
       "programs": {
         "courses": "Courses",
-        "workshops": "Workshops",
-        "learningPaths": "Learning Paths",
+        "learningPaths": "Tracks",
+        "fellowship": "Fellowship",
+        "workshops": "Free Workshops",
         "programs": "Programs",
         "platform": "Platform",
         "submitWorkshop": "Submit a Workshop",

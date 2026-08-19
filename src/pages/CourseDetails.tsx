@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import {
   BadgeCheck,
   BookOpen,
-  CalendarDays,
   Clock3,
   Languages,
   MapPin,
@@ -33,7 +32,14 @@ import { deriveCourseDetail } from '@/utils/courseDetailDerived'
 import { fetchStudentRegistrations, type StudentCourseAccess } from '@/api/studentApi'
 import { fetchCoursesFromApi } from '@/api/coursesApi.public'
 import { useFetch } from '@/hooks/useFetch'
-import { formatPublicDate, formatPublicText, formatPublicTime, formatPublicCount } from '@/utils/publicDetailFormat'
+import { formatPublicText, formatPublicTime, formatPublicCount } from '@/utils/publicDetailFormat'
+import {
+  LAUNCH_PROMISE,
+  OPEN_ENROLLMENT_LABEL,
+  REFUND_LINE,
+  UPGRADE_COUPON_NOTE,
+  seatsLine,
+} from '@/data/webSpec'
 import {
   averageRatingFromReviews,
   categoryLabel,
@@ -95,10 +101,9 @@ function buildMetrics(
     items.push({ id, icon, label, value: normalized, accent })
   }
 
-  const start = formatPublicDate(course.start_date)
-  if (start) push('start', CalendarDays, 'تاريخ البداية', start, 'blue')
-  const end = formatPublicDate(course.end_date)
-  if (end) push('end', CalendarDays, 'تاريخ النهاية', end, 'blue')
+  // §1.3 — the snapshot never carries a start/end date for a paid product: the
+  // batch opens when the seat is bought, and the promise below the CTA states when
+  // it starts. Duration, seats and delivery carry the schedule meaning instead.
   if (hasMeaningfulDuration(derived.displayDuration)) {
     push('duration', Clock3, 'المدة', derived.displayDuration, 'navy')
   }
@@ -406,9 +411,13 @@ export default function CourseDetails() {
     requirementsItems,
     priceLabel,
     originalPriceLabel,
-    discountPercent,
     seatsFull,
   } = derived
+
+  // §1.3 — urgency is seats, never a date or a countdown. Rendered only when the
+  // API reports a real remaining-seat number.
+  const seatsUrgency =
+    derived.isEnded || seatsFull ? null : seatsLine(resolveCourseSeatMetrics(course).remaining)
 
   const courseX = course as unknown as Record<string, unknown>
   const isPartOfLearningPath = Boolean(
@@ -460,12 +469,20 @@ export default function CourseDetails() {
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
             derived.isEnded ? 'bg-slate-100 text-slate-700 ring-slate-200'
             : registration.open && !seatsFull
-              ? 'bg-emerald-50 text-emerald-800 ring-emerald-100'
+              ? 'bg-brand-50 text-ocean ring-brand-100'
               : 'bg-orange-50 text-orange-800 ring-orange-100'
           }`}>
-            {derived.isEnded ? 'انتهت' : registration.open && !seatsFull ? 'متاح للتسجيل' : seatsFull ? 'مكتمل' : 'مغلق'}
+            {derived.isEnded ?
+              'انتهت'
+            : registration.open && !seatsFull ?
+              OPEN_ENROLLMENT_LABEL
+            : seatsFull ? 'مكتمل'
+            : 'مغلق'}
           </span>
         </div>
+        {seatsUrgency && (
+          <p className="mt-2 text-[11px] font-bold text-ink-400">{seatsUrgency}</p>
+        )}
       </div>
       {derived.endedMessage ?
         <div className="border-b border-[#0C2A4B]/6 bg-slate-50 px-5 py-3">
@@ -486,13 +503,8 @@ export default function CourseDetails() {
             </span>
           </div>
         </div>
-        {discountPercent != null && discountPercent > 0 && !isFree && (
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[11px] font-black text-slate-400">الخصم</span>
-            <span className="rounded-full bg-[#F28C00]/15 px-2.5 py-0.5 text-[10px] font-black tabular-nums text-accent-700">
-              {String(discountPercent)}%
-            </span>
-          </div>
+        {originalPriceLabel && !isFree && (
+          <p className="mt-2 text-[11px] font-bold text-ink-400">سعر EMC للوصول</p>
         )}
       </div>
       <div className="space-y-3 p-4 sm:p-5">
@@ -500,6 +512,11 @@ export default function CourseDetails() {
         {enrollCta.message && (
           <AppAlert type={enrollCta.disabled ? 'info' : 'error'} title={enrollCta.message} />
         )}
+
+        {/* §8 — the launch promise, verbatim from webSpec, on a hairline seam. No box. */}
+        <div className="emc-hairline" aria-hidden />
+        <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
+        <p className="text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>
       </div>
     </div>
   )
@@ -582,12 +599,12 @@ export default function CourseDetails() {
                 requirementsItems={requirementsItems}
               />
 
-              <div className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
+              <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4">
                 <PremiumJourney course={course} derived={derived} />
               </div>
 
               {curriculumGroups.some((g) => g.items.some((x) => x.trim())) && (
-                <div className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
+                <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4">
                   <PremiumCurriculum groups={curriculumGroups} />
                 </div>
               )}
@@ -595,7 +612,7 @@ export default function CourseDetails() {
               <PremiumSchedule course={course} derived={derived} />
 
               {learningItems.length > 0 && (
-                <div className="rounded-2xl border border-line bg-white p-3.5 shadow-emc sm:p-4">
+                <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4">
                   <PremiumLearnGrid items={learningItems} />
                 </div>
               )}
@@ -644,6 +661,10 @@ export default function CourseDetails() {
                 <p className="mt-1.5 text-sm font-semibold text-ink-400">
                   <span dir="ltr" className="tabular-nums">{upsellStations}</span> محطة
                   {upsellDuration ? ` · ${upsellDuration}` : ''}
+                </p>
+                {/* §11 — the price never stands bare: the course value carries into the path. */}
+                <p className="mt-2 text-[13px] font-semibold leading-6 text-ink-400">
+                  {UPGRADE_COUPON_NOTE}
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap items-center gap-6">

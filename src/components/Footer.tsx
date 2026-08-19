@@ -1,19 +1,26 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ArrowLeft, ChevronDown, Cookie, Mail, MapPin } from 'lucide-react'
+import { ChevronDown, Cookie, Mail, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/i18n/useLanguage'
 import { siteContact } from '@/data/publicPages'
 import { useCookieConsentOptional } from '@/contexts/useCookieConsent'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { cn } from '@/lib/utils'
 
 /**
  * M3 i18n: link labels live in the catalog under footer.nav.* / footer.legal.*
  * (see src/i18n/locales/ar.json — the source of truth for the Arabic strings).
+ *
+ * EMC-WEB-001 §2: «للمؤسسات» (/business), «عن المركز» (/about) and
+ * «التحقق من الشهادات» (/verify) belong to the FOOTER only — they are never
+ * promoted into the five-item main menu.
  */
 const NAV_MAIN = [
   { key: 'home', href: '/' },
   { key: 'about', href: '/about' },
+  { key: 'business', href: '/business' },
+  { key: 'verify', href: '/verify' },
   { key: 'tracks', href: '/tracks' },
   { key: 'team', href: '/ar/team' },
   { key: 'impact', href: '/impact' },
@@ -24,8 +31,9 @@ const NAV_MAIN = [
 
 const NAV_PROGRAMS = [
   { key: 'courses', href: '/courses' },
-  { key: 'workshops', href: '/workshops' },
   { key: 'learningPaths', href: '/learning-paths' },
+  { key: 'fellowship', href: '/fellowship' },
+  { key: 'workshops', href: '/workshops' },
   { key: 'programs', href: '/programs' },
   { key: 'platform', href: '/platform' },
   { key: 'submitWorkshop', href: '/submit-workshop' },
@@ -84,10 +92,12 @@ function FooterAccordion({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between py-3 text-right md:hidden"
       >
-        <span className="text-[11px] font-black tracking-[0.12em] text-amber">{title}</span>
+        {/* §1: orange is spent on the primary action only — section eyebrows stay
+            in the sea family. */}
+        <span className="text-[11px] font-black tracking-[0.12em] text-ice">{title}</span>
         <ChevronDown className={cn('h-4 w-4 text-white/50 transition', open && 'rotate-180')} aria-hidden />
       </button>
-      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-amber md:block">{title}</h3>
+      <h3 className="mb-2.5 hidden text-[10px] font-black tracking-[0.14em] text-ice md:block">{title}</h3>
       <div className={cn(open ? 'block pb-3' : 'hidden', 'md:block md:pb-0')}>{children}</div>
     </div>
   )
@@ -116,30 +126,28 @@ export default function Footer() {
   const programLinks = NAV_PROGRAMS.map((l) => ({ href: l.href, label: t(`footer.nav.programs.${l.key}`) }))
 
   return (
-    <footer className="relative isolate overflow-hidden bg-[#0C2A4B] text-white" dir={dir}>
-      <div
-        aria-hidden
-        className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 end-0 h-48 w-48 rounded-full bg-[#0077B6]/10 blur-[80px]"
-      />
+    <footer className="relative isolate overflow-hidden bg-navy text-white" dir={dir}>
+      {/* Brand edge — three SOLID segments, never a gradient: §1 forbids blending
+          the fire family into the sea family inside one gradient. */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex h-1">
+        <span className="w-[22%] bg-customOrange" />
+        <span className="w-[36%] bg-sky" />
+        <span className="flex-1 bg-white/20" />
+      </div>
 
       <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-6">
           <div className="text-right md:col-span-2 lg:col-span-1">
-            <Link to="/" className="inline-block transition-opacity hover:opacity-90">
-              <img
-                src="/brand/logos/logo_full_white.png"
-                alt={t('brand.logoAlt')}
-                className="h-16 w-auto sm:h-[4.5rem]"
-                width={200}
-                height={80}
-                loading="lazy"
-              />
+            {/* §1: the logo appears ONCE site-wide — in the header. The footer
+                carries the wordmark as type, never a second lockup. */}
+            <Link
+              to="/"
+              aria-label={t('nav.aria.homeLink')}
+              className="inline-block font-display text-[2rem] font-black leading-none tracking-[0.14em] text-white transition-opacity hover:opacity-90"
+            >
+              EMC
             </Link>
-            <p className="mt-2 max-w-xs text-[12px] font-medium leading-6 text-white/50">
+            <p className="mt-3 max-w-xs text-[12px] font-medium leading-6 text-white/50">
               {t('footer.tagline')}
             </p>
             <p className="emc-tridot mt-3 inline-flex items-center text-[12.5px] font-bold tracking-wide text-white/75">
@@ -147,10 +155,10 @@ export default function Footer() {
             </p>
             <Link
               to="/contact"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#0077B6] px-3.5 py-2 text-[11px] font-black text-white transition hover:bg-brand-600"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-customBlue px-3.5 py-2 text-[11px] font-black text-white transition hover:brightness-110"
             >
               {t('footer.contactCta')}
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+              <ArrowLeftIcon size={14} className="shrink-0 opacity-90" />
             </Link>
           </div>
 
@@ -172,7 +180,7 @@ export default function Footer() {
                   href={`mailto:${siteContact.email}`}
                   className="inline-flex items-center gap-2 transition hover:text-white"
                 >
-                  <Mail className="h-3.5 w-3.5 shrink-0 text-[#0077B6]" aria-hidden />
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-sky" aria-hidden />
                   <span className="font-latin text-[11px]">{siteContact.email}</span>
                 </a>
               </li>
@@ -185,7 +193,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="relative border-t border-white/[0.08] bg-[#1a2940]/80">
+      <div className="relative border-t border-white/[0.08] bg-night/60">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <p className="text-center text-[11px] font-semibold text-white/35 lg:text-right">
@@ -203,7 +211,7 @@ export default function Footer() {
                       ·
                     </span>
                   : null}
-                  <Link to={link.href} className="transition hover:text-[#0077B6]">
+                  <Link to={link.href} className="transition hover:text-white">
                     {t(`footer.legal.${link.key}`)}
                   </Link>
                 </span>
@@ -216,7 +224,7 @@ export default function Footer() {
                   <button
                     type="button"
                     onClick={cookieConsent.openPreferences}
-                    className="inline-flex items-center gap-1 transition hover:text-[#F28C00]"
+                    className="inline-flex items-center gap-1 transition hover:text-white"
                   >
                     <Cookie className="h-3 w-3" aria-hidden />
                     {t('footer.cookieSettings')}
@@ -233,7 +241,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/40 transition hover:border-[#0077B6]/40 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/40 transition hover:border-white/30 hover:text-white"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3" aria-hidden>
                     <path d={s.path} />

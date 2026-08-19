@@ -10,7 +10,6 @@ import {
   Users,
   ChevronLeft,
   CheckCircle,
-  ArrowLeft,
   Loader2,
   Star,
   CircleDot,
@@ -36,6 +35,8 @@ import {
 import { formatEuroInteger } from '../utils/currency'
 import { useAuth } from '../contexts/AuthContext'
 import PublicSeo from '@/components/public/PublicSeo'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import { LAUNCH_PROMISE, OPEN_ENROLLMENT_LABEL, REFUND_LINE, seatsLine } from '@/data/webSpec'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -53,6 +54,16 @@ function DurationLabel(path: LearningPath) {
   if (!path.duration) return null
   const unit = path.duration_unit === 'weeks' ? 'أسبوع' : path.duration_unit === 'months' ? 'شهر' : 'يوم'
   return `${path.duration} ${unit}`
+}
+
+/**
+ * §1.3 — remaining seats for the next batch, taken only from a real numeric field
+ * on the API payload. Anything else yields null and the urgency line disappears.
+ */
+function remainingSeats(path: LearningPath): number | null {
+  const raw = path as unknown as Record<string, unknown>
+  const value = raw.seats_remaining ?? raw.remaining_seats ?? raw.available_seats
+  return typeof value === 'number' ? value : null
 }
 
 export default function LearningPathDetail() {
@@ -164,6 +175,8 @@ export default function LearningPathDetail() {
   // G4 — revenue clarity: courses-bought-alone vs the full path. Strictly null
   // whenever any course price is missing/non-numeric (never invented numbers).
   const savings = computePathSavings(path)
+  // §1.3 — «تسجيل مفتوح» replaces any date, and seats are the only urgency.
+  const seatsUrgency = path.enrollment_open ? seatsLine(remainingSeats(path)) : null
 
   /**
    * The one real enroll action — hero, sidebar and mobile bar all render THIS
@@ -254,6 +267,15 @@ export default function LearningPathDetail() {
                     <span>{path.language}</span>
                   </>
                 )}
+                {path.enrollment_open && (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span className="rounded-full border border-white/25 px-2.5 py-0.5 text-ice">
+                      {OPEN_ENROLLMENT_LABEL}
+                    </span>
+                  </>
+                )}
+                {seatsUrgency && <span className="text-ice/80">{seatsUrgency}</span>}
               </p>
 
               <h1 className="mb-4 font-display text-4xl font-black leading-tight tracking-tight [text-wrap:balance] sm:text-5xl">
@@ -366,7 +388,7 @@ export default function LearningPathDetail() {
                 {path.certificate_name && (
                   <div className="flex items-center justify-between border-t border-white/15 py-2.5">
                     <dt className="font-semibold text-ice/80">شهادة إتمام</dt>
-                    <dd className="font-bold text-accent-300">✓</dd>
+                    <dd className="font-bold text-ice">مرفقة</dd>
                   </div>
                 )}
               </dl>
@@ -376,6 +398,13 @@ export default function LearningPathDetail() {
                 {enrollMsg && (
                   <p className="mt-2 text-center text-xs text-accent-300">{enrollMsg}</p>
                 )}
+
+                {/* §8 — the launch promise, verbatim from webSpec, on a hairline seam. */}
+                <div className="mt-5 border-t border-white/15 pt-4">
+                  <p className="text-[12px] leading-6 text-ice/80">{LAUNCH_PROMISE}</p>
+                  <p className="mt-2 text-[12px] font-bold leading-6 text-ice">{REFUND_LINE}</p>
+                </div>
+
                 <p className="mt-3 text-center text-xs text-ice/70">
                   <Link to="/contact" className="text-ice underline-offset-4 transition-colors hover:text-white hover:underline">
                     تواصل معنا للاستفسار
@@ -646,7 +675,7 @@ export default function LearningPathDetail() {
       </div>
 
       {/* Mobile CTA bar — the only persistent CTA on phones: it MUST enroll */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-white p-4 shadow-lg lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-white p-4 lg:hidden">
         <div className="flex items-center justify-between gap-4">
           <p dir="ltr" className="emc-stat-num text-2xl">
             {priceText}
@@ -661,7 +690,7 @@ export default function LearningPathDetail() {
           to="/learning-paths"
           className="emc-cta-line text-sm"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
+          <ArrowLeftIcon className="h-4 w-4" />
           العودة إلى المسارات
         </Link>
       </div>

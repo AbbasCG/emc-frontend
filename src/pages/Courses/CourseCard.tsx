@@ -1,6 +1,5 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
@@ -8,6 +7,8 @@ import { toLatinDigits } from '@/utils/publicDetailFormat'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
 import { useAuth } from '@/contexts/AuthContext'
 import { ENDED_COURSE_LABEL_AR } from '@/utils/courseEnded'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import { OPEN_ENROLLMENT_LABEL, seatsLine } from '@/data/webSpec'
 import {
   buildCourseDetailEnrollHref,
   gatePublicEnrollClick,
@@ -18,20 +19,6 @@ type CourseCardProps = {
   /** Kept for call-site compatibility (/programs passes it) — the editorial row is the one view. */
   viewMode?: 'grid' | 'list'
   index?: number
-}
-
-const startDateFormatter = new Intl.DateTimeFormat('ar-SA', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  numberingSystem: 'latn',
-})
-
-function formatStartAr(iso: string | null): string | null {
-  if (!iso) return null
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return null
-  return startDateFormatter.format(d)
 }
 
 function deliveryLabelAr(course: CourseItem): string {
@@ -58,7 +45,6 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
     ? resolvePublicAssetUrl(course.thumbnail) ?? course.thumbnail
     : course.cover_placeholder
 
-  const startLabel = formatStartAr(course.start_date)
   const priceLabel = course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))
 
   // seats_count from the API means REMAINING seats (cards have always rendered
@@ -67,9 +53,16 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
   const seatsFull = !course.is_ended && course.seats_count != null && course.seats_count <= 0
   const registerDisabled = course.is_ended || seatsFull
 
-  const metaParts: string[] = [`مع ${course.trainer.name}`, course.duration_label]
-  if (startLabel) metaParts.push(`يبدأ ${startLabel}`)
-  metaParts.push(deliveryLabelAr(course))
+  // §1.3 — a paid product never shows a start date. Enrollment is open, and the
+  // only urgency is the real remaining-seat count (hidden when the API omits it).
+  const enrollmentOpen = !course.is_ended && !seatsFull
+  const seatsUrgency = enrollmentOpen ? seatsLine(course.seats_count) : null
+
+  const metaParts: string[] = [
+    `مع ${course.trainer.name}`,
+    course.duration_label,
+    deliveryLabelAr(course),
+  ]
 
   return (
     <motion.div
@@ -100,6 +93,14 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
 
           {/* Content column — title + one calm meta line */}
           <div className="flex min-w-0 flex-1 flex-col justify-center">
+            {enrollmentOpen && (
+              <p className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold">
+                <span className="rounded-full border border-line px-2.5 py-0.5 text-ocean">
+                  {OPEN_ENROLLMENT_LABEL}
+                </span>
+                {seatsUrgency && <span className="text-ink-400">{seatsUrgency}</span>}
+              </p>
+            )}
             <h3 className="line-clamp-2 font-display text-xl font-black leading-snug tracking-tight text-ink-900 transition-colors duration-200 group-hover:text-brand-600 sm:text-2xl">
               {course.title}
             </h3>
@@ -132,7 +133,7 @@ function CourseCard({ course, index = 0 }: CourseCardProps) {
                 className="emc-cta-line text-sm focus-visible:outline-none"
               >
                 تفاصيل
-                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                <ArrowLeftIcon className="h-3.5 w-3.5" />
               </Link>
               <button
                 type="button"

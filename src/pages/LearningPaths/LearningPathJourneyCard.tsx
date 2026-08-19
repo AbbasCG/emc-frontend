@@ -1,8 +1,10 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { Award, BadgeCheck, ChevronLeft, Route } from 'lucide-react'
+import { Award, BadgeCheck, Route } from 'lucide-react'
 import type { LearningPath } from '@/api/learningPathsApi'
 import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import { OPEN_ENROLLMENT_LABEL, seatsLine } from '@/data/webSpec'
 import {
   courseDurationLabel,
   coursesCountLabel,
@@ -16,6 +18,17 @@ type Props = {
   path: LearningPath
   index: number
   enrolled: boolean
+}
+
+/**
+ * §1.3 — remaining seats for the next batch, read from the API only when it is
+ * actually sent as a number. Nothing is inferred, so the urgency line simply
+ * disappears rather than showing an invented count.
+ */
+function remainingSeats(path: LearningPath): number | null {
+  const raw = path as unknown as Record<string, unknown>
+  const value = raw.seats_remaining ?? raw.remaining_seats ?? raw.available_seats
+  return typeof value === 'number' ? value : null
 }
 
 /**
@@ -33,6 +46,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
   const { items: stations, extra } = journeyStations(path, 4)
   const fallbackCount = coursesCountLabel(path)
   const tinted = index % 2 === 1
+  const seatsUrgency = path.enrollment_open ? seatsLine(remainingSeats(path)) : null
 
   return (
     <motion.article
@@ -90,8 +104,16 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
               </span>
             : !path.enrollment_open ?
               <span className="ms-auto font-black text-accent-700">التسجيل مغلق حالياً</span>
-            : null}
+            : <span className="ms-auto rounded-full border border-line px-2.5 py-0.5 text-ocean">
+                {OPEN_ENROLLMENT_LABEL}
+              </span>
+            }
           </p>
+
+          {/* §1.3 — seats, never dates, carry the urgency. Hidden when unknown. */}
+          {seatsUrgency && !enrolled && (
+            <p className="mt-1.5 text-xs font-bold text-ink-400">{seatsUrgency}</p>
+          )}
 
           <h2 className="mt-2.5 font-display text-3xl font-black leading-snug tracking-tight text-deepBlue">
             <Link to={href} className="transition-colors duration-200 hover:text-customBlue">
@@ -147,7 +169,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
                 )}
                 {path.certificate_name && (
                   <li className="flex items-center gap-3.5">
-                    <span className="relative z-[1] flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm">
+                    <span className="relative z-[1] flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white">
                       <Award className="h-4 w-4" aria-hidden />
                     </span>
                     <span className="min-w-0">
@@ -202,7 +224,7 @@ export default function LearningPathJourneyCard({ path, index, enrolled }: Props
             <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
               <Link to={href} className="emc-cta-line text-sm">
                 عرض المسار
-                <ChevronLeft className="h-4 w-4" aria-hidden />
+                <ArrowLeftIcon className="h-4 w-4" />
               </Link>
               {enrolled ?
                 <Link
