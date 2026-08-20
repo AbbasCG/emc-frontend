@@ -43,7 +43,7 @@ export default function SiteIndexPanel({ dark = false, activeIndex, onActiveInde
       transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
       className={[
         'absolute inset-x-0 top-full border-t',
-        dark ? 'border-white/12 bg-night/95 backdrop-blur-xl' : 'border-line bg-white',
+        dark ? 'border-white/12 bg-night' : 'border-line bg-white',
       ].join(' ')}
     >
       <div className="mx-auto grid max-w-7xl gap-x-12 px-4 py-9 sm:px-6 lg:grid-cols-[15rem_1fr] lg:px-8">
