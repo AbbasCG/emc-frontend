@@ -20,7 +20,7 @@ test('guest browses catalog, student enrolls in mocked course', async ({ page })
   await expect(page.getByText(ERROR_BOUNDARY_TEXT)).toHaveCount(0)
 
   // Hero CTA → /courses (visible on both desktop and mobile)
-  await page.getByRole('link', { name: 'استكشف البرامج والمسارات' }).click()
+  await page.getByRole('link', { name: 'استكشف البرامج' }).click()
   await expect(page).toHaveURL(/\/courses$/)
   await expect(
     page.getByRole('heading', { name: 'استكشف برامجنا' }),

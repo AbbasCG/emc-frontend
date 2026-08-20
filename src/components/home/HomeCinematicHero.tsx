@@ -17,8 +17,32 @@ import {
   Handshake,
   Award,
   ChevronDown,
+  Compass,
+  UserPlus,
+  Users,
 } from 'lucide-react'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+
+/**
+ * Hero actions: short labels, one distinctive icon each, no boxes. The third one
+ * scrolls to the tracks section rather than navigating away.
+ */
+const HERO_ACTIONS = [
+  { key: 'explore', label: 'استكشف البرامج', href: '/courses', anchor: null as string | null, Icon: Compass },
+  { key: 'join', label: 'ابدأ مجاناً', href: '/signup', anchor: null as string | null, Icon: UserPlus },
+  { key: 'tracks', label: 'المسارات والشهادات', href: '#', anchor: 'learning-tracks', Icon: Award },
+] as const
+
+/**
+ * The three sibling platforms of the EMC ecosystem. External destinations, so
+ * they open in a new tab and carry rel=noreferrer.
+ */
+const ECOSYSTEM = [
+  { key: 'sadeem', label: 'مجتمع سديم', href: 'https://www.skool.com/emc', Icon: Users },
+  { key: 'english', label: 'معهد الإنجليزية', href: 'https://english.edumc.nl/', Icon: Languages },
+  { key: 'kids', label: 'فيوتشر مايندز للأطفال', href: 'https://futureminds.space/', Icon: Smile },
+] as const
+
 
 // ── 12 EMC Core Themes Orbit (Matching Image 1) ─────────────────────────────
 
@@ -384,45 +408,61 @@ export default function HomeCinematicHero() {
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
             className="mt-10 flex flex-wrap justify-start gap-3"
           >
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                to="/courses"
-                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-customBlue px-8 py-4 text-base font-extrabold text-white transition-all duration-300 hover:bg-brand-600"
-              >
-                <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/10 to-white/0 opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
-                {t('home.hero.ctaPrimary')}
-                <ArrowLeftIcon size={19} className="transition-transform group-hover:-translate-x-1" />
-              </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                to="/signup"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.08] px-7 py-4 text-base font-extrabold text-white backdrop-blur-md transition-all hover:border-white/30 hover:bg-white/[0.14]"
-              >
-                {t('home.hero.ctaSecondary')}
-              </Link>
-            </motion.div>
-            {/* Third CTA glass chip anchor to the learning-tracks section (founder ask) */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
+            {/* Three short line-actions: the boxes are gone, each keeps its own
+                icon so the choice is read by shape as much as by word. */}
+            {HERO_ACTIONS.map(({ key, label, href, anchor, Icon }) => {
+              const inner = (
+                <>
+                  <Icon size={17} className="shrink-0 text-amber" aria-hidden />
+                  <span>{label}</span>
+                  <ArrowLeftIcon
+                    size={15}
+                    className="shrink-0 opacity-60 transition-transform duration-300 group-hover:-translate-x-1 group-hover:opacity-100"
+                  />
+                </>
+              )
+              const cls =
+                'group inline-flex items-center gap-2.5 py-2 text-[15px] font-extrabold text-white transition-colors duration-200 hover:text-amber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-4 focus-visible:ring-offset-deepBlue'
+              return anchor ? (
+                <a
+                  key={key}
+                  href={`#${anchor}`}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    document.getElementById(anchor)?.scrollIntoView({
+                      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                    })
+                  }}
+                  className={cls}
+                >
+                  {inner}
+                </a>
+              ) : (
+                <Link key={key} to={href} className={cls}>
+                  {inner}
+                </Link>
+              )
+            })}
+          </motion.div>
+
+          {/* The three sibling platforms of the ecosystem, each with its own mark. */}
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, delay: 0.06 } } }}
+            className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3"
+          >
+            <span className="text-[11px] font-black tracking-[0.14em] text-white/40">منظومة EMC</span>
+            {ECOSYSTEM.map(({ key, label, href, Icon }) => (
               <a
-                href="#learning-tracks"
-                onClick={(e) => {
-                  e.preventDefault()
-                  document.getElementById('learning-tracks')?.scrollIntoView({
-                    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-                  })
-                }}
-                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 px-8 py-4 text-[15px] font-extrabold text-white backdrop-blur-md transition-all hover:border-white/30 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-2 focus-visible:ring-offset-deepBlue sm:w-auto"
+                key={key}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="group inline-flex items-center gap-2 text-[13.5px] font-bold text-white/70 transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-4 focus-visible:ring-offset-deepBlue"
               >
-                <Award size={17} className="text-amber-300" aria-hidden />
-                مسارات التعلّم والشهادات المعتمدة
-                <ChevronDown
-                  size={15}
-                  className="text-white/60 transition-transform duration-300 group-hover:translate-y-0.5"
-                  aria-hidden
-                />
+                <Icon size={15} className="shrink-0 text-sky transition-colors group-hover:text-amber" aria-hidden />
+                {label}
               </a>
-            </motion.div>
+            ))}
           </motion.div>
 
           {/* Stats row typographic line-up seated on hairlines, no pills */}

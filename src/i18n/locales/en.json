@@ -559,7 +559,7 @@
         "time": {
           "title": "A defined weekly time",
           "lines": {
- "range": "Usually between 26 hours depending on the role and stage.",
+            "range": "Usually between 26 hours depending on the role and stage.",
             "scheduling": "Advance scheduling with room for reasonable adjustment."
           }
         },
@@ -674,8 +674,8 @@
       "titleLine2": "with a method that goes deep",
       "titleLine3": "not just content",
       "subtitle": "Hands-on workshops, accredited courses, integrated paths supervised by specialized trainers and a professional LMS that tracks every step.",
-      "ctaPrimary": "Explore Programs & Paths",
-      "ctaSecondary": "Create a Free Account",
+      "ctaPrimary": "Explore programmes",
+      "ctaSecondary": "Start free",
       "stats": {
         "beneficiaries": {
           "value": "+20,000",
