@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
+  Wallet,
   AlertCircle,
   BookOpen,
   Building2,
@@ -28,6 +29,7 @@ import {
 import { fetchDepartmentOverview, type DepartmentOverview, type DepartmentOverviewMember } from '@/api/departmentOverviewApi'
 import { deleteVmsDepartment, updateVmsDepartment } from '@/api/vmsApi'
 import { useAuth } from '@/contexts/AuthContext'
+import FinancialRequestForm from '@/components/financial/FinancialRequestForm'
 import toast, { errorToast } from '@/lib/toast'
 import { formatDate, formatDateTime } from '@/utils/dateTime'
 
@@ -219,6 +221,7 @@ function MemberAvatar({ member }: { member: DepartmentOverviewMember }) {
 
 export default function OpsDepartmentDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const [showFundingForm, setShowFundingForm] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
   const canManage = !!user?.role && MANAGE_ROLES.includes(user.role)
@@ -414,6 +417,14 @@ export default function OpsDepartmentDetailPage() {
           </div>
 
           <div className="flex flex-col gap-2.5 sm:items-end">
+            <button
+              type="button"
+              onClick={() => setShowFundingForm(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-4 py-2.5 text-[13px] font-extrabold text-white transition hover:bg-ember"
+            >
+              <Wallet className="h-4 w-4" aria-hidden />
+              طلب اعتماد مبلغ مالي
+            </button>
             <div className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3.5 py-2 text-[12px] font-bold text-white/90 ring-1 ring-white/10">
               <Calendar className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
               <span>تاريخ الإنشاء</span>
@@ -429,6 +440,20 @@ export default function OpsDepartmentDetailPage() {
           </div>
         </div>
       </motion.header>
+
+      {/* طلب اعتماد مبلغ مالي من المالية — القسم مسبق الاختيار */}
+      <AnimatePresence>
+        {showFundingForm && (
+          <FinancialRequestForm
+            presetDepartmentId={dept.id}
+            onClose={() => setShowFundingForm(false)}
+            onSaved={() => {
+              setShowFundingForm(false)
+              toast.success('أُنشئ الطلب المالي — تابعه من «الطلبات المالية»')
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* KPI row fixed 6-column grid */}
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 xl:grid-cols-6">

@@ -44,6 +44,7 @@ export const SITE_INDEX: readonly IndexGroup[] = [
     links: [
       { href: '/partnerships', label: 'الشراكات', description: 'تعاون مؤسسي وأكاديمي' },
       { href: '/business', label: 'للمؤسسات', description: 'تدريب مبني على حاجة فريقك' },
+      { href: '/consultants', label: 'قدّم كمستشار', description: 'انضم إلى إدارة المستشارين بخبرتك' },
       { href: '/volunteer', label: 'التطوع', description: 'شارك بوقتك وخبرتك' },
       { href: '/ambassador', label: 'سفراء EMC', description: 'مثّل المركز في بلدك' },
       { href: '/submit-workshop', label: 'تقديم ورشة', description: 'قدّم ورشتك لجمهور EMC' },

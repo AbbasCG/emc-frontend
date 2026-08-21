@@ -13,6 +13,8 @@ import {
 
 interface Props {
   initial?: FinancialRequest
+  /** يسبق اختيار القسم — لزر «طلب اعتماد مبلغ» على صفحة كل إدارة. */
+  presetDepartmentId?: number
   onClose: () => void
   onSaved: (req: FinancialRequest) => void
 }
@@ -34,7 +36,16 @@ const PRIORITIES = [
   { value: 'urgent', label: 'عاجلة',  color: 'text-red-600' },
 ]
 
-const CURRENCIES = ['SAR', 'USD', 'EUR', 'AED', 'GBP']
+// العملات المعتمدة لطلبات الاعتماد المالي — تشمل عملات مناطق عمل EMC.
+const CURRENCIES = [
+  { code: 'EUR', label: 'يورو' },
+  { code: 'USD', label: 'دولار أمريكي' },
+  { code: 'SAR', label: 'ريال سعودي' },
+  { code: 'YER', label: 'ريال يمني' },
+  { code: 'SYP', label: 'ليرة سورية' },
+  { code: 'AED', label: 'درهم إماراتي' },
+  { code: 'GBP', label: 'جنيه إسترليني' },
+]
 
 const INPUT_BASE = 'w-full rounded-xl border bg-white px-4 py-3 text-sm text-deepBlue transition focus:outline-none focus:ring-2 focus:ring-customBlue/40 focus:border-customBlue placeholder:text-slate-400'
 const LABEL = 'block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1.5'
@@ -52,7 +63,7 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
   )
 }
 
-export default function FinancialRequestForm({ initial, onClose, onSaved }: Props) {
+export default function FinancialRequestForm({ initial, presetDepartmentId, onClose, onSaved }: Props) {
   const [ctx, setCtx] = useState<MyFinancialContext | null>(null)
   const [ctxLoading, setCtxLoading] = useState(true)
 
@@ -64,7 +75,7 @@ export default function FinancialRequestForm({ initial, onClose, onSaved }: Prop
   const [currency, setCurrency] = useState(initial?.currency ?? 'SAR')
   const [neededBy, setNeededBy] = useState(initial?.needed_by_date ?? '')
   const [priority, setPriority] = useState(initial?.priority ?? 'normal')
-  const [departmentId, setDepartmentId] = useState<number | null>(initial?.department?.id ?? null)
+  const [departmentId, setDepartmentId] = useState<number | null>(initial?.department?.id ?? presetDepartmentId ?? null)
 
   // Staged files for new request (uploaded after creation)
   const [stagedFiles, setStagedFiles] = useState<File[]>([])
@@ -309,7 +320,7 @@ export default function FinancialRequestForm({ initial, onClose, onSaved }: Prop
                           className={`${INPUT_BASE} appearance-none border-slate-200 pr-8`}
                           dir="ltr"
                         >
-                          {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} — {c.label}</option>)}
                         </select>
                         <ChevronDown size={12} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                       </div>

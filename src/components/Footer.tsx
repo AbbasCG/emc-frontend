@@ -26,6 +26,7 @@ const NAV_MAIN = [
   { key: 'impact', href: '/impact' },
   { key: 'partnerships', href: '/partnerships' },
   { key: 'volunteer', href: '/volunteer' },
+  { key: 'consultants', href: '/consultants' },
   { key: 'ambassador', href: '/ambassador' },
   { key: 'departments', href: '/departments' },
   { key: 'contact', href: '/contact' },

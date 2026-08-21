@@ -152,6 +152,12 @@ const OpsTasksMyPage                = lazy(() => import('./pages/operations/admi
 const OpsTasksOverduePage           = lazy(() => import('./pages/operations/admin/OpsTasksOverduePage'))
 const OpsMeetingsPage               = lazy(() => import('./pages/operations/admin/OpsMeetingsPage'))
 const OpsMeetingDetailPage          = lazy(() => import('./pages/operations/admin/OpsMeetingDetailPage'))
+const OpsConsultantApplicationsPage = lazy(() => import('./pages/operations/admin/OpsConsultantApplicationsPage'))
+const OperationsBoardPage           = lazy(() => import('./pages/operations/OperationsBoardPage'))
+const MeetingReportsPage            = lazy(() => import('./pages/operations/MeetingReportsPage'))
+const WeeklyReportsPage             = lazy(() => import('./pages/operations/WeeklyReportsPage'))
+const ImpactPointsPage              = lazy(() => import('./pages/operations/ImpactPointsPage'))
+const ConsultantApply               = lazy(() => import('./pages/ConsultantApply'))
 const MeetingLoungePage             = lazy(() => import('./pages/department/MeetingLoungePage'))
 const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
@@ -405,6 +411,7 @@ function App() {
               <Route path="/partnerships" element={<Suspense fallback={<RouteFallback />}><Partnerships /></Suspense>} />
               <Route path="/volunteer"          element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
               <Route path="/volunteer/apply"   element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
+              <Route path="/consultants"       element={<Suspense fallback={<RouteFallback />}><ConsultantApply /></Suspense>} />
               <Route path="/ambassador"                      element={<Suspense fallback={<RouteFallback />}><AmbassadorProgram /></Suspense>} />
               <Route path="/ambassador/apply"            element={<Suspense fallback={<RouteFallback />}><AmbassadorApply /></Suspense>} />
               <Route path="/ambassador/application-success" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationSuccess /></Suspense>} />
@@ -626,6 +633,10 @@ function App() {
                   <Route path="/dashboard/department/programs" element={<ProgramsManagementPage />} />
                   <Route path="/dashboard/department/financial-requests" element={<Suspense fallback={<RouteFallback />}><DepartmentFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/department/hr-requests" element={<HrMyRequestsPage />} />
+                  <Route path="/dashboard/operations/board" element={<Suspense fallback={<RouteFallback />}><OperationsBoardPage /></Suspense>} />
+                  <Route path="/dashboard/operations/meeting-reports" element={<Suspense fallback={<RouteFallback />}><MeetingReportsPage /></Suspense>} />
+                  <Route path="/dashboard/operations/weekly-reports" element={<Suspense fallback={<RouteFallback />}><WeeklyReportsPage /></Suspense>} />
+                  <Route path="/dashboard/operations/impact-points" element={<Suspense fallback={<RouteFallback />}><ImpactPointsPage /></Suspense>} />
                   <Route path="/dashboard/department/meeting-lounge" element={<MeetingLoungePage />} />
                   <Route path="/dashboard/department/meeting-lounge/:id" element={<OpsMeetingDetailPage />} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
@@ -721,6 +732,7 @@ function App() {
                   <Route path="/dashboard/admin/volunteers/:id" element={<OpsVolunteerDetailPage />} />
                   <Route path="/dashboard/admin/partners" element={<OpsPartnersPage />} />
                   <Route path="/dashboard/admin/partnership-requests" element={<OpsPartnershipRequestsPage />} />
+                  <Route path="/dashboard/admin/consultant-applications" element={<Suspense fallback={<RouteFallback />}><OpsConsultantApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/admin/marketing" element={<OpsMarketingPage />} />
                   <Route path="/dashboard/admin/support-tickets" element={<OpsSupportTicketsPage />} />
                   <Route path="/dashboard/admin/support-tickets/:id" element={<OpsSupportTicketDetailPage />} />
