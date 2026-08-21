@@ -155,6 +155,7 @@ const OpsMeetingsPage               = lazy(() => import('./pages/operations/admi
 const OpsMeetingDetailPage          = lazy(() => import('./pages/operations/admin/OpsMeetingDetailPage'))
 const OpsConsultantApplicationsPage = lazy(() => import('./pages/operations/admin/OpsConsultantApplicationsPage'))
 const VisitorAnalyticsPage          = lazy(() => import('./pages/operations/admin/VisitorAnalyticsPage'))
+const CatalogImportPage             = lazy(() => import('./pages/operations/admin/CatalogImportPage'))
 const OperationsBoardPage           = lazy(() => import('./pages/operations/OperationsBoardPage'))
 const MeetingReportsPage            = lazy(() => import('./pages/operations/MeetingReportsPage'))
 const WeeklyReportsPage             = lazy(() => import('./pages/operations/WeeklyReportsPage'))
@@ -737,6 +738,7 @@ function App() {
                   <Route path="/dashboard/admin/partnership-requests" element={<OpsPartnershipRequestsPage />} />
                   <Route path="/dashboard/admin/consultant-applications" element={<Suspense fallback={<RouteFallback />}><OpsConsultantApplicationsPage /></Suspense>} />
                   <Route path="/dashboard/admin/visitor-analytics" element={<Suspense fallback={<RouteFallback />}><VisitorAnalyticsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/catalog-import" element={<Suspense fallback={<RouteFallback />}><CatalogImportPage /></Suspense>} />
                   <Route path="/dashboard/admin/marketing" element={<OpsMarketingPage />} />
                   <Route path="/dashboard/admin/support-tickets" element={<OpsSupportTicketsPage />} />
                   <Route path="/dashboard/admin/support-tickets/:id" element={<OpsSupportTicketDetailPage />} />

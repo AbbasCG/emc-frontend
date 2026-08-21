@@ -5,11 +5,11 @@ import { PROFESSIONAL_TRACKS } from '@/data/officialTracks'
 /**
  * EMC-WEB-001 §6.1 — the tracks comparison, seated ABOVE the catalogue list.
  *
- * Renders the OFFICIAL nine professional tracks from `src/data/officialTracks`
+ * Renders the OFFICIAL five professional tracks from `src/data/officialTracks`
  * — the same approved catalogue the home «مسارات التعلّم والشهادات المعتمدة»
  * section shows — so the comparison can never disagree with the rest of the
  * site. Columns answer what a visitor asks before choosing: ماذا ستتعلم ·
- * المدة · الشهادة المعتمدة.
+ * المدة · السعر · الشهادة المعتمدة.
  *
  * Design Language 2.0: hairline rows and typography, no card, no shadow. The
  * real <table> is desktop-only and wrapped in `overflow-x-auto`; below `md` the
@@ -20,6 +20,7 @@ import { PROFESSIONAL_TRACKS } from '@/data/officialTracks'
 const COLUMNS = [
   { key: 'focus', label: 'ماذا ستتعلم' },
   { key: 'duration', label: 'المدة' },
+  { key: 'price', label: 'السعر الكامل' },
   { key: 'certificate', label: 'الشهادة المعتمدة' },
 ] as const
 
@@ -34,15 +35,15 @@ export default function TracksComparisonTable() {
           قارن المسارات
         </h2>
         <p className="mt-5 max-w-2xl text-sm leading-7 text-ink-400">
-          المسارات الاحترافية التسعة من دليل EMC الرسمي: ماذا ستتعلم في كل مسار، كم يستغرق، وما
-          الشهادة المعتمدة التي تخرج بها.
+          المسارات المهنية الخمسة من كتالوج EMC المعتمد: ماذا ستتعلم في كل مسار، كم يستغرق، بكم،
+          وما الشهادة المعتمدة التي تخرج بها.
         </p>
 
         {/* Desktop a real table on hairlines, scrollable inside its own container */}
         <div className="mt-9 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[46rem] border-collapse">
             <caption className="sr-only">
-              مقارنة المسارات الاحترافية التسعة حسب المحتوى والمدة والشهادة المعتمدة
+              مقارنة المسارات المهنية الخمسة حسب المحتوى والمدة والسعر والشهادة المعتمدة
             </caption>
             <thead>
               <tr className="border-b border-line">
@@ -85,6 +86,9 @@ export default function TracksComparisonTable() {
                     <td className="py-5 pe-5 text-sm font-black leading-7 tabular-nums text-ink-600">
                       {track.duration}
                     </td>
+                    <td className="py-5 pe-5">
+                      <span dir="ltr" className="emc-stat-num text-xl text-deepBlue">{'€'}{track.price}</span>
+                    </td>
                     <td className="font-latin py-5 text-[13px] font-bold leading-7 text-ink-500">
                       {track.certificate}
                     </td>
@@ -114,6 +118,14 @@ export default function TracksComparisonTable() {
                   </dt>
                   <dd className="min-w-0 flex-1 text-sm font-black leading-7 tabular-nums text-ink-600">
                     {track.duration}
+                  </dd>
+                </div>
+                <div className="flex items-baseline gap-4">
+                  <dt className="w-28 shrink-0 text-[11px] font-black tracking-[0.12em] text-ink-400">
+                    السعر الكامل
+                  </dt>
+                  <dd dir="ltr" className="emc-stat-num min-w-0 flex-1 text-lg text-deepBlue">
+                    {'€'}{track.price}
                   </dd>
                 </div>
                 <div className="flex items-baseline gap-4">

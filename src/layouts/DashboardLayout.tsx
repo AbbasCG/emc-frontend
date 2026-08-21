@@ -36,6 +36,10 @@ import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
+import ImpactSparkWidget from '@/components/operations/ImpactSparkWidget'
+
+/** الطلاب والشركاء خارج نظام نقاط المتطوعين — لا ومضات لهم. */
+const OPS_SPARK_HIDDEN_ROLES = new Set(['student', 'partner'])
 import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
 import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
@@ -876,6 +880,8 @@ export default function DashboardLayout() {
         <div className="p-5 md:p-7 lg:p-8">
           <ImpersonationBanner />
           <Outlet />
+          {/* «ومضة الأثر» — لأدوار الفريق التي يعنيها نظام النقاط */}
+          {!OPS_SPARK_HIDDEN_ROLES.has(String(currentUser?.role ?? '')) && <ImpactSparkWidget />}
         </div>
       </main>
       </div>

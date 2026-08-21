@@ -1,13 +1,9 @@
 import {
   Brain,
   CircuitBoard,
-  Database,
   LineChart,
-  Sparkles,
   Briefcase,
-  Rocket,
   UserCheck,
-  GraduationCap,
   Stethoscope,
   Wrench,
   Building2,
@@ -31,12 +27,14 @@ import {
 
 type TrackIcon = React.ComponentType<{ size?: number; className?: string }>
 
-// ── 1. Professional Tracks (المسارات الاحترافية الـ 9) ──────────────────────
+// ── 1. Professional Tracks (المسارات المهنية الخمسة — كتالوج 2026-08-22) ────
 export interface ProfessionalTrack {
   id: string
   title: string
   titleEn: string
   duration: string
+  /** السعر الكامل المعتمد باليورو — من كتالوج 2026-08-22. */
+  price: number
   focus: string
   certificate: string
   icon: TrackIcon
@@ -49,92 +47,67 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     title: 'مسار مهندس الذكاء الاصطناعي',
     titleEn: 'AI Engineer Path',
     duration: '6 - 8 أشهر',
-    focus: 'مدخل الذكاء الاصطناعي، Python، أساسيات البيانات، التعلم الآلي والعميق، وتطوير بيئات المشاريع الحقيقية.',
+    price: 899,
+    focus: 'من المشكلة والبيانات إلى تعلم الآلة والذكاء الاصطناعي التوليدي وRAG والوكلاء والنشر؛ رحلة عملية لبناء مهارات مهندس ذكاء اصطناعي.',
     certificate: 'Certified AI Engineer - EMC',
     icon: Brain,
-    tags: ['Python', 'Machine Learning', 'Deep Learning', 'PyTorch & TensorFlow'],
+    tags: ['Python', 'Machine Learning', 'LLM & RAG', 'AI Agents', 'MLOps'],
+  },
+  {
+    id: 'data-analyst',
+    title: 'مسار محلل البيانات',
+    titleEn: 'Data Analyst Path',
+    duration: '4 - 6 أشهر',
+    price: 549,
+    focus: 'من البيانات الخام إلى التحليل والتصور ولوحات المعلومات وذكاء الأعمال؛ مسار عملي لبناء محلل بيانات قادر على دعم القرار.',
+    certificate: 'Certified Data Analyst - EMC',
+    icon: LineChart,
+    tags: ['Excel', 'SQL', 'Python', 'Power BI', 'Business Intelligence'],
   },
   {
     id: 'data-scientist',
     title: 'مسار عالم البيانات',
     titleEn: 'Data Scientist Path',
     duration: '6 - 8 أشهر',
-    focus: 'تحليل البيانات، الإحصاء، التصوير البياني، بناء النماذج، واستخراج الرؤى العملية لدعم القرار.',
+    price: 849,
+    focus: 'تحليل وإحصاء وبرمجة ونمذجة وتعلم آلة لتحويل البيانات إلى نماذج ورؤى تنبؤية قابلة للاستخدام.',
     certificate: 'Certified Data Scientist - EMC',
     icon: CircuitBoard,
-    tags: ['Data Analysis', 'Statistics', 'Data Visualization', 'Predictive Modeling'],
+    tags: ['Statistics', 'Python', 'Machine Learning', 'Deep Learning', 'Data Mining'],
   },
   {
-    id: 'data-engineer',
-    title: 'مسار مهندس البيانات',
-    titleEn: 'Data Engineer Path',
-    duration: '6 - 8 أشهر',
-    focus: 'SQL وقواعد البيانات، خطوط البيانات، عمليات ETL، السحابة، وتجهيز البيانات للتحليل والذكاء الاصطناعي.',
-    certificate: 'Certified Data Engineer - EMC',
-    icon: Database,
-    tags: ['SQL', 'ETL Pipelines', 'Big Data', 'Cloud Data Warehousing'],
-  },
-  {
-    id: 'data-analyst',
-    title: 'مسار محلل البيانات',
-    titleEn: 'Data Analyst Path',
-    duration: '6 - 8 أشهر',
-    focus: 'Excel، SQL، Power BI أو Tableau، إعداد التقارير، لوحات المعلومات، ومؤشرات الأداء.',
-    certificate: 'Certified Data Analyst - EMC',
-    icon: LineChart,
-    tags: ['Excel Advanced', 'SQL', 'Power BI / Tableau', 'KPI Dashboarding'],
-  },
-  {
-    id: 'generative-ai',
-    title: 'مسار الذكاء الاصطناعي التوليدي',
-    titleEn: 'Generative AI Specialist Path',
-    duration: '6 - 8 أشهر',
-    focus: 'هندسة الأوامر، أدوات الذكاء الاصطناعي، الإنتاجية، صناعة المحتوى، الأتمتة، ووكلاء الذكاء الاصطناعي.',
-    certificate: 'Certified Generative AI Specialist - EMC',
-    icon: Sparkles,
-    tags: ['Prompt Engineering', 'LLM Agents', 'Automation', 'Generative Tools'],
-  },
-  {
-    id: 'ai-business',
-    title: 'مسار الذكاء الاصطناعي في الأعمال',
-    titleEn: 'AI for Business Path',
-    duration: '6 - 8 أشهر',
-    focus: 'توظيف الذكاء الاصطناعي في التسويق والإدارة والعمليات وخدمة العملاء واتخاذ القرار والتحول الرقمي.',
-    certificate: 'Certified AI Business Specialist - EMC',
+    id: 'ai-digital-transformation',
+    title: 'مسار الذكاء الاصطناعي والتحول الرقمي',
+    titleEn: 'AI & Digital Transformation Path',
+    duration: '4 - 6 أشهر',
+    price: 649,
+    focus: 'مسار للقيادات والمهنيين لفهم الذكاء الاصطناعي وتوظيفه في الأعمال والعمليات والاستراتيجية والتحول المؤسسي.',
+    certificate: 'Certified AI & Digital Transformation - EMC',
     icon: Briefcase,
-    tags: ['AI Strategy', 'Business Automation', 'Digital Transformation', 'ROI'],
-  },
-  {
-    id: 'entrepreneurship',
-    title: 'مسار ريادة الأعمال',
-    titleEn: 'Entrepreneurship Path',
-    duration: '6 - 8 أشهر',
-    focus: 'تحويل الأفكار إلى مشاريع، نموذج العمل، دراسة السوق، الهوية، التسويق، التمويل، والمنتج الأول.',
-    certificate: 'Certified Entrepreneur - EMC',
-    icon: Rocket,
-    tags: ['Business Model', 'Market Research', 'Pitching', 'MVP Launch'],
+    tags: ['AI Strategy', 'Automation', 'Governance', 'Change Management'],
   },
   {
     id: 'professional-advancement',
-    title: 'مسار التقدم المهني',
+    title: 'مسار التطور والتأهيل المهني',
     titleEn: 'Professional Advancement Path',
-    duration: '6 - 8 أشهر',
-    focus: 'السيرة الذاتية، LinkedIn، المقابلات والتواصل المهني، البحث عن عمل، وبناء الهوية المهنية.',
+    duration: '8 أسابيع',
+    price: 249,
+    focus: 'من «أملك مهارات» إلى «أعرف كيف أقدم نفسي وأصل إلى الفرص»: السيرة، LinkedIn، المقابلات، العلامة الشخصية، والعمل الحر.',
     certificate: 'Professional Advancement Certificate - EMC',
     icon: UserCheck,
-    tags: ['CV & Portfolio', 'LinkedIn Mastery', 'Interview Prep', 'Personal Branding'],
-  },
-  {
-    id: 'academic-advancement',
-    title: 'مسار التقدم الأكاديمي',
-    titleEn: 'Academic Advancement Path',
-    duration: '6 - 8 أشهر',
-    focus: 'اختيار التخصص، مهارات الدراسة، الكتابة الأكاديمية، البحث العلمي، والتقديم للجامعات والمنح.',
-    certificate: 'Academic Advancement Certificate - EMC',
-    icon: GraduationCap,
-    tags: ['Academic Writing', 'Research Methods', 'University Prep', 'Scholarships'],
+    tags: ['CV & LinkedIn', 'Interviews', 'Personal Brand', 'Freelancing'],
   },
 ]
+
+/**
+ * برامج وتخصصات متقدمة — ليست مسارات أساسية منافسة للخمسة (قرار الكتالوج
+ * 2026-08-22): «قريباً» هنا بقرار صريح من المؤسس يستثنيها من قاعدة المنع.
+ */
+export const ADVANCED_PROGRAMS = [
+  { title: 'تخصص الذكاء الاصطناعي التوليدي', titleEn: 'Generative AI Specialization', badge: 'تخصص متقدم' },
+  { title: 'مسار مهندس البيانات', titleEn: 'Data Engineer Path', badge: 'قريباً' },
+  { title: 'برنامج ريادة الأعمال والابتكار', titleEn: 'Entrepreneurship & Innovation', badge: 'ضمن مدرسة الأعمال' },
+] as const
 
 // ── 2. Academic Specialized Units (الوحدات التخصصية الأكاديمية) ──────────────
 export interface TrackListItem {

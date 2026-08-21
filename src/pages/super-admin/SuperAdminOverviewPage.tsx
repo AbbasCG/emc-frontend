@@ -668,6 +668,7 @@ export default function SuperAdminOverviewPage() {
     { labelAr: 'تقرير الإثنين', href: '/dashboard/operations/weekly-reports', icon: CalendarRange },
     { labelAr: 'نقاط الأثر', href: '/dashboard/operations/impact-points', icon: Sparkles },
     { labelAr: 'تحليلات الزوار', href: '/dashboard/admin/visitor-analytics', icon: BarChart2 },
+    { labelAr: 'استيراد الكتالوج', href: '/dashboard/admin/catalog-import', icon: BookOpen },
     { labelAr: 'إنشاء مستخدم', href: '/dashboard/super-admin/crud/users', icon: UserPlus },
     { labelAr: 'إضافة دورة', href: '/dashboard/super-admin/crud/programs', icon: BookOpen },
     { labelAr: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
