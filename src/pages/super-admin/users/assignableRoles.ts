@@ -16,9 +16,9 @@ const ROLE_LABEL_AR: Record<(typeof EMC_DASHBOARD_ROLES)[number], string> = {
   volunteer: 'متطوع',
   department_manager: 'مدير إداري',
   programs_manager: 'مدير البرامج والمسارات',
-  operations_manager: 'مدير التشغيل والعمليات',
+  operations_manager: 'مدير العمليات والتشغيل',
   partnerships_manager: 'مدير الشراكات والعلاقات',
-  community_manager: 'مدير المجتمع والصحة',
+  community_manager: 'مدير الصحة النفسية والوعي',
   section_lead: 'قائد قسم',
 }
 

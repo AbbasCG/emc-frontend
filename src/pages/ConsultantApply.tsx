@@ -7,7 +7,7 @@ import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { submitConsultantApplication } from '@/api/consultantApi'
-import { DEPARTMENTS_GUIDE, MULTI_DEPARTMENT_OPTION } from '@/data/departmentsGuide'
+import { ADVISABLE_DEPARTMENTS, MULTI_DEPARTMENT_OPTION } from '@/data/departmentsGuide'
 
 /**
  * «قدّم كمستشار» — طلب انضمام إلى إدارة المستشارين في EMC.
@@ -20,7 +20,7 @@ const SPECIALTIES = [
   'الذكاء الاصطناعي والبيانات',
   'التعليم والمناهج',
   'ريادة الأعمال والإدارة',
-  'التسويق والإعلام',
+  'الإعلام والتسويق',
   'المالية والحوكمة',
   'التقنية والمنصات',
   'الموارد البشرية والتطوير',
@@ -28,7 +28,7 @@ const SPECIALTIES = [
   'أخرى',
 ]
 
-const DEPARTMENT_CHOICES = [...DEPARTMENTS_GUIDE, MULTI_DEPARTMENT_OPTION]
+const DEPARTMENT_CHOICES = [...ADVISABLE_DEPARTMENTS, MULTI_DEPARTMENT_OPTION]
 
 const MAX_CV_MB = 5
 

@@ -245,7 +245,7 @@ export const departments10: PublicDepartment[] = [
   {
     id: 'operations',
     icon: 'Cog',
-    title: { ar: 'التشغيل والعمليات' },
+    title: { ar: 'العمليات والتشغيل' },
     description: { ar: 'تشغيل يومي سلسل للفعاليات، التسجيل، والخدمات اللوجستية.' },
     responsibilities: [
       { ar: 'إدارة الجداول والقاعات والمنصات' },
@@ -256,7 +256,7 @@ export const departments10: PublicDepartment[] = [
   {
     id: 'marketing',
     icon: 'Megaphone',
-    title: { ar: 'التسويق والإعلام' },
+    title: { ar: 'الإعلام والتسويق' },
     description: { ar: 'إيصال الرسالة بوضوح وبناء هوية محتوى احترافية.' },
     responsibilities: [
       { ar: 'الحملات والقنوات الرقمية' },
@@ -322,7 +322,7 @@ export const departments10: PublicDepartment[] = [
   {
     id: 'community-wellbeing',
     icon: 'HeartHandshake',
-    title: { ar: 'المجتمع والصحة' },
+    title: { ar: 'الصحة النفسية والوعي' },
     description: { ar: 'تنفيذ المبادرات المجتمعية والصحية، بناء الشراكات المجتمعية، دعم البرامج ذات الأثر الإنساني والتوعوي.' },
     responsibilities: [
       { ar: 'المبادرات المجتمعية والصحية' },

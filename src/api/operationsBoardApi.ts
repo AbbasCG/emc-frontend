@@ -40,6 +40,26 @@ export async function fetchOperationsBoard(params?: { department_id?: number }):
   return unwrapData<BoardColumns>(res.data) ?? {}
 }
 
+export type BoardTaskInput = {
+  title: string
+  description?: string
+  department_id?: number
+  assigned_to?: number
+  priority: BoardTask['priority']
+  status?: string
+  due_date?: string
+}
+
+/** تحريك الحالة: العضو لمهامه، والمدير لكل المهام — المنطق في الخادم. */
+export async function updateBoardTaskStatus(id: number, status: string): Promise<void> {
+  await apiClient.patch(`/operations/board/tasks/${id}/status`, { status })
+}
+
+/** إنشاء مهمة من اللوحة — للمدراء المخوَّلين. */
+export async function createBoardTask(input: BoardTaskInput): Promise<void> {
+  await apiClient.post('/operations/board/tasks', input)
+}
+
 export async function lockTask(id: number): Promise<void> {
   await apiClient.post(`/operations/tasks/${id}/lock`)
 }

@@ -315,7 +315,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'المالية',                 href: '/dashboard/finance',             icon: Wallet          },
         { label: 'الموارد البشرية',         href: '/dashboard/hr',                  icon: Briefcase       },
         { label: 'الجودة والحوكمة',         href: '/dashboard/quality',             icon: ClipboardCheck  },
-        { label: 'التسويق والإعلام',        href: '/dashboard/marketing',           icon: Megaphone       },
+        { label: 'الإعلام والتسويق',        href: '/dashboard/marketing',           icon: Megaphone       },
         { label: 'الدعم الفني',             href: '/dashboard/support',             icon: ShieldQuestion  },
         { label: 'الشركاء',                 href: '/dashboard/partner',             icon: HeartHandshake  },
         { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',       icon: UserCheck       },
@@ -803,7 +803,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
 
   if (n === 'operations_manager') {
     return [
-      { items: [{ label: 'لوحة التشغيل والعمليات', href: '/dashboard/operations-manager', icon: Sparkles }] },
+      { items: [{ label: 'لوحة العمليات والتشغيل', href: '/dashboard/operations-manager', icon: Sparkles }] },
       {
         title: 'إدارة العمليات',
         items: [
@@ -850,7 +850,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
 
   if (n === 'community_manager') {
     return [
-      { items: [{ label: 'لوحة المجتمع والصحة', href: '/dashboard/community-manager', icon: HeartHandshake }] },
+      { items: [{ label: 'لوحة الصحة النفسية والوعي', href: '/dashboard/community-manager', icon: HeartHandshake }] },
       {
         title: 'المجتمع والنشاطات',
         items: [

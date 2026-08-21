@@ -51,7 +51,7 @@ const RECOGNITION = {
     { dept: 'إدارة البرامج والمسارات', recognitionType: 'تكريم فردي', member: 'الأستاذة أُلفت', achievement: null },
     { dept: 'إدارة الموارد البشرية', recognitionType: 'تكريم فردي', member: 'الأستاذة أمان زيد', achievement: null },
     { dept: 'الإدارة العليا', recognitionType: null, member: null, achievement: null },
-    { dept: 'إدارة التسويق والإعلام', recognitionType: null, member: null, achievement: null },
+    { dept: 'إدارة الإعلام والتسويق', recognitionType: null, member: null, achievement: null },
     { dept: 'إدارة الشراكات والعلاقات', recognitionType: null, member: null, achievement: null },
     { dept: 'الإدارة المالية', recognitionType: null, member: null, achievement: null },
     { dept: 'إدارة الجودة والحوكمة', recognitionType: null, member: null, achievement: null },

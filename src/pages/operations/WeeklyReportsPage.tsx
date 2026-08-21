@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { AlarmClock, ChevronDown, ChevronUp, Plus, RefreshCw } from 'lucide-react'
+import { AlarmClock, ChevronDown, ChevronUp, Plus, RefreshCw, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { fetchDepartmentOptions } from '@/api/jobTitlesApi'
+import CriteriaScoreGrid from '@/components/operations/CriteriaScoreGrid'
+import { averageScore, type CriteriaScores } from '@/data/evaluationCriteria'
 import {
+  fetchDepartmentMembers,
   fetchWeeklyReports,
   fetchWeeklyReportsDue,
   submitWeeklyReport,
+  type DepartmentMember,
   type WeeklyReport,
 } from '@/api/operationsReportsApi'
 
@@ -28,6 +32,10 @@ export default function WeeklyReportsPage() {
   const [showForm, setShowForm] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
+  const [members, setMembers] = useState<DepartmentMember[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [evaluations, setEvaluations] = useState<Record<number, { included: boolean; scores: CriteriaScores }>>({})
+  const [openMemberId, setOpenMemberId] = useState<number | null>(null)
   const [form, setForm] = useState({
     department_id: '' as number | '',
     achievements: '',
@@ -92,6 +100,9 @@ export default function WeeklyReportsPage() {
         blockers: form.blockers.trim() || undefined,
         needs: form.needs.trim() || undefined,
         notes: form.notes.trim() || undefined,
+        ratings: members
+          .filter((m) => evaluations[m.id]?.included)
+          .map((m) => ({ user_id: m.id, scores: evaluations[m.id]?.scores })),
       })
       toast.success('سُلِّم تقرير الأسبوع')
       setShowForm(false)
@@ -142,7 +153,22 @@ export default function WeeklyReportsPage() {
             الإدارة *
             <select
               value={form.department_id}
-              onChange={(e) => setForm((f) => ({ ...f, department_id: e.target.value ? Number(e.target.value) : '' }))}
+              onChange={(e) => {
+                const id = e.target.value ? Number(e.target.value) : ''
+                setForm((f) => ({ ...f, department_id: id }))
+                setMembers([])
+                setEvaluations({})
+                if (id) {
+                  setMembersLoading(true)
+                  void fetchDepartmentMembers(id)
+                    .then((rows) => {
+                      setMembers(rows)
+                      setEvaluations(Object.fromEntries(rows.map((m) => [m.id, { included: true, scores: {} }])))
+                    })
+                    .catch(() => toast.error('تعذر تحميل أعضاء الإدارة'))
+                    .finally(() => setMembersLoading(false))
+                }
+              }}
               className={fieldClass}
             >
               <option value="">اختر الإدارة…</option>
@@ -169,6 +195,72 @@ export default function WeeklyReportsPage() {
               <textarea rows={3} value={form.needs} onChange={(e) => setForm((f) => ({ ...f, needs: e.target.value }))} className={fieldClass} />
             </label>
           </div>
+          {/* تقييم أعضاء الإدارة — نفس معايير الاجتماعات العشرة، ويغذي نقاط الأثر */}
+          {form.department_id !== '' && (
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+              <h3 className="text-xs font-black text-deepBlue">تقييم أداء الأعضاء هذا الأسبوع</h3>
+              {membersLoading ? (
+                <p className="mt-3 text-xs font-bold text-slate-400">جارٍ تحميل الأعضاء…</p>
+              ) : members.length === 0 ? (
+                <p className="mt-3 text-xs font-bold text-slate-400">لا أعضاء مسجلين في هذه الإدارة بعد</p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {members.map((m) => {
+                    const row = evaluations[m.id] ?? { included: true, scores: {} }
+                    const avg = averageScore(row.scores)
+                    const isOpen = openMemberId === m.id
+                    return (
+                      <li key={m.id} className="rounded-lg bg-white">
+                        <div className="flex items-center justify-between gap-3 px-3 py-2">
+                          <label className="flex min-w-0 items-center gap-2 text-sm font-bold text-deepBlue">
+                            <input
+                              type="checkbox"
+                              checked={row.included}
+                              onChange={(e) =>
+                                setEvaluations((a) => ({ ...a, [m.id]: { ...row, included: e.target.checked } }))
+                              }
+                              className="h-4 w-4 rounded border-slate-300 text-customBlue focus:ring-customBlue"
+                            />
+                            <span className="truncate">
+                              {m.name}
+                              {m.kind === 'leader' && <span className="ms-1.5 text-[10px] font-black text-customOrange">قائد</span>}
+                            </span>
+                          </label>
+                          {row.included && (
+                            <button
+                              type="button"
+                              onClick={() => setOpenMemberId(isOpen ? null : m.id)}
+                              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-black transition ${
+                                avg != null
+                                  ? avg >= 9
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : avg >= 7
+                                      ? 'border-sky bg-sky/40 text-deepBlue'
+                                      : 'border-amber-200 bg-amber-50 text-amber-700'
+                                  : 'border-slate-200 text-slate-500 hover:border-customBlue'
+                              }`}
+                            >
+                              <Star size={11} aria-hidden />
+                              {avg != null ? `${avg}/10` : 'قيّم بالمعايير العشرة'}
+                            </button>
+                          )}
+                        </div>
+                        {row.included && isOpen && (
+                          <div className="border-t border-slate-100 p-2.5">
+                            <CriteriaScoreGrid
+                              scores={row.scores}
+                              onChange={(next) => setEvaluations((a) => ({ ...a, [m.id]: { ...row, scores: next } }))}
+                            />
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-end gap-2">
             <button onClick={() => setShowForm(false)} className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">
               إلغاء
@@ -227,6 +319,28 @@ export default function WeeklyReportsPage() {
                         <dd className="mt-1 whitespace-pre-line leading-7 text-ink-600">{v}</dd>
                       </div>
                     ))}
+                  {(r.ratings ?? []).length > 0 && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-[11px] font-black text-slate-400">تقييم الأعضاء</dt>
+                      <dd className="mt-2 flex flex-wrap gap-2">
+                        {(r.ratings ?? []).map((row) => (
+                          <span
+                            key={row.id}
+                            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-black tabular-nums ${
+                              (row.avg_score ?? 0) >= 9
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : (row.avg_score ?? 0) >= 7
+                                  ? 'bg-sky/60 text-deepBlue'
+                                  : 'bg-amber-100 text-amber-700'
+                            }`}
+                          >
+                            {row.user?.name}
+                            {row.avg_score != null ? ` · ${row.avg_score}/10` : ''}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
                 </dl>
               )}
             </li>

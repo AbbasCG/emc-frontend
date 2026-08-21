@@ -24,7 +24,8 @@ export async function fetchDepartmentMembers(departmentId: number): Promise<Depa
 export type MeetingReportRatingInput = {
   user_id: number
   attended: boolean
-  rating: number | null
+  /** {criterion: 1..10} — معايير التقييم العشرة الموحدة */
+  scores?: Record<string, number>
   note?: string
 }
 
@@ -58,6 +59,8 @@ export type MeetingReport = {
     id: number
     attended: boolean
     rating: number | null
+    scores: Record<string, number> | null
+    avg_score: number | null
     note: string | null
     user?: { id: number; name: string }
   }>
@@ -95,11 +98,19 @@ export type WeeklyReportInput = {
   blockers?: string
   needs?: string
   notes?: string
+  ratings?: Array<{ user_id: number; scores?: Record<string, number>; note?: string }>
 }
 
 export type WeeklyReport = {
   id: number
   week_start: string
+  ratings?: Array<{
+    id: number
+    scores: Record<string, number> | null
+    avg_score: number | null
+    note: string | null
+    user?: { id: number; name: string }
+  }>
   achievements: string
   planned: string
   blockers: string | null

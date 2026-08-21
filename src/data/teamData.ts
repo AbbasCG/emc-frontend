@@ -97,7 +97,7 @@ export const STATIC_TEAM_DATA: Department[] = [
   },
   {
     id: 3,
-    name_ar: 'إدارة التشغيل والعمليات',
+    name_ar: 'إدارة العمليات والتشغيل',
     name_en: 'Operations',
     slug: 'operations',
     description_ar: 'الإشراف على سير العمليات اليومية وضمان الكفاءة التشغيلية للمركز.',
@@ -116,7 +116,7 @@ export const STATIC_TEAM_DATA: Department[] = [
   },
   {
     id: 4,
-    name_ar: 'إدارة التسويق والإعلام',
+    name_ar: 'إدارة الإعلام والتسويق',
     name_en: 'Marketing & Communications',
     slug: 'marketing-communications',
     description_ar: 'بناء هوية EMC الإعلامية وإدارة التسويق الرقمي والمحتوى البصري.',
@@ -126,7 +126,7 @@ export const STATIC_TEAM_DATA: Department[] = [
       {
         id: 401,
         name_ar: 'أمان زيد',
-        position_ar: 'مديرة التسويق والإعلام',
+        position_ar: 'مديرة الإعلام والتسويق',
         image: null,
         is_leader: true,
         is_executive: false,
@@ -275,7 +275,7 @@ export const STATIC_TEAM_DATA: Department[] = [
   },
   {
     id: 9,
-    name_ar: 'إدارة المجتمع والصحة النفسية والوعي',
+    name_ar: 'إدارة الصحة النفسية والوعي',
     name_en: 'Community & Wellbeing',
     slug: 'community-wellbeing',
     description_ar: 'دعم المجتمع التعليمي وتعزيز الوعي بالصحة النفسية والتغذية والرفاهية.',

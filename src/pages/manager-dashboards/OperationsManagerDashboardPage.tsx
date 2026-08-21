@@ -44,8 +44,8 @@ export default function OperationsManagerDashboardPage() {
     <div dir="rtl" className="space-y-8 text-right">
       <DashboardHero
         greeting={hourGreeting()}
-        name="إدارة التشغيل والعمليات"
-        role="مدير التشغيل والعمليات — EMC"
+        name="إدارة العمليات والتشغيل"
+        role="مدير العمليات والتشغيل — EMC"
         subtitle="متابعة الإدارات، المهام، الاجتماعات، النماذج، ومؤشرات الأداء التشغيلي."
         actions={
           <>

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { DEPARTMENTS_GUIDE } from '@/data/departmentsGuide'
 import type { ChangeEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router'
@@ -22,18 +23,8 @@ import toast from '@/lib/toast'
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 
-const DEPARTMENTS = [
-  'البرامج والمسارات',
-  'التسويق والإعلام',
-  'التقنية والدعم الفني',
-  'الموارد البشرية',
-  'الشراكات والعلاقات العامة',
-  'المجتمع والصحة النفسية والوعي',
-  'الجودة والحوكمة',
-  'المالية',
-  'التشغيل والعمليات',
-  'غير محدد',
-]
+// المسميات الرسمية الموحّدة للإدارات الـ13 — من دليل الإدارات المعتمد.
+const DEPARTMENTS = [...DEPARTMENTS_GUIDE.map((d) => d.name), 'غير محدد']
 
 const EXPERIENCE_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير']
 

@@ -34,8 +34,8 @@ export default function CommunityManagerDashboardPage() {
     <div dir="rtl" className="space-y-8 text-right">
       <DashboardHero
         greeting={hourGreeting()}
-        name="إدارة المجتمع والصحة"
-        role="مدير المجتمع والصحة — EMC"
+        name="إدارة الصحة النفسية والوعي"
+        role="مدير الصحة النفسية والوعي — EMC"
         subtitle="إدارة المتطوعين، الأنشطة المجتمعية، المهام، الاجتماعات، والنماذج."
         actions={
           <>

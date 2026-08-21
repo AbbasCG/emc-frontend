@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { DEPARTMENTS_GUIDE } from '@/data/departmentsGuide'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import {
@@ -38,18 +39,8 @@ const ALL_STATUSES: VolunteerRequestStatus[] = [
   'converted_to_member',
 ]
 
-const DEPARTMENTS = [
-  'البرامج والمسارات',
-  'التسويق والإعلام',
-  'التقنية والدعم الفني',
-  'الموارد البشرية',
-  'الشراكات والعلاقات العامة',
-  'المجتمع والصحة النفسية والوعي',
-  'الجودة والحوكمة',
-  'المالية',
-  'التشغيل والعمليات',
-  'غير محدد',
-]
+// المسميات الرسمية الموحّدة للإدارات الـ13 — من دليل الإدارات المعتمد.
+const DEPARTMENTS = [...DEPARTMENTS_GUIDE.map((d) => d.name), 'غير محدد']
 
 function StatusBadge({ status }: { status: VolunteerRequestStatus }) {
   const cfg = STATUS_CFG[status]
