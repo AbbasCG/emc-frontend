@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  KanbanSquare,
+  ClipboardCheck,
+  CalendarRange,
+  Sparkles,
   Bot,
   ChevronDown,
   ChevronLeft,
@@ -224,6 +228,24 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
     const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
 
+    // «التشغيل والتقارير» — مجموعة مشتركة بارزة (غير مطوية) لكل أدوار الفريق:
+    // لوحة التشغيل المرئية للجميع، تقارير الاجتماعات، تقرير الإثنين، ونقاط الأثر.
+    const OPS_HIDDEN_ROLES = new Set(['student', 'partner'])
+    const role = String(user?.role ?? '')
+    const withOps = (list: SidebarNavGroup[]): SidebarNavGroup[] => {
+      if (OPS_HIDDEN_ROLES.has(role) || !role) return list
+      const opsGroup: SidebarNavGroup = {
+        title: 'التشغيل والتقارير',
+        items: [
+          { label: 'لوحة التشغيل', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: ClipboardCheck },
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: CalendarRange },
+          { label: 'نقاط الأثر', href: '/dashboard/operations/impact-points', icon: Sparkles },
+        ],
+      }
+      return [...(list[0] ? [list[0]] : []), opsGroup, ...list.slice(1)]
+    }
+
     // Backend is the single source of truth for who may submit financial requests.
     // Inject the department link only when the backend says can_create=true AND
     // the role's own sidebar doesn't already include that specific route
@@ -237,15 +259,15 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         title: 'الإدارة المالية',
         items: [{ label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet }],
       }
-      return [
+      return withOps([
         ...(base[0] ? [base[0]] : []),
         leaderGroup,
         ...base.slice(1),
-      ]
+      ])
     }
 
-    return base
-  }, [user?.role, canCreate])
+    return withOps(base)
+  }, [user?.role, canCreate, user?.has_english_courses])
 
   const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
 
@@ -557,8 +579,16 @@ function Topbar({
         <Menu size={20} />
       </button>
 
-      <div className="min-w-0 flex-1">
-        <h1 className="line-clamp-2 break-words text-[13px] font-black leading-snug tracking-tight text-deepBlue font-display sm:text-base sm:leading-normal">{pageTitle}</h1>
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <h1 className="line-clamp-2 min-w-0 break-words text-[13px] font-black leading-snug tracking-tight text-deepBlue font-display sm:text-base sm:leading-normal">{pageTitle}</h1>
+        {/* زر لوحة التشغيل: بارز وسط الشريط لكل الأدوار — نافذة الفريق الواحدة على المهام */}
+        <Link
+          to="/dashboard/operations/board"
+          className="mx-auto hidden h-9 shrink-0 items-center gap-2 rounded-xl bg-customOrange px-4 text-xs font-extrabold text-white transition hover:bg-ember sm:inline-flex"
+        >
+          <KanbanSquare size={15} aria-hidden />
+          لوحة التشغيل
+        </Link>
       </div>
 
       <div className="flex items-center gap-2">

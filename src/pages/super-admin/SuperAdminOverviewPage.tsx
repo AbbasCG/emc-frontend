@@ -30,6 +30,10 @@ import {
   ClipboardList,
   UserPlus,
   Settings2,
+  KanbanSquare,
+  Sparkles,
+  ClipboardCheck,
+  CalendarRange,
 } from 'lucide-react'
 import { fetchAdminUsers, type AdminManagedUser, fetchSuperAdminStats, type SuperAdminStats } from '@/api/adminUsersApi'
 import { fetchVolunteers, fetchVolunteerRequestsStats } from '@/api/volunteersApi'
@@ -659,6 +663,10 @@ export default function SuperAdminOverviewPage() {
 
   /* ── إجراءات سريعة ───────────────────────────────────────────── */
   const quickActions = [
+    { labelAr: 'لوحة التشغيل', href: '/dashboard/operations/board', icon: KanbanSquare },
+    { labelAr: 'تقرير اجتماع', href: '/dashboard/operations/meeting-reports', icon: ClipboardCheck },
+    { labelAr: 'تقرير الإثنين', href: '/dashboard/operations/weekly-reports', icon: CalendarRange },
+    { labelAr: 'نقاط الأثر', href: '/dashboard/operations/impact-points', icon: Sparkles },
     { labelAr: 'إنشاء مستخدم', href: '/dashboard/super-admin/crud/users', icon: UserPlus },
     { labelAr: 'إضافة دورة', href: '/dashboard/super-admin/crud/programs', icon: BookOpen },
     { labelAr: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },

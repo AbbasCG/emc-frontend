@@ -78,7 +78,7 @@ function ChartsRowInner({
       >
         <div dir="ltr" className="h-[280px] w-full">
           {areaData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={areaData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -152,7 +152,7 @@ function ChartsRowInner({
         <div dir="ltr" className="relative h-[220px]">
           {pieData.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie
                     data={pieData}

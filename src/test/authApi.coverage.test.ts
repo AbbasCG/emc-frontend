@@ -51,8 +51,9 @@ describe('login', () => {
       { email: 'ayman@example.com', password: 'secret' },
       { skipErrorToast: true, headers: { 'X-EMC-Auth-Mode': 'cookie' } },
     )
+    // العنوان مشتق من VITE_API_URL — نثبّت الجوهر (مسار sanctum) لا اسم المضيف.
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      'http://localhost:8000/sanctum/csrf-cookie',
+      expect.stringMatching(/\/sanctum\/csrf-cookie$/),
       expect.objectContaining({ withCredentials: true, withXSRFToken: true }),
     )
     expect(out.token).toBe('tok_123')

@@ -224,19 +224,7 @@ export async function fetchMembers(): Promise<InternalMember[]> {
   for (const ep of endpoints) {
     try {
       const res = await apiClient.get<unknown>(ep, { skipErrorToast: true } as Record<string, unknown>)
-
-      if (import.meta.env.DEV) {
-        console.group(`[membersApi] fetchMembers ${ep}`)
-        console.log('raw res.data:', res.data)
-      }
-
       const list = unwrapMembersList(res.data)
-
-      if (import.meta.env.DEV) {
-        console.log('unwrapped list length:', list.length, '→ first item:', list[0])
-        console.groupEnd()
-      }
-
       return list.map(normalizeMember).filter((m): m is InternalMember => m !== null)
     } catch (err) {
       lastErr = err
