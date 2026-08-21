@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import axios from 'axios'
 import apiClient from '@/api/axios'
 import {
   login,
@@ -21,10 +22,16 @@ vi.mock('@/api/axios', () => ({
   },
 }))
 
+vi.mock('axios', () => ({
+  default: { get: vi.fn() },
+}))
+
 const mockedApi = vi.mocked(apiClient, true)
+const mockedAxios = vi.mocked(axios, true)
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockedAxios.get.mockResolvedValue({ data: {} })
 })
 
 describe('login', () => {
@@ -42,7 +49,11 @@ describe('login', () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       '/auth/login',
       { email: 'ayman@example.com', password: 'secret' },
-      { skipErrorToast: true },
+      { skipErrorToast: true, headers: { 'X-EMC-Auth-Mode': 'cookie' } },
+    )
+    expect(mockedAxios.get).toHaveBeenCalledWith(
+      'http://localhost:8000/sanctum/csrf-cookie',
+      expect.objectContaining({ withCredentials: true, withXSRFToken: true }),
     )
     expect(out.token).toBe('tok_123')
     expect(out.user.id).toBe(9) // numeric coercion
@@ -98,7 +109,10 @@ describe('registerAccount', () => {
       how_did_you_hear_about_us: 'صديق',
     }
     const out = await registerAccount(input)
-    expect(mockedApi.post).toHaveBeenCalledWith('/auth/register', input, { skipErrorToast: true })
+    expect(mockedApi.post).toHaveBeenCalledWith('/auth/register', input, {
+      skipErrorToast: true,
+      headers: { 'X-EMC-Auth-Mode': 'cookie' },
+    })
     expect(out.token).toBe('tok_new')
     expect(out.user.name).toBe('ليلى')
   })

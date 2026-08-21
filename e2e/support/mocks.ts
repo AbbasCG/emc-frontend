@@ -374,10 +374,15 @@ export function getMockState(page: Page): MockState {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+// The app now sends credentialed requests (withCredentials for Sanctum cookie
+// auth), and the Fetch spec forbids the '*' origin wildcard on credentialed
+// responses — so the mock echoes the concrete test origin and allows credentials.
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'http://localhost:4173',
+  'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, content-type, accept, x-requested-with',
+  'Access-Control-Allow-Headers':
+    'authorization, content-type, accept, x-requested-with, x-emc-auth-mode, x-xsrf-token',
 }
 
 function json(route: Route, body: unknown, status = 200): Promise<void> {

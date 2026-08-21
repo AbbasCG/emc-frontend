@@ -16,7 +16,6 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
 import ar from './locales/ar.json'
-import en from './locales/en.json'
 
 /** localStorage key holding the user's explicit language choice. */
 export const LANG_STORAGE_KEY = 'emc_lang'
@@ -34,7 +33,6 @@ export type LangDefinition = {
 /** Supported languages. NL is deferred until the Dutch catalog is approved. */
 export const LANGS: readonly LangDefinition[] = [
   { code: 'ar', dir: 'rtl', label: 'العربية' },
-  { code: 'en', dir: 'ltr', label: 'English' },
 ]
 
 export const DEFAULT_LANG: LangDefinition = LANGS[0]
@@ -52,7 +50,6 @@ void i18n
   .init({
     resources: {
       ar: { translation: ar },
-      en: { translation: en },
     },
     fallbackLng: 'ar',
     supportedLngs: LANGS.map((l) => l.code),

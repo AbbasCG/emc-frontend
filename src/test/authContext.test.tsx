@@ -9,6 +9,7 @@ import {
   IMPERSONATION_ACTIVE_KEY,
   IMPERSONATION_ORIGINAL_TOKEN_KEY,
   IMPERSONATION_ORIGINAL_USER_KEY,
+  SESSION_HINT_KEY,
 } from '@/lib/impersonationSession'
 import type { User } from '@/types'
 
@@ -221,6 +222,19 @@ describe('AuthProvider — login / registerAccount', () => {
     expect(screen.getByText('token: token-fresh')).toBeInTheDocument()
     expect(localStorage.getItem(TOKEN_KEY)).toBe('token-fresh')
     expect(storedUser()?.name).toBe('أحمد')
+  })
+
+  it('يثبت جلسة الكوكيز بلا تخزين رمز وصول في المتصفح', async () => {
+    mockedLogin.mockResolvedValue({ token: '', user: makeUser({ name: 'مستخدم جلسة' }) })
+
+    renderAuth()
+    await click('login')
+
+    await waitFor(() => expect(screen.getByText('authenticated: true')).toBeInTheDocument())
+    expect(screen.getByText('user: مستخدم جلسة')).toBeInTheDocument()
+    expect(screen.getByText('token: none')).toBeInTheDocument()
+    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBe('1')
   })
 
   it('يُبقي الجلسة فارغة ويمرّر الخطأ عند فشل تسجيل الدخول', async () => {

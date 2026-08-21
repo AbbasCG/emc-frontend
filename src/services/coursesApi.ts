@@ -5,8 +5,8 @@ import type { Course } from '@/types'
 import { mapApiCourseToCourseItem } from '@/utils/mapApiCourseToCourseItem'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
 
-/** Set `VITE_USE_MOCK_CATALOG=true` for local UI fixtures. Default: live API only (no dummy list on failure). */
-export const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_CATALOG === 'true'
+/** Local UI fixtures are impossible in production even if an environment variable is misconfigured. */
+export const USE_MOCK_DATA = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_CATALOG === 'true'
 
 export type CourseLevel = 'beginner' | 'intermediate' | 'advanced'
 export type CourseStatus = 'active' | 'upcoming' | 'archived'
@@ -81,6 +81,8 @@ export type WorkshopItem = {
   spots_remaining: number
   total_spots: number
   slug: string
+  price: number
+  is_free: boolean
 }
 
 export type FetchCoursesParams = {
@@ -161,6 +163,8 @@ const mockWorkshops: WorkshopItem[] = [
     spots_remaining: 18,
     total_spots: 50,
     slug: 'sample-workshop',
+    price: 0,
+    is_free: true,
   },
 ]
 
@@ -171,31 +175,27 @@ export async function fetchCourses(params: FetchCoursesParams = {}) {
     await new Promise<void>((r) => setTimeout(r, 500))
     return { data: MOCK_CATALOG_ITEMS, total: MOCK_CATALOG_ITEMS.length }
   }
-  try {
-    const raw = await fetchCoursesFromApi()
-    const mapped: CourseItem[] = []
-    for (let i = 0; i < raw.length; i++) {
-      try {
-        mapped.push(mapApiCourseToCourseItem(raw[i] as Course, i))
-      } catch {
-        /* malformed row — keep other courses visible */
-      }
+  const raw = await fetchCoursesFromApi()
+  const mapped: CourseItem[] = []
+  for (let i = 0; i < raw.length; i++) {
+    try {
+      mapped.push(mapApiCourseToCourseItem(raw[i] as Course, i))
+    } catch {
+      /* malformed row — keep other valid API courses visible */
     }
-    let list = mapped
-    if (params.search?.trim()) {
-      const q = params.search.trim().toLowerCase()
-      list = list.filter(
-        (c) =>
-          c.title.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q) ||
-          c.trainer.name.toLowerCase().includes(q) ||
-          c.tags.some((t) => t.toLowerCase().includes(q)),
-      )
-    }
-    return { data: list, total: list.length }
-  } catch {
-    return { data: [], total: 0 }
   }
+  let list = mapped
+  if (params.search?.trim()) {
+    const q = params.search.trim().toLowerCase()
+    list = list.filter(
+      (c) =>
+        c.title.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        c.trainer.name.toLowerCase().includes(q) ||
+        c.tags.some((t) => t.toLowerCase().includes(q)),
+    )
+  }
+  return { data: list, total: list.length }
 }
 
 export async function fetchTracks() {
@@ -203,8 +203,7 @@ export async function fetchTracks() {
     await new Promise<void>((r) => setTimeout(r, 300))
     return { data: mockTracks }
   }
-  try {
-    const response = await apiClient.get('/tracks', { skipErrorToast: true })
+  const response = await apiClient.get('/tracks', { skipErrorToast: true })
     const rows = unwrapData<
       {
         id: number
@@ -228,10 +227,7 @@ export async function fetchTracks() {
       original_price: null,
       description: r.description ?? '',
     }))
-    return { data }
-  } catch {
-    return { data: [] }
-  }
+  return { data }
 }
 
 export async function fetchUpcomingWorkshops() {
@@ -239,8 +235,7 @@ export async function fetchUpcomingWorkshops() {
     await new Promise<void>((r) => setTimeout(r, 300))
     return { data: mockWorkshops }
   }
-  try {
-    const response = await apiClient.get('/workshops', { skipErrorToast: true })
+  const response = await apiClient.get('/workshops', { skipErrorToast: true })
     const rows = unwrapData<Record<string, unknown>[]>(response.data)
     const data: WorkshopItem[] = (rows ?? [])
       .filter((w): w is Record<string, unknown> => Boolean(w?.id && w?.slug && w?.title))
@@ -262,7 +257,7 @@ export async function fetchUpcomingWorkshops() {
             ? w.trainer_name
             : (w.instructor as Record<string, unknown>)?.name
               ? String((w.instructor as Record<string, unknown>).name)
-              : 'فريق EMC',
+              : 'لم يحدد المدرب',
         is_online: Boolean(w.is_online),
         // seats aliases — the backend (and the public normalizers) use seats_remaining/seats_total;
         // missing them here stranded the /courses spotlight at «0 مقعد» (real alias bug).
@@ -274,9 +269,8 @@ export async function fetchUpcomingWorkshops() {
           : typeof w.seats_total === 'number' ? w.seats_total
           : typeof w.seats === 'number' ? w.seats
           : 0,
+        price: typeof w.price === 'number' ? w.price : Number(w.price ?? 0),
+        is_free: typeof w.is_free === 'boolean' ? w.is_free : Number(w.price ?? 0) <= 0,
       }))
-    return { data }
-  } catch {
-    return { data: [] }
-  }
+  return { data }
 }

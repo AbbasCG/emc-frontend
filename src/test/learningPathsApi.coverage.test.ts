@@ -14,6 +14,7 @@ import {
   updateLearningPathStatus,
   updateLearningPathCourses,
   enrollInLearningPath,
+  checkoutLearningPath,
   fetchEnrollmentStatus,
   fetchStudentLearningPaths,
   fetchStudentLearningPath,
@@ -331,11 +332,33 @@ describe('enrollInLearningPath', () => {
   })
 })
 
+describe('checkoutLearningPath', () => {
+  it('creates a path checkout and returns its redirect URL', async () => {
+    const payload = {
+      success: true,
+      checkout_url: 'https://checkout.stripe.test/path',
+      enrollment_id: 12,
+      code: 'checkout_session_created',
+    }
+    mockedApi.post.mockResolvedValueOnce({ data: payload })
+
+    await expect(checkoutLearningPath('path-1')).resolves.toEqual(payload)
+    expect(mockedApi.post).toHaveBeenCalledWith('/learning-paths/path-1/checkout', {}, { skipErrorToast: true })
+  })
+})
+
 describe('fetchEnrollmentStatus', () => {
   it('returns enrolled + enrollment from the body', async () => {
     const enrollment = { id: 1, status: 'active', enrolled_at: '2026-01-01', completed_at: null }
-    mockedApi.get.mockResolvedValueOnce({ data: { success: true, enrolled: true, enrollment } })
-    await expect(fetchEnrollmentStatus('path-1')).resolves.toEqual({ enrolled: true, enrollment })
+    mockedApi.get.mockResolvedValueOnce({
+      data: { success: true, enrolled: true, requires_checkout: false, checkout_url: null, enrollment },
+    })
+    await expect(fetchEnrollmentStatus('path-1')).resolves.toEqual({
+      enrolled: true,
+      requires_checkout: false,
+      checkout_url: null,
+      enrollment,
+    })
     expect(mockedApi.get).toHaveBeenCalledWith('/learning-paths/path-1/enrollment-status', { skipErrorToast: true })
   })
 

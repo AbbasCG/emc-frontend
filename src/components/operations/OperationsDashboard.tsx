@@ -5,6 +5,7 @@ import {
   ClipboardList,
   HeartHandshake,
   Megaphone,
+  RefreshCw,
   ShieldQuestion,
   TrendingUp,
   Users,
@@ -12,6 +13,26 @@ import {
 import { Link } from 'react-router'
 import type { OperationsDashboardData } from '@/types/operations'
 import { DashboardSection } from '@/components/dashboard'
+
+const queueLinks = {
+  tasks: '/dashboard/admin/tasks/overdue',
+  support: '/dashboard/admin/support-tickets',
+  partnerships: '/dashboard/admin/partnership-requests',
+  volunteers: '/dashboard/admin/volunteers',
+  finance: '/dashboard/finance/program-approvals',
+} as const
+
+const todayLinks = {
+  tasks: '/dashboard/admin/tasks',
+  meetings: '/dashboard/admin/meetings',
+} as const
+
+function formatDashboardDate(value?: string | null) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('ar', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+}
 
 function Metric({
   icon: Icon,
@@ -73,9 +94,14 @@ export default function OperationsDashboard({ data }: { data: OperationsDashboar
         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/45">مركز العمليات</p>
         <h1 className="mt-3 text-3xl font-black leading-tight">لوحة القيادة التشغيلية</h1>
         <p className="mt-4 max-w-2xl text-sm font-semibold leading-relaxed text-white/70">
-          رؤية موحّدة للإدارات، المهام، الاجتماعات، الشراكات، التسويق، والدعم بنفس هوية EMC العربية
-          والاحتراف المعهود.
+          ابدأ بما يحتاج قرارًا، ثم تابع عمل اليوم. جميع المؤشرات أدناه محسوبة من سجلات المنصة الفعلية.
         </p>
+        {data.generated_at && (
+          <p className="mt-3 inline-flex items-center gap-2 text-[11px] font-bold text-white/45">
+            <RefreshCw size={12} aria-hidden />
+            آخر قراءة: {formatDashboardDate(data.generated_at)}
+          </p>
+        )}
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <Link
             to="/dashboard/admin/tasks/kanban"
@@ -155,6 +181,61 @@ export default function OperationsDashboard({ data }: { data: OperationsDashboar
         />
       </div>
 
+      <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+        <DashboardSection title="ما يحتاج قرارًا الآن">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-deepBlue/[0.05]">
+            {(data.priority_queues?.length ?? 0) === 0 ? (
+              <p className="py-10 text-center text-sm font-bold text-slate-400">لا توجد طوابير معلّقة.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100 text-right">
+                {data.priority_queues!.map((queue) => (
+                  <li key={queue.key}>
+                    <Link
+                      to={queueLinks[queue.key]}
+                      className="flex items-center gap-4 px-5 py-4 transition hover:bg-slate-50"
+                    >
+                      <span className="font-latin text-2xl font-black tabular-nums text-deepBlue">{queue.count}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-black text-deepBlue">{queue.label}</span>
+                        {queue.urgent_count > 0 && (
+                          <span className="mt-1 block text-[11px] font-bold text-rose-600">
+                            {queue.urgent_count} منها جديدة أو عالية الأولوية
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-xs font-black text-customBlue">فتح</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </DashboardSection>
+
+        <DashboardSection title="عمل اليوم">
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-deepBlue/[0.05]">
+            {(data.today_items?.length ?? 0) === 0 ? (
+              <p className="py-10 text-center text-sm font-bold text-slate-400">لا توجد مهام أو اجتماعات مستحقة اليوم.</p>
+            ) : (
+              <ul className="space-y-3 text-right">
+                {data.today_items!.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      to={todayLinks[item.key]}
+                      className="block rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100 transition hover:ring-customBlue/25"
+                    >
+                      <span className="block text-[10px] font-black text-customBlue">{item.kind}</span>
+                      <span className="mt-1 block text-sm font-black text-deepBlue">{item.label}</span>
+                      {item.at && <span className="mt-1 block text-[11px] font-bold text-slate-400">{item.at}</span>}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </DashboardSection>
+      </div>
+
       <div className="grid gap-8 xl:grid-cols-2">
         <DashboardSection title="نشاط حديث">
           <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-deepBlue/[0.05]">
@@ -167,7 +248,7 @@ export default function OperationsDashboard({ data }: { data: OperationsDashboar
                     key={a.id}
                     className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs font-semibold text-deepBlue ring-1 ring-slate-100"
                   >
-                    <span className="text-[10px] font-bold text-slate-400">{a.at}</span>
+                    <span className="text-[10px] font-bold text-slate-400">{formatDashboardDate(a.at)}</span>
                     <span className="flex-1 text-right">{a.label}</span>
                     <span className="rounded-full bg-customBlue/10 px-2 py-0.5 text-[10px] font-black text-customBlue">
                       {a.kind}

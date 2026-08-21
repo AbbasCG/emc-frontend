@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
 import { useParams, Link, useNavigate, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
 import DOMPurify from 'dompurify'
@@ -27,6 +28,7 @@ import {
   fetchPublicLearningPath,
   fetchEnrollmentStatus,
   enrollInLearningPath,
+  checkoutLearningPath,
   type LearningPath,
   type EnrollmentStatus,
 } from '../api/learningPathsApi'
@@ -329,16 +331,33 @@ export default function LearningPathDetail() {
     }
     setEnrolling(true)
     setEnrollMsg(null)
-    const result = await enrollInLearningPath(slug)
-    if (result.enrolled) {
-      setEnrollMsg('أنت مسجل بالفعل في هذا المسار.')
-      setEnrollStatus({ enrolled: true, enrollment: null })
-    } else if (result.success) {
-      await refreshEnrollStatus()
-    } else {
-      setEnrollMsg(result.message ?? 'فشل التسجيل. حاول مجدداً.')
+    try {
+      const isPaid = Number(path?.discount_price ?? path?.price ?? 0) > 0
+      if (isPaid) {
+        const checkout = await checkoutLearningPath(slug)
+        if (checkout.checkout_url) {
+          window.location.assign(checkout.checkout_url)
+          return
+        }
+        setEnrollMsg(checkout.message ?? 'تعذر فتح بوابة الدفع. حاول مجدداً.')
+        return
+      }
+
+      const result = await enrollInLearningPath(slug)
+      if (result.enrolled) {
+        setEnrollMsg('أنت مسجل بالفعل في هذا المسار.')
+        setEnrollStatus({ enrolled: true, enrollment: null })
+      } else if (result.success) {
+        await refreshEnrollStatus()
+      } else {
+        setEnrollMsg(result.message ?? 'فشل التسجيل. حاول مجدداً.')
+      }
+    } catch (error) {
+      const message = axios.isAxiosError(error) && error.response?.data?.message
+      setEnrollMsg(typeof message === 'string' ? message : 'تعذر إكمال التسجيل. حاول مجدداً.')
+    } finally {
+      setEnrolling(false)
     }
-    setEnrolling(false)
   }
 
   if (loading) {

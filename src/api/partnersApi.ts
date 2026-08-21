@@ -1,6 +1,7 @@
 import axios from 'axios'
 import apiClient from './axios'
 import { asList } from './lmsApi'
+import { unwrapData } from './unwrap'
 import type { PartnerRecord, PartnershipRequest } from '@/types/operations'
 
 const silent = { skipErrorToast: true as const }
@@ -26,12 +27,12 @@ export async function fetchPartners(project_scope: string = 'EMC_GENERAL'): Prom
 
 export async function createPartner(payload: Partial<PartnerRecord>): Promise<PartnerRecord> {
   const res = await apiClient.post<unknown>('/operations/partners', payload)
-  return res.data as PartnerRecord
+  return unwrapData<PartnerRecord>(res.data)
 }
 
 export async function updatePartner(id: number, payload: Partial<PartnerRecord>): Promise<PartnerRecord> {
   const res = await apiClient.put<unknown>(`/operations/partners/${id}`, payload)
-  return res.data as PartnerRecord
+  return unwrapData<PartnerRecord>(res.data)
 }
 
 /** GET للسوبر مشرف — بدون سبام Toast؛ يفسِّر الغلق في الواجهة. */
@@ -54,8 +55,13 @@ export async function fetchPartnershipRequests(): Promise<PartnershipRequest[]> 
   return asList<PartnershipRequest>(res.data)
 }
 
-export async function updatePartnershipRequest(id: number, status: string): Promise<void> {
-  await apiClient.patch(`/operations/partnership-requests/${id}`, { status })
+export async function updatePartnershipRequest(id: number, status: string, reviewNotes?: string): Promise<PartnershipRequest> {
+  const res = await apiClient.patch<unknown>(`/operations/partnership-requests/${id}`, {
+    status,
+    ...(reviewNotes ? { review_notes: reviewNotes } : {}),
+  })
+  const payload = res.data as { data?: PartnershipRequest }
+  return payload.data ?? (res.data as PartnershipRequest)
 }
 
 export interface PartnershipApplicationPayload {

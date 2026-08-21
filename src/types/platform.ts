@@ -38,10 +38,22 @@ export type KnowledgeArticle = {
 }
 
 export type PartnerDashboardData = {
+  partner: {
+    id: number
+    name: string
+    type: string
+    status: string
+    contact_person?: string | null
+    email?: string | null
+  } | null
   partnership_status: string
   joint_programs_count: number
+  active_programs_count: number
   participants_total: number
-  impact_score: number
+  impact_score: number | null
+  reports_count: number
+  documents_count: number
+  your_role: string | null
   upcoming_meetings: { id: number; title: string; at: string }[]
   recent_reports: { id: number; title: string; at: string }[]
 }
@@ -52,6 +64,8 @@ export type PartnerProgramRow = {
   status: string
   cohort_size: number
   starts_at: string | null
+  ends_at: string | null
+  description?: string | null
 }
 
 export type LmsModule = {

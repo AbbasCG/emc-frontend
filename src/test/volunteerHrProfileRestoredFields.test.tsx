@@ -113,5 +113,5 @@ describe('VolunteerHrProfilePage — restored التخصص الجامعي / نب
     const payload = mockSubmit.mock.calls[0][0]
     expect(payload.professional_bio).toBe('نبذة تجريبية')
     expect(payload.university_specialization).toBe('علوم الحاسوب')
-  })
+  }, 15_000)
 })

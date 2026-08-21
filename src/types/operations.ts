@@ -216,6 +216,7 @@ export type PartnerRecord = {
   type?: string | null
   /** Institutional category (e.g. university/company/NGO) — distinct from `type` (partnership type). */
   institution_type?: string | null
+  partnership_type?: string | null
   contact_person?: string | null
   email?: string | null
   phone?: string | null
@@ -223,6 +224,8 @@ export type PartnerRecord = {
   country?: string | null
   city?: string | null
   status?: string | null
+  onboarding_status?: string | null
+  activated_at?: string | null
   notes?: string | null
   project_scope: string
   classification?: string | null
@@ -255,6 +258,10 @@ export type PartnershipRequest = {
   status: string
   created_at: string
   reviewed_by?: { id: number; name: string } | null
+  reviewed_at?: string | null
+  review_notes?: string | null
+  converted_partner?: { id: number; name: string; status: string } | null
+  converted_user?: { id: number; name: string; email: string } | null
 }
 
 /** ── Marketing ─────────────────────────────────────────────────────────── */
@@ -349,6 +356,21 @@ export type OperationsDashboardData = {
   volunteer_applications: number
   support_tickets_open: number
   marketing_in_review: number
-  recent_activity?: { id: number; label: string; at: string; kind: string }[]
+  finance_approval_pending?: number
+  priority_queues?: {
+    key: 'tasks' | 'support' | 'partnerships' | 'volunteers' | 'finance'
+    label: string
+    count: number
+    urgent_count: number
+  }[]
+  today_items?: {
+    id: string
+    label: string
+    at?: string | null
+    kind: string
+    key: 'tasks' | 'meetings'
+  }[]
+  recent_activity?: { id: number | string; label: string; at: string; kind: string }[]
   department_health?: { department_id: string; title: string; score: number }[]
+  generated_at?: string
 }

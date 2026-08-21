@@ -64,9 +64,10 @@ describe('PartnerDashboardPage — empty payload contract', () => {
     expect(await screen.findByText('الاجتماعات القادمة')).toBeInTheDocument()
     expect(screen.getByText('تقارير حديثة')).toBeInTheDocument()
 
-    // Metric cards show sane zeros: two count cards at 0 and the impact score at 0%.
+    // Count cards show sane zeros, while an unmeasured impact score is explicit
+    // rather than presenting an invented 0% as a real KPI.
     expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(2)
-    expect(screen.getByText('0%')).toBeInTheDocument()
+    expect(screen.getByText('غير متاح')).toBeInTheDocument()
     expect(document.body.textContent).not.toMatch(/NaN/)
   })
 
@@ -75,7 +76,7 @@ describe('PartnerDashboardPage — empty payload contract', () => {
     render(<PartnerDashboardPage />)
 
     expect(await screen.findByText('الاجتماعات القادمة')).toBeInTheDocument()
-    expect(screen.getByText('0%')).toBeInTheDocument()
+    expect(screen.getByText('غير متاح')).toBeInTheDocument()
     expect(document.body.textContent).not.toMatch(/NaN/)
   })
 

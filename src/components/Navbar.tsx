@@ -361,7 +361,7 @@ function Navbar() {
           )}
 
           {/* M3: language switcher trailing utility at the outer edge of the cluster */}
-          <div className="relative">
+          {LANGS.length > 1 && <div className="relative">
             <button
               type="button"
               onClick={() => {
@@ -422,7 +422,7 @@ function Navbar() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </div>}
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
@@ -530,7 +530,7 @@ function Navbar() {
               ))}
 
               {/* M3: language switcher (mobile) */}
-              <div className="flex items-center gap-2 rounded-2xl border border-line bg-paper px-4 py-2.5">
+              {LANGS.length > 1 && <div className="flex items-center gap-2 rounded-2xl border border-line bg-paper px-4 py-2.5">
                 <Globe size={16} strokeWidth={2} className="shrink-0 text-customBlue" aria-hidden />
                 <div className="flex flex-1 items-center justify-end gap-1.5" role="group" aria-label={t('nav.aria.changeLanguage')}>
                   {LANGS.map((l) => (
@@ -550,7 +550,7 @@ function Navbar() {
                     </button>
                   ))}
                 </div>
-              </div>
+              </div>}
 
               {isLoading && !user ? (
                 <div className="grid gap-3 border-t border-line pt-4">

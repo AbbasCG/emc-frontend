@@ -5,6 +5,7 @@ import { getApiErrorMessage } from './apiErrors'
 // Storage keys — must stay in sync with `src/lib/impersonationSession.ts` (+ AuthContext exports).
 const TOKEN_KEY = 'emc_token'
 const USER_KEY = 'emc_user'
+const SESSION_HINT_KEY = 'emc_session_hint'
 const IMPERSONATION_ACTIVE_KEY = 'emc_sa_impersonation_active'
 const IMPERSONATION_ORIGINAL_TOKEN_KEY = 'emc_sa_original_token'
 const IMPERSONATION_ORIGINAL_USER_KEY = 'emc_sa_original_user_json'
@@ -12,6 +13,7 @@ const IMPERSONATION_ORIGINAL_USER_KEY = 'emc_sa_original_user_json'
 function clearAuthStorage(): void {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(SESSION_HINT_KEY)
   try {
     sessionStorage.removeItem(IMPERSONATION_ACTIVE_KEY)
     sessionStorage.removeItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)
@@ -27,6 +29,8 @@ if (!apiBaseUrl && !import.meta.env.DEV) {
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
   timeout: 20000,
+  withCredentials: true,
+  withXSRFToken: true,
   headers: {
     Accept: 'application/json',
   },

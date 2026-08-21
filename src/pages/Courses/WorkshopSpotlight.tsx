@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import type { WorkshopItem } from '@/services/coursesApi'
 import { EMC_COURSE_COVER_PLACEHOLDER } from '@/utils/publicCourseDisplay'
+import { formatEuroInteger } from '@/utils/currency'
 
 type WorkshopSpotlightProps = {
   workshops: WorkshopItem[]
@@ -63,10 +64,10 @@ function WorkshopSpotlight({ workshops, loading }: WorkshopSpotlightProps) {
         >
           <div>
             <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-700">
-              ورش العمل المجانية
+              ورش العمل
             </span>
             <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">
-              ورش قادمة سجّل مجاناً
+              ورش مختارة من الكتالوج
             </h2>
           </div>
 
@@ -172,7 +173,9 @@ const WorkshopRow = memo(function WorkshopRow({ workshop, index }: WorkshopRowPr
           {/* End column price + seats above, actions seated on the row baseline */}
           <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 sm:w-56 sm:shrink-0 sm:flex-col sm:items-end sm:justify-end">
             <div className="text-start sm:text-end">
-              <p className="emc-stat-num font-display text-xl text-success">مجاناً</p>
+              <p className={`emc-stat-num font-display text-xl ${workshop.is_free ? 'text-success' : 'text-deepBlue'}`} dir={workshop.is_free ? 'rtl' : 'ltr'}>
+                {workshop.is_free ? 'مجاناً' : formatEuroInteger(workshop.price, 'ar')}
+              </p>
               {soldOut ? (
                 <p className="mt-1 text-xs font-bold text-ink-300">اكتمل التسجيل</p>
               ) : total > 0 ? (

@@ -1,47 +1,27 @@
 import { motion } from 'framer-motion'
+import { BarChart3, MessageSquareText, Route } from 'lucide-react'
 
-// M10: converted from an auto-advancing 2-up carousel (dots + interval) to a calm,
-// static layout. Design Language 2.0: the card frames are gone — quotes are large
-// serif pull-quotes with an oversized « glyph in ice and the author in ink-400.
-// The ONE highlighted quote keeps its emphasis through type scale and whitespace
-// between two hairline seams — it used to sit in a rounded paper2 panel, which
-// was the last frame left in this scene.
-// Same export name kept so Home.tsx's import stays stable.
-const testimonials = [
+const experienceSignals = [
   {
-    quote: 'تجربة تسجيل واضحة، ومحتوى يربط النظرية بتطبيقات السوق فوراً. أنصح الفرق التقنية باعتماده كمسار تطوير منظّمي.',
-    name: 'د. لينا المالكي',
-    role: 'رئيسة قسم التحول الرقمي',
-    org: 'جهة أكاديمية شريكة',
+    title: 'مسار واضح قبل التسجيل',
+    description: 'تفاصيل المستوى والمدة والتكلفة ومخرجات التعلّم تظهر قبل اتخاذ القرار.',
+    icon: Route,
   },
   {
-    quote: 'لوحات المتابعة سهّلت علينا قرارات الجودة. نرى الفجوات قبل أن تتحوّل لمشكلة تشغيلية هذا ما يميّز EMC.',
-    name: 'م. كريم عوض',
-    role: 'مدير برامج التطوير',
-    org: 'قطاع غير ربحي',
+    title: 'تغذية راجعة أثناء التعلّم',
+    description: 'تقييمات وملاحظات مرتبطة بالمحتوى تساعد الفريق على تحسين التجربة باستمرار.',
+    icon: MessageSquareText,
   },
   {
-    quote: 'انضممت لمسار تحليل البيانات دون خلفية برمجية. بعد ثلاثة أشهر أعمل في فريق BI كامل الوقت. المنهج مُصمَّم بدقة.',
-    name: 'ياسر الحربي',
-    role: 'محلل بيانات',
-    org: 'قطاع الاتصالات',
-  },
-  // Deliberately unrendered (M10): kept for future rotation without redesign.
-  {
-    quote: 'الورش المباشرة والتنسيق مع المدربين كانا على مستوى منصات عالمية مع لمسة عربية احترافية لا توجد في غيره.',
-    name: 'سارة بنعلي',
-    role: 'مسؤولة التعلّم والتطوير',
-    org: 'شركة تقنية رائدة',
+    title: 'تقدّم يمكن متابعته',
+    description: 'لوحة المتعلّم تجمع التسجيلات والإنجاز والخطوة التالية في مكان واحد.',
+    icon: BarChart3,
   },
 ] as const
-
-const featured = testimonials[0]
-const supporting = [testimonials[1], testimonials[2]] as const
 
 export default function HomeTestimonialsCarousel() {
   return (
     <section dir="rtl" className="relative overflow-hidden bg-accent-50/30 px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-      {/* V3 decorative layer one fire orb (ember rising from the bottom-left) + ghost numeral */}
       <div
         aria-hidden
         className="animate-soft-float pointer-events-none absolute -bottom-32 -left-32 h-[24rem] w-[24rem] rounded-full bg-customOrange/10 blur-3xl"
@@ -52,75 +32,40 @@ export default function HomeTestimonialsCarousel() {
       </span>
 
       <div className="relative mx-auto max-w-[1540px]">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
-          className="mb-12 text-right"
+          className="max-w-3xl text-right"
         >
-          <span className="emc-eyebrow">آراء المجتمع</span>
+          <span className="emc-eyebrow">تجربة يمكن الوثوق بها</span>
           <h2 className="emc-title-arc mt-4 font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">
-            شهادات من <span className="text-ember">الميدان</span>
+            قرار تعلّم <span className="text-ember">أوضح</span>، من البداية إلى الإنجاز
           </h2>
+          <p className="mt-5 text-base font-semibold leading-8 text-ink-500">
+            لا نعتمد على شهادات تسويقية مجهولة؛ نبني التجربة حول معلومات واضحة، متابعة قابلة للقياس،
+            وقناة ملاحظات تحسّن كل برنامج.
+          </p>
         </motion.div>
 
-        {/* Highlighted pull-quote the rounded paper2 panel is gone: the quote now
-            sits directly on the section field between two hairline seams, carried
-            by type scale and whitespace alone. */}
-        <div aria-hidden className="emc-hairline" />
-        <motion.figure
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
-          className="relative px-0 py-12 sm:py-16"
-        >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute top-0 start-2 select-none font-display text-[9rem] font-black leading-none text-ice sm:text-[12rem]"
-          >
-            «
-          </span>
-          <blockquote className="relative mx-auto max-w-3xl font-display text-2xl font-black leading-[1.9] text-deepBlue [text-wrap:balance] sm:text-3xl sm:leading-[1.9]">
-            {featured.quote}
-          </blockquote>
-          <figcaption className="relative mx-auto mt-8 max-w-3xl text-sm font-bold text-ink-400">
-            {featured.name} {featured.role} · {featured.org}
-          </figcaption>
-        </motion.figure>
-        <div aria-hidden className="emc-hairline" />
-
-        {/* Supporting pull-quotes free-floating, separated by a hairline (no cards) */}
-        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_1px_1fr] lg:gap-14">
-          {supporting.map((t, i) => (
-            <motion.figure
-              key={t.name}
-              initial={{ opacity: 0, y: 24 }}
+        <div className="mt-12 grid border-y border-line lg:grid-cols-3">
+          {experienceSignals.map((signal, index) => (
+            <motion.article
+              key={signal.title}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: 0.08 + i * 0.08, ease: [0.22, 0.61, 0.36, 1] }}
-              className={`relative ps-2 ${i === 1 ? 'lg:order-3' : ''}`}
+              transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 0.61, 0.36, 1] }}
+              className={`py-9 text-right lg:px-9 ${
+                index > 0 ? 'border-t border-line lg:border-s lg:border-t-0' : ''
+              }`}
             >
-              {/* Mobile seam between the two quotes */}
-              {i === 1 && <div aria-hidden className="emc-hairline mb-10 lg:hidden" />}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -top-7 -start-1 select-none font-display text-7xl font-black leading-none text-ice"
-              >
-                «
-              </span>
-              <blockquote className="relative font-display text-lg font-black leading-[2] text-deepBlue sm:text-xl">
-                {t.quote}
-              </blockquote>
-              <figcaption className="relative mt-5 text-[13px] font-bold text-ink-400">
-                {t.name} {t.role} · {t.org}
-              </figcaption>
-            </motion.figure>
+              <signal.icon className="h-7 w-7 text-customBlue" aria-hidden />
+              <h3 className="mt-6 font-display text-xl font-black text-deepBlue">{signal.title}</h3>
+              <p className="mt-3 text-sm font-semibold leading-7 text-ink-400">{signal.description}</p>
+            </motion.article>
           ))}
-          {/* Vertical hairline between the two supporting quotes (desktop) */}
-          <div aria-hidden className="order-2 hidden w-px self-stretch bg-line lg:block" />
         </div>
       </div>
     </section>

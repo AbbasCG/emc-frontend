@@ -9,10 +9,12 @@ import {
 } from 'react'
 import toast from '@/lib/toast'
 import * as authApi from '../api/authApi'
+import type { RegisterAccountInput } from '../api/authApi'
 import type { User } from '../types'
 import {
   TOKEN_KEY,
   USER_KEY,
+  SESSION_HINT_KEY,
   clearImpersonationSessionMarks,
   readCurrentAuthBackupFromLocal,
   readStoredImpersonationOriginal,
@@ -21,18 +23,6 @@ import {
 import { normalizeAuthLoginPayload, normalizeAuthUser } from '../utils/userIdentity'
 
 export { TOKEN_KEY, USER_KEY } from '@/lib/impersonationSession'
-
-interface RegisterAccountInput {
-  name: string
-  email: string
-  password: string
-  password_confirmation: string
-  country_code: string
-  phone_country_code: string
-  phone: string
-  city: string
-  gender: string
-}
 
 interface AuthContextValue {
   user: User | null
@@ -59,7 +49,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
  * present, and refreshed by `hydrate()` on mount. A malformed entry is dropped.
  */
 function readCachedUser(): User | null {
-  if (!localStorage.getItem(TOKEN_KEY)) return null
+  if (!localStorage.getItem(TOKEN_KEY) && localStorage.getItem(SESSION_HINT_KEY) !== '1') return null
   const cached = localStorage.getItem(USER_KEY)
   if (!cached) return null
   try {
@@ -76,7 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // no logged-out frame to flash and no cascading re-render.
   const [user, setUser] = useState<User | null>(readCachedUser)
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
-  const [isLoading, setIsLoading] = useState(() => localStorage.getItem(TOKEN_KEY) != null)
+  const [isLoading, setIsLoading] = useState(
+    () => localStorage.getItem(TOKEN_KEY) != null || localStorage.getItem(SESSION_HINT_KEY) === '1',
+  )
   const [impersonationOriginalUser, setImpersonationOriginalUser] = useState<User | null>(
     () => readStoredImpersonationOriginal()?.originalUser ?? null,
   )
@@ -84,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isImpersonating = impersonationOriginalUser != null
 
   useEffect(() => {
-    if (!localStorage.getItem(TOKEN_KEY)) return
+    if (!localStorage.getItem(TOKEN_KEY) && localStorage.getItem(SESSION_HINT_KEY) !== '1') return
 
     let cancelled = false
 
@@ -98,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         localStorage.removeItem(TOKEN_KEY)
         localStorage.removeItem(USER_KEY)
+        localStorage.removeItem(SESSION_HINT_KEY)
         setToken(null)
         setUser(null)
         clearImpersonationSessionMarks()
@@ -119,9 +112,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const payload = await authApi.login(email, password)
     const { token: newToken, user: newUser } = payload
-    localStorage.setItem(TOKEN_KEY, newToken)
+    if (newToken) {
+      localStorage.setItem(TOKEN_KEY, newToken)
+      localStorage.removeItem(SESSION_HINT_KEY)
+    } else {
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.setItem(SESSION_HINT_KEY, '1')
+    }
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
-    setToken(newToken)
+    setToken(newToken || null)
     setUser(newUser)
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
@@ -131,9 +130,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerAccount = useCallback(async (input: RegisterAccountInput) => {
     const payload = await authApi.registerAccount(input)
     const { token: newToken, user: newUser } = payload
-    localStorage.setItem(TOKEN_KEY, newToken)
+    if (newToken) {
+      localStorage.setItem(TOKEN_KEY, newToken)
+      localStorage.removeItem(SESSION_HINT_KEY)
+    } else {
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.setItem(SESSION_HINT_KEY, '1')
+    }
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
-    setToken(newToken)
+    setToken(newToken || null)
     setUser(newUser)
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
@@ -150,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.removeItem(TOKEN_KEY)
         localStorage.removeItem(USER_KEY)
+        localStorage.removeItem(SESSION_HINT_KEY)
       } catch {
         /* ignore */
       }
@@ -173,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const cur = readCurrentAuthBackupFromLocal()
-    if (!cur?.token || !cur.user) {
+    if (!cur?.user) {
       toast.error('تعذر قراءة الجلسة الحالية.')
       throw new Error('missing_session')
     }
@@ -185,13 +191,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = await authApi.postImpersonateUser(targetUserId)
       const { token: nextToken, user: nextUser } = normalizeAuthLoginPayload(raw)
 
-      if (!nextToken.trim()) {
+      const usingCookieSession = localStorage.getItem(SESSION_HINT_KEY) === '1'
+      if (!nextToken.trim() && !usingCookieSession) {
         throw new Error('missing_impersonation_token')
       }
 
-      localStorage.setItem(TOKEN_KEY, nextToken)
+      if (nextToken) localStorage.setItem(TOKEN_KEY, nextToken)
+      else localStorage.removeItem(TOKEN_KEY)
       localStorage.setItem(USER_KEY, JSON.stringify(nextUser))
-      setToken(nextToken)
+      setToken(nextToken || null)
       setUser(nextUser)
 
       toast.success(`تم بدء المعاينة عرض المنصّة كـ ${nextUser.name || 'مستخدم مستهدَف'}.`)
@@ -209,10 +217,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = await authApi.postImpersonateStop()
       try {
         const { token: restoredToken, user: restoredUser } = normalizeAuthLoginPayload(raw)
-        if (restoredToken.trim()) {
-          localStorage.setItem(TOKEN_KEY, restoredToken)
+        const usingCookieSession = localStorage.getItem(SESSION_HINT_KEY) === '1'
+        if (restoredToken.trim() || usingCookieSession) {
+          if (restoredToken) localStorage.setItem(TOKEN_KEY, restoredToken)
+          else localStorage.removeItem(TOKEN_KEY)
           localStorage.setItem(USER_KEY, JSON.stringify(restoredUser))
-          setToken(restoredToken)
+          setToken(restoredToken || null)
           setUser(restoredUser)
           clearImpersonationSessionMarks()
           setImpersonationOriginalUser(null)
@@ -263,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       token,
-      isAuthenticated: Boolean(token && user),
+      isAuthenticated: Boolean(user),
       isLoading,
       login,
       registerAccount,

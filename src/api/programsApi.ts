@@ -65,10 +65,12 @@ function mapWorkshopsFromUnknown(rows: unknown): WorkshopItem[] {
       date: String(w.date ?? w.start_date ?? ''),
       time: String(w.time ?? w.start_time ?? ''),
       duration_hours: Number(w.duration_hours) || 2,
-      trainer_name: String(w.trainer_name ?? w.instructor_name ?? 'فريق EMC'),
+      trainer_name: String(w.trainer_name ?? w.instructor_name ?? 'لم يحدد المدرب'),
       is_online: Boolean(w.is_online),
       spots_remaining: Number(w.spots_remaining ?? w.seats_remaining ?? 0),
       total_spots: Number(w.total_spots ?? w.capacity ?? 0),
+      price: Number(w.price ?? 0),
+      is_free: typeof w.is_free === 'boolean' ? w.is_free : Number(w.price ?? 0) <= 0,
     }))
     .filter((w) => w.id > 0 && w.slug)
 }

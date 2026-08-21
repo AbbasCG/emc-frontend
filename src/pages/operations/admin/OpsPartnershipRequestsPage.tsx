@@ -2,11 +2,25 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
-import { Handshake } from 'lucide-react'
+import { CheckCircle2, Handshake, Loader2, UserPlus } from 'lucide-react'
 import { fetchPartnershipRequests, updatePartnershipRequest } from '@/api/partnersApi'
 import type { PartnershipRequest } from '@/types/operations'
+import toast from '@/lib/toast'
 
-const PIPELINE = ['قيد المراجعة', 'بانتظار الرد', 'مقبول مبدئياً', 'مرفوض', 'مكتمل']
+const STATUS_OPTIONS = [
+  { value: 'new', label: 'جديد' },
+  { value: 'under_review', label: 'قيد المراجعة' },
+  { value: 'rejected', label: 'مرفوض' },
+  { value: 'archived', label: 'مؤرشف' },
+] as const
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'جديد',
+  under_review: 'قيد المراجعة',
+  approved: 'معتمد',
+  rejected: 'مرفوض',
+  archived: 'مؤرشف',
+}
 
 const LOAD_ERROR = 'تعذّر تحميل طلبات الشراكة. تحقق من الاتصال وأعد المحاولة.'
 
@@ -15,6 +29,7 @@ export default function OpsPartnershipRequestsPage() {
   // Starts in the loading state, so the mount effect never has to flip it synchronously.
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [updatingId, setUpdatingId] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -45,12 +60,27 @@ export default function OpsPartnershipRequestsPage() {
   }, [])
 
   async function changeStatus(id: number, status: string) {
-    setItems((list) => list.map((x) => (x.id === id ? { ...x, status } : x)))
+    const previous = items.find((item) => item.id === id)
+    setUpdatingId(id)
+    setItems((list) => list.map((item) => (item.id === id ? { ...item, status } : item)))
     try {
-      await updatePartnershipRequest(id, status)
-    } catch {
-      /* revert optional */
+      const updated = await updatePartnershipRequest(id, status)
+      setItems((list) => list.map((item) => (item.id === id ? updated : item)))
+      toast.success(status === 'approved' ? 'تم اعتماد الشراكة وتجهيز حساب البوابة.' : 'تم تحديث حالة الطلب.')
+    } catch (error) {
+      if (previous) setItems((list) => list.map((item) => (item.id === id ? previous : item)))
+      const message = error instanceof Error ? error.message : 'تعذر تحديث الطلب.'
+      toast.error(message)
+    } finally {
+      setUpdatingId(null)
     }
+  }
+
+  function approveRequest(item: PartnershipRequest) {
+    const accepted = window.confirm(
+      `اعتماد طلب ${item.partner_name}؟ سيُنشأ ملف الشريك وحساب بوابته، ويضبط ممثل الجهة كلمة المرور من صفحة نسيت كلمة المرور.`,
+    )
+    if (accepted) void changeStatus(item.id, 'approved')
   }
 
   if (loading) return <OpsPageSkeleton />
@@ -81,7 +111,7 @@ export default function OpsPartnershipRequestsPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <span className="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black text-customBlue ring-1 ring-sky-100">
-                  {p.status}
+                  {STATUS_LABELS[p.status] ?? p.status}
                 </span>
                 <div>
                   <h2 className="text-lg font-black text-deepBlue">{p.partner_name}</h2>
@@ -92,22 +122,42 @@ export default function OpsPartnershipRequestsPage() {
                   <p className="mt-2 text-[10px] font-bold text-slate-400">{p.created_at}</p>
                 </div>
               </div>
-              <label className="mt-4 grid gap-2 text-xs font-black text-deepBlue">
-                تحديث الحالة
-                <select
-                  value={p.status}
-                  onChange={(e) => changeStatus(p.id, e.target.value)}
-                  className="max-w-xs rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-bold"
-                >
-                  {PIPELINE.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                  {/* keep current if custom */}
-                  {!PIPELINE.includes(p.status) && <option value={p.status}>{p.status}</option>}
-                </select>
-              </label>
+              <div className="mt-5 flex flex-wrap items-end justify-between gap-4 border-t border-slate-100 pt-4">
+                <label className="grid gap-2 text-xs font-black text-deepBlue">
+                  تحديث الحالة
+                  <select
+                    value={p.status === 'approved' ? 'approved' : p.status}
+                    onChange={(e) => void changeStatus(p.id, e.target.value)}
+                    disabled={updatingId === p.id || p.status === 'approved'}
+                    className="min-w-48 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-bold disabled:opacity-60"
+                  >
+                    {p.status === 'approved' && <option value="approved">معتمد</option>}
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status.value} value={status.value}>{status.label}</option>
+                    ))}
+                  </select>
+                </label>
+
+                {p.status === 'approved' ? (
+                  <div className="flex items-start gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800 ring-1 ring-emerald-100">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <span>
+                      ملف الشريك جاهز
+                      {p.converted_user?.email && <span className="mt-1 block font-semibold" dir="ltr">{p.converted_user.email}</span>}
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => approveRequest(p)}
+                    disabled={updatingId === p.id}
+                    className="inline-flex items-center gap-2 rounded-xl bg-deepBlue px-4 py-2.5 text-xs font-black text-white disabled:opacity-60"
+                  >
+                    {updatingId === p.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <UserPlus className="h-4 w-4" aria-hidden />}
+                    اعتماد وتجهيز البوابة
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </motion.ul>

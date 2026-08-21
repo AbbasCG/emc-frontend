@@ -202,9 +202,9 @@ export default function Partnerships() {
         title={t('partnerships.cta.title')}
         description={t('partnerships.cta.description')}
         primaryLabel={t('partnerships.cta.primary')}
-        primaryHref="/contact"
+        primaryHref="/partnerships/apply"
         secondaryLabel={t('partnerships.cta.secondary')}
-        secondaryHref="/submit-workshop"
+        secondaryHref="/contact"
       />
     </main>
   )

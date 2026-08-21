@@ -108,9 +108,9 @@ export default function CoursesPage() {
       totalCourses: courses.length,
       totalRegistrations: totalRegs,
       instructors,
-      learningPathsCount: learningPaths.length,
+      learningPathsCount: pathsQ.data?.meta.total ?? learningPaths.length,
     }
-  }, [courses, learningPaths.length])
+  }, [courses, learningPaths.length, pathsQ.data?.meta.total])
 
   const filteredCourses = useMemo(() => {
     let result = [...courses]

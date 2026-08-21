@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { getApiErrorMessage, getLaravelFieldErrors, withArabicValidationMessages } from '@/api/apiErrors'
-import { enrollInLearningPath } from '@/api/learningPathsApi'
+import { checkoutLearningPath, enrollInLearningPath } from '@/api/learningPathsApi'
 import { submitCourseRegistration } from '@/api/registrationsApi'
 import CountrySelector, { COUNTRIES, type Country } from '@/components/ui/CountrySelector'
 import PhoneInput from '@/components/forms/PhoneInput'
@@ -196,6 +196,16 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
 
     // Learning path.
     try {
+      if (!intent.isFree) {
+        const checkout = await checkoutLearningPath(intent.slug)
+        if (checkout.checkout_url) {
+          window.location.assign(checkout.checkout_url)
+          return
+        }
+        setPartialHref(`/learning-paths/${intent.slug}`)
+        setPhase('partial')
+        return
+      }
       const result = await enrollInLearningPath(intent.slug)
       if (result.success || result.enrolled) {
         markSuccess()
@@ -240,11 +250,15 @@ export default function QuickJoinModalBody({ intent, onClose }: Props) {
         password,
         // Three visible fields only — confirmation mirrors the password.
         password_confirmation: password,
-        country_code: selectedCountry?.code ?? '',
-        phone_country_code: selectedCountry?.dialCode ?? '',
-        phone: selectedCountry ? buildE164Phone(selectedCountry, localPhone) : localPhone.trim(),
-        city: city.trim(),
-        gender,
+        ...(selectedCountry && localPhone.trim()
+          ? {
+              country_code: selectedCountry.code,
+              phone_country_code: selectedCountry.dialCode,
+              phone: buildE164Phone(selectedCountry, localPhone),
+            }
+          : {}),
+        ...(city.trim() ? { city: city.trim() } : {}),
+        ...(gender ? { gender } : {}),
       })
       await executeIntent(newUser)
     } catch (err) {

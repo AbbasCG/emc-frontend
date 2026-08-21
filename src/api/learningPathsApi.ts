@@ -164,14 +164,16 @@ export interface InstructorPathSession {
 
 export interface StudentEnrollment {
   enrollment_id: number
-  enrollment_status: 'active' | 'completed' | 'dropped'
-  enrolled_at: string
+  enrollment_status: 'pending_payment' | 'active' | 'completed' | 'dropped'
+  enrolled_at: string | null
   completed_at: string | null
   learning_path: LearningPath
 }
 
 export interface EnrollmentStatus {
   enrolled: boolean
+  requires_checkout?: boolean
+  checkout_url?: string | null
   enrollment: {
     id: number
     status: string
@@ -294,11 +296,29 @@ export async function enrollInLearningPath(slug: string): Promise<{ success: boo
   }
 }
 
+export interface LearningPathCheckoutResult {
+  success: boolean
+  checkout_url: string | null
+  enrollment_id?: number
+  code?: string
+  message?: string
+}
+
+export async function checkoutLearningPath(slug: string): Promise<LearningPathCheckoutResult> {
+  const res = await apiClient.post(`/learning-paths/${slug}/checkout`, {}, silent)
+  return res.data as LearningPathCheckoutResult
+}
+
 export async function fetchEnrollmentStatus(slug: string): Promise<EnrollmentStatus> {
   try {
     const res = await apiClient.get(`/learning-paths/${slug}/enrollment-status`, silent)
     const body = res.data as { success: boolean } & EnrollmentStatus
-    return { enrolled: body.enrolled, enrollment: body.enrollment }
+    return {
+      enrolled: body.enrolled,
+      requires_checkout: body.requires_checkout,
+      checkout_url: body.checkout_url,
+      enrollment: body.enrollment,
+    }
   } catch {
     return { enrolled: false, enrollment: null }
   }

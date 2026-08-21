@@ -47,7 +47,7 @@ export default function Home() {
     <main className="bg-white">
       <PublicSeo
         title="EMC منصة التعليم والتطوير"
- description="منصة EMC التعليمية العربيةالهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
+        description="منصة EMC التعليمية العربية الهولندية: دورات، ورش، مسارات تعلم، شراكات، وتطوير مهني بمعايير احترافية."
         path="/"
       />
       <OrganizationJsonLd />
@@ -75,7 +75,7 @@ export default function Home() {
       </Suspense>
       <HomeWhyBand />
 
-      {/* 8. Testimonials (light) serif pull-quotes, one highlighted on a paper2 field */}
+      {/* 8. Transparent learning-experience signals — no unverified testimonials. */}
       <HomeTestimonialsCarousel />
 
       {/* 9. Partners (light) plain wordmark row between hairlines */}
