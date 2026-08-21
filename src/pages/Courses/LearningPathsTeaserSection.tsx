@@ -73,7 +73,7 @@ function TeaserCard({ path }: { path: LearningPath }) {
       <div className="min-w-0 p-4 text-right sm:py-4 sm:pe-4 sm:ps-3">
         <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-black text-customBlue ring-1 ring-sky-100">
           <Route className="h-3 w-3" aria-hidden />
-          مسار احترافي
+          مسار تعليمي
         </span>
         <h3 className="line-clamp-1 font-display text-base font-black tracking-tight text-deepBlue transition group-hover:text-customBlue sm:text-lg">
           {path.title}
@@ -180,7 +180,7 @@ function LearningPathsTeaserSection({ paths, loading }: Props) {
         <div className="mb-4 flex flex-col gap-3 text-right sm:flex-row sm:items-end sm:justify-between">
           <div>
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-accent-700">
-              المسارات الاحترافية
+              مسارات مفتوحة للتسجيل الآن
             </span>
             <h2 className="font-display text-xl font-black tracking-tight text-deepBlue sm:text-2xl">رحلة تعليمية متكاملة</h2>
           </div>

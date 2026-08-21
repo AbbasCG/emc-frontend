@@ -234,8 +234,16 @@ export default function LearningPathsPage() {
         featuredCount={heroStats.featuredCount}
       />
 
-      {/* §6.1 the compact comparison, above the list: لمن؟ · المدة · المتطلب المسبق · المخرَج الوظيفي */}
-      <TracksComparisonTable paths={filteredPaths} />
+      {/* §6.1 the official nine-track comparison from src/data/officialTracks — always shown, API-independent */}
+      <TracksComparisonTable />
+
+      {/* The live list below is what the platform can enroll you in TODAY — labeled so it never
+          reads as a second, conflicting catalogue next to the official nine above. */}
+      <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
+        <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue sm:text-3xl">
+          المتاح للتسجيل الآن
+        </h2>
+      </div>
 
       <div className="emc-hairline" aria-hidden />
 

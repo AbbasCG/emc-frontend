@@ -95,7 +95,7 @@ function CoursesHero({
     { value: stats.totalCourses, label: 'برنامج في الكتالوج', suffix: '' },
     { value: stats.totalRegistrations, label: 'تسجيل مُسجَّل', suffix: '+' },
     { value: stats.instructors, label: 'مدرّب ومدرّبة', suffix: '+' },
-    { value: stats.learningPathsCount, label: 'مسار تعليمي', suffix: '' },
+    { value: stats.learningPathsCount, label: 'مسار متاح للتسجيل', suffix: '' },
   ]
 
   return (
@@ -157,13 +157,19 @@ function CoursesHero({
             onClick={() => document.getElementById('catalog-courses')?.scrollIntoView({ behavior: 'smooth' })}
             className="rounded-xl bg-brand-500 px-7 py-3.5 text-sm font-bold text-white transition-colors duration-200 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
           >
-            تصفح جميع الدورات
+            تصفح الدورات
           </motion.button>
           <Link
-            to="/programs"
+            to="/workshops"
             className="emc-cta-line text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none"
           >
-            جميع البرامج
+            استكشف الورش
+          </Link>
+          <Link
+            to="/learning-paths"
+            className="emc-cta-line text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none"
+          >
+            اختر مساراً متكاملاً
           </Link>
         </motion.div>
 
