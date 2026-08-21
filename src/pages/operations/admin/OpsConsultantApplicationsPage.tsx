@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { RefreshCw, UserCheck, Search } from 'lucide-react'
+import { FileText, RefreshCw, UserCheck, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
   fetchConsultantApplications,
@@ -147,6 +147,7 @@ export default function OpsConsultantApplicationsPage() {
               <tr className="border-b border-slate-100 text-start text-[11px] font-black uppercase tracking-wider text-slate-400">
                 <th className="px-5 py-3 text-start">المتقدم</th>
                 <th className="px-5 py-3 text-start">التخصص</th>
+                <th className="px-5 py-3 text-start">الإدارة المرغوبة</th>
                 <th className="px-5 py-3 text-start">الخبرة</th>
                 <th className="px-5 py-3 text-start">الحالة</th>
                 <th className="px-5 py-3 text-start">إجراء</th>
@@ -158,11 +159,23 @@ export default function OpsConsultantApplicationsPage() {
                   <td className="px-5 py-4">
                     <p className="font-black text-deepBlue">{row.full_name}</p>
                     <p dir="ltr" className="mt-0.5 text-xs text-slate-400">{row.email}</p>
+                    {row.cv_view_url && (
+                      <a
+                        href={row.cv_view_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-black text-customBlue hover:underline"
+                      >
+                        <FileText size={12} aria-hidden />
+                        معاينة السيرة الذاتية
+                      </a>
+                    )}
                     {row.motivation && (
                       <p className="mt-1.5 max-w-md text-xs leading-6 text-slate-500 line-clamp-2">{row.motivation}</p>
                     )}
                   </td>
                   <td className="px-5 py-4 font-bold text-ink-600">{row.specialty}</td>
+                  <td className="px-5 py-4 text-ink-500">{row.desired_department ?? '—'}</td>
                   <td className="px-5 py-4 tabular-nums text-ink-500">
                     {row.years_experience != null ? `${row.years_experience} سنة` : '—'}
                   </td>

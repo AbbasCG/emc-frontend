@@ -9,7 +9,9 @@ export type ConsultantApplicationInput = {
   country?: string
   city?: string
   specialty: string
+  desired_department?: string
   years_experience?: number
+  cv_file?: File | null
   linkedin_url?: string
   motivation: string
   availability?: string
@@ -24,6 +26,7 @@ export type ConsultantApplication = {
   country: string | null
   city: string | null
   specialty: string
+  desired_department: string | null
   years_experience: number | null
   linkedin_url: string | null
   motivation: string | null
@@ -31,11 +34,30 @@ export type ConsultantApplication = {
   status: 'new' | 'under_review' | 'interview' | 'accepted' | 'rejected' | 'archived'
   reviewer_note: string | null
   reviewer?: { id: number; name: string } | null
+  cv_view_url?: string | null
   created_at: string
 }
 
 export async function submitConsultantApplication(input: ConsultantApplicationInput): Promise<void> {
-  await apiClient.post('/consultant-applications', input, { skipErrorToast: true })
+  // multipart دائمًا — السيرة الذاتية ملف، وLaravel يقرأ الحقول النصية من نفس الجسد.
+  const fd = new FormData()
+  const set = (k: string, v: string | number | undefined) => {
+    if (v !== undefined && v !== '') fd.append(k, String(v))
+  }
+  set('full_name', input.full_name)
+  set('email', input.email)
+  set('phone', input.phone)
+  set('country', input.country)
+  set('city', input.city)
+  set('specialty', input.specialty)
+  set('desired_department', input.desired_department)
+  set('years_experience', input.years_experience)
+  set('linkedin_url', input.linkedin_url)
+  set('motivation', input.motivation)
+  set('availability', input.availability)
+  fd.append('agree_terms', '1')
+  if (input.cv_file) fd.append('cv_file', input.cv_file)
+  await apiClient.post('/consultant-applications', fd, { skipErrorToast: true })
 }
 
 export async function fetchConsultantApplications(params?: {
