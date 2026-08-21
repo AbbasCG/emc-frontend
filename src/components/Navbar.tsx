@@ -426,6 +426,22 @@ function Navbar() {
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
+          {/* Guests must see the way in ON the bar, not only inside the drawer. */}
+          {!isLoading && !isAuthenticated && (
+            <Link
+              to="/login"
+              className={[
+                'flex h-11 items-center gap-1.5 rounded-xl border px-3 text-[13px] font-bold transition-colors',
+                overDark
+                  ? utilityDarkChip
+                  : 'border-line bg-white/70 text-customBlue backdrop-blur-md hover:border-customBlue/25 hover:bg-customBlue/[0.08]',
+              ].join(' ')}
+            >
+              <LogIn strokeWidth={2} size={15} aria-hidden />
+              <span className="whitespace-nowrap">{t('nav.auth.login')}</span>
+            </Link>
+          )}
+
           <button
             type="button"
             onClick={() => setSearchOpen(true)}

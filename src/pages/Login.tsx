@@ -228,7 +228,8 @@ export default function Login() {
               </motion.button>
             </form>
 
-            {/* Demo Quick-fill Login Chips */}
+            {/* Demo quick-fill chips — DEV ONLY. Demo credentials must never render on a production login page. */}
+            {import.meta.env.DEV && (
             <div className="mt-6 rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5">
               <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                 تسجيل الدخول السريع التجريبي (Demo Accounts):
@@ -271,6 +272,7 @@ export default function Login() {
                 </button>
               </div>
             </div>
+            )}
 
             <p className="mt-7 text-center text-sm font-bold text-slate-500">
               {t('auth.login.noAccount')}{' '}

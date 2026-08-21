@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import axios from 'axios'
 import toast from '@/lib/toast'
 import * as authApi from '../api/authApi'
 import type { RegisterAccountInput } from '../api/authApi'
@@ -86,15 +87,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         setUser(freshUser)
         localStorage.setItem(USER_KEY, JSON.stringify(freshUser))
-      } catch {
+      } catch (err) {
         if (cancelled) return
-        localStorage.removeItem(TOKEN_KEY)
-        localStorage.removeItem(USER_KEY)
-        localStorage.removeItem(SESSION_HINT_KEY)
-        setToken(null)
-        setUser(null)
-        clearImpersonationSessionMarks()
-        setImpersonationOriginalUser(null)
+        // Only a definitive rejection of the credentials (401/419) means the
+        // session is dead. A rate limit (429), a server error, or a dropped
+        // connection says nothing about the session — wiping it there logged
+        // users out on a busy /auth/me. Keep the cached identity instead.
+        const status = axios.isAxiosError(err) ? err.response?.status : undefined
+        if (status === 401 || status === 419) {
+          localStorage.removeItem(TOKEN_KEY)
+          localStorage.removeItem(USER_KEY)
+          localStorage.removeItem(SESSION_HINT_KEY)
+          setToken(null)
+          setUser(null)
+          clearImpersonationSessionMarks()
+          setImpersonationOriginalUser(null)
+        }
       } finally {
         if (!cancelled) setIsLoading(false)
       }

@@ -188,13 +188,17 @@ describe('AuthProvider — إقلاع الجلسة من التخزين المح�
     await waitFor(() => expect(screen.getByText('user: سارة المطيري')).toBeInTheDocument())
   })
 
-  it('يمسح الجلسة بالكامل عندما يفشل /auth/me', async () => {
+  it('يمسح الجلسة بالكامل عندما يرفض /auth/me الاعتماد (401)', async () => {
     localStorage.setItem(TOKEN_KEY, 'token-stale')
     localStorage.setItem(USER_KEY, JSON.stringify(makeUser()))
     sessionStorage.setItem(IMPERSONATION_ACTIVE_KEY, '1')
     sessionStorage.setItem(IMPERSONATION_ORIGINAL_TOKEN_KEY, 'super-token')
     sessionStorage.setItem(IMPERSONATION_ORIGINAL_USER_KEY, JSON.stringify(makeUser({ id: 1, role: 'super_admin' })))
-    mockedFetchMe.mockRejectedValue(new Error('401'))
+    const unauth = Object.assign(new Error('Unauthenticated'), {
+      isAxiosError: true,
+      response: { status: 401 },
+    })
+    mockedFetchMe.mockRejectedValue(unauth)
 
     renderAuth()
 
@@ -206,6 +210,26 @@ describe('AuthProvider — إقلاع الجلسة من التخزين المح�
     expect(localStorage.getItem(USER_KEY)).toBeNull()
     expect(sessionStorage.getItem(IMPERSONATION_ACTIVE_KEY)).toBeNull()
     expect(sessionStorage.getItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)).toBeNull()
+  })
+
+  it('يُبقي الجلسة المخزنة عندما يفشل /auth/me لسبب عابر (429 أو انقطاع)', async () => {
+    // A rate limit says nothing about the credentials — wiping the session here
+    // logged real users out on a busy /auth/me (the exact bug found in the
+    // local admin tour). The cached identity must survive.
+    localStorage.setItem(TOKEN_KEY, 'token-valid')
+    localStorage.setItem(USER_KEY, JSON.stringify(makeUser()))
+    const throttled = Object.assign(new Error('Too Many Requests'), {
+      isAxiosError: true,
+      response: { status: 429 },
+    })
+    mockedFetchMe.mockRejectedValue(throttled)
+
+    renderAuth()
+
+    await waitFor(() => expect(screen.getByText('loading: false')).toBeInTheDocument())
+    expect(screen.getByText('authenticated: true')).toBeInTheDocument()
+    expect(localStorage.getItem(TOKEN_KEY)).toBe('token-valid')
+    expect(localStorage.getItem(USER_KEY)).not.toBeNull()
   })
 })
 
