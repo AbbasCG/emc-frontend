@@ -59,7 +59,7 @@ const loginBtnClass =
   'group/login inline-flex h-11 items-center justify-center gap-2 px-2 text-[13px] font-bold tracking-tight text-ink-500 transition-colors duration-200 hover:text-customBlue'
 
 const dashboardBtnClass =
-  'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-customBlue/[0.18] bg-white px-5 text-[13px] font-semibold tracking-tight text-deepBlue transition-colors duration-200 hover:border-customBlue/35 hover:bg-customBlue/[0.06]'
+  'emc-cta-line inline-flex h-11 items-center gap-1.5 px-1 text-[13px] font-bold tracking-tight text-deepBlue transition-colors duration-200 hover:text-customBlue'
 
 const dashboardIconClass = 'relative size-[15px] shrink-0 text-customBlue opacity-95'
 
@@ -70,7 +70,7 @@ const loginIconClass = 'relative size-[15px] shrink-0 opacity-80 transition-opac
 const loginBtnDarkClass =
   'group/login inline-flex h-11 items-center justify-center gap-2 px-2 text-[13px] font-bold tracking-tight text-white/75 transition-colors duration-200 hover:text-white'
 const dashboardBtnDarkClass =
-  'group/nav inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 text-[13px] font-semibold tracking-tight text-white backdrop-blur-sm transition-colors duration-200 hover:border-white/35 hover:bg-white/15'
+  'emc-cta-line inline-flex h-11 items-center gap-1.5 px-1 text-[13px] font-bold tracking-tight text-white/85 transition-colors duration-200 hover:text-white'
 const utilityDarkChip =
   'border-white/20 bg-white/10 text-white backdrop-blur-md hover:border-white/35 hover:bg-white/15'
 
@@ -285,7 +285,6 @@ function Navbar() {
               <>
                 <motion.span whileHover={{ opacity: 0.96 }} whileTap={{ scale: 0.987 }}>
                   <Link to="/dashboard" className={overDark ? dashboardBtnDarkClass : dashboardBtnClass}>
-                    <LayoutDashboard strokeWidth={2} className={overDark ? 'relative size-[15px] shrink-0 text-ice' : dashboardIconClass} aria-hidden />
                     <span className="whitespace-nowrap">{t('nav.auth.dashboard')}</span>
                   </Link>
                 </motion.span>
@@ -295,10 +294,14 @@ function Navbar() {
                     onClick={() => setUserMenuOpen((v) => !v)}
                     aria-expanded={userMenuOpen}
                     className={[
-                      'flex h-11 items-center gap-2 rounded-2xl border px-3.5 text-[13px] font-semibold transition-colors duration-200',
-                      userMenuOpen
-                        ? 'border-customBlue/35 bg-customBlue/[0.08] text-customBlue backdrop-blur-sm'
-                        : 'border-line bg-white/60 text-deepBlue backdrop-blur-sm hover:border-customBlue/25 hover:bg-paper',
+                      'flex h-11 items-center gap-2 px-1.5 text-[13px] font-semibold transition-colors duration-200',
+                      overDark
+                        ? userMenuOpen
+                          ? 'text-white'
+                          : 'text-white/85 hover:text-white'
+                        : userMenuOpen
+                          ? 'text-customBlue'
+                          : 'text-deepBlue hover:text-customBlue',
                     ].join(' ')}
                   >
                     <UserAvatar

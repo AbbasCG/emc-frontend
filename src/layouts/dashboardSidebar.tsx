@@ -418,6 +418,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
         { label: 'طلبات الشراكة',           href: '/dashboard/admin/partnership-requests',    icon: HeartHandshake },
         { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests',       icon: Presentation   },
         { label: 'طلبات المستشارين',        href: '/dashboard/admin/consultant-applications', icon: UserCheck      },
+        { label: 'تحليلات الزوار',          href: '/dashboard/admin/visitor-analytics',       icon: Star           },
         { label: 'المهام',                   href: '/dashboard/admin/tasks',                   icon: ClipboardList  },
         { label: 'الاجتماعات',              href: '/dashboard/admin/meetings',                icon: Calendar       },
         { label: 'التقويم',                 href: '/dashboard/admin/calendar',               icon: CalendarDays   },

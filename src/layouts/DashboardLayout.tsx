@@ -584,7 +584,7 @@ function Topbar({
         {/* زر لوحة التشغيل: بارز وسط الشريط لكل الأدوار — نافذة الفريق الواحدة على المهام */}
         <Link
           to="/dashboard/operations/board"
-          className="mx-auto hidden h-9 shrink-0 items-center gap-2 rounded-xl bg-customOrange px-4 text-xs font-extrabold text-white transition hover:bg-ember sm:inline-flex"
+          className="mx-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-customOrange px-3 text-[11px] font-extrabold text-white transition hover:bg-ember sm:gap-2 sm:px-4 sm:text-xs"
         >
           <KanbanSquare size={15} aria-hidden />
           لوحة التشغيل

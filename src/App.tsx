@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
 import { lazy, Suspense, useEffect } from 'react'
 import ScrollToTop from './components/ScrollToTop'
+import AnalyticsListener from './components/AnalyticsListener'
 import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
 import Layout from './components/Layout'
@@ -153,6 +154,7 @@ const OpsTasksOverduePage           = lazy(() => import('./pages/operations/admi
 const OpsMeetingsPage               = lazy(() => import('./pages/operations/admin/OpsMeetingsPage'))
 const OpsMeetingDetailPage          = lazy(() => import('./pages/operations/admin/OpsMeetingDetailPage'))
 const OpsConsultantApplicationsPage = lazy(() => import('./pages/operations/admin/OpsConsultantApplicationsPage'))
+const VisitorAnalyticsPage          = lazy(() => import('./pages/operations/admin/VisitorAnalyticsPage'))
 const OperationsBoardPage           = lazy(() => import('./pages/operations/OperationsBoardPage'))
 const MeetingReportsPage            = lazy(() => import('./pages/operations/MeetingReportsPage'))
 const WeeklyReportsPage             = lazy(() => import('./pages/operations/WeeklyReportsPage'))
@@ -354,6 +356,7 @@ function App() {
       <CookieConsentProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <AnalyticsListener />
         <AppToaster />
         <AuthProvider>
           <Routes>
@@ -733,6 +736,7 @@ function App() {
                   <Route path="/dashboard/admin/partners" element={<OpsPartnersPage />} />
                   <Route path="/dashboard/admin/partnership-requests" element={<OpsPartnershipRequestsPage />} />
                   <Route path="/dashboard/admin/consultant-applications" element={<Suspense fallback={<RouteFallback />}><OpsConsultantApplicationsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/visitor-analytics" element={<Suspense fallback={<RouteFallback />}><VisitorAnalyticsPage /></Suspense>} />
                   <Route path="/dashboard/admin/marketing" element={<OpsMarketingPage />} />
                   <Route path="/dashboard/admin/support-tickets" element={<OpsSupportTicketsPage />} />
                   <Route path="/dashboard/admin/support-tickets/:id" element={<OpsSupportTicketDetailPage />} />
