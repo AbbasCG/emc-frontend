@@ -222,6 +222,20 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return ['instructor']
   }
 
+  /* «التشغيل والتقارير» — السطح المشترك لكل أدوار الفريق: لوحة التشغيل،
+     تقارير الاجتماعات، التقارير الأسبوعية، نقاط الأثر. القائمة تطابق مجموعة
+     الأدوار في خادم /api/operations؛ الطلاب والشركاء خارجها عمداً.
+     (startsWith بشرطة مائلة كي لا يبتلع /dashboard/operations-manager.) */
+  if (path.startsWith('/dashboard/operations/')) {
+    return [
+      'admin', 'super_admin', 'tech_admin', 'executive_admin',
+      'programs_manager', 'instructor', 'hr_manager', 'finance_manager',
+      'marketing', 'marketing_manager', 'quality', 'quality_manager',
+      'support_agent', 'operations_manager', 'partnerships_manager',
+      'community_manager', 'volunteer', 'department_manager',
+    ]
+  }
+
   /* Financial requests — any authenticated user who is a department leader may access this page.
      Backend enforces is_leader=true; frontend just needs to not block it. */
   if (
