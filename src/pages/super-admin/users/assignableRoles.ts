@@ -20,6 +20,7 @@ const ROLE_LABEL_AR: Record<(typeof EMC_DASHBOARD_ROLES)[number], string> = {
   partnerships_manager: 'مدير الشراكات والعلاقات',
   community_manager: 'مدير الصحة النفسية والوعي',
   section_lead: 'قائد قسم',
+  ai_manager: 'مدير الذكاء الاصطناعي',
 }
 
 export type AssignableRoleOption = { value: string; labelAr: string }
