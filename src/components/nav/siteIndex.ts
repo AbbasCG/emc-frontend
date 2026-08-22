@@ -19,6 +19,7 @@ export const SITE_INDEX: readonly IndexGroup[] = [
  lead: 'الدورات والمسارات والزمالة والورش كل ما تتعلّمه هنا',
     links: [
       { href: '/learn', label: 'رحلة التعلّم', description: 'خمس محطات واختبار يحدّد نقطة انطلاقك' },
+      { href: '/ai-level', label: 'اختبر مستواك في AI', description: '15 سؤالاً ونتيجة فورية وخطة شخصية' },
       { href: '/courses', label: 'الدورات', description: 'مهارة محددة في أسابيع، بمشروع تسلّمه' },
       { href: '/learning-paths', label: 'المسارات', description: 'تخصص مهني كامل بملف أعمال' },
       { href: '/workshops', label: 'الورش المجانية', description: 'بث مباشر شهري وشهادة حضور' },

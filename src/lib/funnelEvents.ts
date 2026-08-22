@@ -61,6 +61,10 @@ export type FunnelEventName =
   | 'fellowship_apply'
   | 'business_inquiry'
   | 'upgrade_coupon_applied'
+  | 'ai_assessment_start'
+  | 'ai_assessment_complete'
+  | 'ai_assessment_share'
+  | 'ai_assessment_reward_claim'
 
 export type FunnelEventProps = Record<string, string | number | boolean | undefined>
 

@@ -95,7 +95,7 @@ export default function CatalogImportPage() {
         <p className="text-[11px] font-black uppercase tracking-[0.25em] text-customOrange">تعبئة المنصة</p>
         <h1 className="mt-1 text-2xl font-black text-deepBlue">استيراد الكتالوج</h1>
         <p className="mt-1 text-sm text-deepBlue/50">
-          دورات وورش ومسارات دفعة واحدة من ملف إكسل — بمعاينة وفحص قبل أي كتابة
+          كل المنتجات دفعة واحدة من ملف إكسل: دورات، ورش مجانية، معسكرات، تحديات، هاكثونات، زمالات، مسارات — بكامل التفاصيل والأكواد، وبمعاينة وفحص قبل أي كتابة
         </p>
       </div>
 
@@ -107,8 +107,8 @@ export default function CatalogImportPage() {
             1. حمّل القالب
           </h2>
           <p className="mt-2 text-xs leading-6 text-slate-500">
-            ملف إكسل بكل الخانات، فيه ثلاثة أمثلة جاهزة (دورة، ورشة، مسار) وورقة
-            إرشادات بالقيم المقبولة لكل عمود.
+            ملف إكسل بكل الخانات (الكود، الأهداف، المحاور، الأيام…)، فيه خمسة أمثلة
+            جاهزة لأنواع مختلفة وورقة إرشادات بالقيم المقبولة.
           </p>
           <button
             onClick={() => downloadCatalogTemplate()}
@@ -227,6 +227,7 @@ export default function CatalogImportPage() {
               <tr className="border-b border-slate-100 text-[11px] font-black uppercase tracking-wider text-slate-400">
                 <th className="px-4 py-3 text-start">#</th>
                 <th className="px-4 py-3 text-start">النوع</th>
+                <th className="px-4 py-3 text-start">الكود</th>
                 <th className="px-4 py-3 text-start">العنوان</th>
                 <th className="px-4 py-3 text-start">المعرف</th>
                 <th className="px-4 py-3 text-start">السعر</th>
@@ -241,6 +242,7 @@ export default function CatalogImportPage() {
                   <tr key={i} className="border-b border-slate-50 last:border-0">
                     <td className="px-4 py-3 text-xs tabular-nums text-slate-400">{i + 2}</td>
                     <td className="px-4 py-3 text-xs font-bold text-ink-600">{String(row['النوع'] ?? '')}</td>
+                    <td dir="ltr" className="px-4 py-3 text-start text-xs font-black text-slate-500">{String(row['الكود'] ?? '') || '—'}</td>
                     <td className="px-4 py-3 font-black text-deepBlue">{String(row['العنوان'] ?? '')}</td>
                     <td dir="ltr" className="px-4 py-3 text-start text-xs text-slate-500">
                       {String(row['المعرف اللاتيني (slug)'] ?? '')}

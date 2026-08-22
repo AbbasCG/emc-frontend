@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, GraduationCap, Languages, Smile, BadgeCheck, Clock } from 'lucide-react'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import {
-  ADVANCED_PROGRAMS,
   PROFESSIONAL_TRACKS,
   ACADEMIC_UNITS,
   LANGUAGE_PROGRAMS,
@@ -22,7 +21,6 @@ function EditorialRow({
   titleEn,
   desc,
   duration,
-  price,
   index,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>
@@ -30,7 +28,6 @@ function EditorialRow({
   titleEn?: string
   desc: string
   duration?: string
-  price?: number
   index: number
 }) {
   return (
@@ -64,11 +61,6 @@ function EditorialRow({
           <span className="hidden shrink-0 items-center gap-1.5 text-xs font-bold text-ink-400 lg:flex">
             <Clock size={14} className="text-customBlue" aria-hidden />
             {duration}
-          </span>
-        )}
-        {price != null && (
-          <span dir="ltr" className="emc-stat-num shrink-0 text-lg text-deepBlue">
-            {'€'}{price}
           </span>
         )}
         <span className="emc-cta-line shrink-0 text-xs sm:text-sm">
@@ -112,7 +104,7 @@ export default function HomeLearningTracks() {
             مسارات التعلّم <span className="text-customBlue">والشهادات المعتمدة</span>
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-400">
-            تأهيل عملي يمتد من 8 أسابيع إلى 8 أشهر، ينتهي بمشروع وتقييم عملي وشهادة معتمدة رسمياً من EMC.
+            تأهيل شامل يمتد من 6 إلى 8 أشهر ينتهي بمشروع وتقييم عملي وشهادة معتمدة رسمياً من EMC.
           </p>
         </motion.div>
 
@@ -128,7 +120,7 @@ export default function HomeLearningTracks() {
             }`}
           >
             <Brain size={18} />
-            <span>المسارات المهنية الخمسة</span>
+            <span>المسارات الاحترافية الـ 9</span>
           </button>
 
           <button
@@ -190,20 +182,9 @@ export default function HomeLearningTracks() {
                   titleEn={track.titleEn}
                   desc={track.focus}
                   duration={track.duration}
-                  price={track.price}
                   index={i}
                 />
               ))}
-              {/* برامج وتخصصات متقدمة — بقرار الكتالوج ليست مسارات أساسية */}
-              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-5">
-                <span className="text-[11px] font-black tracking-[0.14em] text-ink-400">برامج وتخصصات متقدمة</span>
-                {ADVANCED_PROGRAMS.map((prog) => (
-                  <span key={prog.title} className="inline-flex items-baseline gap-2 text-[13px] font-bold text-ink-600">
-                    {prog.title}
-                    <span className="rounded-md bg-paper2 px-1.5 py-0.5 text-[10px] font-black text-ink-400">{prog.badge}</span>
-                  </span>
-                ))}
-              </div>
             </motion.div>
           )}
 

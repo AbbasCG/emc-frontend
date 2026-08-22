@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react
 import { lazy, Suspense, useEffect } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import AnalyticsListener from './components/AnalyticsListener'
+import AssessmentSparkWidget from './components/public/AssessmentSparkWidget'
 import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
 import Layout from './components/Layout'
@@ -161,6 +162,7 @@ const MeetingReportsPage            = lazy(() => import('./pages/operations/Meet
 const WeeklyReportsPage             = lazy(() => import('./pages/operations/WeeklyReportsPage'))
 const ImpactPointsPage              = lazy(() => import('./pages/operations/ImpactPointsPage'))
 const ConsultantApply               = lazy(() => import('./pages/ConsultantApply'))
+const AiLevelAssessment             = lazy(() => import('./pages/AiLevelAssessment'))
 const MeetingLoungePage             = lazy(() => import('./pages/department/MeetingLoungePage'))
 const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
@@ -358,6 +360,7 @@ function App() {
       <BrowserRouter>
         <ScrollToTop />
         <AnalyticsListener />
+        <AssessmentSparkWidget />
         <AppToaster />
         <AuthProvider>
           <Routes>
@@ -416,6 +419,7 @@ function App() {
               <Route path="/volunteer"          element={<Suspense fallback={<RouteFallback />}><Volunteer /></Suspense>} />
               <Route path="/volunteer/apply"   element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
               <Route path="/consultants"       element={<Suspense fallback={<RouteFallback />}><ConsultantApply /></Suspense>} />
+              <Route path="/ai-level"          element={<Suspense fallback={<RouteFallback />}><AiLevelAssessment /></Suspense>} />
               <Route path="/ambassador"                      element={<Suspense fallback={<RouteFallback />}><AmbassadorProgram /></Suspense>} />
               <Route path="/ambassador/apply"            element={<Suspense fallback={<RouteFallback />}><AmbassadorApply /></Suspense>} />
               <Route path="/ambassador/application-success" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationSuccess /></Suspense>} />
