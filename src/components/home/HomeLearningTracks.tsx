@@ -21,6 +21,7 @@ function EditorialRow({
   titleEn,
   desc,
   duration,
+  href,
   index,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>
@@ -28,6 +29,7 @@ function EditorialRow({
   titleEn?: string
   desc: string
   duration?: string
+  href?: string
   index: number
 }) {
   return (
@@ -39,7 +41,7 @@ function EditorialRow({
       className="emc-row"
     >
       <Link
-        to="/courses"
+        to={href ?? '/courses'}
         className="group flex items-center gap-4 py-5 ps-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue sm:gap-6 sm:py-6 sm:ps-4"
       >
         <Icon
@@ -182,6 +184,7 @@ export default function HomeLearningTracks() {
                   titleEn={track.titleEn}
                   desc={track.focus}
                   duration={track.duration}
+                  href={track.landingSlug ? `/tracks/${track.landingSlug}` : undefined}
                   index={i}
                 />
               ))}

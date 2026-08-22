@@ -37,6 +37,10 @@ export interface ProfessionalTrack {
   title: string
   titleEn: string
   duration: string
+  /** السعر الكامل باليورو — يُعبأ للمسارات المعتمدة الأسعار فقط (لا شيء غير معتمد يُعرض). */
+  price?: number
+  /** صفحة الهبوط المستقلة للمسار (/tracks/<slug>) إن وُجدت. */
+  landingSlug?: string
   focus: string
   certificate: string
   icon: TrackIcon
@@ -49,6 +53,8 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     title: 'مسار مهندس الذكاء الاصطناعي',
     titleEn: 'AI Engineer Path',
     duration: '6 - 8 أشهر',
+    price: 899,
+    landingSlug: 'ai-engineer',
     focus: 'مدخل الذكاء الاصطناعي، Python، أساسيات البيانات، التعلم الآلي والعميق، وتطوير بيئات المشاريع الحقيقية.',
     certificate: 'Certified AI Engineer - EMC',
     icon: Brain,
@@ -59,6 +65,8 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     title: 'مسار عالم البيانات',
     titleEn: 'Data Scientist Path',
     duration: '6 - 8 أشهر',
+    price: 849,
+    landingSlug: 'data-scientist',
     focus: 'تحليل البيانات، الإحصاء، التصوير البياني، بناء النماذج، واستخراج الرؤى العملية لدعم القرار.',
     certificate: 'Certified Data Scientist - EMC',
     icon: CircuitBoard,
@@ -69,6 +77,7 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     title: 'مسار مهندس البيانات',
     titleEn: 'Data Engineer Path',
     duration: '6 - 8 أشهر',
+    landingSlug: 'data-engineer',
     focus: 'SQL وقواعد البيانات، خطوط البيانات، عمليات ETL، السحابة، وتجهيز البيانات للتحليل والذكاء الاصطناعي.',
     certificate: 'Certified Data Engineer - EMC',
     icon: Database,
@@ -78,7 +87,9 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     id: 'data-analyst',
     title: 'مسار محلل البيانات',
     titleEn: 'Data Analyst Path',
-    duration: '6 - 8 أشهر',
+    duration: '4 - 6 أشهر',
+    price: 549,
+    landingSlug: 'data-analyst',
     focus: 'Excel، SQL، Power BI أو Tableau، إعداد التقارير، لوحات المعلومات، ومؤشرات الأداء.',
     certificate: 'Certified Data Analyst - EMC',
     icon: LineChart,
@@ -88,7 +99,8 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     id: 'generative-ai',
     title: 'مسار الذكاء الاصطناعي التوليدي',
     titleEn: 'Generative AI Specialist Path',
-    duration: '6 - 8 أشهر',
+    duration: '4 - 6 أشهر',
+    landingSlug: 'generative-ai',
     focus: 'هندسة الأوامر، أدوات الذكاء الاصطناعي، الإنتاجية، صناعة المحتوى، الأتمتة، ووكلاء الذكاء الاصطناعي.',
     certificate: 'Certified Generative AI Specialist - EMC',
     icon: Sparkles,
@@ -98,7 +110,9 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     id: 'ai-business',
     title: 'مسار الذكاء الاصطناعي في الأعمال',
     titleEn: 'AI for Business Path',
-    duration: '6 - 8 أشهر',
+    duration: '4 - 6 أشهر',
+    price: 649,
+    landingSlug: 'ai-for-business',
     focus: 'توظيف الذكاء الاصطناعي في التسويق والإدارة والعمليات وخدمة العملاء واتخاذ القرار والتحول الرقمي.',
     certificate: 'Certified AI Business Specialist - EMC',
     icon: Briefcase,
@@ -108,7 +122,8 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     id: 'entrepreneurship',
     title: 'مسار ريادة الأعمال',
     titleEn: 'Entrepreneurship Path',
-    duration: '6 - 8 أشهر',
+    duration: '4 - 6 أشهر',
+    landingSlug: 'entrepreneurship',
     focus: 'تحويل الأفكار إلى مشاريع، نموذج العمل، دراسة السوق، الهوية، التسويق، التمويل، والمنتج الأول.',
     certificate: 'Certified Entrepreneur - EMC',
     icon: Rocket,
@@ -118,7 +133,9 @@ export const PROFESSIONAL_TRACKS: ProfessionalTrack[] = [
     id: 'professional-advancement',
     title: 'مسار التقدم المهني',
     titleEn: 'Professional Advancement Path',
-    duration: '6 - 8 أشهر',
+    duration: '8 - 12 أسبوعاً',
+    price: 249,
+    landingSlug: 'professional-advancement',
     focus: 'السيرة الذاتية، LinkedIn، المقابلات والتواصل المهني، البحث عن عمل، وبناء الهوية المهنية.',
     certificate: 'Professional Advancement Certificate - EMC',
     icon: UserCheck,

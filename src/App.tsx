@@ -163,6 +163,7 @@ const WeeklyReportsPage             = lazy(() => import('./pages/operations/Week
 const ImpactPointsPage              = lazy(() => import('./pages/operations/ImpactPointsPage'))
 const ConsultantApply               = lazy(() => import('./pages/ConsultantApply'))
 const AiLevelAssessment             = lazy(() => import('./pages/AiLevelAssessment'))
+const TrackLandingPage              = lazy(() => import('./pages/TrackLandingPage'))
 const MeetingLoungePage             = lazy(() => import('./pages/department/MeetingLoungePage'))
 const OpsFormsPage                  = lazy(() => import('./pages/operations/admin/OpsFormsPage'))
 const OpsFormCreatePage             = lazy(() => import('./pages/operations/admin/OpsFormCreatePage'))
@@ -420,6 +421,7 @@ function App() {
               <Route path="/volunteer/apply"   element={<Suspense fallback={<RouteFallback />}><VolunteerApply /></Suspense>} />
               <Route path="/consultants"       element={<Suspense fallback={<RouteFallback />}><ConsultantApply /></Suspense>} />
               <Route path="/ai-level"          element={<Suspense fallback={<RouteFallback />}><AiLevelAssessment /></Suspense>} />
+              <Route path="/tracks/:trackSlug" element={<Suspense fallback={<RouteFallback />}><TrackLandingPage /></Suspense>} />
               <Route path="/ambassador"                      element={<Suspense fallback={<RouteFallback />}><AmbassadorProgram /></Suspense>} />
               <Route path="/ambassador/apply"            element={<Suspense fallback={<RouteFallback />}><AmbassadorApply /></Suspense>} />
               <Route path="/ambassador/application-success" element={<Suspense fallback={<RouteFallback />}><AmbassadorApplicationSuccess /></Suspense>} />
