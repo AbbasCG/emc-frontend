@@ -19,6 +19,19 @@ export async function fetchDepartmentMembers(departmentId: number): Promise<Depa
   return unwrapData<DepartmentMember[]>(res.data) ?? []
 }
 
+// ── نطاق الإدارات المتاح للمستخدم ────────────────────────────────────────────
+
+export type DepartmentAccessManifest = {
+  department_scope: 'restricted' | 'global'
+  allowed_departments: Array<{ id: number; name: string }>
+  can_select_any_department: boolean
+}
+
+export async function fetchMyDepartmentAccess(): Promise<DepartmentAccessManifest> {
+  const res = await apiClient.get<unknown>('/operations/departments/my-access')
+  return unwrapData<DepartmentAccessManifest>(res.data)
+}
+
 // ── تقارير الاجتماعات ─────────────────────────────────────────────────────────
 
 export type MeetingReportRatingInput = {

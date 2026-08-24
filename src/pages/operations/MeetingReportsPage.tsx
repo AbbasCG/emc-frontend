@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CalendarCheck2, ChevronDown, ChevronUp, Plus, RefreshCw, Star } from 'lucide-react'
 import CriteriaScoreGrid from '@/components/operations/CriteriaScoreGrid'
+import DepartmentScopeField from '@/components/operations/DepartmentScopeField'
+import { useDepartmentAccess } from '@/hooks/useDepartmentAccess'
 import { averageScore, type CriteriaScores } from '@/data/evaluationCriteria'
 import toast from 'react-hot-toast'
-import { fetchDepartmentOptions } from '@/api/jobTitlesApi'
 import {
   createMeetingReport,
   fetchDepartmentMembers,
@@ -19,15 +20,13 @@ import {
  * ماذا يحتاجون ولماذا، والقرارات. سريع على المدير وقابل للقياس لاحقاً.
  */
 
-type DeptOption = { id: number; name: string }
-
 const fieldClass =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-deepBlue outline-none transition-colors focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
 
 export default function MeetingReportsPage() {
   const [reports, setReports] = useState<MeetingReport[]>([])
   const [loading, setLoading] = useState(true)
-  const [departments, setDepartments] = useState<DeptOption[]>([])
+  const { manifest: departmentAccess, loading: departmentAccessLoading, soleDepartmentId } = useDepartmentAccess()
   const [showForm, setShowForm] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [expanded, setExpanded] = useState<MeetingReport | null>(null)
@@ -36,6 +35,7 @@ export default function MeetingReportsPage() {
   const [deptId, setDeptId] = useState<number | ''>('')
   const [members, setMembers] = useState<DepartmentMember[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
+  const [membersError, setMembersError] = useState(false)
   const [attendance, setAttendance] = useState<Record<number, { attended: boolean; scores: CriteriaScores }>>({})
   const [openMemberId, setOpenMemberId] = useState<number | null>(null)
   const [form, setForm] = useState({
@@ -75,22 +75,22 @@ export default function MeetingReportsPage() {
         if (alive) setLoading(false)
       }
     })()
-    void fetchDepartmentOptions()
-      .then((rows) => {
-        if (alive) setDepartments(rows.map((r) => ({ id: r.id, name: r.name_ar || r.name || String(r.id) })))
-      })
-      .catch(() => {
-        if (alive) setDepartments([])
-      })
     return () => {
       alive = false
     }
   }, [])
 
+  // مستخدم مرتبط بإدارة واحدة فقط — تُختار تلقائيًا فور توفر النطاق.
+  useEffect(() => {
+    if (soleDepartmentId != null && deptId === '') void pickDepartment(soleDepartmentId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soleDepartmentId])
+
   async function pickDepartment(id: number | '') {
     setDeptId(id)
     setMembers([])
     setAttendance({})
+    setMembersError(false)
     if (!id) return
     setMembersLoading(true)
     try {
@@ -98,6 +98,7 @@ export default function MeetingReportsPage() {
       setMembers(rows)
       setAttendance(Object.fromEntries(rows.map((m) => [m.id, { attended: true, scores: {} }])))
     } catch {
+      setMembersError(true)
       toast.error('تعذر تحميل أعضاء الإدارة')
     } finally {
       setMembersLoading(false)
@@ -179,15 +180,12 @@ export default function MeetingReportsPage() {
       {showForm && (
         <div className="space-y-5 rounded-2xl border border-slate-100 bg-white p-6">
           <div className="grid gap-4 sm:grid-cols-3">
-            <label className="grid gap-1.5 text-xs font-black text-ink-500">
-              الإدارة *
-              <select value={deptId} onChange={(e) => void pickDepartment(e.target.value ? Number(e.target.value) : '')} className={fieldClass}>
-                <option value="">اختر الإدارة…</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
-            </label>
+            <DepartmentScopeField
+              manifest={departmentAccess}
+              loading={departmentAccessLoading}
+              value={deptId}
+              onChange={(id) => void pickDepartment(id)}
+            />
             <label className="grid gap-1.5 text-xs font-black text-ink-500">
               عنوان الاجتماع *
               <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="مثال: الاجتماع الأسبوعي" className={fieldClass} />
@@ -203,9 +201,11 @@ export default function MeetingReportsPage() {
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
               <h3 className="text-xs font-black text-deepBlue">الحضور والتقييم</h3>
               {membersLoading ? (
-                <p className="mt-3 text-xs font-bold text-slate-400">جارٍ تحميل الأعضاء…</p>
+                <p className="mt-3 text-xs font-bold text-slate-400">جاري تحميل أعضاء الإدارة...</p>
+              ) : membersError ? (
+                <p className="mt-3 text-xs font-bold text-red-500">تعذر تحميل أعضاء الإدارة</p>
               ) : members.length === 0 ? (
-                <p className="mt-3 text-xs font-bold text-slate-400">لا أعضاء مسجلين في هذه الإدارة بعد</p>
+                <p className="mt-3 text-xs font-bold text-slate-400">لا يوجد أعضاء مرتبطون بهذه الإدارة</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {members.map((m) => {

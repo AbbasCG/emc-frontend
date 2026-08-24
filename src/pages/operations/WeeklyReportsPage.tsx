@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AlarmClock, ChevronDown, ChevronUp, Plus, RefreshCw, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { fetchDepartmentOptions } from '@/api/jobTitlesApi'
 import CriteriaScoreGrid from '@/components/operations/CriteriaScoreGrid'
+import DepartmentScopeField from '@/components/operations/DepartmentScopeField'
+import { useDepartmentAccess } from '@/hooks/useDepartmentAccess'
 import { averageScore, type CriteriaScores } from '@/data/evaluationCriteria'
 import {
   fetchDepartmentMembers,
@@ -27,13 +28,14 @@ const fieldClass =
 export default function WeeklyReportsPage() {
   const [reports, setReports] = useState<WeeklyReport[]>([])
   const [due, setDue] = useState<{ week_start: string; missing: DeptOption[]; submitted: number } | null>(null)
-  const [departments, setDepartments] = useState<DeptOption[]>([])
+  const { manifest: departmentAccess, loading: departmentAccessLoading, soleDepartmentId } = useDepartmentAccess()
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
   const [members, setMembers] = useState<DepartmentMember[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
+  const [membersError, setMembersError] = useState(false)
   const [evaluations, setEvaluations] = useState<Record<number, { included: boolean; scores: CriteriaScores }>>({})
   const [openMemberId, setOpenMemberId] = useState<number | null>(null)
   const [form, setForm] = useState({
@@ -74,17 +76,35 @@ export default function WeeklyReportsPage() {
         if (alive) setLoading(false)
       }
     })()
-    void fetchDepartmentOptions()
-      .then((rows) => {
-        if (alive) setDepartments(rows.map((r) => ({ id: r.id, name: r.name_ar || r.name || String(r.id) })))
-      })
-      .catch(() => {
-        if (alive) setDepartments([])
-      })
     return () => {
       alive = false
     }
   }, [])
+
+  // مستخدم مرتبط بإدارة واحدة فقط — تُختار تلقائيًا فور توفر النطاق.
+  useEffect(() => {
+    if (soleDepartmentId != null && form.department_id === '') void pickDepartment(soleDepartmentId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soleDepartmentId])
+
+  async function pickDepartment(id: number | '') {
+    setForm((f) => ({ ...f, department_id: id }))
+    setMembers([])
+    setEvaluations({})
+    setMembersError(false)
+    if (!id) return
+    setMembersLoading(true)
+    try {
+      const rows = await fetchDepartmentMembers(id)
+      setMembers(rows)
+      setEvaluations(Object.fromEntries(rows.map((m) => [m.id, { included: true, scores: {} }])))
+    } catch {
+      setMembersError(true)
+      toast.error('تعذر تحميل أعضاء الإدارة')
+    } finally {
+      setMembersLoading(false)
+    }
+  }
 
   async function submit() {
     if (!form.department_id || !form.achievements.trim() || !form.planned.trim()) {
@@ -149,34 +169,14 @@ export default function WeeklyReportsPage() {
 
       {showForm && (
         <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6">
-          <label className="grid max-w-sm gap-1.5 text-xs font-black text-ink-500">
-            الإدارة *
-            <select
+          <div className="max-w-sm">
+            <DepartmentScopeField
+              manifest={departmentAccess}
+              loading={departmentAccessLoading}
               value={form.department_id}
-              onChange={(e) => {
-                const id = e.target.value ? Number(e.target.value) : ''
-                setForm((f) => ({ ...f, department_id: id }))
-                setMembers([])
-                setEvaluations({})
-                if (id) {
-                  setMembersLoading(true)
-                  void fetchDepartmentMembers(id)
-                    .then((rows) => {
-                      setMembers(rows)
-                      setEvaluations(Object.fromEntries(rows.map((m) => [m.id, { included: true, scores: {} }])))
-                    })
-                    .catch(() => toast.error('تعذر تحميل أعضاء الإدارة'))
-                    .finally(() => setMembersLoading(false))
-                }
-              }}
-              className={fieldClass}
-            >
-              <option value="">اختر الإدارة…</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-          </label>
+              onChange={(id) => void pickDepartment(id)}
+            />
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="grid gap-1.5 text-xs font-black text-ink-500">
               ماذا أنجزنا هذا الأسبوع؟ *
@@ -200,9 +200,11 @@ export default function WeeklyReportsPage() {
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
               <h3 className="text-xs font-black text-deepBlue">تقييم أداء الأعضاء هذا الأسبوع</h3>
               {membersLoading ? (
-                <p className="mt-3 text-xs font-bold text-slate-400">جارٍ تحميل الأعضاء…</p>
+                <p className="mt-3 text-xs font-bold text-slate-400">جاري تحميل أعضاء الإدارة...</p>
+              ) : membersError ? (
+                <p className="mt-3 text-xs font-bold text-red-500">تعذر تحميل أعضاء الإدارة</p>
               ) : members.length === 0 ? (
-                <p className="mt-3 text-xs font-bold text-slate-400">لا أعضاء مسجلين في هذه الإدارة بعد</p>
+                <p className="mt-3 text-xs font-bold text-slate-400">لا يوجد أعضاء مرتبطون بهذه الإدارة</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {members.map((m) => {
