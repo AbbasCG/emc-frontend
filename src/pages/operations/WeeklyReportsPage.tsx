@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import { AlarmClock, ChevronDown, ChevronUp, Plus, RefreshCw, Star } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
 import { fetchDepartmentOptions } from '@/api/jobTitlesApi'
 import CriteriaScoreGrid from '@/components/operations/CriteriaScoreGrid'
@@ -25,6 +26,7 @@ const fieldClass =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-deepBlue outline-none transition-colors focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
 
 export default function WeeklyReportsPage() {
+  const { user } = useAuth()
   const [reports, setReports] = useState<WeeklyReport[]>([])
   const [due, setDue] = useState<{ week_start: string; missing: DeptOption[]; submitted: number } | null>(null)
   const [departments, setDepartments] = useState<DeptOption[]>([])
@@ -44,6 +46,30 @@ export default function WeeklyReportsPage() {
     needs: '',
     notes: '',
   })
+
+  // Auto-load members when department_id changes
+  useEffect(() => {
+    const id = form.department_id
+    setMembers([])
+    setEvaluations({})
+    if (id) {
+      let alive = true
+      setMembersLoading(true)
+      fetchDepartmentMembers(Number(id))
+        .then((rows) => {
+          if (!alive) return
+          setMembers(rows)
+          setEvaluations(Object.fromEntries(rows.map((m) => [m.id, { included: true, scores: {} }])))
+        })
+        .catch(() => {
+          if (alive) toast.error('تعذر تحميل أعضاء الإدارة')
+        })
+        .finally(() => {
+          if (alive) setMembersLoading(false)
+        })
+      return () => { alive = false }
+    }
+  }, [form.department_id])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -86,6 +112,15 @@ export default function WeeklyReportsPage() {
     }
   }, [])
 
+  const availableDepartments = useMemo(() => {
+    if (!user) return departments
+    if (['super_admin', 'admin', 'executive_admin', 'tech_admin', 'operations_manager', 'quality_manager'].includes(String(user.role))) {
+      return departments
+    }
+    if (!user.department_id) return departments
+    return departments.filter((d) => d.id === user.department_id)
+  }, [departments, user])
+
   async function submit() {
     if (!form.department_id || !form.achievements.trim() || !form.planned.trim()) {
       toast.error('الإدارة وإنجازات الأسبوع وخطة الأسبوع القادم حقول لازمة')
@@ -106,7 +141,9 @@ export default function WeeklyReportsPage() {
       })
       toast.success('سُلِّم تقرير الأسبوع')
       setShowForm(false)
-      setForm({ department_id: '', achievements: '', planned: '', blockers: '', needs: '', notes: '' })
+      setForm({ department_id: (user?.department_id ? Number(user.department_id) : '') as number | '', achievements: '', planned: '', blockers: '', needs: '', notes: '' })
+      setMembers([])
+      setEvaluations({})
       await load()
     } catch {
       toast.error('تعذر تسليم التقرير')
@@ -128,7 +165,11 @@ export default function WeeklyReportsPage() {
             <RefreshCw size={15} />
           </button>
           <button
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => {
+              const depId = (user?.department_id ? Number(user.department_id) : '') as number | ''
+              setForm((f) => ({ ...f, department_id: depId }))
+              setShowForm((v) => !v)
+            }}
             className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
           >
             <Plus size={16} /> تسليم تقرير الأسبوع
@@ -156,23 +197,11 @@ export default function WeeklyReportsPage() {
               onChange={(e) => {
                 const id = e.target.value ? Number(e.target.value) : ''
                 setForm((f) => ({ ...f, department_id: id }))
-                setMembers([])
-                setEvaluations({})
-                if (id) {
-                  setMembersLoading(true)
-                  void fetchDepartmentMembers(id)
-                    .then((rows) => {
-                      setMembers(rows)
-                      setEvaluations(Object.fromEntries(rows.map((m) => [m.id, { included: true, scores: {} }])))
-                    })
-                    .catch(() => toast.error('تعذر تحميل أعضاء الإدارة'))
-                    .finally(() => setMembersLoading(false))
-                }
               }}
               className={fieldClass}
             >
               <option value="">اختر الإدارة…</option>
-              {departments.map((d) => (
+              {availableDepartments.map((d) => (
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>

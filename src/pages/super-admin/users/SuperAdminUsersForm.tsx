@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router'
+import apiClient from '@/api/axios'
+import { unwrapData } from '@/api/unwrap'
 import toast from '@/lib/toast'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -33,6 +35,8 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
   const [role, setRole] = useState('student')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [department, setDepartment] = useState<string>('')
+  const [departments, setDepartments] = useState<{ id: number; name_ar: string }[]>([])
   const [saving, setSaving] = useState(false)
 
   const baseOptions = useMemo(() => getAssignableRoleOptions(includeSuperAdmin), [includeSuperAdmin])
@@ -48,11 +52,22 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
     ;(async () => {
       setLoading(true)
       try {
-        const u = await fetchAdminUser(userId)
+        const [u, depsRes] = await Promise.all([
+          fetchAdminUser(userId),
+          apiClient.get('/departments/options')
+        ])
+        
         if (cancelled) return
+        
+        const deps = unwrapData<any>(depsRes.data)
+        if (Array.isArray(deps)) {
+          setDepartments(deps)
+        }
+        
         setName(u.name)
         setEmail(u.email)
         setRole((u.role && String(u.role)) || 'student')
+        if (u.department) setDepartment(String(u.department))
       } catch (e) {
         if (cancelled) return
         if (axios.isAxiosError(e) && e.response?.status === 403) {
@@ -67,6 +82,18 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
       cancelled = true
     }
   }, [variant, userId, navigate])
+
+  useEffect(() => {
+    if (variant === 'create') {
+      let cancelled = false
+      apiClient.get('/departments/options').then(res => {
+        if (cancelled) return
+        const deps = unwrapData<any>(res.data)
+        if (Array.isArray(deps)) setDepartments(deps)
+      }).catch(() => {})
+      return () => { cancelled = true }
+    }
+  }, [variant])
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -88,6 +115,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
             role,
             password,
             password_confirmation: passwordConfirmation || password,
+            department: department || null,
           })
           toast.success('تم إنشاء المستخدم')
           navigate(`/dashboard/super-admin/crud/users/${created.id}`)
@@ -98,7 +126,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
             toast.warning('تأكيد كلمة المرور غير متطابق')
             return
           }
-          const patch: UpdateAdminUserInput = { name, email, role }
+          const patch: UpdateAdminUserInput = { name, email, role, department: department || null }
           if (pw) {
             patch.password = pw
             patch.password_confirmation = pwc || pw
@@ -182,6 +210,22 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
             {roleOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.labelAr}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">
+          الإدارة (اختياري)
+          <select
+            value={department}
+            onChange={(x) => setDepartment(x.target.value)}
+            className="rounded-2xl border border-deepBlue/[0.1] px-4 py-2.5 text-[13px] font-semibold outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/20"
+          >
+            <option value="">-- بدون إدارة --</option>
+            {departments.map((d) => (
+              <option key={d.id} value={String(d.id)}>
+                {d.name_ar}
               </option>
             ))}
           </select>

@@ -11,6 +11,7 @@ export type User = {
   country?: string | null
   gender?: string | null
   department?: string | null
+  department_id?: number | null
   how_did_you_hear_about_us?: string | null
   instructor_bio?: string | null
   avatar_url?: string | null

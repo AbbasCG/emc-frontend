@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import { CalendarCheck2, ChevronDown, ChevronUp, Plus, RefreshCw, Star } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import CriteriaScoreGrid from '@/components/operations/CriteriaScoreGrid'
 import { averageScore, type CriteriaScores } from '@/data/evaluationCriteria'
 import toast from 'react-hot-toast'
@@ -25,6 +26,7 @@ const fieldClass =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-deepBlue outline-none transition-colors focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
 
 export default function MeetingReportsPage() {
+  const { user } = useAuth()
   const [reports, setReports] = useState<MeetingReport[]>([])
   const [loading, setLoading] = useState(true)
   const [departments, setDepartments] = useState<DeptOption[]>([])
@@ -33,7 +35,7 @@ export default function MeetingReportsPage() {
   const [expanded, setExpanded] = useState<MeetingReport | null>(null)
 
   // نموذج الإنشاء
-  const [deptId, setDeptId] = useState<number | ''>('')
+  const [deptId, setDeptId] = useState<number | ''>('' as number | '')
   const [members, setMembers] = useState<DepartmentMember[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
   const [attendance, setAttendance] = useState<Record<number, { attended: boolean; scores: CriteriaScores }>>({})
@@ -87,22 +89,37 @@ export default function MeetingReportsPage() {
     }
   }, [])
 
-  async function pickDepartment(id: number | '') {
-    setDeptId(id)
-    setMembers([])
-    setAttendance({})
-    if (!id) return
-    setMembersLoading(true)
-    try {
-      const rows = await fetchDepartmentMembers(id)
-      setMembers(rows)
-      setAttendance(Object.fromEntries(rows.map((m) => [m.id, { attended: true, scores: {} }])))
-    } catch {
-      toast.error('تعذر تحميل أعضاء الإدارة')
-    } finally {
-      setMembersLoading(false)
+  const availableDepartments = useMemo(() => {
+    if (!user) return departments
+    if (['super_admin', 'admin', 'executive_admin', 'tech_admin', 'operations_manager', 'quality_manager'].includes(String(user.role))) {
+      return departments
     }
-  }
+    if (!user.department_id) return departments
+    return departments.filter((d) => d.id === user.department_id)
+  }, [departments, user])
+
+  useEffect(() => {
+    if (!deptId) {
+      setMembers([])
+      setAttendance({})
+      return
+    }
+    let alive = true
+    setMembersLoading(true)
+    fetchDepartmentMembers(deptId as number)
+      .then((rows) => {
+        if (!alive) return
+        setMembers(rows)
+        setAttendance(Object.fromEntries(rows.map((m) => [m.id, { attended: true, scores: {} }])))
+      })
+      .catch(() => {
+        if (alive) toast.error('تعذر تحميل أعضاء الإدارة')
+      })
+      .finally(() => {
+        if (alive) setMembersLoading(false)
+      })
+    return () => { alive = false }
+  }, [deptId])
 
   async function submit() {
     if (!deptId || !form.title.trim()) {
@@ -130,8 +147,7 @@ export default function MeetingReportsPage() {
       toast.success('حُفظ تقرير الاجتماع')
       setShowForm(false)
       setForm({ title: '', meeting_date: new Date().toISOString().slice(0, 10), achieved: '', planned: '', needs: '', needs_reason: '', decisions: '', notes: '' })
-      setDeptId('')
-      setMembers([])
+      setDeptId((user?.department_id ? Number(user.department_id) : '') as number | '')
       await load()
     } catch {
       toast.error('تعذر حفظ التقرير')
@@ -168,7 +184,10 @@ export default function MeetingReportsPage() {
             <RefreshCw size={15} />
           </button>
           <button
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => {
+              setDeptId((user?.department_id ? Number(user.department_id) : '') as number | '')
+              setShowForm((v) => !v)
+            }}
             className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
           >
             <Plus size={16} /> تقرير اجتماع جديد
@@ -181,9 +200,9 @@ export default function MeetingReportsPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="grid gap-1.5 text-xs font-black text-ink-500">
               الإدارة *
-              <select value={deptId} onChange={(e) => void pickDepartment(e.target.value ? Number(e.target.value) : '')} className={fieldClass}>
+              <select value={deptId} onChange={(e) => setDeptId(e.target.value ? Number(e.target.value) : '')} className={fieldClass}>
                 <option value="">اختر الإدارة…</option>
-                {departments.map((d) => (
+                {availableDepartments.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
               </select>
