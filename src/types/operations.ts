@@ -61,6 +61,8 @@ export type WorkspaceDepartment = {
   label?: string | null
   description?: string
   leader_name?: string | null
+  /** departments.leader_id — the canonical department-leadership relationship. Null = no leader configured. */
+  leader_id?: number | null
   members_count: number
   /** Real backend count — null means tasks system not connected */
   open_tasks_count?: number | null

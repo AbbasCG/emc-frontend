@@ -47,6 +47,15 @@ function normalizeAdminDepartment(raw: unknown): AdminDepartment {
   }
 }
 
+/**
+ * Assign or clear a department's leader — the canonical relationship that
+ * gates who may create Meeting/Weekly reports for that department
+ * (DepartmentAccessService::canManageDepartment). Pass `null` to clear.
+ */
+export async function updateDepartmentLeader(departmentId: number, leaderId: number | null): Promise<void> {
+  await apiClient.put(`/admin/departments/${departmentId}`, { leader_id: leaderId })
+}
+
 /** Single department detail — GET /operations/departments/:id */
 export async function fetchAdminDepartmentById(id: string): Promise<AdminDepartment> {
   const res = await apiClient.get<unknown>(`/operations/departments/${id}`, silent)

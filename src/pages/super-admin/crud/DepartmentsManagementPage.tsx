@@ -16,11 +16,12 @@ import {
   BookOpen,
   Info,
 } from 'lucide-react'
-import { fetchWorkspaceDepartmentsForSuperAdmin } from '@/api/superAdminOpsApi'
+import { fetchWorkspaceDepartmentsForSuperAdmin, updateDepartmentLeader } from '@/api/superAdminOpsApi'
+import { searchAdminUsers, type UserSearchHit } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import type { WorkspaceDepartment } from '@/types/operations'
 import { computeDeptHealth, getDepartmentName } from '@/utils/workspaceDepartment'
-import { errorToast } from '@/lib/toast'
+import { errorToast, successToast } from '@/lib/toast'
 import { SaPageRoot } from '@/pages/super-admin/crud/shared/SuperAdminPrimitives'
 import { EmptyPanel, ErrorPanel } from '@/pages/super-admin/crud/shared/States'
 
@@ -213,14 +214,141 @@ function DeptCard({ dept }: { dept: WorkspaceDepartment }) {
   )
 }
 
+/* ── Department leader assignment ────────────────────────────────────────── */
+/**
+ * Assigns/clears departments.leader_id — the canonical relationship that now
+ * gates who may create Meeting/Weekly reports for a department
+ * (DepartmentAccessService::canManageDepartment). Changing it here takes
+ * effect immediately, with no code change, for every report-creation check.
+ */
+function LeaderAssignmentControl({
+  dept,
+  onChanged,
+}: {
+  dept: WorkspaceDepartment
+  onChanged: (leaderId: number | null, leaderName: string | null) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [results, setResults] = useState<UserSearchHit[]>([])
+  const [searching, setSearching] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!query.trim()) return
+    let alive = true
+    const t = setTimeout(() => {
+      void searchAdminUsers(query)
+        .then((rows) => { if (alive) setResults(rows) })
+        .finally(() => { if (alive) setSearching(false) })
+    }, 300)
+    return () => {
+      alive = false
+      clearTimeout(t)
+    }
+  }, [query])
+
+  function handleQueryChange(next: string) {
+    setQuery(next)
+    setOpen(true)
+    if (next.trim()) {
+      setSearching(true)
+    } else {
+      setResults([])
+    }
+  }
+
+  async function assign(userId: number, name: string) {
+    setSaving(true)
+    try {
+      await updateDepartmentLeader(Number(dept.id), userId)
+      onChanged(userId, name)
+      successToast('تم تعيين قائد الإدارة')
+      setOpen(false)
+      setQuery('')
+    } catch (e) {
+      errorToast(getApiErrorMessage(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function clearLeader() {
+    setSaving(true)
+    try {
+      await updateDepartmentLeader(Number(dept.id), null)
+      onChanged(null, null)
+      successToast('تمت إزالة قائد الإدارة')
+    } catch (e) {
+      errorToast(getApiErrorMessage(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2 rounded-xl bg-slate-50 px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[12px] font-black text-slate-500">قائد الإدارة</dt>
+        <dd className="text-[13px] font-black text-[#0C2A4B]">
+          {dept.leader_name ?? <span className="text-amber-600">— لم يُعيَّن —</span>}
+        </dd>
+      </div>
+      {dept.leader_id ? (
+        <button
+          type="button"
+          onClick={() => void clearLeader()}
+          disabled={saving}
+          className="text-[11px] font-bold text-rose-600 transition hover:underline disabled:opacity-50"
+        >
+          إزالة القائد
+        </button>
+      ) : null}
+      <div className="relative">
+        <input
+          value={query}
+          onChange={(e) => handleQueryChange(e.target.value)}
+          onFocus={() => setOpen(true)}
+          disabled={saving}
+          placeholder="ابحث عن مستخدم لتعيينه قائدًا للإدارة..."
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-[#0C2A4B] outline-none transition focus:ring-2 focus:ring-[#0077B6]/30 disabled:opacity-60"
+        />
+        {open && query.trim() ? (
+          <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+            {searching ? (
+              <p className="px-3 py-2 text-[11px] font-semibold text-slate-400">جارٍ البحث…</p>
+            ) : results.length === 0 ? (
+              <p className="px-3 py-2 text-[11px] font-semibold text-slate-400">لا نتائج</p>
+            ) : (
+              results.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => void assign(u.id, u.name)}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-[12px] font-semibold text-[#0C2A4B] transition hover:bg-slate-50"
+                >
+                  <span className="truncate">{u.name}</span>
+                  <span className="shrink-0 text-[10px] font-semibold text-slate-400">{u.email}</span>
+                </button>
+              ))
+            )}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 /* ── Detail drawer ───────────────────────────────────────────────────────── */
 
 function DetailDrawer({
   dept,
   onClose,
+  onLeaderChanged,
 }: {
   dept: WorkspaceDepartment | null
   onClose: () => void
+  onLeaderChanged: (departmentId: string, leaderId: number | null, leaderName: string | null) => void
 }) {
   const navigate = useNavigate()
 
@@ -291,11 +419,15 @@ function DetailDrawer({
                 </div>
               ) : null}
 
+              <LeaderAssignmentControl
+                dept={dept}
+                onChanged={(leaderId, leaderName) => onLeaderChanged(dept.id, leaderId, leaderName)}
+              />
+
               <dl className="space-y-2">
                 {[
                   { label: 'الأعضاء', value: dept.members_count },
                   { label: 'القادة', value: dept.leaders_count ?? '—' },
-                  { label: 'القائد', value: dept.leader_name ?? '—' },
                   { label: 'الدورات', value: dept.courses_count ?? '—' },
                   { label: 'طلبات التطوع', value: dept.volunteer_requests_count ?? '—' },
                   { label: 'بنود قيد الانتظار', value: dept.pending_items_count ?? '—' },
@@ -527,7 +659,16 @@ export default function DepartmentsManagementPage() {
         </motion.div>
       ) : null}
 
-      <DetailDrawer dept={detail} onClose={() => setDetail(null)} />
+      <DetailDrawer
+        dept={detail}
+        onClose={() => setDetail(null)}
+        onLeaderChanged={(departmentId, leaderId, leaderName) => {
+          const patch = (d: WorkspaceDepartment): WorkspaceDepartment =>
+            d.id === departmentId ? { ...d, leader_id: leaderId, leader_name: leaderName } : d
+          setRows((prev) => prev.map(patch))
+          setDetail((prev) => (prev ? patch(prev) : prev))
+        }}
+      />
     </SaPageRoot>
   )
 }

@@ -27,6 +27,9 @@ export default function MeetingReportsPage() {
   const [reports, setReports] = useState<MeetingReport[]>([])
   const [loading, setLoading] = useState(true)
   const { manifest: departmentAccess, loading: departmentAccessLoading, soleDepartmentId } = useDepartmentAccess()
+  // إنشاء التقرير متاح فقط لمن يقود إدارة واحدة على الأقل (أو مدير عام) — وليس لكل عضو إدارة نشط.
+  const canCreate = !departmentAccessLoading && !!departmentAccess &&
+    (departmentAccess.can_select_any_department || departmentAccess.allowed_departments.length > 0)
   const [showForm, setShowForm] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [expanded, setExpanded] = useState<MeetingReport | null>(null)
@@ -168,12 +171,15 @@ export default function MeetingReportsPage() {
           <button onClick={() => void load()} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-deepBlue hover:bg-slate-50">
             <RefreshCw size={15} />
           </button>
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
-          >
-            <Plus size={16} /> تقرير اجتماع جديد
-          </button>
+          {/* إنشاء تقرير متاح فقط لقائد الإدارة (أو مدير مخوَّل) — عضو الإدارة العادي لا يرى الزر */}
+          {canCreate && (
+            <button
+              onClick={() => setShowForm((v) => !v)}
+              className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
+            >
+              <Plus size={16} /> تقرير اجتماع جديد
+            </button>
+          )}
         </div>
       </div>
 

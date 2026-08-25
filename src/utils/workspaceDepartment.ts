@@ -108,7 +108,21 @@ export function normalizeWorkspaceDepartment(raw: unknown): WorkspaceDepartment 
     department_name,
     label,
     description: pickOptionalStr(r.description),
-    leader_name: r.leader_name != null && `${r.leader_name}`.trim() !== '' ? pickStr(r.leader_name) : null,
+    // /operations/departments nests the leader as {id,name,email,role} (DepartmentResource);
+    // fall back to a flat leader_name if some other caller ever sends that shape instead.
+    leader_name: (() => {
+      const nested = r.leader != null && typeof r.leader === 'object' ? (r.leader as Record<string, unknown>).name : undefined
+      const flat = r.leader_name
+      const v = nested ?? flat
+      return v != null && `${v}`.trim() !== '' ? pickStr(v) : null
+    })(),
+    leader_id: (() => {
+      const nested = r.leader != null && typeof r.leader === 'object' ? (r.leader as Record<string, unknown>).id : undefined
+      const flat = r.leader_id
+      const v = nested ?? flat
+      const n = Number(v)
+      return v != null && Number.isFinite(n) ? n : null
+    })(),
     members_count: finiteNum(r.members_count, 0),
     leaders_count: r.leaders_count !== undefined ? finiteNum(r.leaders_count, 0) : undefined,
     courses_count: r.courses_count !== undefined ? finiteNum(r.courses_count, 0) : undefined,
