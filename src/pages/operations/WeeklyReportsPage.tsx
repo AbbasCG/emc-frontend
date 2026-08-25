@@ -130,6 +130,8 @@ export default function WeeklyReportsPage() {
       toast.success('سُلِّم تقرير الأسبوع')
       setShowForm(false)
       setForm({ department_id: '', achievements: '', planned: '', blockers: '', needs: '', notes: '' })
+      setMembers([])
+      setEvaluations({})
       await load()
     } catch {
       toast.error('تعذر تسليم التقرير')
@@ -151,12 +153,12 @@ export default function WeeklyReportsPage() {
             <RefreshCw size={15} />
           </button>
           {canCreate && (
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
-          >
-            <Plus size={16} /> تسليم تقرير الأسبوع
-          </button>
+            <button
+              onClick={() => setShowForm((v) => !v)}
+              className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
+            >
+              <Plus size={16} /> تسليم تقرير الأسبوع
+            </button>
           )}
         </div>
       </div>

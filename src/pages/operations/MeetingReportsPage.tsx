@@ -35,7 +35,7 @@ export default function MeetingReportsPage() {
   const [expanded, setExpanded] = useState<MeetingReport | null>(null)
 
   // نموذج الإنشاء
-  const [deptId, setDeptId] = useState<number | ''>('')
+  const [deptId, setDeptId] = useState<number | ''>('' as number | '')
   const [members, setMembers] = useState<DepartmentMember[]>([])
   const [membersLoading, setMembersLoading] = useState(false)
   const [membersError, setMembersError] = useState(false)
