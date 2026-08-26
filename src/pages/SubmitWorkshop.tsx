@@ -308,11 +308,12 @@ export default function SubmitWorkshop() {
   }
 
   const updateField = (name: keyof WorkshopFormValues, value: string) => {
-    setForm((previous) => ({
-      ...previous,
-      [name]: name === 'price_type' ? (value as WorkshopFormValues['price_type']) : value,
-      price_amount: name === 'price_type' && value === 'free' ? '' : previous.price_amount,
-    }))
+    setForm((previous) => {
+      const next = { ...previous, [name]: value }
+      // Switching to a free workshop clears any previously entered price.
+      if (name === 'price_type' && value === 'free') next.price_amount = ''
+      return next
+    })
     setApiError('')
   }
 
