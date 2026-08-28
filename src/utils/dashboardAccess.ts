@@ -264,6 +264,17 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return 'authenticated'
   }
 
+  /* EMC Tickets (RBAC) */
+  if (path === '/dashboard/tickets/admin' || path.startsWith('/dashboard/tickets/admin/')) {
+    return ['super_admin', 'tech_admin', 'admin']
+  }
+  if (path === '/dashboard/tickets/workspace' || path.startsWith('/dashboard/tickets/workspace/')) {
+    return ['super_admin', 'tech_admin', 'admin', 'support_agent']
+  }
+  if (path === '/dashboard/tickets' || path.startsWith('/dashboard/tickets/')) {
+    return 'authenticated'
+  }
+
   /* Volunteer HR profile — the applicant's own self-service form. Must be
      checked BEFORE the generic '/dashboard/volunteer' namespace rule below
      (which restricts the bare /dashboard/volunteer "accepted volunteers"
