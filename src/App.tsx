@@ -246,6 +246,12 @@ const PartnerDocumentsPage      = lazy(() => import('./pages/platform/partner/Pa
 // ── Lazy: dashboard pages — tech admin ───────────────────────────────────────
 const TechAdminDashboardPage = lazy(() => import('./pages/tech-admin/TechAdminDashboardPage'))
 
+// ── Lazy: EMC Unified Tickets System ─────────────────────────────────────────
+const TicketSubmitPage = lazy(() => import('./components/tickets/TicketSubmitPage'))
+const TicketDetailPage = lazy(() => import('./components/tickets/TicketDetailPage'))
+const TicketTechAdminDashboardPage = lazy(() => import('./components/tickets/TechAdminDashboardPage'))
+const AssigneeWorkspacePage = lazy(() => import('./components/tickets/AssigneeWorkspacePage'))
+
 // ── Lazy: dashboard pages — manager role home pages ──────────────────────────
 const ProgramsManagerDashboardPage   = lazy(() => import('./pages/manager-dashboards/ProgramsManagerDashboardPage'))
 const OperationsManagerDashboardPage = lazy(() => import('./pages/manager-dashboards/OperationsManagerDashboardPage'))
@@ -757,6 +763,13 @@ function App() {
                   <Route path="/dashboard/admin/marketing" element={<OpsMarketingPage />} />
                   <Route path="/dashboard/admin/support-tickets" element={<OpsSupportTicketsPage />} />
                   <Route path="/dashboard/admin/support-tickets/:id" element={<OpsSupportTicketDetailPage />} />
+
+                  {/* ── Internal Tech Tickets ── */}
+                  <Route path="/dashboard/tickets" element={<Suspense fallback={<RouteFallback />}><TicketSubmitPage /></Suspense>} />
+                  <Route path="/dashboard/tickets/new" element={<Suspense fallback={<RouteFallback />}><TicketSubmitPage /></Suspense>} />
+                  <Route path="/dashboard/tickets/workspace" element={<Suspense fallback={<RouteFallback />}><AssigneeWorkspacePage /></Suspense>} />
+                  <Route path="/dashboard/tickets/admin" element={<Suspense fallback={<RouteFallback />}><TicketTechAdminDashboardPage /></Suspense>} />
+                  <Route path="/dashboard/tickets/:id" element={<Suspense fallback={<RouteFallback />}><TicketDetailPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance" element={<FinanceDashboardPage />} />
                   <Route path="/dashboard/admin/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/admin/finance/transactions" element={<FinanceTransactionsPage />} />

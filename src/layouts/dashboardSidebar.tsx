@@ -117,12 +117,31 @@ function resourceCenterBlock(opts: { collapsible?: boolean } = {}): SidebarNavGr
   ]
 }
 
-function communicationsBlock(opts: { collapsible?: boolean } = {}): SidebarNavGroup[] {
+function emcTicketsBlock(role: string, opts: { collapsible?: boolean } = {}): SidebarNavGroup[] {
+  const isLeader = role === 'tech_admin' || role === 'super_admin' || role === 'admin';
+  const isTechStaff = role === 'tech_admin' || role === 'super_admin' || role === 'admin' || role === 'support_agent';
+
   return [
+    {
+      title: 'منظومة التذاكر (EMC Tickets)',
+      ...(opts.collapsible ? { collapsible: true, defaultOpen: true } : {}),
+      items: [
+        { label: 'إدخال تذكرة / مقترح جديد', href: '/dashboard/tickets/new', icon: ShieldQuestion },
+        ...(isLeader ? [{ label: 'توجيه الإدارة والدعم الفني', href: '/dashboard/tickets/admin', icon: Building2 }] : []),
+        ...(isTechStaff ? [{ label: 'مساحة العضو المكلف', href: '/dashboard/tickets/workspace', icon: UserCheck }] : []),
+      ],
+    },
+  ]
+}
+
+function communicationsBlock(role: string, opts: { collapsible?: boolean } = {}): SidebarNavGroup[] {
+  return [
+    ...emcTicketsBlock(role, { collapsible: opts.collapsible }),
     {
       title: 'التواصل والمعرفة',
       ...(opts.collapsible ? { collapsible: true, defaultOpen: false } : {}),
       items: [
+        { label: 'صالة الاجتماعات', href: '/dashboard/department/meeting-lounge', icon: Presentation },
         { label: 'الإشعارات', href: '/dashboard/notifications', icon: Bell },
         { label: 'تفضيلات الإشعارات', href: '/dashboard/settings/notifications', icon: SlidersHorizontal },
         { label: 'التقويم', href: '/calendar', icon: CalendarDays },
@@ -222,11 +241,12 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
 
     // ── 5. الدعم والتواصل ─────────────────────────────────────────────────────
     {
-      title: 'الدعم والتواصل',
+      title: 'الدعم والتذاكر (EMC Tickets)',
       collapsible: true,
-      defaultOpen: false,
+      defaultOpen: true,
       items: [
-        { label: 'الدعم / التذاكر',         href: '/dashboard/admin/support-tickets',      icon: ShieldQuestion },
+
+        { label: 'الدعم / التذاكر العامة', href: '/dashboard/admin/support-tickets', icon: ShieldQuestion },
         { label: 'طلبات التطوع',            href: '/dashboard/admin/volunteers',            icon: HeartHandshake },
         { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',               icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                   icon: Users          },
@@ -354,20 +374,21 @@ function superMasterSidebar(): SidebarNavGroup[] {
       ],
     },
     ...resourceCenterBlock({ collapsible: true }),
-    ...communicationsBlock({ collapsible: true }),
+    ...communicationsBlock('super_admin', { collapsible: true }),
   ]
 }
 
 /** Dedicated sidebar for tech_admin — 7 collapsible groups, full platform reach. */
 function techAdminSidebar(): SidebarNavGroup[] {
   return [
-    // ── Group 1: لوحة التقنية ──────────────────────────────────────────────
+    // ── Group 1: لوحة التقنية والتذاكر ────────────────────────────────────
     {
-      title: 'لوحة التقنية',
+      title: 'لوحة التقنية والتذاكر (EMC Tickets)',
       collapsible: true,
       defaultOpen: true,
       items: [
-        { label: 'لوحة التحكم',     href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+        { label: 'لوحة التحكم التقنية', href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+
         { label: 'حالة النظام',      href: '/dashboard/admin/platform-scale',    icon: Cpu             },
         { label: 'سجلات التدقيق',   href: '/dashboard/super-admin/audit-logs',  icon: ScrollText      },
       ],
@@ -470,6 +491,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
       ],
     },
     ...resourceCenterBlock({ collapsible: true }),
+    ...communicationsBlock('tech_admin', { collapsible: true }),
   ]
 }
 
@@ -508,7 +530,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -537,7 +559,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -587,7 +609,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -634,7 +656,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -648,7 +670,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock(),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -661,7 +683,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock(),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -675,7 +697,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock(),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -699,7 +721,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ]
       },
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -715,7 +737,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -834,7 +856,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -855,7 +877,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -880,7 +902,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -894,7 +916,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -903,7 +925,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
     {
       items: [{ label: 'مركز حسابي', href: '/dashboard/profile', icon: LayoutDashboard }],
     },
-    ...communicationsBlock(),
+    ...communicationsBlock(n),
   ]
 }
 

@@ -8,12 +8,10 @@ import CreateMeetingForm from '@/components/operations/CreateMeetingForm'
 import MeetingReportModal from '@/components/operations/MeetingReportModal'
 import { fetchMeetings } from '@/api/meetingsApi'
 import type { MeetingType, OpsMeeting } from '@/types/operations'
-import { useAuth } from '@/contexts/AuthContext'
 
 const LOAD_ERROR = 'تعذّر تحميل الاجتماعات. تحقق من الاتصال وأعد المحاولة.'
 
 export default function MeetingLoungePage() {
-  const { user } = useAuth()
   const [items, setItems] = useState<OpsMeeting[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -72,7 +70,7 @@ export default function MeetingLoungePage() {
           <div>
             <h1 className="text-2xl font-black text-deepBlue">صالة الاجتماعات الذكية</h1>
             <p className="mt-1 text-sm font-semibold text-slate-500">
- {user?.department ? `إدارة ${user.department}`: 'إدارتك الحالية'} جدولة وإدارة تقارير الاجتماعات
+              عرض وجدولة اجتماعات إدارتك الحالية (مع إتاحة الشمولية الكاملة لإدارة الجودة والحوكمة والقيادة العليا)
             </p>
           </div>
         </div>
