@@ -341,6 +341,15 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     return location.pathname.startsWith(href)
   }
 
+  // Nudge the active link into view on route change — e.g. navigating via the
+  // topbar/command palette rather than the sidebar itself. `nearest` is a
+  // no-op when the item is already visible, so this never fights the user's
+  // own scroll position or jumps the sidebar back to the top.
+  const activeItemRef = useRef<HTMLAnchorElement | null>(null)
+  useEffect(() => {
+    activeItemRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [location.pathname])
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -366,7 +375,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           'bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A]',
           'border-l border-white/[0.06] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
           'transition-transform duration-300 ease-emc-out',
-          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:static lg:col-start-2 lg:row-start-1',
+          isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
         ].join(' ')}
       >
         {/* Ambient orbs */}
@@ -460,6 +469,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                     return (
                       <li key={item.href}>
                         <NavLink
+                          ref={active ? activeItemRef : undefined}
                           to={item.href}
                           end={exactMatchSidebarRoutes.has(item.href)}
                           aria-current={active ? 'page' : undefined}

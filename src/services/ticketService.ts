@@ -35,8 +35,8 @@ export const ticketService = {
   /**
    * Fetch ticket system metadata (departments, tech units, priorities, statuses)
    */
-  getMeta: async (): Promise<TicketMeta> => {
-    const res = await apiClient.get('/v1/tickets/meta');
+  getMeta: async (params: { department_id?: number; unit_id?: number } = {}): Promise<TicketMeta> => {
+    const res = await apiClient.get('/v1/tickets/meta', { params });
     return res.data;
   },
 

@@ -23,10 +23,12 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import toast from '@/lib/toast';
+import AssigneeSearchSelect from './AssigneeSearchSelect';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface ApproveModalState {
   ticketId: number;
+  departmentId: number;
   unitId: string;
   assignedToId: string;
   slaHours: string;
@@ -40,6 +42,7 @@ interface RejectModalState {
 
 interface ReassignModalState {
   ticketId: number;
+  departmentId: number;
   assignedToId: string;
   unitId: string;
   reason: string;
@@ -85,8 +88,13 @@ const TechAdminDashboardPage: React.FC = () => {
 
   const [tickets, setTickets]       = useState<Ticket[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  // Unit/employee lists are scoped per-modal (to the ticket's own department,
+  // and then to the selected unit) rather than loaded once globally — see the
+  // effects below.
   const [units, setUnits]           = useState<DepartmentalUnit[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
   const [users, setUsers]           = useState<TicketUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [loading, setLoading]       = useState(true);
 
   // Filters
@@ -113,16 +121,11 @@ const TechAdminDashboardPage: React.FC = () => {
         ...(search.trim() ? { search: search.trim() } : {}),
         ...(delayedOnly ? { delayed_only: true } : {}),
       };
-      const [res, meta] = await Promise.all([
-        ticketService.getTickets(params),
-        ticketService.getMeta(),
-      ]);
+      const res = await ticketService.getTickets(params);
       if (res.success) {
         setTickets(res.data.data ?? []);
         setTotalCount(res.data.total ?? 0);
       }
-      setUnits(meta.tech_units ?? []);
-      setUsers(meta.users ?? []);
     } catch {
       toast.error('تعذر تحميل لوحة التحكم');
     } finally {
@@ -131,6 +134,45 @@ const TechAdminDashboardPage: React.FC = () => {
   }, [statusFilter, search, delayedOnly, currentPage]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Active modal's department/unit — whichever modal (approve or reassign)
+  // is currently open. Only one is ever open at a time.
+  const activeDepartmentId = approveModal?.departmentId ?? reassignModal?.departmentId ?? null;
+  const activeUnitId = approveModal?.unitId ?? reassignModal?.unitId ?? '';
+
+  // Load the ticket-department's own units whenever a modal opens — never a
+  // hardcoded department, and never every unit in the system.
+  useEffect(() => {
+    if (!activeDepartmentId) {
+      setUnits([]);
+      return;
+    }
+    let cancelled = false;
+    setUnitsLoading(true);
+    ticketService.getMeta({ department_id: activeDepartmentId })
+      .then((meta) => { if (!cancelled) setUnits(meta.tech_units ?? []); })
+      .catch(() => { if (!cancelled) toast.error('تعذر تحميل الوحدات التقنية'); })
+      .finally(() => { if (!cancelled) setUnitsLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeDepartmentId]);
+
+  // Load employees scoped to the selected unit only once both department and
+  // unit are known — cancels a slow in-flight request if the unit changes
+  // again before it resolves, so a stale response can never overwrite the
+  // newer selection's results.
+  useEffect(() => {
+    if (!activeDepartmentId || !activeUnitId) {
+      setUsers([]);
+      return;
+    }
+    let cancelled = false;
+    setUsersLoading(true);
+    ticketService.getMeta({ department_id: activeDepartmentId, unit_id: Number(activeUnitId) })
+      .then((meta) => { if (!cancelled) setUsers(meta.users ?? []); })
+      .catch(() => { if (!cancelled) toast.error('تعذر تحميل قائمة الموظفين'); })
+      .finally(() => { if (!cancelled) setUsersLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeDepartmentId, activeUnitId]);
 
   // ── KPI counts ────────────────────────────────────────────────────────
   const pendingCount  = tickets.filter((t) => t.status === 'PENDING_APPROVAL').length;
@@ -224,7 +266,7 @@ const TechAdminDashboardPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate('/tickets/new')}
+              onClick={() => navigate('/dashboard/tickets/new')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-white text-xs font-bold transition"
             >
               <ArrowRight className="w-4 h-4 rotate-180" />
@@ -331,7 +373,7 @@ const TechAdminDashboardPage: React.FC = () => {
                         {/* Ticket # */}
                         <td className="px-5 py-4">
                           <button
-                            onClick={() => navigate(`/tickets/${ticket.id}`)}
+                            onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
                             className="text-blue-600 hover:text-blue-800 font-mono font-bold text-xs hover:underline"
                           >
                             {ticket.ticket_number}
@@ -413,6 +455,7 @@ const TechAdminDashboardPage: React.FC = () => {
                                 <button
                                   onClick={() => setApproveModal({
                                     ticketId: ticket.id,
+                                    departmentId: ticket.department_id,
                                     unitId: '',
                                     assignedToId: '',
                                     slaHours: '24',
@@ -436,6 +479,7 @@ const TechAdminDashboardPage: React.FC = () => {
                               <button
                                 onClick={() => setReassignModal({
                                   ticketId: ticket.id,
+                                  departmentId: ticket.department_id,
                                   assignedToId: '',
                                   unitId: ticket.unit_id ? String(ticket.unit_id) : '',
                                   reason: '',
@@ -447,7 +491,7 @@ const TechAdminDashboardPage: React.FC = () => {
                               </button>
                             )}
                             <button
-                              onClick={() => navigate(`/tickets/${ticket.id}`)}
+                              onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
                               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition"
                             >
                               عرض
@@ -496,30 +540,41 @@ const TechAdminDashboardPage: React.FC = () => {
               </label>
               <select
                 value={approveModal.unitId}
-                onChange={(e) => setApproveModal({ ...approveModal, unitId: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                disabled={unitsLoading}
+                onChange={(e) => setApproveModal({ ...approveModal, unitId: e.target.value, assignedToId: '' })}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
               >
-                <option value="">-- اختر الوحدة التقنية (من الوحدات الثماني) --</option>
+                <option value="">
+                  {unitsLoading ? 'جارٍ تحميل الوحدات...' : '-- اختر الوحدة التقنية (من الوحدات المتاحة) --'}
+                </option>
                 {units.map((u) => (
                   <option key={u.id} value={u.id}>{u.name_ar}</option>
                 ))}
               </select>
+              {!unitsLoading && units.length === 0 && (
+                <p className="text-[11px] text-amber-600 mt-1">لا توجد وحدات تقنية مُعرّفة لإدارة هذه التذكرة بعد.</p>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 الموظف المكلف بالإنجاز <span className="text-rose-500">*</span>
               </label>
-              <select
+              <AssigneeSearchSelect
+                instanceId="approve-modal-assignee"
+                ariaLabel="الموظف المكلف بالإنجاز"
+                users={users}
                 value={approveModal.assignedToId}
-                onChange={(e) => setApproveModal({ ...approveModal, assignedToId: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="">-- اختر المكلف --</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                ))}
-              </select>
+                onChange={(v) => setApproveModal({ ...approveModal, assignedToId: v })}
+                isDisabled={!approveModal.unitId || usersLoading}
+                isLoading={usersLoading}
+                placeholder={!approveModal.unitId ? 'اختر الوحدة التقنية أولاً' : '-- ابحث عن المكلف بالاسم --'}
+                noOptionsMessage={
+                  !approveModal.unitId
+                    ? 'اختر الوحدة التقنية أولاً'
+                    : 'لا يوجد موظفون مرتبطون بهذه الوحدة'
+                }
+              />
             </div>
 
             <div>
@@ -621,31 +676,37 @@ const TechAdminDashboardPage: React.FC = () => {
             <p className="text-xs text-slate-500">ستُعاد التذكرة لحالة (معتمدة) وتُحال للمكلف الجديد.</p>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">المكلف الجديد <span className="text-rose-500">*</span></label>
-              <select
-                value={reassignModal.assignedToId}
-                onChange={(e) => setReassignModal({ ...reassignModal, assignedToId: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="">-- اختر المكلف الجديد --</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة التقنية (اختياري)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة التقنية</label>
               <select
                 value={reassignModal.unitId}
-                onChange={(e) => setReassignModal({ ...reassignModal, unitId: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                disabled={unitsLoading}
+                onChange={(e) => setReassignModal({ ...reassignModal, unitId: e.target.value, assignedToId: '' })}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
               >
                 <option value="">— إبقاء الوحدة الحالية —</option>
                 {units.map((u) => (
                   <option key={u.id} value={u.id}>{u.name_ar}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">المكلف الجديد <span className="text-rose-500">*</span></label>
+              <AssigneeSearchSelect
+                instanceId="reassign-modal-assignee"
+                ariaLabel="المكلف الجديد"
+                users={users}
+                value={reassignModal.assignedToId}
+                onChange={(v) => setReassignModal({ ...reassignModal, assignedToId: v })}
+                isDisabled={!reassignModal.unitId || usersLoading}
+                isLoading={usersLoading}
+                placeholder={!reassignModal.unitId ? 'اختر الوحدة التقنية أولاً' : '-- ابحث عن المكلف بالاسم --'}
+                noOptionsMessage={
+                  !reassignModal.unitId
+                    ? 'اختر الوحدة التقنية أولاً'
+                    : 'لا يوجد موظفون مرتبطون بهذه الوحدة'
+                }
+              />
             </div>
 
             <div>

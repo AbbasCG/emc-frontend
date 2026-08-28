@@ -268,6 +268,12 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (path === '/dashboard/tickets/admin' || path.startsWith('/dashboard/tickets/admin/')) {
     return ['super_admin', 'tech_admin', 'admin']
   }
+  /* Departmental unit + unit-membership management — matches the backend's
+     /admin/team-members route gate (HR-style, admin-only; department leaders
+     are not granted access to this endpoint, so neither is this page). */
+  if (path === '/dashboard/admin/department-units' || path.startsWith('/dashboard/admin/department-units/')) {
+    return ['super_admin', 'tech_admin', 'admin']
+  }
   if (path === '/dashboard/tickets/workspace' || path.startsWith('/dashboard/tickets/workspace/')) {
     return ['super_admin', 'tech_admin', 'admin', 'support_agent']
   }

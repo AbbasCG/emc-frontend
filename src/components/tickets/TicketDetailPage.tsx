@@ -156,7 +156,7 @@ const TicketDetailPage: React.FC = () => {
           <h2 className="text-xl font-bold text-slate-900">التذكرة غير موجودة</h2>
           <p className="text-sm text-slate-500">لم يُعثر على التذكرة المطلوبة.</p>
           <button
-            onClick={() => navigate('/tickets/new')}
+            onClick={() => navigate('/dashboard/tickets/new')}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition"
           >
             تقديم تذكرة جديدة
@@ -178,7 +178,7 @@ const TicketDetailPage: React.FC = () => {
         {/* ── Nav ── */}
         <div className="flex items-center justify-between">
           <button
-            onClick={() => navigate('/tickets/new')}
+            onClick={() => navigate('/dashboard/tickets/new')}
             className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 text-xs font-bold transition"
           >
             <ArrowRight className="w-4 h-4" />
