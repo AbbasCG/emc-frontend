@@ -390,7 +390,8 @@ const TechAdminDashboardPage: React.FC = () => {
                           {ticket.expected_resolution_time ? (
                             !isClosed ? (
                               <SlaCountdownTimer
-                                expectedAt={ticket.expected_resolution_time}
+                                expectedTime={ticket.expected_resolution_time}
+                                status={ticket.status}
                                 showIcon={false}
                                 className="text-[11px]"
                               />

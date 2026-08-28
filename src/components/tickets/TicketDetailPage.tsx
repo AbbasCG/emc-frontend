@@ -206,7 +206,8 @@ const TicketDetailPage: React.FC = () => {
           {/* Live SLA countdown — visible after approval */}
           {ticket.expected_resolution_time && isActive && (
             <SlaCountdownTimer
-              expectedAt={ticket.expected_resolution_time}
+              expectedTime={ticket.expected_resolution_time}
+              status={ticket.status}
               showIcon
               className="shrink-0"
             />
@@ -255,7 +256,7 @@ const TicketDetailPage: React.FC = () => {
                   {initialAttachments.map((att) => (
                     <a
                       key={att.id}
-                      href={att.file_url}
+                      href={att.preview_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 transition group"
@@ -384,7 +385,8 @@ const TicketDetailPage: React.FC = () => {
                 </div>
                 {isActive && (
                   <SlaCountdownTimer
-                    expectedAt={ticket.expected_resolution_time}
+                    expectedTime={ticket.expected_resolution_time}
+                    status={ticket.status}
                     showIcon
                   />
                 )}

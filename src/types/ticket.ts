@@ -41,7 +41,7 @@ export interface TicketUser {
 export interface TicketAttachment {
   id: number;
   ticket_id: number;
-  file_url: string;
+  preview_url: string;
   file_name?: string;
   file_type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
   attachment_context: 'INITIAL_SUBMISSION' | 'RESOLUTION_PROOF';

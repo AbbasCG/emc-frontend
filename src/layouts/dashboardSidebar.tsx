@@ -374,7 +374,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
       ],
     },
     ...resourceCenterBlock({ collapsible: true }),
-    ...communicationsBlock({ collapsible: true }),
+    ...communicationsBlock('super_admin', { collapsible: true }),
   ]
 }
 
@@ -530,7 +530,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -559,7 +559,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(normalized, { collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -609,7 +609,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -656,7 +656,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock({ collapsible: true }),
+      ...communicationsBlock(n, { collapsible: true }),
     ]
   }
 
@@ -670,7 +670,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock(),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -683,7 +683,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock(),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -697,7 +697,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock(),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -721,7 +721,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ]
       },
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -737,7 +737,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           membersNavItem(),
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -856,7 +856,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -877,7 +877,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -902,7 +902,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       ...resourceCenterBlock({ collapsible: true }),
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -916,7 +916,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'الاجتماعات', href: '/dashboard/admin/meetings', icon: Calendar      },
         ],
       },
-      ...communicationsBlock(),
+      ...communicationsBlock(n),
     ]
   }
 
@@ -925,7 +925,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
     {
       items: [{ label: 'مركز حسابي', href: '/dashboard/profile', icon: LayoutDashboard }],
     },
-    ...communicationsBlock(),
+    ...communicationsBlock(n),
   ]
 }
 

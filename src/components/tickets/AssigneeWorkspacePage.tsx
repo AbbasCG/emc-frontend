@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Ticket, TicketStatus } from '@/types/ticket';
@@ -9,7 +8,6 @@ import {
   UserCheck,
   RefreshCw,
   CheckCircle2,
-  XCircle,
   AlertTriangle,
   Clock,
   ThumbsUp,
@@ -59,7 +57,6 @@ function FileTypeIcon({ type }: { type: string }) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 const AssigneeWorkspacePage: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [tickets, setTickets]             = useState<Ticket[]>([]);
@@ -282,7 +279,8 @@ const AssigneeWorkspacePage: React.FC = () => {
                     <p className="text-sm font-bold text-slate-800 leading-snug line-clamp-2">{ticket.title}</p>
                     {ticket.expected_resolution_time && (
                       <SlaCountdownTimer
-                        expectedAt={ticket.expected_resolution_time}
+                        expectedTime={ticket.expected_resolution_time}
+                        status={ticket.status}
                         showIcon={false}
                         className="text-[11px]"
                       />
@@ -341,7 +339,8 @@ const AssigneeWorkspacePage: React.FC = () => {
                     {selectedTicket.expected_resolution_time && (
                       <div className="mt-3">
                         <SlaCountdownTimer
-                          expectedAt={selectedTicket.expected_resolution_time}
+                          expectedTime={selectedTicket.expected_resolution_time}
+                          status={selectedTicket.status}
                           showIcon
                         />
                       </div>
@@ -372,7 +371,7 @@ const AssigneeWorkspacePage: React.FC = () => {
                           {selectedTicket.attachments!.map((att) => (
                             <a
                               key={att.id}
-                              href={att.file_url}
+                              href={att.preview_url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 transition group text-xs"

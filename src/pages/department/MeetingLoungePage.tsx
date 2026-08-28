@@ -8,12 +8,10 @@ import CreateMeetingForm from '@/components/operations/CreateMeetingForm'
 import MeetingReportModal from '@/components/operations/MeetingReportModal'
 import { fetchMeetings } from '@/api/meetingsApi'
 import type { MeetingType, OpsMeeting } from '@/types/operations'
-import { useAuth } from '@/contexts/AuthContext'
 
 const LOAD_ERROR = 'تعذّر تحميل الاجتماعات. تحقق من الاتصال وأعد المحاولة.'
 
 export default function MeetingLoungePage() {
-  const { user } = useAuth()
   const [items, setItems] = useState<OpsMeeting[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)

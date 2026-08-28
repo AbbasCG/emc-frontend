@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Department, TicketCategory, TicketPriority } from '@/types/ticket';
@@ -11,7 +10,6 @@ import {
   Film,
   Send,
   Sparkles,
-  ArrowRight,
   X,
   Ticket as TicketIcon,
   RefreshCw,
@@ -26,7 +24,6 @@ const PRIORITY_OPTIONS = [
 ];
 
 const TicketSubmitPage: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [departments, setDepartments] = useState<Department[]>([]);
