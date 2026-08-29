@@ -868,7 +868,7 @@ describe('fetchStudentMaterials', () => {
           { id: 2, name: 'فيديو الدرس', kind: 'mp4', link: 'https://x/v' },
           { id: 3, type: 'programming_project' },
           { id: 4, type: 'slide-deck' },
-          { id: 5, type: 'external url' },
+          { id: 5, type: 'external url', external_url: 'https://zoom.us/rec/xyz' },
           { id: 6 },
           { id: 7, type: 'word doc' },
           'junk',
@@ -883,6 +883,7 @@ describe('fetchStudentMaterials', () => {
     expect(rows[0].course_name).toBe('دورة')
     expect(rows[1].title).toBe('فيديو الدرس')
     expect(rows[1].url).toBe('https://x/v') // link fallback
+    expect(rows[4].url).toBe('https://zoom.us/rec/xyz') // external_url — the actual field the backend sends
     expect(rows[5].title).toBe('مادة') // Arabic title fallback
   })
 

@@ -263,6 +263,41 @@ describe('normalizeStudentCourseLearn', () => {
     expect(out.assignments.map((a) => a.id)).toEqual([99])
   })
 
+  it('merges module-nested materials that are missing from the flat list, preserving a working external link', () => {
+    const out = normalizeStudentCourseLearn(
+      {
+        data: {
+          modules: [
+            {
+              id: 1,
+              title: 'وحدة',
+              materials: [
+                { id: 88, title: 'تسجيل الجلسة', kind: 'link', external_url: 'https://zoom.us/rec/abc' },
+              ],
+            },
+          ],
+          materials: [],
+        },
+      },
+      1,
+    )
+    expect(out.materials.map((m) => m.id)).toEqual([88])
+    expect(out.materials[0]?.url).toBe('https://zoom.us/rec/abc')
+  })
+
+  it('does not duplicate a material present in both the flat and module-nested lists', () => {
+    const out = normalizeStudentCourseLearn(
+      {
+        data: {
+          modules: [{ id: 1, title: 'وحدة', materials: [{ id: 5, title: 'مادة' }] }],
+          materials: [{ id: 5, title: 'مادة' }],
+        },
+      },
+      1,
+    )
+    expect(out.materials.map((m) => m.id)).toEqual([5])
+  })
+
   it('supports alternate collection keys (course_modules / learn_sessions / documents / homework)', () => {
     const out = normalizeStudentCourseLearn(
       {

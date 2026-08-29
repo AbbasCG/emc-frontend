@@ -480,19 +480,18 @@ export function normalizeStudentCourseLearn(payload: unknown, courseIdFallback: 
 
   const mods = normalizeModules(firstArray(root, ['modules', 'course_modules']))
   const sess = normalizeLearnSessions(firstArray(root, ['sessions', 'learn_sessions', 'course_sessions']))
-  const mats = normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents']))
-  const assigns = normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework']))
+  const matsFlat = normalizeLearnMaterials(firstArray(root, ['materials', 'course_materials', 'documents']))
+  const assignsFlat = normalizeLearnAssignments(firstArray(root, ['assignments', 'course_assignments', 'homework']))
 
-  // Include module-nested assignments in the top-level list (deduped)
-  const seenAssignIds = new Set(assigns.map((a) => a.id))
-  for (const mod of mods) {
-    for (const a of mod.assignments ?? []) {
-      if (!seenAssignIds.has(a.id)) {
-        assigns.push(a)
-        seenAssignIds.add(a.id)
-      }
-    }
-  }
+  // Merge module-nested materials/assignments into the top-level lists
+  // (deduped by id) — same helper already used by the admin/instructor CMS
+  // envelope below. Without this, `materials` only ever held course-level
+  // items (module_id = null); any material that belongs to a module — the
+  // vast majority of real course content, including per-lesson recordings —
+  // was silently absent from the student "المواد" tab (while still correctly
+  // shown under "الوحدات", which reads mod.materials directly).
+  const mats = mergeModuleNestedById(matsFlat, mods, (m) => m.materials)
+  const assigns = mergeModuleNestedById(assignsFlat, mods, (m) => m.assignments)
 
   return {
     course,

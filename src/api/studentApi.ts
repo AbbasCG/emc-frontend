@@ -1089,7 +1089,16 @@ function normalizeMaterialRow(raw: unknown): LmsMaterial | null {
     course_id,
     title,
     kind: normalizeMaterialKind(o.kind ?? o.type ?? 'other'),
-    url: o.url != null ? String(o.url) : o.link != null ? String(o.link) : null,
+    // Backend's material Resources (LmsCourseMaterialResource / CourseMaterialResource)
+    // send the external-link field as `external_url` — `url`/`link` were never
+    // actually present in this endpoint's response, so link-type materials always
+    // normalized to a null url and rendered "لا رابط أو ملف متاح" regardless of
+    // whether a valid link existed server-side.
+    url:
+      o.external_url != null ? String(o.external_url)
+      : o.url != null ? String(o.url)
+      : o.link != null ? String(o.link)
+      : null,
     description: o.description != null ? String(o.description) : null,
     course_name:
       o.course_name != null ? String(o.course_name) : nested?.title != null ? String(nested.title) : null,
