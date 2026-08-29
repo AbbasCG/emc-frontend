@@ -129,6 +129,7 @@ function emcTicketsBlock(role: string, opts: { collapsible?: boolean } = {}): Si
         { label: 'إدخال تذكرة / مقترح جديد', href: '/dashboard/tickets/new', icon: ShieldQuestion },
         ...(isLeader ? [{ label: 'توجيه الإدارة والدعم الفني', href: '/dashboard/tickets/admin', icon: Building2 }] : []),
         ...(isTechStaff ? [{ label: 'مساحة العضو المكلف', href: '/dashboard/tickets/workspace', icon: UserCheck }] : []),
+        ...(isLeader ? [{ label: 'أعضاء الإدارات', href: '/dashboard/admin/team-members', icon: UserCog }] : []),
         ...(isLeader ? [{ label: 'الوحدات التقنية وأعضاؤها', href: '/dashboard/admin/department-units', icon: Users }] : []),
       ],
     },

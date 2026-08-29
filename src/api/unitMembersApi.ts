@@ -45,15 +45,52 @@ export const unitMembersApi = {
     return res.data.data as DepartmentalUnitRow;
   },
 
-  listMembers: async (departmentId: number, unitId?: number | 'null'): Promise<TeamMemberRow[]> => {
+  listMembers: async (
+    departmentId?: number,
+    opts?: { unitId?: number | 'null'; status?: string; search?: string; perPage?: number },
+  ): Promise<TeamMemberRow[]> => {
     const res = await apiClient.get('/admin/team-members', {
-      params: { department_id: departmentId, per_page: 100, ...(unitId !== undefined ? { unit_id: unitId } : {}) },
+      params: {
+        ...(departmentId !== undefined ? { department_id: departmentId } : {}),
+        per_page: opts?.perPage ?? 100,
+        ...(opts?.unitId !== undefined ? { unit_id: opts.unitId } : {}),
+        ...(opts?.status ? { status: opts.status } : {}),
+        ...(opts?.search ? { search: opts.search } : {}),
+      },
     });
     return res.data.data ?? [];
   },
 
   setMemberUnit: async (teamMemberId: number, unitId: number | null): Promise<TeamMemberRow> => {
     const res = await apiClient.put(`/admin/team-members/${teamMemberId}`, { unit_id: unitId });
+    return res.data.data as TeamMemberRow;
+  },
+
+  createMember: async (payload: {
+    user_id: number;
+    department_id: number;
+    section_id?: number | null;
+    unit_id?: number | null;
+    role_title?: string;
+    status?: 'active' | 'inactive' | 'on_leave';
+    joined_at?: string;
+  }): Promise<TeamMemberRow> => {
+    const res = await apiClient.post('/admin/team-members', payload);
+    return res.data.data as TeamMemberRow;
+  },
+
+  updateMember: async (
+    teamMemberId: number,
+    payload: Partial<{
+      department_id: number;
+      section_id: number | null;
+      unit_id: number | null;
+      role_title: string;
+      status: 'active' | 'inactive' | 'on_leave';
+      joined_at: string;
+    }>,
+  ): Promise<TeamMemberRow> => {
+    const res = await apiClient.put(`/admin/team-members/${teamMemberId}`, payload);
     return res.data.data as TeamMemberRow;
   },
 };

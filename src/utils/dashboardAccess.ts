@@ -274,6 +274,9 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   if (path === '/dashboard/admin/department-units' || path.startsWith('/dashboard/admin/department-units/')) {
     return ['super_admin', 'tech_admin', 'admin']
   }
+  if (path === '/dashboard/admin/team-members' || path.startsWith('/dashboard/admin/team-members/')) {
+    return ['super_admin', 'tech_admin', 'admin']
+  }
   if (path === '/dashboard/tickets/workspace' || path.startsWith('/dashboard/tickets/workspace/')) {
     return ['super_admin', 'tech_admin', 'admin', 'support_agent']
   }

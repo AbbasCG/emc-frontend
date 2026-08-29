@@ -86,7 +86,7 @@ function InfoRow({
       }`}
     >
       <span className="text-[12px] font-semibold text-slate-400">{label}</span>
-      <div className="min-w-0 text-[13px] font-bold text-[#0C2A4B] [overflow-wrap:anywhere]" dir="auto">
+      <div className="min-w-0 text-[13px] font-bold text-[#0C2A4B] [overflow-wrap:anywhere]">
         {empty ? <span className="font-semibold text-slate-300">غير متوفر</span> : value}
       </div>
     </div>

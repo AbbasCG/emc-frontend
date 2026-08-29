@@ -252,6 +252,7 @@ const TicketDetailPage = lazy(() => import('./components/tickets/TicketDetailPag
 const TicketTechAdminDashboardPage = lazy(() => import('./components/tickets/TechAdminDashboardPage'))
 const AssigneeWorkspacePage = lazy(() => import('./components/tickets/AssigneeWorkspacePage'))
 const DepartmentUnitsPage = lazy(() => import('./pages/admin/DepartmentUnitsPage'))
+const TeamMembersPage = lazy(() => import('./pages/admin/TeamMembersPage'))
 
 // ── Lazy: dashboard pages — manager role home pages ──────────────────────────
 const ProgramsManagerDashboardPage   = lazy(() => import('./pages/manager-dashboards/ProgramsManagerDashboardPage'))
@@ -772,6 +773,7 @@ function App() {
                   <Route path="/dashboard/tickets/admin" element={<Suspense fallback={<RouteFallback />}><TicketTechAdminDashboardPage /></Suspense>} />
                   <Route path="/dashboard/tickets/:id" element={<Suspense fallback={<RouteFallback />}><TicketDetailPage /></Suspense>} />
                   <Route path="/dashboard/admin/department-units" element={<Suspense fallback={<RouteFallback />}><DepartmentUnitsPage /></Suspense>} />
+                  <Route path="/dashboard/admin/team-members" element={<Suspense fallback={<RouteFallback />}><TeamMembersPage /></Suspense>} />
                   <Route path="/dashboard/admin/finance" element={<FinanceDashboardPage />} />
                   <Route path="/dashboard/admin/finance/payments" element={<FinancePaymentsPage />} />
                   <Route path="/dashboard/admin/finance/transactions" element={<FinanceTransactionsPage />} />

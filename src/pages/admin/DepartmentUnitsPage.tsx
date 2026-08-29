@@ -61,7 +61,7 @@ export default function DepartmentUnitsPage() {
     try {
       const [all, none] = await Promise.all([
         unitMembersApi.listMembers(departmentId),
-        unitMembersApi.listMembers(departmentId, 'null'),
+        unitMembersApi.listMembers(departmentId, { unitId: 'null' }),
       ]);
       setMembers(all);
       setUnassigned(none);
