@@ -25,7 +25,6 @@ export interface TeamMemberRow {
   unit: { id: number; name_ar: string; name_en: string | null } | null;
   role_title: string | null;
   status: 'active' | 'inactive' | 'on_leave';
-  joined_at: string | null;
   created_at: string;
 }
 
@@ -66,29 +65,25 @@ export const unitMembersApi = {
     return res.data.data as TeamMemberRow;
   },
 
+  // department_id/role_title are intentionally NOT accepted here — the
+  // backend derives both from the selected user's canonical team_profiles
+  // record and ignores anything sent for those fields. Only user_id/unit_id/
+  // status are ever meaningful in this request.
   createMember: async (payload: {
     user_id: number;
-    department_id: number;
-    section_id?: number | null;
     unit_id?: number | null;
-    role_title?: string;
     status?: 'active' | 'inactive' | 'on_leave';
-    joined_at?: string;
   }): Promise<TeamMemberRow> => {
     const res = await apiClient.post('/admin/team-members', payload);
     return res.data.data as TeamMemberRow;
   },
 
+  // Same restriction on update — this endpoint only ever changes unit/status
+  // for an existing row; member identity/department/title are managed on
+  // the canonical member profile, not here.
   updateMember: async (
     teamMemberId: number,
-    payload: Partial<{
-      department_id: number;
-      section_id: number | null;
-      unit_id: number | null;
-      role_title: string;
-      status: 'active' | 'inactive' | 'on_leave';
-      joined_at: string;
-    }>,
+    payload: Partial<{ unit_id: number | null; status: 'active' | 'inactive' | 'on_leave' }>,
   ): Promise<TeamMemberRow> => {
     const res = await apiClient.put(`/admin/team-members/${teamMemberId}`, payload);
     return res.data.data as TeamMemberRow;

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Search, UserRoundCog, X } from 'lucide-react';
 import { ticketService } from '@/services/ticketService';
-import { unitMembersApi, type DepartmentalUnitRow, type TeamMemberRow } from '@/api/unitMembersApi';
+import { unitMembersApi, type TeamMemberRow } from '@/api/unitMembersApi';
 import type { Department } from '@/types/ticket';
-import UserSearchSelect from '@/components/admin/UserSearchSelect';
+import MemberSearchSelect, { type SelectedMember } from '@/components/admin/MemberSearchSelect';
 import toast from '@/lib/toast';
 
 const STATUS_LABEL: Record<TeamMemberRow['status'], string> = {
@@ -14,43 +14,37 @@ const STATUS_LABEL: Record<TeamMemberRow['status'], string> = {
 
 type FormState = {
   editingId: number | null;
-  user: { id: number; name: string } | null;
-  departmentId: number | null;
+  member: SelectedMember | null;
   unitId: string;
-  roleTitle: string;
   status: TeamMemberRow['status'];
-  joinedAt: string;
 };
 
 const EMPTY_FORM: FormState = {
   editingId: null,
-  user: null,
-  departmentId: null,
+  member: null,
   unitId: '',
-  roleTitle: '',
   status: 'active',
-  joinedAt: '',
 };
 
 /**
- * Creates and manages team_members rows — the missing piece between having a
- * user account and that person being usable anywhere department-scoped
- * (Unit Management, Ticket assignment, Meeting/Weekly Report leadership).
- * Every write here is re-validated server-side; this page only shapes
- * requests and reflects results.
+ * Creates and manages team_members rows — the missing piece between an
+ * existing EMC member (team_profiles, shown on /dashboard/members) and that
+ * person being usable anywhere department-scoped (Unit Management, Ticket
+ * assignment). Department and job title are never entered here — they are
+ * derived automatically from the selected member's canonical profile, both
+ * for display and (authoritatively) on the backend. This page only ever
+ * manages the operational placement itself: which unit, and status.
  */
 export default function TeamMembersPage() {
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(true);
-
   const [filterDepartmentId, setFilterDepartmentId] = useState<number | null>(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   const [members, setMembers] = useState<TeamMemberRow[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
 
-  const [formUnits, setFormUnits] = useState<DepartmentalUnitRow[]>([]);
+  const [formUnits, setFormUnits] = useState<{ id: number; name_ar: string }[]>([]);
   const [loadingFormUnits, setLoadingFormUnits] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -61,8 +55,7 @@ export default function TeamMembersPage() {
   useEffect(() => {
     ticketService.getMeta()
       .then((meta) => setDepartments(meta.departments ?? []))
-      .catch(() => toast.error('تعذر تحميل قائمة الإدارات'))
-      .finally(() => setLoadingDepartments(false));
+      .catch(() => toast.error('تعذر تحميل قائمة الإدارات'));
   }, []);
 
   const loadMembers = useCallback(async () => {
@@ -86,21 +79,21 @@ export default function TeamMembersPage() {
     return () => clearTimeout(t);
   }, [loadMembers, search]);
 
-  // Load units for whichever department is selected inside the form (not
-  // the page-level filter) — clears/reloads whenever that changes.
+  // Units for whichever department the SELECTED MEMBER belongs to (derived,
+  // not chosen) — loads automatically once a member is picked.
   useEffect(() => {
-    if (!form.departmentId) {
+    if (!form.member?.departmentId) {
       setFormUnits([]);
       return;
     }
     let cancelled = false;
     setLoadingFormUnits(true);
-    unitMembersApi.listUnits(form.departmentId)
+    unitMembersApi.listUnits(form.member.departmentId)
       .then((rows) => { if (!cancelled) setFormUnits(rows); })
       .catch(() => { if (!cancelled) toast.error('تعذر تحميل الوحدات التقنية'); })
       .finally(() => { if (!cancelled) setLoadingFormUnits(false); });
     return () => { cancelled = true; };
-  }, [form.departmentId]);
+  }, [form.member?.departmentId]);
 
   function openCreate() {
     setForm(EMPTY_FORM);
@@ -112,46 +105,47 @@ export default function TeamMembersPage() {
     if (!m.user) return;
     setForm({
       editingId: m.id,
-      user: { id: m.user.id, name: m.user.name },
-      departmentId: m.department?.id ?? null,
+      member: {
+        userId: m.user.id,
+        name: m.user.name,
+        departmentId: m.department?.id ?? null,
+        departmentName: m.department?.name ?? null,
+        roleTitle: m.role_title,
+      },
       unitId: m.unit ? String(m.unit.id) : '',
-      roleTitle: m.role_title ?? '',
       status: m.status,
-      joinedAt: m.joined_at ?? '',
     });
     setFormError(null);
     setModalOpen(true);
   }
 
-  function handleDepartmentChange(id: number | null) {
-    // Changing department invalidates any previously selected unit.
-    setForm((f) => ({ ...f, departmentId: id, unitId: '' }));
+  function handleMemberChange(member: SelectedMember | null) {
+    // A different member means a different (or unknown) department — any
+    // previously selected unit is no longer necessarily valid.
+    setForm((f) => ({ ...f, member, unitId: '' }));
   }
 
   async function handleSave() {
     setFormError(null);
-    if (!form.user) {
-      setFormError('يجب اختيار مستخدم');
+    if (!form.editingId && !form.member) {
+      setFormError('يجب اختيار عضو');
       return;
     }
-    if (!form.departmentId) {
-      setFormError('يجب اختيار الإدارة');
+    if (!form.editingId && form.member && !form.member.departmentId) {
+      setFormError('هذا العضو غير مرتبط بإدارة في بيانات الفريق الحالية — يجب ربطه بإدارة من صفحة "الأعضاء" أولاً.');
       return;
     }
     setSaving(true);
     try {
       const payload = {
-        department_id: form.departmentId,
         unit_id: form.unitId ? Number(form.unitId) : null,
-        role_title: form.roleTitle.trim() || undefined,
         status: form.status,
-        joined_at: form.joinedAt || undefined,
       };
       if (form.editingId) {
         await unitMembersApi.updateMember(form.editingId, payload);
         toast.success('تم تحديث بيانات العضو');
       } else {
-        await unitMembersApi.createMember({ user_id: form.user.id, ...payload });
+        await unitMembersApi.createMember({ user_id: form.member!.userId, ...payload });
         toast.success('تمت إضافة العضو إلى الإدارة');
       }
       setModalOpen(false);
@@ -177,7 +171,8 @@ export default function TeamMembersPage() {
           أعضاء الإدارات
         </h1>
         <p className="mt-1 text-sm font-semibold text-slate-500">
-          هنا يتحول حساب مستخدم موجود إلى عضو عملياتي في إدارة — الخطوة اللازمة قبل ظهوره في إدارة الوحدات التقنية أو كمكلف محتمل بالتذاكر.
+          هنا يُربط عضو EMC الحالي (من صفحة "الأعضاء") بإدارة عملياتية — الإدارة والمسمى الوظيفي يُشتقّان تلقائياً من بيانات
+          العضو الحالية ولا يمكن تعديلهما هنا. لا تُنشئ هذه الصفحة أعضاء أو حسابات جديدة.
         </p>
 
         <div className="mt-4 flex flex-wrap items-end gap-3">
@@ -185,9 +180,8 @@ export default function TeamMembersPage() {
             <label className="block text-xs font-bold text-slate-700 mb-1.5">تصفية حسب الإدارة</label>
             <select
               value={filterDepartmentId ?? ''}
-              disabled={loadingDepartments}
               onChange={(e) => setFilterDepartmentId(e.target.value ? Number(e.target.value) : null)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="">كل الإدارات</option>
               {departmentOptionsForFilter.map((d) => (
@@ -249,7 +243,6 @@ export default function TeamMembersPage() {
                   <th className="px-4 py-3 text-right">الوحدة</th>
                   <th className="px-4 py-3 text-right">المسمى الوظيفي</th>
                   <th className="px-4 py-3 text-right">الحالة</th>
-                  <th className="px-4 py-3 text-right">تاريخ الانضمام</th>
                   <th className="px-4 py-3 text-right">إجراءات</th>
                 </tr>
               </thead>
@@ -274,7 +267,6 @@ export default function TeamMembersPage() {
                         {STATUS_LABEL[m.status]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[11px] text-slate-500">{m.joined_at ?? '—'}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => openEdit(m)}
@@ -306,89 +298,81 @@ export default function TeamMembersPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                المستخدم <span className="text-rose-500">*</span>
+                العضو <span className="text-rose-500">*</span>
               </label>
               {form.editingId ? (
                 <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-600">
-                  {form.user?.name}
+                  {form.member?.name}
                 </p>
               ) : (
-                <UserSearchSelect
-                  instanceId="team-member-user-select"
-                  ariaLabel="اختر المستخدم"
-                  value={form.user}
-                  onChange={(u) => setForm((f) => ({ ...f, user: u }))}
-                />
+                <>
+                  <MemberSearchSelect
+                    instanceId="team-member-member-select"
+                    ariaLabel="اختر العضو"
+                    value={form.member}
+                    onChange={handleMemberChange}
+                  />
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    يعرض هذا الحقل أعضاء EMC الحاليين من صفحة "الأعضاء" فقط — عضو بلا حساب مستخدم مرتبط
+                    يجب ربطه بحساب أولاً من هناك.
+                  </p>
+                </>
               )}
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                الإدارة <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={form.departmentId ?? ''}
-                onChange={(e) => handleDepartmentChange(e.target.value ? Number(e.target.value) : null)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="">-- اختر الإدارة --</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name_ar}</option>
-                ))}
-              </select>
+            {/* الإدارة + المسمى الوظيفي — مُشتقّان تلقائياً من العضو المختار، غير قابلين للتعديل */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">الإدارة</label>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-600 min-h-[42px] flex items-center">
+                  {form.member?.departmentName ?? <span className="text-slate-300 font-semibold">— اختر عضواً —</span>}
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">المسمى الوظيفي</label>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-slate-600 min-h-[42px] flex items-center">
+                  {form.member?.roleTitle ?? <span className="text-slate-300 font-semibold">—</span>}
+                </p>
+              </div>
             </div>
+
+            {form.member && !form.member.departmentId && (
+              <p className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-bold text-amber-700">
+                هذا العضو غير مرتبط بإدارة في بيانات الفريق الحالية.
+              </p>
+            )}
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة (اختياري)</label>
               <select
                 value={form.unitId}
-                disabled={!form.departmentId || loadingFormUnits}
+                disabled={!form.member?.departmentId || loadingFormUnits}
                 onChange={(e) => setForm((f) => ({ ...f, unitId: e.target.value }))}
                 className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
               >
                 <option value="">
-                  {!form.departmentId ? 'اختر الإدارة أولاً' : loadingFormUnits ? 'جارٍ التحميل...' : '-- بدون وحدة --'}
+                  {!form.member?.departmentId ? 'اختر عضواً أولاً' : loadingFormUnits ? 'جارٍ التحميل...' : '-- بدون وحدة --'}
                 </option>
                 {formUnits.map((u) => (
                   <option key={u.id} value={u.id}>{u.name_ar}</option>
                 ))}
               </select>
-              {form.departmentId && !loadingFormUnits && formUnits.length === 0 && (
+              {form.member?.departmentId && !loadingFormUnits && formUnits.length === 0 && (
                 <p className="text-[11px] text-amber-600 mt-1">لا توجد وحدات لهذه الإدارة بعد.</p>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">المسمى الوظيفي</label>
-                <input
-                  value={form.roleTitle}
-                  onChange={(e) => setForm((f) => ({ ...f, roleTitle: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">الحالة</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as FormState['status'] }))}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="active">نشط</option>
-                  <option value="inactive">غير نشط</option>
-                  <option value="on_leave">في إجازة</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">تاريخ الانضمام</label>
-              <input
-                type="date"
-                value={form.joinedAt}
-                onChange={(e) => setForm((f) => ({ ...f, joinedAt: e.target.value }))}
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">الحالة</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as FormState['status'] }))}
                 className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+              >
+                <option value="active">نشط</option>
+                <option value="inactive">غير نشط</option>
+                <option value="on_leave">في إجازة</option>
+              </select>
             </div>
 
             {formError && (

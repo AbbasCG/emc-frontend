@@ -237,3 +237,25 @@ export async function fetchMembers(): Promise<InternalMember[]> {
 
   throw lastErr instanceof Error ? lastErr : new Error('تعذّر تحميل قائمة الأعضاء.')
 }
+
+/**
+ * Search the SAME canonical member directory (team_profiles, via /admin/members)
+ * used by /dashboard/members, narrowed to profiles that already have a linked
+ * user account (`with_account=1`) — the only ones that can become an
+ * operational team_members row, since that table's user_id is required.
+ * Used by the department-membership assignment form so it never invents a
+ * second, arbitrary-user-based population.
+ */
+export async function searchMembersWithAccount(q: string): Promise<InternalMember[]> {
+  if (!q.trim()) return []
+  try {
+    const res = await apiClient.get<unknown>('/admin/members', {
+      params: { search: q.trim(), with_account: 1, per_page: 20 },
+      skipErrorToast: true,
+    } as Record<string, unknown>)
+    const list = unwrapMembersList(res.data)
+    return list.map(normalizeMember).filter((m): m is InternalMember => m !== null)
+  } catch {
+    return []
+  }
+}
