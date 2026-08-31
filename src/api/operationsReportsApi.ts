@@ -132,12 +132,18 @@ export type WeeklyReport = {
   department?: { id: number; name: string }
   submitter?: { id: number; name: string }
   submitted_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export async function fetchWeeklyReports(params?: {
   department_id?: number
   week_start?: string
+  week_from?: string
+  week_to?: string
+  q?: string
   page?: number
+  per_page?: number
 }): Promise<{ rows: WeeklyReport[]; total: number }> {
   const res = await apiClient.get<unknown>('/operations/weekly-reports', { params })
   const page = unwrapData<Paginated<WeeklyReport>>(res.data)
@@ -148,9 +154,27 @@ export async function fetchWeeklyReportsDue(): Promise<{
   week_start: string
   missing: Array<{ id: number; name: string }>
   submitted: number
+  deadline: string
+  deadline_passed: boolean
 }> {
   const res = await apiClient.get<unknown>('/operations/weekly-reports/due')
   return unwrapData(res.data)
+}
+
+export type WeeklyReportsSummary = {
+  week_start: string
+  deadline: string
+  expected: number
+  submitted: number
+  overdue: number
+  in_progress: number
+  completion_rate: number
+  deadline_passed: boolean
+}
+
+export async function fetchWeeklyReportsSummary(): Promise<WeeklyReportsSummary> {
+  const res = await apiClient.get<unknown>('/operations/weekly-reports/summary')
+  return unwrapData<WeeklyReportsSummary>(res.data)
 }
 
 export async function submitWeeklyReport(input: WeeklyReportInput): Promise<WeeklyReport> {
