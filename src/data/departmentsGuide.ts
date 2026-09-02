@@ -11,6 +11,7 @@ import {
   Users,
   Megaphone,
   Bot,
+  Globe,
   UserCheck,
   Layers,
 } from 'lucide-react'
@@ -100,6 +101,12 @@ export const DEPARTMENTS_GUIDE: DepartmentGuideEntry[] = [
     nameEn: 'AI & Digital Transformation',
     desc: 'توظيف الذكاء الاصطناعي وأتمتة العمليات وقيادة التحول الرقمي.',
     icon: Bot,
+  },
+  {
+    name: 'إدارة سفراء التحول الرقمي',
+    nameEn: 'Digital Transformation Ambassadors',
+    desc: 'قيادة شبكة سفراء التحول الرقمي ونشر المعرفة الرقمية بالمؤسسات والجامعات.',
+    icon: Globe,
   },
   {
     name: 'إدارة الاستشارات والمستشارين',

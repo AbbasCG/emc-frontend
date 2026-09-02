@@ -36,12 +36,12 @@ export default function ExpertApplicationSuccess() {
             </div>
           </div>
 
-          <h1 className="mb-3 text-center text-2xl font-black text-deepBlue">تم استلام طلبك بنجاح</h1>
-          <p className="mb-8 text-center text-sm font-semibold leading-relaxed text-slate-500">
-            شكراً لاهتمامك بالانضمام إلى مجتمع المدربين والخبراء في EMC.
-            <br />
-            سيقوم فريق العمل بمراجعة البيانات والتواصل معك قريباً.
-          </p>
+          <h1 className="mb-3 text-center text-2xl font-black text-deepBlue">شكرًا لاهتمامك بالانضمام إلى مجتمع EMC</h1>
+          <div className="mb-8 text-center text-sm font-semibold leading-relaxed text-slate-600 space-y-3">
+            <p className="font-bold text-emerald-600 text-base">تم استلام بياناتك بنجاح.</p>
+            <p>سيقوم فريق EMC بمراجعة معلوماتك وخبراتك وتصنيفها ضمن مجتمع المدربين والخبراء والمتخصصين، وسيتم التواصل معك عند توفر فرص تدريبية أو مشاريع أو استشارات أو فعاليات أو مبادرات تتناسب مع تخصصك وخبرتك.</p>
+            <p className="text-deepBlue font-bold pt-2">نتطلع إلى بناء مجتمع معرفي ومهني يجمع الخبرات والكفاءات، ويحوّل المعرفة والخبرة إلى أثر حقيقي.</p>
+          </div>
 
           <div className="mb-8 space-y-3 rounded-2xl bg-slate-50 p-5">
             <div className="flex items-center gap-3 text-sm">
