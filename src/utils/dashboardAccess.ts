@@ -60,7 +60,11 @@ const ROLE_HOME: Record<string, string> = {
   partnerships_manager: '/dashboard/partnerships-manager',
   community_manager: '/dashboard/community-manager',
   section_lead: '/dashboard/section-lead',
-  ai_manager: '/dashboard/admin/ai',
+  // Organizational AI Department (إدارة الذكاء الاصطناعي والتحول الرقمي) —
+  // NOT the technical AI Platform (/dashboard/admin/ai). Role != department:
+  // this is the manager-role landing page, distinct from the department
+  // workspace itself which resolves the actual led department at runtime.
+  ai_manager: '/dashboard/ai-department',
 }
 
 /**
@@ -87,7 +91,17 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/admin/lms',              roles: ['admin', 'super_admin', 'programs_manager'] },
   { prefix: '/dashboard/admin/registrations',    roles: ['admin', 'super_admin', 'tech_admin', 'programs_manager'] },
   { prefix: '/dashboard/admin/coupons',          roles: ['admin', 'super_admin', 'finance_manager'] },
-  { prefix: '/dashboard/admin/ai',               roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
+  // /dashboard/admin/ai (technical AI Platform: usage/tokens/generations/
+  // automations) is intentionally NOT listed here anymore — ai_manager no
+  // longer gets it automatically (see ai-department-and-ai-platform-separation).
+  // It now falls through to the generic '/dashboard/admin' rule below
+  // (admin/super_admin/tech_admin only), matching the backend's
+  // role:admin,super_admin,tech_admin gate on /api/admin/ai/*.
+  // Expert-applications (a talent/expert-recruitment intake, unrelated to
+  // AI technology) was reverted to admin-tier-only access after review found
+  // no evidence it belongs to ai_manager beyond historical /admin/ai nesting
+  // — permanent ownership (HR? Partnerships? Community?) is an open product
+  // decision. No carve-out needed: falls through to the generic admin rule.
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
@@ -106,6 +120,12 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/volunteer', roles: ['super_admin', 'tech_admin', 'admin', 'hr_manager'] },
   { prefix: '/dashboard/ops/volunteers', roles: ['volunteer'] },
   { prefix: '/dashboard/department', roles: ['department_manager'] },
+  // Organizational AI Department workspace (إدارة الذكاء الاصطناعي والتحول
+  // الرقمي) — generic department-leader workspace, NOT the technical AI
+  // Platform. Access is granted here by role for sidebar/redirect purposes;
+  // the workspace itself still resolves actual leadership server-side via
+  // DepartmentAccessService, never trusting the role slug alone.
+  { prefix: '/dashboard/ai-department', roles: ['ai_manager'] },
   { prefix: '/dashboard/programs-manager', roles: ['programs_manager'] },
   { prefix: '/dashboard/operations-manager', roles: ['operations_manager'] },
   { prefix: '/dashboard/partnerships-manager', roles: ['partnerships_manager'] },
@@ -235,7 +255,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
       'programs_manager', 'instructor', 'hr_manager', 'finance_manager',
       'marketing', 'marketing_manager', 'quality', 'quality_manager',
       'support_agent', 'operations_manager', 'partnerships_manager',
-      'community_manager', 'volunteer', 'department_manager',
+      'community_manager', 'volunteer', 'department_manager', 'ai_manager',
     ]
   }
 

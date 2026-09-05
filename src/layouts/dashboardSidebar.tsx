@@ -908,16 +908,21 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
     ]
   }
 
+  // إدارة الذكاء الاصطناعي والتحول الرقمي — إدارة تنظيمية عادية (كسائر
+  // الإدارات)، وليست "مركز قيادة الذكاء الاصطناعي" التقني (usage/tokens/
+  // automations تلك تبقى صفحات إدارية تقنية منفصلة، متاحة فقط لمن يملك
+  // الدور/الصلاحية التقنية المناسبة — لا لكل من يقود هذه الإدارة).
   if (n === 'ai_manager') {
     return [
-      { items: [{ label: 'مركز الذكاء الاصطناعي', href: '/dashboard/admin/ai', icon: Bot }] },
+      { items: [{ label: 'لوحة إدارة الذكاء الاصطناعي', href: '/dashboard/ai-department', icon: Sparkles }] },
       {
-        title: 'إدارة الذكاء الاصطناعي',
+        title: 'إدارة الذكاء الاصطناعي والتحول الرقمي',
         items: [
-          { label: 'الطلبات الاستشارية', href: '/dashboard/admin/ai/expert-applications', icon: Users        },
-          { label: 'الأتمتة',            href: '/dashboard/admin/ai/automations',         icon: Cpu          },
-          { label: 'الرؤى والتوصيات',    href: '/dashboard/admin/ai/insights',            icon: PieChart     },
-          { label: 'الاستخدام والتكلفة', href: '/dashboard/admin/ai/usage',               icon: FileBarChart },
+          membersNavItem(),
+          { label: 'التقارير الأسبوعية',    href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+          { label: 'تقارير الاجتماعات',      href: '/dashboard/operations/meeting-reports', icon: Calendar     },
+          { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests',     icon: Users        },
         ],
       },
       {

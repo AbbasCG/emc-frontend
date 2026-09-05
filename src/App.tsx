@@ -260,6 +260,7 @@ const OperationsManagerDashboardPage = lazy(() => import('./pages/manager-dashbo
 const PartnershipsManagerDashboardPage = lazy(() => import('./pages/manager-dashboards/PartnershipsManagerDashboardPage'))
 const CommunityManagerDashboardPage  = lazy(() => import('./pages/manager-dashboards/CommunityManagerDashboardPage'))
 const SectionLeadDashboardPage       = lazy(() => import('./pages/manager-dashboards/SectionLeadDashboardPage'))
+const AiDepartmentDashboardPage      = lazy(() => import('./pages/manager-dashboards/AiDepartmentDashboardPage'))
 
 // ── Lazy: dashboard pages — HR ───────────────────────────────────────────────
 const HrDashboardPage   = lazy(() => import('./pages/hr/HrDashboardPage'))
@@ -682,6 +683,7 @@ function App() {
                   <Route path="/dashboard/partnerships-manager" element={<PartnershipsManagerDashboardPage />} />
                   <Route path="/dashboard/community-manager" element={<CommunityManagerDashboardPage />} />
                   <Route path="/dashboard/section-lead" element={<SectionLeadDashboardPage />} />
+                  <Route path="/dashboard/ai-department" element={<AiDepartmentDashboardPage />} />
 
                   <Route path="/dashboard/members" element={<Suspense fallback={<RouteFallback />}><MembersPage /></Suspense>} />
                   </Route>
