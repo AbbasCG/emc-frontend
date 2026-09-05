@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   AlarmClock,
   CheckCircle2,
@@ -23,6 +23,7 @@ import {
   fetchWeeklyReportsSummary,
   submitWeeklyReport,
   type DepartmentMember,
+  type LedDepartmentState,
   type WeeklyReport,
   type WeeklyReportsSummary,
 } from '@/api/operationsReportsApi'
@@ -71,19 +72,24 @@ export default function WeeklyReportsPage() {
     week_start: string
     missing: DeptOption[]
     submitted: number
+    deadline: string
     deadline_passed: boolean
+    led_departments: LedDepartmentState[]
   } | null>(null)
   const [summary, setSummary] = useState<WeeklyReportsSummary | null>(null)
   const { manifest: departmentAccess, loading: departmentAccessLoading, soleDepartmentId } = useDepartmentAccess()
   // تسليم التقرير متاح فقط لمن يقود إدارة واحدة على الأقل (أو مدير عام) — وليس لكل عضو إدارة نشط.
+  // مصدر الحقيقة الوحيد لكل هذا هو ما يُعيده الخادم (due.led_departments، مبني على
+  // departments.leader_id عبر DepartmentAccessService) — لا اسم دور، ولا قائمة أدوار مسموحة هنا.
+  const ledDepartments = due?.led_departments ?? []
+  const isLeader = ledDepartments.length > 0
   const canCreate =
     !departmentAccessLoading &&
     !!departmentAccess &&
     (departmentAccess.can_select_any_department || departmentAccess.allowed_departments.length > 0)
-  const isSoleLeader = canCreate && !departmentAccess?.can_select_any_department && soleDepartmentId != null
-  const myDeptName = isSoleLeader
-    ? departmentAccess?.allowed_departments.find((d) => d.id === soleDepartmentId)?.name
-    : undefined
+  // الحقل الجاهز مسبقًا في نموذج الإنشاء يظهر فقط عندما يقود المستخدم إدارة واحدة تحديدًا.
+  const isSoleLeader = isLeader && ledDepartments.length === 1 && !departmentAccess?.can_select_any_department
+  const myDeptName = isSoleLeader ? ledDepartments[0].department.name : undefined
 
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -260,20 +266,15 @@ export default function WeeklyReportsPage() {
     }
   }
 
-  // تقرير إدارتي لهذا الأسبوع (لقائد إدارة واحدة) — من نفس قائمة "الأسبوع الحالي" إن كانت محمّلة، وإلا يُشتق من لافتة الاستحقاق.
-  const myThisWeekReport = useMemo(() => {
-    if (!isSoleLeader || !due) return undefined
-    return reports.find((r) => r.department?.id === soleDepartmentId && r.week_start.slice(0, 10) === due.week_start)
-  }, [isSoleLeader, due, reports, soleDepartmentId])
-  const myReportMissing = isSoleLeader && due && due.missing.some((d) => d.id === soleDepartmentId)
-
-  const heroCtaLabel = !isSoleLeader
-    ? null
-    : myThisWeekReport
-      ? 'عرض تقرير هذا الأسبوع'
-      : myReportMissing
-        ? 'إنشاء التقرير'
-        : 'متابعة تقرير هذا الأسبوع'
+  /** يفتح نموذج الإنشاء/المتابعة معبَّأً بإدارة قائد معيّن من due.led_departments مباشرة. */
+  function openForLedDepartment(led: LedDepartmentState) {
+    if (led.current_report) {
+      setExpandedId(led.current_report.id)
+      return
+    }
+    void pickDepartment(led.department.id)
+    openCreateForm()
+  }
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
 
@@ -295,7 +296,7 @@ export default function WeeklyReportsPage() {
           >
             <RefreshCw size={15} />
           </button>
-          {canCreate && !isSoleLeader && (
+          {canCreate && !isLeader && (
             <button
               onClick={openCreateForm}
               className="flex items-center gap-2 rounded-xl bg-deepBlue px-5 py-2.5 text-sm font-bold text-white hover:bg-deepBlue/90"
@@ -306,37 +307,45 @@ export default function WeeklyReportsPage() {
         </div>
       </div>
 
-      {/* بطاقة قائد الإدارة — إبراز تقرير إدارته لهذا الأسبوع أولًا */}
-      {isSoleLeader && due && (
-        <div className="rounded-2xl border border-slate-100 bg-white p-6">
-          <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">تقرير إدارتك لهذا الأسبوع</p>
-          <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-black text-deepBlue">{myDeptName}</h2>
-              <p className="mt-1 text-sm font-semibold text-deepBlue/50">
-                أسبوع {due.week_start}
-                {myThisWeekReport ? (
-                  <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-black text-emerald-700">
-                    <CheckCircle2 size={12} /> مكتمل
-                  </span>
-                ) : due.deadline_passed ? (
-                  <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-black text-red-700">
-                    <AlarmClock size={12} /> متأخر
-                  </span>
-                ) : (
-                  <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-black text-amber-700">
-                    <Clock size={12} /> قيد الإعداد
-                  </span>
-                )}
-              </p>
+      {/* بطاقة/بطاقات قائد الإدارة — إبراز تقرير إدارته لهذا الأسبوع أولًا. الحالة والصلاحية (can_create/can_edit) بالكامل من الخادم — لا اشتقاق في الواجهة، ويدعم قيادة أكثر من إدارة واحدة. */}
+      {isLeader && due && (
+        <div className="space-y-3">
+          {ledDepartments.map((led) => (
+            <div key={led.department.id} className="rounded-2xl border border-slate-100 bg-white p-6">
+              <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">تقرير إدارتك لهذا الأسبوع</p>
+              <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-black text-deepBlue">{led.department.name}</h2>
+                  <p className="mt-1 text-sm font-semibold text-deepBlue/50">
+                    أسبوع {due.week_start}
+                    {led.state === 'submitted' ? (
+                      <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-black text-emerald-700">
+                        <CheckCircle2 size={12} /> مكتمل
+                      </span>
+                    ) : led.state === 'overdue' ? (
+                      <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-black text-red-700">
+                        <AlarmClock size={12} /> متأخر
+                      </span>
+                    ) : (
+                      <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-black text-amber-700">
+                        <Clock size={12} /> قيد الإعداد
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => openForLedDepartment(led)}
+                  className="rounded-xl bg-customOrange px-6 py-2.5 text-sm font-extrabold text-white transition hover:bg-ember"
+                >
+                  {led.state === 'submitted'
+                    ? 'عرض تقرير هذا الأسبوع'
+                    : led.state === 'overdue'
+                      ? 'إنشاء التقرير الآن'
+                      : 'إنشاء تقرير أسبوعي جديد'}
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => (myThisWeekReport ? setExpandedId(myThisWeekReport.id) : openCreateForm())}
-              className="rounded-xl bg-customOrange px-6 py-2.5 text-sm font-extrabold text-white transition hover:bg-ember"
-            >
-              {heroCtaLabel}
-            </button>
-          </div>
+          ))}
         </div>
       )}
 
@@ -352,7 +361,7 @@ export default function WeeklyReportsPage() {
       )}
 
       {/* تذكيرات مهمة — لغير قائد الإدارة الوحيد (ناظر شامل) */}
-      {!isSoleLeader && due && due.missing.length > 0 && (
+      {!isLeader && due && due.missing.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
           <AlarmClock size={18} className="shrink-0 text-amber-600" aria-hidden />
           <p className="text-sm font-bold text-amber-800">
@@ -547,7 +556,7 @@ export default function WeeklyReportsPage() {
             <p className="mt-4 text-sm font-bold text-slate-400">
               {search || departmentFilter
                 ? 'لا توجد تقارير مطابقة لخيارات البحث والتصفية'
-                : weekFilter === 'this_week' && isSoleLeader
+                : weekFilter === 'this_week' && isLeader
                   ? 'لم يتم إنشاء تقرير هذا الأسبوع بعد'
                   : 'لا توجد تقارير أسبوعية حتى الآن'}
             </p>
@@ -584,7 +593,7 @@ export default function WeeklyReportsPage() {
                       report={r}
                       expanded={expandedId === r.id}
                       onToggle={() => setExpandedId((v) => (v === r.id ? null : r.id))}
-                      canEdit={isSoleLeader && r.department?.id === soleDepartmentId}
+                      canEdit={ledDepartments.some((led) => led.department.id === r.department?.id)}
                       onFollowUp={() => openFollowUpForm(r)}
                     />
                   ))}
@@ -600,7 +609,7 @@ export default function WeeklyReportsPage() {
                   report={r}
                   expanded={expandedId === r.id}
                   onToggle={() => setExpandedId((v) => (v === r.id ? null : r.id))}
-                  canEdit={isSoleLeader && r.department?.id === soleDepartmentId}
+                  canEdit={ledDepartments.some((led) => led.department.id === r.department?.id)}
                   onFollowUp={() => openFollowUpForm(r)}
                 />
               ))}

@@ -150,12 +150,22 @@ export async function fetchWeeklyReports(params?: {
   return { rows: page?.data ?? [], total: page?.total ?? 0 }
 }
 
+export type LedDepartmentState = {
+  department: { id: number; name: string }
+  current_report: { id: number; submitted_at: string; submitter: { id: number; name: string } | null } | null
+  can_create: boolean
+  can_edit: boolean
+  can_submit: boolean
+  state: 'submitted' | 'overdue' | 'in_progress'
+}
+
 export async function fetchWeeklyReportsDue(): Promise<{
   week_start: string
   missing: Array<{ id: number; name: string }>
   submitted: number
   deadline: string
   deadline_passed: boolean
+  led_departments: LedDepartmentState[]
 }> {
   const res = await apiClient.get<unknown>('/operations/weekly-reports/due')
   return unwrapData(res.data)
