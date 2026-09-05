@@ -908,6 +908,28 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
     ]
   }
 
+  if (n === 'ai_manager') {
+    return [
+      { items: [{ label: 'مركز الذكاء الاصطناعي', href: '/dashboard/admin/ai', icon: Bot }] },
+      {
+        title: 'إدارة الذكاء الاصطناعي',
+        items: [
+          { label: 'الطلبات الاستشارية', href: '/dashboard/admin/ai/expert-applications', icon: Users        },
+          { label: 'الأتمتة',            href: '/dashboard/admin/ai/automations',         icon: Cpu          },
+          { label: 'الرؤى والتوصيات',    href: '/dashboard/admin/ai/insights',            icon: PieChart     },
+          { label: 'الاستخدام والتكلفة', href: '/dashboard/admin/ai/usage',               icon: FileBarChart },
+        ],
+      },
+      {
+        title: 'التواصل',
+        items: [
+          { label: 'الإشعارات',     href: '/dashboard/notifications', icon: Bell    },
+          { label: 'الملف الشخصي', href: '/dashboard/profile',       icon: UserCog },
+        ],
+      },
+    ]
+  }
+
   if (n === 'section_lead') {
     return [
       { items: [{ label: 'لوحة قائد القسم', href: '/dashboard/section-lead', icon: LayoutDashboard }] },
