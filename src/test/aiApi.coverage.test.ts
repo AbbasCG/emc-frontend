@@ -146,19 +146,13 @@ describe('fetchAiRecentGenerations / generateAiContent', () => {
     created_at: '2026-08-02T09:00:00Z',
   }
 
-  it('fetchAiRecentGenerations accepts bare array and { records } shapes, [] otherwise', async () => {
-    mockedApi.get.mockResolvedValueOnce({ data: { data: [record] } })
-    await expect(fetchAiRecentGenerations()).resolves.toEqual([record])
-    expect(mockedApi.get).toHaveBeenCalledWith('/ai/generations')
-
-    mockedApi.get.mockResolvedValueOnce({ data: { data: { records: [record] } } })
-    await expect(fetchAiRecentGenerations()).resolves.toEqual([record])
-
-    mockedApi.get.mockResolvedValueOnce({ data: { data: {} } })
+  it('fetchAiRecentGenerations resolves [] without calling the API — no backend route exists for it', async () => {
+    // AiContentGenerationController is entirely stateless (generates and
+    // returns content, persists nothing), so there is no backend listing
+    // endpoint this could ever call. GET /ai/generations 404s unconditionally;
+    // calling it was the exact contract bug that broke the AI Command Center.
     await expect(fetchAiRecentGenerations()).resolves.toEqual([])
-
-    mockedApi.get.mockRejectedValueOnce(new Error('down'))
-    await expect(fetchAiRecentGenerations()).resolves.toEqual([])
+    expect(mockedApi.get).not.toHaveBeenCalled()
   })
 
   it('generateAiContent maps known kinds to dedicated routes', async () => {

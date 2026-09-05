@@ -63,16 +63,19 @@ export async function sendAiMessage(
   }
 }
 
+/**
+ * No backend route or persistence exists for this yet — every
+ * AiContentGenerationController::generate* endpoint is stateless (it
+ * returns generated content directly and saves nothing), so there is no
+ * "recent generations" log to list. Calling `/ai/generations` always 404s.
+ * Returning [] directly (instead of hitting a route that can never exist)
+ * keeps the "Recent Generations" section in its honest empty state without
+ * spamming a guaranteed-failing request. Backing this for real is a
+ * separate feature (would need a generations table + a write on every
+ * generate call), not a contract fix.
+ */
 export async function fetchAiRecentGenerations(): Promise<AiGenerationRecord[]> {
-  try {
-    const res = await apiClient.get<unknown>('/ai/generations')
-    const payload = unwrapLms<AiGenerationRecord[] | { records: AiGenerationRecord[] }>(res.data)
-    if (Array.isArray(payload)) return payload
-    if (payload && typeof payload === 'object' && Array.isArray(payload.records)) return payload.records
-    return []
-  } catch {
-    return []
-  }
+  return []
 }
 
 const GENERATION_ROUTES: Partial<Record<AiGenerationKind, string>> = {
