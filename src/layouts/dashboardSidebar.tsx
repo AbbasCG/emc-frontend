@@ -935,6 +935,34 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
     ]
   }
 
+  // الإدارات الرسمية الجديدة (الاستراتيجية والتخطيط، سفراء التحول الرقمي،
+  // الاستشارات والمستشارين) — نفس بنية العمل التنظيمي العام (كإدارة الذكاء
+  // الاصطناعي أعلاه)، تشترك في نفس مسار العمل الموحّد بدلاً من تكرار ثلاث
+  // شرائح منفصلة؛ الصفحة نفسها تحل الإدارة الفعلية وقت التشغيل عبر
+  // DepartmentAccessService، لا افتراضًا من اسم الدور.
+  if (n === 'strategy_planning_manager' || n === 'digital_ambassadors_manager' || n === 'advisors_manager') {
+    return [
+      { items: [{ label: 'لوحة الإدارة', href: '/dashboard/department-workspace', icon: Building2 }] },
+      {
+        title: 'الإدارة التنظيمية',
+        items: [
+          membersNavItem(),
+          { label: 'التقارير الأسبوعية',    href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+          { label: 'تقارير الاجتماعات',      href: '/dashboard/operations/meeting-reports', icon: Calendar     },
+          { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
+          { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests',     icon: Users        },
+        ],
+      },
+      {
+        title: 'التواصل',
+        items: [
+          { label: 'الإشعارات',     href: '/dashboard/notifications', icon: Bell    },
+          { label: 'الملف الشخصي', href: '/dashboard/profile',       icon: UserCog },
+        ],
+      },
+    ]
+  }
+
   if (n === 'section_lead') {
     return [
       { items: [{ label: 'لوحة قائد القسم', href: '/dashboard/section-lead', icon: LayoutDashboard }] },

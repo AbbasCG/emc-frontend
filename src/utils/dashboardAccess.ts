@@ -24,6 +24,9 @@ export const EMC_DASHBOARD_ROLES = [
   'community_manager',
   'section_lead',
   'ai_manager',
+  'strategy_planning_manager',
+  'digital_ambassadors_manager',
+  'advisors_manager',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
@@ -65,6 +68,13 @@ const ROLE_HOME: Record<string, string> = {
   // this is the manager-role landing page, distinct from the department
   // workspace itself which resolves the actual led department at runtime.
   ai_manager: '/dashboard/ai-department',
+  // Newly-added official departments (strategy-planning, digital-ambassadors,
+  // advisors) share ONE generic workspace route rather than three duplicated
+  // pages — the page itself resolves the actual led department at runtime via
+  // DepartmentAccessService (see DepartmentWorkspacePage), never from the role.
+  strategy_planning_manager: '/dashboard/department-workspace',
+  digital_ambassadors_manager: '/dashboard/department-workspace',
+  advisors_manager: '/dashboard/department-workspace',
 }
 
 /**
@@ -126,6 +136,9 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // the workspace itself still resolves actual leadership server-side via
   // DepartmentAccessService, never trusting the role slug alone.
   { prefix: '/dashboard/ai-department', roles: ['ai_manager'] },
+  // Shared generic workspace for the 3 new department-manager roles — same
+  // pattern as ai-department above, one reusable route instead of three.
+  { prefix: '/dashboard/department-workspace', roles: ['strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
   { prefix: '/dashboard/programs-manager', roles: ['programs_manager'] },
   { prefix: '/dashboard/operations-manager', roles: ['operations_manager'] },
   { prefix: '/dashboard/partnerships-manager', roles: ['partnerships_manager'] },
@@ -256,6 +269,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
       'marketing', 'marketing_manager', 'quality', 'quality_manager',
       'support_agent', 'operations_manager', 'partnerships_manager',
       'community_manager', 'volunteer', 'department_manager', 'ai_manager',
+      'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager',
     ]
   }
 
