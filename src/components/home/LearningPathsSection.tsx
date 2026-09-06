@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 
 import { ArrowLeft, BookMarked, Brain, GraduationCap, Globe } from 'lucide-react'
@@ -60,7 +60,7 @@ export default function LearningPathsSection() {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.48, delay: i * 0.09 }}
-                className="flex flex-col overflow-hidden rounded-2xl bg-white text-right shadow-lg shadow-slate-200/70 ring-1 ring-slate-100"
+                className="flex flex-col overflow-hidden rounded-2xl bg-white text-right ring-1 ring-line"
               >
                 <div className={`${path.headerBg} p-6 text-white`}>
                   <Icon size={30} className="mb-3" aria-hidden="true" />
@@ -87,7 +87,7 @@ export default function LearningPathsSection() {
 
                   <div className="mt-auto pt-6">
                     <Link
-                      to="/paths"
+                      to="/learning-paths"
                       className="inline-flex items-center gap-1.5 text-sm font-extrabold text-customBlue transition hover:underline"
                     >
                       استعرض المسار

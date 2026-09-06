@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { fetchVolunteer, updateVolunteer } from '@/api/volunteersApi'
-import { seedVolunteers, seedWorkspaceDepartments } from '@/data/operationsSeed'
+import { fetchWorkspaceDepartments } from '@/api/operationsApi'
 import { VOLUNTEER_STATUS_AR } from '@/data/operationsLabels'
-import type { OpsVolunteer, VolunteerStatus } from '@/types/operations'
+import type { OpsVolunteer, VolunteerStatus, WorkspaceDepartment } from '@/types/operations'
+
+const LOAD_ERROR = 'تعذّر تحميل بيانات المتطوع. تحقق من الاتصال وأعد المحاولة.'
 
 export default function OpsVolunteerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -15,29 +17,60 @@ export default function OpsVolunteerDetailPage() {
     : '/dashboard/admin/volunteers'
   const vid = id ? Number(id) : NaN
   const [v, setV] = useState<OpsVolunteer | null>(null)
+  const [depts, setDepts] = useState<WorkspaceDepartment[]>([])
   const [loading, setLoading] = useState(true)
-  const [notes] = useState('مساحة الملاحظات الداخلية — قيد ربط الـ API.')
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [notes] = useState('مساحة الملاحظات الداخلية قيد ربط الـ API.')
+
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenVid, setSeenVid] = useState(vid)
+  if (!Object.is(seenVid, vid)) {
+    setSeenVid(vid)
+    setLoading(true)
+    setLoadError(null)
+  }
 
   useEffect(() => {
     if (!Number.isFinite(vid)) return
     let cancelled = false
-    ;(async () => {
+    void (async () => {
       try {
-        const d = await fetchVolunteer(vid)
-        if (!cancelled) setV(d)
+        const [vData, dData] = await Promise.all([
+          fetchVolunteer(vid),
+          fetchWorkspaceDepartments(),
+        ])
+        if (cancelled) return
+        setV(vData)
+        setDepts(dData.items)
       } catch {
-        const seed = seedVolunteers().find((x) => x.id === vid) ?? seedVolunteers()[0]!
-        if (!cancelled) setV(seed)
+        if (!cancelled) setLoadError(LOAD_ERROR)
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [vid])
 
-  const depts = seedWorkspaceDepartments()
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
+    if (!Number.isFinite(vid)) return
+    setLoadError(null)
+    setLoading(true)
+    try {
+      const [vData, dData] = await Promise.all([
+        fetchVolunteer(vid),
+        fetchWorkspaceDepartments(),
+      ])
+      setV(vData)
+      setDepts(dData.items)
+    } catch {
+      setLoadError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
+    }
+  }, [vid])
 
   async function patchStatus(status: VolunteerStatus) {
     if (!v) return
@@ -63,7 +96,14 @@ export default function OpsVolunteerDetailPage() {
   }
 
   if (!Number.isFinite(vid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
-  if (loading || !v) return <OpsPageSkeleton />
+  if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
+  if (!v) return <OpsPageSkeleton />
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -102,7 +142,7 @@ export default function OpsVolunteerDetailPage() {
               onChange={(e) => patchDept(e.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-deepBlue"
             >
-              <option value="">— اختر —</option>
+              <option value=""> اختر </option>
               {depts.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.title}

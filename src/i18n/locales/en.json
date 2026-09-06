@@ -1,861 +1,949 @@
 {
+  "__meta": {
+    "status": "approved",
+    "approvedOn": "2026-08-07",
+    "approvedBy": "founder"
+  },
+  "brand": {
+    "logoAlt": "EMC Educational Mastar Central"
+  },
   "nav": {
     "home": "Home",
-    "about": "About EMC",
-    "programs": "Programs",
-    "center": "Center",
-    "partnerships": "Partnerships",
-    "join": "Join Us",
-    "dashboard": "Dashboard",
-    "login": "Sign In",
-    "logout": "Sign Out",
-    "profile": "Profile",
-    "aboutItems": {
-      "about": { "label": "About Us", "description": "Who we are and how we work" },
-      "vision": { "label": "Vision & Mission", "description": "Our purpose and how we serve learners" },
-      "roadmap": { "label": "Roadmap", "description": "Development stages and priorities" },
-      "leadership": { "label": "Leadership Message", "description": "Institutional commitment to quality" },
-      "impact": { "label": "Impact & Achievements", "description": "Real, transparent impact metrics" },
-      "team": { "label": "Team", "description": "Structure, roles, and values" }
+    "courses": "Courses",
+    "tracks": "Tracks",
+    "fellowship": "Fellowship",
+    "workshops": "Free Workshops",
+    "startJourney": "Start Your Journey",
+    "aria": {
+      "homeLink": "EMC Home page",
+      "mainMenu": "Main menu",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "changeLanguage": "Change language"
     },
-    "programsItems": {
-      "courses": { "label": "Courses & Programs", "description": "Browse programs and register directly" },
-      "programs": { "label": "Programs", "description": "View institutional programs and tracks" },
-      "paths": { "label": "Learning Paths", "description": "Connected learning paths" },
-      "tracks": { "label": "Themes & Tracks", "description": "The 12 themes and detailed tracks" },
-      "instructors": { "label": "Instructors", "description": "Meet our training experts" },
-      "workshop": { "label": "Submit a Workshop", "description": "Request a workshop through the official form" }
+    "mega": {
+      "quickJump": "Quick access across the EMC ecosystem"
     },
-    "centerItems": {
-      "departments": { "label": "Departments", "description": "EMC organizational structure" },
-      "governance": { "label": "Quality & Governance", "description": "Quality and compliance policies" },
-      "platform": { "label": "Platform", "description": "Digital experience and services" }
-    },
-    "joinItems": {
-      "student": { "label": "Join as Student", "description": "Create an account to learn and enroll" },
-      "trainer": { "label": "Join as Trainer", "description": "Contact us to join as an EMC trainer" },
-      "partner": { "label": "Join as Partner", "description": "Submit an institutional partnership request" },
-      "volunteer": { "label": "Join as Volunteer", "description": "Share your skills through EMC's volunteer framework" },
-      "contact": { "label": "Contact Us", "description": "Communication channels and general inquiries" }
+    "auth": {
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "login": "Log In",
+      "logout": "Log Out"
     }
   },
-  "layout": {
-    "skipToContent": "Skip to main content"
-  },
-  "common": {
-    "explore": "Explore",
-    "browsePrograms": "Browse Programs",
-    "contactUs": "Contact Us",
-    "viewAll": "View All",
-    "learnMore": "Learn More",
-    "register": "Register",
-    "registerNow": "Register Now",
-    "readMore": "Read More",
-    "backToHome": "Back to Home",
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "submit": "Submit",
-    "saving": "Saving...",
-    "save": "Save",
-    "close": "Close",
-    "cancel": "Cancel",
-    "search": "Search",
-    "filter": "Filter",
-    "sort": "Sort",
-    "all": "All",
-    "new": "New",
-    "upcoming": "Upcoming",
-    "active": "Active",
-    "free": "Free",
-    "paid": "Paid",
-    "online": "Online",
-    "inPerson": "In Person",
-    "hours": "hours",
-    "minutes": "minutes",
-    "seatsAvailable": "seats available",
-    "viewDetails": "View Details",
-    "startNow": "Start Now",
-    "continue": "Continue",
-    "previous": "Previous",
-    "next": "Next",
-    "send": "Send",
-    "sending": "Sending...",
-    "success": "Success!",
-    "back": "Back",
-    "breadcrumbHome": "Home"
-  },
-  "errors": {
-    "notFound": "Page Not Found",
-    "notFoundDesc": "Sorry, we couldn't find the page you're looking for. It may have been moved or deleted.",
-    "forbidden": "Access Forbidden",
-    "unauthorized": "Unauthorized",
-    "serverError": "Server Error",
-    "goHome": "Go Home",
-    "browseCourses": "Browse Courses"
-  },
   "footer": {
-    "explore": "Explore",
-    "engage": "Engage",
-    "programs": "Programs",
-    "contact": "Contact",
-    "description": "EMC is an educational platform connecting training programs, consulting, and partnerships to serve students, professionals, and the community — with quality and a clear Arab identity.",
-    "badge": "Platform · Unified Educational System",
-    "newsletter": {
-      "title": "Newsletter",
-      "description": "Program summaries and workshops — no spam.",
-      "placeholder": "Email address",
-      "submit": "Subscribe",
-      "success": "Your request has been saved — it will be connected to the newsletter server when activated."
-    },
-    "links": {
-      "home": "Home",
-      "about": "About",
-      "tracks": "Themes & Tracks",
-      "departments": "Departments",
-      "courses": "Courses & Programs",
-      "partnerships": "Partnerships",
-      "volunteer": "Volunteer",
-      "team": "Team",
-      "impact": "Impact",
-      "workshop": "Submit Workshop",
-      "paths": "Learning Paths",
+    "tagline": "An Arabic–Dutch educational platform: programs, workshops, partnerships, and digital learning to professional standards.",
+    "motto": "Guiding minds, building the future.",
+    "contactCta": "Contact Us",
+    "copyright": "All rights reserved",
+    "cookieSettings": "Cookies",
+    "headings": {
+      "main": "Main Links",
       "programs": "Programs",
-      "platform": "Platform",
-      "support": "Support & Inquiries",
-      "requestWorkshop": "Request Workshop"
+      "contact": "Contact"
     },
-    "fullContactPage": "Full Contact Page",
-    "rights": "All rights reserved © {{year}} EMC",
-    "phoneAria": "Phone number"
+    "aria": {
+      "legalNav": "Legal and privacy"
+    },
+    "nav": {
+      "main": {
+        "home": "Home",
+        "about": "About the Center",
+        "business": "For Organizations",
+        "verify": "Verify a Certificate",
+        "tracks": "Fields",
+        "team": "EMC Team",
+        "impact": "Impact",
+        "partnerships": "Partnerships",
+        "volunteer": "Volunteering",
+        "contact": "Contact",
+        "ambassador": "EMC Ambassadors",
+        "departments": "Departments",
+        "consultants": "Become a Consultant"
+      },
+      "programs": {
+        "courses": "Courses",
+        "learningPaths": "Tracks",
+        "fellowship": "Fellowship",
+        "workshops": "Free Workshops",
+        "programs": "Programs",
+        "platform": "Platform",
+        "submitWorkshop": "Submit a Workshop",
+        "support": "Support",
+        "knowledge": "Knowledge Base",
+        "instructors": "Instructors"
+      }
+    },
+    "legal": {
+      "privacy": "Privacy",
+      "cookies": "Cookies",
+      "terms": "Terms",
+      "refund": "Refunds",
+      "disclaimer": "Disclaimer",
+      "complaints": "Complaints",
+      "accessibility": "Accessibility"
+    }
   },
-  "home": {
-    "heroTitle": "EMC — The Leading Educational Center",
-    "heroSubtitle": "An institutional educational operating system that unifies the learner, trainer, and institution in one integrated platform to manage learning paths, programs, quality, and institutional partnerships.",
-    "cta": "Start Your Learning Journey",
-    "explorePrograms": "Explore Programs",
-    "createAccount": "Create Account",
-    "consultation": "Consultation for Institutions",
-    "liveWorkshops": "Live Workshops",
-    "measurablePerformance": "Measurable Performance",
-    "learningCommunity": "Learning Community",
-    "learningTracks": "Deep Learning Tracks",
-    "tracksSubtitle": "High-impact learning tracks for the digital economy",
-    "trackAiEngineer": "AI Engineer Track",
-    "trackDataScientist": "Data Scientist Track",
-    "trackDataEngineer": "Data Engineer Track",
-    "trackDataAnalyst": "Data Analyst Track",
-    "trackAcademic": "Academic Advancement Track",
-    "trackDetails": "Track Details",
-    "viewAllTracks": "View All Tracks",
-    "whyChoose": "Why Choose EMC?",
-    "whyChooseDesc": "Good education needs more than content — it needs guidance and real partnership.",
-    "practicalContent": "Practical Content",
-    "practicalContentDesc": "Linked to the job market and real-world needs",
-    "clearGuidance": "Clear Guidance",
-    "clearGuidanceDesc": "Not just information — real mentoring and direction",
-    "ecosystem": "EMC Ecosystem",
-    "ecosystemDesc": "From LMS to quality decisions",
-    "testimonials": "Stories from the Field",
-    "faq": "Frequently Asked Questions",
-    "faqDesc": "Everything you need to know before starting",
-    "nextStep": "Ready for the Next Step?",
-    "nextStepDesc": "We connect programs with people and data. Start from the programs page.",
-    "scheduleMeeting": "Schedule a Meeting",
-    "programsAndCourses": "Programs & Courses",
-    "featuredPrograms": "Featured Programs & Courses",
-    "featuredProgramsDesc": "High-impact workshops and courses — pick your next step.",
-    "impact": "Impact Metrics",
-    "impactDesc": "Real numbers reflecting platform maturity — not decorative visuals.",
-    "learners": "Learners",
-    "programCount": "Programs",
-    "graduates": "Certified Graduates",
-    "partnershipCount": "Partnerships",
-    "statsPrograms": "training programs",
-    "statsBeneficiaries": "beneficiaries",
-    "statsFields": "development fields",
-    "statsPartnerships": "educational partnerships",
-    "joinCommunity": "Join the EMC Community",
-    "trackAiEngineerDesc": "Real-world projects, MLOps, prompt engineering, and delivering a practical AI product to market.",
-    "trackDataScientistDesc": "Modeling, machine learning, and an analytical lab reflecting the environment of production teams.",
-    "trackDataEngineerDesc": "Data pipelines, infrastructure, governance, and quality — building reliable foundations for analytics and AI.",
-    "trackDataAnalystDesc": "Dashboard readings, professional KPIs, and quality tests for reports presented to management.",
-    "trackAcademicDesc": "Deep instructional design, teacher qualification, and measuring learner impact according to international quality standards.",
-    "trackAiBusinessTitle": "AI Business Track",
-    "trackAiBusinessDesc": "Governance, ethics, AI business models, and integrating knowledge within companies."
+  "cookie": {
+    "title": "We use cookies to improve your experience",
+    "description": "Essential cookies keep EMC running. Analytics and marketing are enabled only with your consent.",
+    "policyLink": "Cookie Policy",
+    "privacyLink": "Privacy",
+    "managePreferences": "Manage Preferences",
+    "rejectNonEssential": "Reject Non-Essential",
+    "acceptAll": "Accept All"
   },
   "about": {
-    "title": "About EMC",
-    "subtitle": "An educational platform building bridges between training, consulting, and partnerships to serve individuals and institutions.",
-    "whoWeAre": "Who We Are",
-    "whoWeAreDesc": "An empowerment platform through education, skills, AI, digital transformation, and building professional and academic paths.",
-    "vision": "Vision",
-    "visionText": "Leadership in building educational and professional paths for individuals and institutions, through an integrated operating platform that keeps pace with the future.",
-    "mission": "Mission",
-    "missionText": "To provide an inspiring educational environment that combines knowledge with practice, and links learning to professional and community impact, through the latest digital tools and global partnerships.",
-    "roadmap": "EMC Roadmap",
-    "roadmapSubtitle": "Towards the Future — an integrated development plan",
-    "leadership": "A Word to the Educational Community",
-    "whomWeServe": "Who We Serve",
-    "student": "Student",
-    "studentDesc": "Seeking academic and professional guidance",
-    "professional": "Professional",
-    "professionalDesc": "Looking for career development and skill enhancement",
-    "immigrant": "Immigrant",
-    "immigrantDesc": "Needing integration and professional orientation",
-    "institution": "Institution",
-    "institutionDesc": "Seeking training and competency development",
-    "trainer": "Trainer",
-    "trainerDesc": "Wanting to share expertise and build a professional portfolio",
-    "partner": "Partner",
-    "partnerDesc": "Looking for educational collaboration and community impact",
-    "whatMakesUsDifferent": "What Makes EMC Different?",
-    "statsTracks": "Tracks",
-    "statsDiverse": "Diverse",
-    "statsTransparent": "Transparent",
-    "readyForNext": "Ready for the Next Step?",
-    "ctaPrograms": "Programs & Courses",
-    "ctaContact": "Contact Us",
-    "audienceStudents": "Students & Learners",
-    "audienceProfessionals": "Professionals & Career Seekers",
-    "audienceImmigrants": "Immigrants & Newcomers",
-    "audienceInstitutions": "Institutions & Organizations",
-    "audienceTrainers": "Trainers & Experts",
-    "audiencePartners": "Partners & Sponsors",
-    "breadcrumbHome": "Home",
-    "whoWeAreSectionTitle": "Who We Are",
-    "whoWeAreSectionDesc": "An institutional platform linking language, academic path, professional skills, and digital empowerment in a measurable sequential experience.",
-    "differentiator1Title": "A System, Not a Catalog",
-    "differentiator1Desc": "We connect language, track, skills, and digital empowerment in a measurable sequential experience.",
-    "differentiator2Title": "Wide Audience with Real Needs",
-    "differentiator2Desc": "Students, immigrants, professionals, and those seeking development — we design practical paths for them, not empty slogans.",
-    "differentiator3Title": "Responsible AI",
-    "differentiator3Desc": "We use digital tools to accelerate learning with clarity controls and usage ethics.",
-    "differentiator4Title": "Practical Guidance",
-    "differentiator4Desc": "Workshops, consultations, and follow-up to translate learning into decisions and steps.",
-    "aiSectionTitle": "Education, AI, and Digital Transformation",
-    "aiSectionSubtitle": "We believe digital transformation is an opportunity for the learner when presented in understandable language with safe tools.",
-    "aiBullet1": "Practical introductions to AI and its daily/professional uses.",
-    "aiBullet2": "Digital skills supporting productivity and lifelong learning.",
-    "aiBullet3": "Principles of privacy, security, and responsibility when using tools.",
-    "aiBullet4": "Connecting technology to your academic or professional goals, not as an end in itself.",
-    "audienceSectionSubtitle": "A diverse community intersecting around one goal: building a clearer path through good learning.",
-    "audienceStudentsBody": "Academic planning, languages, and readiness for the next stage.",
-    "audienceImmigrantsBody": "Linguistic, professional, and community support that considers the transition reality.",
-    "audienceProfessionalsBody": "Practical skills, entrepreneurship, and responsible digital empowerment.",
-    "audienceFamiliesTitle": "Families and Youth",
-    "audienceFamiliesBody": "Age-appropriate programs with safe supervision and design.",
-    "audienceInstitutionsBody": "Training workshops and partnerships with specific goals.",
-    "audienceTrainersBody": "Content partnerships within quality and governance standards.",
-    "whatMakesUsDifferentDesc": "We distinguish ourselves by connecting content, guidance, and partnerships — not by quick promises or false descriptions.",
-    "statsTitle": "Track Record",
-    "roadmapTitle": "EMC Roadmap",
-    "roadmapSectionSubtitle": "Towards the Future — an integrated development plan",
-    "roadmapMilestone1": "Unifying the Digital Experience",
-    "roadmapMilestone1Desc": "Linking catalog, registration, and follow-up into one path the learner understands and simplifies operational team work.",
-    "roadmapMilestone2": "Expanding Institutional Partnerships",
-    "roadmapMilestone2Desc": "Clear agreements with universities, institutions, and trainers — with documented quality and governance standards.",
-    "roadmapMilestone3": "Periodic Impact Reports",
-    "roadmapMilestone3Desc": "Publishing realistic impact summaries for the community and partners, respecting participant privacy.",
-    "roadmapMilestone4": "Developing Paths Across the 12 Fields",
-    "roadmapMilestone4Desc": "Stronger linking between fields and paths so the learner moves confidently through predictable steps.",
-    "journeyTitle": "Our Journey",
-    "journeyStep1": "Explore",
-    "journeyStep1Desc": "Identify your need through programs or brief contact.",
-    "journeyStep2": "Choose a Path",
-    "journeyStep2Desc": "A course, workshop, or learning path matching your stage.",
-    "journeyStep3": "Learn and Apply",
-    "journeyStep3Desc": "Practical sessions and resources supporting application, not just memorization.",
-    "journeyStep4": "Follow-up and Development",
-    "journeyStep4Desc": "Feedback and next steps within the EMC system.",
-    "midCtaText": "Choose the right program, or contact us for a brief consultation about your path.",
-    "ctaSectionDescription": "Whether you are a learner, partner, or volunteer — there is a path for you within our system.",
-    "leadershipDescription": "Institutional commitment to quality and transparency — no fake names; official human updates are announced via approved channels.",
-    "leadershipQuote": "We believe good education starts with respecting the learner: clarity in expectations, updated content, and a team accountable to the community. Our goal is not \"the biggest fastest\" — but building a lasting Arab professional reference.",
-    "leadershipFooter": "Senior Management — Educational Master Central (EMC)",
-    "faq1Title": "Is EMC a physical center or an online platform?",
-    "faq1Body": "EMC is a platform combining digital learning with in-person activities. Courses, workshops, and tracks are primarily online, with some events held in person when announced.",
-    "faq2Title": "Can I get a certificate recognized in Europe?",
-    "faq2Body": "Yes, certificates issued by E-accredited programs are recognized. Recognition depends on the program type and the partner institution.",
-    "faq3Title": "Is there support in Arabic for people who don't speak Dutch?",
-    "faq3Body": "Yes, most of our content is available in Arabic with support in English and Dutch. We focus on providing content that removes the language barrier.",
-    "faq4Title": "Do I need previous experience to join a track?",
-    "faq4Body": "No, many tracks start from beginner levels with gradual progression. Each track specifies its requirements so you can choose what matches your current level.",
-    "faq5Title": "How can I contact the team for a specific inquiry?",
-    "faq5Body": "Through the contact page: choose the appropriate inquiry type and we will respond as soon as possible.",
-    "faq6Title": "Can institutions or trainers partner with EMC?",
-    "faq6Body": "Yes, we welcome institutional and individual partnerships. Visit the partnerships page or contact us directly via the contact page."
+    "hero": {
+      "badge": "About EMC",
+      "title": "We are not starting over we are completing what we built",
+      "subtitle": "An educational and development platform building bridges between knowledge, skills, and opportunities in professional Arabic and to global standards.",
+      "breadcrumbCurrent": "About EMC",
+      "primaryCta": "Explore Programs",
+      "secondaryCta": "Contact Us",
+      "stats": {
+        "fields": {
+          "value": "12",
+          "label": "learning fields within the EMC ecosystem"
+        },
+        "programs": {
+          "value": "Diverse",
+          "label": "programs and workshops per the catalog"
+        },
+        "transparency": {
+          "value": "Transparency",
+          "label": "impact and data without exaggeration"
+        }
+      }
+    },
+    "who": {
+      "eyebrow": "Who We Are",
+      "title": "An Empowerment-Through-Education Platform",
+      "paragraph": "We support individuals through transitions study, work, migration, or re-setting priorities with programs and paths that are continuously updated to reflect market and community needs.",
+      "glanceTitle": "Quick Glance",
+      "glance": {
+        "academic": {
+          "label": "Academic and professional paths",
+          "sub": "Planning and guidance"
+        },
+        "digital": {
+          "label": "Digital empowerment",
+          "sub": "Tools and skills"
+        },
+        "community": {
+          "label": "A learning community",
+          "sub": "Support and partnerships"
+        },
+        "lifelong": {
+          "label": "Continuous learning",
+          "sub": "Workshops and programs"
+        }
+      }
+    },
+    "journey": {
+      "title": "Your Journey with EMC",
+      "subtitle": "From the first step to continuous growth at a clear pace without complexity.",
+      "steps": {
+        "explore": {
+          "title": "Explore",
+          "description": "Identify your need through the programs or a brief conversation."
+        },
+        "choose": {
+          "title": "Choose a Path",
+          "description": "A course, workshop, or learning path that fits your stage."
+        },
+        "apply": {
+          "title": "Learn and Apply",
+          "description": "Practical sessions and resources that support application, not just memorization."
+        },
+        "grow": {
+          "title": "Follow Up and Grow",
+          "description": "Feedback and next steps within the EMC ecosystem."
+        }
+      }
+    },
+    "visionMission": {
+      "eyebrow": "Institutional Direction",
+      "title": "Vision & Mission",
+      "subtitle": "A clear vision and a practical mission: empowerment through quality education, honest guidance, and a respectful learner experience.",
+      "visionTitle": "Vision",
+      "visionBody": "To be a trusted reference in building educational and professional paths for individuals and institutions, while preserving content quality and its human impact.",
+      "missionTitle": "Mission",
+      "missionBody": "To deliver training and consulting programs and learning paths that help learners make clearer decisions, develop their skills, and integrate confidently into diverse environments."
+    },
+    "roadmap": {
+      "eyebrow": "Toward the Future",
+      "title": "The EMC Roadmap",
+      "description": "Stages of developing the ecosystem with professional honesty we update priorities as we learn from the community and partners.",
+      "milestones": {
+        "unify": {
+          "title": "Unifying the digital experience",
+          "description": "Connecting the catalog, registration, and follow-up in a single path the learner understands and that makes the operations team's work easier."
+        },
+        "partnerships": {
+          "title": "Expanding institutional partnerships",
+          "description": "Clear agreements with universities, institutions, and trainers with documented quality and governance standards."
+        },
+        "impact": {
+          "title": "Periodic impact reports",
+          "description": "Publishing realistic impact summaries for the community and partners, while respecting participants' privacy."
+        },
+        "tracks": {
+          "title": "Developing paths across the twelve fields",
+          "description": "Stronger links between fields and paths so the learner moves confidently through predictable steps."
+        }
+      }
+    },
+    "leadership": {
+      "eyebrow": "From Management",
+      "title": "A Word to the Learning Community",
+      "description": "An institutional commitment to quality and transparency no fictitious names; official staffing updates are announced through approved channels.",
+      "quote": "We believe good education starts with respecting the learner: clarity of expectations, content that gets updated, and a team accountable to the community. Our goal is not \"biggest, fastest\" but building a lasting professional Arabic reference.",
+      "attribution": "Senior Management Educational Master Central (EMC)"
+    },
+    "differentiators": {
+      "eyebrow": "Distinction",
+      "title": "What Sets EMC Apart?",
+      "subtitle": "We distinguish ourselves by connecting content, guidance, and partnerships not by quick promises or false claims.",
+      "items": {
+        "ecosystem": {
+          "title": "An ecosystem, not a catalog",
+          "description": "We connect language, path, skills, and digital empowerment in a sequential, measurable experience."
+        },
+        "audience": {
+          "title": "A broad audience with real needs",
+          "description": "Students, migrants, professionals, and growth seekers we design practical paths for them, not empty slogans."
+        },
+        "ai": {
+          "title": "AI with responsibility",
+          "description": "We use digital tools to accelerate learning, with clear guardrails and usage ethics."
+        },
+        "guidance": {
+          "title": "Practical guidance",
+          "description": "Workshops, consultations, and follow-up that help you turn learning into decisions and steps."
+        }
+      }
+    },
+    "digital": {
+      "eyebrow": "The Digital Future",
+      "title": "Education, AI, and Digital Transformation",
+      "subtitle": "We believe digital transformation is an opportunity for the learner when delivered in understandable language with safe tools.",
+      "points": {
+        "intro": "Practical introductions to AI and its everyday and professional uses.",
+        "skills": "Digital skills that support productivity and lifelong learning.",
+        "safety": "Principles of privacy, safety, and responsibility when using tools.",
+        "alignment": "Linking technology to your academic or professional goals, not as an end in itself."
+      }
+    },
+    "audience": {
+      "title": "Who Do We Serve?",
+      "subtitle": "A diverse community united around one goal: building a clearer path through quality learning.",
+      "cards": {
+        "students": {
+          "title": "Students and graduates",
+          "body": "Academic planning, languages, and preparation for the next stage."
+        },
+        "newcomers": {
+          "title": "Migrants and newcomers",
+          "body": "Language, professional, and community support attuned to the reality of transition."
+        },
+        "professionals": {
+          "title": "Professionals and growth seekers",
+          "body": "Practical skills, entrepreneurship, and responsible digital empowerment."
+        },
+        "families": {
+          "title": "Families and youth",
+          "body": "Age-appropriate programs with supervision and safe design."
+        },
+        "organizations": {
+          "title": "Institutions and teams",
+          "body": "Training workshops and partnerships with defined goals."
+        },
+        "trainers": {
+          "title": "Trainers and experts",
+          "body": "Content partnerships within quality and governance standards."
+        }
+      }
+    },
+    "midCta": {
+      "title": "Ready for the Next Step?",
+      "body": "Choose the right program, or contact us for a brief consultation about your path.",
+      "primary": "Programs & Courses",
+      "secondary": "Contact Us"
+    },
+    "cta": {
+      "title": "Join the EMC Community",
+      "description": "Whether you are a learner, partner, or volunteer there is a path for you within our ecosystem.",
+      "primary": "Explore the Fields",
+      "secondary": "Partnership"
+    }
   },
   "contact": {
-    "title": "Contact Us",
-    "heroTitle": "We Are Here to Help",
-    "general": "General Inquiry",
-    "workshop": "Request Workshop",
-    "partnership": "Partnership",
-    "volunteering": "Volunteering",
-    "technicalSupport": "Technical Support",
-    "fullName": "Full Name",
-    "email": "Email",
-    "phone": "Phone Number",
-    "requestType": "Request Type",
-    "message": "Message",
-    "sendMessage": "Send Message",
-    "sendingMessage": "Sending...",
-    "successMessage": "Your message has been sent successfully. We will get back to you as soon as possible.",
-    "validationError": "Please fill in your name, email, and message.",
-    "sendError": "Could not send message. Please try again.",
-    "quickGuide": "Quick Guide",
-    "guideText1": "Choose the request type that matches your inquiry for a faster response.",
-    "guideText2": "Workshop requests are reviewed by the Programs Department.",
-    "guideText3": "Partnership inquiries are directed to the Partnerships Department.",
-    "contactInfo": "Contact Information",
-    "socialChannels": "Social Channels",
-    "becomeTrainer": "Become a Trainer at EMC",
-    "becomeTrainerDesc": "If you have expertise in any field and want to join our trainer team, contact us.",
-    "ctaWorkshop": "Request Workshop",
-    "optionGeneral": "General Inquiry",
-    "optionPartnership": "Partnership",
-    "optionVolunteering": "Volunteering",
-    "optionSupport": "Technical Support",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "Choose the appropriate contact path: general, program, partnership, volunteer, or technical support — then send your message.",
-    "cardGeneralBody": "Inquiries about programs, services, or general info about EMC.",
-    "cardGeneralHint": "Use the form below and select \"General Inquiry\".",
-    "cardWorkshopBody": "For organizations and individuals who want to propose a program or organized workshop.",
-    "cardPartnershipBody": "For universities, companies, trainers, and community initiatives.",
-    "cardVolunteerBody": "To join as a contributor in one of the departments or activities.",
-    "cardSupportBody": "Problems with login, links, or the platform experience.",
-    "optionsSectionTitle": "Contact Options",
-    "optionsSectionDesc": "Quick tip: if your request relates to submitting a formal workshop, the dedicated form ensures complete fields.",
-    "formSectionText": "Send your message directly to the EMC team. For formal workshop requests, use the dedicated submission page.",
-    "subjectLabel": "Subject",
-    "quickGuideDesc": "To ensure receiving full details (category, time, location, price…) use the dedicated submission form — without breaking the API integration.",
-    "socialChannelsDesc": "Official links will be added here once approved — please refer to the official email until then.",
-    "socialChannelsText": "For more security, please communicate via the approved email",
-    "locationSectionTitle": "Location and Service Scope",
-    "locationCardTitle": "Service Scope",
-    "locationCardDesc": "Online programs with Arab and Dutch communities, and in-person events when announced on official pages.",
-    "guideItem1": "If you are unsure of the request type, choose \"General Inquiry\" and explain your details — we will redirect.",
-    "guideItem2": "For technical support, mention the browser, device, and time of the issue if possible.",
-    "guideItem3": "Do not share passwords or sensitive information via a public form."
-  },
-  "departments": {
-    "title": "Departments",
-    "heroTitle": "EMC Departments",
-    "whyDepartments": "Why Specialized Departments?",
-    "whyDepartmentsDesc": "An organizational structure that serves learning quality. Each department has a clear role within an integrated framework.",
-    "howTheyWork": "How Do Departments Work Together?",
-    "howTheyWorkDesc": "An institutional collaboration model — from program design to achieving impact.",
-    "phaseDesign": "Design & Approval",
-    "phaseDesignDesc": "Programs are designed and approved by the relevant departments",
-    "phaseExecute": "Execution & Experience",
-    "phaseExecuteDesc": "Operations and marketing work together to deliver the experience",
-    "phaseSustain": "Sustainability & Development",
-    "phaseSustainDesc": "Quality reviews and reports ensure continuous improvement",
-    "governance": "Quality & Governance",
-    "governanceDesc": "Quality and governance is not just a slogan — it is the reference for every step.",
-    "governanceBullet1": "Standardized operating procedures for every process",
-    "governanceBullet2": "Periodic quality review for all programs",
-    "governanceBullet3": "Risk management and complaint handling",
-    "governanceBullet4": "Continuous improvement based on measurable indicators",
-    "joinTeam": "Join the EMC Team",
-    "ctaVolunteer": "Volunteer Page",
-    "ctaContact": "Contact for Opportunities",
-    "metricsInstitutional": "Institutional",
-    "metricsImprovement": "Continuous",
-    "metricsDigital": "Secure",
-    "metricsGovernance": "Active",
-    "faqTitle": "FAQs",
-    "faqDesc": "About the structure and operations",
-    "layersTitle": "Operating Layers",
-    "layersDesc": "Three layers — organized interaction",
-    "layerStrategic": "Strategic Layer",
-    "layerOperational": "Operational Layer",
-    "layerSupport": "Support Layer",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "An administrative structure ensuring program quality, smooth operations, and sustainable partnerships — with clear governance and professional accountability.",
-    "phaseBadge": "Phase {{number}}",
-    "ctaDescription": "If you have experience in training, operations, technology, or marketing — you could have a role in one of the departments."
-  },
-  "partnerships": {
-    "title": "Partnerships",
-    "heroTitle": "A Responsible Collaboration Model",
-    "whyPartner": "Why Partner with EMC?",
-    "whyPartnerDesc": "We believe in building sustainable bridges with institutions and organizations to expand educational impact together.",
-    "types": "Partnership Types",
-    "benefits": "What Partners Receive",
-    "benefitDesc": "Practical value: access to a learning community, joint programs, and periodic impact reports.",
-    "benefitAudience": "Access to a diverse learner community",
-    "benefitCoBrand": "Co-branded programs and certificates",
-    "benefitReports": "Periodic impact reports",
-    "benefitNetwork": "Networking with experts and institutions",
-    "journey": "Collaboration Journey",
-    "stepContact": "Initial Contact",
-    "stepContactDesc": "Get to know each other and explore collaboration opportunities",
-    "stepProposal": "Proposal",
-    "stepProposalDesc": "Present partnership model and agree on terms",
-    "stepExecute": "Approval & Execution",
-    "stepExecuteDesc": "Formalize agreement and launch joint programs",
-    "stepEvaluate": "Evaluation & Improvement",
-    "stepEvaluateDesc": "Measure impact, review results, and improve",
-    "opportunities": "Examples of Collaboration Opportunities",
-    "opp1": "Joint certification programs",
-    "opp2": "Sponsored workshops and courses",
-    "opp3": "Academic research and knowledge exchange",
-    "ctaStart": "Start a Partnership Dialogue",
-    "ctaContact": "Contact Us",
-    "ctaWorkshop": "Submit a Workshop",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "We welcome universities, schools, companies, trainers, community initiatives, and supporting entities — with terms of clarity and shared purpose.",
-    "journeyDescription": "Simple steps that reduce confusion and accelerate launch — with flexibility per partner type.",
-    "phaseBadge": "Phase {{number}}",
-    "opportunitiesDescription": "Realistic titles that can be customized later based on program and entity availability.",
-    "ctaText": "Send us the partnership idea, institution type, and target group. We will reply clarifying collaboration feasibility and the next step — no commitment before mutual agreement.",
-    "bottomCtaDesc": "Contact us via the contact page and choose a topic related to partnerships so your message is directed to the right team."
-  },
-  "volunteer": {
-    "title": "Volunteer & Join the EMC Team",
-    "heroTitle": "Join the Impact",
-    "whyJoin": "Why Join EMC?",
-    "realImpact": "Real Impact",
-    "realImpactDesc": "Contribute to building an educational platform that serves the community",
-    "careerExp": "Professional Experience",
-    "careerExpDesc": "Build your skills and CV through structured volunteering",
-    "supportiveCommunity": "Supportive Community",
-    "supportiveCommunityDesc": "Work with a diverse team dedicated to quality and impact",
-    "roles": "Roles & Areas You Can Contribute To",
-    "journeyTitle": "Your Journey",
-    "stepInterest": "Express Interest",
-    "stepInterestDesc": "Fill out the application form with your information",
-    "stepInterview": "Brief Interview",
-    "stepInterviewDesc": "Get to know us and we learn about your skills",
-    "stepTrial": "Guided Trial",
-    "stepTrialDesc": "Try a task or join a meeting to see if it's a good fit",
-    "stepEvaluation": "Evaluation & Development",
-    "stepEvaluationDesc": "Regular feedback and growth opportunities",
-    "commitment": "Expected Commitment",
-    "commitmentTime": "Set weekly hours",
-    "commitmentTimeDesc": "Flexible hours depending on the role and your availability",
-    "commitmentDiscipline": "Discipline & Communication",
-    "commitmentDisciplineDesc": "Clear communication and reliability in assigned tasks",
-    "skills": "Skills We're Looking For",
-    "ctaApply": "Apply Now",
-    "ctaTeam": "Meet the Team",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "An opportunity to contribute to high-quality educational programs — with practical learning and a disciplined team experience.",
-    "rolesDescription": "We don't promise \"magical\" thousands of hours — we define roles linked to our departments based on actual program needs.",
-    "rolesPrefix": "Contribution examples:",
-    "journeyDescription": "Clear steps that reduce confusion and build proper commitment from both sides.",
-    "commitmentDescription": "We respect your time; therefore we ask for realistic expectations that can be committed to.",
-    "commitmentTimeExtra": "Advance scheduling with room for reasonable adjustment.",
-    "commitmentDisciplineExtra": "Early notification upon conflict to reschedule.",
-    "skillsDescription": "They vary by role, but these are common basics that help us work smoothly.",
-    "skill1": "Clear communication in Arabic (English is a plus when needed).",
-    "skill2": "Discipline in appointments and documentation.",
-    "skill3": "Respect for participant privacy and platform policies.",
-    "skill4": "Experience in training, editing, design, or operations — depending on the role.",
-    "skill5": "Willingness to learn and benefit from guidance.",
-    "skill6": "Collaborative spirit within a diverse team.",
-    "ctaText": "We use the contact page to receive joining and volunteering requests. Choose an appropriate topic and mention the field you wish to contribute in, and your message will be directed to the relevant department.",
-    "bottomCtaDesc": "Volunteering at EMC means responsibility and quality. If this aligns with your values, we welcome your contact."
+    "hero": {
+      "eyebrow": "We're Here to Help",
+      "title": "Contact Us",
+      "subtitle": "Choose the right contact path: general, program, partnership, volunteering, or technical support then send your message.",
+      "breadcrumbCurrent": "Contact Us",
+      "faqCta": "FAQ"
+    },
+    "trainer": {
+      "title": "Become a Trainer with EMC",
+      "body": "If you have training experience and meet our quality standards, reach out via the form below choosing the appropriate subject, and we will get in touch."
+    },
+    "options": {
+      "title": "Contact Options",
+      "description": "Quick tip: if your request concerns submitting an official workshop, the dedicated form ensures all required fields are collected.",
+      "cards": {
+        "general": {
+          "title": "General inquiry",
+          "body": "Questions about programs, services, or general information about EMC.",
+          "hint": "Use the form below and choose \"General inquiry\"."
+        },
+        "program": {
+          "title": "Request a program or workshop",
+          "body": "For institutions and individuals who want to propose a program or an organized workshop.",
+          "hint": "Go to the workshop submission form"
+        },
+        "partnership": {
+          "title": "Partnership",
+          "body": "For universities, companies, trainers, and community initiatives.",
+          "hint": "Partnerships page"
+        },
+        "volunteer": {
+          "title": "Volunteering",
+          "body": "To join as a contributor in one of the departments or activities.",
+          "hint": "Volunteering page"
+        },
+        "support": {
+          "title": "Technical support",
+          "body": "Issues with login, links, or the platform experience.",
+          "hint": "Support email: {{email}}"
+        }
+      }
+    },
+    "form": {
+      "title": "General Contact Form",
+      "intro": "Send your message directly to the EMC team. For official workshop requests, use the dedicated submission page.",
+      "fields": {
+        "name": "Full name",
+        "email": "Email address",
+        "phone": "Mobile number",
+        "category": "Request type",
+        "subject": "Subject",
+        "message": "Message"
+      },
+      "categories": {
+        "general": "General inquiry",
+        "partnership": "Partnership",
+        "volunteer": "Volunteering",
+        "tech": "Technical support"
+      },
+      "submit": "Send Message",
+      "submitting": "Sending...",
+      "successMessage": "Your message was sent successfully. The team will contact you soon.",
+      "ticketLabel": "Your ticket number",
+      "ticketKeep": "Keep this number for follow-up"
+    },
+    "info": {
+      "title": "Contact Details",
+      "emailNote": "General · Legal · Complaints",
+      "supportNote": "Technical support · Tickets"
+    },
+    "workshopCard": {
+      "title": "Request a Workshop or Program",
+      "body": "To ensure we receive all details (audience, time, location, price…), use the dedicated submission form without breaking API integration.",
+      "cta": "Go to the Workshop Form"
+    },
+    "social": {
+      "title": "Social Channels",
+      "description": "Official links will be added here once approved please rely on the official email until then.",
+      "notePrefix": "For extra safety, prefer contacting us via the approved email"
+    },
+    "location": {
+      "title": "Location & Service Area",
+      "serviceTitle": "Service Area",
+      "serviceBody": "Online programs with Arabic and Dutch communities, and in-person events when announced on the official pages."
+    },
+    "guidelines": {
+      "title": "Quick Guidelines",
+      "items": {
+        "unsure": "If you are unsure of the request type, choose \"General inquiry\", explain your details, and we will redirect it.",
+        "techDetails": "For technical support, mention your browser, device, and when the issue occurred if possible.",
+        "noSensitive": "Do not share passwords or sensitive information via a general form."
+      }
+    }
   },
   "tracks": {
-    "title": "The 12 Themes",
-    "subtitle": "EMC's official themes — a single matrix that represents integrated educational fields.",
-    "intro": "Choose the theme that matches your current need. Each theme opens a world of courses and tracks.",
-    "exploreCourses": "Explore Courses",
-    "viewAll": "View All Themes & Details",
-    "exploreTheme": "Explore Theme",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "EMC's official tracks — a single matrix combining academic, global, digital, and professional education within a premium Arab experience."
+    "header": {
+      "title": "The Twelve Tracks",
+      "subtitle": "EMC's official tracks one matrix uniting academic, global, digital, and professional education in a premium Arabic experience.",
+      "breadcrumbCurrent": "Tracks"
+    },
+    "eyebrow": "Tracks",
+    "intro": "A modern, organized tracks experience: the same twelve-part system, with cards designed for easy reading and quick access to the programs. Pick the track that starts from your current need; every card links you directly to the programs and courses catalog without leaving EMC's institutional style.",
+    "exploreCta": "Explore Programs"
   },
-  "programs": {
-    "title": "Training Programs",
-    "shortCourses": "Short Courses",
-    "shortCoursesDesc": "Focused workshops and sessions to build specific skills in a short time.",
-    "integratedPrograms": "Integrated Programs",
-    "integratedProgramsDesc": "Comprehensive programs covering multiple topics within a structured learning path.",
-    "languagePrograms": "Language Programs",
-    "languageProgramsDesc": "From beginner to professional — language learning with a practical approach.",
-    "certificates": "Professional Certificates",
-    "certificatesDesc": "Recognized certificates upon completion of tracks and professional programs.",
-    "statsPrograms": "Programs & Courses",
-    "statsStudents": "Trainees",
-    "statsSatisfaction": "Trainee Satisfaction",
-    "popular": "Most Popular",
-    "browseAll": "Browse All Programs & Courses",
-    "needHelp": "Need Help Choosing?",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "Diverse programs suiting every level and goal — from short courses to accredited professional certificates.",
-    "shortCoursesDuration": "1 week — 4 weeks",
-    "shortCoursesDesc": "Intensive and flexible courses suitable for busy professionals. Focus on one skill or specific topic with immediate results.",
-    "shortCoursesFeature1": "Intensive Content",
-    "shortCoursesFeature2": "Flexible Schedules",
-    "shortCoursesFeature3": "Completion Certificate",
-    "shortCoursesFeature4": "Online & In-Person",
-    "integratedDuration": "2 — 6 months",
-    "integratedDesc": "Comprehensive programs combining multiple skills in one progressive path, with continuous follow-up and applied projects.",
-    "integratedFeature1": "Integrated Path",
-    "integratedFeature2": "Applied Projects",
-    "integratedFeature3": "Personal Follow-up",
-    "integratedFeature4": "Professional Certificate",
-    "languageDuration": "4 — 24 weeks",
-    "languageDesc": "Graduated language paths from beginner to advanced in English, Dutch, and Arabic, with focus on practical language.",
-    "languageFeature1": "Multiple Levels",
-    "languageFeature2": "Live Conversation",
-    "languageFeature3": "Test Preparation",
-    "languageFeature4": "Students & Professionals",
-    "certificatesDuration": "3 — 9 months",
-    "certificatesDesc": "Programs ending with accredited certificates in management, technology, marketing, and data.",
-    "certificatesFeature1": "Accredited Certificate",
-    "certificatesFeature2": "Expert Supervision",
-    "certificatesFeature3": "Continuous Evaluation",
-    "certificatesFeature4": "International Recognition",
-    "ctaText": "Our team of advisors is ready to help you choose the right program for your goals and circumstances."
+  "departments": {
+    "hero": {
+      "eyebrow": "Organizational Structure",
+      "title": "EMC Departments",
+      "subtitle": "An administrative structure that ensures program quality, smooth operations, and sustainable partnerships with clear governance and professional accountability.",
+      "breadcrumbCurrent": "Departments"
+    },
+    "why": {
+      "eyebrow": "Why do we need specialized departments?",
+      "title": "Organization That Serves Learning Quality",
+      "description": "Educational programs need planning, operations, technology, and partnerships all of which require specialized teams collaborating under a unified vision.",
+      "body": "Dividing work into departments does not mean complexity it means every decision is tied to clear accountability: from program design to participant experience, and from institutional communication to quality and compliance."
+    },
+    "flow": {
+      "title": "How Do the Departments Work Together?",
+      "description": "An institutional collaboration model: Programs designs the content, Operations executes, Technology supports, Quality reviews and Partnerships expands the impact.",
+      "phaseBadge": "Phase {{num}}",
+      "phases": {
+        "design": {
+          "title": "Design and approval",
+          "body": "The Programs department builds the path, and Quality ensures compliance with standards before launch."
+        },
+        "execute": {
+          "title": "Execution and experience",
+          "body": "Operations manages schedules and services, and Marketing delivers the message transparently."
+        },
+        "sustain": {
+          "title": "Sustainability and development",
+          "body": "Finance and HR support continuity, and Technology maintains security."
+        }
+      }
+    },
+    "governance": {
+      "title": "Governance & Quality",
+      "description": "Quality and governance management is not a slogan it is a mechanism for reviewing policies, managing risks, and improving the experience based on participant and partner feedback.",
+      "points": {
+        "policies": "Clear policies for privacy, safety, and complaints.",
+        "review": "Periodic review of content quality and the learning experience.",
+        "documentation": "Documenting procedures to ensure continuity even as the team changes.",
+        "transparency": "Transparency with partners and sponsors within ethical frameworks."
+      }
+    },
+    "cta": {
+      "title": "Join the EMC Team",
+      "description": "If you have experience in training, operations, technology, or marketing you can have a role within one of the departments.",
+      "primary": "Volunteering & Joining Page",
+      "secondary": "Contact About a Job/Collaboration"
+    }
+  },
+  "partnerships": {
+    "hero": {
+      "eyebrow": "A Responsible Collaboration Model",
+      "title": "Partnerships",
+      "subtitle": "We welcome universities, schools, companies, trainers, community initiatives, and supporting organizations on terms of clarity and a shared goal.",
+      "breadcrumbCurrent": "Partnerships"
+    },
+    "why": {
+      "title": "Why Partner with EMC?",
+      "description": "Because we work on connecting quality education to real needs: individuals seeking a path, and institutions seeking impact within a framework of quality and respect for the learner.",
+      "body": "We believe a successful partnership is built on defined goals, clear roles, and measurable outcomes. We do not promise \"huge instant results\" we commit to professionalism in design, execution, and follow-up."
+    },
+    "typesTitle": "Partnership Types",
+    "benefits": {
+      "title": "What Do Partners Get?",
+      "description": "Practical value: access to a learning community, quality execution, and a clear content identity.",
+      "items": {
+        "design": "Co-designing programs according to the organization's needs and target audience.",
+        "coordination": "Operational and media coordination that maintains a professional participant experience.",
+        "visibility": "The option to highlight the partner within ethical, transparent frameworks.",
+        "review": "Quality review and post-delivery follow-up to improve future rounds."
+      }
+    },
+    "process": {
+      "title": "The Collaboration Path",
+      "description": "Simple steps that reduce ambiguity and speed up the start with flexibility per partner type.",
+      "stageBadge": "Phase {{num}}",
+      "steps": {
+        "initial": {
+          "title": "Initial contact",
+          "description": "We define the goal, audience, and expected timeline."
+        },
+        "proposal": {
+          "title": "Proposal",
+          "description": "We present a program or partnership plan with deliverables and responsibilities."
+        },
+        "execution": {
+          "title": "Approval and execution",
+          "description": "Approving the scope of work, then operating with quality follow-up."
+        },
+        "evaluation": {
+          "title": "Evaluation and improvement",
+          "description": "Participant and partner feedback enters the improvement cycle."
+        }
+      }
+    },
+    "examples": {
+      "title": "Example Collaboration Opportunities",
+      "description": "Realistic themes that can be customized later depending on available programs and organizations.",
+      "items": {
+        "university": "A workshop series for university students on professional skills and specialization paths.",
+        "corporate": "A language and orientation program for new employees within a company or institution.",
+        "community": "A community partnership supporting a specific group through partial grants or expert volunteering."
+      }
+    },
+    "contactBlock": {
+      "title": "Contact & Partnership Block",
+      "body": "Send us your partnership idea, organization type, and target audience. We will reply with a message clarifying the potential for collaboration and the next step with no commitment before mutual agreement."
+    },
+    "cta": {
+      "title": "Start the Partnership Conversation",
+      "description": "Contact us via the contact page and choose a partnership-related subject so your message is routed to the right team.",
+      "primary": "Contact Us",
+      "secondary": "Submit a Workshop or Program"
+    }
+  },
+  "volunteer": {
+    "hero": {
+      "eyebrow": "Join the Impact",
+      "title": "Volunteering & Joining the EMC Team",
+      "subtitle": "An opportunity to contribute to high-quality educational programs with hands-on learning and a disciplined team experience.",
+      "breadcrumbCurrent": "Volunteering",
+      "primaryCta": "Apply to Volunteer",
+      "secondaryCta": "Meet the Team"
+    },
+    "why": {
+      "badge": "Why join EMC?",
+      "items": {
+        "impact": {
+          "title": "Real impact",
+          "description": "Contributing to learning experiences that benefit people from diverse backgrounds."
+        },
+        "experience": {
+          "title": "Professional experience",
+          "description": "Learn how programs, operations, and quality are organized from the inside."
+        },
+        "community": {
+          "title": "A supportive community",
+          "description": "A respectful volunteering environment with clear boundaries for time and tasks."
+        }
+      }
+    },
+    "roles": {
+      "badge": "Available Areas",
+      "title": "Roles and Areas Where You Can Contribute",
+      "description": "We do not promise thousands of \"magical\" hours we define roles tied to our departments based on the programs' actual needs."
+    },
+    "journey": {
+      "badge": "Your Journey with Us",
+      "title": "The Volunteer Journey",
+      "description": "Clear steps that reduce ambiguity and build the right commitment on both sides.",
+      "steps": {
+        "interest": {
+          "title": "Express interest",
+          "description": "Send us a brief on your experience, field, and available time with no commitment."
+        },
+        "interview": {
+          "title": "Short interview",
+          "description": "A brief introduction session to clarify available roles and expectations on both sides."
+        },
+        "trial": {
+          "title": "Structured trial",
+          "description": "You start with defined tasks under supervision from the Programs or Operations department."
+        },
+        "growth": {
+          "title": "Evaluation and growth",
+          "description": "Periodic feedback to improve the experience and possibly move to a broader role."
+        }
+      }
+    },
+    "commitment": {
+      "badge": "What We Expect from You",
+      "title": "Expected Commitment",
+      "description": "We respect your time; that is why we ask for realistic expectations you can commit to.",
+      "blocks": {
+        "time": {
+          "title": "A defined weekly time",
+          "lines": {
+            "range": "Usually between 26 hours depending on the role and stage.",
+            "scheduling": "Advance scheduling with room for reasonable adjustment."
+          }
+        },
+        "discipline": {
+          "title": "Discipline and communication",
+          "lines": {
+            "deadlines": "Meeting agreed deadlines.",
+            "notice": "Early notice when a conflict arises, to re-coordinate."
+          }
+        }
+      }
+    },
+    "skills": {
+      "badge": "What We Look For",
+      "title": "Skills We Look For",
+      "description": "They vary by role, but these are common basics that help us work smoothly.",
+      "items": {
+        "communication": "Clear communication in Arabic (English is a plus when needed).",
+        "punctuality": "Discipline with deadlines and documentation.",
+        "privacy": "Respect for participants' privacy and platform policies.",
+        "expertise": "Experience in training, editing, design, or operations depending on the role.",
+        "learning": "A desire to learn and benefit from guidance.",
+        "teamwork": "A collaborative spirit within a diverse team."
+      }
+    },
+    "cta": {
+      "badge": "Ready to join?",
+      "title": "Start Your Volunteering Journey with EMC",
+      "description": "Submit your application via the dedicated form enter your details, choose your department, and share your experience. We will review your application and contact you soon.",
+      "primary": "Apply to Volunteer",
+      "secondary": "Meet the Team"
+    }
   },
   "platform": {
-    "title": "Platform",
-    "heroTitle": "EMC Platform — An Integrated Educational Environment",
-    "globalPlatform": "A Global Digital Educational Platform",
-    "whyEmc": "Why EMC?",
-    "feature1": "Flexible Hybrid Learning",
-    "feature1Desc": "Combine online and in-person learning according to your needs and schedule.",
-    "feature2": "Specialized Trainers",
-    "feature2Desc": "Learn from experts with practical experience in their fields.",
-    "feature3": "Updated Content",
-    "feature3Desc": "Content continuously updated to keep pace with market developments.",
-    "feature4": "Accredited Certificates",
-    "feature4Desc": "Get accredited certificates upon completion of programs and tracks.",
-    "feature5": "Continuous Support",
-    "feature5Desc": "Personal follow-up and technical support throughout your learning journey.",
-    "feature6": "Safe & Trusted Environment",
-    "feature6Desc": "A secure digital environment that protects your data and privacy.",
-    "howToStart": "How to Start?",
-    "step1": "Create Account",
-    "step1Desc": "Register in minutes with your email",
-    "step2": "Choose Your Program",
-    "step2Desc": "Browse programs and select what suits your goal",
-    "step3": "Start Learning",
-    "step3Desc": "Access content, attend sessions, and track your progress",
-    "step4": "Get Your Certificate",
-    "step4Desc": "Complete requirements and receive your accredited certificate",
-    "ctaStart": "Register for Free Now",
-    "benefits": "Platform Benefits",
-    "tagOnline": "Online & In-Person",
-    "tagSupport": "Personal Support",
-    "tagCertified": "Certified Trainers",
-    "tagAccredited": "Accredited Certificates",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "EMC Platform — an integrated learning environment designed to help you grow with confidence and professionalism.",
-    "heroText": "The EMC platform was designed to be your companion at every step of your educational journey — from choosing the program to obtaining the certificate. We combine academic expertise, professional training, and personal support in one integrated environment.",
-    "heroImageAlt": "The digital learning environment at EMC",
-    "ctaSectionTitle": "Start Your Experience Today",
-    "ctaSectionDesc": "Register for free and start exploring our educational programs now.",
-    "feature1Desc": "Choose between in-person attendance, remote learning, or a hybrid according to your schedule and goals.",
-    "feature2Desc": "A team of certified trainers experienced in education, professional training, and consulting.",
-    "feature3Desc": "Curricula that keep pace with the modern job market and are regularly updated.",
-    "feature4Desc": "Get accredited completion certificates that enhance your professional profile.",
-    "feature5Desc": "Notifications, reminders, and personal support ensuring a continued learning journey.",
-    "feature6Desc": "Protected by modern security protocols that preserve trainee data and privacy.",
-    "step1Desc": "Register in minutes and complete your profile to receive personalized recommendations.",
-    "step2Desc": "Browse courses and paths and choose what suits your goal and level.",
-    "step3Desc": "Join your sessions, interact with the trainer, and complete practical applications.",
-    "step4Desc": "Complete the program and get your accredited certificate to advance your career."
+    "header": {
+      "title": "The Platform",
+      "subtitle": "The EMC platform an integrated learning environment designed to help you grow with confidence and professionalism.",
+      "breadcrumbCurrent": "The Platform"
+    },
+    "intro": {
+      "eyebrow": "A global digital learning platform",
+      "title": "Why EMC?",
+      "body": "The EMC platform is designed to be your companion at every step of your learning journey from choosing a program to earning your certificate and landing your opportunity. We combine academic expertise, professional training, and personal support in one integrated environment.",
+      "imageAlt": "The digital learning environment at EMC",
+      "tags": {
+        "hybrid": "Online and in-person",
+        "support": "Personal support",
+        "trainers": "Certified trainers",
+        "certificates": "Accredited certificates"
+      }
+    },
+    "features": {
+      "title": "Platform Features",
+      "items": {
+        "hybrid": {
+          "title": "Flexible hybrid learning",
+          "description": "Choose between in-person attendance, remote learning, or a mix of both, according to your schedule and goals."
+        },
+        "trainers": {
+          "title": "Specialized trainers",
+          "description": "A team of certified trainers experienced in education, professional training, and consulting."
+        },
+        "content": {
+          "title": "Continuously updated content",
+          "description": "Curricula that keep pace with the modern job market and are updated regularly to reflect the latest professional requirements."
+        },
+        "certificates": {
+          "title": "Accredited certificates",
+          "description": "Earn accredited completion certificates that strengthen your professional profile and open new doors."
+        },
+        "support": {
+          "title": "Ongoing follow-up and support",
+          "description": "A system of notifications, reminders, and personal support that keeps your learning journey uninterrupted."
+        },
+        "security": {
+          "title": "A safe, trusted environment",
+          "description": "A platform protected by modern security protocols that safeguard trainees' data and privacy."
+        }
+      }
+    },
+    "steps": {
+      "title": "How Do You Start?",
+      "items": {
+        "account": {
+          "title": "Create an account",
+          "description": "Sign up in minutes and complete your profile to receive personalized recommendations."
+        },
+        "choose": {
+          "title": "Choose your program",
+          "description": "Browse courses and paths and pick what fits your goal and level."
+        },
+        "learn": {
+          "title": "Start learning",
+          "description": "Join your sessions, interact with the trainer, and complete your practical assignments."
+        },
+        "certificate": {
+          "title": "Get your certificate",
+          "description": "Complete the program and receive your accredited certificate to boost your career."
+        }
+      }
+    },
+    "cta": {
+      "title": "Start Your Experience Today",
+      "body": "Register for free and start exploring our educational programs now.",
+      "button": "Register Now for Free"
+    }
   },
-  "paths": {
-    "title": "Learning Paths",
-    "studentPath": "Student Path",
-    "studentPathDesc": "For those seeking academic guidance and building a strong educational foundation.",
-    "studentStep1": "Academic orientation",
-    "studentStep2": "Skill development workshops",
-    "studentStep3": "University preparation programs",
-    "professionalPath": "Professional Path",
-    "professionalPathDesc": "For professionals looking to advance their careers and develop new skills.",
-    "professionalStep1": "Career assessment",
-    "professionalStep2": "Professional training programs",
-    "professionalStep3": "Certification and career advancement",
-    "integrationPath": "Integration Path",
-    "integrationPathDesc": "For newcomers and immigrants needing orientation and community connection.",
-    "integrationStep1": "Language and cultural orientation",
-    "integrationStep2": "Professional integration support",
-    "integrationStep3": "Community networking",
-    "ctaStart": "Start This Path",
-    "ctaConsult": "Talk to an Advisor",
-    "notSure": "Not Sure About Your Path?",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "Integrated paths designed to take you step by step from where you are to where you want to be.",
-    "studentSubtitle": "From preparation to university admission",
-    "studentPathDesc": "An integrated path taking the student from improving language skills to gaining admission to European universities and obtaining scholarships.",
-    "studentStep1Label": "Level Assessment",
-    "studentStep1Desc": "Determining the starting point and analyzing skill gaps",
-    "studentStep2Label": "Language Strengthening",
-    "studentStep2Desc": "IELTS / TOEFL / Dutch according to destination",
-    "studentStep3Label": "Academic Admission",
-    "studentStep3Desc": "Preparing the university file and admission letters",
-    "studentStep4Label": "Launch",
-    "studentStep4Desc": "Post-admission support and academic adaptation",
-    "professionalSubtitle": "From skills to job opportunity",
-    "professionalDesc": "An integrated program for developing professional competencies and distinguishing in the European job market.",
-    "professionalStep1Label": "Competency Assessment",
-    "professionalStep1Desc": "Analyzing current skills and market requirements",
-    "professionalStep2Label": "Professional Training",
-    "professionalStep2Desc": "Skills courses and job specialization",
-    "professionalStep3Label": "Employment Preparation",
-    "professionalStep3Desc": "CV, interviews, and professional network",
-    "professionalStep4Label": "Job Opportunity",
-    "professionalStep4Desc": "Continuous support until securing the job",
-    "integrationSubtitle": "From arrival to belonging",
-    "integrationDesc": "A specialized path helping immigrants and newcomers integrate into society and academic/professional life.",
-    "integrationStep1Label": "Language and Culture",
-    "integrationStep1Desc": "Learning Dutch and understanding local culture",
-    "integrationStep2Label": "Community Guidance",
-    "integrationStep2Desc": "Understanding available systems and services",
-    "integrationStep3Label": "Professional Development",
-    "integrationStep3Desc": "Work skills and local job market requirements",
-    "integrationStep4Label": "Independence",
-    "integrationStep4Desc": "Building a network and achieving stability",
-    "ctaSectionText": "Contact us and one of our advisors will help you choose the most suitable path for your goals."
+  "home": {
+    "hero": {
+      "badge": "An integrated learning platform · LMS · AI · Community",
+      "titleLine1": "Build your career",
+      "titleLine2": "with a method that goes deep",
+      "titleLine3": "not just content",
+      "subtitle": "Hands-on workshops, accredited courses, integrated paths supervised by specialized trainers and a professional LMS that tracks every step.",
+      "ctaPrimary": "Explore programmes",
+      "ctaSecondary": "Start free",
+      "stats": {
+        "beneficiaries": {
+          "value": "+20,000",
+          "label": "beneficiaries"
+        },
+        "campRegistrants": {
+          "value": "+17,000",
+          "label": "camp registrants"
+        },
+        "countries": {
+          "value": "+65",
+          "label": "countries"
+        }
+      },
+      "orbit": {
+        "workshops": "Workshops",
+        "courses": "Courses",
+        "paths": "Paths",
+        "ai": "AI",
+        "community": "Community"
+      }
+    },
+    "featured": {
+      "eyebrow": "Available Courses",
+      "title": "Our Featured Programs",
+      "viewAll": "View All Courses",
+      "aria": {
+        "prev": "Previous",
+        "next": "Next",
+        "page": "Page {{num}}"
+      },
+      "range": "{{from}}–{{to}} of {{total}} programs",
+      "emptyTitle": "Programs are loaded from the server",
+      "emptyCta": "Open the Catalog"
+    },
+    "grandCta": {
+      "eyebrow": "Start Your Journey",
+      "titlePrefix": "Ready to turn",
+      "titleHighlight": "your ambition",
+      "titleSuffix": "into a real career?",
+      "description": "Join more than 9,000 learners building their skills every day on the EMC platform your first workshop starts today.",
+      "primary": "Browse Programs & Courses",
+      "secondary": "Talk to the Team",
+      "footnote": "Free to join · Arabic support · Instant start"
+    }
   },
-  "courses": {
-    "heroTitle": "Explore Our Programs",
-    "heroSubtitle": "Workshops · Courses · Tracks — Designed to take you from learning to impact.",
-    "searchPlaceholder": "Search for a course, track, or skill...",
-    "categoryAll": "All",
-    "categoryAiTech": "AI & Technology",
-    "categoryLanguages": "Languages",
-    "categoryBusiness": "Business",
-    "categoryAcademic": "Academic",
-    "categoryPersonalDev": "Personal Development",
-    "filterAll": "All",
-    "filterFree": "Free",
-    "filterPaid": "Paid",
-    "filterNew": "New",
-    "filterUpcoming": "Upcoming",
-    "filterActive": "Active",
-    "sortPopular": "Most Popular",
-    "sortNewest": "Newest",
-    "sortPriceLow": "Price: Low to High",
-    "sortPriceHigh": "Price: High to Low",
-    "sortDuration": "Duration",
-    "gridView": "Grid view",
-    "listView": "List view",
-    "noResults": "No results match your filter.",
-    "noResultsDesc": "Try adjusting your search or filter criteria.",
-    "noPrograms": "No published programs at the moment.",
-    "loadMore": "Load More",
-    "showing": "Showing {{count}} of {{total}} courses",
-    "allLoaded": "All {{count}} courses shown",
-    "freeWorkshops": "Free Workshops",
-    "workshopsDesc": "Upcoming workshops — register for free!",
-    "allWorkshops": "All Workshops",
-    "howItWorks": "How Registration Works",
-    "stepChoose": "Choose Program",
-    "stepChooseDesc": "Browse and compare available programs",
-    "stepRegister": "Register",
-    "stepRegisterDesc": "Fill in your details and complete registration",
-    "stepConfirm": "Confirm & Follow",
-    "stepConfirmDesc": "Receive your enrollment confirmation and session links",
-    "freeVsPaid": "Free vs Paid",
-    "freeVsPaidDesc": "Pricing depends on the nature of the program and its content.",
-    "freeSupported": "Free or Supported Programs",
-    "freeSupportedDesc": "Most workshops and introductory courses are free or heavily subsidized.",
-    "paidPrograms": "Paid Programs",
-    "paidProgramsDesc": "Advanced tracks and professional certificates may have a fee.",
-    "ctaContact": "Contact Us",
-    "ctaTeamWorkshop": "Request a Team Workshop",
-    "ctaConsultation": "Book a Free Consultation",
-    "ctaAllTracks": "View All Tracks",
-    "aiTrack": "AI Engineer",
-    "dataScienceTrack": "Data Science",
-    "dataAnalysisTrack": "Data Analysis",
-    "academicTrack": "Academic",
-    "liveTrack": "Live",
-    "workshopGroup": "Group Workshop",
-    "aiWorkflow": "AI Workflow Automation",
-    "detailsTitle": "Program Details",
-    "courseType": "Course Type",
-    "duration": "Duration",
-    "instructor": "Instructor",
-    "price": "Price",
-    "location": "Location",
-    "seats": "Seats Available",
-    "whatYouLearn": "What You Will Learn",
-    "details": "Details",
-    "notFound": "Course not found",
-    "breadcrumbHome": "Home",
-    "breadcrumbCourses": "Courses",
-    "registerFree": "Register Now for Free",
-    "registerPaid": "Register Now",
-    "locationUnknown": "Not specified",
-    "statusActive": "Available for Registration",
-    "statusUnknown": "Unknown",
-    "typeSingleDay": "Workshop / Single Session",
-    "typeMultiDay": "Multi-day Course",
-    "instructorFallback": "Certified EMC Trainer",
-    "instructorTitleFallback": "Professional Trainer",
-    "instructorBioFallback": "A trainer specialized in developing professional and technical skills, offering realistic programs with practical focus.",
-    "descriptionFallback": "A practical training program that helps you develop your skills confidently through clear content and real-world applications.",
-    "detailsFallback": "This program is designed to help you develop your academic and professional skills through practical content suited to your goals.",
-    "capacityLabel": "{{count}} seat(s)",
-    "seatsFallback": "Limited seats",
-    "programTypeLabel": "Program Type",
-    "hoursLabel": "Training Hours",
-    "hoursValue": "{{hours}} training hour(s)",
-    "targetAudienceLabel": "Target Audience",
-    "languageLabel": "Course Language",
-    "levelLabel": "Level",
-    "certificateLabel": "Certificate",
-    "statusLabel": "Status",
-    "shareButtonLabel": "Share Course",
-    "fetchError": "Could not load course details. Please try again.",
-    "notFoundMessage": "We could not find this course. You can return to the courses page and choose another course.",
-    "fallbackLearningItem1": "Develop your academic and professional skills",
-    "fallbackLearningItem2": "Acquire practical, applicable knowledge",
-    "fallbackLearningItem3": "Improve your study or work opportunities",
-    "fallbackLearningItem4": "Build a clear plan for future development",
-    "ctaTitle": "Start Your Educational Journey Now",
-    "ctaDesc": "Choose the right course for you and start developing your skills today.",
-    "exploreAll": "Explore All Courses"
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "breadcrumbCurrent": "Log In",
+      "side": {
+        "eyebrow": "EMC Consulting & Training",
+        "title": "Welcome back",
+        "body": "Continue your learning journey and sign in to access your courses and enrollment requests."
+      },
+      "form": {
+        "email": "Email address",
+        "password": "Password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "forgot": "Forgot your password?",
+        "submit": "Log In",
+        "submitting": "Logging in..."
+      },
+      "noAccount": "Don't have an account?",
+      "signupLink": "Create an account",
+      "reasons": {
+        "session": "Your session has expired, please log in again",
+        "suspended": "This account has been suspended, please contact the administration",
+        "impersonationExpired": "The preview session has ended your admin account has been restored.",
+        "resetSuccess": "Your password has been reset, you can log in now."
+      }
+    },
+    "signup": {
+      "title": "Create an Account",
+      "breadcrumbCurrent": "Sign Up",
+      "heading": "Create a New Account",
+      "side": {
+        "eyebrow": "EMC OS",
+        "title": "Join the EMC digital ecosystem",
+        "body": "One account to access the student dashboard, enroll in programs, and track your learning activity."
+      },
+      "form": {
+        "name": "Full name",
+        "email": "Email address",
+        "password": "Password",
+        "passwordConfirmation": "Confirm password",
+        "country": "Country",
+        "phone": "Mobile number",
+        "phonePlaceholder": "000 000 0000",
+        "city": "City",
+        "gender": "Gender",
+        "genderPlaceholder": "Select gender",
+        "genderMale": "Male",
+        "genderFemale": "Female",
+        "howHeard": "How did you hear about us?",
+        "optional": "(optional)",
+        "howHeardPlaceholder": "Choose...",
+        "submit": "Create Account",
+        "submitting": "Creating..."
+      },
+      "howHeardOptions": {
+        "friend": "A friend or relative",
+        "social": "Social media",
+        "ad": "An advertisement",
+        "event": "An event or workshop",
+        "google": "Google search",
+        "alumni": "A former student",
+        "partner": "A partner or organization",
+        "other": "Other"
+      },
+      "validation": {
+        "nameRequired": "Full name is required",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Email address is invalid",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordConfirmationRequired": "Password confirmation is required",
+        "passwordMismatch": "The passwords do not match",
+        "countryRequired": "Please choose a country",
+        "phoneRequired": "Mobile number is required",
+        "cityRequired": "City is required",
+        "genderRequired": "Gender is required"
+      },
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log In"
+    },
+    "forgot": {
+      "title": "Forgot Password",
+      "breadcrumbCurrent": "Forgot Password",
+      "eyebrow": "Restore Access",
+      "heading": "Forgot your password?",
+      "intro": "Enter your email address and we will send you a reset link.",
+      "form": {
+        "email": "Email address",
+        "submit": "Send Reset Link",
+        "submitting": "Sending..."
+      },
+      "success": {
+        "title": "Link Sent",
+        "body": "If the email is linked to an account, you will receive a message with the reset link within minutes."
+      },
+      "backToLogin": "Back to Login"
+    },
+    "reset": {
+      "title": "Reset Password",
+      "breadcrumbCurrent": "Reset Password",
+      "eyebrow": "Account Security",
+      "invalid": {
+        "message": "The reset link is invalid or has expired.",
+        "requestNew": "Request a New Link"
+      },
+      "form": {
+        "newPassword": "New password",
+        "passwordConfirmation": "Confirm password",
+        "submit": "Set Password",
+        "submitting": "Updating..."
+      },
+      "strength": {
+        "weak": "Weak",
+        "medium": "Medium",
+        "strong": "Strong"
+      },
+      "validation": {
+        "tooShort": "Password must be at least {{min}} characters",
+        "tooShortInline": "Must be at least {{min}} characters",
+        "mismatch": "The passwords do not match"
+      },
+      "backToLogin": "Back to Login"
+    },
+    "thankYou": {
+      "title": "Thank You",
+      "breadcrumbRegistration": "Registration",
+      "breadcrumbCurrent": "Thank You",
+      "eyebrow": "Success",
+      "heading": "Your registration has been received!",
+      "body": "Thank you, your request has been received successfully. Your details will be reviewed and we will contact you within 24-48 hours.",
+      "detailsTitle": "Your Request Details",
+      "details": {
+        "courseName": "Course name",
+        "registeredAt": "Registration date",
+        "orderNumber": "Order number"
+      },
+      "fallback": {
+        "courseName": "Training program",
+        "orderNumber": "EMC-4567"
+      },
+      "backHome": "Back to Home"
+    }
   },
-  "submitWorkshop": {
-    "title": "Submit a Workshop",
-    "categoryAcademic": "Academic & Professional Paths",
-    "categoryInternational": "International Learning & Exchange",
-    "categoryLanguage": "Language Institute",
-    "categoryAi": "AI & Digital Empowerment",
-    "categorySkills": "Skills & Professional Development",
-    "categoryLeadership": "Leadership & Entrepreneurship",
-    "categoryAwareness": "Awareness & Knowledge",
-    "categoryWellbeing": "Mental Health & Well-being",
-    "categoryFinancial": "Financial Literacy",
-    "categoryExperiential": "Experiential Learning",
-    "categoryChildren": "Children & Future Minds",
-    "categoryPartnerships": "Partnerships & Collaboration",
-    "stepApplicant": "Applicant Information",
-    "stepWorkshop": "Workshop Information",
-    "stepExecution": "Execution Details",
-    "stepReview": "Review & Submit",
-    "applicantName": "Full Name",
-    "applicantEmail": "Email",
-    "applicantPhone": "Phone",
-    "workshopTitle": "Workshop Title",
-    "workshopCategory": "Category",
-    "workshopDescription": "Description",
-    "workshopObjectives": "Objectives",
-    "executionFormat": "Format",
-    "executionFormatOnline": "Online",
-    "executionFormatInPerson": "In Person",
-    "executionFormatHybrid": "Hybrid",
-    "executionDuration": "Expected Duration",
-    "executionLanguage": "Language",
-    "executionTargetAudience": "Target Audience",
-    "previous": "Previous",
-    "next": "Next",
-    "submit": "Submit Request",
-    "successTitle": "Request Received Successfully",
-    "successDesc": "Thank you! Your workshop request has been received. The Programs Department will review it and contact you.",
-    "summary": "Request Summary",
-    "summaryEmpty": "No data entered yet.",
-    "direct": "Direct",
-    "backToHome": "Back to Home",
-    "submitNew": "Submit a New Request",
-    "breadcrumbHome": "Home",
-    "heroSubtitle": "Share your expertise with the EMC community through a clear, organized request that reaches the specialist team directly.",
-    "alertTitle": "Alert",
-    "progressLabel": "Application Progress",
-    "progressMobileLabel": "Progress",
-    "stepIndicator": "Step {{current}} of {{total}}",
-    "step1Description": "Contact information that the EMC team will use to follow up on your request.",
-    "applicantNamePlaceholder": "Enter full name",
-    "phonePlaceholder": "+966 5X XXX XXXX",
-    "departmentLabel": "Department or Entity",
-    "departmentPlaceholder": "Example: College of Business",
-    "step2Description": "Describe the program, speaker, and fields representing your content.",
-    "programNameLabel": "Program Name / Workshop Title",
-    "programNamePlaceholder": "Example: Practical Introduction to AI",
-    "categoriesLabel": "Program Categories",
-    "speakerNamePlaceholder": "Enter speaker name",
-    "jobTitleLabel": "Job Title",
-    "jobTitlePlaceholder": "Example: Career Development Consultant",
-    "speakerPhotoLabel": "Speaker Photo",
-    "speakerPhotoHint": "JPG or PNG, preferably not exceeding 5MB",
-    "step3Description": "Topics, audience, proposed date, and execution method.",
-    "topicsLabel": "Topics and Themes",
-    "topicsPlaceholder": "Write the most important topics the workshop will cover.",
-    "audiencePlaceholder": "Example: First-year students, graduates, or those interested in entrepreneurship.",
-    "proposedDateLabel": "Proposed Date",
-    "proposedTimeLabel": "Proposed Time",
-    "locationTypeLabel": "Execution Method or Location",
-    "step4Description": "Specify the price type then submit after the final review.",
-    "priceTypeLabel": "Price Type",
-    "priceFree": "Free",
-    "pricePaid": "Paid",
-    "priceAmountLabel": "Price Amount",
-    "pricePlaceholder": "Enter amount in euros (€)",
-    "readyToSend": "Ready to Send?",
-    "reviewHint": "Review the summary on the side before confirming.",
-    "summaryAutoUpdate": "Updates while filling steps",
-    "needHelp": "Need Help?",
-    "helpText": "The EMC team will review your request and contact you after submission.",
-    "checklistTitle": "Checklist",
-    "previewApplicantName": "Name",
-    "previewEmail": "Email",
-    "previewPhone": "Mobile",
-    "previewTitle": "Workshop Title",
-    "previewCategory": "Category",
-    "previewLocation": "Execution Method",
-    "previewDate": "Proposed Date",
-    "previewDepartment": "Department or Entity",
-    "validationNameRequired": "Please enter the applicant name.",
-    "validationEmailRequired": "Please enter the email address.",
-    "validationPhoneRequired": "Please enter the mobile number.",
-    "validationDepartmentRequired": "Please enter the department or entity.",
-    "validationProgramRequired": "Please enter the program name.",
-    "validationSpeakerRequired": "Please enter the speaker name.",
-    "validationJobTitleRequired": "Please enter the speaker's job title.",
-    "validationCategoryRequired": "Please select at least one category.",
-    "validationTopicsRequired": "Please write the workshop topics.",
-    "validationAudienceRequired": "Please specify the target audience.",
-    "validationDateRequired": "Please select the proposed date.",
-    "validationTimeRequired": "Please select the proposed time.",
-    "validationLocationRequired": "Please select at least one execution method.",
-    "validationPriceRequired": "Please enter the price amount for a paid workshop.",
-    "errorStepIncomplete": "Please complete the required fields in this step before proceeding.",
-    "errorReviewFields": "Please review the required fields before submitting the request.",
-    "errorCheckData": "Please check the entered data.",
-    "errorSubmitFailed": "Unable to submit the request now. Please try again later.",
-    "category1": "Academic and Professional Tracks",
-    "category2": "International Learning and Exchange",
-    "category3": "Language and Communication Institute",
-    "category4": "AI and Digital Empowerment",
-    "category5": "Skills Development and Career Path",
-    "category6": "Leadership and Entrepreneurship",
-    "category7": "Spaces of Awareness and Knowledge",
-    "category8": "Mental Health and Lifestyle",
-    "category9": "Financial Awareness",
-    "category10": "Experiential Learning and Field Activities",
-    "category11": "Child and Youth Development — Future Minds",
-    "category12": "Partnerships and Strategic Cooperation",
-    "locationCenter": "Center Premises",
-    "locationGoogleMeet": "Google Meet",
-    "locationZoom": "Zoom",
-    "locationOther": "Other",
-    "step1Hint": "Contact and request follow-up",
-    "step2Hint": "Program, speaker, and fields",
-    "step3Hint": "Topics, audience, date, and location",
-    "step4Hint": "Pricing then final submission",
-    "reviewRowName": "Name",
-    "reviewRowEmail": "Email",
-    "reviewRowPhone": "Mobile",
-    "reviewRowWorkshopTitle": "Workshop Title",
-    "reviewRowCategory": "Category",
-    "reviewRowLocation": "Execution Method",
-    "reviewRowDate": "Proposed Date",
-    "reviewRowDepartment": "Department"
+  "quickJoin": {
+    "kind": {
+      "course": "Training course",
+      "path": "Learning path"
+    },
+    "header": {
+      "eyebrow": "{{kind}} · Quick enrollment",
+      "title": "Join and start",
+      "titleWithProgram": "Join and start: {{title}}",
+      "freeNote": "Completely free one account is all that stands between you and starting",
+      "stepNote": "One step stands between you and starting"
+    },
+    "close": "Close",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "country": "Country",
+      "phone": "Phone number",
+      "city": "City",
+      "gender": "Gender",
+      "genderPlaceholder": "Select gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "extraFieldsNote": "We need these extra details to finish creating your account.",
+      "registerSubmit": "Create my account and enroll me",
+      "registerSubmitting": "Creating your account…",
+      "loginSubmit": "Log in and continue",
+      "loginSubmitting": "Logging in…",
+      "switchToLogin": "I have an account log in",
+      "switchToRegister": "I don't have an account create a new one"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Email is invalid",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "countryRequired": "Select a country",
+      "phoneRequired": "Phone number is required",
+      "cityRequired": "City is required",
+      "genderRequired": "Select a gender"
+    },
+    "paidToast": {
+      "title": "Your account is ready",
+      "description": "Complete the payment from the course page to finish enrolling."
+    },
+    "executing": "Completing your enrollment…",
+    "success": {
+      "title": "Done. You are now enrolled",
+      "titleWithProgram": "Done. You are now in {{title}}",
+      "startLearning": "Start learning",
+      "browseDashboard": "Browse the student dashboard"
+    },
+    "partial": {
+      "title": "Your account is ready",
+      "body": "One step left to complete your enrollment in {{program}}.",
+      "programFallback": "the program",
+      "complete": "Complete enrollment",
+      "later": "Later"
+    },
+    "nonStudent": {
+      "title": "This account{{role}} is not a student account",
+      "body": "Program enrollment is available to student accounts only. You can create a student account with a different email and continue where you left off.",
+      "createStudent": "Create a student account with another email",
+      "stay": "Stay on my current account"
+    },
+    "roles": {
+      "teacher": "Trainer",
+      "instructor": "Trainer",
+      "admin": "Admin",
+      "super_admin": "Super admin",
+      "partner": "Partner",
+      "volunteer": "Volunteer"
+    }
   },
-  "languages": {
-    "ar": "العربية",
-    "en": "English",
-    "nl": "Nederlands",
-    "switchTo": "Switch language to {{lang}}"
+  "seo": {
+    "defaultDescription": "The EMC learning platform: courses, workshops, and Arabic-language learning paths from the Netherlands professional education and skills development."
   }
 }

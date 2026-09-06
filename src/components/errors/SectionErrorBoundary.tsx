@@ -22,7 +22,7 @@ export default class SectionErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[SectionErrorBoundary]', error, info.componentStack)
+    if (import.meta.env.DEV) console.error('[SectionErrorBoundary]', error, info.componentStack)
   }
 
   handleRetry = () => {

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { fetchCourseModules, fetchLesson } from '@/api/advancedLmsApi'
 import LessonPlayer from '@/components/platform/LessonPlayer'
 import EmptyState from '@/components/dashboard/EmptyState'

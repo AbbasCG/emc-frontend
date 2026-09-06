@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { fadeUp, staggerContainer } from '@/utils/animations'
@@ -55,7 +55,7 @@ export default function PublicPageHero({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Link
             to={primaryAction.href}
-            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_12px_32px_-8px_rgba(236,148,60,0.45)] transition hover:brightness-105"
+            className="inline-flex items-center gap-2 rounded-2xl bg-customOrange px-6 py-3.5 text-sm font-extrabold text-white transition hover:brightness-105"
           >
             {primaryAction.label}
             <ArrowLeft size={18} />
@@ -81,15 +81,15 @@ export default function PublicPageHero({
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.35 }}
+        viewport={{ once: true, amount: 0.2 }}
         className="grid gap-3 sm:grid-cols-3 lg:max-w-sm lg:grid-cols-1"
       >
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 text-right shadow-lg backdrop-blur-md"
+            className="rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 text-right backdrop-blur-md"
           >
-            <p className="text-lg font-black text-customOrange sm:text-xl">{s.value}</p>
+            <p className="text-lg font-black text-amber sm:text-xl">{s.value}</p>
             <p className="mt-1 text-xs font-bold leading-relaxed text-white/70">{s.label}</p>
           </div>
         ))}
@@ -103,12 +103,12 @@ export default function PublicPageHero({
           variants={fadeUp}
           className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-black text-white/95 backdrop-blur-sm"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-customOrange shadow-[0_0_10px_rgba(236,148,60,0.6)]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-customOrange" />
           {badge}
         </motion.span>
       ) : (
         eyebrow && (
-          <motion.p variants={fadeUp} className="mb-3 text-sm font-bold text-customBlue/95">
+          <motion.p variants={fadeUp} className="mb-3 text-sm font-bold text-sky">
             {eyebrow}
           </motion.p>
         )
@@ -142,19 +142,19 @@ export default function PublicPageHero({
 
   return (
     <motion.section
-      className="relative isolate overflow-hidden bg-deepBlue px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-20 lg:px-8 lg:pt-32"
+      className="emc-corner-pages emc-corner-pages-white relative isolate overflow-hidden bg-deepBlue px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-20 lg:px-8 lg:pt-32"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.45 }}
     >
       <div className="absolute inset-0 bg-deepBlue" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_100%_-15%,rgba(38,145,194,0.38),transparent_52%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_-10%_110%,rgba(236,148,60,0.14),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(34,51,74,0.98)_0%,rgba(34,51,74,0.92)_45%,rgba(26,42,62,1)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_100%_-15%,rgba(0,119,182,0.38),transparent_52%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_-10%_110%,rgba(242,140,0,0.14),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(12,42,75,0.98)_0%,rgba(12,42,75,0.92)_45%,rgba(26,42,62,1)_100%)]" />
       <div className="pointer-events-none absolute -left-28 top-1/4 h-72 w-72 rounded-full bg-customBlue/15 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-customOrange/12 blur-3xl" />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-customBlue/35 to-transparent" />
+      <div aria-hidden className="emc-tricolor-on-dark pointer-events-none absolute inset-x-0 top-0" />
 
       <div className="relative mx-auto max-w-7xl">
         {isSplit ? (
@@ -186,7 +186,7 @@ export default function PublicPageHero({
                   {badge}
                 </motion.span>
               ) : (
-                eyebrow && <p className="mb-3 text-sm font-bold text-customBlue/95">{eyebrow}</p>
+                eyebrow && <p className="mb-3 text-sm font-bold text-sky">{eyebrow}</p>
               )}
               <div className="mb-5 flex flex-wrap items-center justify-center gap-2 text-sm font-bold text-white/80">
                 {breadcrumbs.map((item, index) => (

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import DepartmentSection from '@/components/team/DepartmentSection'
 import DepartmentTabs from '@/components/team/DepartmentTabs'
@@ -10,28 +10,50 @@ import TeamErrorState from '@/components/team/TeamErrorState'
 import TeamHero from '@/components/team/TeamHero'
 import TeamSkeleton from '@/components/team/TeamSkeleton'
 import { getTeam, type Department } from '@/services/teamApi'
+import { STATIC_TEAM_DATA } from '@/data/teamData'
 
 const EXEC_SLUG = 'executive-leadership'
+
+/** Pure I/O — kept outside the component so the mount effect and the retry button share it
+ *  without either having to call a state-mutating callback. */
+async function fetchTeamDepartments(): Promise<Department[]> {
+  try {
+    const data = await getTeam()
+    const totalMembers = data.reduce((sum, d) => sum + d.members.length, 0)
+    if (import.meta.env.DEV) {
+      console.log('TEAM DEPARTMENTS', data)
+      console.log('FIRST DEPARTMENT MEMBERS', data[0]?.members)
+      console.log('TOTAL MEMBERS FROM API', totalMembers)
+    }
+    return data.length > 0 && totalMembers > 0 ? data : STATIC_TEAM_DATA
+  } catch {
+    return STATIC_TEAM_DATA
+  }
+}
 
 export default function TeamPage() {
   const [departments, setDepartments] = useState<Department[] | undefined>(undefined)
   const [fetchError, setFetchError] = useState(false)
   const [activeSlug, setActiveSlug] = useState<'all' | string>('all')
 
+  /** Imperative retry from the error state — outside any effect, so it may reset to the
+   *  loading state synchronously. */
   const loadTeam = useCallback(() => {
     setFetchError(false)
     setDepartments(undefined)
-    getTeam()
-      .then(setDepartments)
-      .catch(() => {
-        setFetchError(true)
-        setDepartments([])
-      })
+    void fetchTeamDepartments().then(setDepartments)
   }, [])
 
   useEffect(() => {
-    loadTeam()
-  }, [loadTeam])
+    let alive = true
+    void (async () => {
+      const data = await fetchTeamDepartments()
+      if (alive) setDepartments(data)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const executiveDept = useMemo(
     () => departments?.find((d) => d.slug === EXEC_SLUG) ?? null,

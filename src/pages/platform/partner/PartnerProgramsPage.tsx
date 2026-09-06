@@ -44,7 +44,8 @@ export default function PartnerProgramsPage() {
                 </span>
               </div>
               <p className="mt-3 text-xs font-bold text-slate-500">حجم الدفعة {p.cohort_size}</p>
-              <p className="mt-1 text-xs font-bold text-slate-400">البداية {p.starts_at ?? '—'}</p>
+              <p className="mt-1 text-xs font-bold text-slate-400">البداية {p.starts_at ?? 'غير محددة'}</p>
+              {p.ends_at && <p className="mt-1 text-xs font-bold text-slate-400">النهاية {p.ends_at}</p>}
             </motion.div>
           ))}
         </div>

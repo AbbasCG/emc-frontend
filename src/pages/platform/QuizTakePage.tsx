@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { fetchQuiz, submitQuizAnswers } from '@/api/advancedLmsApi'
 import QuizCard from '@/components/platform/QuizCard'
 import QuizResult from '@/components/platform/QuizResult'
@@ -66,7 +66,7 @@ export default function QuizTakePage() {
     <div className="mx-auto max-w-3xl">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Quiz</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">Quiz</p>
           <h1 className="text-2xl font-black text-deepBlue">{quiz.title}</h1>
           <p className="mt-2 text-sm font-bold text-slate-500">درجة النجاح {quiz.passing_score}%</p>
         </div>

@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { unwrapLms } from './lmsApi'
-import { buildGenerationOutput, seedAiConversationsV2, seedAiGenerations, seedAiMessages } from '@/data/aiSeed'
 import type { AiConversation } from '@/types/platform'
 import type { AiChatMessage, AiConversationThread, AiGenerationKind, AiGenerationRecord } from '@/types/ai'
 
@@ -17,9 +16,9 @@ export async function fetchAiConversationThreads(): Promise<AiConversationThread
     if (payload && typeof payload === 'object' && Array.isArray(payload.conversations)) {
       return payload.conversations
     }
-    return seedAiConversationsV2()
+    return []
   } catch {
-    return seedAiConversationsV2()
+    return []
   }
 }
 
@@ -29,9 +28,9 @@ export async function fetchAiMessages(conversationId: number): Promise<AiChatMes
     const payload = unwrapLms<AiChatMessage[] | { messages: AiChatMessage[] }>(res.data)
     if (Array.isArray(payload)) return payload
     if (payload && typeof payload === 'object' && Array.isArray(payload.messages)) return payload.messages
-    return seedAiMessages(conversationId)
+    return []
   } catch {
-    return seedAiMessages(conversationId)
+    return []
   }
 }
 
@@ -41,13 +40,13 @@ export async function sendAiMessage(
   options?: { persona?: string; context_scopes?: string[]; stream?: boolean },
 ): Promise<{ reply: string; conversation_id: number; simulated_stream_chunks?: string[] }> {
   try {
-    const res = await apiClient.post<unknown>('/ai/chat', {
-      conversation_id: conversationId,
-      message,
-      persona: options?.persona,
-      context_scopes: options?.context_scopes,
-      stream: options?.stream,
-    })
+    const endpoint = conversationId != null
+      ? `/ai/conversations/${conversationId}/messages`
+      : '/ai/chat'
+    const body = conversationId != null
+      ? { message, persona: options?.persona, context_scopes: options?.context_scopes, stream: options?.stream }
+      : { conversation_id: conversationId, message, persona: options?.persona, context_scopes: options?.context_scopes, stream: options?.stream }
+    const res = await apiClient.post<unknown>(endpoint, body)
     return unwrapLms(res.data)
   } catch {
     const prefix =
@@ -57,23 +56,31 @@ export async function sendAiMessage(
           ? 'ملخص تحليلي سريع:'
           : 'استجابة مبدئية:'
     return {
-      reply: `${prefix} ${message} — يمكن ربط هذا الرد بتدفق بث حي عند توفر endpoint stream.`,
+      reply: `${prefix} ${message} يمكن ربط هذا الرد بتدفق بث حي عند توفر endpoint stream.`,
       conversation_id: conversationId ?? Date.now(),
       simulated_stream_chunks: ['جارٍ تحليل الطلب...', 'جارٍ بناء الاستجابة...', 'اكتمل.'],
     }
   }
 }
 
+/**
+ * No backend route or persistence exists for this yet — every
+ * AiContentGenerationController::generate* endpoint is stateless (it
+ * returns generated content directly and saves nothing), so there is no
+ * "recent generations" log to list. Calling `/ai/generations` always 404s.
+ * Returning [] directly (instead of hitting a route that can never exist)
+ * keeps the "Recent Generations" section in its honest empty state without
+ * spamming a guaranteed-failing request. Backing this for real is a
+ * separate feature (would need a generations table + a write on every
+ * generate call), not a contract fix.
+ */
 export async function fetchAiRecentGenerations(): Promise<AiGenerationRecord[]> {
-  try {
-    const res = await apiClient.get<unknown>('/ai/generations')
-    const payload = unwrapLms<AiGenerationRecord[] | { records: AiGenerationRecord[] }>(res.data)
-    if (Array.isArray(payload)) return payload
-    if (payload && typeof payload === 'object' && Array.isArray(payload.records)) return payload.records
-    return seedAiGenerations()
-  } catch {
-    return seedAiGenerations()
-  }
+  return []
+}
+
+const GENERATION_ROUTES: Partial<Record<AiGenerationKind, string>> = {
+  course_outline: '/ai/generate/course-outline',
+  workshop_plan: '/ai/generate/workshop',
 }
 
 export async function generateAiContent(input: {
@@ -82,17 +89,7 @@ export async function generateAiContent(input: {
   temperature?: number
   max_tokens?: number
 }): Promise<AiGenerationRecord> {
-  try {
-    const res = await apiClient.post<unknown>('/ai/generations', input)
-    return unwrapLms<AiGenerationRecord>(res.data)
-  } catch {
-    return {
-      id: Date.now(),
-      kind: input.kind,
-      title: 'ناتج توليد جديد',
-      prompt: input.prompt,
-      output_markdown: buildGenerationOutput(input.kind, input.prompt),
-      created_at: new Date().toISOString().slice(0, 16).replace('T', ' '),
-    }
-  }
+  const endpoint = GENERATION_ROUTES[input.kind] ?? `/ai/generate/${input.kind}`
+  const res = await apiClient.post<unknown>(endpoint, input)
+  return unwrapLms<AiGenerationRecord>(res.data)
 }

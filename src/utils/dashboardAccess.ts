@@ -8,6 +8,7 @@ export const EMC_DASHBOARD_ROLES = [
   'instructor',
   'admin',
   'super_admin',
+  'tech_admin',
   'executive_admin',
   'finance_manager',
   'quality_manager',
@@ -17,17 +18,34 @@ export const EMC_DASHBOARD_ROLES = [
   'support_agent',
   'volunteer',
   'department_manager',
+  'programs_manager',
+  'operations_manager',
+  'partnerships_manager',
+  'community_manager',
+  'section_lead',
+  'ai_manager',
+  'strategy_planning_manager',
+  'digital_ambassadors_manager',
+  'advisors_manager',
 ] as const
 
 export type EmcDashboardRole = (typeof EMC_DASHBOARD_ROLES)[number]
 
 /** Legacy/API drift → canonical dashboard role slug */
 const ROLE_ALIASES: Record<string, string> = {
-  teacher: 'instructor',
+  teacher:      'instructor',
+  superadmin:   'super_admin',
+  'super-admin':'super_admin',
+  finance:      'finance_manager',
+  hr:           'hr_manager',
+  dept_manager: 'department_manager',
+  'dept._manager': 'department_manager',
+  departmentmanager: 'department_manager',
 }
 
 const ROLE_HOME: Record<string, string> = {
   super_admin: '/dashboard/super-admin',
+  tech_admin: '/dashboard/tech-admin',
   admin: '/dashboard/admin',
   executive_admin: '/dashboard/executive',
   instructor: '/dashboard/instructor',
@@ -38,8 +56,25 @@ const ROLE_HOME: Record<string, string> = {
   partner: '/dashboard/partner',
   marketing_manager: '/dashboard/marketing',
   support_agent: '/dashboard/support',
-  volunteer: '/dashboard/volunteer',
+  volunteer: '/dashboard/ops/volunteers',
   department_manager: '/dashboard/department',
+  programs_manager: '/dashboard/programs-manager',
+  operations_manager: '/dashboard/operations-manager',
+  partnerships_manager: '/dashboard/partnerships-manager',
+  community_manager: '/dashboard/community-manager',
+  section_lead: '/dashboard/section-lead',
+  // Organizational AI Department (إدارة الذكاء الاصطناعي والتحول الرقمي) —
+  // NOT the technical AI Platform (/dashboard/admin/ai). Role != department:
+  // this is the manager-role landing page, distinct from the department
+  // workspace itself which resolves the actual led department at runtime.
+  ai_manager: '/dashboard/ai-department',
+  // Newly-added official departments (strategy-planning, digital-ambassadors,
+  // advisors) share ONE generic workspace route rather than three duplicated
+  // pages — the page itself resolves the actual led department at runtime via
+  // DepartmentAccessService (see DepartmentWorkspacePage), never from the role.
+  strategy_planning_manager: '/dashboard/department-workspace',
+  digital_ambassadors_manager: '/dashboard/department-workspace',
+  advisors_manager: '/dashboard/department-workspace',
 }
 
 /**
@@ -47,18 +82,68 @@ const ROLE_HOME: Record<string, string> = {
  */
 export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string[] }[] = [
   { prefix: '/dashboard/super-admin', roles: ['super_admin'] },
-  { prefix: '/dashboard/admin', roles: ['admin', 'super_admin'] },
+
+  // ── Granular sub-path rules for new manager roles (longer = higher priority) ──
+  // These must be defined before the generic /dashboard/admin rule so they win.
+  { prefix: '/dashboard/admin/partnership-requests', roles: ['admin', 'super_admin', 'partnerships_manager'] },
+  { prefix: '/dashboard/admin/volunteers',    roles: ['admin', 'super_admin', 'community_manager'] },
+  { prefix: '/dashboard/admin/operations',    roles: ['admin', 'super_admin', 'operations_manager'] },
+  { prefix: '/dashboard/admin/knowledge',     roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/programs',      roles: ['admin', 'super_admin', 'programs_manager', 'partnerships_manager'] },
+  { prefix: '/dashboard/admin/workshop-requests', roles: ['admin', 'super_admin', 'executive_admin', 'finance_manager', 'quality_manager', 'partnerships_manager', 'operations_manager', 'programs_manager'] },
+  { prefix: '/dashboard/admin/partners',      roles: ['admin', 'super_admin', 'partnerships_manager'] },
+  { prefix: '/dashboard/admin/meetings',      roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/reports',       roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/tasks',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/forms',         roles: ['admin', 'super_admin', 'operations_manager', 'community_manager'] },
+  { prefix: '/dashboard/admin/departments',   roles: ['admin', 'super_admin', 'operations_manager'] },
+  { prefix: '/dashboard/admin/kpi',              roles: ['admin', 'super_admin', 'programs_manager', 'operations_manager'] },
+  { prefix: '/dashboard/admin/lms',              roles: ['admin', 'super_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/registrations',    roles: ['admin', 'super_admin', 'tech_admin', 'programs_manager'] },
+  { prefix: '/dashboard/admin/coupons',          roles: ['admin', 'super_admin', 'finance_manager'] },
+  // /dashboard/admin/ai (technical AI Platform: usage/tokens/generations/
+  // automations) is intentionally NOT listed here anymore — ai_manager no
+  // longer gets it automatically (see ai-department-and-ai-platform-separation).
+  // It now falls through to the generic '/dashboard/admin' rule below
+  // (admin/super_admin/tech_admin only), matching the backend's
+  // role:admin,super_admin,tech_admin gate on /api/admin/ai/*.
+  // Expert-applications (a talent/expert-recruitment intake, unrelated to
+  // AI technology) was reverted to admin-tier-only access after review found
+  // no evidence it belongs to ai_manager beyond historical /admin/ai nesting
+  // — permanent ownership (HR? Partnerships? Community?) is an open product
+  // decision. No carve-out needed: falls through to the generic admin rule.
+
+  // ── Generic namespace: admin/super_admin/tech_admin ──
+  { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },
+
   { prefix: '/dashboard/executive', roles: ['executive_admin'] },
   { prefix: '/dashboard/instructor', roles: ['instructor'] },
   { prefix: '/dashboard/student', roles: ['student'] },
+  { prefix: '/dashboard/finance/program-approvals', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
+  { prefix: '/dashboard/finance/chart-of-accounts', roles: ['finance_manager', 'admin', 'super_admin', 'tech_admin'] },
   { prefix: '/dashboard/finance', roles: ['finance_manager'] },
   { prefix: '/dashboard/quality', roles: ['quality_manager'] },
   { prefix: '/dashboard/hr', roles: ['hr_manager'] },
   { prefix: '/dashboard/partner', roles: ['partner'] },
   { prefix: '/dashboard/marketing', roles: ['marketing_manager'] },
   { prefix: '/dashboard/support', roles: ['support_agent'] },
-  { prefix: '/dashboard/volunteer', roles: ['volunteer'] },
+  { prefix: '/dashboard/volunteer', roles: ['super_admin', 'tech_admin', 'admin', 'hr_manager'] },
+  { prefix: '/dashboard/ops/volunteers', roles: ['volunteer'] },
   { prefix: '/dashboard/department', roles: ['department_manager'] },
+  // Organizational AI Department workspace (إدارة الذكاء الاصطناعي والتحول
+  // الرقمي) — generic department-leader workspace, NOT the technical AI
+  // Platform. Access is granted here by role for sidebar/redirect purposes;
+  // the workspace itself still resolves actual leadership server-side via
+  // DepartmentAccessService, never trusting the role slug alone.
+  { prefix: '/dashboard/ai-department', roles: ['ai_manager'] },
+  // Shared generic workspace for the 3 new department-manager roles — same
+  // pattern as ai-department above, one reusable route instead of three.
+  { prefix: '/dashboard/department-workspace', roles: ['strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
+  { prefix: '/dashboard/programs-manager', roles: ['programs_manager'] },
+  { prefix: '/dashboard/operations-manager', roles: ['operations_manager'] },
+  { prefix: '/dashboard/partnerships-manager', roles: ['partnerships_manager'] },
+  { prefix: '/dashboard/community-manager', roles: ['community_manager'] },
+  { prefix: '/dashboard/section-lead', roles: ['section_lead'] },
 ].sort((a, b) => b.prefix.length - a.prefix.length)
 
 const STUDENT_EXTRA_PREFIXES = [
@@ -69,7 +154,37 @@ const STUDENT_EXTRA_PREFIXES = [
   '/dashboard/quizzes/',
 ]
 
-const INSTRUCTOR_EXTRA_PREFIXES = ['/dashboard/resources']
+/**
+ * Resource Center (مركز الموارد / مكتبة الدورات) — internal staff read/share access.
+ * Single canonical list: sidebar, DashboardAccessGuard, and tests must stay aligned.
+ * Volunteer kept (existing policy treats accepted volunteers as internal members).
+ * Students / partners / public are intentionally excluded.
+ */
+export const RESOURCE_CENTER_ROLES = [
+  'super_admin',
+  'tech_admin',
+  'executive_admin',
+  'admin',
+  'programs_manager',
+  'instructor',
+  'marketing_manager',
+  'support_agent',
+  'hr_manager',
+  'quality_manager',
+  'finance_manager',
+  'operations_manager',
+  'partnerships_manager',
+  'community_manager',
+  'volunteer',
+] as const
+
+export function canAccessResourceCenter(roleRaw: string | null | undefined): boolean {
+  const role = normalizeRole(roleRaw ?? null)
+  if (!role) return false
+  // Mirror DashboardAccessGuard: unrestricted platform roles always pass.
+  if (role === 'super_admin' || role === 'tech_admin') return true
+  return (RESOURCE_CENTER_ROLES as readonly string[]).includes(role)
+}
 
 /** Admin/super_admin “wide” shortcuts (sidebar) — not under /dashboard/admin/. */
 const ADMIN_WIDE_EXACT = new Set([
@@ -143,16 +258,109 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
     return ['instructor']
   }
 
+  /* «التشغيل والتقارير» — السطح المشترك لكل أدوار الفريق: لوحة التشغيل،
+     تقارير الاجتماعات، التقارير الأسبوعية، نقاط الأثر. القائمة تطابق مجموعة
+     الأدوار في خادم /api/operations؛ الطلاب والشركاء خارجها عمداً.
+     (startsWith بشرطة مائلة كي لا يبتلع /dashboard/operations-manager.) */
+  if (path.startsWith('/dashboard/operations/')) {
+    return [
+      'admin', 'super_admin', 'tech_admin', 'executive_admin',
+      'programs_manager', 'instructor', 'hr_manager', 'finance_manager',
+      'marketing', 'marketing_manager', 'quality', 'quality_manager',
+      'support_agent', 'operations_manager', 'partnerships_manager',
+      'community_manager', 'volunteer', 'department_manager', 'ai_manager',
+      'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager',
+    ]
+  }
+
+  /* Financial requests — any authenticated user who is a department leader may access this page.
+     Backend enforces is_leader=true; frontend just needs to not block it. */
+  if (
+    path === '/dashboard/department/financial-requests' ||
+    path.startsWith('/dashboard/department/financial-requests/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* HR requests — any authenticated user who is a department leader may access this page. */
+  if (
+    path === '/dashboard/department/hr-requests' ||
+    path.startsWith('/dashboard/department/hr-requests/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* Meeting Lounge — any authenticated user */
+  if (
+    path === '/dashboard/department/meeting-lounge' ||
+    path.startsWith('/dashboard/department/meeting-lounge/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* EMC Tickets (RBAC) */
+  if (path === '/dashboard/tickets/admin' || path.startsWith('/dashboard/tickets/admin/')) {
+    return ['super_admin', 'tech_admin', 'admin']
+  }
+  /* Departmental unit + unit-membership management — matches the backend's
+     /admin/team-members route gate (HR-style, admin-only; department leaders
+     are not granted access to this endpoint, so neither is this page). */
+  if (path === '/dashboard/admin/department-units' || path.startsWith('/dashboard/admin/department-units/')) {
+    return ['super_admin', 'tech_admin', 'admin']
+  }
+  if (path === '/dashboard/admin/team-members' || path.startsWith('/dashboard/admin/team-members/')) {
+    return ['super_admin', 'tech_admin', 'admin']
+  }
+  if (path === '/dashboard/tickets/workspace' || path.startsWith('/dashboard/tickets/workspace/')) {
+    return ['super_admin', 'tech_admin', 'admin', 'support_agent']
+  }
+  if (path === '/dashboard/tickets' || path.startsWith('/dashboard/tickets/')) {
+    return 'authenticated'
+  }
+
+  /* Volunteer HR profile — the applicant's own self-service form. Must be
+     checked BEFORE the generic '/dashboard/volunteer' namespace rule below
+     (which restricts the bare /dashboard/volunteer "accepted volunteers"
+     list to admin-ish roles) — otherwise the prefix match blocks every
+     ordinary user from ever reaching their own submission form. */
+  if (
+    path === '/dashboard/volunteer/hr-profile' ||
+    path.startsWith('/dashboard/volunteer/hr-profile/')
+  ) {
+    return 'authenticated'
+  }
+
+  /* Workshop requests — must be checked BEFORE generic namespace rules to override /dashboard/admin prefix */
+  if (
+    path === '/dashboard/admin/workshop-requests' ||
+    path.startsWith('/dashboard/admin/workshop-requests/')
+  ) {
+    return ['admin', 'super_admin', 'tech_admin', 'executive_admin', 'department_manager',
+            'quality_manager', 'finance_manager', 'marketing_manager', 'hr_manager', 'support_agent',
+            'programs_manager', 'operations_manager', 'partnerships_manager', 'community_manager']
+  }
+
+  /* Resource Center (مركز الموارد) — read-only course library for internal staff */
+  if (path === '/dashboard/resources' || path.startsWith('/dashboard/resources/')) {
+    return [...RESOURCE_CENTER_ROLES]
+  }
+
   for (const rule of DASHBOARD_NAMESPACE_RULES) {
     if (path === rule.prefix || path.startsWith(`${rule.prefix}/`)) return [...rule.roles]
   }
 
   if (matchesAdminWidePath(path)) return ['admin', 'super_admin']
 
+  /* /dashboard/members — all authenticated users can view the team directory */
+  if (path === '/dashboard/members' || path.startsWith('/dashboard/members/'))
+    return 'authenticated'
+
+  /* Course content management is admin/instructor, NOT student — check before student prefix */
+  if (/^\/dashboard\/courses\/[^/]+\/content(\/|$)/.test(path))
+    return ['admin', 'super_admin', 'tech_admin', 'instructor', 'programs_manager']
+
   /* Student LMS paths (/dashboard/courses/:id/modules, lessons, quizzes, …) */
   if (matchesAnyPrefix(path, STUDENT_EXTRA_PREFIXES)) return ['student']
-
-  if (matchesAnyPrefix(path, INSTRUCTOR_EXTRA_PREFIXES)) return ['instructor']
 
   return []
 }
@@ -160,7 +368,7 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
 export function canAccessDashboardPath(roleRaw: string | null | undefined, pathname: string): boolean {
   const role = normalizeRole(roleRaw ?? null)
   /** Highest privilege: unrestricted access to the entire dashboard namespace */
-  if (role === 'super_admin' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/'))) return true
+  if ((role === 'super_admin' || role === 'tech_admin') && (pathname === '/dashboard' || pathname.startsWith('/dashboard/'))) return true
 
   const allowed = getAllowedRolesForPath(pathname)
 

@@ -1,23 +1,20 @@
 /** Phase 7 — integrations, webhooks, calendar, notifications prefs, API tokens, mobile readiness */
 
+export type NotificationChannel = 'in_app' | 'email' | 'sms'
+
 export type NotificationChannelKey = 'in_app' | 'email' | 'whatsapp'
 
-export type NotificationPreferenceKey =
-  | 'registration_confirm'
-  | 'payment_confirm'
-  | 'payment_failed'
-  | 'session_reminder'
-  | 'assignment_due'
-  | 'certificate_issued'
-  | 'task_assigned'
-  | 'meeting_invite'
-  | 'support_reply'
-  | 'partner_update'
-
 export type NotificationPreferenceRow = {
-  key: NotificationPreferenceKey
-  label_ar: string
-  channels: Record<NotificationChannelKey, boolean>
+  key: string
+  labelAr: string
+  descriptionAr?: string
+  category: string
+  channels: {
+    in_app?: boolean
+    email?: boolean
+    sms?: boolean
+  }
+  mandatory?: boolean
 }
 
 export type IntegrationProvider =
@@ -53,18 +50,64 @@ export type WhatsAppIntegrationPreview = {
   twilio_placeholder_ar: string
 }
 
-export type CalendarFilterKind = 'all' | 'session' | 'meeting' | 'task'
+export type CalendarFilterKind =
+  | 'all'
+  | 'session'
+  | 'workshop'
+  | 'meeting'
+  | 'task'
+  | 'course'
+  | 'program'
+  | 'learning_path'
+
+export type CalendarEventType =
+  | 'session'
+  | 'workshop'
+  | 'meeting'
+  | 'task'
+  | 'course'
+  | 'program'
+  | 'learning_path'
+  | 'event'
+  | 'assignment'
 
 export type CalendarEventRecord = {
-  id: number
+  id: string
+  source_id?: number | null
+  source?: 'program' | 'learning_path' | 'session' | 'workshop' | 'meeting' | 'task' | 'event' | null
+  type: CalendarEventType
   title: string
-  kind: Exclude<CalendarFilterKind, 'all'>
-  starts_at: string
-  ends_at?: string | null
-  location_ar?: string | null
-  join_url?: string | null
-  status_ar: string
-  ics_uid?: string
+  subtitle?: string | null
+  description?: string | null
+  start_at: string
+  end_at?: string | null
+  status: string
+  location?: string | null
+  meeting_link?: string | null
+  image_url?: string | null
+  /** Direct slug of the source entity (for public routing /courses/{slug}) */
+  slug?: string | null
+  instructor?: { id: number; name: string } | null
+  course?: { id: number; title: string; slug?: string | null } | null
+  learning_path?: { id: number; title: string; slug?: string | null } | null
+  department?: { id: number; name_ar: string } | null
+  owner?: { id: number; name: string } | null
+  visibility: 'private' | 'department' | 'all'
+  can_edit: boolean
+  can_join: boolean
+}
+
+export type CalendarEventInput = {
+  title: string
+  description?: string
+  kind: 'meeting' | 'event' | 'task'
+  start_at: string
+  end_at?: string
+  location?: string
+  meeting_url?: string
+  department_id?: number
+  attendees?: number[]
+  visibility: 'private' | 'department' | 'all'
 }
 
 export const WEBHOOK_PHASE_EVENTS = [

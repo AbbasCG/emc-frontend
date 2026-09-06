@@ -1,3 +1,4 @@
+﻿import axios from 'axios'
 import apiClient from './axios'
 import type { User } from '../types'
 import { unwrapData } from './unwrap'
@@ -5,32 +6,61 @@ import { normalizeAuthLoginPayload, normalizeAuthUser } from '../utils/userIdent
 
 type AuthPayload = { token: string; user: User }
 
-export class TwoFactorRequiredError extends Error {
-  userId: number
-  constructor(userId: number) {
-    super('Two-factor authentication required')
-    this.name = 'TwoFactorRequiredError'
-    this.userId = userId
+const cookieAuthEnabled = import.meta.env.VITE_AUTH_MODE === 'cookie'
+
+function csrfCookieUrl(): string {
+  const apiUrl = String(import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+  return `${apiUrl.replace(/\/api$/, '')}/sanctum/csrf-cookie`
+}
+
+async function prepareCookieSession(): Promise<void> {
+  if (!cookieAuthEnabled) return
+  try {
+    await axios.get(csrfCookieUrl(), {
+      headers: { Accept: 'application/json' },
+      withCredentials: true,
+      withXSRFToken: true,
+    })
+  } catch {
+    // Best-effort priming: an unreachable /sanctum/csrf-cookie (backend down,
+    // tests, token-only deployments) must not veto the login itself — the
+    // credential POST below still succeeds in token mode, and a true cookie
+    // deployment surfaces its own 419 through normal error handling.
   }
 }
 
-export async function login(email: string, password: string): Promise<AuthPayload> {
-  const res = await apiClient.post<unknown>('/auth/login', { email, password }, { skipErrorToast: true })
-  const body = res.data as Record<string, unknown>
-  if (body.requires_2fa) {
-    const userId = Number((body.data as Record<string, unknown> | undefined)?.user_id ?? 0)
-    throw new TwoFactorRequiredError(userId)
-  }
-  return normalizeAuthLoginPayload(unwrapData(res.data))
+function authModeHeaders(): Record<string, string> | undefined {
+  return cookieAuthEnabled ? { 'X-EMC-Auth-Mode': 'cookie' } : undefined
 }
 
-export async function registerAccount(input: {
+export type RegisterAccountInput = {
   name: string
   email: string
   password: string
   password_confirmation: string
-}): Promise<AuthPayload> {
-  const res = await apiClient.post<unknown>('/auth/register', input, { skipErrorToast: true })
+  country_code?: string
+  phone_country_code?: string
+  phone?: string
+  city?: string
+  gender?: string
+  how_did_you_hear_about_us?: string
+}
+
+export async function login(email: string, password: string): Promise<AuthPayload> {
+  await prepareCookieSession()
+  const res = await apiClient.post<unknown>('/auth/login', { email, password }, {
+    skipErrorToast: true,
+    headers: authModeHeaders(),
+  })
+  return normalizeAuthLoginPayload(unwrapData(res.data))
+}
+
+export async function registerAccount(input: RegisterAccountInput): Promise<AuthPayload> {
+  await prepareCookieSession()
+  const res = await apiClient.post<unknown>('/auth/register', input, {
+    skipErrorToast: true,
+    headers: authModeHeaders(),
+  })
   return normalizeAuthLoginPayload(unwrapData(res.data))
 }
 
@@ -51,13 +81,20 @@ export async function postImpersonateStop(): Promise<unknown> {
   return unwrapData(res.data)
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await apiClient.post('/auth/forgot-password', { email }, { skipErrorToast: true })
+}
+
+export async function resetPassword(params: {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}): Promise<void> {
+  await apiClient.post('/auth/reset-password', params, { skipErrorToast: true })
+}
+
 /** Best-effort server session invalidation; callers must always clear client state regardless of outcome. */
 export async function logoutRemote(): Promise<void> {
-  const opts = { skipErrorToast: true as const }
-  try {
-    await apiClient.post('/logout', undefined, opts)
-    return
-  } catch {
-    await apiClient.post('/auth/logout', undefined, opts).catch(() => {})
-  }
+  await apiClient.post('/auth/logout', undefined, { skipErrorToast: true as const }).catch(() => {})
 }

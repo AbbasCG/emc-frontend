@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { User } from '@/types'
 import { getUserAvatarUrl, getUserInitials } from '@/utils/userIdentity'
 import { cn } from '@/lib/utils'
@@ -13,13 +13,12 @@ export function UserAvatar({
   className?: string
   textClassName?: string
 }) {
-  const [imgFailed, setImgFailed] = useState(false)
+  // Remember *which* URL failed instead of a bare boolean: the fallback then clears
+  // itself as soon as the user's avatar URL changes, with no effect involved.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const initials = getUserInitials(user)
-  const resolved = imgFailed ? null : getUserAvatarUrl(user)
-
-  useEffect(() => {
-    setImgFailed(false)
-  }, [resolved])
+  const avatarUrl = getUserAvatarUrl(user)
+  const resolved = avatarUrl === failedUrl ? null : avatarUrl
 
   return (
     <span
@@ -28,13 +27,13 @@ export function UserAvatar({
         className,
       )}
     >
-      {resolved && !imgFailed ?
+      {resolved ?
         <img
           src={resolved}
           alt=""
           className="h-full w-full object-cover"
           referrerPolicy="no-referrer"
-          onError={() => setImgFailed(true)}
+          onError={() => setFailedUrl(avatarUrl)}
         />
       : (
         <span className={cn(textClassName)}>{initials}</span>

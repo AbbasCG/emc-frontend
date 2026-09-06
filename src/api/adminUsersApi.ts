@@ -1,7 +1,8 @@
 import axios from 'axios'
 import apiClient from './axios'
 import { unwrapData } from './unwrap'
-import { getApiErrorMessage } from './apiErrors'
+import { getApiErrorMessage, getLaravelFieldErrors, translateLaravelFieldMessage } from './apiErrors'
+import { normalizeRole } from '@/utils/dashboardAccess'
 
 const silent = { skipErrorToast: true as const }
 
@@ -27,6 +28,10 @@ export type AdminManagedUser = {
   role?: string | null
   /** When absent, treated as «active» in UI KPIs unless backend adds explicit flag later. */
   is_active?: boolean | null
+  /** Backend status string: 'active' | 'inactive' | 'suspended' | etc. */
+  status?: string | null
+  /** Filled when user is soft-deleted. */
+  deleted_at?: string | null
   created_at?: string | null
   updated_at?: string | null
   /** Optional fields when Laravel serializes richer admin user payloads — otherwise UI shows «—». */
@@ -34,6 +39,7 @@ export type AdminManagedUser = {
   department?: string | null
   city?: string | null
   country?: string | null
+  gender?: string | null
   how_did_you_hear_about_us?: string | null
   avatar_url?: string | null
   email_verified_at?: string | null
@@ -167,16 +173,31 @@ function normalizeManagedUser(raw: Record<string, unknown>): AdminManagedUser {
 
   const related = relateNotesFromRaw(raw)
 
+  const deletedRaw = raw.deleted_at ?? raw.deletedAt
+  const deleted_at =
+    deletedRaw != null && String(deletedRaw).trim() !== '' ? String(deletedRaw) : null
+
+  const statusRaw = raw.status ?? raw.account_status ?? raw.user_status
+  const status =
+    statusRaw != null && String(statusRaw).trim() !== '' ? String(statusRaw).trim().toLowerCase() : null
+
+  const genderRaw = raw.gender ?? raw.sex
+  const gender =
+    genderRaw != null && String(genderRaw).trim() !== '' ? String(genderRaw).trim().toLowerCase() : null
+
   return {
     id: Number.isFinite(id) ? Math.trunc(id) : 0,
     name,
     email: String(raw.email ?? ''),
     role: roleStr,
     is_active,
+    status,
+    deleted_at,
     phone,
     department,
     city,
     country,
+    gender,
     how_did_you_hear_about_us: how,
     avatar_url,
     email_verified_at,
@@ -217,19 +238,218 @@ export function unwrapAdminUsersList(payload: unknown): AdminManagedUser[] {
     .filter((u) => u.id > 0)
 }
 
-/** Map 403 responses to copy required by Super Admin UX. */
+/** Map 403/422 responses to copy required by Super Admin UX. */
 export function getAdminUserMutationMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.status === 403) {
-    const body = err.response?.data as Record<string, unknown> | undefined
+  if (!axios.isAxiosError(err)) return getApiErrorMessage(err)
+
+  const status = err.response?.status
+  const body = err.response?.data as Record<string, unknown> | undefined
+
+  if (status === 403) {
     if (body && typeof body.message === 'string' && body.message.trim()) return body.message
     return ADMIN_USER_FORBIDDEN_AR
   }
+
+  // For 422 validation failures: collect ALL field errors, translate, and join them so the
+  // user sees exactly which field was rejected (e.g. "الدور: القيمة المختارة غير مقبولة").
+  if (status === 422) {
+    const FIELD_LABELS: Record<string, string> = {
+      name: 'الاسم',
+      email: 'البريد الإلكتروني',
+      role: 'الدور',
+      password: 'كلمة المرور',
+      phone: 'الهاتف',
+      city: 'المدينة',
+      country: 'الدولة',
+      department: 'الإدارة',
+      is_active: 'الحالة',
+    }
+    const fieldErrors = getLaravelFieldErrors(err)
+    const lines = Object.entries(fieldErrors).map(([field, msg]) => {
+      const label = FIELD_LABELS[field] ?? field
+      return `${label}: ${translateLaravelFieldMessage(msg)}`
+    })
+    if (lines.length > 0) return lines.join('\n')
+  }
+
   return getApiErrorMessage(err)
 }
 
+export type AdminUsersQuery = {
+  page?: number
+  per_page?: number
+  search?: string
+  role?: string
+  status?: 'all' | 'active' | 'inactive' | 'deleted'
+  department?: string
+  verified?: 'all' | 'verified' | 'unverified'
+}
+
+export type AdminUsersSummary = {
+  total: number
+  active: number
+  suspended: number
+  verified: number
+  unverified: number
+}
+
+export type AdminUsersPageResult = {
+  users: AdminManagedUser[]
+  total: number
+  page: number
+  perPage: number
+  lastPage: number
+  /** True when Laravel returned paginator meta (page/per_page respected server-side). */
+  serverPaginated: boolean
+  summary: AdminUsersSummary | null
+}
+
+function parsePaginatorMeta(payload: unknown): {
+  total: number
+  page: number
+  perPage: number
+  lastPage: number
+} | null {
+  const root = payload != null && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : null
+  const inner = unwrapData<unknown>(payload)
+  const innerObj = inner != null && typeof inner === 'object' && !Array.isArray(inner)
+    ? (inner as Record<string, unknown>)
+    : null
+  const meta = (root?.meta ?? innerObj?.meta) as Record<string, unknown> | undefined
+  if (!meta || typeof meta !== 'object') return null
+  const total = Number(meta.total)
+  const page = Number(meta.current_page ?? meta.page)
+  const perPage = Number(meta.per_page ?? meta.perPage)
+  const lastPage = Number(meta.last_page ?? meta.lastPage)
+  if (!Number.isFinite(total) || total < 0) return null
+  return {
+    total,
+    page: Number.isFinite(page) && page > 0 ? page : 1,
+    perPage: Number.isFinite(perPage) && perPage > 0 ? perPage : 15,
+    lastPage: Number.isFinite(lastPage) && lastPage > 0 ? lastPage : Math.max(1, Math.ceil(total / (perPage || 15))),
+  }
+}
+
+function parseSummaryBlock(payload: unknown): AdminUsersSummary | null {
+  const root = payload != null && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : null
+  const inner = unwrapData<unknown>(payload)
+  const innerObj = inner != null && typeof inner === 'object' && !Array.isArray(inner)
+    ? (inner as Record<string, unknown>)
+    : null
+  const stats = (root?.stats ?? root?.summary ?? innerObj?.stats ?? innerObj?.summary) as Record<string, unknown> | undefined
+  if (!stats || typeof stats !== 'object') return null
+  const total = Number(stats.total)
+  if (!Number.isFinite(total)) return null
+  return {
+    total,
+    active: Number(stats.active ?? stats.active_count ?? 0),
+    suspended: Number(stats.suspended ?? stats.inactive ?? stats.inactive_count ?? 0),
+    verified: Number(stats.verified ?? stats.verified_count ?? 0),
+    unverified: Number(stats.unverified ?? stats.unverified_count ?? 0),
+  }
+}
+
+function buildUsersQueryParams(q: AdminUsersQuery): Record<string, string | number> {
+  const params: Record<string, string | number> = {
+    page: q.page ?? 1,
+    per_page: q.per_page ?? 15,
+  }
+  const status = q.status ?? 'all'
+  params.status = status
+  const search = q.search?.trim()
+  if (search) params.search = search
+  if (q.role && q.role !== 'all') params.role = q.role
+  if (q.department && q.department !== 'all') params.department = q.department
+  if (q.verified === 'verified') params.verified = '1'
+  else if (q.verified === 'unverified') params.verified = '0'
+  return params
+}
+
+/** Paginated list — uses server meta when backend supports `page` / `per_page` query params. */
+export async function fetchAdminUsersPage(q: AdminUsersQuery): Promise<AdminUsersPageResult> {
+  const params = buildUsersQueryParams(q)
+  const res = await apiClient.get<unknown>(BASE, { ...silent, params })
+  const users = unwrapAdminUsersList(res.data)
+  const meta = parsePaginatorMeta(res.data)
+  const summary = parseSummaryBlock(res.data)
+
+  if (meta) {
+    return {
+      users,
+      total: meta.total,
+      page: meta.page,
+      perPage: meta.perPage,
+      lastPage: meta.lastPage,
+      serverPaginated: true,
+      summary,
+    }
+  }
+
+  const perPage = q.per_page ?? 15
+  const page = q.page ?? 1
+  const filtered = filterUsersClientSide(users, q)
+  const total = filtered.length
+  const lastPage = Math.max(1, Math.ceil(total / perPage))
+  const safePage = Math.min(Math.max(1, page), lastPage)
+  const start = (safePage - 1) * perPage
+
+  return {
+    users: filtered.slice(start, start + perPage),
+    total,
+    page: safePage,
+    perPage,
+    lastPage,
+    serverPaginated: false,
+    summary: summary ?? summarizeUsersClientSide(filtered),
+  }
+}
+
+function filterUsersClientSide(users: AdminManagedUser[], q: AdminUsersQuery): AdminManagedUser[] {
+  const search = q.search?.trim().toLowerCase() ?? ''
+  return users.filter((u) => {
+    if (q.role && q.role !== 'all' && normalizeRole(u.role) !== q.role) return false
+    if (q.status === 'active' && (u.is_active === false || u.deleted_at)) return false
+    if (q.status === 'inactive' && (u.is_active !== false || u.deleted_at)) return false
+    if (q.status === 'deleted' && !u.deleted_at) return false
+    if (q.department && q.department !== 'all' && (u.department?.trim() ?? '') !== q.department) return false
+    if (q.verified === 'verified' && !u.email_verified_at) return false
+    if (q.verified === 'unverified' && u.email_verified_at) return false
+    if (!search) return true
+    const hay = `${u.name} ${u.email} ${u.phone ?? ''} ${u.id} ${u.department ?? ''} ${normalizeRole(u.role ?? null)}`.toLowerCase()
+    return hay.includes(search)
+  })
+}
+
+function summarizeUsersClientSide(users: AdminManagedUser[]): AdminUsersSummary {
+  let active = 0
+  let suspended = 0
+  let verified = 0
+  for (const u of users) {
+    if (u.deleted_at) continue
+    if (u.is_active === false) suspended++
+    else active++
+    if (u.email_verified_at) verified++
+  }
+  return {
+    total: users.length,
+    active,
+    suspended,
+    verified,
+    unverified: users.length - verified,
+  }
+}
+
 export async function fetchAdminUsers(): Promise<AdminManagedUser[]> {
-  const res = await apiClient.get<unknown>(BASE, silent)
+  const res = await apiClient.get<unknown>(BASE, { ...silent, params: { status: 'all' } })
   return unwrapAdminUsersList(res.data)
+}
+
+export async function restoreAdminUser(id: number): Promise<void> {
+  await apiClient.post(`${BASE}/${id}/restore`, {}, silent)
 }
 
 export async function fetchAdminUser(id: number): Promise<AdminManagedUser> {
@@ -373,4 +593,107 @@ export async function updateAdminUser(id: number, patch: UpdateAdminUserInput): 
 
 export async function deleteAdminUser(id: number): Promise<void> {
   await apiClient.delete(`${BASE}/${id}`, silent)
+}
+
+// ---------------------------------------------------------------------------
+// Quick user search (typeahead for admin modals)
+// ---------------------------------------------------------------------------
+
+export type UserSearchHit = {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  avatar: string | null
+}
+
+export async function searchAdminUsers(q: string): Promise<UserSearchHit[]> {
+  if (!q.trim()) return []
+  try {
+    const res = await apiClient.get<unknown>('/admin/users/search', { params: { q: q.trim() }, ...silent })
+    const inner = unwrapData<unknown>(res.data)
+    const list = Array.isArray(inner) ? inner : (inner && typeof inner === 'object' ? ((inner as Record<string, unknown>).data ?? []) : [])
+    return (Array.isArray(list) ? list : []) as UserSearchHit[]
+  } catch {
+    return []
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Student course enrollments
+// ---------------------------------------------------------------------------
+
+export type StudentCourseRow = {
+  course_id: number
+  course_title: string
+  status: string
+  registered_at: string | null
+  progress_status: string | null
+  progress_pct: number
+}
+
+export async function fetchStudentCourses(userId: number): Promise<StudentCourseRow[]> {
+  try {
+    const res = await apiClient.get<unknown>(`/admin/students/${userId}/courses`, silent)
+    const inner = unwrapData<unknown>(res.data)
+    const list =
+      Array.isArray(inner)
+        ? inner
+        : inner && typeof inner === 'object'
+          ? ((inner as Record<string, unknown>).data ?? [])
+          : []
+    return (Array.isArray(list) ? list : []) as StudentCourseRow[]
+  } catch {
+    return []
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Super-admin aggregate stats
+// ---------------------------------------------------------------------------
+
+export type SuperAdminStats = {
+  users: {
+    total: number
+    active: number
+    inactive: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  students: {
+    total: number
+    active: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  registrations: {
+    total: number
+    pending: number
+    new_this_month: number
+    new_last_month: number
+    change_percentage: number | null
+  }
+  courses: {
+    total: number
+  }
+  chart: Array<{
+    key: string
+    label: string
+    students: number
+    registrations: number
+  }>
+}
+
+export async function fetchSuperAdminStats(): Promise<SuperAdminStats | null> {
+  try {
+    const res = await apiClient.get<unknown>('/admin/stats', { ...silent })
+    const d = res.data as { data?: SuperAdminStats }
+    // Guard: a truthy-but-wrong payload (e.g. `data: []`) must not reach the page —
+    // SuperAdminOverviewPage reads nested fields and would crash into the ErrorBoundary.
+    return d?.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : null
+  } catch {
+    return null
+  }
 }

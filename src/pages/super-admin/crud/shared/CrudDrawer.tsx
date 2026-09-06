@@ -1,8 +1,9 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 type CrudDrawerProps = {
   open: boolean
@@ -25,6 +26,9 @@ export function CrudDrawer({
   footerSlot,
   widthClassName = 'max-w-md sm:max-w-lg',
 }: CrudDrawerProps) {
+  const panelRef = useRef<HTMLElement>(null)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -52,10 +56,11 @@ export function CrudDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-[#0F172A]/40 backdrop-blur-[3px]"
+            className="fixed inset-0 z-modal-overlay bg-[#0F172A]/40 backdrop-blur-[3px]"
             onClick={onClose}
           />
           <motion.aside
+            ref={panelRef}
             role="dialog"
             aria-modal
             aria-labelledby="emc-drawer-title"
@@ -65,7 +70,7 @@ export function CrudDrawer({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
             className={cn(
-              'fixed inset-y-0 right-0 z-[141] flex w-full flex-col border-l border-white/10 bg-white/95 shadow-[-12px_0_48px_rgba(15,23,42,0.12)] backdrop-blur-xl',
+              'fixed inset-y-0 right-0 z-modal-content flex w-full flex-col border-l border-white/10 bg-white/95 shadow-[-12px_0_48px_rgba(15,23,42,0.12)] backdrop-blur-xl',
               widthClassName,
             )}
             onClick={(e) => e.stopPropagation()}

@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+# Cancel superseded runs on the same ref to save minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint · Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck + Build
+        run: npm run build
+
+      # M4.b: strictNullChecks on the foundation layers (lib, hooks, i18n, api, types),
+      # widened folder by folder until `strict: true` app-wide in M7. Separate step so a
+      # regression here is distinguishable from a plain build break.
+      - name: Typecheck (strictNullChecks, foundation layers)
+        run: npm run typecheck:strict
+
+      # M4.5: no credentials in the bundle or source, and no unguarded console.* —
+      # several API helpers log full request/response bodies, so an unguarded call
+      # would put user PII into every visitor's browser console. Runs after the build
+      # because it scans dist/ as well as src/.
+      - name: Production leak scan (secrets + console)
+        run: npm run check:secrets
+
+      # M5.c: fails if the largest modulepreloaded chunk exceeds the 250KB gzip budget
+      # in the master-plan M5 DoD. Reports the whole initial payload, since that — not
+      # the per-chunk list vite prints — is what a first-time mobile visitor pays.
+      - name: Bundle budget (initial payload)
+        run: npm run check:bundle
+
+      # M7.C: colours must come from the design tokens. Fails if any file outside the
+      # M0-remap legacy baseline contains a raw hex value, or if a legacy file grows —
+      # the baseline may only shrink. The ESLint half of the gate covers clean files.
+      - name: Brand gate (raw hex vs design tokens)
+        run: npm run check:brand
+
+      - name: Test
+        run: npm test
+
+      # M4.c: per-directory coverage ratchet on the critical layers. Fails the build if
+      # any of them drops below its threshold (see vitest.config.ts for why there is no
+      # global floor yet).
+      - name: Coverage thresholds (critical layers)
+        run: npm run test:coverage
+
+  e2e:
+    name: E2E (Playwright, serverless mocks, desktop+mobile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
+      - name: Build (preview serves dist; API base baked from env)
+        run: npm run build
+        env:
+          VITE_API_URL: http://127.0.0.1:8000/api
+      - name: Run E2E journeys + smoke
+        run: npx playwright test
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  audit:
+    name: Dependency audit (blocking)
+    runs-on: ubuntu-latest
+    # M1.5 gate-strengthening: the tree reached 0 vulnerabilities in M0, so this
+    # gate is now blocking as originally planned.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high

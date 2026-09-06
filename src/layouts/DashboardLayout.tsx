@@ -1,32 +1,51 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  KanbanSquare,
+  ClipboardCheck,
+  CalendarRange,
+  Sparkles,
   Bot,
   ChevronDown,
   ChevronLeft,
   LogOut,
+  Megaphone,
   Menu,
   Search,
   Settings,
   User,
+  Wallet,
   X,
 } from 'lucide-react'
-import logo from '../assets/logo.png'
 import CommandPalette from '../components/ai/CommandPalette'
 import ImpersonationBanner from '../components/ImpersonationBanner'
 import NotificationBell from '../components/platform/NotificationBell'
 import NotificationDrawer from '../components/platform/NotificationDrawer'
+import { WhatsNewDrawer } from '../components/platform/WhatsNewDrawer'
+import { WhatsNewPopup } from '../components/platform/WhatsNewPopup'
 import {
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  NOTIFICATIONS_REFRESH_EVENT,
 } from '../api/notificationsApi'
 import { useAuth } from '../contexts/AuthContext'
+import { subscribeToUserNotifications } from '@/lib/echo'
 import type { PlatformNotification } from '../types/platform'
-import { exactMatchSidebarRoutes, getSidebarByRole } from './dashboardSidebar'
+import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
+import { normalizeRole } from '@/utils/dashboardAccess'
+import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
+import ImpactSparkWidget from '@/components/operations/ImpactSparkWidget'
+
+/** الطلاب والشركاء خارج نظام نقاط المتطوعين — لا ومضات لهم. */
+const OPS_SPARK_HIDDEN_ROLES = new Set(['student', 'partner'])
+import { StudentDashboardProvider } from '@/hooks/useStudentDashboardData'
+import { FinancialRequestProvider, useFinancialRequestContext } from '@/contexts/FinancialRequestContext'
 import { getUserDisplayName, getUserRoleLabel, getUserSidebarSubtitle } from '../utils/userIdentity'
+import { infoToast } from '@/lib/toast'
 import { UserAvatar } from '@/components/UserAvatar'
+import { DropdownPortal } from '@/components/ui/DropdownPortal'
 
 // ---------------------------------------------------------------------------
 // Route → page title map (used by topbar)
@@ -37,39 +56,69 @@ const pageTitles: Record<string, string> = {
   '/dashboard/student':      'لوحة الطالب',
   '/dashboard/instructor':      'لوحة المدرب',
   '/dashboard/admin':        'لوحة الإدارة',
-  '/dashboard/super-admin': 'السوبر مشرف — نظرة عامة',
-  '/dashboard/super-admin/audit-logs': 'سجل التغييرات — السوبر مشرف',
+  '/dashboard/super-admin': 'السوبر مشرف نظرة عامة',
+  '/dashboard/super-admin/audit-logs': 'سجل التغييرات السوبر مشرف',
   '/dashboard/super-admin/crud': 'إدارة الكيانات',
   '/dashboard/super-admin/crud/users': 'مركز المستخدمين',
   '/dashboard/super-admin/crud/roles': 'الأدوار والصلاحيات',
   '/dashboard/super-admin/crud/departments': 'الإدارات',
   '/dashboard/super-admin/crud/team': 'إدارة الفريق',
-  '/dashboard/super-admin/crud/students': 'الطلاب — السوبر مشرف',
-  '/dashboard/super-admin/crud/instructors': 'المدربون — السوبر مشرف',
-  '/dashboard/super-admin/crud/programs': 'البرامج — السوبر مشرف',
-  '/dashboard/super-admin/crud/tracks': 'المسارات — السوبر مشرف',
-  '/dashboard/super-admin/crud/workshops': 'الورش — السوبر مشرف',
-  '/dashboard/super-admin/crud/registrations': 'التسجيلات — السوبر مشرف',
-  '/dashboard/super-admin/crud/partners': 'الشراكات — السوبر مشرف',
+  '/dashboard/super-admin/crud/students': 'الطلاب السوبر مشرف',
+  '/dashboard/super-admin/crud/instructors': 'المدربون السوبر مشرف',
+  '/dashboard/super-admin/crud/programs': 'البرامج السوبر مشرف',
+  '/dashboard/super-admin/crud/tracks': 'المسارات السوبر مشرف',
+  '/dashboard/super-admin/crud/workshops': 'الورش السوبر مشرف',
+  '/dashboard/super-admin/crud/registrations': 'التسجيلات السوبر مشرف',
+  '/dashboard/super-admin/crud/partners': 'الشراكات السوبر مشرف',
+  '/dashboard/super-admin/product-updates': 'تحديثات المنصة',
+  '/dashboard/super-admin/volunteer-requests': 'طلبات التطوع',
   '/dashboard/executive': 'اللوحة التنفيذية',
   '/dashboard/finance': 'لوحة المالية',
-  '/dashboard/quality': 'مراجعة الجودة',
+  '/dashboard/quality': 'لوحة الجودة المركز القيادي',
+  '/dashboard/quality/reviews':            'مراجعات البرامج',
+  '/dashboard/quality/workshops':          'طلبات البرامج التدريبية',
+  '/dashboard/quality/incidents':          'الحوادث',
+  '/dashboard/quality/corrective-actions': 'إجراءات التحسين',
+  '/dashboard/quality/checklists':         'قوائم التحقق',
+  '/dashboard/quality/compliance':         'الامتثال',
+  '/dashboard/quality/governance':         'الحوكمة',
+  '/dashboard/quality/audit-logs':         'سجلات التدقيق',
+  '/dashboard/quality/reports':            'مركز التقارير',
+  '/dashboard/quality/team':               'فريق الجودة',
   '/dashboard/hr': 'لوحة الموارد البشرية',
   '/dashboard/partner': 'لوحة الشركاء',
   '/dashboard/marketing': 'التسويق',
   '/dashboard/support': 'تذاكر الدعم',
   '/dashboard/volunteer': 'المتطوعون',
   '/dashboard/department': 'الإدارات',
-  '/dashboard/department/programs': 'البرامج — الإدارة',
+  '/dashboard/department/programs': 'البرامج الإدارة',
+  '/dashboard/tech-admin': 'لوحة مدير التقنية',
+  '/dashboard/tech-admin/learning-paths': 'المسارات التعليمية التقنية',
+  '/dashboard/programs-manager': 'لوحة مدير البرامج والمسارات',
+  '/dashboard/programs-manager/learning-paths': 'المسارات التعليمية',
+  '/dashboard/operations-manager': 'لوحة مدير العمليات والتشغيل',
+  '/dashboard/partnerships-manager': 'لوحة مدير الشراكات والعلاقات',
+  '/dashboard/community-manager': 'لوحة مدير الصحة النفسية والوعي',
+  '/dashboard/section-lead': 'لوحة قائد القسم',
   '/dashboard/teacher':      'لوحة المدرب',
-  '/dashboard/student/sessions':     'جلساتي',
-  '/dashboard/student/courses':      'دوراتي',
+  '/dashboard/student/sessions':      'جلساتي',
+  '/dashboard/student/courses':       'دوراتي',
+  '/dashboard/student/learn':         'مساحة التعلّم',
   '/dashboard/student/registrations': 'التسجيلات',
-  '/dashboard/student/available-courses': 'دورات متاحة',
-  '/dashboard/student/materials':    'المواد التعليمية',
-  '/dashboard/student/assignments':  'الواجبات',
-  '/dashboard/student/progress':     'التقدّم',
-  '/dashboard/student/evaluation':   'تقييم الدورة',
+  '/dashboard/student/available-courses': 'الدورات المتاحة',
+  '/dashboard/student/materials':     'المواد التعليمية',
+  '/dashboard/student/attendance':   'سجل الحضور',
+  '/dashboard/student/assignments':   'الواجبات',
+  '/dashboard/student/progress':      'التقدّم',
+  '/dashboard/student/evaluation':    'تقييم الدورة',
+  '/dashboard/student/course-rating': 'تقييم الدورة',
+  '/dashboard/student/exams':         'اختباراتي',
+  '/dashboard/student/certificates':  'شهاداتي',
+  '/dashboard/student/notifications': 'الإشعارات',
+  '/dashboard/student/calendar':      'التقويم',
+  '/dashboard/student/files':         'الملفات',
+  '/dashboard/student/assistant':     'المساعد الذكي',
+  '/dashboard/student/profile':       'الملف الشخصي',
   '/dashboard/instructor/sessions':    'جلسات المدرب',
   '/dashboard/instructor/courses':    'دوراتي المسندة',
   '/dashboard/instructor/workshops':   'ورش العمل',
@@ -83,6 +132,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/lms/assignments': 'إدارة الواجبات',
   '/dashboard/admin/lms/materials':   'إدارة المواد',
   '/dashboard/admin/lms/evaluations': 'التقييمات',
+  '/dashboard/admin/lms/courses': 'محتوى الدورة إدارة LMS',
   '/dashboard/admin/lms/progress':    'التقدّم الإداري',
   '/dashboard/admin/operations': 'لوحة العمليات التشغيلية',
   '/dashboard/admin/programs': 'إدارة البرامج والدورات',
@@ -139,8 +189,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/audit-logs': 'سجل التدقيق',
   '/dashboard/admin/platform-scale': 'نمو المنصة',
   '/dashboard/admin/integrations': 'مركز التكاملات',
-  '/dashboard/admin/integrations/whatsapp': 'واتساب — التكامل',
-  '/dashboard/admin/integrations/email': 'البريد — التكامل',
+  '/dashboard/admin/integrations/whatsapp': 'واتساب التكامل',
+  '/dashboard/admin/integrations/email': 'البريد التكامل',
   '/dashboard/admin/calendar': 'تقويم الإدارة',
   '/dashboard/admin/webhooks': 'الويبهوكس',
   '/dashboard/admin/developer/api-tokens': 'رموز المطوّر',
@@ -152,7 +202,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/executive/operations': 'لوحة العمليات التشغيلية',
   '/dashboard/executive/kpi': 'مؤشرات الأداء',
   '/dashboard/executive/reports': 'التقارير التحليلية',
-  '/dashboard/executive/programs': 'البرامج والدورات — التنفيذي',
+  '/dashboard/executive/programs': 'البرامج والدورات التنفيذي',
   '/dashboard/finance/payments': 'المدفوعات',
   '/dashboard/finance/transactions': 'المعاملات المالية',
   '/dashboard/hr/team': 'أعضاء الفريق',
@@ -175,24 +225,130 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   const sidebarName = getUserDisplayName(user)
   const sidebarSubtitle = getUserSidebarSubtitle(user)
   const showRoleBadge = Boolean(user?.role != null && String(user.role).trim() !== '')
+  const [sidebarQuery, setSidebarQuery] = useState('')
 
-  const groups = getSidebarByRole(user?.role)
-  const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>({})
+  const { canCreate } = useFinancialRequestContext()
 
-  function collapsibleSectionOpen(title?: string, collapsible?: boolean) {
-    if (!collapsible || !title) return true
-    return collapsibleExpanded[title] ?? true
+  const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
+    const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
+
+    // «التشغيل والتقارير» — مجموعة مشتركة بارزة (غير مطوية) لكل أدوار الفريق:
+    // لوحة التشغيل المرئية للجميع، تقارير الاجتماعات، تقرير الإثنين، ونقاط الأثر.
+    const OPS_HIDDEN_ROLES = new Set(['student', 'partner'])
+    const role = String(user?.role ?? '')
+    const withOps = (list: SidebarNavGroup[]): SidebarNavGroup[] => {
+      if (OPS_HIDDEN_ROLES.has(role) || !role) return list
+      const opsGroup: SidebarNavGroup = {
+        title: 'التشغيل والتقارير',
+        items: [
+          { label: 'لوحة التشغيل', href: '/dashboard/operations/board', icon: KanbanSquare },
+          { label: 'تقارير الاجتماعات', href: '/dashboard/operations/meeting-reports', icon: ClipboardCheck },
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: CalendarRange },
+          { label: 'نقاط الأثر', href: '/dashboard/operations/impact-points', icon: Sparkles },
+        ],
+      }
+      return [...(list[0] ? [list[0]] : []), opsGroup, ...list.slice(1)]
+    }
+
+    // Backend is the single source of truth for who may submit financial requests.
+    // Inject the department link only when the backend says can_create=true AND
+    // the role's own sidebar doesn't already include that specific route
+    // (department_manager's sidebar already has it at /dashboard/department/financial-requests).
+    const hasDeptFinanceLink = base.some((g) =>
+      g.items.some((i) => i.href === '/dashboard/department/financial-requests'),
+    )
+
+    if (canCreate && !hasDeptFinanceLink) {
+      const leaderGroup: SidebarNavGroup = {
+        title: 'الإدارة المالية',
+        items: [{ label: 'الطلبات المالية', href: '/dashboard/department/financial-requests', icon: Wallet }],
+      }
+      return withOps([
+        ...(base[0] ? [base[0]] : []),
+        leaderGroup,
+        ...base.slice(1),
+      ])
+    }
+
+    return withOps(base)
+  }, [user?.role, canCreate, user?.has_english_courses])
+
+  const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
+
+  const filteredGroups = useMemo(
+    () => filterSidebarGroups(groups, sidebarQuery),
+    [groups, sidebarQuery],
+  )
+
+  const sidebarSearching = sidebarQuery.trim().length > 0
+  const navGroups = sidebarSearching ? filteredGroups : groups
+
+  const sidebarStorageKey = `emc_sidebar_collapsed_${normalizeRole(user?.role ?? null) ?? 'guest'}`
+
+  const [collapsibleExpanded, setCollapsibleExpanded] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(sidebarStorageKey)
+      return stored ? (JSON.parse(stored) as Record<string, boolean>) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  // Clear the filter on navigation and auto-expand the collapsible group owning the
+  // active route. Adjusted during render (react.dev "adjusting state when a prop
+  // changes") so the sidebar never paints with the previous route's search text or a
+  // collapsed group; `null` seeds it so the mount pass expands the landing route too.
+  const [seenNav, setSeenNav] = useState<{
+    pathname: string
+    groups: SidebarNavGroup[]
+  } | null>(null)
+  if (seenNav === null || seenNav.pathname !== location.pathname || seenNav.groups !== groups) {
+    if (seenNav !== null && seenNav.pathname !== location.pathname) setSidebarQuery('')
+
+    const updates: Record<string, boolean> = {}
+    for (const group of groups) {
+      if (!group.collapsible || !group.title) continue
+      const hasActiveChild = group.items.some((item) =>
+        exactMatchSidebarRoutes.has(item.href)
+          ? location.pathname === item.href
+          : location.pathname.startsWith(item.href),
+      )
+      if (hasActiveChild) updates[group.title] = true
+    }
+
+    setSeenNav({ pathname: location.pathname, groups })
+    if (Object.keys(updates).length > 0) {
+      setCollapsibleExpanded((prev) => ({ ...prev, ...updates }))
+    }
   }
 
-  function toggleCollapsibleSection(title?: string) {
+  function collapsibleSectionOpen(title?: string, collapsible?: boolean, defaultOpen = true) {
+    if (!collapsible || !title) return true
+    return collapsibleExpanded[title] ?? defaultOpen
+  }
+
+  function toggleCollapsibleSection(title?: string, defaultOpen = true) {
     if (!title) return
-    setCollapsibleExpanded((prev) => ({ ...prev, [title]: !(prev[title] ?? true) }))
+    setCollapsibleExpanded((prev) => {
+      const next = { ...prev, [title]: !(prev[title] ?? defaultOpen) }
+      try { localStorage.setItem(sidebarStorageKey, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
   }
 
   function isActive(href: string) {
     if (exactMatchSidebarRoutes.has(href)) return location.pathname === href
     return location.pathname.startsWith(href)
   }
+
+  // Nudge the active link into view on route change — e.g. navigating via the
+  // topbar/command palette rather than the sidebar itself. `nearest` is a
+  // no-op when the item is already visible, so this never fights the user's
+  // own scroll position or jumps the sidebar back to the top.
+  const activeItemRef = useRef<HTMLAnchorElement | null>(null)
+  useEffect(() => {
+    activeItemRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [location.pathname])
 
   return (
     <>
@@ -204,18 +360,18 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            className="fixed inset-0 z-[39] bg-black/50 lg:hidden"
             onClick={onClose}
             aria-hidden="true"
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar panel — premium gradient + inset highlights + ambient glow */}
+      {/* Sidebar panel premium gradient + inset highlights + ambient glow */}
       <aside
         dir="rtl"
         className={[
-          'fixed inset-y-0 right-0 z-40 flex w-60 flex-col overflow-hidden',
+          'fixed inset-y-0 right-0 z-sidebar flex w-[252px] flex-col overflow-hidden',
           'bg-gradient-to-b from-[#1A2A3D] via-deepBlue to-[#0F1B2A]',
           'border-l border-white/[0.06] shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]',
           'transition-transform duration-300 ease-emc-out',
@@ -225,11 +381,11 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         {/* Ambient orbs */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 right-0 h-48 w-48 rounded-full bg-customBlue/25 blur-3xl"
+          className="pointer-events-none absolute -top-24 right-0 h-48 w-48 rounded-full bg-customBlue/[0.08] blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-customOrange/10 blur-3xl"
+          className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-full bg-customOrange/[0.06] blur-3xl"
         />
         <div
           aria-hidden
@@ -239,7 +395,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         {/* ── Logo ── */}
         <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-white/[0.08] px-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="EMC" className="h-9 w-auto brightness-0 invert" />
+            <img src="/brand/logos/logo_full_white.png" alt="EMC Educational Mastar Central" className="h-9 w-auto" width={160} height={36} loading="eager" fetchPriority="high" />
           </Link>
           <button
             type="button"
@@ -251,29 +407,58 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           </button>
         </div>
 
+        {showSidebarSearch ?
+          <div className="relative shrink-0 border-b border-white/[0.08] px-3 py-2.5 font-[Cairo,Tajawal,sans-serif]">
+            <Search
+              className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40"
+              aria-hidden
+            />
+            <input
+              type="search"
+              value={sidebarQuery}
+              onChange={(e) => setSidebarQuery(e.target.value)}
+              placeholder="بحث في القائمة..."
+              aria-label="بحث في قائمة لوحة التحكم"
+              className="h-9 w-full rounded-xl border border-white/10 bg-white/[0.06] pe-8 ps-9 text-[12px] font-bold text-white outline-none transition placeholder:text-white/35 focus:border-customBlue/40 focus:bg-white/[0.09] focus:ring-1 focus:ring-customBlue/30"
+            />
+            {sidebarQuery ?
+              <button
+                type="button"
+                aria-label="مسح البحث"
+                onClick={() => setSidebarQuery('')}
+                className="absolute end-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/45 transition hover:bg-white/10 hover:text-white"
+              >
+                <X size={14} />
+              </button>
+            : null}
+          </div>
+        : null}
+
         {/* ── Navigation ── */}
         <nav className="relative flex-1 overflow-y-auto emc-scroll px-3 py-4" aria-label="قائمة لوحة التحكم">
-          {groups.map((group, gi) => {
-            const open = collapsibleSectionOpen(group.title, group.collapsible)
+          {sidebarSearching && navGroups.length === 0 ?
+            <p className="px-2 py-8 text-center text-[12px] font-semibold text-white/45">لا توجد نتائج</p>
+          : navGroups.map((group, gi) => {
+            const open = sidebarSearching ? true : collapsibleSectionOpen(group.title, group.collapsible, group.defaultOpen)
 
             return (
-            <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
+            <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
               {group.collapsible && group.title ?
                 <button
                   type="button"
                   aria-expanded={open}
-                  onClick={() => toggleCollapsibleSection(group.title)}
-                  className="group/cap mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/46 transition hover:bg-white/[0.05]"
+                  onClick={() => toggleCollapsibleSection(group.title, group.defaultOpen)}
+                  className="group/cap mb-1 flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.06] hover:text-white"
                 >
+                  <span className="flex-1 text-right text-xs font-bold text-white/70">{group.title}</span>
                   <ChevronDown
-                    size={16}
-                    className={`shrink-0 text-customOrange transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
+                    size={14}
+                    className={`shrink-0 text-customOrange/90 transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
                     aria-hidden
                   />
-                  <span className="font-latin flex-1 text-right leading-tight text-white/55">{group.title}</span>
                 </button>
               : group.title ?
-                <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-white/40 font-latin">
+                <p className="mb-1 px-3 text-xs font-bold text-white/50 tracking-wide">
                   {group.title}
                 </p>
               : null}
@@ -284,25 +469,27 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                     return (
                       <li key={item.href}>
                         <NavLink
+                          ref={active ? activeItemRef : undefined}
                           to={item.href}
                           end={exactMatchSidebarRoutes.has(item.href)}
+                          aria-current={active ? 'page' : undefined}
                           className={[
-                            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 ease-emc-out',
+                            'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 ease-emc-out',
                             active
-                              ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(38,145,194,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
-                              : 'text-white/70 hover:bg-white/[0.07] hover:text-white',
+                              ? 'bg-gradient-to-l from-customBlue to-[#1e7dab] text-white shadow-[0_8px_22px_-10px_rgba(0,119,182,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]'
+                              : 'text-white/75 hover:bg-white/[0.07] hover:text-white',
                           ].join(' ')}
                         >
                           {active ?
-                            <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(236,148,60,0.7)]" />
+                            <span className="absolute inset-y-2 -right-3 w-1 rounded-full bg-customOrange shadow-[0_0_12px_rgba(242,140,0,0.7)]" />
                           : null}
                           <item.icon
-                            size={17}
-                            className={active ? 'text-white' : 'text-white/55 transition group-hover:text-white'}
+                            size={16}
+                            className={active ? 'text-white shrink-0' : 'text-white/60 shrink-0 transition group-hover:text-white'}
                           />
-                          <span className="flex-1">{item.label}</span>
+                          <span className="flex-1 truncate">{item.label}</span>
                           {!active ?
-                            <ChevronLeft size={14} className="text-white/25 transition group-hover:text-white/50" />
+                            <ChevronLeft size={13} className="text-white/25 shrink-0 transition group-hover:text-white/50" />
                           : null}
                         </NavLink>
                       </li>
@@ -320,7 +507,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.06] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
             <UserAvatar
               user={user}
-              className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[10px] leading-none text-white ring-2 ring-white/10 font-latin"
+              className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#0E5A8A] text-[10px] leading-none text-white ring-2 ring-white/10 font-latin"
               textClassName="text-[10px] font-black text-white font-latin"
             />
             <div className="min-w-0 flex-1 text-right">
@@ -359,11 +546,15 @@ function Topbar({
   onOpenSearch,
   unread,
   onOpenNotifications,
+  whatsNewUnread,
+  onOpenWhatsNew,
 }: {
   onMenuClick: () => void
   onOpenSearch: () => void
   unread: number
   onOpenNotifications: () => void
+  whatsNewUnread: number
+  onOpenWhatsNew: () => void
 }) {
   const { user, logout } = useAuth()
   const location = useLocation()
@@ -380,23 +571,18 @@ function Topbar({
   const displayName = getUserDisplayName(user)
   const roleLabel = getUserRoleLabel(user)
 
-  useEffect(() => {
-    if (!menuOpen) return
-    function close(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [menuOpen])
-
-  useEffect(() => {
+  // Close the account menu on navigation — adjusted during render so the new page
+  // never paints with the previous page's menu still open.
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
     setMenuOpen(false)
-  }, [location.pathname])
+  }
 
   return (
     <header
       dir="rtl"
-      className="fixed right-0 top-0 z-20 flex h-16 w-full items-center gap-4 border-b border-deepBlue/[0.07] bg-white/78 px-4 shadow-[0_1px_0_rgba(15,42,67,0.04)] backdrop-blur-2xl lg:right-60 lg:w-[calc(100%-15rem)]"
+      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
     >
       <button
         type="button"
@@ -407,8 +593,16 @@ function Topbar({
         <Menu size={20} />
       </button>
 
-      <div className="min-w-0 flex-1">
-        <h1 className="truncate text-[15px] font-black tracking-tight text-deepBlue sm:text-base">{pageTitle}</h1>
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <h1 className="line-clamp-2 min-w-0 break-words text-[13px] font-black leading-snug tracking-tight text-deepBlue font-display sm:text-base sm:leading-normal">{pageTitle}</h1>
+        {/* زر لوحة التشغيل: بارز وسط الشريط لكل الأدوار — نافذة الفريق الواحدة على المهام */}
+        <Link
+          to="/dashboard/operations/board"
+          className="mx-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-customOrange px-3 text-[11px] font-extrabold text-white transition hover:bg-ember sm:gap-2 sm:px-4 sm:text-xs"
+        >
+          <KanbanSquare size={15} aria-hidden />
+          لوحة التشغيل
+        </Link>
       </div>
 
       <div className="flex items-center gap-2">
@@ -423,6 +617,21 @@ function Topbar({
           <kbd className="hidden rounded-md bg-white px-1.5 py-0.5 text-[10px] font-black text-deepBlue/45 ring-1 ring-deepBlue/[0.08] font-latin md:inline">
             Ctrl K
           </kbd>
+        </button>
+
+        {/* What's New button */}
+        <button
+          type="button"
+          onClick={onOpenWhatsNew}
+          aria-label="ما الجديد؟"
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] text-deepBlue/65 transition hover:border-customBlue/30 hover:bg-white hover:text-customBlue"
+        >
+          <Megaphone size={17} />
+          {whatsNewUnread > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-customBlue px-0.5 text-[9px] font-black text-white">
+              {whatsNewUnread > 9 ? '9+' : whatsNewUnread}
+            </span>
+          )}
         </button>
 
         <NotificationBell unread={unread} onClick={onOpenNotifications} />
@@ -442,7 +651,7 @@ function Topbar({
           >
             <UserAvatar
               user={user}
-              className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#1B6489] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(38,145,194,0.55)] ring-2 ring-white font-latin"
+              className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#0E5A8A] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(0,119,182,0.55)] ring-2 ring-white font-latin"
               textClassName="text-[11px] font-black text-white font-latin"
             />
             <div className="min-w-0 flex-1 text-right max-sm:hidden">
@@ -459,44 +668,48 @@ function Topbar({
           </button>
 
           {menuOpen ?
-            <div
-              dir="rtl"
-              role="menu"
-              aria-label="خيارات المستخدم"
-              className="absolute end-0 top-[calc(100%+0.375rem)] z-[100] min-w-[15.5rem] rounded-2xl border border-deepBlue/[0.08] bg-white py-2 shadow-[0_14px_40px_-14px_rgba(15,42,67,0.22)] ring-1 ring-deepBlue/[0.04]"
+            <DropdownPortal
+              open={menuOpen}
+              anchorRef={menuRef}
+              onClose={() => setMenuOpen(false)}
+              align="end"
+              offset={6}
+              className="min-w-[15.5rem] rounded-2xl border border-deepBlue/[0.08] bg-white py-2 shadow-[0_14px_40px_-14px_rgba(15,42,67,0.22)] ring-1 ring-deepBlue/[0.04]"
             >
-              <Link
-                to="/dashboard/profile"
-                role="menuitem"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
-              >
-                <User className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
-                الملف الشخصي
-              </Link>
-              <Link
-                to="/dashboard/settings"
-                role="menuitem"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
-              >
-                <Settings className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
-                الإعدادات
-              </Link>
-              <div className="my-2 h-px bg-deepBlue/[0.06]" role="presentation" />
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setMenuOpen(false)
-                  logout()
-                }}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm font-black text-rose-600 transition hover:bg-rose-50"
-              >
-                <LogOut className="size-[17px] shrink-0 opacity-90" aria-hidden />
-                تسجيل الخروج
-              </button>
-            </div>
+              <div dir="rtl" role="menu" aria-label="خيارات المستخدم">
+                <Link
+                  to="/dashboard/profile"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
+                >
+                  <User className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
+                  الملف الشخصي
+                </Link>
+                <Link
+                  to="/dashboard/settings"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-deepBlue transition hover:bg-deepBlue/[0.04]"
+                >
+                  <Settings className="size-[17px] shrink-0 text-customBlue opacity-90" aria-hidden />
+                  الإعدادات
+                </Link>
+                <div className="my-2 h-px bg-deepBlue/[0.06]" role="presentation" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    logout()
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm font-black text-rose-600 transition hover:bg-rose-50"
+                >
+                  <LogOut className="size-[17px] shrink-0 opacity-90" aria-hidden />
+                  تسجيل الخروج
+                </button>
+              </div>
+            </DropdownPortal>
           : null}
         </div>
       </div>
@@ -512,19 +725,73 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [whatsNewUnread, setWhatsNewUnread] = useState(0)
   const [notifications, setNotifications] = useState<PlatformNotification[]>([])
   const location = useLocation()
+  const { user: currentUser } = useAuth()
 
   const refreshNotifications = useCallback(() => {
     void fetchNotifications().then((n) => setNotifications(n))
   }, [])
 
+  // Realtime (Ticket 8 completion pass) — when configured, new notifications
+  // prepend instantly instead of waiting for the 90s poll below, which
+  // remains as the graceful fallback when realtime is unavailable or the
+  // socket drops. Duplicate-safe: a broadcast that arrives for an id
+  // already in state (e.g. the REST poll won the race) is ignored.
   useEffect(() => {
+    if (!currentUser?.id) return
+
+    const unsubscribe = subscribeToUserNotifications(currentUser.id, (payload) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === payload.id)) return prev
+        return [
+          {
+            id: payload.id,
+            type: payload.type as PlatformNotification['type'],
+            title: payload.title,
+            body: payload.message,
+            message: payload.message,
+            is_read: false,
+            read_at: null,
+            created_at: payload.created_at ?? new Date().toISOString(),
+            action_url: payload.action_url,
+            meta_url: payload.meta_url,
+            pinned: payload.pinned,
+            archived_at: null,
+          },
+          ...prev,
+        ]
+      })
+    })
+
+    return unsubscribe
+  }, [currentUser?.id])
+
+  // Close the mobile sidebar on navigation — adjusted during render so the new page
+  // never paints with the previous page's drawer still open.
+  const [seenPath, setSeenPath] = useState(location.pathname)
+  if (seenPath !== location.pathname) {
+    setSeenPath(location.pathname)
     setSidebarOpen(false)
-  }, [location.pathname])
+  }
 
   useEffect(() => {
     refreshNotifications()
+  }, [refreshNotifications])
+
+  useEffect(() => {
+    function onNotifRefresh() {
+      refreshNotifications()
+    }
+    window.addEventListener(NOTIFICATIONS_REFRESH_EVENT, onNotifRefresh)
+    return () => window.removeEventListener(NOTIFICATIONS_REFRESH_EVENT, onNotifRefresh)
+  }, [refreshNotifications])
+
+  useEffect(() => {
+    const id = setInterval(refreshNotifications, 90_000)
+    return () => clearInterval(id)
   }, [refreshNotifications])
 
   useEffect(() => {
@@ -538,36 +805,36 @@ export default function DashboardLayout() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const unread = notifications.filter((n) => !n.read_at).length
+  const unread = notifications.filter((n) => !n.is_read).length
 
   async function handleMarkRead(id: number) {
+    const stamp = new Date().toISOString()
     setNotifications((prev) =>
       prev.map((x) =>
-        x.id === id ? { ...x, read_at: x.read_at ?? new Date().toISOString().slice(0, 10) } : x,
+        x.id === id ? { ...x, is_read: true, read_at: x.read_at ?? stamp } : x,
       ),
     )
     await markNotificationRead(id)
   }
 
   async function handleMarkAll() {
-    const stamp = new Date().toISOString().slice(0, 10)
-    setNotifications((prev) => prev.map((x) => ({ ...x, read_at: x.read_at ?? stamp })))
+    const stamp = new Date().toISOString()
+    setNotifications((prev) =>
+      prev.map((x) => ({ ...x, is_read: true, read_at: x.read_at ?? stamp })),
+    )
     await markAllNotificationsRead()
+    infoToast('تم تعيين جميع الإشعارات كمقروءة')
   }
 
   return (
-    <div dir="rtl" className="relative min-h-screen bg-[#F6F8FB]">
-      {/* Ambient dashboard atmosphere — fixed, subtle, behind content */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-gradient-to-br from-[#F6F8FB] via-[#F3F7FC] to-[#EEF4FA]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-0 bg-emc-grid bg-grid-32 opacity-[0.4] [mask-image:radial-gradient(ellipse_at_top_left,rgba(0,0,0,0.45),transparent_70%)]"
-      />
-
+    <FinancialRequestProvider>
+    <StudentDashboardProvider>
+    <div className="emc-shell min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_252px] h-full" dir="ltr">
+        
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      <main className="col-start-1 row-start-1 min-w-0" dir="rtl" id="dashboard-main-content" tabIndex={-1}>
       <Topbar
         onMenuClick={() => setSidebarOpen(true)}
         onOpenSearch={() => setPaletteOpen(true)}
@@ -576,6 +843,8 @@ export default function DashboardLayout() {
           setDrawerOpen(true)
           refreshNotifications()
         }}
+        whatsNewUnread={whatsNewUnread}
+        onOpenWhatsNew={() => setWhatsNewOpen(true)}
       />
 
       <CommandPalette
@@ -591,10 +860,21 @@ export default function DashboardLayout() {
         onMarkAll={() => void handleMarkAll()}
       />
 
+      <WhatsNewDrawer
+        open={whatsNewOpen}
+        onClose={() => setWhatsNewOpen(false)}
+        onUnreadChange={setWhatsNewUnread}
+      />
+
+      <WhatsNewPopup
+        onOpen={() => setWhatsNewOpen(true)}
+        onUnreadChange={setWhatsNewUnread}
+      />
+
       <Link
         to="/ai"
         aria-label="المساعد الذكي"
-        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(15,42,67,0.55),0_0_0_1px_rgba(38,145,194,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(38,145,194,0.6),0_0_0_1px_rgba(38,145,194,0.35)]"
+        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(6,24,44,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
       >
         <span
           aria-hidden
@@ -607,12 +887,16 @@ export default function DashboardLayout() {
         <Bot size={26} className="relative" />
       </Link>
 
-      <main className="relative pt-16 lg:mr-60" id="dashboard-main-content" tabIndex={-1}>
         <div className="p-5 md:p-7 lg:p-8">
           <ImpersonationBanner />
           <Outlet />
+          {/* «ومضة الأثر» — لأدوار الفريق التي يعنيها نظام النقاط */}
+          {!OPS_SPARK_HIDDEN_ROLES.has(String(currentUser?.role ?? '')) && <ImpactSparkWidget />}
         </div>
       </main>
+      </div>
     </div>
+    </StudentDashboardProvider>
+    </FinancialRequestProvider>
   )
 }

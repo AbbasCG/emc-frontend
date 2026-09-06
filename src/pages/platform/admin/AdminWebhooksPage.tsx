@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { Link } from 'react-router'
+import { loadingToast, successToast, errorToast } from '@/lib/toast'
 import {
   createWebhookEndpoint,
   fetchWebhookEndpoints,
@@ -45,11 +45,16 @@ export default function AdminWebhooksPage() {
   }
 
   async function onCreate() {
-    const created = await createWebhookEndpoint({ url: url || 'https://example.com/hook', events })
-    setFreshSecret(created.secret ?? 'whsec_demo_once')
-    await refresh()
-    setUrl('')
-    toast.success('تم إنشاء نقطة النهاية')
+    const tid = loadingToast('جاري إنشاء نقطة النهاية...')
+    try {
+      const created = await createWebhookEndpoint({ url: url || 'https://example.com/hook', events })
+      setFreshSecret(created.secret ?? 'whsec_demo_once')
+      await refresh()
+      setUrl('')
+      successToast('تم إنشاء نقطة النهاية', tid)
+    } catch {
+      errorToast('تعذّر إنشاء نقطة النهاية. تحقق من الاتصال وأعد المحاولة.', tid)
+    }
   }
 
   return (
@@ -67,7 +72,7 @@ export default function AdminWebhooksPage() {
         </Link>
       </motion.div>
 
-      <SecretWarningPanel title="سر التوقيع يُعرض مرة واحدة فقط" body="انسخ القيمة فور الإنشاء واحفظها في مدير أسرار معتمد — لن نتمكن من إظهارها لاحقًا من الواجهة." />
+      <SecretWarningPanel title="سر التوقيع يُعرض مرة واحدة فقط" body="انسخ القيمة فور الإنشاء واحفظها في مدير أسرار معتمد لن نتمكن من إظهارها لاحقًا من الواجهة." />
 
       {freshSecret && (
         <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 font-mono text-xs font-black text-emerald-950 shadow-inner" dir="ltr">

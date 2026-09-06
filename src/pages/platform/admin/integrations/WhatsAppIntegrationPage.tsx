@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { Link } from 'react-router'
+import toast from '@/lib/toast'
 import { fetchWhatsAppIntegration, sendWhatsAppTestMessage } from '@/api/integrationsApi'
 import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import type { WhatsAppIntegrationPreview } from '@/types/phase7'
@@ -38,7 +38,7 @@ export default function WhatsAppIntegrationPage() {
           <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600">WhatsApp</p>
           <h1 className="text-2xl font-black text-deepBlue">إعدادات واتساب</h1>
           <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
-            اختيار موفر الرسائل للاختبار — القيم السرية مخفية بالكامل وتُدار من الخادم.
+            اختيار موفر الرسائل للاختبار القيم السرية مخفية بالكامل وتُدار من الخادم.
           </p>
         </div>
         <Link to="/dashboard/admin/integrations" className="text-xs font-black text-customBlue hover:underline">

@@ -1,123 +1,241 @@
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
-import { ArrowLeft, BadgeCheck, Briefcase, Brain, CircuitBoard, LineChart } from 'lucide-react'
-import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
+﻿import { useState } from 'react'
+import { Link } from 'react-router'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Brain, GraduationCap, Languages, Smile, BadgeCheck, Clock } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import {
+  PROFESSIONAL_TRACKS,
+  ACADEMIC_UNITS,
+  LANGUAGE_PROGRAMS,
+  CHILDREN_PROGRAMS,
+} from '@/data/officialTracks'
+
+// Track data lives in src/data/officialTracks.ts — the single approved catalogue.
+
+// Design Language 2.0 — the tab item card became an editorial row:
+// icon · serif name · one-line description · «استكشف» line CTA, all seated
+// on the emc-row hairline (hover: paper tint + sliding sky bar). No boxes.
+function EditorialRow({
+  icon: Icon,
+  title,
+  titleEn,
+  desc,
+  duration,
+  href,
+  index,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  title: string
+  titleEn?: string
+  desc: string
+  duration?: string
+  href?: string
+  index: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.45, delay: index * 0.04, ease: [0.22, 0.61, 0.36, 1] }}
+      className="emc-row"
+    >
+      <Link
+        to={href ?? '/courses'}
+        className="group flex items-center gap-4 py-5 ps-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-customBlue sm:gap-6 sm:py-6 sm:ps-4"
+      >
+        <Icon
+          size={22}
+          className="shrink-0 text-customBlue transition-transform duration-300 group-hover:-translate-y-0.5"
+        />
+        <div className="min-w-0 flex-1 text-right">
+          <div className="flex flex-wrap items-baseline gap-x-3">
+            <h3 className="font-display text-lg font-black leading-snug text-deepBlue transition group-hover:text-customBlue sm:text-xl">
+              {title}
+            </h3>
+            {titleEn && <span className="font-latin text-[11px] font-bold text-ink-400">{titleEn}</span>}
+          </div>
+          <p className="mt-1 line-clamp-2 text-xs font-semibold leading-6 text-ink-400 sm:line-clamp-1 sm:text-sm">
+            {desc}
+          </p>
+        </div>
+        {duration && (
+          <span className="hidden shrink-0 items-center gap-1.5 text-xs font-bold text-ink-400 lg:flex">
+            <Clock size={14} className="text-customBlue" aria-hidden />
+            {duration}
+          </span>
+        )}
+        <span className="emc-cta-line shrink-0 text-xs sm:text-sm">
+          استكشف
+          <ArrowLeftIcon size={14} />
+        </span>
+      </Link>
+    </motion.div>
+  )
+}
 
 export default function HomeLearningTracks() {
-  const { t } = useTranslation()
-
-  const tracks = [
-    {
-      title: t('home.trackAiEngineer'),
-      desc: t('home.trackAiEngineerDesc'),
-      href: '/courses',
-      accent: 'from-customBlue/[0.12] to-accent-50/70',
-      icon: Brain,
-    },
-    {
-      title: t('home.trackDataScientist'),
-      desc: t('home.trackDataScientistDesc'),
-      href: '/courses',
-      accent: 'from-brand-50 to-customOrange/[0.08]',
-      icon: CircuitBoard,
-    },
-    {
-      title: t('home.trackDataAnalyst'),
-      desc: t('home.trackDataAnalystDesc'),
-      href: '/courses',
-      accent: 'from-brand-50/90 to-deepBlue/[0.06]',
-      icon: LineChart,
-    },
-    {
-      title: t('home.trackAiBusinessTitle'),
-      desc: t('home.trackAiBusinessDesc'),
-      href: '/courses',
-      accent: 'from-customOrange/[0.1] to-brand-50/80',
-      icon: Briefcase,
-    },
-    {
-      title: t('home.trackAcademic'),
-      desc: t('home.trackAcademicDesc'),
-      href: '/courses',
-      accent: 'from-deepBlue/[0.08] to-brand-50',
-      icon: BadgeCheck,
-    },
-  ] as const
+  const [activeTab, setActiveTab] = useState<'professional' | 'academic' | 'languages' | 'children'>('professional')
 
   return (
-    <section id="tracks" className="scroll-mt-28 bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
-      <div className="mx-auto max-w-[1540px]">
-        <div className="flex flex-col justify-between gap-6 text-right lg:flex-row lg:items-end">
-          <div className="max-w-3xl space-y-4">
-            <p className="text-xs font-black text-customBlue">{t('home.learningTracks')}</p>
-            <h2 className="font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.75rem]">
-              {t('home.tracksSubtitle')}
-            </h2>
-            <p className="text-lg font-semibold leading-9 text-foreground/72">
-              نصمّم تجربة متكاملة: محتوى، تمارين، تقييم مستمر، وورش تنفيذ مع مدربين رائدين.
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="shrink-0">
-            <Link
-              to="/courses"
-              className="inline-flex items-center gap-2 rounded-full border border-deepBlue/[0.1] bg-white px-6 py-3 text-sm font-black text-deepBlue shadow-emc-sm backdrop-blur-sm transition-colors hover:border-customBlue/35"
-            >
-              {t('home.viewAllTracks')}
-              <ArrowLeft size={17} aria-hidden />
-            </Link>
-          </motion.div>
+    <section
+      id="learning-tracks"
+      dir="rtl"
+      className="relative scroll-mt-24 overflow-hidden bg-brand-50/40 px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+    >
+      {/* V3 decorative layer flying-pages texture + ghost numeral (scene signatures, max 2) */}
+      <div aria-hidden className="emc-pages-light pointer-events-none absolute inset-0 opacity-[0.05]" />
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        02
+      </span>
+
+      <div className="relative mx-auto max-w-[1540px]">
+        {/* Header canonical eyebrow + title-arc language */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
+          className="mb-10 text-center"
+        >
+          <span className="emc-eyebrow">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+            دليل المسارات الرسمي EMC
+          </span>
+          <h2 className="emc-title-arc is-center mt-4 font-display text-3xl font-black tracking-tight text-deepBlue [text-wrap:balance] sm:text-4xl lg:text-[2.75rem]">
+            مسارات التعلّم <span className="text-customBlue">والشهادات المعتمدة</span>
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-400">
+            تأهيل شامل يمتد من 6 إلى 8 أشهر ينتهي بمشروع وتقييم عملي وشهادة معتمدة رسمياً من EMC.
+          </p>
+        </motion.div>
+
+        {/* Tab Navigation functional segmented control (kept) */}
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-line bg-paper2/80 p-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('professional')}
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
+              activeTab === 'professional'
+                ? 'bg-deepBlue text-white scale-[1.02]'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
+            }`}
+          >
+            <Brain size={18} />
+            <span>المسارات الاحترافية الـ 9</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('academic')}
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
+              activeTab === 'academic'
+                ? 'bg-deepBlue text-white scale-[1.02]'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
+            }`}
+          >
+            <GraduationCap size={18} />
+            <span>الوحدات التخصصية الأكاديمية</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('languages')}
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
+              activeTab === 'languages'
+                ? 'bg-deepBlue text-white scale-[1.02]'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
+            }`}
+          >
+            <Languages size={18} />
+            <span>معهد اللغات</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('children')}
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${
+              activeTab === 'children'
+                ? 'bg-deepBlue text-white scale-[1.02]'
+                : 'text-ink-400 hover:text-deepBlue hover:bg-white/60'
+            }`}
+          >
+            <Smile size={18} />
+            <span>الأطفال وعقول المستقبل</span>
+          </button>
         </div>
 
-        <motion.div
-          className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-12"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          {tracks.map((track, i) => {
-            const Icon = track.icon
-            const featured = i === 0 || i === 3
-            return (
-              <motion.article
-                key={track.title}
-                variants={staggerItem}
-                className={`group relative overflow-hidden rounded-[1.6rem] border border-deepBlue/[0.07] bg-white p-8 shadow-emc-sm backdrop-blur-sm transition-[transform,box-shadow] hover:-translate-y-1 hover:shadow-emc-md ${
-                  featured ? 'xl:col-span-7' : 'xl:col-span-5'
-                }`}
-              >
-                <div
-                  aria-hidden
-                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${track.accent}`}
+        {/* Tab Content editorial row lists (Design Language 2.0) */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'professional' && (
+            <motion.div
+              key="professional"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div aria-hidden className="emc-hairline" />
+              {PROFESSIONAL_TRACKS.map((track, i) => (
+                <EditorialRow
+                  key={track.id}
+                  icon={track.icon}
+                  title={track.title}
+                  titleEn={track.titleEn}
+                  desc={track.focus}
+                  duration={track.duration}
+                  href={track.landingSlug ? `/tracks/${track.landingSlug}` : undefined}
+                  index={i}
                 />
-                <div className="relative flex h-full flex-col text-right">
-                  <div className="mb-6 flex items-start justify-between gap-4">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-emc-xs ring-1 ring-deepBlue/[0.05] transition-transform duration-300 group-hover:rotate-[-3deg] group-hover:scale-105">
-                      <Icon size={28} strokeWidth={2} className="text-customBlue" aria-hidden />
-                    </span>
-                    <Link
-                      to={track.href}
-                      className="text-[11px] font-black tracking-wide text-customOrange underline-offset-4 transition hover:text-deepBlue"
-                    >
-                      {t('home.trackDetails')}
-                    </Link>
-                  </div>
-                  <h3 className="text-xl font-black text-deepBlue sm:text-2xl">{track.title}</h3>
-                  <p className="mt-4 flex-1 text-[15px] font-semibold leading-relaxed text-foreground/68">
-                    {track.desc}
-                  </p>
-                  <div className="mt-8 flex justify-end border-t border-deepBlue/[0.06] pt-6">
-                    <Link to={track.href} className="inline-flex items-center gap-2 text-sm font-black text-deepBlue">
-                      {t('home.trackDetails')}
-                      <ArrowLeft size={17} aria-hidden />
-                    </Link>
-                  </div>
-                </div>
-              </motion.article>
-            )
-          })}
-        </motion.div>
+              ))}
+            </motion.div>
+          )}
+
+          {activeTab === 'academic' && (
+            <motion.div
+              key="academic"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div aria-hidden className="emc-hairline" />
+              {ACADEMIC_UNITS.map((unit, i) => (
+                <EditorialRow key={unit.title} icon={unit.icon} title={unit.title} desc={unit.desc} index={i} />
+              ))}
+            </motion.div>
+          )}
+
+          {activeTab === 'languages' && (
+            <motion.div
+              key="languages"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div aria-hidden className="emc-hairline" />
+              {LANGUAGE_PROGRAMS.map((lang, i) => (
+                <EditorialRow key={lang.title} icon={lang.icon} title={lang.title} desc={lang.desc} index={i} />
+              ))}
+            </motion.div>
+          )}
+
+          {activeTab === 'children' && (
+            <motion.div
+              key="children"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div aria-hidden className="emc-hairline" />
+              {CHILDREN_PROGRAMS.map((prog, i) => (
+                <EditorialRow key={prog.title} icon={prog.icon} title={prog.title} desc={prog.desc} index={i} />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   )

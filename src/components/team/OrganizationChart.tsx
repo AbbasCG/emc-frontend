@@ -60,7 +60,7 @@ export default function OrganizationChart({ executive, departments }: Props) {
                 key={dept.id}
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.35 }}
+                viewport={{ once: true, amount: 0.2 }}
                 transition={{ delay: i * 0.05, duration: 0.42 }}
                 className="relative text-center before:absolute before:top-0 before:right-1/2 before:hidden before:h-8 before:w-px before:-translate-y-full before:bg-gradient-to-b before:from-transparent before:to-customBlue/25 before:xl:block"
               >

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Activity, BellRing, Cloud, LayoutDashboard, Smartphone } from 'lucide-react'
 import { fetchMobileReadiness } from '@/api/mobileReadinessApi'
 import MobileReadinessCard from '@/components/enterprise/MobileReadinessCard'
@@ -31,10 +31,10 @@ export default function AdminMobileReadinessPage() {
     <div className="mx-auto max-w-6xl">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Mobile</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">Mobile</p>
           <h1 className="text-3xl font-black text-deepBlue">جاهزية التطبيق المحمول</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-500">
-            لوحة قراءة للمنظومة القادمة — حالة واجهات الـ API، نقاط النهاية، وتجربة لوحة الطالب المختصرة بدون بناء تطبيق حقيقي بعد.
+            لوحة قراءة للمنظومة القادمة حالة واجهات الـ API، نقاط النهاية، وتجربة لوحة الطالب المختصرة بدون بناء تطبيق حقيقي بعد.
           </p>
         </div>
         <Link to="/dashboard/admin/platform-scale" className="text-xs font-black text-customBlue hover:underline">
@@ -42,7 +42,7 @@ export default function AdminMobileReadinessPage() {
         </Link>
       </motion.div>
 
-      <SecretWarningPanel body="هذه الشاشة تشخيصية فقط. لا يوجد تطبيق عميل نهائي بعد — استخدمها لمزامنة فرق المنتج والهندسة." />
+      <SecretWarningPanel body="هذه الشاشة تشخيصية فقط. لا يوجد تطبيق عميل نهائي بعد استخدمها لمزامنة فرق المنتج والهندسة." />
 
       {loading || !data ? (
         <LoadingSkeletonStack rows={4} />

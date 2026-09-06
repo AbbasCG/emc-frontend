@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import SectionHeader from '@/components/sections/SectionHeader'
@@ -60,7 +60,7 @@ export default function HomeFeaturedInstructors() {
               <motion.div key={ins.id} variants={staggerItem}>
                 <Link
                   to={`/instructors/${ins.slug}`}
-                  className="group block h-full rounded-[1.35rem] border border-deepBlue/[0.08] bg-emcBg/80 p-6 text-right shadow-[0_22px_48px_-26px_rgba(15,42,67,0.35)] ring-1 ring-white/80 backdrop-blur-sm transition hover:-translate-y-1 hover:border-customBlue/25 hover:shadow-[0_28px_60px_-22px_rgba(38,145,194,0.28)]"
+                  className="group block h-full rounded-[1.35rem] border border-deepBlue/[0.08] bg-emcBg/80 p-6 text-right backdrop-blur-sm transition hover:-translate-y-1 hover:border-customBlue/25"
                 >
                   <div className="flex items-start gap-4">
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-deepBlue/[0.06] ring-1 ring-deepBlue/[0.06]">
@@ -73,7 +73,7 @@ export default function HomeFeaturedInstructors() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-customOrange">
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-accent-700">
                         مدرب معتمد
                       </p>
                       <h3 className="mt-1 line-clamp-2 text-base font-black text-deepBlue group-hover:text-customBlue">
@@ -106,7 +106,7 @@ export default function HomeFeaturedInstructors() {
         >
           <Link
             to="/instructors"
-            className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/12 bg-white px-5 py-2.5 text-sm font-black text-deepBlue shadow-sm transition hover:border-customBlue/35"
+            className="inline-flex items-center gap-2 rounded-xl border border-deepBlue/12 bg-white px-5 py-2.5 text-sm font-black text-deepBlue transition hover:border-customBlue/35"
           >
             جميع المدربين
             <ArrowLeft size={18} />

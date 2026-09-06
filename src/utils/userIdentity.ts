@@ -47,9 +47,21 @@ export function extractUserRecord(payload: unknown): Record<string, unknown> | n
 
 /** Map API / cached shapes into a canonical `User` for auth store (empty strings when unknown). */
 export function normalizeAuthUser(payload: unknown): User {
-  const r = extractUserRecord(payload) ?? {}
+  // `r` is the user sub-record; `outer` is the full envelope (may have sibling `permissions`)
+  const outer = payload && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>)
+    : {}
+  const extracted = extractUserRecord(payload)
+  const r = extracted ?? {}
   const name = trimStr(r.name ?? r.full_name ?? r.fullName)
   const email = trimStr(r.email ?? r.email_address ?? r.mail)
+  // Session-integrity guard (M4.5 follow-up): a payload with NO user record, or a
+  // record carrying neither id nor email nor name, is not a session — building a
+  // nameless "ghost user" from it would render an authenticated shell with no
+  // identity. Throwing routes callers (hydrate/readCachedUser) to a clean logout.
+  if (extracted == null || (r.id == null && !email && !name)) {
+    throw new Error('normalizeAuthUser: payload contains no usable user record')
+  }
   const roleRaw = r.role
   const role =
     roleRaw != null && String(roleRaw).trim() !== '' ? String(roleRaw).trim() : undefined
@@ -104,6 +116,21 @@ export function normalizeAuthUser(payload: unknown): User {
   let updated_at: string | undefined
   if (r.updated_at != null && String(r.updated_at).trim() !== '') updated_at = String(r.updated_at)
 
+  // permissions may live on the outer envelope (sibling to `user`) or directly on `r`
+  const rawPerms = outer.permissions ?? r.permissions
+  const permissions: string[] | undefined =
+    Array.isArray(rawPerms) ? (rawPerms as unknown[]).map(String).filter(Boolean) : undefined
+
+  // is_department_leader may live on the outer envelope (sibling to `user`) or directly on `r`
+  const rawLeader = outer.is_department_leader ?? r.is_department_leader
+  const is_department_leader: boolean | undefined =
+    typeof rawLeader === 'boolean' ? rawLeader : undefined
+
+  // has_english_courses may live on the outer envelope (sibling to `user`) or directly on `r`
+  const rawHasEnglish = outer.has_english_courses ?? r.has_english_courses
+  const has_english_courses: boolean | undefined =
+    typeof rawHasEnglish === 'boolean' ? rawHasEnglish : undefined
+
   return {
     id: finiteId(r.id),
     name,
@@ -121,6 +148,9 @@ export function normalizeAuthUser(payload: unknown): User {
     updated_at,
     is_active,
     role,
+    permissions,
+    is_department_leader,
+    has_english_courses,
   }
 }
 
@@ -148,12 +178,10 @@ export function normalizeAuthLoginPayload(payload: unknown): { token: string; us
     )
   }
 
-  const userCandidate =
-    innerObj?.user ?? root.user ?? extractUserRecord(payload) ?? inner ?? payload
-
+  // Pass the full inner envelope so normalizeAuthUser can pick up sibling `permissions`.
   return {
     token,
-    user: normalizeAuthUser(userCandidate),
+    user: normalizeAuthUser(innerObj ?? payload),
   }
 }
 

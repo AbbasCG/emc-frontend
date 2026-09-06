@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+﻿import { memo } from 'react'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ClipboardCheck, UserPlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -7,8 +8,8 @@ import { staggerContainer, staggerItem } from '@/utils/motion'
 
 const steps = [
   {
-    titleKey: 'courses.stepChoose',
-    bodyKey: 'courses.stepChooseDesc',
+    title: 'اختيار البرنامج',
+    body: 'راجع الوصف، المدة، والمتطلبات ثم انتقل لصفحة تفاصيل الدورة.',
   },
   {
     titleKey: 'courses.stepRegister',
@@ -20,14 +21,13 @@ const steps = [
   },
 ]
 
-export default function CoursesRegistrationSection() {
-  const { t } = useTranslation()
+function CoursesRegistrationSection() {
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
-          title={t('courses.howItWorks')}
-          description="مسار موحّد: تصفح — تفاصيل — تسجيل — متابعة. أي تحديثات مستقبلية على المنصة ستظهر هنا تلقائياً عبر نفس الروابط."
+          title="كيف يعمل التسجيل؟"
+          description="مسار موحّد: تصفح تفاصيل تسجيل متابعة. أي تحديثات مستقبلية على المنصة ستظهر هنا تلقائياً عبر نفس الروابط."
         />
 
         <motion.div
@@ -53,7 +53,7 @@ export default function CoursesRegistrationSection() {
 
           <motion.div
             variants={staggerItem}
-            className="flex flex-col justify-center rounded-3xl bg-deepBlue p-8 text-right text-white shadow-xl"
+            className="flex flex-col justify-center rounded-3xl bg-deepBlue p-8 text-right text-white"
           >
             <UserPlus className="text-customOrange" size={32} />
             <h3 className="mt-4 text-xl font-black">جاهز للبدء؟</h3>
@@ -83,3 +83,5 @@ export default function CoursesRegistrationSection() {
     </section>
   )
 }
+
+export default memo(CoursesRegistrationSection)

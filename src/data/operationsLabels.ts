@@ -45,6 +45,7 @@ export const MEETING_TYPE_AR: Record<MeetingType, string> = {
   partnerships: 'اجتماع الشراكات',
   quality: 'اجتماع الجودة',
   external: 'اجتماع مع شريك خارجي',
+  general: 'اجتماع عام',
 }
 
 export const VOLUNTEER_STATUS_AR: Record<VolunteerStatus, string> = {
@@ -59,9 +60,9 @@ export const VOLUNTEER_STATUS_AR: Record<VolunteerStatus, string> = {
 
 export const SUPPORT_STATUS_AR: Record<SupportTicketStatus, string> = {
   new: 'جديدة',
-  open: 'قيد المعالجة',
-  waiting: 'بانتظار رد',
-  resolved: 'تم الحل',
+  in_progress: 'قيد المعالجة',
+  waiting_response: 'بانتظار رد',
+  resolved: 'محلولة',
   closed: 'مغلقة',
 }
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
 import FormBuilder from '@/components/operations/FormBuilder'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
@@ -9,8 +9,9 @@ import {
   fetchFormSubmissions,
   updateFormDefinition,
 } from '@/api/formsApi'
-import { seedFormDefinitions } from '@/data/operationsSeed'
 import type { FormSubmissionRow, OpsFormDefinition } from '@/types/operations'
+
+const LOAD_ERROR = 'تعذّر تحميل النموذج. تحقق من الاتصال وأعد المحاولة.'
 
 export default function OpsFormDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -19,36 +20,61 @@ export default function OpsFormDetailPage() {
   const [rows, setRows] = useState<FormSubmissionRow[]>([])
   const [tab, setTab] = useState<'edit' | 'subs'>('edit')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Re-arm the loading state during render when the route id changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never has to
+  // touch state synchronously.
+  const [seenFid, setSeenFid] = useState(fid)
+  if (!Object.is(seenFid, fid)) {
+    setSeenFid(fid)
+    setLoading(true)
+    setLoadError(null)
+  }
 
   useEffect(() => {
     if (!Number.isFinite(fid)) return
     let cancelled = false
-    ;(async () => {
+    void (async () => {
       try {
         const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
-        if (!cancelled) {
-          setForm(f)
-          setRows(s)
-        }
+        if (cancelled) return
+        setForm(f)
+        setRows(s)
       } catch {
-        const seed = seedFormDefinitions().find((x) => x.id === fid) ?? seedFormDefinitions()[0]!
-        if (!cancelled) {
-          setForm(seed)
-          setRows([
-            { id: 1, submitted_at: '2026-05-02', submitter_label: 'زائر', answers_preview: 'عرض تجريبي' },
-          ])
-        }
+        if (!cancelled) setLoadError(LOAD_ERROR)
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
+    return () => { cancelled = true }
+  }, [fid])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
+    if (!Number.isFinite(fid)) return
+    setLoadError(null)
+    setLoading(true)
+    try {
+      const [f, s] = await Promise.all([fetchFormDefinition(fid), fetchFormSubmissions(fid)])
+      setForm(f)
+      setRows(s)
+    } catch {
+      setLoadError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
     }
   }, [fid])
 
   if (!Number.isFinite(fid)) return <p className="text-center font-black text-deepBlue">معرف غير صالح</p>
-  if (loading || !form) return <OpsPageSkeleton />
+  if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
+  if (!form) return <OpsPageSkeleton />
 
   return (
     <div className="space-y-8">
@@ -114,7 +140,7 @@ export default function OpsFormDetailPage() {
             </table>
           </div>
           <p className="mt-4 text-center text-[11px] font-bold text-slate-400">
-            تصدير CSV / Excel — placeholder عبر مسار الخادم لاحقاً.
+            تصدير CSV / Excel placeholder عبر مسار الخادم لاحقاً.
           </p>
         </DashboardSection>
       )}

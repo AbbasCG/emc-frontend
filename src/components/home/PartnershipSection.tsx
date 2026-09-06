@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 
 import { Handshake, Lightbulb } from 'lucide-react'
@@ -12,9 +12,9 @@ export default function PartnershipSection() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.55 }}
-          className="overflow-hidden rounded-3xl bg-deepBlue px-8 py-14 text-right text-white shadow-2xl md:px-14"
+          className="overflow-hidden rounded-3xl bg-deepBlue px-8 py-14 text-right text-white md:px-14"
         >
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div>
@@ -35,7 +35,7 @@ export default function PartnershipSection() {
               <motion.div whileHover={{ scale: 1.04 }}>
                 <Link
                   to="/contact"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-4 font-extrabold text-white shadow-xl shadow-orange-900/30 transition hover:bg-[#d9822f]"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-4 font-extrabold text-white transition hover:bg-accent-600"
                 >
                   <Handshake size={20} aria-hidden="true" />
                   كن شريكاً معنا

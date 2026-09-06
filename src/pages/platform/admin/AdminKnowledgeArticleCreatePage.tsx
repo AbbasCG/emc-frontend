@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { createKnowledgeArticle } from '@/api/knowledgeApi'
 import ArticleEditor from '@/components/platform/ArticleEditor'
 import type { KnowledgeArticle } from '@/types/platform'
@@ -40,7 +40,7 @@ export default function AdminKnowledgeArticleCreatePage() {
       </div>
       <ArticleEditor value={value} onChange={setValue} />
       <p className="mt-4 text-xs font-bold leading-6 text-slate-400">
-        هذه الواجهة أساس للمحرر الغني لاحقاً — الحفظ الحالي يعمل مع الـ API أو نموذج محلي عند غياب الخادم.
+        هذه الواجهة أساس للمحرر الغني لاحقاً الحفظ الحالي يعمل مع الـ API أو نموذج محلي عند غياب الخادم.
       </p>
     </div>
   )

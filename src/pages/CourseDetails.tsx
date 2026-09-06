@@ -1,35 +1,148 @@
-import { useEffect, useState } from 'react'
+﻿import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeft,
-  Award,
   BadgeCheck,
   BookOpen,
-  BriefcaseBusiness,
-  CalendarDays,
-  CheckCircle2,
   Clock3,
-  GraduationCap,
   Languages,
+  MapPin,
   Monitor,
-  Share2,
-  Target,
-  UserPlus,
   Users,
 } from 'lucide-react'
 import api from '../api/axios'
+import toast from '@/lib/toast'
 import StateMessage from '../components/StateMessage'
-import type { Course, IconComponent } from '../types'
+import type { Course } from '../types'
+import { unwrapPublicCoursePayload, safeTrimUnknown, sanitizeCourseForDisplay } from '@/utils/publicCourseNormalize'
+import { useAuth } from '@/contexts/AuthContext'
+import PublicSeo from '@/components/public/PublicSeo'
+import { CourseJsonLd } from '@/components/public/JsonLd'
+import PublicMobileEnrollBar from '@/components/public/detail/PublicMobileEnrollBar'
+import PublicDetailCtaButton from '@/components/public/detail/PublicDetailCtaButton'
+import AppAlert from '@/components/ui/AppAlert'
+import { resolveCourseEnrollCta } from '@/utils/publicCourseDetailCta'
+import { buildPublicLoginHref, PUBLIC_ENROLL_STUDENT_ONLY_MSG } from '@/utils/publicEnrollAuth'
+import { hasEnrollIntentHost, setEnrollIntent } from '@/lib/enrollIntent'
+import { resolvePriceZone, trackFunnelEvent } from '@/lib/funnelEvents'
+import { resolveItemType } from '@/utils/publicCourseDisplay'
+import { findPathsContainingCourse, type PathUpsellMatch } from '@/utils/pathUpsell'
+import type { LearningPath } from '@/api/learningPathsApi'
+import { deriveCourseDetail } from '@/utils/courseDetailDerived'
+import { fetchStudentRegistrations, type StudentCourseAccess } from '@/api/studentApi'
+import { fetchCoursesFromApi } from '@/api/coursesApi.public'
+import { useFetch } from '@/hooks/useFetch'
+import { formatPublicText, formatPublicTime, formatPublicCount } from '@/utils/publicDetailFormat'
 import {
-  courseImages,
-  extractItem,
-  fadeUp,
-  formatDuration,
-  formatPrice,
-} from '../utils/course'
+  LAUNCH_PROMISE,
+  OPEN_ENROLLMENT_LABEL,
+  REFUND_LINE,
+  UPGRADE_COUPON_NOTE,
+  seatsLine,
+} from '@/data/webSpec'
+import {
+  averageRatingFromReviews,
+  categoryLabel,
+  courseHasCertificate,
+  extractCourseGallery,
+  extractCourseVideoUrl,
+  hasMeaningfulDuration,
+  parseCourseReviews,
+  resolveCourseSeatMetrics,
+} from '@/utils/courseDetailPageData'
+import type { MetricWidget } from '@/components/public/course-detail/CourseDetailMetricsDashboard'
+import PremiumHero from '@/components/public/course-detail/premium/PremiumHero'
+import PremiumSnapshot from '@/components/public/course-detail/premium/PremiumSnapshot'
+import PremiumDescription from '@/components/public/course-detail/premium/PremiumDescription'
+import PremiumSchedule from '@/components/public/course-detail/premium/PremiumSchedule'
+import PremiumJourney from '@/components/public/course-detail/premium/PremiumJourney'
+import PremiumLearnGrid from '@/components/public/course-detail/premium/PremiumLearnGrid'
+import PremiumCurriculum from '@/components/public/course-detail/premium/PremiumCurriculum'
+import PremiumStickyPanel from '@/components/public/course-detail/premium/PremiumStickyPanel'
+
+const CourseDetailRelatedCarousel = lazy(
+  () => import('@/components/public/course-detail/CourseDetailRelatedCarousel'),
+)
+
+const PAGE_TOP = 'pt-[calc(4rem+1rem)] sm:pt-[calc(4.25rem+1.25rem)]'
+const STICKY_TOP = 'lg:top-[calc(4.25rem+0.75rem)]'
+const WISHLIST_KEY = 'emc_course_wishlist'
+const EMPTY_RELATED: Course[] = []
+const SKELETON_SLOTS = Array.from({ length: 5 }, (_, i) => i)
+
+const LEVEL_LABEL_MAP: Record<string, string> = {
+  beginner: 'مبتدئ',
+  intermediate: 'متوسط',
+  advanced: 'متقدم',
+}
+
+function levelLabel(raw: unknown): string | null {
+  const s = safeTrimUnknown(raw)
+  if (!s) return null
+  return LEVEL_LABEL_MAP[s.toLowerCase()] ?? s
+}
+
+function buildMetrics(
+  course: Course,
+  derived: ReturnType<typeof deriveCourseDetail>,
+): MetricWidget[] {
+  const x = course as Record<string, unknown>
+  const seats = resolveCourseSeatMetrics(course)
+  const items: MetricWidget[] = []
+  const push = (
+    id: string,
+    icon: MetricWidget['icon'],
+    label: string,
+    value: string,
+    accent?: MetricWidget['accent'],
+  ) => {
+    const normalized = formatPublicText(value)
+    if (!normalized.trim()) return
+    items.push({ id, icon, label, value: normalized, accent })
+  }
+
+  // §1.3 — the snapshot never carries a start/end date for a paid product: the
+  // batch opens when the seat is bought, and the promise below the CTA states when
+  // it starts. Duration, seats and delivery carry the schedule meaning instead.
+  if (hasMeaningfulDuration(derived.displayDuration)) {
+    push('duration', Clock3, 'المدة', derived.displayDuration, 'navy')
+  }
+  const startClock = formatPublicTime(course.start_time ?? x.start_time)
+  const endClock = formatPublicTime(course.end_time ?? x.end_time)
+  const clockRange =
+ startClock && endClock ? `${startClock} ${endClock}`: startClock || endClock || ''
+  if (clockRange) push('time', Clock3, 'الوقت', clockRange, 'blue')
+  if (seats.capacity != null && seats.capacity > 0) {
+    push('capacity', Users, 'إجمالي المقاعد', formatPublicCount(seats.capacity, 'مقعد'), 'green')
+  }
+  if (seats.enrolled != null && seats.enrolled >= 0) {
+    push('enrolled', Users, 'المسجّلون', formatPublicCount(seats.enrolled, 'مسجّل'), 'navy')
+  }
+  if (seats.remaining != null) {
+    push('remaining', Users, 'المقاعد المتبقية', formatPublicCount(seats.remaining, 'مقعد'), 'green')
+  }
+  if (derived.deliveryAr) push('delivery', Monitor, 'طريقة التقديم', derived.deliveryAr, 'blue')
+  const lang = safeTrimUnknown(course.language ?? x.language)
+  if (lang) push('language', Languages, 'اللغة', lang, 'navy')
+  if (derived.locationLabel) push('location', MapPin, 'المكان', derived.locationLabel, 'navy')
+  if (courseHasCertificate(course) && derived.certificateLine) {
+    push('certificate', BadgeCheck, 'الشهادة', derived.certificateLine, 'orange')
+  }
+  if (derived.sessionsLabel) push('sessions', BookOpen, 'الجلسات', derived.sessionsLabel, 'orange')
+
+  return items
+}
+
+function readWishlist(): string[] {
+  try {
+    const raw = localStorage.getItem(WISHLIST_KEY)
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch {
+    return []
+  }
+}
 
 export default function CourseDetails() {
   const { t } = useTranslation()
@@ -41,507 +154,639 @@ export default function CourseDetails() {
     t('courses.fallbackLearningItem4'),
   ]
   const { slug } = useParams()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const justEnrolled = searchParams.get('enrolled') === '1'
+  const { isAuthenticated, user } = useAuth()
+
   const [course, setCourse] = useState<Course | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Seeded exactly as the old mount-time effect left it: a missing slug resolves straight
+  // to the not-found state instead of loading.
+  const [isLoading, setIsLoading] = useState(Boolean(slug))
   const [error, setError] = useState('')
-  const [notFound, setNotFound] = useState(false)
+  const [notFound, setNotFound] = useState(!slug)
+  const [alreadyEnrolled, setAlreadyEnrolled] = useState(false)
+  const [courseAccess, setCourseAccess] = useState<StudentCourseAccess | null>(null)
+  const [wishlisted, setWishlisted] = useState(false)
+
+  // Re-arm the loading/error state during render when the route slug changes (react.dev
+  // "adjusting state when a prop changes"), so the fetch effect below never writes state
+  // synchronously.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    if (slug) {
+      setIsLoading(true)
+      setError('')
+      setNotFound(false)
+    } else {
+      setIsLoading(false)
+      setNotFound(true)
+    }
+  }
 
   useEffect(() => {
-    if (!slug) return
-
+    const slugKey = slug
+    if (!slugKey) return
     const controller = new AbortController()
-
-    async function fetchCourse() {
+    void (async () => {
       try {
-        setIsLoading(true)
-        setError('')
-        setNotFound(false)
-
-        const response = await api.get<Course | { data?: Course }>(`/courses/${slug}`, {
-          signal: controller.signal,
-        })
-
-        const item = extractItem(response.data)
-
+        const response = await api.get<Course | { data?: Course }>(
+          `/courses/${encodeURIComponent(slugKey)}`,
+          { signal: controller.signal, skipErrorToast: true },
+        )
+        const item =
+          unwrapPublicCoursePayload(response.data) ??
+          (typeof response.data === 'object' &&
+            response.data !== null &&
+            'slug' in response.data ?
+            (response.data as Course)
+          : null)
         if (!item?.slug) {
           setNotFound(true)
           setCourse(null)
           return
         }
-
-        setCourse(item)
+        setCourse(sanitizeCourseForDisplay(item))
+        setWishlisted(readWishlist().includes(item.slug))
       } catch (err) {
         if (axios.isCancel(err)) return
-
         if (axios.isAxiosError(err) && err.response?.status === 404) {
           setNotFound(true)
           setCourse(null)
           return
         }
-
-        setError(t('courses.fetchError'))
+        setError('تعذر تحميل تفاصيل الدورة. يرجى المحاولة مرة أخرى.')
       } finally {
         setIsLoading(false)
       }
-    }
-
-    fetchCourse()
-
+    })()
     return () => controller.abort()
   }, [slug])
 
-  if (isLoading) return <CourseDetailsLoading />
+  // §17 — product_view. Fires once per program: the dependency is the loaded
+  // course object, which `setCourse` writes exactly once per slug, so a re-render
+  // (wishlist, related carousel, auth hydration) can never repeat it. Side-effect
+  // only, no state writes (effects law).
+  useEffect(() => {
+    if (!course) return
+    trackFunnelEvent('product_view', {
+      product_id: course.slug,
+      type: resolveItemType(course),
+      price_zone: resolvePriceZone(),
+    })
+  }, [course])
 
+  // Errors intentionally ignored (as before): the carousel simply stays empty.
+  const { data: relatedCoursesData } = useFetch(() => fetchCoursesFromApi(), [])
+  const relatedCourses = relatedCoursesData ?? EMPTY_RELATED
+
+  // G4 — path upsell: which public learning paths include this course. The list
+  // fetch is cached module-level in pathUpsell, so repeat course visits don't
+  // refetch. Errors resolve [] inside the util → the band simply never renders.
+  const { data: upsellMatches, loading: upsellLoading } = useFetch<PathUpsellMatch[]>(
+    () => (slug ? findPathsContainingCourse(slug) : Promise.resolve([])),
+    [slug],
+  )
+  // Prefer a path that is actually open for enrollment; fall back to the first match.
+  const upsell = upsellMatches?.find((m) => m.path.enrollment_open) ?? upsellMatches?.[0] ?? null
+  const upsellPath = upsell?.path ?? null
+
+  // View event only once the band can actually render (course loaded + matches
+  // resolved for THIS slug — useFetch keeps stale data while a slug change loads).
+  useEffect(() => {
+    if (course && upsellPath && !upsellLoading) trackFunnelEvent('upsell_view', { slug: upsellPath.slug })
+  }, [course, upsellPath, upsellLoading])
+
+  /** Upsell «سجّل في المسار»: guests get the in-context PATH intent (mirrors
+   *  LearningPathDetail.handleEnroll); signed-in users go to the path detail,
+   *  which owns the real enroll gating. */
+  function handleUpsellEnroll(path: LearningPath) {
+    trackFunnelEvent('upsell_click', { target: 'path', slug: path.slug })
+    if (!user) {
+      if (hasEnrollIntentHost()) {
+        setEnrollIntent({
+          kind: 'path',
+          slug: path.slug,
+          title: path.title,
+          isFree: (path.discount_price ?? path.price ?? 0) === 0,
+          id: path.id,
+          price: path.discount_price ?? path.price ?? undefined,
+        })
+        return
+      }
+      navigate(buildPublicLoginHref(location.pathname))
+      return
+    }
+    navigate(`/learning-paths/${path.slug}`)
+  }
+
+  useEffect(() => {
+    if (!isAuthenticated || !course || user?.role !== 'student') return
+    let cancelled = false
+    void (async () => {
+      try {
+        const rows = await fetchStudentRegistrations()
+        if (cancelled) return
+        const matched = rows.find(
+          (r) => r.course_id === course.id || (course.slug && r.slug === course.slug),
+        )
+        setAlreadyEnrolled(Boolean(matched))
+        // Backend eligibility (CourseAccessEligibilityService) — never re-derived
+        // from registration presence alone; see resolveAccessBlockedCta().
+        setCourseAccess(matched?.access ?? null)
+      } catch {
+        /* default false / no access block */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, course?.id, user?.role]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const displayRelatedCourses = useMemo(
+    () => relatedCourses.map((c) => sanitizeCourseForDisplay(c)),
+    [relatedCourses],
+  )
+
+  const derived = useMemo(() => (course ? deriveCourseDetail(course) : null), [course])
+
+  const learningItems = useMemo(() => {
+    if (!derived) return []
+    const fullDesc = derived.fullDescription?.trim() ?? ''
+    return derived.learningItems.filter((item) => {
+      const key = item.toLowerCase().slice(0, Math.min(28, item.length))
+      return key.length < 8 || !fullDesc.toLowerCase().includes(key)
+    })
+  }, [derived])
+
+  const reviews = useMemo(() => (course ? parseCourseReviews(course) : []), [course])
+
+  const averageRating = useMemo(() => {
+    if (!course) return null
+    const x = course as Record<string, unknown>
+    const apiAvg = x.average_rating ?? x.rating ?? x.avg_rating
+    if (apiAvg != null && Number.isFinite(Number(apiAvg)))
+      return Math.round(Number(apiAvg) * 10) / 10
+    return averageRatingFromReviews(reviews)
+  }, [course, reviews])
+
+  const metrics = useMemo(
+    () => (course && derived ? buildMetrics(course, derived) : []),
+    [course, derived],
+  )
+
+  async function handleShare() {
+    const url = window.location.href
+    const title = course?.title ?? 'برنامج تدريبي من EMC'
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url })
+        return
+      } catch {
+        /* fallback */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('تم نسخ الرابط')
+    } catch {
+      toast.error('تعذّر نسخ الرابط')
+    }
+  }
+
+  function toggleWishlist() {
+    if (!course?.slug) return
+    const list = readWishlist()
+    const next =
+      list.includes(course.slug) ?
+        list.filter((s) => s !== course.slug)
+      : [...list, course.slug]
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(next))
+    setWishlisted(next.includes(course.slug))
+    toast.success(next.includes(course.slug) ? 'أُضيفت إلى المفضلة' : 'أُزيلت من المفضلة')
+  }
+
+  function handleVideoPreview() {
+    if (!course || !derived) return
+    const url = extractCourseVideoUrl(course)
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  // ── Loading / error / not-found states ──────────────────────────────────────
+  // M6.f: the loaded branch overrides this with the course's real meta; without a
+  // fallback here the pre-data document ships no description at all (SEO audit).
+  const fallbackSeo = (
+    <PublicSeo
+      title="تفاصيل الدورة"
+      description="استعرض تفاصيل الدورة التدريبية في منصة EMC: المنهج، المدرب، مواعيد الجلسات وخطوات التسجيل."
+      path={slug ? `/courses/${slug}` : '/courses'}
+    />
+  )
+  if (isLoading) {
+    return (
+      <>
+        {fallbackSeo}
+        <CourseDetailsLoading />
+      </>
+    )
+  }
   if (error) {
     return (
-      <main className="bg-slate-50 px-4 pb-20 pt-32 sm:px-6 lg:px-8">
-        <StateMessage type="error" title={t('common.error')} message={error} />
+      <main
+        className={`overflow-x-hidden bg-[#f8fafc] px-4 pb-20 ${PAGE_TOP} sm:px-6 lg:px-8`}
+        dir="rtl"
+      >
+        {fallbackSeo}
+        <StateMessage type="error" title="حدث خطأ" message={error} />
       </main>
     )
   }
-
-  if (notFound || !course) {
+  if (notFound || !course || !derived) {
     return (
-      <main className="bg-slate-50 px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+      <main
+        className={`overflow-x-hidden bg-[#f8fafc] px-4 pb-20 ${PAGE_TOP} sm:px-6 lg:px-8`}
+        dir="rtl"
+      >
+        <PublicSeo
+          title="الدورة غير موجودة"
+          description="لم نتمكن من العثور على هذه الدورة تصفح كتالوج الدورات المتاح."
+          path="/courses"
+          noIndex
+        />
         <StateMessage
           type="empty"
-          title={t('courses.notFound')}
-          message={t('courses.notFoundMessage')}
+          title="الدورة غير موجودة"
+          message="لم نتمكن من العثور على هذه الدورة."
         />
       </main>
     )
   }
 
-  const isOnline = Boolean(course.is_online)
-  const isFree = course.type === 'free'
-  const courseType = isOnline ? t('common.online') : t('common.inPerson')
-  const calculatedDuration = formatDuration(course.start_date, course.end_date)
-  const displayDuration = course.duration || calculatedDuration
-  const priceLabel = isFree ? t('common.free') : formatPrice(course.price)
-  const registerLabel = isFree ? t('courses.registerFree') : t('courses.registerPaid')
-  const locationLabel = isOnline ? t('common.online') : course.location || t('courses.locationUnknown')
-  const statusLabel = course.status === 'active' ? t('courses.statusActive') : course.status || t('courses.locationUnknown')
-  const isSingleDay =
-    course.start_date &&
-    course.end_date &&
-    new Date(course.start_date).toDateString() === new Date(course.end_date).toDateString()
-  const programTypeLabel = isSingleDay ? t('courses.typeSingleDay') : t('courses.typeMultiDay')
+  // ── Derived display values ──────────────────────────────────────────────────
+  const {
+    isFree,
+    registration,
+    coverUrl,
+    instructor,
+    curriculumGroups,
+    requirementsItems,
+    priceLabel,
+    originalPriceLabel,
+    seatsFull,
+  } = derived
 
-  const instructorName =
-    course.instructor?.name || course.instructor_name || t('courses.instructorFallback')
+  // §1.3 — urgency is seats, never a date or a countdown. Rendered only when the
+  // API reports a real remaining-seat number.
+  const seatsUrgency =
+    derived.isEnded || seatsFull ? null : seatsLine(resolveCourseSeatMetrics(course).remaining)
 
-  const detailRows = [
-    { icon: Monitor, label: t('courses.courseType'), value: courseType },
-    {
-      icon: CalendarDays,
-      label: t('courses.programTypeLabel'),
-      value: programTypeLabel,
-    },
-    { icon: Clock3, label: t('courses.duration'), value: displayDuration || t('courses.locationUnknown') },
-    {
-      icon: BookOpen,
-      label: t('courses.hoursLabel'),
-      value: course.training_hours ? t('courses.hoursValue', { hours: course.training_hours }) : t('courses.locationUnknown'),
-    },
-    {
-      icon: Target,
-      label: t('courses.targetAudienceLabel'),
-      value: course.target_audience || t('courses.locationUnknown'),
-    },
-    {
-      icon: Languages,
-      label: t('courses.languageLabel'),
-      value: course.language || t('courses.locationUnknown'),
-    },
-    {
-      icon: Award,
-      label: t('courses.levelLabel'),
-      value: course.level || t('courses.locationUnknown'),
-    },
-    ...(!isOnline
-      ? [
-          {
-            icon: Monitor,
-            label: t('courses.location'),
-            value: course.location || t('courses.locationUnknown'),
-          },
-        ]
-      : []),
-    {
-      icon: Users,
-      label: t('courses.seats'),
-      value: course.capacity ? t('courses.capacityLabel', { count: course.capacity }) : t('courses.locationUnknown'),
-    },
-    {
-      icon: BadgeCheck,
-      label: t('courses.certificateLabel'),
-      value: course.certificate || t('courses.locationUnknown'),
-    },
-    {
-      icon: BadgeCheck,
-      label: t('courses.statusLabel'),
-      value: statusLabel,
-    },
-  ]
+  const courseX = course as unknown as Record<string, unknown>
+  const isPartOfLearningPath = Boolean(
+    courseX.is_part_of_learning_path ?? courseX.is_path_owned ?? false,
+  )
+  const learningPathSlug =
+    (courseX.learning_path as { slug?: string } | null | undefined)?.slug ?? null
 
-  const learningItems =
-    course.features && course.features.length > 0
-      ? course.features.map((feature) => feature.title)
-      : fallbackLearningItems
+  const courseX2 = course as Record<string, unknown>
+  const enrollCta = resolveCourseEnrollCta({
+    registrationOpen: registration.open,
+    seatsFull,
+    alreadyEnrolled,
+    isAuthenticated,
+    userRole: user?.role,
+    courseSlug: course.slug,
+    courseId: course.id,
+    isEnded: derived.isEnded,
+    allowEndedEnrollment: derived.isEnded && registration.open,
+    isPartOfLearningPath,
+    learningPathSlug,
+    isPaid: Boolean(courseX2.is_paid),
+    price: typeof courseX2.price === 'number' ? courseX2.price : undefined,
+    currency: typeof courseX2.currency === 'string' ? courseX2.currency : 'EUR',
+    access: courseAccess,
+  })
 
-  return (
-    <main className="bg-slate-50 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-      <motion.div
-        className="mx-auto max-w-7xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.45 }}
-      >
-        <Breadcrumb courseTitle={course.title} />
+  const gallery = extractCourseGallery(course, coverUrl)
+  const videoUrl = extractCourseVideoUrl(course)
+  const category = categoryLabel(course, derived)
+  const level = levelLabel(course.level ?? (course as Record<string, unknown>).level)
 
-        <motion.section
-          className="mt-8 grid gap-8 rounded-2xl bg-white p-5 shadow-2xl shadow-slate-200/80 ring-1 ring-slate-100 sm:p-7 lg:grid-cols-[1.05fr_0.95fr] lg:p-9"
-          initial={{ opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
-        >
-          <div className="order-2 text-right lg:order-1">
-            <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-customBlue">
-              <GraduationCap size={17} />
-              {t('courses.detailsTitle')}
-            </span>
+  // G4 upsell band — station count + duration rendered as calm ink meta.
+  const upsellStations = upsellPath ? upsellPath.courses?.length || upsellPath.courses_count : 0
+  const upsellDuration =
+    upsellPath?.duration ?
+      `${upsellPath.duration} ${
+        upsellPath.duration_unit === 'weeks' ? 'أسبوع'
+        : upsellPath.duration_unit === 'months' ? 'شهر'
+        : 'يوم'
+      }`
+    : null
 
-            <h1 className="text-3xl font-black leading-[1.3] text-deepBlue sm:text-4xl lg:text-5xl">
-              {course.title}
-            </h1>
-
-            <p className="mt-5 text-lg leading-9 text-slate-600">
-              {course.short_description ||
-                t('courses.descriptionFallback')}
-            </p>
-
-            <div className="mt-7 grid gap-4 sm:grid-cols-2">
-              <InfoTile icon={Monitor} label={t('courses.courseType')} value={courseType} />
-              <InfoTile icon={CalendarDays} label={t('courses.programTypeLabel')} value={programTypeLabel} />
-              <InfoTile icon={Clock3} label={t('courses.duration')} value={displayDuration || t('courses.locationUnknown')} />
-              <InfoTile icon={BriefcaseBusiness} label={t('courses.instructor')} value={instructorName} />
-              <InfoTile icon={Award} label={t('courses.price')} value={priceLabel} accent={isFree ? 'blue' : 'orange'} />
-              {!isOnline && (
-                <InfoTile icon={Monitor} label={t('courses.location')} value={locationLabel} />
-              )}
-              <InfoTile
-                icon={Users}
-                label={t('courses.seats')}
-                value={course.capacity ? t('courses.capacityLabel', { count: course.capacity }) : t('courses.seatsFallback')}
-              />
-            </div>
-
-            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <motion.div whileHover={{ scale: 1.04 }}>
-                <Link
-                  to={`/courses/${course.slug}/register`}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white shadow-lg shadow-orange-100 sm:w-auto"
-                >
-                  <UserPlus size={20} />
-                  {registerLabel}
-                </Link>
-              </motion.div>
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.04 }}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-customBlue px-7 py-4 font-extrabold text-customBlue transition hover:bg-sky-50"
-              >
-                <Share2 size={20} />
-                {t('courses.shareButtonLabel')}
-              </motion.button>
-            </div>
-          </div>
-
-          <motion.div
-            className="order-1 lg:order-2"
-            whileHover={{ scale: 1.015 }}
-            transition={{ duration: 0.35 }}
-          >
-            <div className="relative h-[360px] overflow-hidden rounded-2xl shadow-xl sm:h-[430px]">
-              <img
-                src={course.course_image || courseImages[1]}
-                alt={course.title}
-                className="h-full w-full object-cover transition duration-700 hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-deepBlue/20" />
-
-              <span
-                className={`absolute right-5 top-5 rounded-full px-5 py-2 text-sm font-black text-white ${
-                  isFree ? 'bg-customBlue' : 'bg-customOrange'
-                }`}
-              >
-                {isFree ? t('common.free') : t('common.paid')}
+  const enrollSidebar = (
+    <div className="overflow-hidden text-right">
+      <div className="border-b border-[#0C2A4B]/6 bg-gradient-to-l from-brand-50 to-white px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="font-display text-base font-black tracking-tight text-[#0C2A4B]">الالتحاق بالبرنامج</h3>
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ring-1 ${
+            derived.isEnded ? 'bg-slate-100 text-slate-700 ring-slate-200'
+            : registration.open && !seatsFull
+              ? 'bg-brand-50 text-ocean ring-brand-100'
+              : 'bg-orange-50 text-orange-800 ring-orange-100'
+          }`}>
+            {derived.isEnded ?
+              'انتهت'
+            : registration.open && !seatsFull ?
+              OPEN_ENROLLMENT_LABEL
+            : seatsFull ? 'مكتمل'
+            : 'مغلق'}
+          </span>
+        </div>
+        {seatsUrgency && (
+          <p className="mt-2 text-[11px] font-bold text-ink-400">{seatsUrgency}</p>
+        )}
+      </div>
+      {derived.endedMessage ?
+        <div className="border-b border-[#0C2A4B]/6 bg-slate-50 px-5 py-3">
+          <p className="text-[12px] font-semibold leading-relaxed text-[#0C2A4B]/70">{derived.endedMessage}</p>
+        </div>
+      : null}
+      <div className="border-b border-[#0C2A4B]/6 px-5 py-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-black text-slate-400">الرسوم</span>
+          <div className="text-left">
+            {originalPriceLabel && !isFree && (
+              <span className="block text-[10px] font-bold text-slate-400 line-through tabular-nums">
+                {originalPriceLabel}
               </span>
-            </div>
-          </motion.div>
-        </motion.section>
+            )}
+            <span className={`text-xl font-black tabular-nums ${isFree ? 'text-[#0077B6]' : 'text-accent-700'}`}>
+              {isFree ? 'مجانية' : priceLabel}
+            </span>
+          </div>
+        </div>
+        {originalPriceLabel && !isFree && (
+          <p className="mt-2 text-[11px] font-bold text-ink-400">سعر EMC للوصول</p>
+        )}
+      </div>
+      <div className="space-y-3 p-4 sm:p-5">
+        <PublicDetailCtaButton cta={enrollCta} className="w-full justify-center" />
+        {enrollCta.message && (
+          <AppAlert type={enrollCta.disabled ? 'info' : 'error'} title={enrollCta.message} />
+        )}
 
-        <section className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
-          <motion.article
-            className="rounded-2xl bg-white p-6 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100 sm:p-8"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.5 }}
-          >
-            <CardHeading>{t('courses.details')}</CardHeading>
+        {/* §8 the launch promise, verbatim from webSpec, on a hairline seam. No box. */}
+        <div className="emc-hairline" aria-hidden />
+        <p className="text-[12px] leading-6 text-ink-400">{LAUNCH_PROMISE}</p>
+        <p className="text-[12px] font-bold leading-6 text-ink-500">{REFUND_LINE}</p>
+      </div>
+    </div>
+  )
 
-            <p className="mt-7 whitespace-pre-line text-lg leading-10 text-slate-600">
-              {course.description ||
-                t('courses.detailsFallback')}
-            </p>
+  // ── Render ──────────────────────────────────────────────────────────────────
+  return (
+    <main
+      className={`relative overflow-x-hidden bg-[#0C2A4B] pb-20 ${PAGE_TOP} lg:pb-8`}
+      dir="rtl"
+    >
+      <PublicSeo
+        title={course.title}
+        description={
+          course.short_description ||
+          course.description?.slice(0, 160) ||
+          `دورة ${course.title}`
+        }
+        path={`/courses/${course.slug}`}
+        image={coverUrl}
+        type="article"
+      />
+      <CourseJsonLd
+        name={course.title}
+        description={course.short_description || course.description?.slice(0, 160) || `دورة ${course.title}`}
+        slug={course.slug}
+        image={coverUrl}
+      />
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {detailRows.map((item) => (
-                <DetailRow key={item.label} {...item} />
-              ))}
-            </div>
-          </motion.article>
+      {/* ── SECTION 1: Immersive hero ── */}
+      <PremiumHero
+        course={course}
+        derived={derived}
+        coverUrl={coverUrl}
+        gallery={gallery}
+        videoUrl={videoUrl}
+        category={category}
+        level={level}
+        rating={averageRating}
+        reviewCount={reviews.length}
+        wishlisted={wishlisted}
+        onToggleWishlist={toggleWishlist}
+        onShare={() => void handleShare()}
+        onVideoPreview={videoUrl ? handleVideoPreview : undefined}
+        cta={
+          <PublicDetailCtaButton
+            cta={enrollCta}
+            size="lg"
+          />
+        }
+      />
 
-          <aside className="grid gap-8">
-            <motion.article
-              className="rounded-2xl bg-white p-6 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100"
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5 }}
-            >
-              <CardHeading>{t('courses.whatYouLearn')}</CardHeading>
+      {/* ── LIGHT CONTENT AREA ── */}
+      <div className="bg-gradient-to-b from-[#f0f4f8] to-[#f8fafc]">
 
-              <ul className="mt-7 grid gap-4">
-                {learningItems.map((item, index) => (
-                  <li
-                    key={`${item}-${index}`}
-                    className="flex items-start gap-3 text-sm font-bold leading-7 text-slate-600"
-                  >
-                    <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-customBlue" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.article>
+        {/* ── Success banner ── */}
+        {justEnrolled && (
+          <div className="flex items-center justify-center gap-2 border-b border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800">
+            <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+            تم تسجيلك في الدورة بنجاح
+          </div>
+        )}
 
-            <motion.article
-              className="rounded-2xl bg-white p-6 text-right shadow-xl shadow-slate-200/70 ring-1 ring-slate-100"
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5, delay: 0.08 }}
-            >
-              <CardHeading>{t('courses.instructor')}</CardHeading>
+        {/* ── SECTION 2: Course snapshot ── */}
+        <PremiumSnapshot items={metrics} />
 
-              <div className="mt-7 flex items-center gap-4">
-                <img
-                  src={
-                    course.instructor?.image ||
-                    'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80'
-                  }
-                  alt={instructorName}
-                  className="h-20 w-20 rounded-full object-cover ring-4 ring-sky-50"
-                />
+        {/* ── MAIN BODY GRID ── */}
+        {/* id="enroll": /courses/{slug}#enroll must land on the action. The enroll panel
+            renders twice (mobile inline + desktop aside), each hidden in the opposite
+            viewport an id on the panel itself would resolve to a display:none element
+            and noop. This wrapper always has a box: on desktop the sticky enroll aside
+            sits at its top edge, on mobile the fixed enroll bar stays pinned in view. */}
+        <div id="enroll" className="mx-auto max-w-[88rem] scroll-mt-24 px-4 py-4 sm:px-6 lg:px-10 lg:py-5">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
 
-                <div>
-                  <h3 className="text-xl font-black text-deepBlue">{instructorName}</h3>
-                  <p className="mt-1 text-sm font-bold text-customBlue">
-                    {course.instructor?.title || t('courses.instructorTitleFallback')}
-                  </p>
-                </div>
+            <div className="space-y-3">
+
+              <PremiumDescription
+                derived={derived}
+                shortDescription={course.short_description}
+                requirementsItems={requirementsItems}
+              />
+
+              <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4">
+                <PremiumJourney course={course} derived={derived} />
               </div>
 
-              <p className="mt-5 leading-8 text-slate-600">
-                {course.instructor?.bio ||
-                  t('courses.instructorBioFallback')}
-              </p>
+              {curriculumGroups.some((g) => g.items.some((x) => x.trim())) && (
+                <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4">
+                  <PremiumCurriculum groups={curriculumGroups} />
+                </div>
+              )}
 
-              <motion.div whileHover={{ scale: 1.03 }} className="mt-6">
+              <PremiumSchedule course={course} derived={derived} />
+
+              {learningItems.length > 0 && (
+                <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4">
+                  <PremiumLearnGrid items={learningItems} />
+                </div>
+              )}
+
+              <div className="lg:hidden">
+                <PremiumStickyPanel instructor={instructor}>
+                  {enrollSidebar}
+                </PremiumStickyPanel>
+              </div>
+            </div>
+
+            <aside className={`hidden lg:sticky ${STICKY_TOP} lg:block lg:self-start`}>
+              <PremiumStickyPanel instructor={instructor}>
+                {enrollSidebar}
+              </PremiumStickyPanel>
+            </aside>
+          </div>
+        </div>
+
+        {/* ── G4 UPSELL BAND this course is a station in a path (editorial seam, no box).
+            Renders nothing while loading / when no path contains the course, and mounts
+            below the enroll area so nothing above it ever shifts. ── */}
+        {!upsellLoading && upsell && upsellPath && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            className="mx-auto max-w-[88rem] px-4 pb-4 sm:px-6 lg:px-10"
+            dir="rtl"
+          >
+            <div className="emc-hairline" aria-hidden />
+            <div className="flex flex-col gap-5 py-8 text-right lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+              <div>
+                <p className="font-display text-lg font-black tracking-tight text-deepBlue sm:text-xl">
+                  هذه الدورة محطة في {upsellPath.title} {' '}
+                  {upsell.savingsPercent != null ?
+                    <>
+                      وفّر{' '}
+                      <span dir="ltr" className="tabular-nums">
+                        {upsell.savingsPercent}%
+                      </span>{' '}
+                      مع المسار الكامل
+                    </>
+                  : 'شهادة مسار معتمدة مع المسار الكامل'}
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-ink-400">
+                  <span dir="ltr" className="tabular-nums">{upsellStations}</span> محطة
+                  {upsellDuration ? ` · ${upsellDuration}` : ''}
+                </p>
+                {/* §11 the price never stands bare: the course value carries into the path. */}
+                <p className="mt-2 text-[13px] font-semibold leading-6 text-ink-400">
+                  {UPGRADE_COUPON_NOTE}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-6">
                 <Link
-                  to="/courses"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deepBlue px-5 py-3 text-sm font-extrabold text-white"
+                  to={`/learning-paths/${upsellPath.slug}`}
+                  onClick={() => trackFunnelEvent('upsell_click', { target: 'path', slug: upsellPath.slug })}
+                  className="emc-cta-line text-sm"
                 >
-                  {t('courses.breadcrumbCourses')}
-                  <ArrowLeft size={18} />
+                  عرض المسار
                 </Link>
-              </motion.div>
-            </motion.article>
-          </aside>
-        </section>
+                <button
+                  type="button"
+                  onClick={() => handleUpsellEnroll(upsellPath)}
+                  className="inline-flex items-center justify-center rounded-xl bg-customOrange px-6 py-3 text-sm font-black text-white transition duration-200 hover:brightness-[1.03]"
+                >
+                  سجّل في المسار
+                </button>
+              </div>
+            </div>
+            <div className="emc-hairline" aria-hidden />
+          </motion.section>
+        )}
 
-        <CourseDetailsCTA course={course} registerLabel={registerLabel} />
-      </motion.div>
+        {/* Related courses */}
+        <div className="mx-auto max-w-[88rem] space-y-3 px-4 pb-4 sm:px-6 lg:px-10">
+          <Suspense
+            fallback={
+              <div className="h-40 animate-pulse rounded-2xl bg-white/60 ring-1 ring-slate-100" />
+            }
+          >
+            <CourseDetailRelatedCarousel courses={displayRelatedCourses} currentSlug={course.slug} />
+          </Suspense>
+        </div>
+      </div>
+
+      {/* Mobile floating enroll bar */}
+      <PublicMobileEnrollBar
+        visible
+        priceHint={isFree ? 'مجانية' : priceLabel}
+        actionLabel={enrollCta.label}
+        disabled={enrollCta.disabled}
+        onAction={() => {
+          if (enrollCta.denyNonStudent) toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)
+        }}
+        extra={
+          enrollCta.href ? (
+            <Link
+              to={enrollCta.href}
+              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#F28C00] px-4 text-sm font-black text-white"
+            >
+              {enrollCta.label}
+            </Link>
+          ) : enrollCta.denyNonStudent ? (
+            <button
+              type="button"
+              onClick={() => toast.error(PUBLIC_ENROLL_STUDENT_ONLY_MSG)}
+              className="inline-flex h-11 min-w-[8.5rem] flex-1 items-center justify-center rounded-xl bg-[#F28C00] px-4 text-sm font-black text-white"
+            >
+              {enrollCta.label}
+            </button>
+          ) : undefined
+        }
+      />
     </main>
   )
 }
 
 function CourseDetailsLoading() {
   return (
-    <main className="bg-slate-50 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="h-6 w-64 animate-pulse rounded bg-slate-200" />
-        <div className="mt-8 grid gap-8 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-100 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-5">
-            <div className="h-10 animate-pulse rounded bg-slate-200" />
-            <div className="h-24 animate-pulse rounded bg-slate-100" />
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-20 animate-pulse rounded-lg bg-slate-100" />
-              ))}
+    <main
+      className={`relative overflow-x-hidden bg-gradient-to-br from-[#0C2A4B] to-[#0077B6] ${PAGE_TOP}`}
+      dir="rtl"
+    >
+      <div className="flex min-h-[280px] items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-3 w-3 animate-bounce rounded-full bg-[#0077B6] [animation-delay:0s]" />
+          <div className="h-3 w-3 animate-bounce rounded-full bg-[#F28C00] [animation-delay:0.15s]" />
+          <div className="h-3 w-3 animate-bounce rounded-full bg-[#0077B6] [animation-delay:0.3s]" />
+        </div>
+      </div>
+
+      {/* Content skeleton */}
+      <div className="bg-gradient-to-b from-[#f0f4f8] to-[#f8fafc] px-4 pb-16 sm:px-6 lg:px-10">
+        <div className="flex gap-2 overflow-hidden border-b border-[#0C2A4B]/8 bg-white py-4">
+          {SKELETON_SLOTS.map((i) => (
+            <div key={i} className="h-12 w-32 shrink-0 animate-pulse rounded-xl bg-slate-100" />
+          ))}
+        </div>
+        <div className="mx-auto mt-6 max-w-[88rem]">
+          <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+            <div className="space-y-4">
+              <div className="h-40 animate-pulse rounded-2xl bg-white ring-1 ring-slate-100" />
+              <div className="h-48 animate-pulse rounded-2xl bg-white ring-1 ring-slate-100" />
+              <div className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-100" />
             </div>
+            <div className="hidden h-72 animate-pulse rounded-[1.5rem] bg-white ring-1 ring-slate-100 lg:block" />
           </div>
-          <div className="h-[430px] animate-pulse rounded-2xl bg-slate-200" />
         </div>
       </div>
     </main>
-  )
-}
-
-function Breadcrumb({ courseTitle }: { courseTitle: string }) {
-  const { t } = useTranslation()
-  return (
-    <nav className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
-      <Link to="/" className="transition hover:text-customBlue">
-        {t('courses.breadcrumbHome')}
-      </Link>
-      <span className="text-customOrange">&gt;</span>
-      <Link to="/courses" className="transition hover:text-customBlue">
-        {t('courses.breadcrumbCourses')}
-      </Link>
-      <span className="text-customOrange">&gt;</span>
-      <span className="text-deepBlue">{courseTitle}</span>
-    </nav>
-  )
-}
-
-function InfoTile({
-  icon: Icon,
-  label,
-  value,
-  accent = 'blue',
-}: {
-  icon: IconComponent
-  label: string
-  value: string
-  accent?: 'blue' | 'orange'
-}) {
-  return (
-    <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
-      <div className="flex items-center gap-3">
-        <span
-          className={`grid h-11 w-11 place-items-center rounded-lg ${
-            accent === 'orange' ? 'bg-orange-50 text-customOrange' : 'bg-sky-50 text-customBlue'
-          }`}
-        >
-          <Icon size={21} />
-        </span>
-
-        <div>
-          <span className="block text-xs font-black text-slate-400">{label}</span>
-          <strong
-            className={`mt-1 block text-base font-black ${
-              accent === 'orange' ? 'text-customOrange' : 'text-deepBlue'
-            }`}
-          >
-            {value}
-          </strong>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function CardHeading({ children }: { children: string }) {
-  return (
-    <div>
-      <h2 className="text-2xl font-black text-deepBlue">{children}</h2>
-      <span className="mt-3 block h-1 w-16 rounded-full bg-customOrange" />
-    </div>
-  )
-}
-
-function DetailRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: IconComponent
-  label: string
-  value: string
-}) {
-  return (
-    <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-white text-customBlue shadow-sm">
-        <Icon size={20} />
-      </span>
-
-      <div>
-        <span className="block text-xs font-black text-slate-400">{label}</span>
-        <strong className="mt-1 block text-sm font-black text-deepBlue">{value}</strong>
-      </div>
-    </div>
-  )
-}
-
-function CourseDetailsCTA({
-  course,
-  registerLabel,
-}: {
-  course: Course
-  registerLabel: string
-}) {
-  return (
-    <motion.section
-      className="mt-10 grid items-center gap-8 overflow-hidden rounded-2xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] px-6 py-9 text-white shadow-2xl sm:px-10 lg:grid-cols-[1fr_360px]"
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.25 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="text-right">
-        <h2 className="text-3xl font-black leading-tight sm:text-4xl">
-          {t('courses.ctaTitle')}
-        </h2>
-
-        <p className="mt-4 text-lg leading-9 text-slate-200">
-          {t('courses.ctaDesc')}
-        </p>
-
-        <div className="mt-7 flex flex-col gap-4 sm:flex-row">
-          <motion.div whileHover={{ scale: 1.04 }}>
-            <Link
-              to={`/courses/${course.slug}/register`}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customOrange px-7 py-4 font-extrabold text-white sm:w-auto"
-            >
-              <UserPlus size={20} />
-              {registerLabel}
-            </Link>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.04 }}>
-            <Link
-              to="/courses"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-customBlue px-7 py-4 font-extrabold text-white sm:w-auto"
-            >
-               {t('courses.exploreAll')}
-              <ArrowLeft size={20} />
-            </Link>
-          </motion.div>
-        </div>
-      </div>
-
-      <img
-        src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=85"
-        alt=""
-        className="h-72 w-full rounded-2xl object-cover shadow-2xl"
-      />
-    </motion.section>
   )
 }

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export type EntityDetailTab = {
   id: string
@@ -67,6 +68,8 @@ type EntityDetailDrawerProps = {
   footerSlot?: ReactNode
   widthClassName?: string
   defaultTabId?: string
+  /** When false, body does not scroll — child handles layout (e.g. embedded form with sticky footer) */
+  scrollBody?: boolean
 }
 
 /**
@@ -84,7 +87,11 @@ export function EntityDetailDrawer({
   footerSlot,
   widthClassName = 'max-w-full sm:max-w-4xl lg:max-w-5xl',
   defaultTabId,
+  scrollBody = true,
 }: EntityDetailDrawerProps) {
+  const panelRef = useRef<HTMLElement>(null)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
   const orderedTabs = tabs ?? []
   const [active, setActive] = useState(() => defaultTabId ?? orderedTabs[0]?.id ?? '')
 
@@ -93,11 +100,24 @@ export function EntityDetailDrawer({
     return orderedTabs.find((t) => t.id === active)?.content ?? orderedTabs[0]?.content ?? children
   }, [orderedTabs, active, children])
 
-  useEffect(() => {
-    if (!open) return
-    const list = tabs ?? []
-    setActive(defaultTabId ?? list[0]?.id ?? '')
-  }, [open, title, defaultTabId, tabs])
+  // Reset to the default tab during render when the drawer opens or the entity behind
+  // it changes — react.dev "adjusting state when a prop changes". The `active` initial
+  // value above already covers the first pass, so `seenTarget` starts at the current
+  // props and only later changes trigger a reset (same trigger set as the effect this
+  // replaces, `tabs` compared by identity exactly as its dep array did).
+  const [seenTarget, setSeenTarget] = useState({ open, title, defaultTabId, tabs })
+  if (
+    seenTarget.open !== open ||
+    seenTarget.title !== title ||
+    seenTarget.defaultTabId !== defaultTabId ||
+    seenTarget.tabs !== tabs
+  ) {
+    setSeenTarget({ open, title, defaultTabId, tabs })
+    if (open) {
+      const list = tabs ?? []
+      setActive(defaultTabId ?? list[0]?.id ?? '')
+    }
+  }
 
   useEffect(() => {
     if (!open) return
@@ -126,10 +146,11 @@ export function EntityDetailDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-[#0F172A]/45 backdrop-blur-md"
+            className="fixed inset-0 z-modal-overlay bg-[#0F172A]/45 backdrop-blur-md"
             onClick={onClose}
           />
           <motion.aside
+            ref={panelRef}
             role="dialog"
             aria-modal
             aria-labelledby="emc-entity-drawer-title"
@@ -139,7 +160,7 @@ export function EntityDetailDrawer({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
             className={cn(
-              'fixed inset-y-0 right-0 z-[141] flex w-full flex-col border-l border-white/15 bg-white/[0.97] shadow-[-16px_0_56px_rgba(15,23,42,0.14)] backdrop-blur-2xl',
+              'fixed inset-y-0 right-0 z-modal-content flex w-full flex-col border-l border-white/15 bg-white/[0.97] shadow-[-16px_0_56px_rgba(15,23,42,0.14)] backdrop-blur-2xl',
               widthClassName,
             )}
             onClick={(e) => e.stopPropagation()}
@@ -194,7 +215,14 @@ export function EntityDetailDrawer({
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-5 py-5 text-right rtl:text-right">{activeContent}</div>
+              <div
+                className={cn(
+                  'flex-1 text-right rtl:text-right',
+                  scrollBody ? 'overflow-y-auto px-5 py-5' : 'flex min-h-0 flex-col overflow-hidden px-5 py-3',
+                )}
+              >
+                {activeContent}
+              </div>
             </div>
 
             {footerSlot ?

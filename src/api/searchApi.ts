@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { unwrapLms } from './lmsApi'
-import { seedGlobalSearch } from '@/data/platformSeed'
 import type { GlobalSearchResponse } from '@/types/platform'
 import { semanticSearch } from './aiSearchApi'
 
@@ -25,6 +24,6 @@ export async function globalSearch(q: string): Promise<GlobalSearchResponse> {
     const res = await apiClient.get<unknown>('/search', { params: { q } })
     return unwrapLms<GlobalSearchResponse>(res.data)
   } catch {
-    return seedGlobalSearch(q)
+    return { query: q, groups: [] }
   }
 }

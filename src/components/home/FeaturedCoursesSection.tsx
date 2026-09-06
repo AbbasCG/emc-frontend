@@ -1,12 +1,52 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+﻿import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
+import { BookOpen } from 'lucide-react'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, BookOpen } from 'lucide-react'
-import apiClient from '../../api/axios'
 import HomeCourseCard from './HomeCourseCard'
 import type { Course } from '../../types'
-import { extractList } from '../../utils/course'
+import { fetchCoursesFromApi } from '../../api/coursesApi.public'
+import { staggerContainer } from '@/utils/animations'
+
+function sortByPopularity(courses: Course[]): Course[] {
+  return [...courses].sort((a, b) => {
+    const get = (c: Course) =>
+      Number(
+        (c as Record<string, unknown>).enrollments_count ??
+          (c as Record<string, unknown>).students_count ??
+          c.registrations_count ??
+          0,
+      )
+    return get(b) - get(a)
+  })
+}
+
+// Editorial skeleton — hairline-seated row placeholders (no card boxes)
+function RowSkeleton() {
+  return (
+    <div className="flex animate-pulse items-center gap-4 border-b border-line py-5 ps-3 sm:gap-6 sm:py-6 sm:ps-4">
+      <div className="emc-page-clip-sm aspect-[16/10] w-24 shrink-0 bg-line sm:w-36" />
+      <div className="flex-1 space-y-3">
+        <div className="h-4 w-3/5 rounded bg-line" />
+        <div className="h-3 w-2/5 rounded bg-paper2" />
+        <div className="h-3 w-1/4 rounded bg-paper2" />
+      </div>
+    </div>
+  )
+}
+
+// Design Language 2.0 — the card grid + pager became a single editorial list:
+// every course is an emc-row on a hairline seat, so all six read in one scan
+// (fewer clicks between landing and «تفاصيل الدورة»).
+/**
+ * Which programmes take the full width. Pattern: 1 wide → 2 side by side →
+ * 1 wide → 2 side by side … so a six-item list reads as an alternating rhythm
+ * rather than a tall single column with dead space beside it.
+ */
+function featuredSpan(index: number): boolean {
+  return index % 3 === 0
+}
 
 export default function FeaturedCoursesSection() {
   const { t } = useTranslation()
@@ -15,12 +55,10 @@ export default function FeaturedCoursesSection() {
 
   useEffect(() => {
     let active = true
-
-    apiClient
-      .get<Course[] | { data?: Course[] }>('/courses')
-      .then((res) => {
+    fetchCoursesFromApi()
+      .then((list) => {
         if (!active) return
-        setCourses(extractList(res.data).slice(0, 4))
+        setCourses(sortByPopularity(list).slice(0, 6))
       })
       .catch(() => {
         if (active) setCourses([])
@@ -28,61 +66,84 @@ export default function FeaturedCoursesSection() {
       .finally(() => {
         if (active) setLoading(false)
       })
-
     return () => {
       active = false
     }
   }, [])
 
   return (
-    <section className="border-y border-deepBlue/[0.05] bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
-      <div className="mx-auto max-w-[1540px]">
-        <div className="mb-12 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="text-right">
-            <p className="text-xs font-black text-customBlue">اختصارات من البرامج المميزة</p>
-            <h2 className="mt-3 text-3xl font-black text-deepBlue sm:text-4xl xl:text-[2.5rem]">{t('home.featuredPrograms')}</h2>
-            <span className="mt-5 block h-1 w-16 rounded-full bg-customOrange" />
-            <p className="mt-5 max-w-xl text-base leading-8 text-foreground/70">
-                {t('home.featuredProgramsDesc')}
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="shrink-0">
-            <Link
-              to="/courses"
-              className="inline-flex items-center gap-2 rounded-2xl bg-deepBlue px-6 py-3.5 text-sm font-black text-white shadow-emc-md transition hover:brightness-105"
-            >
-              {t('common.viewAll')}
-              <ArrowLeft size={17} />
-            </Link>
-          </motion.div>
-        </div>
+    <section
+      dir="rtl"
+      className="relative overflow-hidden border-y border-deepBlue/[0.05] bg-paper px-4 py-20 sm:px-6 lg:px-10 lg:py-28"
+    >
+      {/* V3 decorative layer one sea orb (light from the top-right) + ghost numeral */}
+      <div
+        aria-hidden
+        className="animate-soft-float pointer-events-none absolute -right-32 -top-32 h-[26rem] w-[26rem] rounded-full bg-customBlue/10 blur-3xl"
+      />
+      <span aria-hidden className="emc-ghost-num absolute -top-5 left-4 text-[7rem] sm:text-[10rem]">
+        01
+      </span>
 
+      <div className="relative mx-auto max-w-[1540px]">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-10 flex items-end justify-between gap-4"
+        >
+          <div className="text-right">
+            <span className="emc-eyebrow">{t('home.featured.eyebrow')}</span>
+            <h2 className="emc-title-arc mt-4 font-display text-2xl font-black tracking-tight text-deepBlue sm:text-3xl">
+              {t('home.featured.title')}
+            </h2>
+          </div>
+          {/* De-boxed view-all line CTA instead of a navy pill */}
+          <Link to="/courses" className="emc-cta-line shrink-0 text-sm">
+            {t('home.featured.viewAll')}
+            <ArrowLeftIcon size={15} />
+          </Link>
+        </motion.div>
+
+        {/* Body editorial list */}
         {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-96 animate-pulse rounded-[1.25rem] bg-brand-50/90 ring-1 ring-deepBlue/[0.04]"
-              />
+          <div>
+            <div aria-hidden className="emc-hairline" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <RowSkeleton key={i} />
             ))}
           </div>
         ) : courses.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {courses.map((course, i) => (
-              <HomeCourseCard key={course.id} course={course} index={i} />
-            ))}
-          </div>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
+            <div aria-hidden className="emc-hairline" />
+            {/* Editorial rhythm instead of one long single column: the opening
+                programme runs full width, the next pair sits side by side, and
+                the rhythm alternates from there. Fills the page without turning
+                the list back into a grid of boxes. */}
+            <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
+              {courses.map((course, i) => (
+                <div key={course.id} className={featuredSpan(i) ? 'lg:col-span-2' : ''}>
+                  <HomeCourseCard course={course} index={i} />
+                </div>
+              ))}
+            </div>
+          </motion.div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-[1.5rem] border border-dashed border-deepBlue/[0.12] bg-emcBg py-20 text-center">
-            <BookOpen size={48} className="text-customBlue/35" aria-hidden="true" />
-            <p className="text-lg font-black text-deepBlue">عرض البرامج يأتي مباشرةً من الخادم</p>
-            <p className="max-w-md text-sm font-semibold leading-7 text-foreground/60">
-              عند تشغيل واجهة البرمجة تُحمَّل أحدث البرامج هنا آلياً. انتقل إلى صفحة البرامج والدورات لاستعراض القائمة
-              الكاملة والتصفية حسب احتياجك.
-            </p>
-            <Link to="/courses" className="text-sm font-black text-customBlue underline-offset-8 hover:underline">
-              فتح صفحة الدورات
+          <div className="py-14 text-center">
+            <div aria-hidden className="emc-hairline mb-10" />
+            <BookOpen size={36} className="mx-auto text-customBlue/30" aria-hidden />
+            <p className="mt-3 text-sm font-black text-deepBlue">{t('home.featured.emptyTitle')}</p>
+            <Link to="/courses" className="emc-cta-line mt-4 text-xs">
+              {t('home.featured.emptyCta')}
             </Link>
+            <div aria-hidden className="emc-hairline mt-10" />
           </div>
         )}
       </div>

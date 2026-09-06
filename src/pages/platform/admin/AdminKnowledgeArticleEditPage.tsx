@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { fetchKnowledgeArticleById, updateKnowledgeArticle } from '@/api/knowledgeApi'
 import ArticleEditor from '@/components/platform/ArticleEditor'
 import EmptyState from '@/components/dashboard/EmptyState'

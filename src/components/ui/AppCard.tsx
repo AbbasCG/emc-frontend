@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 type AppCardProps = {
   children: ReactNode
@@ -7,14 +8,15 @@ type AppCardProps = {
   hoverable?: boolean
 }
 
+/** @deprecated Prefer the canonical <Surface> (`@/components/ui`) — hoverable→interactive. */
 export default function AppCard({ children, className = '', hoverable = false }: AppCardProps) {
   return (
     <motion.div
-      className={[
-        'rounded-2xl border border-amber-100/80 bg-white shadow-xl shadow-amber-100/50',
-        hoverable ? 'transition-shadow hover:shadow-2xl hover:shadow-amber-100/70' : '',
+      className={cn(
+        'rounded-2xl border border-deepBlue/[0.07] bg-white shadow-emc',
+        hoverable && 'transition-shadow duration-250 ease-emc-out hover:shadow-emc-md',
         className,
-      ].join(' ')}
+      )}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={hoverable ? { y: -3 } : undefined}

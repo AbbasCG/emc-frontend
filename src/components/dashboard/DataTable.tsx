@@ -35,23 +35,23 @@ export default function DataTable<T extends object>({
   keyExtractor,
 }: DataTableProps<T>) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+    <div className="overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white shadow-emc ring-1 ring-deepBlue/[0.03]">
       <div className="overflow-x-auto">
         <table className="w-full text-right text-sm">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50">
+            <tr className="border-b border-deepBlue/[0.07] bg-[#F6F8FB]">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   style={col.width ? { width: col.width } : undefined}
-                  className="px-5 py-3.5 text-xs font-black uppercase tracking-wide text-slate-400"
+                  className="px-5 py-3.5 text-[11px] font-black uppercase tracking-[0.14em] text-deepBlue/50 font-latin"
                 >
                   {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody className="divide-y divide-deepBlue/[0.05]">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <SkeletonRow key={i} cols={columns.length} />
@@ -69,7 +69,7 @@ export default function DataTable<T extends object>({
               data.map((row, i) => (
                 <tr
                   key={keyExtractor ? keyExtractor(row) : i}
-                  className="transition-colors hover:bg-slate-50/60"
+                  className="transition-colors duration-200 hover:bg-customBlue/[0.03]"
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="px-5 py-4 font-semibold text-deepBlue">

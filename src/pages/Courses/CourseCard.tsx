@@ -1,195 +1,176 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
-import { Star, Clock, Users, Play, TrendingUp, BookOpen } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import type { CourseItem } from '@/services/coursesApi'
 import { formatEuroInteger } from '@/utils/currency'
+import { toLatinDigits } from '@/utils/publicDetailFormat'
+import { resolvePublicAssetUrl } from '@/utils/mediaUrl'
+import { useAuth } from '@/contexts/AuthContext'
+import { ENDED_COURSE_LABEL_AR } from '@/utils/courseEnded'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import { OPEN_ENROLLMENT_LABEL, seatsLine } from '@/data/webSpec'
+import {
+  buildCourseDetailEnrollHref,
+  gatePublicEnrollClick,
+} from '@/utils/publicEnrollAuth'
 
 type CourseCardProps = {
   course: CourseItem
+  /** Kept for call-site compatibility (/programs passes it) — the editorial row is the one view. */
   viewMode?: 'grid' | 'list'
   index?: number
 }
 
-const categoryConfig: Record<string, { bg: string; text: string; gradient: string; icon: string }> = {
-  'AI & Tech':    { bg: 'bg-blue-50',    text: 'text-customBlue',  gradient: 'from-customBlue/90 to-deepBlue',    icon: '🤖' },
-  'Languages':    { bg: 'bg-emerald-50', text: 'text-emerald-700', gradient: 'from-emerald-500/90 to-emerald-900', icon: '🌐' },
-  'Business':     { bg: 'bg-orange-50',  text: 'text-customOrange',gradient: 'from-customOrange/90 to-amber-900',  icon: '💼' },
-  'Academic':     { bg: 'bg-purple-50',  text: 'text-purple-700',  gradient: 'from-purple-500/90 to-purple-900',  icon: '🎓' },
-  'Personal Dev': { bg: 'bg-teal-50',    text: 'text-teal-700',    gradient: 'from-teal-500/90 to-teal-900',      icon: '✨' },
+function deliveryLabelAr(course: CourseItem): string {
+  switch (course.delivery_key) {
+    case 'online':
+      return 'عن بُعد'
+    case 'offline':
+      return 'حضوري'
+    case 'hybrid':
+      return 'هجين'
+    default:
+      return course.delivery_label_ar
+  }
 }
 
-const levelLabels: Record<string, string> = {
-  beginner:     'مبتدئ',
-  intermediate: 'متوسط',
-  advanced:     'متقدم',
-}
+/** Design Language 2.0 — the course entry is an editorial list row (emc-row), not a boxed card.
+ *  One hairline seat below, hover = paper tint + sliding sky bar; the ONLY box-like element is
+ *  the money action «سجل الآن». */
+function CourseCard({ course, index = 0 }: CourseCardProps) {
+  const { isAuthenticated, user } = useAuth()
+  const navigate = useNavigate()
 
-export default function CourseCard({ course, viewMode = 'grid', index = 0 }: CourseCardProps) {
-  const config = categoryConfig[course.category] ?? categoryConfig['AI & Tech']
-  const isEnrolled = course.progress !== undefined
+  const imgSrc = course.thumbnail
+    ? resolvePublicAssetUrl(course.thumbnail) ?? course.thumbnail
+    : course.cover_placeholder
+
+  const priceLabel = course.is_free ? 'مجاناً' : toLatinDigits(formatEuroInteger(course.price, 'ar'))
+
+  // seats_count from the API means REMAINING seats (cards have always rendered
+  // «registrations / seats_count متبقٍ») — full is when none remain, never when
+  // registrations exceed it.
+  const seatsFull = !course.is_ended && course.seats_count != null && course.seats_count <= 0
+  const registerDisabled = course.is_ended || seatsFull
+
+  // §1.3 — a paid product never shows a start date. Enrollment is open, and the
+  // only urgency is the real remaining-seat count (hidden when the API omits it).
+  const enrollmentOpen = !course.is_ended && !seatsFull
+  const seatsUrgency = enrollmentOpen ? seatsLine(course.seats_count) : null
+
+  const metaParts: string[] = [
+    `مع ${course.trainer.name}`,
+    course.duration_label,
+    deliveryLabelAr(course),
+  ]
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.18 } }}
-      transition={{ duration: 0.48, delay: index * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -5 }}
-      className={`group bg-white rounded-xl border-2 border-slate-100 shadow-sm hover:shadow-xl hover:border-customOrange/40 transition-all duration-300 overflow-hidden ${
-        viewMode === 'list' ? 'flex flex-row-reverse' : 'flex flex-col'
-      }`}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      exit={{ opacity: 0, y: -8, transition: { duration: 0.18 } }}
+      transition={{ duration: 0.4, delay: (index % 4) * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      {/* Thumbnail */}
-      <div className={`relative overflow-hidden shrink-0 ${
-        viewMode === 'list' ? 'w-52 rounded-l-xl' : 'h-44'
-      }`}>
-        {course.thumbnail ? (
-          <img
-            src={course.thumbnail}
-            alt={course.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${config.gradient} flex items-center justify-center`}>
-            <span className="text-6xl opacity-75 select-none">{config.icon}</span>
-          </div>
-        )}
-
-        {/* Price badge */}
-        <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${
-          course.is_free ? 'bg-emerald-500 text-white' : 'bg-white/95 backdrop-blur-sm text-customBlue'
-        }`}>
-          {course.is_free ? 'مجاني' : formatEuroInteger(course.price, 'ar')}
-        </div>
-
-        {course.status === 'upcoming' && (
-          <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-customOrange/90 text-white text-xs rounded-lg font-semibold">
-            قريباً
-          </div>
-        )}
-
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-deepBlue/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40">
-            <Play className="w-6 h-6 text-white fill-white ms-0.5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-5">
-        {/* Category + Level */}
-        <div className="flex items-center justify-between mb-2.5">
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${config.bg} ${config.text}`}>
-            {course.category}
-          </span>
-          <span className="text-xs text-[#73777B]">{levelLabels[course.level]}</span>
-        </div>
-
-        {/* Title */}
-        <h3 className="font-bold text-deepBlue text-base leading-snug line-clamp-2 mb-1.5 group-hover:text-customBlue transition-colors duration-200">
-          {course.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-[#73777B] line-clamp-2 mb-3.5 leading-relaxed">
-          {course.description}
-        </p>
-
-        {/* Instructor */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-customBlue/40 to-customBlue flex items-center justify-center shrink-0">
-            <span className="text-xs text-white font-black select-none">
-              {course.trainer.name.split(' ').at(-1)?.charAt(0) ?? '؟'}
-            </span>
-          </div>
-          <span className="text-xs text-[#73777B] font-medium">{course.trainer.name}</span>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-xs text-[#73777B] mb-3">
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-customBlue shrink-0" />
-            {course.duration_weeks} أسابيع · {course.sessions_count} جلسة
-          </span>
-          <span className="flex items-center gap-1">
-            <Users className="w-3.5 h-3.5 text-customOrange shrink-0" />
-            {course.enrolled_count.toLocaleString('ar-EG')}
-          </span>
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map(star => (
-              <Star
-                key={star}
-                className={`w-3.5 h-3.5 ${
-                  star <= Math.round(course.rating)
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-slate-200 fill-slate-200'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs font-bold text-deepBlue">{course.rating}</span>
-        </div>
-
-        {/* Progress bar */}
-        {isEnrolled && course.progress !== undefined && (
-          <div className="mb-3">
-            <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-[#73777B]">تقدمك في الدورة</span>
-              <span className="font-bold text-customBlue">{course.progress}%</span>
-            </div>
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-customBlue to-customBlue/70 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${course.progress}%` }}
-                transition={{ duration: 1.2, ease: 'easeOut', delay: index * 0.07 + 0.4 }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-slate-100">
-          <div className="text-right">
-            {!course.is_free && course.original_price && (
-              <span className="text-xs line-through text-[#73777B] block leading-none mb-0.5">
-                {formatEuroInteger(course.original_price, 'ar')}
-              </span>
+      <article className="emc-row group">
+        <div className="flex flex-col gap-4 py-6 pe-1 ps-3 text-start sm:flex-row sm:items-stretch sm:gap-6 sm:py-7 sm:ps-4">
+          {/* Cover flying-page clip, not a rounded box */}
+          <div className="emc-page-clip-sm relative aspect-video w-full shrink-0 sm:w-40 md:w-56">
+            <img
+              src={imgSrc}
+              alt={course.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 ease-emc-out group-hover:scale-[1.03]"
+            />
+            {(seatsFull || course.is_ended) && (
+              <div className="absolute inset-0 flex items-end bg-night/55">
+                <p className="w-full pb-2.5 text-center text-xs font-black text-white">
+                  {course.is_ended ? ENDED_COURSE_LABEL_AR : 'اكتملت المقاعد'}
+                </p>
+              </div>
             )}
-            <span className={`font-black text-sm ${course.is_free ? 'text-emerald-600' : 'text-deepBlue'}`}>
-              {course.is_free ? 'مجاني تماماً' : formatEuroInteger(course.price, 'ar')}
-            </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to={`/courses/${course.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-deepBlue/15 bg-white px-3 py-2 text-xs font-black text-deepBlue transition hover:border-customBlue/40 hover:bg-sky-50"
+          {/* Content column title + one calm meta line */}
+          <div className="flex min-w-0 flex-1 flex-col justify-center">
+            {enrollmentOpen && (
+              <p className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold">
+                <span className="rounded-full border border-line px-2.5 py-0.5 text-ocean">
+                  {OPEN_ENROLLMENT_LABEL}
+                </span>
+                {seatsUrgency && <span className="text-ink-400">{seatsUrgency}</span>}
+              </p>
+            )}
+            <h3 className="line-clamp-2 font-display text-xl font-black leading-snug tracking-tight text-ink-900 transition-colors duration-200 group-hover:text-brand-600 sm:text-2xl">
+              {course.title}
+            </h3>
+            <p className="mt-2.5 text-sm leading-relaxed text-ink-400">
+              {metaParts.map((part, i) => (
+                <span key={part + i}>
+                  {i > 0 && (
+                    <span aria-hidden className="mx-2 text-ink-200">
+                      ·
+                    </span>
+                  )}
+                  {part}
+                </span>
+              ))}
+            </p>
+          </div>
+
+          {/* End column price above, actions seated on the row baseline */}
+          <div className="flex items-end justify-between gap-4 sm:w-52 sm:shrink-0 sm:flex-col sm:items-end sm:justify-end">
+            <p
+              dir={course.is_free ? undefined : 'ltr'}
+              className={`emc-stat-num font-display text-2xl ${course.is_free ? 'text-success' : ''}`}
             >
-              عرض التفاصيل
-            </Link>
-            {isEnrolled ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-customBlue/10 px-3 py-2 text-xs font-black text-customBlue">
-                <TrendingUp className="w-3.5 h-3.5" />
-                متابعة التعلم
-              </span>
-            ) : (
+              {priceLabel}
+            </p>
+
+            <div className="flex items-center gap-5">
               <Link
-                to={`/courses/${course.slug}/register`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-customBlue px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-deepBlue"
+                to={`/courses/${course.slug}`}
+                className="emc-cta-line text-sm focus-visible:outline-none"
               >
-                <BookOpen className="w-3.5 h-3.5" />
-                التسجيل
+                تفاصيل
+                <ArrowLeftIcon className="h-3.5 w-3.5" />
               </Link>
-            )}
+              <button
+                type="button"
+                disabled={registerDisabled}
+                onClick={() => {
+                  if (registerDisabled) return
+                  gatePublicEnrollClick({
+                    isAuthenticated,
+                    role: user?.role,
+                    redirectPath: buildCourseDetailEnrollHref(course.slug),
+                    navigate,
+                    // In-context QuickJoin: guests get the 3-field modal instead of leaving the page.
+                    intent: {
+                      kind: 'course',
+                      slug: course.slug,
+                      title: course.title,
+                      isFree: course.is_free,
+                      id: course.id,
+                      price: typeof course.price === 'number' ? course.price : undefined,
+                    },
+                    onStudent: () => navigate(buildCourseDetailEnrollHref(course.slug)),
+                  })
+                }}
+                className={`rounded-xl px-4 py-2.5 text-sm font-black transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-1 ${
+                  registerDisabled
+                    ? 'cursor-not-allowed bg-paper2 text-ink-300'
+                    : 'bg-accent-500 text-white hover:bg-accent-600'
+                }`}
+              >
+                سجل الآن
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </article>
     </motion.div>
   )
 }
+
+export default memo(CourseCard)

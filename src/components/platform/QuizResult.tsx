@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Award, TrendingUp } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { QuizAttemptResult } from '@/types/platform'
 
 type Props = {
@@ -20,7 +20,7 @@ export default function QuizResult({ result, courseId = 1 }: Props) {
           'relative px-8 py-10 text-white',
           result.passed
             ? 'bg-gradient-to-bl from-emerald-600 via-customBlue to-deepBlue'
-            : 'bg-gradient-to-bl from-customOrange via-amber-600 to-deepBlue',
+            : 'bg-gradient-to-bl from-deepBlue via-ocean to-night',
         ].join(' ')}
       >
         <div className="flex items-start justify-between gap-4">
@@ -28,7 +28,7 @@ export default function QuizResult({ result, courseId = 1 }: Props) {
             <p className="text-xs font-black uppercase tracking-widest text-white/70">نتيجة الاختبار</p>
             <h2 className="mt-2 text-3xl font-black">{result.passed ? 'تم الاجتياز' : 'لم يتم الاجتياز'}</h2>
             <p className="mt-3 max-w-md text-sm font-bold text-white/85">
-              درجتك {result.score}% — درجة النجاح {result.passing_score}%
+              درجتك {result.score}% درجة النجاح {result.passing_score}%
             </p>
           </div>
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">

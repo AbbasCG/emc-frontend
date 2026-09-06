@@ -38,7 +38,7 @@ export default function DocumentsPage() {
         <p className="text-[11px] font-black uppercase tracking-widest text-customBlue">Documents</p>
         <h1 className="text-2xl font-black text-deepBlue">الملفات</h1>
         <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-slate-500">
-          المجلدات، رفع ملف، والملفات الداخلية وملفات الإدارة — جاهز للربط مع صلاحيات الخادم.
+          المجلدات، رفع ملف، والملفات الداخلية وملفات الإدارة جاهز للربط مع صلاحيات الخادم.
         </p>
       </motion.div>
 

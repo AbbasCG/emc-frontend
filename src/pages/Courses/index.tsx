@@ -1,131 +1,263 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import CoursesHero from './CoursesHero'
 import FilterBar from './FilterBar'
-import TracksSection from './TracksSection'
 import CoursesGrid from './CoursesGrid'
-import CoursesProgramIntro from './CoursesProgramIntro'
-import CoursesRegistrationSection from './CoursesRegistrationSection'
-import CoursesPricingSection from './CoursesPricingSection'
+import LearningPathsTeaserSection from './LearningPathsTeaserSection'
 import WorkshopSpotlight from './WorkshopSpotlight'
 import CoursesCTA from './CoursesCTA'
-import {
-  fetchCourses,
-  fetchTracks,
-  fetchUpcomingWorkshops,
-} from '@/services/coursesApi'
-import type { CourseItem, TrackItem, WorkshopItem } from '@/services/coursesApi'
+import { fetchCourses, fetchUpcomingWorkshops } from '@/services/coursesApi'
+import type { CourseItem, CourseLevel, WorkshopItem } from '@/services/coursesApi'
+import { fetchPublicLearningPaths, type LearningPath } from '@/api/learningPathsApi'
+import { useFetch } from '@/hooks/useFetch'
+import PublicSeo from '@/components/public/PublicSeo'
+
+const EMPTY_COURSES: CourseItem[] = []
+const EMPTY_PATHS: LearningPath[] = []
+const EMPTY_WORKSHOPS: WorkshopItem[] = []
 
 export default function CoursesPage() {
-  const [courses, setCourses]         = useState<CourseItem[]>([])
-  const [tracks, setTracks]           = useState<TrackItem[]>([])
-  const [workshops, setWorkshops]     = useState<WorkshopItem[]>([])
+  const coursesQ = useFetch(() => fetchCourses(), [])
+  const pathsQ = useFetch(() => fetchPublicLearningPaths({ per_page: 3 }), [])
+  const workshopsQ = useFetch(() => fetchUpcomingWorkshops(), [])
 
-  const [coursesLoading, setCoursesLoading]     = useState(true)
-  const [tracksLoading, setTracksLoading]       = useState(true)
-  const [workshopsLoading, setWorkshopsLoading] = useState(true)
+  const courses = coursesQ.data?.data ?? EMPTY_COURSES
+  const learningPaths = pathsQ.data?.data ?? EMPTY_PATHS
+  const workshops = workshopsQ.data?.data ?? EMPTY_WORKSHOPS
 
-  const [searchQuery, setSearchQuery]     = useState('')
+  const coursesLoading = coursesQ.loading
+  const pathsLoading = pathsQ.loading
+  const workshopsLoading = workshopsQ.loading
+
+  const loadError = coursesQ.error != null
+
+  const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
-  const [activeFilter, setActiveFilter]   = useState('all')
-  const [sortBy, setSortBy]               = useState('popular')
-  const [viewMode, setViewMode]           = useState<'grid' | 'list'>('grid')
+  const [activePrice, setActivePrice] = useState('all')
+  const [activeDelivery, setActiveDelivery] = useState('all')
+  const [activeLevel, setActiveLevel] = useState<string>('all')
+  const [activeProgramType, setActiveProgramType] = useState('all')
+  const [activeAvailability, setActiveAvailability] = useState('all')
+  const [sortBy, setSortBy] = useState('popular')
 
-  useEffect(() => {
-    let alive = true
-
-    fetchCourses()
-      .then(res => { if (alive) setCourses(res.data) })
-      .catch(() => { /* API unavailable — mock data fallback handles this */ })
-      .finally(() => { if (alive) setCoursesLoading(false) })
-
-    fetchTracks()
-      .then(res => { if (alive) setTracks(res.data) })
-      .catch(() => {})
-      .finally(() => { if (alive) setTracksLoading(false) })
-
-    fetchUpcomingWorkshops()
-      .then(res => { if (alive) setWorkshops(res.data) })
-      .catch(() => {})
-      .finally(() => { if (alive) setWorkshopsLoading(false) })
-
-    return () => { alive = false }
+  const resetFilters = useCallback(() => {
+    setSearchQuery('')
+    setActiveCategory('all')
+    setActivePrice('all')
+    setActiveDelivery('all')
+    setActiveLevel('all')
+    setActiveProgramType('all')
+    setActiveAvailability('all')
+    setSortBy('popular')
   }, [])
+
+  const categoryOptions = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const c of courses) {
+      if (!m.has(c.category_key)) m.set(c.category_key, c.category_label)
+    }
+    return [{ value: 'all', label: 'الكل' }, ...Array.from(m, ([value, label]) => ({ value, label }))]
+  }, [courses])
+
+  const deliveryOptions = useMemo(() => {
+    const labels = new Map<string, string>()
+    for (const c of courses) {
+      const ar =
+        c.delivery_key === 'online'
+          ? 'عن بُعد'
+          : c.delivery_key === 'offline'
+            ? 'حضوري'
+            : c.delivery_key === 'hybrid'
+              ? 'هجين'
+              : c.delivery_label_ar
+      labels.set(c.delivery_key, ar)
+    }
+    const opts = [{ value: 'all', label: 'كل الأنماط' }]
+    for (const [k, v] of labels) {
+      opts.push({ value: k, label: v })
+    }
+    return opts
+  }, [courses])
+
+  const levelOptions = useMemo(() => {
+    const present = new Set(courses.map((c) => c.level))
+    const ar: Record<CourseLevel, string> = {
+      beginner: 'مبتدئ',
+      intermediate: 'متوسط',
+      advanced: 'متقدم',
+    }
+    const opts = [{ value: 'all', label: 'كل المستويات' }]
+    ;(['beginner', 'intermediate', 'advanced'] as const).forEach((lv) => {
+      if (present.has(lv)) opts.push({ value: lv, label: ar[lv] })
+    })
+    return opts
+  }, [courses])
+
+  const programTypeOptions = useMemo(() => {
+    const hasW = courses.some((c) => c.catalog_type === 'workshop')
+    const hasC = courses.some((c) => c.catalog_type === 'course')
+    const opts = [{ value: 'all', label: 'كل الأنواع' }]
+    if (hasC) opts.push({ value: 'course', label: 'دورات تدريبية' })
+    if (hasW) opts.push({ value: 'workshop', label: 'ورش عمل' })
+    return opts
+  }, [courses])
+
+  const liveStats = useMemo(() => {
+    const totalRegs = courses.reduce((s, c) => s + c.registrations_count, 0)
+    const instructors = new Set(courses.map((c) => c.trainer.name)).size
+    return {
+      totalCourses: courses.length,
+      totalRegistrations: totalRegs,
+      instructors,
+      learningPathsCount: pathsQ.data?.meta.total ?? learningPaths.length,
+    }
+  }, [courses, learningPaths.length, pathsQ.data?.meta.total])
 
   const filteredCourses = useMemo(() => {
     let result = [...courses]
 
-    // Search
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
-      result = result.filter(c =>
-        c.title.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q) ||
-        c.tags.some(t => t.toLowerCase().includes(q))
+      result = result.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          c.description.toLowerCase().includes(q) ||
+          c.trainer.name.toLowerCase().includes(q) ||
+          (c.language && c.language.toLowerCase().includes(q)) ||
+          (c.track_name && c.track_name.toLowerCase().includes(q)) ||
+          (c.department_name && c.department_name.toLowerCase().includes(q)),
       )
     }
 
-    // Category
     if (activeCategory !== 'all') {
-      result = result.filter(c => c.category === activeCategory)
+      result = result.filter((c) => c.category_key === activeCategory)
     }
 
-    // Access-type filter
-    switch (activeFilter) {
-      case 'free':     result = result.filter(c => c.is_free); break
-      case 'paid':     result = result.filter(c => !c.is_free); break
-      case 'new':      result = result.filter(c => c.id > 8); break
-      case 'upcoming': result = result.filter(c => c.status === 'upcoming'); break
-      case 'live':     result = result.filter(c => c.status === 'active'); break
+    switch (activePrice) {
+      case 'free':
+        result = result.filter((c) => c.is_free)
+        break
+      case 'paid':
+        result = result.filter((c) => !c.is_free)
+        break
     }
 
-    // Sort
+    if (activeDelivery !== 'all') {
+      result = result.filter((c) => c.delivery_key === activeDelivery)
+    }
+
+    if (activeLevel !== 'all') {
+      result = result.filter((c) => c.level === activeLevel)
+    }
+
+    if (activeProgramType !== 'all') {
+      result = result.filter((c) => c.catalog_type === activeProgramType)
+    }
+
+    if (activeAvailability === 'ended') {
+      result = result.filter((c) => c.is_ended)
+    } else if (activeAvailability === 'active') {
+      result = result.filter((c) => !c.is_ended)
+    }
+
     switch (sortBy) {
-      case 'popular':    result.sort((a, b) => b.enrolled_count - a.enrolled_count); break
-      case 'newest':     result.sort((a, b) => b.id - a.id); break
-      case 'price_low':  result.sort((a, b) => a.price - b.price); break
-      case 'price_high': result.sort((a, b) => b.price - a.price); break
-      case 'duration':   result.sort((a, b) => a.duration_weeks - b.duration_weeks); break
+      case 'popular':
+        result.sort((a, b) => {
+          if (a.is_ended !== b.is_ended) return a.is_ended ? 1 : -1
+          return b.registrations_count - a.registrations_count
+        })
+        break
+      case 'newest':
+        result.sort((a, b) => b.id - a.id)
+        break
+      case 'price_low':
+        result.sort((a, b) => a.price - b.price)
+        break
+      case 'price_high':
+        result.sort((a, b) => b.price - a.price)
+        break
+      case 'duration':
+        result.sort((a, b) => a.duration_weeks - b.duration_weeks)
+        break
+      case 'soonest': {
+        const ts = (x: CourseItem) => (x.start_date ? new Date(x.start_date).getTime() : Number.POSITIVE_INFINITY)
+        result.sort((a, b) => ts(a) - ts(b))
+        break
+      }
+      case 'name_az':
+        result.sort((a, b) => a.title.localeCompare(b.title, 'ar'))
+        break
     }
 
     return result
-  }, [courses, searchQuery, activeCategory, activeFilter, sortBy])
+  }, [
+    courses,
+    searchQuery,
+    activeCategory,
+    activePrice,
+    activeDelivery,
+    activeLevel,
+    activeProgramType,
+    activeAvailability,
+    sortBy,
+  ])
 
   return (
     <main className="overflow-x-hidden">
+      <PublicSeo
+        title="كتالوج الدورات"
+        description="تصفّح دورات EMC المتاحة فلترة، بحث، وورش عمل من الكتالوج الحقيقي."
+        path="/courses"
+      />
       <CoursesHero
         onSearch={setSearchQuery}
+        searchValue={searchQuery}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
+        categoryOptions={categoryOptions}
+        stats={liveStats}
       />
-
-      <CoursesProgramIntro />
 
       <FilterBar
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+        activePrice={activePrice}
+        onPriceChange={setActivePrice}
+        activeDelivery={activeDelivery}
+        onDeliveryChange={setActiveDelivery}
+        deliveryOptions={deliveryOptions}
+        activeLevel={activeLevel}
+        onLevelChange={setActiveLevel}
+        levelOptions={levelOptions}
+        activeProgramType={activeProgramType}
+        onProgramTypeChange={setActiveProgramType}
+        programTypeOptions={programTypeOptions}
+        activeAvailability={activeAvailability}
+        onAvailabilityChange={setActiveAvailability}
         sortBy={sortBy}
         onSortChange={setSortBy}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
         resultCount={filteredCourses.length}
         totalCount={courses.length}
+        apiEmpty={!coursesLoading && courses.length === 0}
+        loadError={loadError}
+        onResetAll={resetFilters}
       />
-
-      <TracksSection tracks={tracks} loading={tracksLoading} />
 
       <CoursesGrid
         courses={filteredCourses}
         totalFromApi={courses.length}
         loading={coursesLoading}
-        viewMode={viewMode}
+        onResetFilters={resetFilters}
       />
 
-      <CoursesRegistrationSection />
+      {/* Section seams fading hairlines, not boxed containers (Design Language 2.0). */}
+      <div className="emc-hairline mx-auto max-w-7xl" aria-hidden />
 
-      <CoursesPricingSection />
+      {/* Paths teaser deliberately AFTER the grid courses are the hero product. */}
+      <LearningPathsTeaserSection paths={learningPaths} loading={pathsLoading} />
+
+      <div className="emc-hairline mx-auto max-w-7xl" aria-hidden />
 
       <WorkshopSpotlight workshops={workshops} loading={workshopsLoading} />
 
+      {/* CoursesPricingSection / CoursesRegistrationSection stay out of the flow (redundant static copy; files kept for reversibility). */}
       <CoursesCTA />
     </main>
   )

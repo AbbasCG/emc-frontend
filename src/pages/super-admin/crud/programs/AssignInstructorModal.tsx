@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Loader2, Search, UserRound } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { assignInstructorToCourse } from '@/api/adminCoursesApi'
+import { fetchAdminInstructors, type AdminInstructorOption } from '@/api/adminInstructorsApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
-import { fetchInstructors, type InstructorPublic } from '@/api/instructorsApi'
 import type { Course } from '@/types'
 import { CrudModal } from '@/pages/super-admin/crud/shared/Modal'
 
@@ -11,37 +11,56 @@ type Props = {
   open: boolean
   course: Course | null
   onClose: () => void
-  onAssigned: () => void
+  /** Called after successful assign — includes chosen instructor for optimistic UI merge. */
+  onAssigned?: (instructor: AdminInstructorOption) => void
 }
 
 export function AssignInstructorModal({ open, course, onClose, onAssigned }: Props) {
   const [q, setQ] = useState('')
-  const [rows, setRows] = useState<InstructorPublic[]>([])
-  const [loading, setLoading] = useState(false)
+  const [rows, setRows] = useState<AdminInstructorOption[]>([])
+  // Mounted already open ⇒ the effect below fetches straight away, so start loading.
+  const [loading, setLoading] = useState(open)
   const [assigningId, setAssigningId] = useState<number | null>(null)
+
+  // Flip back to the loading state during render when the modal opens
+  // (react.dev "adjusting state when a prop changes"), not from the effect.
+  const [seenOpen, setSeenOpen] = useState(open)
+  if (seenOpen !== open) {
+    setSeenOpen(open)
+    if (open) setLoading(true)
+  }
 
   useEffect(() => {
     if (!open) return
-    setLoading(true)
-    fetchInstructors()
-      .then(setRows)
-      .catch(() => setRows([]))
-      .finally(() => setLoading(false))
+    let alive = true
+    void (async () => {
+      try {
+        const list = await fetchAdminInstructors()
+        if (alive) setRows(list)
+      } catch {
+        if (alive) setRows([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [open])
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()
     if (!t) return rows
-    return rows.filter((r) => `${r.name} ${r.title ?? ''} ${r.expertise ?? ''}`.toLowerCase().includes(t))
+    return rows.filter((r) => `${r.name} ${r.email}`.toLowerCase().includes(t))
   }, [rows, q])
 
-  async function assign(ins: InstructorPublic) {
+  async function assign(ins: AdminInstructorOption) {
     if (!course) return
     setAssigningId(ins.id)
     try {
       await assignInstructorToCourse(course.id, ins.id)
-      toast.success('تم ربط المدرب بالدورة بنجاح')
-      onAssigned()
+      toast.success('تم تعيين المدرب بنجاح')
+      onAssigned?.(ins)
       onClose()
     } catch (e) {
       toast.error(getApiErrorMessage(e))
@@ -59,6 +78,9 @@ export function AssignInstructorModal({ open, course, onClose, onAssigned }: Pro
       widthClassName="max-w-lg"
     >
       <div className="space-y-4 text-right" dir="rtl">
+        <p className="rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-[11px] font-bold text-amber-950">
+          يُحمَّل المدربون من جدول المدربين (معرّف الإسناد = id المدرب). إن ظهرت القائمة فارغة افتح وحدة تحكم المتصفح وتحقّق من شكل استجابة GET /api/admin/instructors.
+        </p>
         <label className="block">
           <span className="sr-only">بحث</span>
           <span className="relative flex rounded-2xl border border-deepBlue/[0.08] bg-white shadow-inner">
@@ -66,7 +88,7 @@ export function AssignInstructorModal({ open, course, onClose, onAssigned }: Pro
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="ابحث بالاسم أو التخصّص..."
+              placeholder="ابحث بالاسم أو البريد..."
               className="w-full rounded-2xl border-0 bg-transparent py-3 pe-10 ps-3 text-sm font-semibold outline-none"
             />
           </span>
@@ -77,14 +99,11 @@ export function AssignInstructorModal({ open, course, onClose, onAssigned }: Pro
             <Loader2 className="size-9 animate-spin text-customBlue" aria-hidden />
           </div>
         : filtered.length === 0 ?
-          <p className="py-8 text-center text-sm font-bold text-slate-500">لا يوجد مدربون مطابقون أو تعذّر التحميل.</p>
+          <p className="py-8 text-center text-sm font-bold text-slate-500">
+            لا توجد عناصر بعد التحميل وتطبيع الخادم راجع وحدة تحكم المتصفح (سجلات الاستجابة والمدربين المُطبّعين) أو صلاحيات الجلسة.
+          </p>
         : <ul className="max-h-[min(420px,55vh)] space-y-3 overflow-y-auto pe-1">
             {filtered.map((ins) => {
-              const tags = (ins.expertise ?? '')
-                .split(/[,،]/)
-                .map((s) => s.trim())
-                .filter(Boolean)
-                .slice(0, 4)
               const busy = assigningId === ins.id
               return (
                 <li
@@ -97,29 +116,14 @@ export function AssignInstructorModal({ open, course, onClose, onAssigned }: Pro
                     </span>
                     <div className="min-w-0 text-right">
                       <p className="truncate font-black text-deepBlue">{ins.name}</p>
-                      {ins.title ?
-                        <p className="truncate text-[11px] font-semibold text-slate-500">{ins.title}</p>
-                      : null}
-                      {tags.length > 0 ?
-                        <div className="mt-2 flex flex-wrap justify-end gap-1">
-                          {tags.map((tag) => (
-                            <span key={tag} className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-customBlue ring-1 ring-sky-100">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      : null}
-                      <p className="mt-1 text-[10px] font-bold text-slate-400">
-                        دورات مسنَدة (مرجع كتالوج):{' '}
-                        <span className="font-mono text-deepBlue">{ins.courses_count ?? '—'}</span>
-                      </p>
+                      <p className="truncate text-[11px] font-semibold text-slate-500 dir-ltr">{ins.email || '—'}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => void assign(ins)}
-                    className="shrink-0 rounded-xl bg-gradient-to-l from-[#22334A] to-[#2691C2] px-4 py-2 text-xs font-black text-white shadow-md disabled:opacity-50"
+                    className="shrink-0 rounded-xl bg-gradient-to-l from-[#0C2A4B] to-[#0077B6] px-4 py-2 text-xs font-black text-white shadow-md disabled:opacity-50"
                   >
                     {busy ?
                       <>

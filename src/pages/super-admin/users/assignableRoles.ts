@@ -5,6 +5,7 @@ const ROLE_LABEL_AR: Record<(typeof EMC_DASHBOARD_ROLES)[number], string> = {
   instructor: 'مدرب',
   admin: 'مشرف',
   super_admin: 'سوبر مشرف',
+  tech_admin: 'مدير التقنية',
   executive_admin: 'مشرف تنفيذي',
   finance_manager: 'مدير مالي',
   quality_manager: 'مدير الجودة',
@@ -14,6 +15,15 @@ const ROLE_LABEL_AR: Record<(typeof EMC_DASHBOARD_ROLES)[number], string> = {
   support_agent: 'وكيل دعم',
   volunteer: 'متطوع',
   department_manager: 'مدير إداري',
+  programs_manager: 'مدير البرامج والمسارات',
+  operations_manager: 'مدير العمليات والتشغيل',
+  partnerships_manager: 'مدير الشراكات والعلاقات',
+  community_manager: 'مدير الصحة النفسية والوعي',
+  section_lead: 'قائد قسم',
+  ai_manager: 'مدير الذكاء الاصطناعي',
+  strategy_planning_manager: 'مدير الاستراتيجية والتخطيط المؤسسي',
+  digital_ambassadors_manager: 'مدير سفراء التحول الرقمي',
+  advisors_manager: 'مدير الاستشارات والمستشارين',
 }
 
 export type AssignableRoleOption = { value: string; labelAr: string }

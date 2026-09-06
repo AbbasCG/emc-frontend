@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Loader2, Search, Sparkles, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Link } from 'react-router'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { globalSearch } from '@/api/searchApi'
 
 type Props = {
@@ -14,29 +16,46 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [groups, setGroups] = useState<Awaited<ReturnType<typeof globalSearch>>['groups']>([])
+  const panelRef = useRef<HTMLDivElement | null>(null)
 
-  const run = useCallback(async (query: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await globalSearch(query)
-      setGroups(res.groups)
-    } catch {
-      setError('تعذر تحميل النتائج')
-      setGroups([])
-    } finally {
-      setLoading(false)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
+  // Adjust state during render when the panel opens/closes or the query changes:
+  // clear the box on close, and arm the loading state before the effect below runs, so
+  // the fetch never has to set it synchronously. `null` seed keeps the first pass live,
+  // matching the mount run of the effects this replaces.
+  const [seenSearch, setSeenSearch] = useState<{ open: boolean; q: string } | null>(null)
+  if (!seenSearch || seenSearch.open !== open || seenSearch.q !== q) {
+    setSeenSearch({ open, q })
+    if (open) {
+      setLoading(true)
+      setError(null)
+    } else {
+      setQ('')
     }
-  }, [])
+  }
 
   useEffect(() => {
     if (!open) return
-    void run(q || ' ')
-  }, [open, q, run])
-
-  useEffect(() => {
-    if (!open) setQ('')
-  }, [open])
+    const query = q || ' '
+    let alive = true
+    void (async () => {
+      try {
+        const res = await globalSearch(query)
+        if (!alive) return
+        setGroups(res.groups)
+      } catch {
+        if (!alive) return
+        setError('تعذر تحميل النتائج')
+        setGroups([])
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [open, q])
 
   const hint = useMemo(
     () =>
@@ -46,13 +65,15 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
     [],
   )
 
-  return (
+  if (typeof document === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
           <motion.button
             type="button"
-            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-modal-overlay bg-black/50 backdrop-blur-sm"
             aria-label="إغلاق البحث"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -60,6 +81,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
             onClick={onClose}
           />
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label="بحث عام"
@@ -68,7 +90,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 12 }}
             transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-            className="fixed left-1/2 top-[12vh] z-[70] w-[min(720px,calc(100%-24px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-300/40"
+            className="fixed left-1/2 top-[12vh] z-modal-content w-[min(720px,calc(100%-24px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-300/40"
           >
             <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
               <Search size={18} className="shrink-0 text-customBlue" />
@@ -92,9 +114,9 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
               </button>
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-3">
-              <div className="mb-3 flex items-center gap-2 rounded-xl bg-gradient-to-l from-customBlue/10 to-customOrange/10 px-3 py-2 text-[11px] font-black text-deepBlue ring-1 ring-slate-100">
+              <div className="mb-3 flex items-center gap-2 rounded-xl bg-gradient-to-l from-customBlue/10 to-transparent px-3 py-2 text-[11px] font-black text-deepBlue ring-1 ring-slate-100">
                 <Sparkles size={14} className="text-customOrange" />
-                بحث موحّد عبر المنظومة — النتائج مجمّعة حسب النوع
+                بحث موحّد عبر المنظومة النتائج مجمّعة حسب النوع
               </div>
               {loading && (
                 <div className="flex items-center justify-center gap-2 py-12 text-sm font-bold text-slate-400">
@@ -140,6 +162,7 @@ export default function GlobalSearchCommand({ open, onClose }: Props) {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

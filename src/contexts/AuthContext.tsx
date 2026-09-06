@@ -1,16 +1,21 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
-import { toast } from 'sonner'
+import axios from 'axios'
+import toast from '@/lib/toast'
 import * as authApi from '../api/authApi'
+import type { RegisterAccountInput } from '../api/authApi'
 import type { User } from '../types'
 import {
   TOKEN_KEY,
   USER_KEY,
+  SESSION_HINT_KEY,
   clearImpersonationSessionMarks,
   readCurrentAuthBackupFromLocal,
   readStoredImpersonationOriginal,
@@ -19,13 +24,6 @@ import {
 import { normalizeAuthLoginPayload, normalizeAuthUser } from '../utils/userIdentity'
 
 export { TOKEN_KEY, USER_KEY } from '@/lib/impersonationSession'
-
-interface RegisterAccountInput {
-  name: string
-  email: string
-  password: string
-  password_confirmation: string
-}
 
 interface AuthContextValue {
   user: User | null
@@ -47,10 +45,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+/**
+ * Cached `/auth/me` payload from a previous session — only trusted while a token is
+ * present, and refreshed by `hydrate()` on mount. A malformed entry is dropped.
+ */
+function readCachedUser(): User | null {
+  if (!localStorage.getItem(TOKEN_KEY) && localStorage.getItem(SESSION_HINT_KEY) !== '1') return null
+  const cached = localStorage.getItem(USER_KEY)
+  if (!cached) return null
+  try {
+    return normalizeAuthUser(JSON.parse(cached) as unknown)
+  } catch {
+    localStorage.removeItem(USER_KEY)
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Session bootstrap reads localStorage in lazy initialisers rather than from the
+  // mount effect: the first render already reflects the stored session, so there is
+  // no logged-out frame to flash and no cascading re-render.
+  const [user, setUser] = useState<User | null>(readCachedUser)
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
+  const [isLoading, setIsLoading] = useState(
+    () => localStorage.getItem(TOKEN_KEY) != null || localStorage.getItem(SESSION_HINT_KEY) === '1',
+  )
   const [impersonationOriginalUser, setImpersonationOriginalUser] = useState<User | null>(
     () => readStoredImpersonationOriginal()?.originalUser ?? null,
   )
@@ -58,14 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isImpersonating = impersonationOriginalUser != null
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY)
-
-    if (!storedToken) {
-      setIsLoading(false)
-      return
-    }
-
-    setToken(storedToken)
+    if (!localStorage.getItem(TOKEN_KEY) && localStorage.getItem(SESSION_HINT_KEY) !== '1') return
 
     let cancelled = false
 
@@ -75,62 +87,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         setUser(freshUser)
         localStorage.setItem(USER_KEY, JSON.stringify(freshUser))
-      } catch {
+      } catch (err) {
         if (cancelled) return
-        localStorage.removeItem(TOKEN_KEY)
-        localStorage.removeItem(USER_KEY)
-        setToken(null)
-        setUser(null)
-        clearImpersonationSessionMarks()
-        setImpersonationOriginalUser(null)
+        // Only a definitive rejection of the credentials (401/419) means the
+        // session is dead. A rate limit (429), a server error, or a dropped
+        // connection says nothing about the session — wiping it there logged
+        // users out on a busy /auth/me. Keep the cached identity instead.
+        const status = axios.isAxiosError(err) ? err.response?.status : undefined
+        if (status === 401 || status === 419) {
+          localStorage.removeItem(TOKEN_KEY)
+          localStorage.removeItem(USER_KEY)
+          localStorage.removeItem(SESSION_HINT_KEY)
+          setToken(null)
+          setUser(null)
+          clearImpersonationSessionMarks()
+          setImpersonationOriginalUser(null)
+        }
       } finally {
         if (!cancelled) setIsLoading(false)
       }
     }
 
-    const cached = localStorage.getItem(USER_KEY)
-    if (cached) {
-      try {
-        setUser(normalizeAuthUser(JSON.parse(cached) as unknown))
-      } catch {
-        localStorage.removeItem(USER_KEY)
-      }
-    }
-
-    const snap = readStoredImpersonationOriginal()
-    setImpersonationOriginalUser((prev) => snap?.originalUser ?? prev ?? null)
-
-    hydrate()
+    void hydrate()
     return () => {
       cancelled = true
     }
   }, [])
 
-  async function login(email: string, password: string) {
+  // Every handler below closes only over stable setters/localStorage, so they are
+  // identity-stable for the provider's lifetime — a requirement for the useMemo'd
+  // context value to actually hold still between state changes.
+  const login = useCallback(async (email: string, password: string) => {
     const payload = await authApi.login(email, password)
     const { token: newToken, user: newUser } = payload
-    localStorage.setItem(TOKEN_KEY, newToken)
+    if (newToken) {
+      localStorage.setItem(TOKEN_KEY, newToken)
+      localStorage.removeItem(SESSION_HINT_KEY)
+    } else {
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.setItem(SESSION_HINT_KEY, '1')
+    }
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
-    setToken(newToken)
+    setToken(newToken || null)
     setUser(newUser)
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
     return payload
-  }
+  }, [])
 
-  async function registerAccount(input: RegisterAccountInput) {
+  const registerAccount = useCallback(async (input: RegisterAccountInput) => {
     const payload = await authApi.registerAccount(input)
     const { token: newToken, user: newUser } = payload
-    localStorage.setItem(TOKEN_KEY, newToken)
+    if (newToken) {
+      localStorage.setItem(TOKEN_KEY, newToken)
+      localStorage.removeItem(SESSION_HINT_KEY)
+    } else {
+      localStorage.removeItem(TOKEN_KEY)
+      localStorage.setItem(SESSION_HINT_KEY, '1')
+    }
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
-    setToken(newToken)
+    setToken(newToken || null)
     setUser(newUser)
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
     return payload
-  }
+  }, [])
 
-  function logout() {
+  const logout = useCallback(() => {
     void (async () => {
       try {
         await authApi.logoutRemote()
@@ -140,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.removeItem(TOKEN_KEY)
         localStorage.removeItem(USER_KEY)
+        localStorage.removeItem(SESSION_HINT_KEY)
       } catch {
         /* ignore */
       }
@@ -154,16 +178,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setImpersonationOriginalUser(null)
       window.location.assign('/login')
     })()
-  }
+  }, [])
 
-  async function startImpersonationPreview(targetUserId: number) {
+  const startImpersonationPreview = useCallback(async (targetUserId: number) => {
     if (readStoredImpersonationOriginal()) {
       toast.warning('وضع معاينة نشط بالفعل. أنِهِ الحالي قبل البدء بآخر.')
       throw new Error('already_impersonating')
     }
 
     const cur = readCurrentAuthBackupFromLocal()
-    if (!cur?.token || !cur.user) {
+    if (!cur?.user) {
       toast.error('تعذر قراءة الجلسة الحالية.')
       throw new Error('missing_session')
     }
@@ -175,34 +199,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const raw = await authApi.postImpersonateUser(targetUserId)
       const { token: nextToken, user: nextUser } = normalizeAuthLoginPayload(raw)
 
-      if (!nextToken.trim()) {
+      const usingCookieSession = localStorage.getItem(SESSION_HINT_KEY) === '1'
+      if (!nextToken.trim() && !usingCookieSession) {
         throw new Error('missing_impersonation_token')
       }
 
-      localStorage.setItem(TOKEN_KEY, nextToken)
+      if (nextToken) localStorage.setItem(TOKEN_KEY, nextToken)
+      else localStorage.removeItem(TOKEN_KEY)
       localStorage.setItem(USER_KEY, JSON.stringify(nextUser))
-      setToken(nextToken)
+      setToken(nextToken || null)
       setUser(nextUser)
 
-      toast.success(`تم بدء المعاينة — عرض المنصّة كـ ${nextUser.name || 'مستخدم مستهدَف'}.`)
+      toast.success(`تم بدء المعاينة عرض المنصّة كـ ${nextUser.name || 'مستخدم مستهدَف'}.`)
     } catch (e) {
       clearImpersonationSessionMarks()
       setImpersonationOriginalUser(null)
       throw e
     }
-  }
+  }, [])
 
-  async function stopImpersonationPreview() {
+  const stopImpersonationPreview = useCallback(async () => {
     const fallback = readStoredImpersonationOriginal()
 
     try {
       const raw = await authApi.postImpersonateStop()
       try {
         const { token: restoredToken, user: restoredUser } = normalizeAuthLoginPayload(raw)
-        if (restoredToken.trim()) {
-          localStorage.setItem(TOKEN_KEY, restoredToken)
+        const usingCookieSession = localStorage.getItem(SESSION_HINT_KEY) === '1'
+        if (restoredToken.trim() || usingCookieSession) {
+          if (restoredToken) localStorage.setItem(TOKEN_KEY, restoredToken)
+          else localStorage.removeItem(TOKEN_KEY)
           localStorage.setItem(USER_KEY, JSON.stringify(restoredUser))
-          setToken(restoredToken)
+          setToken(restoredToken || null)
           setUser(restoredUser)
           clearImpersonationSessionMarks()
           setImpersonationOriginalUser(null)
@@ -228,9 +256,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearImpersonationSessionMarks()
     setImpersonationOriginalUser(null)
     throw new Error('stop_impersonation_failed')
-  }
+  }, [])
 
-  async function refreshUser() {
+  const refreshUser = useCallback(async () => {
     try {
       const fresh = await authApi.fetchMe()
       setUser(fresh)
@@ -245,28 +273,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null
       }
     }
-  }
+  }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: Boolean(token && user),
-        isLoading,
-        login,
-        registerAccount,
-        logout,
-        isImpersonating,
-        impersonationOriginalUser,
-        startImpersonationPreview,
-        stopImpersonationPreview,
-        refreshUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  // 41+ consumers hang off this context — keep the value's identity tied to actual
+  // auth-state changes, not to incidental re-renders of the provider's subtree host.
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      token,
+      isAuthenticated: Boolean(user),
+      isLoading,
+      login,
+      registerAccount,
+      logout,
+      isImpersonating,
+      impersonationOriginalUser,
+      startImpersonationPreview,
+      stopImpersonationPreview,
+      refreshUser,
+    }),
+    [
+      user,
+      token,
+      isLoading,
+      isImpersonating,
+      impersonationOriginalUser,
+      login,
+      registerAccount,
+      logout,
+      startImpersonationPreview,
+      stopImpersonationPreview,
+      refreshUser,
+    ],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 // Provider + hook must share one module; Fast Refresh wants components-only exports.

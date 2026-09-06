@@ -5,6 +5,74 @@ import { unwrapData } from '@/api/unwrap'
 
 const silent = { skipErrorToast: true as const }
 
+// ── Workflow types ────────────────────────────────────────────────────────────
+
+export type WorkflowStepStatus = 'pending' | 'approved' | 'rejected' | 'returned'
+
+export interface WorkflowStep {
+  step_number: number
+  department_key: string
+  department_label: string
+  status: WorkflowStepStatus
+  actor_name: string | null
+  actor_email: string | null
+  acted_at: string | null
+  notes: string | null
+  is_current?: boolean
+}
+
+export interface WorkshopRequestDetail {
+  id: number
+  requester_name: string
+  requester_email: string
+  requester_phone: string | null
+  requester_department: string | null
+  program_name: string
+  speaker_name: string
+  speaker_job_title: string
+  speaker_photo_url: string | null
+  topics: string
+  categories: string[]
+  target_audience: string
+  proposed_date_1: string | null
+  proposed_time_1: string | null
+  proposed_date_2: string | null
+  proposed_time_2: string | null
+  proposed_date_3: string | null
+  proposed_time_3: string | null
+  location_types: string[]
+  price_type: 'free' | 'paid'
+  price_amount: string | null
+  generated_announcement_text: string | null
+  status: string
+  current_step: number
+  current_department: string
+  workflow_status: string
+  created_at: string
+  updated_at: string
+  workflow_steps?: WorkflowStep[]
+  can_act?: boolean
+  is_history_viewer?: boolean
+  selected_date_option?: number | null
+}
+
+export interface WorkflowHistoryResponse {
+  success: boolean
+  current_step: number
+  current_department: string
+  workflow_status: string
+  can_act: boolean
+  is_history_viewer?: boolean
+  all_steps: (WorkflowStep & { is_current: boolean })[]
+}
+
+export interface WorkshopRequestsPage {
+  data: WorkshopRequestDetail[]
+  current_page: number
+  last_page: number
+  total: number
+}
+
 export async function submitWorkshopRequest(formData: FormData): Promise<void> {
   await apiClient.post('/workshop-requests', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -105,4 +173,58 @@ export async function fetchWorkshopRequestsStrict(): Promise<
     const status = axios.isAxiosError(e) ? e.response?.status : undefined
     return { ok: false, status }
   }
+}
+
+// ── Admin workflow API ────────────────────────────────────────────────────────
+
+export async function fetchAdminWorkshopRequests(
+  params: { page?: number; per_page?: number; workflow_status?: string; search?: string } = {}
+): Promise<WorkshopRequestsPage> {
+  const res = await apiClient.get<{ data: WorkshopRequestDetail[]; current_page: number; last_page: number; total: number }>(
+    '/admin/workshop-requests',
+    { params }
+  )
+  const payload = res.data as unknown as Record<string, unknown>
+  const inner = (payload.data ?? payload) as Record<string, unknown>
+  if (Array.isArray(inner.data)) {
+    return inner as unknown as WorkshopRequestsPage
+  }
+  if (Array.isArray(inner)) {
+    return { data: inner as unknown as WorkshopRequestDetail[], current_page: 1, last_page: 1, total: (inner as unknown[]).length }
+  }
+  return { data: [], current_page: 1, last_page: 1, total: 0 }
+}
+
+export async function fetchAdminWorkshopRequestDetail(id: number): Promise<WorkshopRequestDetail> {
+  const res = await apiClient.get<{ data: WorkshopRequestDetail; can_act?: boolean; is_history_viewer?: boolean }>(`/admin/workshop-requests/${id}`, silent)
+  const payload = res.data as unknown as Record<string, unknown>
+  const detail = (payload.data ?? payload) as WorkshopRequestDetail
+  if (typeof payload.can_act === 'boolean') {
+    detail.can_act = payload.can_act
+  }
+  if (typeof payload.is_history_viewer === 'boolean') {
+    detail.is_history_viewer = payload.is_history_viewer
+  }
+  return detail
+}
+
+export async function approveWorkshopRequest(
+  id: number,
+  notes?: string,
+  selectedDateOption?: number | null,
+): Promise<{ message: string }> {
+  const body: Record<string, unknown> = { notes }
+  if (selectedDateOption != null) body.selected_date_option = selectedDateOption
+  const res = await apiClient.post<{ message: string }>(`/admin/workshop-requests/${id}/approve`, body)
+  return res.data
+}
+
+export async function rejectWorkshopRequest(id: number, notes?: string): Promise<{ message: string }> {
+  const res = await apiClient.post<{ message: string }>(`/admin/workshop-requests/${id}/reject`, { notes })
+  return res.data
+}
+
+export async function fetchWorkshopWorkflowHistory(id: number): Promise<WorkflowHistoryResponse> {
+  const res = await apiClient.get<WorkflowHistoryResponse>(`/admin/workshop-requests/${id}/workflow-history`, silent)
+  return res.data
 }

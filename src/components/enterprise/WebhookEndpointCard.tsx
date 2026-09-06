@@ -1,5 +1,5 @@
 import { Activity, ChevronLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import IntegrationStatusBadge from '@/components/enterprise/IntegrationStatusBadge'
 import { WEBHOOK_EVENT_LABELS_AR } from '@/api/webhooksApi'
 import type { WebhookEndpoint } from '@/types/phase7'

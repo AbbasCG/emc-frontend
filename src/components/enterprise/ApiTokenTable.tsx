@@ -1,5 +1,5 @@
 import { Copy, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import type { ApiAccessTokenRow } from '@/types/phase7'
 
 export default function ApiTokenTable({
@@ -36,7 +36,7 @@ export default function ApiTokenTable({
               <td className="px-4 py-3 font-black text-deepBlue">{r.name}</td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-1">
-                  {r.scopes.map((s) => (
+                  {(r.scopes ?? []).map((s) => (
                     <span key={s} className="rounded-md bg-sky-50 px-2 py-0.5 font-mono text-[10px] font-black text-deepBlue ring-1 ring-sky-100" dir="ltr">
                       {s}
                     </span>

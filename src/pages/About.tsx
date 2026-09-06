@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+﻿import { useMemo } from 'react'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -11,7 +12,10 @@ import {
   Sparkles,
   Target,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import {
   CTASection,
@@ -22,103 +26,94 @@ import {
   PublicPageHero,
   TimelineSteps,
 } from '@/components/public'
-import { useTranslation } from 'react-i18next'
-import { aboutPlatformLead, t as contentT } from '@/data/publicPages'
+import PublicSeo from '@/components/public/PublicSeo'
+import { aboutPlatformLead } from '@/data/publicPages'
 import { fadeUp } from '@/utils/animations'
+
+/** M3 i18n: copy lives in the catalogs under about.*. */
+const DIFFERENTIATOR_DEFS: readonly { key: string; icon: LucideIcon; iconClassName: string }[] = [
+  { key: 'ecosystem', icon: Layers, iconClassName: 'bg-sky-50 text-customBlue' },
+  { key: 'audience', icon: Users, iconClassName: 'bg-orange-50 text-customOrange' },
+  { key: 'ai', icon: Brain, iconClassName: 'bg-sky-50 text-customBlue' },
+  { key: 'guidance', icon: Target, iconClassName: 'bg-orange-50 text-customOrange' },
+]
+
+function buildDifferentiators(t: TFunction) {
+  return DIFFERENTIATOR_DEFS.map(({ key, icon, iconClassName }) => ({
+    key,
+    icon,
+    iconClassName,
+    title: t(`about.differentiators.items.${key}.title`),
+    description: t(`about.differentiators.items.${key}.description`),
+  }))
+}
+
+const ROADMAP_MILESTONE_KEYS = ['unify', 'partnerships', 'impact', 'tracks'] as const
+
+function buildRoadmapMilestones(t: TFunction) {
+  return ROADMAP_MILESTONE_KEYS.map((key) => ({
+    title: t(`about.roadmap.milestones.${key}.title`),
+    description: t(`about.roadmap.milestones.${key}.description`),
+  }))
+}
+
+const JOURNEY_STEP_DEFS: readonly { key: string; icon: LucideIcon }[] = [
+  { key: 'explore', icon: Compass },
+  { key: 'choose', icon: Layers },
+  { key: 'apply', icon: Brain },
+  { key: 'grow', icon: Sparkles },
+]
+
+function buildJourneySteps(t: TFunction) {
+  return JOURNEY_STEP_DEFS.map(({ key, icon }) => ({
+    icon,
+    title: t(`about.journey.steps.${key}.title`),
+    description: t(`about.journey.steps.${key}.description`),
+  }))
+}
+
+const GLANCE_ITEM_DEFS: readonly { key: string; icon: LucideIcon }[] = [
+  { key: 'academic', icon: GraduationCap },
+  { key: 'digital', icon: Cpu },
+  { key: 'community', icon: Users },
+  { key: 'lifelong', icon: Brain },
+]
+
+const DIGITAL_POINT_KEYS = ['intro', 'skills', 'safety', 'alignment'] as const
+
+const AUDIENCE_CARD_KEYS = ['students', 'newcomers', 'professionals', 'families', 'organizations', 'trainers'] as const
 
 export default function About() {
   const { t } = useTranslation()
-
-  const differentiators = [
-    {
-      icon: Layers,
-      title: t('about.differentiator1Title'),
-      description: t('about.differentiator1Desc'),
-      iconClassName: 'bg-sky-50 text-customBlue',
-    },
-    {
-      icon: Users,
-      title: t('about.differentiator2Title'),
-      description: t('about.differentiator2Desc'),
-      iconClassName: 'bg-orange-50 text-customOrange',
-    },
-    {
-      icon: Brain,
-      title: t('about.differentiator3Title'),
-      description: t('about.differentiator3Desc'),
-      iconClassName: 'bg-sky-50 text-customBlue',
-    },
-    {
-      icon: Target,
-      title: t('about.differentiator4Title'),
-      description: t('about.differentiator4Desc'),
-      iconClassName: 'bg-orange-50 text-customOrange',
-    },
-  ]
-
-  const roadmapMilestones = [
-    {
-      title: t('about.roadmapMilestone1'),
-      description: t('about.roadmapMilestone1Desc'),
-    },
-    {
-      title: t('about.roadmapMilestone2'),
-      description: t('about.roadmapMilestone2Desc'),
-    },
-    {
-      title: t('about.roadmapMilestone3'),
-      description: t('about.roadmapMilestone3Desc'),
-    },
-    {
-      title: t('about.roadmapMilestone4'),
-      description: t('about.roadmapMilestone4Desc'),
-    },
-  ]
-
-  const journeySteps = [
-    {
-      title: t('about.journeyStep1'),
-      description: t('about.journeyStep1Desc'),
-      icon: Compass,
-    },
-    {
-      title: t('about.journeyStep2'),
-      description: t('about.journeyStep2Desc'),
-      icon: Layers,
-    },
-    {
-      title: t('about.journeyStep3'),
-      description: t('about.journeyStep3Desc'),
-      icon: Brain,
-    },
-    {
-      title: t('about.journeyStep4'),
-      description: t('about.journeyStep4Desc'),
-      icon: Sparkles,
-    },
-  ]
-
+  const differentiators = useMemo(() => buildDifferentiators(t), [t])
+  const roadmapMilestones = useMemo(() => buildRoadmapMilestones(t), [t])
+  const journeySteps = useMemo(() => buildJourneySteps(t), [t])
   return (
     <main className="bg-[#f4f7fb] pt-20">
+      <PublicSeo
+        title="عن المركز"
+        description="منصة تعليمية وتطويرية تبني جسوراً بين المعرفة والمهارة والفرص رؤية ورسالة وخارطة طريق مؤسسية بلغة عربية احترافية ومعايير عالمية."
+        path="/about"
+      />
       <PublicPageHero
         variant="split"
-        badge={t('about.title')}
-        title={t('about.title')}
-        subtitle={t('about.subtitle')}
+        badge={t('about.hero.badge')}
+        title={t('about.hero.title')}
+        subtitle={t('about.hero.subtitle')}
         breadcrumbs={[
-          { label: t('about.breadcrumbHome'), href: '/' },
-          { label: t('about.title') },
+          { label: t('nav.home'), href: '/' },
+          { label: t('about.hero.breadcrumbCurrent') },
         ]}
-        primaryAction={{ label: t('about.ctaPrograms'), href: '/courses' }}
-        secondaryAction={{ label: t('about.ctaContact'), href: '/contact' }}
+        primaryAction={{ label: t('about.hero.primaryCta'), href: '/courses' }}
+        secondaryAction={{ label: t('about.hero.secondaryCta'), href: '/contact' }}
         stats={[
-          { value: '12', label: t('about.statsTracks') },
-          { value: t('about.statsDiverse'), label: t('about.statsDiverse') },
-          { value: t('about.statsTransparent'), label: t('about.statsTransparent') },
+          { value: t('about.hero.stats.fields.value'), label: t('about.hero.stats.fields.label') },
+          { value: t('about.hero.stats.programs.value'), label: t('about.hero.stats.programs.label') },
+          { value: t('about.hero.stats.transparency.value'), label: t('about.hero.stats.transparency.label') },
         ]}
       />
 
-      {/* من نحن — split band */}
+      {/* من نحن split band */}
       <section id="about" className="scroll-mt-28 py-16 sm:py-20">
         <PageShell>
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -130,43 +125,37 @@ export default function About() {
               transition={{ duration: 0.55 }}
               className="text-right"
             >
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-customBlue shadow-sm ring-1 ring-slate-200/80">
-                <Sparkles size={17} />
-                {t('about.whoWeAre')}
+              <span className="emc-eyebrow mb-4">
+                <Sparkles size={15} />
+                {t('about.who.eyebrow')}
               </span>
-              <h2 className="text-3xl font-black text-deepBlue sm:text-4xl">{t('about.whoWeAre')}</h2>
-              <span className="mt-4 block h-1 w-20 rounded-full bg-gradient-to-l from-customOrange to-customOrange/40" />
-              <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{contentT(aboutPlatformLead)}</p>
+              <h2 className="emc-title-arc font-display text-3xl font-black tracking-tight text-deepBlue sm:text-4xl">{t('about.who.title')}</h2>
+              <p className="mt-7 text-lg font-medium leading-10 text-slate-600">{aboutPlatformLead.ar}</p>
               <p className="mt-5 text-base font-medium leading-8 text-slate-600">
-                {t('about.whoWeAreDesc')}
+                {t('about.who.paragraph')}
               </p>
             </motion.div>
 
             <motion.div
-              className="rounded-3xl bg-white p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-100"
+              className="rounded-3xl bg-white p-2 shadow-emc-lg ring-1 ring-line"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
               transition={{ duration: 0.5 }}
             >
               <div className="rounded-2xl bg-gradient-to-br from-[#f4f7fb] to-white p-6 sm:p-8">
-                <p className="text-right text-sm font-black text-customBlue">{t('about.whoWeAre')}</p>
+                <p className="text-right text-sm font-black text-customBlue">{t('about.who.glanceTitle')}</p>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {[
-                    { icon: GraduationCap, label: 'مسارات أكاديمية ومهنية', sub: 'تخطيط وتوجيه' },
-                    { icon: Cpu, label: 'تمكين رقمي', sub: 'أدوات ومهارات' },
-                    { icon: Users, label: 'مجتمع متعلم', sub: 'دعم وشراكات' },
-                    { icon: Brain, label: 'تعلم مستمر', sub: 'ورش وبرامج' },
-                  ].map((item) => {
+                  {GLANCE_ITEM_DEFS.map((item) => {
                     const Icon = item.icon
                     return (
                       <div
-                        key={item.label}
+                        key={item.key}
                         className="rounded-2xl border border-slate-100 bg-white p-5 text-right shadow-sm transition hover:border-customBlue/20 hover:shadow-md"
                       >
                         <Icon className="text-customBlue" size={26} />
-                        <p className="mt-3 font-black text-deepBlue">{item.label}</p>
-                        <p className="mt-1 text-sm font-medium text-slate-500">{item.sub}</p>
+                        <p className="mt-3 font-black text-deepBlue">{t(`about.who.glance.${item.key}.label`)}</p>
+                        <p className="mt-1 text-sm font-medium text-slate-500">{t(`about.who.glance.${item.key}.sub`)}</p>
                       </div>
                     )
                   })}
@@ -177,12 +166,12 @@ export default function About() {
         </PageShell>
       </section>
 
-      {/* Process — light break */}
+      {/* Process light break */}
       <section className="border-y border-slate-200/60 bg-white py-16 sm:py-20">
         <PageShell>
           <ProcessSteps
-            title={t('about.roadmap')}
-            subtitle={t('about.roadmapSubtitle')}
+            title={t('about.journey.title')}
+            subtitle={t('about.journey.subtitle')}
             steps={journeySteps}
           />
         </PageShell>
@@ -192,9 +181,9 @@ export default function About() {
       <section id="vision-mission" className="scroll-mt-28 py-16 sm:py-20">
         <PageShell>
           <SectionHeader
-            eyebrow={t('about.vision')}
-            title={`${t('about.vision')} ${t('about.mission')}`}
-            subtitle={t('about.visionMissionSubtitle')}
+            eyebrow={t('about.visionMission.eyebrow')}
+            title={t('about.visionMission.title')}
+            subtitle={t('about.visionMission.subtitle')}
           />
           <div className="grid gap-6 md:grid-cols-2">
             <motion.div
@@ -203,12 +192,12 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customBlue bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-sky-100/50 blur-2xl" />
-              <h3 className="relative text-xl font-black text-deepBlue">{t('about.vision')}</h3>
+              <h3 className="relative text-xl font-black text-deepBlue">{t('about.visionMission.visionTitle')}</h3>
               <p className="relative mt-4 leading-9 text-slate-600">
-                {t('about.visionText')}
+                {t('about.visionMission.visionBody')}
               </p>
             </motion.div>
             <motion.div
@@ -217,12 +206,12 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.5, delay: 0.06 }}
-              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-lg ring-1 ring-slate-100"
+              className="relative overflow-hidden rounded-3xl border-t-4 border-customOrange bg-white p-8 text-right shadow-emc-md ring-1 ring-line"
             >
               <div className="pointer-events-none absolute -left-8 top-0 h-32 w-32 rounded-full bg-orange-100/40 blur-2xl" />
-              <h3 className="relative text-xl font-black text-deepBlue">{t('about.mission')}</h3>
+              <h3 className="relative text-xl font-black text-deepBlue">{t('about.visionMission.missionTitle')}</h3>
               <p className="relative mt-4 leading-9 text-slate-600">
-                {t('about.missionText')}
+                {t('about.visionMission.missionBody')}
               </p>
             </motion.div>
           </div>
@@ -235,9 +224,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow={t('about.roadmap')}
-            title={t('about.roadmap')}
-            description={t('about.roadmapSubtitle')}
+            eyebrow={t('about.roadmap.eyebrow')}
+            title={t('about.roadmap.title')}
+            description={t('about.roadmap.description')}
           />
           <TimelineSteps steps={roadmapMilestones} />
         </PageShell>
@@ -249,9 +238,9 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow={t('about.leadership')}
-            title={t('about.leadership')}
-            description={t('about.leadershipDescription')}
+            eyebrow={t('about.leadership.eyebrow')}
+            title={t('about.leadership.title')}
+            description={t('about.leadership.description')}
           />
           <motion.div
             variants={fadeUp}
@@ -259,15 +248,15 @@ export default function About() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.55 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-deepBlue via-[#1c4567] to-[#162334] p-8 text-right text-white shadow-2xl sm:p-10 lg:p-12"
+            className="emc-depth relative overflow-hidden rounded-3xl p-8 text-right text-white shadow-emc-lg ring-1 ring-white/10 sm:p-10 lg:p-12"
           >
             <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-customOrange/15 blur-3xl" />
             <Quote className="relative text-customOrange" size={36} aria-hidden />
-            <blockquote className="relative mt-6 text-lg font-medium leading-10 text-slate-100 sm:text-xl sm:leading-[2.15rem]">
-              {t('about.leadershipQuote')}
+            <blockquote className="relative mt-6 text-lg font-medium leading-10 text-ice/95 sm:text-xl sm:leading-[2.15rem]">
+              {t('about.leadership.quote')}
             </blockquote>
-            <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-slate-300">
-              {t('about.leadershipFooter')}
+            <footer className="relative mt-8 border-t border-white/15 pt-6 text-sm font-bold text-sky/90">
+              {t('about.leadership.attribution')}
             </footer>
           </motion.div>
         </PageShell>
@@ -279,14 +268,14 @@ export default function About() {
           <SectionHeader
             align="right"
             className="!mr-0 !max-w-3xl !text-right"
-            eyebrow={t('about.whatMakesUsDifferent')}
-            title={t('about.whatMakesUsDifferent')}
-            subtitle={t('about.whatMakesUsDifferentDesc')}
+            eyebrow={t('about.differentiators.eyebrow')}
+            title={t('about.differentiators.title')}
+            subtitle={t('about.differentiators.subtitle')}
           />
           <FeatureGrid>
             {differentiators.map((item) => (
               <FeatureCard
-                key={item.title}
+                key={item.key}
                 icon={item.icon}
                 title={item.title}
                 description={item.description}
@@ -298,38 +287,33 @@ export default function About() {
         </PageShell>
       </section>
 
-      {/* AI / digital — full width band */}
+      {/* AI / digital full width band */}
       <section className="bg-white py-16 sm:py-20">
         <PageShell>
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <SectionHeader
               align="right"
               className="!mb-0 !mr-0 !max-w-none !text-right"
-              eyebrow={t('about.statsDiverse')}
-              title={t('about.aiSectionTitle')}
-              subtitle={t('about.aiSectionSubtitle')}
+              eyebrow={t('about.digital.eyebrow')}
+              title={t('about.digital.title')}
+              subtitle={t('about.digital.subtitle')}
             />
             <motion.div
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.25 }}
+              viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
               transition={{ duration: 0.5 }}
               className="rounded-3xl bg-[#f4f7fb] p-6 ring-1 ring-slate-200/80 sm:p-8"
             >
               <ul className="grid gap-3 text-slate-700 sm:grid-cols-2">
-                {[
-                  t('about.aiBullet1'),
-                  t('about.aiBullet2'),
-                  t('about.aiBullet3'),
-                  t('about.aiBullet4'),
-                ].map((line) => (
+                {DIGITAL_POINT_KEYS.map((key) => (
                   <li
-                    key={line}
+                    key={key}
                     className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-7 shadow-sm ring-1 ring-slate-100/80"
                   >
                     <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-customOrange" />
-                    {line}
+                    {t(`about.digital.points.${key}`)}
                   </li>
                 ))}
               </ul>
@@ -342,48 +326,23 @@ export default function About() {
       <section className="py-16 sm:py-20">
         <PageShell>
           <SectionHeader
-            title={t('about.whomWeServe')}
-            subtitle={t('about.audienceSectionSubtitle')}
+            title={t('about.audience.title')}
+            subtitle={t('about.audience.subtitle')}
           />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: t('about.audienceStudents'),
-                body: t('about.audienceStudentsBody'),
-              },
-              {
-                title: t('about.audienceImmigrants'),
-                body: t('about.audienceImmigrantsBody'),
-              },
-              {
-                title: t('about.audienceProfessionals'),
-                body: t('about.audienceProfessionalsBody'),
-              },
-              {
-                title: t('about.audienceFamiliesTitle'),
-                body: t('about.audienceFamiliesBody'),
-              },
-              {
-                title: t('about.audienceInstitutions'),
-                body: t('about.audienceInstitutionsBody'),
-              },
-              {
-                title: t('about.audienceTrainers'),
-                body: t('about.audienceTrainersBody'),
-              },
-            ].map((card, i) => (
+            {AUDIENCE_CARD_KEYS.map((key, i) => (
               <motion.div
-                key={card.title}
+                key={key}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.45, delay: i * 0.05 }}
                 whileHover={{ y: -3 }}
-                className="min-h-[160px] rounded-3xl border border-slate-100 bg-white p-7 text-right shadow-md ring-1 ring-slate-100/90"
+                className="min-h-[160px] rounded-3xl bg-white p-7 text-right shadow-emc ring-1 ring-line transition-shadow hover:shadow-emc-md"
               >
-                <h3 className="text-lg font-black text-deepBlue">{card.title}</h3>
-                <p className="mt-3 leading-8 text-slate-600">{card.body}</p>
+                <h3 className="text-lg font-black text-deepBlue">{t(`about.audience.cards.${key}.title`)}</h3>
+                <p className="mt-3 leading-8 text-slate-600">{t(`about.audience.cards.${key}.body`)}</p>
               </motion.div>
             ))}
           </div>
@@ -394,17 +353,17 @@ export default function About() {
       <section className="pb-16 sm:pb-20">
         <PageShell>
           <motion.div
-            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right shadow-lg ring-1 ring-slate-200/80 sm:flex-row sm:items-center sm:p-10"
+            className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-gradient-to-l from-white to-sky-50/40 p-8 text-right shadow-emc-md ring-1 ring-line sm:flex-row sm:items-center sm:p-10"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.5 }}
           >
             <div>
-              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">{t('about.readyForNext')}</h2>
+              <h2 className="text-2xl font-black text-deepBlue sm:text-3xl">{t('about.midCta.title')}</h2>
               <p className="mt-3 max-w-xl font-medium leading-9 text-slate-600">
-                {t('about.midCtaText')}
+                {t('about.midCta.body')}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -413,7 +372,7 @@ export default function About() {
                   to="/courses"
                   className="inline-flex items-center gap-2 rounded-xl bg-customOrange px-7 py-4 text-sm font-extrabold text-white shadow-lg"
                 >
-                  {t('about.ctaPrograms')}
+                  {t('about.midCta.primary')}
                   <ArrowLeft size={18} />
                 </Link>
               </motion.div>
@@ -422,7 +381,7 @@ export default function About() {
                   to="/contact"
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-7 py-4 text-sm font-extrabold text-deepBlue transition hover:border-customBlue"
                 >
-                  {t('about.ctaContact')}
+                  {t('about.midCta.secondary')}
                 </Link>
               </motion.div>
             </div>
@@ -431,11 +390,11 @@ export default function About() {
       </section>
 
       <CTASection
-        title={t('about.ctaPrograms')}
-        description={t('about.ctaSectionDescription')}
-        primaryLabel={t('about.ctaPrograms')}
+        title={t('about.cta.title')}
+        description={t('about.cta.description')}
+        primaryLabel={t('about.cta.primary')}
         primaryHref="/tracks"
-        secondaryLabel={t('about.ctaContact')}
+        secondaryLabel={t('about.cta.secondary')}
         secondaryHref="/partnerships"
       />
     </main>

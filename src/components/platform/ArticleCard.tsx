@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, Tag } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { KnowledgeArticle } from '@/types/platform'
 import VisibilityBadge from './VisibilityBadge'
 

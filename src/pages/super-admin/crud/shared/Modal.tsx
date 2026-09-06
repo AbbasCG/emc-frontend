@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 type ModalProps = {
   open: boolean
@@ -23,6 +24,9 @@ export function CrudModal({
   children,
   footerSlot,
 }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, { active: open, onEscape: onClose })
+
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -50,11 +54,12 @@ export function CrudModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-foreground/35 backdrop-blur-[2px]"
+            className="fixed inset-0 z-modal-overlay bg-foreground/35 backdrop-blur-[2px]"
             onClick={onClose}
           />
-          <div className="fixed inset-0 z-[141] grid place-items-center p-4" dir="rtl">
+          <div className="fixed inset-0 z-modal-content grid place-items-center p-4" dir="rtl">
             <motion.div
+              ref={panelRef}
               role="dialog"
               aria-modal
               aria-labelledby="emc-modal-title"

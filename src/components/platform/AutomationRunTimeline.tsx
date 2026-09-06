@@ -37,7 +37,7 @@ export default function AutomationRunTimeline({ runs }: Props) {
               </div>
               <p className="mt-2 text-xs font-bold text-slate-500">
                 بدء {r.started_at}
-                {r.finished_at && <> — انتهاء {r.finished_at}</>}
+                {r.finished_at && <> انتهاء {r.finished_at}</>}
               </p>
               {r.detail && (
                 <p className="mt-2 text-xs font-medium leading-6 text-red-600">{r.detail}</p>

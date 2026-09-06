@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router'
 
 const tabCls =
   'rounded-xl px-4 py-2 text-xs font-black transition border border-transparent'

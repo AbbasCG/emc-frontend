@@ -4,6 +4,7 @@ import { normalizeAuthUser } from '@/utils/userIdentity'
 /** Keep in sync with `AuthContext.tsx` / `axios` token storage. */
 export const TOKEN_KEY = 'emc_token'
 export const USER_KEY = 'emc_user'
+export const SESSION_HINT_KEY = 'emc_session_hint'
 
 export const IMPERSONATION_ACTIVE_KEY = 'emc_sa_impersonation_active'
 export const IMPERSONATION_ORIGINAL_TOKEN_KEY = 'emc_sa_original_token'
@@ -21,24 +22,25 @@ export function clearImpersonationSessionMarks(): void {
 
 export function readStoredImpersonationOriginal(): {
   originalUser: User
-  originalToken: string
+  originalToken: string | null
 } | null {
   try {
     if (sessionStorage.getItem(IMPERSONATION_ACTIVE_KEY) !== '1') return null
     const token = sessionStorage.getItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)?.trim()
     const rawUser = sessionStorage.getItem(IMPERSONATION_ORIGINAL_USER_KEY)
-    if (!token || !rawUser) return null
+    if (!rawUser) return null
     const originalUser = normalizeAuthUser(JSON.parse(rawUser) as unknown)
-    return { originalUser, originalToken: token }
+    return { originalUser, originalToken: token || null }
   } catch {
     return null
   }
 }
 
-export function writeImpersonationSessionBackup(originalToken: string, originalUser: User): void {
+export function writeImpersonationSessionBackup(originalToken: string | null, originalUser: User): void {
   try {
     sessionStorage.setItem(IMPERSONATION_ACTIVE_KEY, '1')
-    sessionStorage.setItem(IMPERSONATION_ORIGINAL_TOKEN_KEY, originalToken)
+    if (originalToken) sessionStorage.setItem(IMPERSONATION_ORIGINAL_TOKEN_KEY, originalToken)
+    else sessionStorage.removeItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)
     sessionStorage.setItem(IMPERSONATION_ORIGINAL_USER_KEY, JSON.stringify(originalUser))
   } catch {
     /* ignore — impersonation UX degrades gracefully */
@@ -46,12 +48,13 @@ export function writeImpersonationSessionBackup(originalToken: string, originalU
 }
 
 /** Current token + user in localStorage — used immediately before impersonation swap. */
-export function readCurrentAuthBackupFromLocal(): { token: string; user: User } | null {
+export function readCurrentAuthBackupFromLocal(): { token: string | null; user: User } | null {
   try {
     const token = localStorage.getItem(TOKEN_KEY)?.trim()
     const raw = localStorage.getItem(USER_KEY)
-    if (!token || !raw) return null
-    return { token, user: normalizeAuthUser(JSON.parse(raw) as unknown) }
+    const hasCookieSession = localStorage.getItem(SESSION_HINT_KEY) === '1'
+    if ((!token && !hasCookieSession) || !raw) return null
+    return { token: token || null, user: normalizeAuthUser(JSON.parse(raw) as unknown) }
   } catch {
     return null
   }

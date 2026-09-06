@@ -12,7 +12,7 @@ type IconCardProps = {
 export default function IconCard({ icon: Icon, title, description, bullets }: IconCardProps) {
   return (
     <motion.article
-      className="group flex min-h-[200px] flex-col rounded-2xl border-t-[3px] border-t-customBlue bg-white p-6 text-right ring-1 ring-slate-100/90"
+      className="group flex min-h-[200px] flex-col rounded-2xl border-t-[3px] border-t-customBlue bg-white p-6 text-right shadow-emc ring-1 ring-deepBlue/[0.05] transition-shadow duration-250 ease-emc-out hover:shadow-emc-md"
       variants={cardHover}
       initial="rest"
       whileHover="hover"

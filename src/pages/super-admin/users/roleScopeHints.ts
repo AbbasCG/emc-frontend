@@ -24,14 +24,14 @@ export const ROLE_CAPABILITY_HINTS_AR: Record<CapabilityId, string> = {
  */
 export function roleHasCapabilitySlug(roleSlug: string, cap: CapabilityId): boolean {
   const r = roleSlug
-  if (cap === 'governance') return ['super_admin', 'executive_admin', 'admin'].includes(r)
+  if (cap === 'governance') return ['super_admin', 'tech_admin', 'executive_admin', 'admin'].includes(r)
   if (cap === 'learning')
-    return ['super_admin', 'executive_admin', 'admin', 'instructor', 'quality_manager', 'student'].includes(r)
-  if (cap === 'finance') return ['super_admin', 'executive_admin', 'finance_manager'].includes(r)
+    return ['super_admin', 'tech_admin', 'executive_admin', 'admin', 'instructor', 'quality_manager', 'student', 'programs_manager'].includes(r)
+  if (cap === 'finance') return ['super_admin', 'tech_admin', 'executive_admin', 'finance_manager'].includes(r)
   if (cap === 'people')
-    return ['super_admin', 'executive_admin', 'hr_manager', 'department_manager'].includes(r)
+    return ['super_admin', 'tech_admin', 'executive_admin', 'hr_manager', 'department_manager', 'operations_manager', 'community_manager'].includes(r)
   if (cap === 'growth')
-    return ['super_admin', 'executive_admin', 'marketing_manager', 'support_agent', 'partner', 'volunteer'].includes(
+    return ['super_admin', 'tech_admin', 'executive_admin', 'marketing_manager', 'support_agent', 'partner', 'volunteer', 'partnerships_manager', 'community_manager'].includes(
       r,
     )
   return false

@@ -15,7 +15,7 @@ export default function UploadPanel({ onUpload }: Props) {
         <div className="min-w-[200px] flex-1">
           <p className="text-sm font-black text-deepBlue">رفع ملف</p>
           <p className="mt-1 text-xs font-bold leading-6 text-slate-500">
-            اسحب الملفات هنا أو اختر من جهازك — يتطلب ربط الخادم للحفظ الفعلي.
+            اسحب الملفات هنا أو اختر من جهازك يتطلب ربط الخادم للحفظ الفعلي.
           </p>
         </div>
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-deepBlue px-5 py-3 text-sm font-black text-white shadow-md transition hover:bg-deepBlue/90">

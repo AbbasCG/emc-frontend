@@ -32,8 +32,8 @@ export default function TeamMemberCard({ member, departmentBadge, featured }: Pr
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.38, ease: [0.22, 0.61, 0.36, 1] }}
       whileHover={{ y: -4, transition: { duration: 0.22, ease: 'easeOut' } }}
-      className={`group flex h-full max-h-[20rem] min-h-[10.75rem] flex-row items-center gap-3 overflow-hidden rounded-3xl border border-deepBlue/[0.08] bg-white p-3.5 text-right shadow-emc-md shadow-deepBlue/[0.06] ring-1 ring-white transition-shadow hover:border-customBlue/[0.28] hover:shadow-emc-lg sm:gap-4 sm:p-4 ${
-        featured ? 'ring-customOrange/[0.32]' : ''
+      className={`group flex h-full max-h-[20rem] min-h-[10.75rem] flex-row items-center gap-3 overflow-hidden rounded-3xl border border-deepBlue/[0.08] bg-white p-3.5 text-right shadow-emc-md shadow-deepBlue/[0.06] transition-shadow hover:border-customBlue/[0.28] hover:shadow-emc-lg sm:gap-4 sm:p-4 ${
+        featured ? 'ring-1 ring-customOrange/[0.32]' : ''
       }`}
     >
       <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-gradient-to-br from-customBlue/[0.09] to-deepBlue/[0.04] shadow-inner sm:h-[5rem] sm:w-[5rem]">
@@ -52,7 +52,7 @@ export default function TeamMemberCard({ member, departmentBadge, featured }: Pr
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-0.5">
-        <h3 className="line-clamp-2 text-[0.95rem] font-black leading-snug text-deepBlue sm:text-base">{member.name_ar}</h3>
+        <h3 className="line-clamp-2 font-display text-[0.95rem] font-black leading-snug tracking-tight text-deepBlue sm:text-base">{member.name_ar}</h3>
 
         <p className="line-clamp-2 text-[12px] font-semibold leading-relaxed text-deepBlue/72 sm:text-[13px]">
           {member.position_ar}
@@ -63,7 +63,7 @@ export default function TeamMemberCard({ member, departmentBadge, featured }: Pr
         </span>
 
         {(member.is_executive || member.is_leader) && (
-          <div className="mt-0.5 flex flex-wrap justify-end gap-1">
+          <div className="mt-0.5 flex flex-wrap justify-start gap-1">
             {member.is_executive ? (
               <span className="rounded-lg border border-deepBlue/15 bg-deepBlue px-2 py-0.5 text-[9px] font-black text-white sm:text-[10px]">
                 الإدارة العليا

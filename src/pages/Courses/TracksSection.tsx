@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
+import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import TrackCard from './TrackCard'
 import type { TrackItem } from '@/services/coursesApi'
@@ -10,7 +11,7 @@ type TracksSectionProps = {
 
 function TrackSkeleton() {
   return (
-    <div className="min-w-[290px] md:min-w-0 bg-white rounded-xl border-2 border-slate-100 p-5 animate-pulse">
+    <div className="min-w-[290px] md:min-w-0 bg-white rounded-2xl border border-line p-5 animate-pulse">
       <div className="flex justify-between mb-4">
         <div className="w-12 h-12 bg-slate-200 rounded-xl" />
         <div className="flex flex-col items-end gap-2">
@@ -33,7 +34,7 @@ function TrackSkeleton() {
   )
 }
 
-export default function TracksSection({ tracks, loading }: TracksSectionProps) {
+function TracksSection({ tracks, loading }: TracksSectionProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
 
@@ -47,14 +48,13 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
           transition={{ duration: 0.55, ease: 'easeOut' }}
           className="mb-10"
         >
-          <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
+          <span className="text-xs font-bold text-accent-700 uppercase tracking-widest mb-2 block">
             المسارات المهنية
           </span>
-          <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
+          <h2 className="emc-title-arc font-display text-2xl md:text-3xl font-black tracking-tight text-deepBlue">
             المسارات الاحترافية
           </h2>
-          <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
-          <p className="text-[#73777B] mt-3 text-sm md:text-base max-w-lg">
+          <p className="text-muted-500 mt-5 text-sm md:text-base max-w-lg">
             كل مسار مجموعة متكاملة من الدورات والورش تأخذك من المبتدئ إلى المحترف بشهادة معتمدة.
           </p>
         </motion.div>
@@ -66,6 +66,10 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
               <TrackSkeleton key={i} />
             ))}
           </div>
+        ) : tracks.length === 0 ? (
+          <p className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center text-sm text-muted-500">
+            لا تتوفر مسارات من الخادم حالياً. يمكنك تصفح الدورات أعلاه أو زيارة صفحة المسارات لاحقاً.
+          </p>
         ) : (
           <div className="flex md:grid md:grid-cols-3 gap-5 overflow-x-auto md:overflow-visible pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
             {tracks.map((track, i) => (
@@ -82,12 +86,17 @@ export default function TracksSection({ tracks, loading }: TracksSectionProps) {
             transition={{ duration: 0.45, delay: 0.5 }}
             className="flex justify-center mt-10"
           >
-            <button className="flex items-center gap-2 border-2 border-deepBlue text-deepBlue hover:bg-deepBlue hover:text-white font-bold px-7 py-3 rounded-xl transition-all duration-200 text-sm">
+            <Link
+              to="/tracks"
+              className="flex items-center gap-2 rounded-xl border-2 border-deepBlue px-7 py-3 text-sm font-bold text-deepBlue transition-all duration-200 hover:bg-deepBlue hover:text-white"
+            >
               عرض جميع المسارات
-            </button>
+            </Link>
           </motion.div>
         )}
       </div>
     </section>
   )
 }
+
+export default memo(TracksSection)

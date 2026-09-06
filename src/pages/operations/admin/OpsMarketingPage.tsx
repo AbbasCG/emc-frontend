@@ -1,33 +1,47 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import MarketingKanban from '@/components/operations/MarketingKanban'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import { MARKETING_STATUS_AR } from '@/data/operationsLabels'
 import type { MarketingContentStatus, MarketingItem } from '@/types/operations'
 import { fetchMarketingItems, updateMarketingItem } from '@/api/marketingApi'
-import { seedMarketing } from '@/data/operationsSeed'
+
+const LOAD_ERROR = 'تعذّر تحميل المحتوى التسويقي. تحقق من الاتصال وأعد المحاولة.'
 
 export default function OpsMarketingPage() {
   const [items, setItems] = useState<MarketingItem[]>([])
+  // Starts in the loading state, so the mount effect never has to flip it synchronously.
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [platform, setPlatform] = useState<string>('all')
   const [view, setView] = useState<'kanban' | 'list'>('kanban')
   const [selected, setSelected] = useState<MarketingItem | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    ;(async () => {
+    void (async () => {
       try {
-        const d = await fetchMarketingItems()
-        if (!cancelled) setItems(d)
+        const rows = await fetchMarketingItems()
+        if (!cancelled) setItems(rows)
       } catch {
-        if (!cancelled) setItems(seedMarketing())
+        if (!cancelled) setLoadError(LOAD_ERROR)
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
+    return () => { cancelled = true }
+  }, [])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setItems(await fetchMarketingItems())
+    } catch {
+      setLoadError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -56,6 +70,12 @@ export default function OpsMarketingPage() {
   }
 
   if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

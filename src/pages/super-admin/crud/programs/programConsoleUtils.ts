@@ -11,12 +11,18 @@ export const PROGRAM_KIND_LABEL: Record<ProgramKind, string> = {
 }
 
 export function inferProgramKind(c: Course): ProgramKind {
-  const raw = c.program_kind ?? (c as { catalog_kind?: string }).catalog_kind ?? (c as { kind?: string }).kind
+  const raw =
+    c.program_kind ??
+    (c as { program_type?: string }).program_type ??
+    (c as { catalog_kind?: string }).catalog_kind ??
+    (c as { kind?: string }).kind
   if (raw != null) {
     const s = String(raw).toLowerCase()
+    if (s === 'full_program' || s.includes('برنامج')) return 'program'
+    if (s === 'one_session') return 'workshop'
     if (s.includes('workshop') || s.includes('ورش')) return 'workshop'
     if (s.includes('track') || s.includes('مسار')) return 'track'
-    if (s.includes('program') || s.includes('برنامج')) return 'program'
+    if (s.includes('program')) return 'program'
     if (s.includes('course') || s.includes('دورة')) return 'course'
   }
   return 'course'
@@ -53,6 +59,31 @@ export function isUpcomingCourse(c: Course, from = Date.now(), horizonDays = 365
   const t = parseCourseStartTs(c)
   if (t == null) return false
   return t >= from && t <= from + horizonDays * 86_400_000
+}
+
+export function isArchivedCourse(c: Course): boolean {
+  const s = String(c.status ?? '').toLowerCase()
+  return s === 'archived'
+}
+
+export function isDraftCourse(c: Course): boolean {
+  if (isPublishedCourse(c)) return false
+  if (isArchivedCourse(c)) return false
+  return true
+}
+
+export function isScheduledCourse(c: Course): boolean {
+  return !missingCourseDate(c)
+}
+
+export function isEndedCourse(c: Course): boolean {
+  const x = c as Record<string, unknown>
+  if (x.is_ended === true || x.is_ended === 1) return true
+  const computed = String(x.computed_status ?? '').toLowerCase()
+  if (computed === 'ended') return true
+  const endDate = String(c.end_date ?? '').slice(0, 10)
+  if (!endDate) return false
+  return isPublishedCourse(c) && new Date(endDate + 'T23:59:59') < new Date()
 }
 
 export function countNewRegsForCourse(rows: AdminRegistrationRow[], courseId: number, days = 7): number {

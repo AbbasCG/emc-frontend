@@ -1,5 +1,5 @@
 import { ChevronLeft, Settings2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import IntegrationStatusBadge from '@/components/enterprise/IntegrationStatusBadge'
 import type { IntegrationSummary } from '@/types/phase7'
 import { cn } from '@/lib/utils'

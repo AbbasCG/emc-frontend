@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, Layers } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { useEffect, useState } from 'react'
 import { fetchCourseModules } from '@/api/advancedLmsApi'
 import EmptyState from '@/components/dashboard/EmptyState'
@@ -71,11 +71,11 @@ export default function CourseModulesPage() {
                   <div className="min-w-0 flex-1">
                     <h2 className="text-lg font-black text-deepBlue">{m.title}</h2>
                     <p className="mt-2 text-xs font-bold text-slate-400">
-                      الدروس {m.lessons_count} — المكتمل {m.completed_lessons ?? 0}
+                      الدروس {m.lessons_count} المكتمل {m.completed_lessons ?? 0}
                     </p>
                     <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-l from-customBlue to-customOrange"
+                        className="h-full rounded-full bg-gradient-to-l from-brand-400 to-brand-600"
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                       />

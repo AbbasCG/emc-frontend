@@ -1,16 +1,36 @@
 import axios from 'axios'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { getApiErrorMessage } from './apiErrors'
 
 // Storage keys — must stay in sync with `src/lib/impersonationSession.ts` (+ AuthContext exports).
 const TOKEN_KEY = 'emc_token'
 const USER_KEY = 'emc_user'
+const SESSION_HINT_KEY = 'emc_session_hint'
+const IMPERSONATION_ACTIVE_KEY = 'emc_sa_impersonation_active'
+const IMPERSONATION_ORIGINAL_TOKEN_KEY = 'emc_sa_original_token'
+const IMPERSONATION_ORIGINAL_USER_KEY = 'emc_sa_original_user_json'
+
+function clearAuthStorage(): void {
+  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(SESSION_HINT_KEY)
+  try {
+    sessionStorage.removeItem(IMPERSONATION_ACTIVE_KEY)
+    sessionStorage.removeItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)
+    sessionStorage.removeItem(IMPERSONATION_ORIGINAL_USER_KEY)
+  } catch { /* ignore */ }
+}
+
+const apiBaseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL
+if (!apiBaseUrl && !import.meta.env.DEV) {
+  throw new Error('[EMC] VITE_API_URL is not set. Add it to your .env file.')
+}
 
 const apiClient = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ??
-    import.meta.env.VITE_API_BASE_URL ??
-    'http://127.0.0.1:8000/api',
+  baseURL: apiBaseUrl,
+  timeout: 20000,
+  withCredentials: true,
+  withXSRFToken: true,
   headers: {
     Accept: 'application/json',
   },
@@ -43,20 +63,54 @@ apiClient.interceptors.response.use(
     const pathOnly = url.split('?')[0] ?? ''
     const method = String(error.config?.method ?? 'get').toLowerCase()
 
-    // 401: clear session except during login/register attempts
+    const isScopedCourseLmsPath =
+      /^\/admin\/courses\/\d+(?:\/|$)/.test(pathOnly) ||
+      /^\/instructor\/courses\/\d+(?:\/|$)/.test(pathOnly)
+    if (isScopedCourseLmsPath && import.meta.env.DEV) {
+      console.log('LMS API ERROR', error.config?.method, error.config?.url, error.response?.status, error.response?.data)
+    }
+
+    // 401: restore impersonation backup if active, otherwise clear session
     if (status === 401 && !isAuthAttempt) {
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(USER_KEY)
+      const impersonating = sessionStorage.getItem(IMPERSONATION_ACTIVE_KEY) === '1'
+      const originalToken = sessionStorage.getItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)?.trim()
+      const originalUser = sessionStorage.getItem(IMPERSONATION_ORIGINAL_USER_KEY)
 
-      const path = window.location.pathname
-      const shouldHardRedirect =
-        !isSilentAuthProbe &&
-        !path.startsWith('/login') &&
-        !path.startsWith('/signup') &&
-        !path.startsWith('/register')
+      if (impersonating && originalToken) {
+        localStorage.setItem(TOKEN_KEY, originalToken)
+        if (originalUser) localStorage.setItem(USER_KEY, originalUser)
+        try {
+          sessionStorage.removeItem(IMPERSONATION_ACTIVE_KEY)
+          sessionStorage.removeItem(IMPERSONATION_ORIGINAL_TOKEN_KEY)
+          sessionStorage.removeItem(IMPERSONATION_ORIGINAL_USER_KEY)
+        } catch { /* ignore */ }
+        if (!isSilentAuthProbe) {
+          window.location.href = '/login?reason=impersonation_expired'
+        }
+      } else {
+        clearAuthStorage()
+        const path = window.location.pathname
+        const shouldHardRedirect =
+          !isSilentAuthProbe &&
+          !path.startsWith('/login') &&
+          !path.startsWith('/signup') &&
+          !path.startsWith('/register')
+        if (shouldHardRedirect) {
+          window.location.href = `/login?reason=session&next=${encodeURIComponent(path)}`
+        }
+      }
+    }
 
-      if (shouldHardRedirect) {
-        window.location.href = `/login?reason=session&next=${encodeURIComponent(path)}`
+    // 403: suspended account — clear session and redirect before toast
+    if (status === 403 && !isAuthAttempt) {
+      const responseMsg =
+        (error.response?.data as { message?: string } | undefined)?.message ?? ''
+      if (responseMsg === 'Account is suspended.' || responseMsg.toLowerCase().includes('suspended')) {
+        clearAuthStorage()
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login?reason=suspended'
+        }
+        return Promise.reject(error)
       }
     }
 

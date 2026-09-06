@@ -1,28 +1,28 @@
+﻿import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { BadgePercent, Coins, Gift } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 
-export default function CoursesPricingSection() {
-  const { t } = useTranslation()
+function CoursesPricingSection() {
   return (
     <section className="bg-[#f4f7fb] py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeader
-          title={t('courses.freeVsPaid')}
-          description={t('courses.freeVsPaidDesc')}
+          title="مجاني مقابل مدفوع"
+          description="يعتمد السعر على طبيعة البرنامج، مدته، ونوع الشهادة أو المرافقة مع إمكانية وجود عروض أو منح عند الإعلان عنها رسمياً."
         />
 
         <motion.div
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           transition={{ duration: 0.5 }}
           className="grid gap-6 md:grid-cols-2"
         >
-          <div className="rounded-3xl bg-white p-8 text-right shadow-lg ring-1 ring-slate-100">
+          <div className="rounded-3xl bg-white p-8 text-right ring-1 ring-slate-100">
             <Gift className="text-customBlue" size={30} />
             <h3 className="mt-4 text-xl font-black text-deepBlue">{t('courses.freeSupported')}</h3>
             <p className="mt-3 leading-8 text-slate-600">
@@ -30,7 +30,7 @@ export default function CoursesPricingSection() {
               لمعرفة إن كان مجانياً، وتابع الشروط المعروضة في صفحة التفاصيل.
             </p>
           </div>
-          <div className="rounded-3xl bg-white p-8 text-right shadow-lg ring-1 ring-slate-100">
+          <div className="rounded-3xl bg-white p-8 text-right ring-1 ring-slate-100">
             <Coins className="text-customOrange" size={30} />
             <h3 className="mt-4 text-xl font-black text-deepBlue">{t('courses.paidPrograms')}</h3>
             <p className="mt-3 leading-8 text-slate-600">
@@ -47,3 +47,5 @@ export default function CoursesPricingSection() {
     </section>
   )
 }
+
+export default memo(CoursesPricingSection)

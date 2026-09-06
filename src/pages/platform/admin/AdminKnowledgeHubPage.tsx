@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useEffect, useState } from 'react'
 import { fetchKnowledgeArticles } from '@/api/knowledgeApi'
 import VisibilityBadge from '@/components/platform/VisibilityBadge'

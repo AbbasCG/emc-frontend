@@ -8,8 +8,7 @@ import AiGenerationPanel from '@/components/ai/AiGenerationPanel'
 import AiRecommendationCard from '@/components/ai/AiRecommendationCard'
 import EmptyState from '@/components/ai/EmptyState'
 import AiAssistantPanel from '@/components/platform/AiAssistantPanel'
-import { seedAiSuggestedPrompts } from '@/data/aiSeed'
-import type { AiChatMessage, AiContextScope, AiGenerationRecord, AiRecommendation } from '@/types/ai'
+import type { AiChatMessage, AiContextScope, AiGenerationRecord, AiRecommendation, AiSuggestedPrompt } from '@/types/ai'
 
 export default function AiWorkspacePage() {
   const [list, setList] = useState<Awaited<ReturnType<typeof fetchAiConversationThreads>>>([])
@@ -20,7 +19,7 @@ export default function AiWorkspacePage() {
   const [activeScopes, setActiveScopes] = useState<AiContextScope[]>(['knowledge', 'tasks'])
   const [recommendations, setRecommendations] = useState<AiRecommendation[]>([])
   const [generation, setGeneration] = useState<AiGenerationRecord | null>(null)
-  const suggestions = useMemo(() => seedAiSuggestedPrompts(), [])
+  const suggestions = useMemo<AiSuggestedPrompt[]>(() => [], [])
 
   useEffect(() => {
     let cancelled = false
@@ -73,13 +72,13 @@ export default function AiWorkspacePage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(38,145,194,0.14),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(236,148,60,0.14),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(0,119,182,0.14),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(242,140,0,0.14),transparent_40%)]" />
         <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">AI Operating System</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Operating System</p>
             <h1 className="mt-1 text-3xl font-black text-deepBlue">مساحة الذكاء المؤسسي</h1>
             <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-600">
-              مساعد متعدد الأدوار، بحث دلالي، توصيات ذكية، وتوليد محتوى تشغيلي — ضمن واجهة موحدة.
+              مساعد متعدد الأدوار، بحث دلالي، توصيات ذكية، وتوليد محتوى تشغيلي ضمن واجهة موحدة.
             </p>
           </div>
           <button

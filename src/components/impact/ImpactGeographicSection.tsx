@@ -27,15 +27,15 @@ export default function ImpactGeographicSection() {
         />
 
         <div className="mt-10 grid grid-cols-1 items-stretch gap-8 lg:grid-cols-5">
-          {/* في RTL العمود الأول يظهر جهة اليمين — الخريطة 60% */}
+          {/* في RTL العمود الأول يظهر جهة اليمين الخريطة 60% */}
           <motion.div
             className="flex min-h-0 flex-col lg:col-span-3 lg:h-full lg:max-h-[35rem]"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.22 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           >
-            <div className="mb-4 flex flex-wrap items-center justify-end gap-2 text-right lg:justify-start">
+            <div className="mb-4 flex flex-wrap items-center justify-start gap-2 text-right lg:justify-start">
               <MapPinned size={20} className="text-customBlue" aria-hidden />
               <h3 className="font-display text-lg font-black text-deepBlue md:text-xl">التجمعات داخل هولندا</h3>
             </div>
@@ -45,11 +45,11 @@ export default function ImpactGeographicSection() {
             >
               <svg className="absolute inset-3 max-h-[90%] w-auto opacity-[0.14]" viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet" aria-hidden>
                 <path
-                  fill="rgba(38,145,194,0.35)"
+                  fill="rgba(0,119,182,0.35)"
                   d="M205 72c35 8 55 42 92 62 28 15 72 26 71 74-3 92-134 218-258 246-76 18-86-132-72-216 14-93 167-171 167-166Z"
                   className=""
                 />
-                <path fill="rgba(34,51,74,0.12)" d="m120 300 140-40 50 140-260 55z" />
+                <path fill="rgba(12,42,75,0.12)" d="m120 300 140-40 50 140-260 55z" />
               </svg>
               <span className="absolute left-[10%] top-[8%] rounded-full bg-white/95 px-3 py-1 text-[11px] font-black text-deepBlue shadow-emc-sm ring-1 ring-customBlue/25">
                 هولندا · نشاط حضوري
@@ -87,7 +87,7 @@ export default function ImpactGeographicSection() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.22 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -96px 0px' }}
           >
             <div className="mb-4 flex flex-wrap items-center gap-2 text-right lg:flex-row-reverse lg:justify-end">
               <Globe2 size={20} className="shrink-0 text-customOrange" aria-hidden />

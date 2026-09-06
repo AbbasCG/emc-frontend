@@ -1,159 +1,194 @@
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Search } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+﻿import { useState, memo } from 'react'
+import { AnimatePresence } from 'framer-motion'
+import { RotateCcw, Search } from 'lucide-react'
 import CourseCard from './CourseCard'
 import type { CourseItem } from '@/services/coursesApi'
 
 type CoursesGridProps = {
   courses: CourseItem[]
-  /** Total courses returned from API (before client-side filters) */
   totalFromApi: number
   loading: boolean
-  viewMode: 'grid' | 'list'
+  /** Kept for call-site compatibility (/programs passes it) — the editorial rows list is the one view. */
+  viewMode?: 'grid' | 'list'
+  embedded?: boolean
+  sectionId?: string
+  /** Optional: lets the empty state offer a one-click filter reset. */
+  onResetFilters?: () => void
 }
 
-const INITIAL_VISIBLE = 9
+const PAGE_SIZE = 12
 
-function CourseSkeleton() {
+/** Editorial loading state — pulsing row silhouettes seated on hairlines (no boxed skeleton cards). */
+function RowsSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-100 overflow-hidden animate-pulse">
-      <div className="h-44 bg-slate-200" />
-      <div className="p-5 space-y-3">
-        <div className="flex justify-between">
-          <div className="h-5 bg-slate-100 rounded-full w-24" />
-          <div className="h-4 bg-slate-100 rounded w-10" />
+    <div aria-hidden className="animate-pulse">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="flex flex-col gap-4 border-b border-line py-6 ps-3 sm:flex-row sm:items-center sm:gap-6 sm:py-7 sm:ps-4"
+        >
+          <div className="emc-page-clip-sm aspect-video w-full shrink-0 bg-paper2 sm:w-40 md:w-56" />
+          <div className="flex-1 space-y-3">
+            <div className="h-5 w-3/4 rounded bg-paper2" />
+            <div className="h-3.5 w-1/2 rounded bg-paper2" />
+          </div>
+          <div className="hidden h-10 w-40 rounded-xl bg-paper2 sm:block" />
         </div>
-        <div className="h-5 bg-slate-200 rounded w-4/5" />
-        <div className="h-4 bg-slate-100 rounded w-full" />
-        <div className="h-4 bg-slate-100 rounded w-3/4" />
-        <div className="flex gap-2 items-center">
-          <div className="w-7 h-7 bg-slate-200 rounded-full" />
-          <div className="h-4 bg-slate-100 rounded w-32" />
-        </div>
-        <div className="flex gap-4">
-          <div className="h-4 bg-slate-100 rounded w-28" />
-          <div className="h-4 bg-slate-100 rounded w-16" />
-        </div>
-        <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
-          <div className="h-5 bg-slate-200 rounded w-20" />
-          <div className="h-9 bg-slate-200 rounded-lg w-28" />
-        </div>
-      </div>
+      ))}
     </div>
   )
 }
 
-function EmptyState({ apiEmpty }: { apiEmpty: boolean }) {
-  const { t } = useTranslation()
+/** De-boxed empty state — typography and whitespace, seated between hairlines. */
+function EmptyState({
+  apiEmpty,
+  onResetFilters,
+}: {
+  apiEmpty: boolean
+  onResetFilters?: () => void
+}) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-5">
-        <Search className="w-9 h-9 text-slate-400" />
-      </div>
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <Search className="mb-5 h-9 w-9 text-muted-300" aria-hidden />
       {apiEmpty ? (
         <>
-          <h3 className="text-xl font-bold text-deepBlue mb-2">{t('courses.noPrograms')}</h3>
-          <p className="text-[#73777B] text-sm max-w-md leading-7">
-            {t('courses.noResultsDesc')}
+          <h3 className="mb-2 font-display text-xl font-black text-deepBlue">لا توجد دورات في الكتالوج</h3>
+          <p className="max-w-md text-sm leading-7 text-muted-500">
+            لم يُعثر على برامج منشورة. يُحدَّث الكتالوج تلقائياً عند نشر دورات جديدة من لوحة الإدارة.
           </p>
         </>
       ) : (
         <>
-          <h3 className="text-xl font-bold text-deepBlue mb-2">{t('courses.noResults')}</h3>
-          <p className="text-[#73777B] text-sm max-w-xs">
-            {t('courses.noResultsDesc')}
+          <h3 className="mb-2 font-display text-xl font-black text-deepBlue">لا برامج تطابق فلاترك</h3>
+          <p className="max-w-xs text-sm leading-7 text-muted-500">
+            جرّب تعديل البحث أو إعادة ضبط الفلاتر.
           </p>
+          {onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="emc-cta-line mt-6 text-sm focus-visible:outline-none"
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden />
+              مسح الفلاتر
+            </button>
+          )}
         </>
       )}
     </div>
   )
 }
 
-export default function CoursesGrid({ courses, totalFromApi, loading, viewMode }: CoursesGridProps) {
-  const { t } = useTranslation()
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
+/** Full editorial list: all filtered courses, first 12 up front + «عرض المزيد» appending 12 more. */
+function AllCoursesList({ courses }: { courses: CourseItem[] }) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
-  const visibleCourses = courses.slice(0, visibleCount)
-  const hasMore = visibleCount < courses.length
+  // Reset pagination whenever the filtered result set changes — adjusted during
+  // render (react.dev "adjusting state when a prop changes") so a new filter
+  // never paints with the previous expanded count first.
+  const [seen, setSeen] = useState(courses)
+  if (seen !== courses) {
+    setSeen(courses)
+    setVisibleCount(PAGE_SIZE)
+  }
 
-  const gridClass = viewMode === 'grid'
-    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-    : 'flex flex-col gap-4'
+  const visible = courses.slice(0, visibleCount)
+  const hasMore = courses.length > visible.length
 
   return (
-    <section className="bg-white py-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Section label */}
-        <div className="mb-8">
-          <span className="text-xs font-bold text-customOrange uppercase tracking-widest mb-2 block">
-            {t('courses.breadcrumbCourses')}
-          </span>
-          <h2 className="text-2xl md:text-3xl font-black text-deepBlue">
-            {t('courses.breadcrumbCourses')}
-          </h2>
-          <div className="w-12 h-1 bg-customOrange rounded-full mt-2" />
+    <div>
+      <div>
+        {visible.map((course, i) => (
+          <CourseCard key={course.id} course={course} index={i} />
+        ))}
+      </div>
+
+      {hasMore && (
+        <div className="mt-10 flex flex-col items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="emc-cta-line text-base focus-visible:outline-none"
+          >
+            عرض المزيد
+          </button>
+          <p className="text-xs text-muted-500" dir="rtl">
+            عرض{' '}
+            <span className="tabular-nums" dir="ltr">
+              {visible.length.toLocaleString('en-US')}
+            </span>{' '}
+            من{' '}
+            <span className="tabular-nums" dir="ltr">
+              {courses.length.toLocaleString('en-US')}
+            </span>{' '}
+            دورة
+          </p>
         </div>
+      )}
+    </div>
+  )
+}
 
-        {/* Loading skeletons */}
-        {loading && (
-          <div className={gridClass}>
-            {Array.from({ length: INITIAL_VISIBLE }).map((_, i) => (
-              <CourseSkeleton key={i} />
-            ))}
-          </div>
-        )}
+function CoursesGrid({
+  courses,
+  totalFromApi,
+  loading,
+  embedded = false,
+  sectionId = 'catalog-courses',
+  onResetFilters,
+}: CoursesGridProps) {
+  const listBody = (
+    <>
+      {loading && <RowsSkeleton />}
 
-        {/* Empty state */}
-        {!loading && courses.length === 0 && (
-          <div className={gridClass}>
-            <EmptyState apiEmpty={totalFromApi === 0} />
-          </div>
-        )}
+      {!loading && courses.length === 0 && (
+        <EmptyState apiEmpty={totalFromApi === 0} onResetFilters={onResetFilters} />
+      )}
 
-        {/* Courses grid */}
-        {!loading && courses.length > 0 && (
+      {!loading && courses.length > 0 && (
+        embedded ? (
+          /* /programs and other embedded contexts: flat rows list of all results */
           <>
-            <div className={gridClass}>
+            <div>
               <AnimatePresence>
-                {visibleCourses.map((course, i) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    index={i}
-                    viewMode={viewMode}
-                  />
+                {courses.map((course, i) => (
+                  <CourseCard key={course.id} course={course} index={i} />
                 ))}
               </AnimatePresence>
             </div>
-
-            {/* Load more */}
-            {hasMore && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center mt-12 gap-3"
-              >
-                <button
-                  onClick={() => setVisibleCount(c => c + INITIAL_VISIBLE)}
-                  className="bg-deepBlue text-white font-bold px-10 py-3.5 rounded-xl hover:bg-deepBlue/90 transition-colors duration-200 text-sm"
-                >
-                  {t('courses.loadMore')}
-                </button>
-                <p className="text-xs text-[#73777B]">
-                  {t('courses.showing', { count: visibleCourses.length, total: courses.length })}
-                </p>
-              </motion.div>
-            )}
-
-            {!hasMore && courses.length > INITIAL_VISIBLE && (
-              <p className="text-center text-xs text-[#73777B] mt-10">
-                {t('courses.allLoaded', { count: courses.length })}
-              </p>
-            )}
+            <p className="mt-4 text-center text-xs text-muted-500">
+              عرض {courses.length.toLocaleString('en-US')} دورة
+            </p>
           </>
-        )}
+        ) : (
+          /* /courses discovery page: every filtered course, load-more past 12 */
+          <AllCoursesList courses={courses} />
+        )
+      )}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="mx-auto max-w-7xl px-4 sm:px-6">{listBody}</div>
+  }
+
+  return (
+    <section id={sectionId} className="scroll-mt-28 bg-white py-12 md:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mb-6">
+          <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-accent-700">
+            جميع الدورات
+          </span>
+          <h2 className="emc-title-arc font-display text-2xl font-black tracking-tight text-deepBlue md:text-3xl">الدورات المتاحة</h2>
+        </div>
+
+        {/* Opening seam the list begins on a fading hairline, not inside a container */}
+        <div className="emc-hairline mb-1" aria-hidden />
+
+        {listBody}
       </div>
     </section>
   )
 }
+
+export default memo(CoursesGrid)

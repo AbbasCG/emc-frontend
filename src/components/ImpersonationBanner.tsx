@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import axios from 'axios'
 import { motion } from 'framer-motion'
 import { ShieldAlert } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from '@/lib/toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { getApiErrorMessage } from '@/api/apiErrors'
 import { getUserRoleLabel } from '@/utils/userIdentity'
@@ -41,7 +41,7 @@ export default function ImpersonationBanner() {
     <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="pointer-events-auto sticky top-16 z-[45] mx-auto mb-4 w-full max-w-[1600px] px-0"
+      className="pointer-events-auto sticky top-16 z-30 mx-auto mb-4 w-full max-w-[1600px] px-0"
       dir="rtl"
       role="status"
       aria-live="polite"
@@ -56,7 +56,7 @@ export default function ImpersonationBanner() {
               أنت الآن تتصفح المنصّة كمستخدم آخر
             </p>
             <p className="text-[12px] font-bold leading-relaxed text-deepBlue/90">
-              وضع المعاينة مفعّل — أنت تعرض المنصّة كما يراها هذا المستخدم.
+              وضع المعاينة مفعّل أنت تعرض المنصّة كما يراها هذا المستخدم.
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-black text-deepBlue/75">
               <span className="truncate">
@@ -76,7 +76,7 @@ export default function ImpersonationBanner() {
             type="button"
             disabled={busy}
             onClick={() => void onStop()}
-            className="inline-flex items-center justify-center rounded-2xl bg-[#22334A] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:bg-deepBlue disabled:opacity-55"
+            className="inline-flex items-center justify-center rounded-2xl bg-[#0C2A4B] px-5 py-2.5 text-[12px] font-black text-white shadow-lg transition hover:bg-deepBlue disabled:opacity-55"
           >
             {busy ? 'جاري الإنهاء…' : 'إنهاء المعاينة'}
           </button>

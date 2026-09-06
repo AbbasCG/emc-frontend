@@ -16,8 +16,8 @@ export default function HrDepartmentsPage() {
   useEffect(() => {
     let c = false
     ;(async () => {
-      let wc: WorkspaceDepartment[] | null = null
-      let lc: number | null = null
+      let wc: WorkspaceDepartment[] | null
+      let lc: number | null
       try {
         const res = await apiClient.get<unknown>('/operations/departments', { skipErrorToast: true })
         wc = asList<WorkspaceDepartment>(res.data)

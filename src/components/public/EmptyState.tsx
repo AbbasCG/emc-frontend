@@ -12,7 +12,7 @@ type EmptyStateProps = {
 export default function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <motion.div
-      className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-20 text-center shadow-lg ring-1 ring-slate-100"
+      className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-20 text-center ring-1 ring-line"
       variants={fadeUp}
       initial="hidden"
       animate="visible"
@@ -26,7 +26,7 @@ export default function EmptyState({ icon: Icon, title, description, action }: E
       {action && (
         <a
           href={action.href}
-          className="mt-8 inline-flex rounded-xl bg-customBlue px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-customBlue/90"
+          className="mt-8 inline-flex rounded-xl bg-customBlue px-6 py-3 text-sm font-bold text-white transition hover:bg-customBlue/90"
         >
           {action.label}
         </a>

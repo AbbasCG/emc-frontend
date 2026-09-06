@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { MoreHorizontal } from 'lucide-react'
+import { DropdownPortal } from '@/components/ui/DropdownPortal'
 import { cn } from '@/lib/utils'
 
 export type MenuAction = { key: string; label: string; onClick: () => void; destructive?: boolean; disabled?: boolean }
@@ -12,41 +13,39 @@ export function RowActionsMenu({
   actions: MenuAction[]
 }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [open])
+  const anchorRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div dir="rtl" className="relative inline-flex justify-end" ref={ref}>
+    <div dir="rtl" className="relative inline-flex justify-end" ref={anchorRef}>
       <button
         type="button"
         aria-label={ariaLabel}
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
         className="grid h-9 w-9 place-items-center rounded-xl border border-ink-100 bg-white text-deepBlue shadow-sm transition hover:border-customBlue/40 hover:bg-brand-50"
       >
         <MoreHorizontal className="h-4 w-4" aria-hidden />
       </button>
-      {open ?
-        <div
-          dir="rtl"
-          className={cn(
-            'absolute end-0 z-30 mt-1 min-w-[10.5rem] overflow-hidden rounded-2xl border border-ink-100 bg-white py-1 text-right shadow-[0_16px_50px_rgba(15,23,42,0.12)]',
-          )}
-        >
+      <DropdownPortal
+        open={open}
+        anchorRef={anchorRef}
+        onClose={() => setOpen(false)}
+        align="end"
+        className="min-w-[10.5rem] overflow-hidden rounded-2xl border border-ink-100 bg-white py-1 text-right shadow-[0_16px_50px_rgba(15,23,42,0.12)]"
+      >
+        <div role="menu" aria-label={ariaLabel}>
           {actions.map((a) => (
             <button
               key={a.key}
               type="button"
+              role="menuitem"
               disabled={a.disabled}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 if (!a.disabled) {
                   setOpen(false)
                   a.onClick()
@@ -62,7 +61,7 @@ export function RowActionsMenu({
             </button>
           ))}
         </div>
-      : null}
+      </DropdownPortal>
     </div>
   )
 }

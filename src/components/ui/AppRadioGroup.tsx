@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { cn } from '@/lib/utils'
 import AppFormError from './AppFormError'
 
 type RadioOption = {
@@ -47,7 +48,7 @@ export default function AppRadioGroup({
         {hint && <span className="text-xs font-medium text-slate-500">{hint}</span>}
       </div>
 
-      <div className={`grid gap-3 ${gridClass[columns]}`}>
+      <div className={cn('grid gap-3', gridClass[columns])}>
         {options.map((option) => {
           const checked = selected === option.value
           const id = `${name}-${option.value}-${generatedId}`
@@ -56,12 +57,12 @@ export default function AppRadioGroup({
             <label
               key={option.value}
               htmlFor={id}
-              className={[
+              className={cn(
                 'flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-right transition',
                 checked
-                  ? 'border-[#b9872f] bg-amber-50 shadow-sm shadow-amber-100'
+                  ? 'border-[#DD7C02] bg-amber-50 shadow-sm shadow-amber-100'
                   : 'border-amber-100 bg-white hover:border-amber-300 hover:bg-amber-50/60',
-              ].join(' ')}
+              )}
             >
               <input
                 id={id}
@@ -71,7 +72,7 @@ export default function AppRadioGroup({
                 checked={checked}
                 onChange={() => onChange(option.value)}
                 required={required}
-                className="h-5 w-5 accent-[#b9872f]"
+                className="h-5 w-5 accent-[#DD7C02]"
               />
               <span className="font-semibold text-deepBlue">{option.label}</span>
             </label>

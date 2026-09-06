@@ -1,36 +1,56 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ChevronLeft, FilePlus2 } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import EmptyState from '@/components/dashboard/EmptyState'
 import { fetchFormDefinitions } from '@/api/formsApi'
-import { seedFormDefinitions } from '@/data/operationsSeed'
 import { FORM_TYPE_AR } from '@/data/operationsLabels'
 import type { OpsFormDefinition } from '@/types/operations'
 
+const LOAD_ERROR = 'تعذّر تحميل النماذج. تحقق من الاتصال وأعد المحاولة.'
+
 export default function OpsFormsPage() {
   const [forms, setForms] = useState<OpsFormDefinition[]>([])
+  // Starts in the loading state, so the mount effect never has to flip it synchronously.
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    ;(async () => {
+    void (async () => {
       try {
-        const d = await fetchFormDefinitions()
-        if (!cancelled) setForms(d)
+        const rows = await fetchFormDefinitions()
+        if (!cancelled) setForms(rows)
       } catch {
-        if (!cancelled) setForms(seedFormDefinitions())
+        if (!cancelled) setLoadError(LOAD_ERROR)
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => {
-      cancelled = true
+    return () => { cancelled = true }
+  }, [])
+
+  // Retry lives outside the effect, so the synchronous reset here is legitimate.
+  const retry = useCallback(async () => {
+    setLoadError(null)
+    setLoading(true)
+    try {
+      setForms(await fetchFormDefinitions())
+    } catch {
+      setLoadError(LOAD_ERROR)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
   if (loading) return <OpsPageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void retry()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">
@@ -62,7 +82,7 @@ export default function OpsFormsPage() {
                 to={`/dashboard/admin/forms/${f.id}`}
                 className="block rounded-2xl bg-white p-6 text-right shadow-md ring-1 ring-deepBlue/[0.06] transition hover:-translate-y-0.5 hover:ring-customBlue/25"
               >
-                <p className="text-[10px] font-black uppercase tracking-wide text-customOrange">
+                <p className="text-[10px] font-black uppercase tracking-wide text-accent-700">
                   {FORM_TYPE_AR[f.form_type] ?? f.form_type}
                 </p>
                 <h2 className="mt-2 text-lg font-black text-deepBlue">{f.title}</h2>

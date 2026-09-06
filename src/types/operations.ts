@@ -55,16 +55,42 @@ export type WorkspaceDepartment = {
   /** Primary label from API when present; optional when backend only sends name_ar/name/etc. */
   title?: string
   name_ar?: string | null
+  name_en?: string | null
   name?: string | null
   department_name?: string | null
   label?: string | null
   description?: string
   leader_name?: string | null
+  /** departments.leader_id — the canonical department-leadership relationship. Null = no leader configured. */
+  leader_id?: number | null
   members_count: number
+  /** Real backend count — null means tasks system not connected */
+  open_tasks_count?: number | null
+  /** Legacy field from /operations/departments */
   open_tasks: number
+  leaders_count?: number
+  courses_count?: number
+  volunteer_requests_count?: number
+  pending_items_count?: number
   meetings_week?: number
   status: DepartmentHealth
   health_score?: number
+}
+
+/** Rich admin department detail — from GET /admin/departments/:id */
+export type AdminDepartment = {
+  id: string | number
+  name_ar: string
+  name_en?: string | null
+  description_ar?: string | null
+  leader_name?: string | null
+  members_count: number
+  leaders_count: number
+  courses_count: number
+  volunteer_requests_count: number
+  pending_items_count: number
+  open_tasks_count: number | null
+  status: DepartmentHealth
 }
 
 export type DepartmentDetail = WorkspaceDepartment & {
@@ -82,6 +108,7 @@ export type MeetingType =
   | 'partnerships'
   | 'quality'
   | 'external'
+  | 'general'
 
 export type MeetingStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
 
@@ -97,6 +124,10 @@ export type OpsMeeting = {
 }
 
 export type OpsMeetingDetail = OpsMeeting & {
+  meeting_date?: string | null
+  start_time?: string | null
+  end_time?: string | null
+  meeting_url?: string | null
   agenda?: string | null
   attendees?: { name: string; role?: string }[]
   decisions?: { id: number; text: string }[]
@@ -184,20 +215,55 @@ export type OpsVolunteer = {
 export type PartnerRecord = {
   id: number
   name: string
+  type?: string | null
+  /** Institutional category (e.g. university/company/NGO) — distinct from `type` (partnership type). */
   institution_type?: string | null
+  partnership_type?: string | null
+  contact_person?: string | null
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+  country?: string | null
+  city?: string | null
   status?: string | null
+  onboarding_status?: string | null
+  activated_at?: string | null
+  notes?: string | null
+  project_scope: string
+  classification?: string | null
+  field_of_work?: string | null
+  contact_position?: string | null
+  assigned_to?: string | null
+  first_contact_date?: string | null
+  last_contact_date?: string | null
+  rejection_reason?: string | null
+  attachment_url?: string | null
+  created_at?: string | null
   updated_at?: string | null
 }
 
 export type PartnershipRequest = {
   id: number
-  institution_name: string
+  partner_name: string
   contact_name?: string | null
   email?: string | null
-  institution_type?: string | null
+  phone?: string | null
+  country?: string | null
+  city?: string | null
+  website?: string | null
+  type?: string | null
+  type_other?: string | null
+  partnership_type?: string | null
+  partnership_type_other?: string | null
+  message?: string | null
+  privacy_accepted?: boolean
   status: string
   created_at: string
-  message_preview?: string | null
+  reviewed_by?: { id: number; name: string } | null
+  reviewed_at?: string | null
+  review_notes?: string | null
+  converted_partner?: { id: number; name: string; status: string } | null
+  converted_user?: { id: number; name: string; email: string } | null
 }
 
 /** ── Marketing ─────────────────────────────────────────────────────────── */
@@ -224,21 +290,61 @@ export type MarketingItem = {
 
 /** ── Support ───────────────────────────────────────────────────────────── */
 
-export type SupportTicketStatus = 'new' | 'open' | 'waiting' | 'resolved' | 'closed'
+export type SupportTicketStatus = 'new' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed'
+
+export type AssigneeUser = {
+  id: number
+  name: string
+  email?: string | null
+  role?: string | null
+  department?: string | null
+  avatar?: string | null
+  active_tickets?: number
+}
+
+export type TicketActivity = {
+  id: number
+  action: string
+  old_values?: Record<string, unknown> | null
+  new_values?: Record<string, unknown> | null
+  user?: { id: number; name: string; avatar?: string | null; role?: string | null } | null
+  created_at: string
+}
 
 export type SupportTicket = {
   id: number
+  ticket_number?: string | null
   subject: string
   type?: string | null
+  request_type?: string | null
   priority?: string | null
   status: SupportTicketStatus
-  requester_name?: string | null
+  full_name?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  assigned_to?: { id: number; name: string; email?: string; role?: string; department?: string; avatar?: string | null } | null
+  replies_count?: number
+  last_reply_at?: string | null
+  resolved_at?: string | null
+  created_at?: string | null
   updated_at?: string | null
+}
+
+export type SupportTicketReply = {
+  id: number
+  author_name: string
+  body: string
+  internal?: boolean
+  created_at: string
+  user_id?: number | null
+  sender_id?: number | null
+  author_id?: number | null
 }
 
 export type SupportTicketDetail = SupportTicket & {
   message?: string | null
-  replies?: { id: number; author_name: string; body: string; internal?: boolean; created_at: string }[]
+  replies?: SupportTicketReply[]
 }
 
 /** ── Operations dashboard ─────────────────────────────────────────────── */
@@ -252,6 +358,21 @@ export type OperationsDashboardData = {
   volunteer_applications: number
   support_tickets_open: number
   marketing_in_review: number
-  recent_activity?: { id: number; label: string; at: string; kind: string }[]
+  finance_approval_pending?: number
+  priority_queues?: {
+    key: 'tasks' | 'support' | 'partnerships' | 'volunteers' | 'finance'
+    label: string
+    count: number
+    urgent_count: number
+  }[]
+  today_items?: {
+    id: string
+    label: string
+    at?: string | null
+    kind: string
+    key: 'tasks' | 'meetings'
+  }[]
+  recent_activity?: { id: number | string; label: string; at: string; kind: string }[]
   department_health?: { department_id: string; title: string; score: number }[]
+  generated_at?: string
 }

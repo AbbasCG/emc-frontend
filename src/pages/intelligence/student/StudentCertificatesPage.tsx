@@ -4,12 +4,12 @@ import { CertificateCard, IntelligencePageSkeleton } from '@/components/intellig
 import EmptyState from '@/components/dashboard/EmptyState'
 import { GraduationCap } from 'lucide-react'
 import { fetchStudentCertificates } from '@/api/certificatesApi'
-import { seedStudentCertificates } from '@/data/intelligenceSeed'
 import type { CertificateRecord } from '@/types/intelligence'
 
 export default function StudentCertificatesPage() {
   const [items, setItems] = useState<CertificateRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -18,7 +18,7 @@ export default function StudentCertificatesPage() {
         const d = await fetchStudentCertificates()
         if (!cancelled) setItems(d)
       } catch {
-        if (!cancelled) setItems(seedStudentCertificates())
+        if (!cancelled) setLoadError('تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -29,6 +29,11 @@ export default function StudentCertificatesPage() {
   }, [])
 
   if (loading) return <IntelligencePageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

@@ -7,9 +7,19 @@ export async function fetchOperationsDashboard(): Promise<OperationsDashboardDat
   return unwrapLms<OperationsDashboardData>(res.data)
 }
 
-export async function fetchWorkspaceDepartments(): Promise<WorkspaceDepartment[]> {
+export type DepartmentsResult = {
+  items: WorkspaceDepartment[]
+  noDepartmentLinked: boolean
+}
+
+export async function fetchWorkspaceDepartments(): Promise<DepartmentsResult> {
   const res = await apiClient.get<unknown>('/operations/departments')
-  return asList<WorkspaceDepartment>(res.data)
+  const raw = res.data as Record<string, unknown> | null | undefined
+  const noDepartmentLinked = Boolean(raw?.no_department_linked)
+  return {
+    items: asList<WorkspaceDepartment>(res.data),
+    noDepartmentLinked,
+  }
 }
 
 export async function fetchDepartmentDetail(id: string): Promise<DepartmentDetail> {

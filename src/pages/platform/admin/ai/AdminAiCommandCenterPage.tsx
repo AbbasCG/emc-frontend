@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Cpu, Gauge, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchAiRecentGenerations } from '@/api/aiApi'
@@ -50,13 +50,16 @@ export default function AdminAiCommandCenterPage() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">AI Command Center</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">AI Command Center</p>
             <h1 className="mt-1 text-3xl font-black text-deepBlue">مركز قيادة الذكاء المؤسسي</h1>
             <p className="mt-2 text-sm font-medium text-slate-600">مراقبة النشاط، التوليدات، الأتمتة، الاستهلاك، وتوصيات القرار في لوحة موحدة.</p>
           </div>
           <div className="flex gap-2">
             <Link to="/dashboard/admin/ai/insights" className="rounded-xl bg-white px-3 py-2 text-xs font-black text-deepBlue ring-1 ring-slate-200">
               AI Insights
+            </Link>
+            <Link to="/dashboard/admin/ai/expert-applications" className="rounded-xl bg-white px-3 py-2 text-xs font-black text-customBlue ring-1 ring-slate-200 hover:bg-slate-50">
+              طلبات الخبراء
             </Link>
             <Link to="/dashboard/admin/ai/usage" className="rounded-xl bg-deepBlue px-3 py-2 text-xs font-black text-white">
               AI Usage

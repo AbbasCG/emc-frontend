@@ -54,7 +54,7 @@ export default function AutomationRuleCard({ rule, onToggleActive }: Props) {
           <div>
             <h3 className="text-base font-black text-deepBlue">{rule.name}</h3>
             <p className="mt-1 text-xs font-bold text-slate-400">
-              المحفّز: <span className="font-mono text-deepBlue" dir="ltr">{rule.trigger}</span> — آخر تحديث {rule.updated_at}
+              المحفّز: <span className="font-mono text-deepBlue" dir="ltr">{rule.trigger}</span> آخر تحديث {rule.updated_at}
             </p>
           </div>
         </div>

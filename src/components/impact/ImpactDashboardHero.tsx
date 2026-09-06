@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { Globe2, Handshake, Languages, MapPinned, Mic2, MonitorPlay, Sparkles, UserPlus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -16,7 +16,7 @@ const iconStrip: [LucideIcon, string][] = [
   [Languages, 'from-customBlue/25'],
 ]
 
-const heroPeek = impactMainStats.slice(0, 4)
+const heroPeek = impactMainStats.slice(0, 3)
 
 function QuickCounter({
   stat,
@@ -24,13 +24,13 @@ function QuickCounter({
   stat: { value: number; suffix?: string; labelAr: string }
 }) {
   const { ref, count } = useImpactCountUp(stat.value, { duration: 1.7 })
-  const fmt = new Intl.NumberFormat('ar').format(count)
+  const fmt = new Intl.NumberFormat('en-US').format(count)
   return (
     <div
       ref={ref}
       className="rounded-xl border border-white/14 bg-white/[0.08] px-3 py-2.5 text-right shadow-inner ring-1 ring-white/[0.07] backdrop-blur-md sm:px-4 sm:py-3"
     >
-      <p className="font-display text-lg font-black tabular-nums text-white sm:text-xl">
+      <p className="font-latin text-lg font-black tabular-nums text-white sm:text-xl" dir="ltr">
         {fmt}
         {stat.suffix ?? ''}
       </p>
@@ -44,7 +44,7 @@ export default function ImpactDashboardHero() {
     <section className="relative isolate overflow-hidden bg-deepBlue pt-[4.5rem] text-white lg:pt-[4.75rem]" dir="rtl">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,#22334a_0%,#1a2839_38%,#0f1c28_92%),radial-gradient(ellipse_82%_55%_at_92%_-8%,rgba(38,145,194,0.42),transparent_52%),radial-gradient(ellipse_55%_45%_at_4%_88%,rgba(236,148,60,0.16),transparent_48%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,#0C2A4B_0%,#1a2839_38%,#0f1c28_92%),radial-gradient(ellipse_82%_55%_at_92%_-8%,rgba(0,119,182,0.42),transparent_52%),radial-gradient(ellipse_55%_45%_at_4%_88%,rgba(242,140,0,0.16),transparent_48%)]"
       />
       <div aria-hidden className="absolute -left-28 top-24 h-48 w-48 rounded-full bg-customBlue/14 blur-[80px] sm:h-56 sm:w-56" />
       <div className="relative mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:pb-14">
@@ -71,7 +71,7 @@ export default function ImpactDashboardHero() {
         </motion.div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:items-end">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3">
             {heroPeek.map((s) => (
               <QuickCounter key={s.id} stat={s} />
             ))}
@@ -84,7 +84,7 @@ export default function ImpactDashboardHero() {
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-3xl bg-[linear-gradient(165deg,rgba(38,145,194,0.18),transparent_48%)]"
+              className="pointer-events-none absolute inset-0 rounded-3xl bg-[linear-gradient(165deg,rgba(0,119,182,0.18),transparent_48%)]"
             />
             <ul className="relative grid grid-cols-4 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-2.5">
               {iconStrip.map(([Icon, grad], i) => (

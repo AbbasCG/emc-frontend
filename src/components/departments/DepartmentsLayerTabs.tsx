@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Compass, Gauge, Network } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -40,9 +40,9 @@ export default function DepartmentsLayerTabs() {
         <SectionHeader
           align="right"
           className="!mr-0 !max-w-3xl !text-right"
-          eyebrow={t('departments.layersTitle')}
-          title={t('departments.layersTitle')}
-          description={t('departments.layersDesc')}
+          eyebrow="طبقات التشغيل"
+          title="ثلاث طبقات تفاعل منظم"
+          description="اختر طبقة لرؤية كيف تتراكب الأدوار: ليست صناديق معزولة، بل شبكة مسؤوليات متصلة بالإدارة العليا."
         />
 
         <div className="mt-10 flex flex-wrap justify-end gap-2 border-b border-deepBlue/[0.08] pb-4">
@@ -68,8 +68,8 @@ export default function DepartmentsLayerTabs() {
           })}
         </div>
 
-        <div className="relative mt-8 min-h-[200px] overflow-hidden rounded-3xl border border-deepBlue/10 bg-white/90 p-8 text-right shadow-[0_24px_60px_-30px_rgba(15,42,67,0.18)] backdrop-blur-md sm:p-10">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-customBlue/[0.04] via-transparent to-customOrange/[0.05]" />
+        <div className="relative mt-8 min-h-[200px] overflow-hidden rounded-3xl border border-deepBlue/10 bg-white/90 p-8 text-right shadow-emc-lg backdrop-blur-md sm:p-10">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-customBlue/[0.04] via-transparent to-transparent" />
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id}

@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { unwrapLms } from './lmsApi'
-import { seedAiRecommendations } from '@/data/aiSeed'
 import type { AiRecommendation } from '@/types/ai'
 
 export async function fetchAiRecommendations(
@@ -13,8 +12,8 @@ export async function fetchAiRecommendations(
     if (payload && typeof payload === 'object' && Array.isArray(payload.recommendations)) {
       return payload.recommendations
     }
-    return seedAiRecommendations(audience)
+    return []
   } catch {
-    return seedAiRecommendations(audience)
+    return []
   }
 }

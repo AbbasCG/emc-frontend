@@ -55,7 +55,7 @@ export default function HrTasksPage() {
   if (loading) return <div className="animate-pulse text-right opacity-70">يتم تحميل المهام...</div>
 
   return (
-    <HrPageShell title="مهام الموارد البشرية" description="مسودة مهام من نظام تشغيل المنصّة — لتنسيق الموارد البشرية حول المهام عبر الوحدات.">
+    <HrPageShell title="مهام الموارد البشرية" description="مسودة مهام من نظام تشغيل المنصّة لتنسيق الموارد البشرية حول المهام عبر الوحدات.">
       {rows == null ?
         <p className="rounded-3xl bg-amber-50 px-6 py-8 text-center text-sm font-bold text-amber-900 ring-1 ring-amber-100">
           لم يتم ربط هذا القسم بالبيانات بعد

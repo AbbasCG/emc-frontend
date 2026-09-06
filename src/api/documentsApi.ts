@@ -1,6 +1,5 @@
 import apiClient from './axios'
 import { asList, unwrapLms } from './lmsApi'
-import { seedDocumentFolders, seedDocuments } from '@/data/platformSeed'
 import type { DocumentFolder, PlatformDocument } from '@/types/platform'
 
 export async function fetchDocumentFolders(): Promise<DocumentFolder[]> {
@@ -8,7 +7,7 @@ export async function fetchDocumentFolders(): Promise<DocumentFolder[]> {
     const res = await apiClient.get<unknown>('/documents/folders')
     return asList<DocumentFolder>(res.data)
   } catch {
-    return seedDocumentFolders()
+    return []
   }
 }
 
@@ -21,11 +20,7 @@ export async function fetchDocuments(params?: { folder?: string }): Promise<Plat
     }
     return list
   } catch {
-    let docs = seedDocuments()
-    if (params?.folder && params.folder !== 'root') {
-      docs = docs.filter((d) => d.folder_id === params.folder)
-    }
-    return docs
+    return []
   }
 }
 

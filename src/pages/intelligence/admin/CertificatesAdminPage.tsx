@@ -8,26 +8,48 @@ import {
   fetchAdminCertificates,
   updateCertificate,
 } from '@/api/certificatesApi'
-import { seedCertificates } from '@/data/intelligenceSeed'
+
 import type { CertificateRecord, CertificateStatus } from '@/types/intelligence'
 
 export default function CertificatesAdminPage() {
   const [rows, setRows] = useState<CertificateRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
 
+  /** Imperative (re)load from an event handler or a failed mutation — outside any
+   *  effect, so flipping to the loading state synchronously is allowed. */
   async function load() {
+    setLoadError(null)
+    setLoading(true)
     try {
       setRows(await fetchAdminCertificates())
     } catch {
-      setRows(seedCertificates())
+      setLoadError('تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.')
     } finally {
       setLoading(false)
     }
   }
 
+  // First load — the initial state already carries `loading: true`, so every state
+  // update here happens after the await (no cascading render from the effect body).
   useEffect(() => {
-    load()
+    let alive = true
+    void (async () => {
+      try {
+        const data = await fetchAdminCertificates()
+        if (!alive) return
+        setRows(data)
+        setLoadError(null)
+      } catch {
+        if (alive) setLoadError('تعذّر تحميل الشهادات. تحقق من الاتصال وأعد المحاولة.')
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [])
 
   async function patchStatus(id: number, status: CertificateStatus, issued_at?: string | null) {
@@ -46,6 +68,12 @@ export default function CertificatesAdminPage() {
   }
 
   if (loading) return <IntelligencePageSkeleton />
+  if (loadError) return (
+    <div dir="rtl" className="rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+      <p className="font-black text-rose-800">{loadError}</p>
+      <button type="button" onClick={() => void load()} className="mt-5 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white">إعادة المحاولة</button>
+    </div>
+  )
 
   return (
     <div className="space-y-8">

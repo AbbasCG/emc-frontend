@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { FolderLock } from 'lucide-react'
 import { HrPageShell } from '@/components/hr/HrLayout'

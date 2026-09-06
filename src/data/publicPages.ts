@@ -1,4 +1,4 @@
-export type Locale = 'ar' | 'en' | 'nl'
+﻿export type Locale = 'ar' | 'en' | 'nl'
 
 export type LocalizedString = {
   ar: string
@@ -159,6 +159,7 @@ export const themes12: PublicTheme[] = [
       { ar: 'ورشة رواد — أساسيات ريادة الأعمال', en: 'Ruwad Workshop — Entrepreneurship Basics', nl: 'Ruwad Workshop — Ondernemerschap Basis' },
       { ar: 'برنامج القيادة الخدمية', en: 'Servant Leadership Program', nl: 'Dienend Leiderschapsprogramma' },
     ],
+    suggestedPrograms: [{ ar: 'ورشة رواد أساسيات ريادة الأعمال' }, { ar: 'برنامج القيادة الخدمية' }],
   },
   {
     id: 'awareness-knowledge',
@@ -235,6 +236,7 @@ export const themes12: PublicTheme[] = [
       { ar: 'يوم ميداني — تعرّف على المؤسسات', en: 'Field Day — Discover Organizations', nl: 'Velddag — Ontdek Organisaties' },
       { ar: 'ورشة التعلم بالمشاريع', en: 'Project-Based Learning Workshop', nl: 'Workshop Projectgestuurd Leren' },
     ],
+    suggestedPrograms: [{ ar: 'يوم ميداني تعرّف على المؤسسات' }, { ar: 'ورشة التعلم بالمشاريع' }],
   },
   {
     id: 'future-minds',
@@ -318,12 +320,8 @@ export const departments10: PublicDepartment[] = [
   {
     id: 'operations',
     icon: 'Cog',
-    title: { ar: 'التشغيل والعمليات', en: 'Operations', nl: 'Operaties' },
-    description: {
-      ar: 'تشغيل يومي سلسل للفعاليات، التسجيل، والخدمات اللوجستية.',
-      en: 'Smooth daily operations for events, registration, and logistical services.',
-      nl: 'Soepele dagelijkse operaties voor evenementen, registratie en logistieke diensten.',
-    },
+    title: { ar: 'العمليات والتشغيل' },
+    description: { ar: 'تشغيل يومي سلسل للفعاليات، التسجيل، والخدمات اللوجستية.' },
     responsibilities: [
       { ar: 'إدارة الجداول والقاعات والمنصات', en: 'Managing schedules, venues, and platforms', nl: 'Beheer van schema\'s, locaties en platforms' },
       { ar: 'دعم تجربة المشارك من البداية للنهاية', en: 'Supporting the participant experience end-to-end', nl: 'Ondersteuning van de deelnemerservaring van begin tot eind' },
@@ -333,12 +331,8 @@ export const departments10: PublicDepartment[] = [
   {
     id: 'marketing',
     icon: 'Megaphone',
-    title: { ar: 'التسويق والإعلام', en: 'Marketing & Media', nl: 'Marketing & Media' },
-    description: {
-      ar: 'إيصال الرسالة بوضوح وبناء هوية محتوى احترافية.',
-      en: 'Delivering the message clearly and building a professional content identity.',
-      nl: 'De boodschap duidelijk overbrengen en een professionele contentidentiteit opbouwen.',
-    },
+    title: { ar: 'الإعلام والتسويق' },
+    description: { ar: 'إيصال الرسالة بوضوح وبناء هوية محتوى احترافية.' },
     responsibilities: [
       { ar: 'الحملات والقنوات الرقمية', en: 'Campaigns and digital channels', nl: 'Campagnes en digitale kanalen' },
       { ar: 'إنتاج مواد توعوية وتعليمية', en: 'Producing educational and awareness materials', nl: 'Produceren van educatief en bewustwordingsmateriaal' },
@@ -406,33 +400,69 @@ export const departments10: PublicDepartment[] = [
     ],
   },
   {
-    id: 'community-wellbeing',
-    icon: 'HeartHandshake',
-    title: { ar: 'المجتمع والصحة', en: 'Community & Well-being', nl: 'Gemeenschap & Welzijn' },
-    description: {
-      ar: 'برامج مجتمعية تدعم الوعي والصحة والاندماج بكرامة.',
-      en: 'Community programs that support awareness, health, and dignified integration.',
-      nl: 'Gemeenschapsprogramma\'s die bewustzijn, gezondheid en waardige integratie ondersteunen.',
-    },
+    id: 'quality',
+    icon: 'ShieldCheck',
+    title: { ar: 'الجودة والحوكمة' },
+    description: { ar: 'ضمان جودة البرامج والخدمات، تطوير السياسات والإجراءات، متابعة مؤشرات الأداء والتحسين المستمر.' },
     responsibilities: [
-      { ar: 'مبادرات مجتمعية موسمية', en: 'Seasonal community initiatives', nl: 'Seizoensgebonden gemeenschapsinitiatieven' },
-      { ar: 'شراكات مع جهات الصحة والوعي', en: 'Partnerships with health and awareness organizations', nl: 'Partnerschappen met gezondheids- en bewustzijnsorganisaties' },
-      { ar: 'حماية المشاركين نفسياً واجتماعياً', en: 'Psychological and social protection of participants', nl: 'Psychologische en sociale bescherming van deelnemers' },
+      { ar: 'إدارة الجودة والاعتماد والمؤشرات' },
+      { ar: 'تحسين العمليات بناءً على الملاحظات' },
+      { ar: 'التوثيق والامتثال' },
     ],
   },
   {
-    id: 'quality',
-    icon: 'ShieldCheck',
-    title: { ar: 'الجودة والحوكمة', en: 'Quality & Governance', nl: 'Kwaliteit & Bestuur' },
-    description: {
-      ar: 'معايير جودة، مراجعة مستمرة، وحوكمة قرارات واضحة.',
-      en: 'Quality standards, continuous review, and clear decision governance.',
-      nl: 'Kwaliteitsnormen, continue beoordeling en duidelijk besluitvormingsbestuur.',
-    },
+    id: 'community-wellbeing',
+    icon: 'HeartHandshake',
+    title: { ar: 'الصحة النفسية والوعي' },
+    description: { ar: 'تنفيذ المبادرات المجتمعية والصحية، بناء الشراكات المجتمعية، دعم البرامج ذات الأثر الإنساني والتوعوي.' },
     responsibilities: [
-      { ar: 'سياسات الجودة والمخاطر', en: 'Quality and risk policies', nl: 'Kwaliteits- en risicobeleid' },
-      { ar: 'تحسين العمليات بناءً على الملاحظات', en: 'Process improvement based on feedback', nl: 'Procesverbetering op basis van feedback' },
-      { ar: 'التوثيق والامتثال', en: 'Documentation and compliance', nl: 'Documentatie en naleving' },
+      { ar: 'المبادرات المجتمعية والصحية' },
+      { ar: 'شراكات مع جهات الصحة والوعي' },
+      { ar: 'حماية المشاركين نفسياً واجتماعياً' },
+    ],
+  },
+  {
+    id: 'strategy-planning',
+    icon: 'Compass',
+    title: { ar: 'إدارة الاستراتيجية والتخطيط المؤسسي' },
+    description: { ar: 'الرؤية بعيدة المدى، الخطط المؤسسية، وقياس التقدم نحو الأهداف.' },
+    responsibilities: [
+      { ar: 'التخطيط الاستراتيجي والمؤسسي' },
+      { ar: 'متابعة أهداف ومؤشرات الأداء' },
+      { ar: 'تطوير خطط النمذجة والنمو' },
+    ],
+  },
+  {
+    id: 'ai-transformation',
+    icon: 'Bot',
+    title: { ar: 'إدارة الذكاء الاصطناعي والتحول الرقمي' },
+    description: { ar: 'توظيف الذكاء الاصطناعي وأتمتة العمليات وقيادة التحول الرقمي.' },
+    responsibilities: [
+      { ar: 'حلول وتطبيقات الذكاء الاصطناعي' },
+      { ar: 'أتمتة وتطوير سير العمليات' },
+      { ar: 'بناء الوعي والابتكار الرقمي' },
+    ],
+  },
+  {
+    id: 'digital-ambassadors',
+    icon: 'Globe',
+    title: { ar: 'إدارة سفراء التحول الرقمي' },
+    description: { ar: 'قيادة شبكة سفراء التحول الرقمي ونشر المعرفة الرقمية بالجامعات والمؤسسات.' },
+    responsibilities: [
+      { ar: 'إدارة وتنظيم برنامج السفراء' },
+      { ar: 'تنسيق المبادرات الميدانية ورعاية الطلاب' },
+      { ar: 'تمثيل EMC في المحافل والجامعات' },
+    ],
+  },
+  {
+    id: 'advisors',
+    icon: 'UserCheck',
+    title: { ar: 'إدارة الاستشارات والمستشارين' },
+    description: { ar: 'تقديم الاستشارات التخصصية وتنظيم الاجتماعات الدورية مع الإدارات.' },
+    responsibilities: [
+      { ar: 'تنسيق الجلسات الاستشارية' },
+      { ar: 'تقديم الرأي والحلول التخصصية' },
+      { ar: 'دعم الإدارات بالخبرات النوعية' },
     ],
   },
 ]
@@ -502,8 +532,22 @@ export const partnershipTypes: PartnershipType[] = [
 
 /** Contact / footer — aligned branding */
 export const siteContact = {
-  phone: '+31 6 00 000 000',
-  email: 'info@emc-edu.com',
-  location: { ar: 'أمستردام، هولندا — خدمة أونلاين ومجتمعات عربية وهولندية', en: 'Amsterdam, the Netherlands — Online service with Arabic and Dutch communities', nl: 'Amsterdam, Nederland — Online service met Arabische en Nederlandse gemeenschappen' },
-  hours: { ar: 'الأحد — الخميس، 9:00 — 18:00 (بتوقيت أوروبا الوسطى)', en: 'Sunday — Thursday, 9:00 — 18:00 (Central European Time)', nl: 'Zondag — Donderdag, 9:00 — 18:00 (Midden-Europese Tijd)' },
+  /**
+   * Number supplied by the team drop of 2026-08 (replaces the placeholder).
+   * Footer phone row stays hidden pending the founder's confirmation text
+   * (STATE gate) — restoring it is a one-line change.
+   */
+  phone: '+31 6 86443340',
+  telLink: 'tel:+31686443340',
+  email: 'info@edumc.nl',
+  supportEmail: 'support@edumc.nl',
+  location: { ar: 'أمستردام، هولندا خدمة أونلاين ومجتمعات عربية وهولندية' },
+  hours: { ar: 'الأحد الخميس، 9:00 18:00 (بتوقيت أوروبا الوسطى)' },
+  social: {
+    website: 'https://edumc.nl',
+    linkedin: 'https://www.linkedin.com/company/edumc',
+    instagram: 'https://www.instagram.com/edumc.nl',
+    youtube: 'https://www.youtube.com/@edumc',
+    x: 'https://x.com/edumc_nl',
+  },
 }

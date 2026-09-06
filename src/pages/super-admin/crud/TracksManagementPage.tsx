@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { GitBranch, GitMerge, Layers, Link2, RefreshCw, Route } from 'lucide-react'
 import type { CatalogTrackRow } from '@/api/superAdminCatalogApi'
 import { fetchTracksStrict } from '@/api/superAdminCatalogApi'
@@ -17,8 +17,8 @@ import {
 import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
 import { AnimatedTabular, EnterpriseCrudHero, EnterpriseMetricTile } from '@/pages/super-admin/crud/shared/enterprise/EnterpriseMetrics'
+import { EMC_CHART_PALETTE } from '@/pages/super-admin/crud/shared/enterprise/chartPrimitives'
 import {
-  EMC_CHART_PALETTE,
   EnterpriseColumnChart,
   EnterprisePieRadial,
   EnterpriseScatterPlot,
@@ -34,13 +34,13 @@ function PathwayNodes({ count }: { count: number }) {
     return <span className="text-[11px] font-bold text-muted-400">لا برامج مربوطة بعد</span>
   }
   return (
-    <div dir="rtl" className="flex flex-wrap items-center justify-end gap-2">
+    <div dir="rtl" className="flex flex-wrap items-center justify-start gap-2">
       {Array.from({ length: shown }, (_, idx) => idx + 1).map((step, i) => (
         <Fragment key={step}>
           {i > 0 ?
-            <span className="hidden h-1 w-8 shrink-0 rounded-full bg-gradient-to-l from-customBlue/35 to-accent-400/35 sm:block" aria-hidden />
+            <span className="hidden h-1 w-8 shrink-0 rounded-full bg-customOrange sm:block" aria-hidden />
           : null}
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#2691C2] to-[#22334A] text-[10px] font-black text-white shadow-md ring-2 ring-white">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-[10px] font-black text-white shadow-md ring-2 ring-white">
             {step}
           </span>
         </Fragment>
@@ -63,6 +63,26 @@ export default function TracksManagementPage() {
   const [view, setView] = useState<CatalogTrackRow | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
 
+  // Initial load — inlined in the effect so no state is touched synchronously
+  // (the initial `loading: true` / `failed: false` already carry the first frame).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const pack = await fetchTracksStrict()
+      if (!alive) return
+      if (!pack.ok) {
+        setFailed(true)
+        setRows([])
+      } else setRows(pack.rows)
+      setLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from the toolbar button — outside any effect, so it may
+   *  flip back to the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setFailed(false)
@@ -73,10 +93,6 @@ export default function TracksManagementPage() {
     } else setRows(pack.rows)
     setLoading(false)
   }, [])
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()
@@ -117,7 +133,7 @@ export default function TracksManagementPage() {
       <EnterpriseCrudHero
         eyebrow="Topology · Catalog structure"
         title="المسارات"
-        subtitle="مسارات الكتالوج من GET /tracks — لا بيانات وهمية عند الخطأ."
+        subtitle="مسارات الكتالوج من GET /tracks لا بيانات وهمية عند الخطأ."
         variant="blue"
         actions={
           <>

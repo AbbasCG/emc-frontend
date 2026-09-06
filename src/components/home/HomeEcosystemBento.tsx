@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeft,
   Award,
   BarChart3,
   BookOpen,
@@ -12,174 +11,287 @@ import {
   UserRound,
   Video,
 } from 'lucide-react'
-import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
+import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
+import { staggerContainer, staggerItem } from '@/utils/animations'
 
-const cells = [
+// Design Language 2.0 — the bento GRID OF GLASS TILES became an editorial
+// capability list. Same eight capabilities, same dark field, same links: the
+// frames (rounded-[1.6rem] + border-white/[0.07] + bg-white/[0.03] + backdrop
+// blur + hover glow) are gone. Hierarchy now comes from type scale and column
+// span — the lead and the closing capability run wide and large, the middle six
+// run two-up — and separation comes from 1px hairline seats, not from boxes.
+// Per-item hex colours are gone too: one sea accent (sky) carries every icon,
+// which is also the only sea value that clears 3:1 on the navy field.
+const capabilities = [
   {
+    id: 'lms',
     title: 'LMS موحّد للمسارات',
-    desc: 'جلسات، واجبات، تتبّع تقدّم، وتجربة متعلّم حديثة على قياس المؤسسة.',
+    desc: 'جلسات ذكية، واجبات تفاعلية، تتبّع تقدّم آني تجربة متعلّم مبنية على بيانات حقيقية.',
     href: '/platform',
     icon: BookOpen,
-    span: 'md:col-span-2 md:row-span-2 lg:col-span-6 lg:row-span-2',
-    gradient: 'from-brand-50/95 via-white to-white',
-    featured: true as const,
   },
   {
+    id: 'certs',
     title: 'شهادات رقمية',
-    desc: 'إصدار موثّق، تتبّع، وربط بالإنجازات القابلة للتحقق.',
+    desc: 'إصدار موثّق قابل للتحقق الفوري، مربوط بالإنجاز الفعلي لكل مسار.',
     href: '/courses',
     icon: Award,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-customOrange/[0.08] to-white',
-    featured: false as const,
   },
   {
+    id: 'admin',
     title: 'لوحات إدارية',
-    desc: 'رؤية تشغيلية للبرامج، الفرق، والامتثال.',
+    desc: 'رؤية تشغيلية كاملة للبرامج والفرق والامتثال جاهزة للعرض القيادي.',
     href: '/departments',
     icon: LayoutDashboard,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-deepBlue/[0.06] to-white',
-    featured: false as const,
   },
   {
+    id: 'portal',
     title: 'بوابة الطالب',
-    desc: 'تسجيلات، جداول، مواد، ومراجعات موحّدة.',
+    desc: 'تسجيل، جداول، مواد، واجبات كل ما يحتاجه المتعلّم في مكان واحد.',
     href: '/dashboard',
     icon: UserRound,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-brand-50 to-white',
-    featured: false as const,
   },
   {
+    id: 'analytics',
     title: 'تحليلات وتقارير',
-    desc: 'مؤشرات أداء تعليمي جاهزة للعرض القيادي.',
+    desc: 'مؤشرات أداء تعليمي متقدمة استخرج القرار من البيانات لا من التخمين.',
     href: '/impact',
     icon: BarChart3,
-    span: 'md:col-span-1 lg:col-span-3',
-    gradient: 'from-customBlue/[0.07] to-white',
-    featured: false as const,
   },
   {
+    id: 'workshops',
     title: 'ورش مباشرة',
-    desc: 'تنسيق حضور، بث، وتسجيلات تلقائية.',
+    desc: 'تنسيق حضور، بث مباشر، وتسجيلات تلقائية كل ورشة موثّقة ومتاحة.',
     href: '/submit-workshop',
     icon: Video,
-    span: 'md:col-span-1 lg:col-span-4',
-    gradient: 'from-accent-50/90 to-white',
-    featured: false as const,
   },
   {
-    title: 'تكاملات ذكاء اصطناعي',
-    desc: 'مساعد المعرفة، تلخيص المحتوى، وأتمتة خفيفة دون كسر الجودة.',
+    id: 'ai',
+    title: 'تكاملات الذكاء الاصطناعي',
+    desc: 'مساعد معرفة، تلخيص تلقائي، وتوصيات مخصصة لكل مسار متعلم.',
     href: '/platform',
     icon: Bot,
-    span: 'md:col-span-1 lg:col-span-4',
-    gradient: 'from-brand-50/80 to-accent-50/40',
-    featured: false as const,
   },
   {
+    id: 'knowledge',
     title: 'مجالات المعرفة',
-    desc: 'اثنا عشر محوراً تعريفياً مع روابط ذكية للبرامج.',
+    desc: 'اثنا عشر محوراً تعريفياً متصلاً بذكاء مع البرامج والمدربين والمخرجات.',
     href: '/tracks',
     icon: Sparkles,
-    span: 'md:col-span-2 lg:col-span-4',
-    gradient: 'from-deepBlue/[0.07] via-white to-brand-50/50',
-    featured: false as const,
   },
 ] as const
 
-export default function HomeEcosystemBento() {
-  const { t } = useTranslation()
-  return (
-    <section className="relative overflow-hidden border-y border-deepBlue/[0.06] bg-white px-4 py-16 sm:px-6 lg:px-10 lg:py-24" dir="rtl">
-      <div aria-hidden className="pointer-events-none absolute -left-40 top-24 h-[28rem] w-[28rem] rounded-full bg-customBlue/[0.06] blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-customOrange/[0.07] blur-3xl" />
+type Cap = (typeof capabilities)[number]
 
-      <div className="relative mx-auto max-w-[1540px]">
-        <div className="mb-14 max-w-3xl text-right">
-          <p className="text-xs font-black text-customBlue">طبقة المنظومة الرقمية</p>
-          <h2 className="mt-3 font-display text-3xl font-black leading-tight text-deepBlue sm:text-4xl xl:text-[2.65rem]">
-            {t('home.ecosystem')}
-          </h2>
-          <p className="mt-5 text-lg font-semibold leading-9 text-foreground/72">
-            وحدات متكاملة تعمل كمنصّة SaaS تعليمية: هوية واحدة وجودة موحّدة وتكامل سلس مع فرقكم التقنية والتعليمية.
+const leadHighlights = [
+  'تتبّع تقدّم الطلاب لحظياً',
+  'واجبات وتقييم متكامل',
+  'شهادات إتمام موثّقة',
+  'تكامل مع بوابات المدربين',
+] as const
+
+// Dark-field analogue of `.emc-hairline`, whose navy seam is invisible on navy.
+// (src/index.css is out of scope here, so the seam is built from tokens inline.)
+const DARK_SEAM = 'h-px bg-gradient-to-l from-transparent via-white/20 to-transparent'
+
+// The sliding sky bar from `.emc-row`, rebuilt for the dark field.
+const SKY_BAR =
+  'absolute inset-y-[14%] start-0 w-[3px] origin-center scale-y-0 rounded-full bg-sky transition-transform duration-300 group-hover:scale-y-100'
+
+/**
+ * One capability as an editorial row: sky icon · serif title · one line of
+ * description · arrow. `.emc-row` itself is a light-surface utility (cream
+ * hairline, paper hover tint), so the dark field gets the same anatomy from
+ * tokens — a white/10 hairline seat, a soft white hover tint, and the sky bar
+ * sliding in at the inline-start edge.
+ */
+function CapabilityRow({ c }: { c: Cap }) {
+  const Icon = c.icon
+  return (
+    <motion.div
+      variants={staggerItem}
+      className="group relative border-b border-white/10 transition-colors duration-300 hover:bg-white/[0.03]"
+    >
+      <span aria-hidden className={SKY_BAR} />
+      <Link
+        to={c.href}
+        className="flex items-center gap-4 py-5 ps-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky sm:gap-5 sm:py-6 sm:ps-4"
+      >
+        <Icon
+          size={22}
+          className="shrink-0 text-sky transition-transform duration-300 group-hover:-translate-y-0.5"
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1 text-right">
+          <h3 className="font-display text-base font-black leading-snug text-white transition-colors group-hover:text-ice sm:text-lg">
+            {c.title}
+          </h3>
+          <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-6 text-white/50 sm:text-sm">
+            {c.desc}
           </p>
         </div>
+        <ArrowLeftIcon
+          size={16}
+          className="shrink-0 text-white/25 transition-all duration-300 group-hover:-translate-x-1 group-hover:text-sky"
+        />
+      </Link>
+    </motion.div>
+  )
+}
 
+/**
+ * The lead capability — what the featured 2×2 tile used to be. It keeps its
+ * extra weight through type scale and a full-width span instead of a frame,
+ * and its four highlights render as plain sky-dot statements, not chips.
+ */
+function LeadCapability({ c }: { c: Cap }) {
+  const Icon = c.icon
+  return (
+    <motion.div variants={staggerItem} className="relative border-b border-white/10 lg:col-span-2">
+      <div className="flex flex-col gap-6 py-8 ps-3 sm:ps-4 lg:flex-row lg:items-center lg:gap-12 lg:py-10">
+        <div className="flex min-w-0 flex-1 items-start gap-4 text-right sm:gap-6">
+          <Icon size={30} className="mt-1 shrink-0 text-sky" aria-hidden />
+          <div className="min-w-0">
+            <h3 className="font-display text-2xl font-black leading-tight text-white sm:text-3xl">
+              {c.title}
+            </h3>
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-8 text-white/55 sm:text-[15px]">
+              {c.desc}
+            </p>
+            <ul className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2.5">
+              {leadHighlights.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-2 text-xs font-bold text-white/45 sm:text-[13px]"
+                >
+                  <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-sky" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <Link
+          to={c.href}
+          className="emc-cta-line shrink-0 self-start text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none lg:self-center"
+        >
+          استعرض المنصة
+          <ArrowLeftIcon size={15} />
+        </Link>
+      </div>
+    </motion.div>
+  )
+}
+
+/**
+ * The closing capability — what the last wide tile used to be. Runs full width
+ * at a step above the two-up rows so the old bento rhythm survives without a
+ * single border.
+ */
+function ClosingCapability({ c }: { c: Cap }) {
+  const Icon = c.icon
+  return (
+    <motion.div
+      variants={staggerItem}
+      className="group relative border-b border-white/10 transition-colors duration-300 hover:bg-white/[0.03] lg:col-span-2"
+    >
+      <span aria-hidden className={SKY_BAR} />
+      <Link
+        to={c.href}
+        className="flex items-center gap-4 py-6 ps-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky sm:gap-6 sm:py-7 sm:ps-4"
+      >
+        <Icon
+          size={26}
+          className="shrink-0 text-sky transition-transform duration-300 group-hover:-translate-y-0.5"
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1 text-right">
+          <h3 className="font-display text-lg font-black leading-snug text-white transition-colors group-hover:text-ice sm:text-xl">
+            {c.title}
+          </h3>
+          <p className="mt-1.5 text-xs font-semibold leading-6 text-white/50 sm:text-sm">{c.desc}</p>
+        </div>
+        <ArrowLeftIcon
+          size={18}
+          className="shrink-0 text-white/25 transition-all duration-300 group-hover:-translate-x-1 group-hover:text-sky"
+        />
+      </Link>
+    </motion.div>
+  )
+}
+
+export default function HomeEcosystemBento() {
+  const lead = capabilities[0]
+  const middle = capabilities.slice(1, 7)
+  const closing = capabilities[7]
+
+  return (
+    <section
+      dir="rtl"
+      className="emc-dawn relative overflow-hidden px-4 py-24 sm:px-6 lg:px-10 lg:py-28"
+    >
+      {/* Ambient glows sea from the top-right, a separate fire ember from the bottom-left */}
+      <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[32rem] w-[32rem] rounded-full bg-customBlue/[0.12] blur-[120px]" />
+      <div
+        aria-hidden
+        className="animate-slow-pulse pointer-events-none absolute -bottom-24 -left-32 h-96 w-96 rounded-full bg-customOrange/[0.06] blur-[110px]"
+      />
+
+      {/* Subtle grid overlay */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)`,
+          backgroundSize: '48px 48px',
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1540px]">
+        {/* Section header */}
         <motion.div
-          className="grid auto-rows-fr gap-4 md:grid-cols-2 lg:grid-cols-12"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
+          className="mb-12 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
+        >
+          <div className="text-right">
+            <span className="emc-eyebrow border-sky/25 bg-sky/10 text-sky">قدرات المنصة</span>
+            <h2 className="mt-4 font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl xl:text-[2.8rem]">
+              كل أداة تحتاجها {' '}
+              <span className="bg-gradient-to-r from-ice to-sky bg-clip-text text-transparent">
+                في منظومة واحدة
+              </span>
+            </h2>
+            <p className="mt-5 max-w-xl text-base font-medium leading-8 text-white/55">
+              وحدات متكاملة تعمل كمنصة SaaS تعليمية هوية واحدة، جودة موحّدة، وتكامل تقني بلا احتكاك.
+            </p>
+          </div>
+          {/* De-boxed section action line CTA instead of a glass pill */}
+          <Link
+            to="/platform"
+            className="emc-cta-line shrink-0 self-start text-sm text-ice/80 transition-colors duration-200 hover:text-white focus-visible:outline-none lg:self-end"
+          >
+            استعرض المنصة
+            <ArrowLeftIcon size={15} />
+          </Link>
+        </motion.div>
+
+        {/* Capability list hairline seats, two-up from lg, no tiles */}
+        <div aria-hidden className={DARK_SEAM} />
+        <motion.div
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={viewportOnce}
+          viewport={{ once: true, amount: 0.15 }}
+          className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14"
         >
-          {cells.map((c) => {
-            const Icon = c.icon
-            return (
-              <motion.article
-                key={c.title}
-                variants={staggerItem}
-                whileHover={{ y: -4, transition: { type: 'spring', stiffness: 420, damping: 24 } }}
-                className={[
-                  'group relative flex flex-col overflow-hidden rounded-[1.55rem] border border-deepBlue/[0.07] bg-gradient-to-br p-7 text-right shadow-emc-sm ring-1 ring-white/70 backdrop-blur-sm transition-shadow hover:shadow-emc-md',
-                  c.span,
-                  c.gradient,
-                ].join(' ')}
-              >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(38,145,194,0.12),transparent_58%)] opacity-70" />
-                <div className="relative flex flex-1 flex-col">
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-customBlue shadow-emc-xs ring-1 ring-deepBlue/[0.05] transition-transform duration-300 group-hover:scale-105">
-                    <Icon size={24} strokeWidth={2.2} aria-hidden />
-                  </span>
-                  <h3 className={`mt-5 font-black text-deepBlue ${c.featured ? 'text-2xl sm:text-[1.65rem]' : 'text-xl'}`}>
-                    {c.title}
-                  </h3>
-                  <p className={`mt-3 flex-1 font-semibold leading-relaxed text-foreground/70 ${c.featured ? 'text-base lg:max-w-[94%]' : 'text-sm'}`}>
-                    {c.desc}
-                  </p>
-                  {c.featured ? (
-                    <div className="relative mt-8 overflow-hidden rounded-2xl border border-deepBlue/[0.06] bg-white/90 p-4 shadow-emc-xs">
-                      <div className="mb-3 flex items-center justify-between text-xs font-black text-foreground/45">
-                        <span>معاينة مسار</span>
-                        <span className="text-[10px] font-black text-foreground/45">مؤشر آنٍ</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[72, 88, 64].map((n, idx) => (
-                          <div
-                            key={idx}
-                            className="rounded-xl border border-brand-100 bg-brand-50/60 px-2 py-2 text-center"
-                          >
-                            <p className="font-latin text-lg font-black tabular-nums text-customBlue">{n}%</p>
-                            <p className="mt-1 text-[10px] font-bold text-deepBlue/55">مؤشر {idx + 1}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <motion.div
-                        className="mt-3 h-2 overflow-hidden rounded-full bg-deepBlue/[0.06]"
-                        initial={false}
-                      >
-                        <motion.div
-                          className="h-full rounded-full bg-gradient-to-l from-customOrange to-customBlue"
-                          initial={{ width: '18%' }}
-                          whileInView={{ width: '81%' }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1.2, ease: [0.22, 0.61, 0.36, 1] }}
-                        />
-                      </motion.div>
-                    </div>
-                  ) : null}
-                  <Link
-                    to={c.href}
-                    className="relative mt-6 inline-flex items-center gap-2 self-end text-sm font-black text-customBlue transition hover:text-deepBlue"
-                  >
-                    التفاصيل
-                    <ArrowLeft size={16} strokeWidth={2.5} aria-hidden />
-                  </Link>
-                </div>
-              </motion.article>
-            )
-          })}
+          <LeadCapability c={lead} />
+          {middle.map((c) => (
+            <CapabilityRow key={c.id} c={c} />
+          ))}
+          <ClosingCapability c={closing} />
         </motion.div>
       </div>
     </section>

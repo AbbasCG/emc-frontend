@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNow } from '@/hooks/useNow'
+import { Link } from 'react-router'
 import { CalendarDays, RefreshCw } from 'lucide-react'
 import type { CatalogWorkshopRow } from '@/api/superAdminCatalogApi'
 import { fetchWorkshopRequestsStrict } from '@/api/workshopRequestsApi'
@@ -15,10 +16,8 @@ import {
 } from '@/pages/super-admin/crud/shared/EntityDetailDrawer'
 import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
-import {
-  EMC_CHART_PALETTE,
-  EnterpriseColumnChart,
-} from '@/pages/super-admin/crud/shared/enterprise/charts'
+import { EMC_CHART_PALETTE } from '@/pages/super-admin/crud/shared/enterprise/chartPrimitives'
+import { EnterpriseColumnChart } from '@/pages/super-admin/crud/shared/enterprise/charts'
 import {
   SaGlassCard,
   SaPageRoot,
@@ -45,6 +44,29 @@ export default function WorkshopsManagementPage() {
   const [tab, setTab] = useState<Tab>('upcoming')
   const [view, setView] = useState<CatalogWorkshopRow | null>(null)
 
+  // Initial load — inlined in the effect so no state is touched synchronously
+  // (the initial `loading: true` / `failed: false` already carry the first frame).
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const pack = await fetchWorkshopRequestsStrict()
+      if (!alive) return
+      if (!pack.ok) {
+        setFailed(true)
+        setFetchStatus(pack.status)
+        setRows([])
+      } else {
+        setRows(pack.rows)
+      }
+      setLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  /** Imperative refresh from the toolbar button — outside any effect, so it may
+   *  flip back to the loading state synchronously. */
   const load = useCallback(async () => {
     setLoading(true)
     setFailed(false)
@@ -60,9 +82,7 @@ export default function WorkshopsManagementPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  const nowMs = useNow()
 
   const filteredBase = useMemo(() => {
     const t = q.trim().toLowerCase()
@@ -78,21 +98,19 @@ export default function WorkshopsManagementPage() {
   }, [rows, q, mode])
 
   const filtered = useMemo(() => {
-    const tsNow = Date.now()
     return filteredBase.filter((w) => {
       const ts = workshopTs(w)
-      if (tab === 'upcoming') return ts == null || ts >= tsNow
-      return ts != null && ts < tsNow
+      if (tab === 'upcoming') return ts == null || ts >= nowMs
+      return ts != null && ts < nowMs
     })
-  }, [filteredBase, tab])
+  }, [filteredBase, tab, nowMs])
 
   const upcomingCount = useMemo(() => {
-    const tsNow = Date.now()
     return rows.filter((w) => {
       const ts = workshopTs(w)
-      return ts == null || ts >= tsNow
+      return ts == null || ts >= nowMs
     }).length
-  }, [rows])
+  }, [rows, nowMs])
   const pastCount = rows.length - upcomingCount
 
   const monthlySeries = useMemo(() => {
@@ -110,7 +128,7 @@ export default function WorkshopsManagementPage() {
       <SaToolbar
         eyebrow="جدولة التجارب التعليمية"
         title="الورش التدريبية"
-        subtitle="طلبات الورش المرسلة من «تقديم ورشة» — GET /api/workshop-requests (Sanctum + دور إداري) دون احتياط وهمي عند الخطأ."
+        subtitle="طلبات الورش المرسلة من «تقديم ورشة» GET /api/workshop-requests (Sanctum + دور إداري) دون احتياط وهمي عند الخطأ."
         actions={
           <>
             <button
@@ -121,7 +139,7 @@ export default function WorkshopsManagementPage() {
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
-            <Link to="/submit-workshop" className="rounded-2xl bg-[#EC943C] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
+            <Link to="/submit-workshop" className="rounded-2xl bg-[#F28C00] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
               قبول ورش من الزوار
             </Link>
           </>
@@ -208,10 +226,10 @@ export default function WorkshopsManagementPage() {
       : !filtered.length ?
         <EmptyPanel title="لا ورش في هذا الشق الزمني." subtitle="جرّب تبويبًا آخر أو امسح المرشحات." />
       :
-        <div className="relative mt-6 space-y-5 before:absolute before:inset-y-0 before:right-4 before:w-px before:bg-gradient-to-b before:from-customBlue/20 before:via-accent-400/30 before:to-transparent sm:before:right-6">
+        <div className="relative mt-6 space-y-5 before:absolute before:inset-y-0 before:right-4 before:w-px before:bg-gradient-to-b before:from-customBlue/20 before:via-customBlue/15 before:to-transparent sm:before:right-6">
           {filtered.map((w) => (
               <SaGlassCard key={w.id} className="relative me-10 p-5 sm:me-14" glow="orange">
-                <span className="absolute -right-1 top-6 grid h-10 w-10 place-items-center rounded-2xl border-2 border-white bg-gradient-to-br from-[#2691C2] to-[#22334A] text-xs font-black text-white shadow-lg sm:right-1">
+                <span className="absolute -right-1 top-6 grid h-10 w-10 place-items-center rounded-2xl border-2 border-white bg-gradient-to-br from-[#0077B6] to-[#0C2A4B] text-xs font-black text-white shadow-lg sm:right-1">
                   {w.date ?
                     String(w.date).slice(8, 10)
                   : '—'}
@@ -250,7 +268,7 @@ export default function WorkshopsManagementPage() {
                   </p>
                 :
                   <p className="mt-4 text-[11px] font-semibold text-muted-500">
-                    نقطة الانطلاق لم ترفع عدد ساعات في هذه العيّنة — لا نُحمِّل أي سعة ظرفية مخترعة أمامكم.
+                    نقطة الانطلاق لم ترفع عدد ساعات في هذه العيّنة لا نُحمِّل أي سعة ظرفية مخترعة أمامكم.
                   </p>
                 }
               </SaGlassCard>

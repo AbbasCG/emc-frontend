@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { fetchAutomationRuns } from '@/api/automationsApi'
 import AutomationRunTimeline from '@/components/platform/AutomationRunTimeline'
 import type { AutomationRun } from '@/types/platform'

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { Link } from 'react-router'
+import toast from '@/lib/toast'
 import {
   createAutomationRule,
   fetchAutomationRules,
@@ -17,6 +17,12 @@ import SecretWarningPanel from '@/components/enterprise/SecretWarningPanel'
 import type { AutomationActionKind, AutomationRule, AutomationRun, AutomationTrigger } from '@/types/platform'
 import type { NotificationChannelKey } from '@/types/phase7'
 
+/** Pure I/O — kept outside the component so the mount effect and the handlers share it
+ *  without either having to call a state-mutating function. */
+function fetchAutomationsSnapshot(): Promise<[AutomationRule[], AutomationRun[]]> {
+  return Promise.all([fetchAutomationRules(), fetchAutomationRuns()])
+}
+
 export default function AdminAutomationsPage() {
   const [rules, setRules] = useState<AutomationRule[]>([])
   const [runs, setRuns] = useState<AutomationRun[]>([])
@@ -31,13 +37,22 @@ export default function AdminAutomationsPage() {
   })
 
   async function refresh() {
-    const [nextRules, nextRuns] = await Promise.all([fetchAutomationRules(), fetchAutomationRuns()])
+    const [nextRules, nextRuns] = await fetchAutomationsSnapshot()
     setRules(nextRules)
     setRuns(nextRuns)
   }
 
   useEffect(() => {
-    void refresh()
+    let alive = true
+    void (async () => {
+      const [nextRules, nextRuns] = await fetchAutomationsSnapshot()
+      if (!alive) return
+      setRules(nextRules)
+      setRuns(nextRuns)
+    })()
+    return () => {
+      alive = false
+    }
   }, [])
 
   async function addRule() {
@@ -77,7 +92,7 @@ export default function AdminAutomationsPage() {
     <div className="mx-auto max-w-6xl">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-customOrange">Automations</p>
+          <p className="text-[11px] font-black uppercase tracking-widest text-accent-700">Automations</p>
           <h1 className="text-3xl font-black text-deepBlue">مُنشئ الأتمتة الموسّع</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-500">
             محرّك Zapier-like داخل EMC: محفّزات تشغيل حقيقية، قنوات متعددة، شروط JSON متقدمة، ومعاينة الإجراءات قبل الإرسال إلى الخادم.
@@ -88,7 +103,7 @@ export default function AdminAutomationsPage() {
         </Link>
       </motion.div>
 
-      <SecretWarningPanel title="تنبيه تشغيلي" body="تتحقق المنصّة من صلاحيات المسؤول قبل تنفيذ أي قواعد على البيانات الحية — راقب السجل للتأكد من نجاح كل تشغيل." />
+      <SecretWarningPanel title="تنبيه تشغيلي" body="تتحقق المنصّة من صلاحيات المسؤول قبل تنفيذ أي قواعد على البيانات الحية راقب السجل للتأكد من نجاح كل تشغيل." />
 
       <section className="mt-8 rounded-2xl border border-dashed border-customBlue/30 bg-white p-6 shadow-inner shadow-sky-50">
         <div className="grid gap-6 lg:grid-cols-2">
@@ -115,7 +130,7 @@ export default function AdminAutomationsPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <div>
             <h2 className="text-sm font-black text-deepBlue">الإجراءات</h2>
-            <p className="mt-2 text-xs font-bold text-slate-500">اختيار متعدد — يُحوَّل إلى JSON منظم للخادم.</p>
+            <p className="mt-2 text-xs font-bold text-slate-500">اختيار متعدد يُحوَّل إلى JSON منظم للخادم.</p>
             <div className="mt-4">
               <AutomationActionSelector value={selectedActions} onChange={setSelectedActions} />
             </div>
@@ -152,7 +167,7 @@ export default function AdminAutomationsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-black text-deepBlue">آخر عمليات التشغيل</h2>
-            <p className="text-xs font-bold text-slate-500">مقتطف سريع — للتفاصيل الكاملة انتقل إلى صفحة السجل.</p>
+            <p className="text-xs font-bold text-slate-500">مقتطف سريع للتفاصيل الكاملة انتقل إلى صفحة السجل.</p>
           </div>
           <Link to="/dashboard/admin/automations/runs" className="text-xs font-black text-customBlue hover:underline">
             عرض الكل

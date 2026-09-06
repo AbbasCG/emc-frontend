@@ -39,5 +39,29 @@ dist-ssr
 
 codebase_analysis.md
 CLAUDE.md
-docs/
-workflows/
+/.claude/settings.local.json
+# docs/ tracked since M1.5 — governance hub (MASTER_PLAN/STATE/reports) must be version-controlled
+/workflows/
+
+/graphify-out/
+# Graphify tools
+graphify_ast_run.py
+graphify_build.py
+graphify_inspect_schema.py
+graphify_merge.py
+graphify_query.py
+graphify_read_analysis.py
+# Thmanyah fonts — proprietary; do NOT commit until web license text is obtained (see MASTER_PLAN §7)
+public/fonts/thmanyah/
+
+# Playwright generated output — the belt's tracked artefacts are e2e/__screenshots__ only
+/playwright-report/
+/test-results/
+
+# Generated artifacts — never track (regenerate via npm run test:coverage / npx playwright test)
+coverage/
+test-results/
+playwright-report/
+e2e/__screenshots__/
+
+/docs

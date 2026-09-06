@@ -37,7 +37,7 @@ export type ProfileWritePayload = {
   phone?: string | null
   city?: string | null
   country?: string | null
-  how_did_you_hear_about_us?: string | null
+  instructor_bio?: string | null
 }
 
 async function unwrapUserEnvelope(resData: unknown): Promise<User> {
@@ -56,8 +56,8 @@ export async function updateProfile(patch: ProfileWritePayload): Promise<User> {
     const u = await unwrapUserEnvelope(resData)
     return {
       ...u,
-      name: u.name.trim() === '' ? '—' : u.name,
-      email: u.email.trim() === '' ? '—' : u.email,
+    name: u.name.trim() === '' ? '—' : u.name,
+    email: u.email.trim() === '' ? '—' : u.email,
     }
   }
 
@@ -89,8 +89,8 @@ export async function uploadProfileAvatar(file: File): Promise<User> {
       const u = await unwrapUserEnvelope(res.data)
       return {
         ...u,
-        name: u.name.trim() === '' ? '—' : u.name,
-        email: u.email.trim() === '' ? '—' : u.email,
+    name: u.name.trim() === '' ? '—' : u.name,
+    email: u.email.trim() === '' ? '—' : u.email,
       }
     } catch (e) {
       lastErr = e

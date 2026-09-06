@@ -10,6 +10,20 @@ export type KnowledgeCategory = {
   description?: string
 }
 
+export type AdminKnowledgeCategory = {
+  id: number
+  name: string
+  slug: string
+  description?: string | null
+  status?: string | null
+  sort_order?: number
+  parent_id?: number | null
+  articles_count: number
+  created_at?: string | null
+  department?: { id: number; name: string } | null
+  children?: AdminKnowledgeCategory[]
+}
+
 export type KnowledgeArticle = {
   id: number
   slug: string
@@ -24,10 +38,22 @@ export type KnowledgeArticle = {
 }
 
 export type PartnerDashboardData = {
+  partner: {
+    id: number
+    name: string
+    type: string
+    status: string
+    contact_person?: string | null
+    email?: string | null
+  } | null
   partnership_status: string
   joint_programs_count: number
+  active_programs_count: number
   participants_total: number
-  impact_score: number
+  impact_score: number | null
+  reports_count: number
+  documents_count: number
+  your_role: string | null
   upcoming_meetings: { id: number; title: string; at: string }[]
   recent_reports: { id: number; title: string; at: string }[]
 }
@@ -38,6 +64,8 @@ export type PartnerProgramRow = {
   status: string
   cohort_size: number
   starts_at: string | null
+  ends_at: string | null
+  description?: string | null
 }
 
 export type LmsModule = {
@@ -47,6 +75,10 @@ export type LmsModule = {
   sort_order: number
   lessons_count: number
   completed_lessons?: number
+  assignments_count?: number
+  submitted_assignments_count?: number
+  progress_percentage?: number
+  is_completed?: boolean
 }
 
 export type LmsLesson = {
@@ -87,6 +119,7 @@ export type QuizAttemptResult = {
 
 export type NotificationType =
   | 'registration'
+  | 'course_registration'
   | 'payment'
   | 'session_reminder'
   | 'assignment_due'
@@ -95,15 +128,41 @@ export type NotificationType =
   | 'meeting_invite'
   | 'support_reply'
   | 'partner_update'
+  | 'volunteer_request'
+  | 'course_update'
+  | 'instructor_assigned'
+  | 'schedule_update'
+  | 'placement_result'
+  | 'placement_test_completed'
+  | 'oral_assessment_booked'
+  | 'assignment_graded'
+  | 'assignment_submitted'
+  | 'assignment_created'
+  | 'session_scheduled'
+  | 'attendance_marked'
 
 export type PlatformNotification = {
   id: number
   type: NotificationType
   title: string
+  /** Body text shown below the title. */
   body?: string | null
+  /** Alias of `body` — preferred field name per notification contract. */
+  message?: string | null
+  /** Derived from `read_at` — true when notification has been read. */
+  is_read: boolean
   read_at: string | null
   created_at: string
+  /** Resolved in-app route (from `action_url` or entity) */
   href?: string | null
+  /** Raw link from API */
+  action_url?: string | null
+  /** External action link (e.g. a meeting URL) — backend-validated to http(s) only. */
+  meta_url?: string | null
+  entity_type?: string | null
+  entity_id?: number | null
+  pinned?: boolean
+  archived_at?: string | null
 }
 
 export type AutomationTrigger =
@@ -205,11 +264,20 @@ export type AuditLogEntry = {
 }
 
 export type PlatformScaleData = {
-  total_users: number
-  active_courses: number
-  monthly_active_learners: number
-  api_requests_24h: number
-  storage_used_gb: number
-  uptime_percent: number
-  regions: string[]
+  users?: number
+  courses?: number
+  instructors?: number
+  registrations?: number
+  total_users?: number
+  active_courses?: number
+  monthly_active_learners?: number
+  api_requests_24h?: number
+  storage_used_gb: number | null
+  storage_total_gb: number | null
+  storage_used_percent: number | null
+  database_size_gb: number | null
+  uploads_count: number | null
+  queue_pending: number | null
+  uptime_percent?: number | null
+  regions?: string[]
 }

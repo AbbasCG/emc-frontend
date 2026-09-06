@@ -42,7 +42,7 @@ export default function ConfirmDialog({
     <dialog
       ref={ref}
       dir="rtl"
-      className="emc-dialog w-[min(440px,calc(100%-32px))] rounded-2xl border border-slate-200 bg-white p-0 text-right shadow-2xl"
+      className="emc-dialog w-[min(440px,calc(100%-32px))] rounded-2xl border border-deepBlue/10 bg-white p-0 text-right shadow-emc-lg"
       aria-labelledby="confirm-dialog-title"
       aria-describedby={description ? 'confirm-dialog-desc' : undefined}
       onCancel={(e) => {
@@ -52,11 +52,11 @@ export default function ConfirmDialog({
       }}
     >
       <div className="p-6">
-        <h2 id="confirm-dialog-title" className="text-lg font-black text-deepBlue">
+        <h2 id="confirm-dialog-title" className="text-lg font-black tracking-tight text-deepBlue font-display">
           {title}
         </h2>
         {description && (
-          <p id="confirm-dialog-desc" className="mt-3 text-sm font-medium leading-7 text-slate-600">
+          <p id="confirm-dialog-desc" className="mt-3 text-sm font-medium leading-7 text-deepBlue/60">
             {description}
           </p>
         )}

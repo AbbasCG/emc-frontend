@@ -5,7 +5,7 @@ type Props = {
   icon: LucideIcon
   title: string
   description?: string
-  action?: { label: string; href: string }
+  action?: { label: string; href?: string; onClick?: () => void }
 }
 
 export default function LmsEmptyState(props: Props) {

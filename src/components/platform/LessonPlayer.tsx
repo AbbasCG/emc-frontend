@@ -1,6 +1,7 @@
+import DOMPurify from 'dompurify'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Download, PlayCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { LmsLesson, LmsModule } from '@/types/platform'
 import ModuleSidebar from './ModuleSidebar'
 
@@ -35,7 +36,7 @@ export default function LessonPlayer({ lesson, modules }: Props) {
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-l from-customBlue to-customOrange"
+              className="h-full rounded-full bg-gradient-to-l from-brand-400 to-brand-600"
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -50,7 +51,7 @@ export default function LessonPlayer({ lesson, modules }: Props) {
               className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-8 py-6 text-white backdrop-blur transition hover:bg-white/15"
             >
               <PlayCircle size={44} />
-              <span className="text-sm font-black">معاينة وسائط — ربط الفيديو لاحقاً</span>
+              <span className="text-sm font-black">معاينة وسائط ربط الفيديو لاحقاً</span>
               {lesson.video_placeholder_url && (
                 <span className="max-w-xs truncate text-[11px] font-bold text-white/60" dir="ltr">
                   {lesson.video_placeholder_url}
@@ -64,7 +65,7 @@ export default function LessonPlayer({ lesson, modules }: Props) {
           <h3 className="text-sm font-black text-deepBlue">محتوى الدرس</h3>
           <div
             className="prose prose-sm mt-4 max-w-none text-slate-600 prose-p:leading-8"
-            dangerouslySetInnerHTML={{ __html: lesson.content_html ?? '' }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.content_html ?? '') }}
           />
         </article>
 

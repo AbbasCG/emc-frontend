@@ -1,7 +1,9 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   Award,
+  Bot,
   Building2,
+  Cpu,
   Crown,
   Flag,
   HeartHandshake,
@@ -34,6 +36,13 @@ const ALIAS: Record<string, LucideIcon> = {
   megaphone: Megaphone,
   heartHandshake: HeartHandshake,
   hearthandshake: HeartHandshake,
+  // AI & Digital Transformation department
+  cpu: Cpu,
+  cpuchip: Cpu,
+  'cpu-chip': Cpu,
+  chip: Cpu,
+  bot: Bot,
+  ai: Bot,
 }
 
 export function resolveDepartmentIcon(iconKey: string | undefined | null): LucideIcon {

@@ -74,7 +74,7 @@ function DeptNode({
         onClick={onSelect}
         onMouseEnter={() => onHover(true)}
         onMouseLeave={() => onHover(false)}
-        whileHover={{ scale: 1.04, y: -3 }}
+        whileHover={{ scale: 1.02, y: -3 }}
         whileTap={{ scale: 0.98 }}
         className={[
           'group relative flex max-w-[11.5rem] flex-col items-center rounded-[1.35rem] border border-white/10 bg-gradient-to-b from-deepBlue to-[#0a1f32] px-5 py-5 text-center text-white shadow-[0_28px_56px_-18px_rgba(15,42,67,0.62)] backdrop-blur-sm transition-shadow duration-300',
@@ -85,7 +85,7 @@ function DeptNode({
       >
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-t from-customBlue/0 via-transparent to-customOrange/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 rounded-[1.35rem] bg-gradient-to-t from-customBlue/0 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
         <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-customBlue transition-colors duration-300 group-hover:bg-customBlue group-hover:text-white">
           <Icon size={24} strokeWidth={2} aria-hidden />
@@ -108,7 +108,7 @@ function DeptNode({
       onClick={onSelect}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
-      whileHover={{ scale: 1.05, y: -4 }}
+      whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       className={[
         'group relative flex max-w-[9rem] flex-col items-center text-center transition-[box-shadow,transform] duration-300',
@@ -191,7 +191,7 @@ export default function DepartmentsOrgEcosystem() {
           align="right"
           className="!mr-0 !max-w-3xl !text-right"
           eyebrow="خريطة التشغيل"
-          title="منظومة الإدارات — مركز تحكم مؤسسي"
+          title="منظومة الإدارات مركز تحكم مؤسسي"
           description="تخطيط تفاعلي يربط الإدارة العليا بالوحدات التنفيذية: مرر المؤشر أو اختر إدارة لرؤية مسار الربط والتفاصيل."
         />
 
@@ -205,9 +205,9 @@ export default function DepartmentsOrgEcosystem() {
             >
               <defs>
                 <linearGradient id="emcConnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#2691C2" stopOpacity="0.95" />
-                  <stop offset="55%" stopColor="#2691C2" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#ec943c" stopOpacity="0.9" />
+                  <stop offset="0%" stopColor="#0077B6" stopOpacity="0.95" />
+                  <stop offset="55%" stopColor="#0077B6" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#F28C00" stopOpacity="0.9" />
                 </linearGradient>
                 <filter id="emcGlow" x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur stdDeviation="0.9" result="blur" />
@@ -302,7 +302,7 @@ export default function DepartmentsOrgEcosystem() {
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="rounded-2xl border border-white/20 bg-gradient-to-br from-deepBlue to-[#0a1f32] p-5 text-right text-white shadow-2xl backdrop-blur-md"
+            className="rounded-2xl border border-white/20 bg-gradient-to-br from-deepBlue to-[#0a1f32] p-5 text-right text-white shadow-emc-lg backdrop-blur-md"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -323,7 +323,7 @@ export default function DepartmentsOrgEcosystem() {
                   key={dept.id}
                   layout
                   className={[
-                    'overflow-hidden rounded-2xl border bg-white/95 text-right shadow-lg backdrop-blur-sm transition-colors',
+                    'overflow-hidden rounded-2xl border bg-white/95 text-right shadow-emc backdrop-blur-sm transition-colors',
                     open ? 'border-customOrange/45 ring-2 ring-customOrange/25' : 'border-deepBlue/10 hover:border-customBlue/30',
                   ].join(' ')}
                 >
@@ -381,8 +381,8 @@ function SpotlightPanel({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="relative min-h-[300px] overflow-hidden rounded-[1.35rem] border border-deepBlue/10 bg-white/90 shadow-[0_28px_70px_-24px_rgba(15,42,67,0.22)] backdrop-blur-xl">
-      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-customOrange via-customBlue to-deepBlue" />
+    <div className="relative min-h-[300px] overflow-hidden rounded-[1.35rem] border border-deepBlue/10 bg-white/90 shadow-emc-lg backdrop-blur-xl">
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-customBlue via-ocean to-deepBlue" />
       <div className="pointer-events-none absolute -right-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-customBlue/[0.07] blur-3xl" />
       <AnimatePresence mode="wait">
         {selected ? (
@@ -435,7 +435,7 @@ function SpotlightPanel({
             <p className="text-xs font-black text-customOrange">وضع الاستكشاف</p>
             <h3 className="mt-2 text-lg font-black text-deepBlue">اختر عقدة في الخريطة</h3>
             <p className="mt-3 text-sm leading-8 text-deepBlue/65">
-              تُظهر اللوحة الجانبية وصف الإدارة ومسؤولياتها فور الاختيار — مع تمييز بصري للخطوط بين الإدارة العليا
+              تُظهر اللوحة الجانبية وصف الإدارة ومسؤولياتها فور الاختيار مع تمييز بصري للخطوط بين الإدارة العليا
               والوحدات المحيطة.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">

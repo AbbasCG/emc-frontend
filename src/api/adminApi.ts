@@ -25,8 +25,8 @@ export async function fetchAdminDashboard(): Promise<AdminDashboardData> {
 
 /** Discriminant for the inline UI on `AdminDashboard.tsx`. */
 export type AdminDashboardErrorKind =
-  | 'forbidden'   // 403 — authenticated but lacks admin role
-  | 'notfound'    // 404 — endpoint not deployed yet
+  | 'forbidden' // 403 authenticated but lacks admin role
+  | 'notfound' // 404 endpoint not deployed yet
   | 'network'     // no response (server down / CORS / offline)
   | 'server'      // 5xx
   | 'unknown'     // anything else

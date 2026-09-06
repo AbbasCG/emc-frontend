@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import { Mail, PhoneForwarded, RefreshCw } from 'lucide-react'
 import { fetchPartnersForSuperAdmin } from '@/api/partnersApi'
 import type { PartnerRecord } from '@/types/operations'
@@ -23,6 +23,14 @@ import {
 import { EntityActionMenu } from '@/pages/super-admin/crud/shared/EntityActionMenu'
 import { CrudToolbar } from '@/pages/super-admin/crud/shared/CrudToolbar'
 
+/** Load-failure copy for the partners endpoint — shared by the mount effect and the
+ *  imperative `load` so the two can never drift apart. */
+function partnersLoadErrorMessage(status: number | undefined): string {
+  return status === 403
+    ? 'لا تملك صلاحيات كافية لقراءة /operations/partners تحقَّق من ربط المستخدم بتجربة الموظف المناسب.'
+    : 'لم يمكن إكمال الاتصال بـ /operations/partners حاليًا؛ راجع حالة الشبكة والخلفية.'
+}
+
 export default function PartnersManagementPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
@@ -32,22 +40,36 @@ export default function PartnersManagementPage() {
   const [detail, setDetail] = useState<PartnerRecord | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  /** Manual retry/refresh from a button — outside any effect, so flipping to the
+   *  loading state synchronously is both allowed and required here. */
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
     const pack = await fetchPartnersForSuperAdmin()
     if (!pack.ok) {
       setRows([])
-      if (pack.status === 403)
-        setLoadError('لا تملك صلاحيات كافية لقراءة /operations/partners — تحقَّق من ربط المستخدم بتجربة الموظف المناسب.')
-      else setLoadError('لم يمكن إكمال الاتصال بـ /operations/partners حاليًا؛ راجع حالة الشبكة والخلفية.')
+      setLoadError(partnersLoadErrorMessage(pack.status))
     } else setRows(pack.rows)
     setLoading(false)
   }, [])
 
+  // Initial load — inlined so no state is set on the effect's synchronous path
+  // (`loading` already starts as `true` and `loadError` as `null`).
   useEffect(() => {
-    void load()
-  }, [load])
+    let alive = true
+    void (async () => {
+      const pack = await fetchPartnersForSuperAdmin()
+      if (!alive) return
+      if (!pack.ok) {
+        setRows([])
+        setLoadError(partnersLoadErrorMessage(pack.status))
+      } else setRows(pack.rows)
+      setLoading(false)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase()
@@ -82,7 +104,7 @@ export default function PartnersManagementPage() {
       <SaToolbar
         eyebrow="علاقات المؤسسات"
         title="الشراكات"
-        subtitle="شبكة بطاقات شركاء مع لوحة جانبية للاتصال والإجراءات السريعة — المصدر GET /operations/partners."
+        subtitle="شبكة بطاقات شركاء مع لوحة جانبية للاتصال والإجراءات السريعة المصدر GET /operations/partners."
         actions={
           <>
             <button
@@ -93,7 +115,7 @@ export default function PartnersManagementPage() {
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               تحديث
             </button>
-            <Link to="/dashboard/admin/partners" className="rounded-2xl bg-[#2691C2] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
+            <Link to="/dashboard/admin/partners" className="rounded-2xl bg-[#0077B6] px-4 py-2.5 text-[12px] font-black text-white shadow-md">
               إدارة كاملة (Ops)
             </Link>
             <Link

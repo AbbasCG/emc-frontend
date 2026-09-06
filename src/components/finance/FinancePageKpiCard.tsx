@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
-import { financeFadeUp } from './financeTablesShared'
+import { financeFadeUp } from './financeTableFormats'
 
 export function FinancePageKpiCard({
   icon: Icon,

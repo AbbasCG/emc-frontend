@@ -13,7 +13,7 @@ export default function ImpactProgramDemandSection() {
           align="right"
           eyebrow="الطلب"
           title="الطلب الفعلي على برامجنا"
-          description="قياس تجريبي لتفضيلات التسجيل والاستفسار حسب عنوان البرنامج — يمكن مزامنته لاحقاً مع استعلام Laravel."
+          description="قياس تجريبي لتفضيلات التسجيل والاستفسار حسب عنوان البرنامج يمكن مزامنته لاحقاً مع استعلام Laravel."
         />
 
         <motion.div

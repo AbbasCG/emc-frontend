@@ -20,3 +20,4 @@ export { default as StatTile } from './StatTile'
 export type { StatTone, StatTrend } from './StatTile'
 
 export { default as SectionHeading } from './SectionHeading'
+export { default as SectionHeader } from './SectionHeading'

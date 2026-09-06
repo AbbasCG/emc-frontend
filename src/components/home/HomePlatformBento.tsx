@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, BookOpen, LayoutDashboard, Sparkles } from 'lucide-react'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
@@ -47,7 +47,7 @@ export default function HomePlatformBento() {
           <span className="mb-3 inline-block rounded-full border border-customBlue/25 bg-customBlue/[0.08] px-3 py-1 text-xs font-black text-customBlue">
             منظومة EMC
           </span>
-          <h2 className="text-3xl font-black leading-tight text-deepBlue sm:text-4xl">واجهة تشغيل — بين الـ LMS والمؤسسة</h2>
+          <h2 className="text-3xl font-black leading-tight text-deepBlue sm:text-4xl">واجهة تشغيل بين الـ LMS والمؤسسة</h2>
           <p className="mt-5 text-lg font-medium leading-9 text-deepBlue/72">
             تجربة بصرية تربط التعلم بالهيكل التنظيمي: انتقل بين الكتالوج، الخريطة التفاعلية، والمجالات بسلاسة.
           </p>
@@ -68,7 +68,7 @@ export default function HomePlatformBento() {
                 variants={staggerItem}
                 whileHover={{ y: -6, transition: { type: 'spring', stiffness: 380, damping: 20 } }}
                 className={[
-                  'group relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-gradient-to-br p-7 text-right shadow-[0_24px_56px_-32px_rgba(15,42,67,0.22)] ring-1 ring-white/60 backdrop-blur-sm',
+                  'group relative overflow-hidden rounded-3xl border border-deepBlue/10 bg-gradient-to-br p-7 text-right ring-1 ring-white/60 backdrop-blur-sm',
                   b.span,
                   b.accent,
                 ].join(' ')}
@@ -76,7 +76,7 @@ export default function HomePlatformBento() {
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-tl from-white/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="relative flex items-start justify-between gap-4">
                   <div>
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 text-customBlue shadow-sm ring-1 ring-deepBlue/[0.06]">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/90 text-customBlue ring-1 ring-deepBlue/[0.06]">
                       <Icon size={22} strokeWidth={2.25} />
                     </span>
                     <h3 className="mt-5 text-xl font-black text-deepBlue">{b.title}</h3>
@@ -85,7 +85,7 @@ export default function HomePlatformBento() {
                 </div>
                 <Link
                   to={b.href}
-                  className="relative mt-6 inline-flex items-center gap-2 text-sm font-black text-customBlue transition hover:text-customOrange"
+                  className="relative mt-6 inline-flex items-center gap-2 text-sm font-black text-customBlue transition hover:text-accent-700"
                 >
                   استكشاف
                   <ArrowLeft size={16} strokeWidth={2.5} />
