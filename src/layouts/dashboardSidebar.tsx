@@ -77,6 +77,7 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/volunteer',
   '/dashboard/department',
   '/dashboard/department/permissions',
+  '/dashboard/department/structure',
   '/dashboard/super-admin',
   '/dashboard/super-admin/audit-logs',
   '/dashboard/super-admin/crud/permissions',
@@ -307,6 +308,8 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الأدوار والصلاحيات', href: '/dashboard/super-admin/crud/roles', icon: ShieldCheck },
         { label: 'صلاحيات النظام', href: '/dashboard/super-admin/crud/permissions', icon: ShieldCheck },
         { label: 'الإدارات', href: '/dashboard/super-admin/crud/departments', icon: Building2 },
+        { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
+        { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
         { label: 'الفريق', href: '/dashboard/super-admin/crud/team', icon: UserCheck },
         membersNavItem(),
         { label: 'الطلاب', href: '/dashboard/super-admin/crud/students', icon: GraduationCap },
@@ -717,9 +720,10 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       {
-        title: 'إدارة الموظفين',
+        title: 'إدارة الموظفين والهيكلة',
         items: [
           { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
+          { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
           membersNavItem(),
         ]
       },

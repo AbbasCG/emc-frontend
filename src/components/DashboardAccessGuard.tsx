@@ -37,7 +37,7 @@ export default function DashboardAccessGuard() {
     return <Navigate to={`${target}${location.search}${location.hash}`} replace />
   }
 
-  if (!canAccessDashboardPath(role, pathname)) {
+  if (!canAccessDashboardPath(role, pathname, user?.id)) {
     // `home` is this guard's designated fallback, so it has to be reachable. A user
     // whose payload carries no role resolves `home` to /dashboard/profile, which
     // `canAccessDashboardPath` *also* rejects — its `authenticated` sentinel is

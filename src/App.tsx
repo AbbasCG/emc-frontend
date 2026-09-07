@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
 import { lazy, Suspense, useEffect } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import AnalyticsListener from './components/AnalyticsListener'
@@ -128,6 +128,7 @@ const FinanceManualPaymentsPage     = lazy(() => import('./pages/finance/Finance
 const ProgramApprovalsPage          = lazy(() => import('./pages/finance/ProgramApprovalsPage'))
 const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
 const DepartmentPermissionTreePage = lazy(() => import('./pages/department/DepartmentPermissionTree'))
+const DepartmentStructurePage = lazy(() => import('./pages/department/DepartmentStructurePage'))
 const ExecutiveFinancialRequestsPage  = lazy(() => import('./pages/executive/ExecutiveFinancialRequestsPage'))
 const SuperAdminFinancialRequestsPage = lazy(() => import('./pages/super-admin/SuperAdminFinancialRequestsPage'))
 
@@ -322,6 +323,7 @@ const InstituteStudentDashboard = lazy(() => import('./pages/institute/student/I
 
 // ── Lazy: settings, profile, calendar, error pages ───────────────────────────
 const NotificationPreferencesPage = lazy(() => import('./pages/settings/NotificationPreferencesPage'))
+const TwoFactorSettingsPage = lazy(() => import('./pages/TwoFactorSettingsPage'))
 const ProfilePage    = lazy(() => import('./pages/ProfilePage'))
 const CalendarPage   = lazy(() => import('./pages/calendar/CalendarPage'))
 const ForbiddenPage      = lazy(() => import('./pages/errors/ForbiddenPage'))
@@ -668,6 +670,7 @@ function App() {
                   <Route path="/dashboard/department/meeting-lounge" element={<MeetingLoungePage />} />
                   <Route path="/dashboard/department/meeting-lounge/:id" element={<OpsMeetingDetailPage />} />
                   <Route path="/dashboard/department/permissions" element={<Suspense fallback={<RouteFallback />}><DepartmentPermissionTreePage /></Suspense>} />
+                  <Route path="/dashboard/department/structure" element={<Suspense fallback={<RouteFallback />}><DepartmentStructurePage /></Suspense>} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
                   </Route>
 
@@ -749,7 +752,7 @@ function App() {
                   <Route path="/dashboard/admin/lms/evaluations" element={<AdminLmsEvaluationsPage />} />
                   <Route path="/dashboard/admin/lms/progress" element={<AdminLmsProgressPage />} />
                   <Route path="/dashboard/admin/operations" element={<OperationsDashboardPage />} />
-                  <Route path="/dashboard/admin/users" element={<UserManagementPage />} />
+                  <Route path="/dashboard/admin/users" element={<UsersManagementPage />} />
                   <Route path="/dashboard/admin/departments" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/admin/departments/:id" element={<OpsDepartmentDetailPage />} />
                   <Route path="/dashboard/admin/tasks" element={<OpsTasksListPage />} />

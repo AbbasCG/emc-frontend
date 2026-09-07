@@ -67,7 +67,7 @@ export default function HomeAiSection() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1540px]">
+      <div className="relative mx-auto max-w-7xl">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}

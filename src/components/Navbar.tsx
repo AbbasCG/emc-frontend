@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -78,7 +78,6 @@ function Navbar() {
   const { t } = useTranslation()
   const { lang, dir, setLang } = useLanguage()
   const { isAuthenticated, isLoading, user, logout } = useAuth()
-  const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -547,9 +546,7 @@ function Navbar() {
                     </Link>
                   ))}
                 </div>
-                <div className="shrink-0 self-center">
-                  <LanguageSwitcher />
-                </div>
+              ))}
 
               {/* M3: language switcher (mobile) */}
               {LANGS.length > 1 && <div className="flex items-center gap-2 rounded-2xl border border-line bg-paper px-4 py-2.5">

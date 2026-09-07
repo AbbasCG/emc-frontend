@@ -1,4 +1,4 @@
-﻿import { memo } from 'react'
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { BadgePercent, Coins, Gift } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -6,6 +6,7 @@ import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 
 function CoursesPricingSection() {
+  const { t } = useTranslation()
   return (
     <section className="bg-[#f4f7fb] py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, GraduationCap, Languages, Smile, BadgeCheck, Clock } from 'lucide-react'
@@ -89,7 +89,7 @@ export default function HomeLearningTracks() {
         02
       </span>
 
-      <div className="relative mx-auto max-w-[1540px]">
+      <div className="relative mx-auto max-w-7xl">
         {/* Header canonical eyebrow + title-arc language */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

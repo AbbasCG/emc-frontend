@@ -1,4 +1,5 @@
-﻿import { Link } from 'react-router'
+import { Link } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { ArrowLeft, SearchX } from 'lucide-react'
 import PublicSeo from '@/components/public/PublicSeo'

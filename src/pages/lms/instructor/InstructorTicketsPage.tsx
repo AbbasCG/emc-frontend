@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { LifeBuoy, Plus, ChevronRight } from 'lucide-react'
 import { DashboardPageShell, EmcButton, Eyebrow, Surface } from '@/components/ui'
 import { DataTable, type DataTableColumn } from '@/components/dashboard'

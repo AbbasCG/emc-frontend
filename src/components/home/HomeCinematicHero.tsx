@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router'
+import { Link } from 'react-router'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -359,7 +359,7 @@ export default function HomeCinematicHero() {
         className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-deepBlue to-transparent"
       />
 
-      <div className="relative mx-auto grid max-w-[1540px] items-center gap-10 px-4 pb-16 pt-12 sm:px-6 lg:min-h-[calc(100svh-5.25rem)] lg:grid-cols-[1fr_auto] lg:gap-8 lg:px-10 lg:pb-20">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-12 sm:px-6 lg:min-h-[calc(100svh-5.25rem)] lg:grid-cols-[1fr_auto] lg:gap-8 lg:px-10 lg:pb-20">
         {/* ── Text column ── */}
         <motion.div
           initial="hidden"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Smartphone, KeyRound, AlertCircle } from 'lucide-react'
 import { EmcButton } from '@/components/ui'
 import { verifyTwoFactorLogin } from '@/api/twoFactorApi'

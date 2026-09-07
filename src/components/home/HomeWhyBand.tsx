@@ -18,7 +18,7 @@ export default function HomeWhyBand() {
       {/* The band's one signature tricolor hairline at the top seam */}
       <div aria-hidden className="emc-tricolor-on-dark absolute inset-x-0 top-0" />
 
-      <div className="relative mx-auto max-w-[1540px]">
+      <div className="relative mx-auto max-w-7xl">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

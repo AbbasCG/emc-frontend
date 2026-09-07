@@ -1,6 +1,7 @@
-﻿import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check, Users, BookOpen, GraduationCap, Video } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const metrics = [
@@ -45,14 +46,6 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 // huge serif numbers (emc-stat-num) on the dark field, separated by thin
 // white/15 vertical hairlines. No boxes; the numbers carry the scene.
 export default function HomeImpactMetrics() {
-  const { t } = useTranslation()
-
-  const metrics = [
-    { raw: '+850', label: t('home.learners'), icon: Users },
-    { raw: '+32', label: t('home.programCount'), icon: BookOpen },
-    { raw: '+420', label: t('home.graduates'), icon: GraduationCap },
-    { raw: '+95', label: 'ورشة وتجربة مباشرة', icon: Video },
-  ] as const
 
   return (
     <section dir="rtl" className="emc-dawn relative overflow-hidden px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
@@ -68,7 +61,7 @@ export default function HomeImpactMetrics() {
         className="animate-slow-pulse pointer-events-none absolute -bottom-32 -left-32 h-[22rem] w-[22rem] rounded-full bg-customOrange/[0.07] blur-[100px]"
       />
 
-      <div className="relative mx-auto max-w-[1540px]">
+      <div className="relative mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:flex sm:items-stretch sm:justify-between sm:gap-0">
           {metrics.map((m, i) => (
             <Fragment key={m.label}>

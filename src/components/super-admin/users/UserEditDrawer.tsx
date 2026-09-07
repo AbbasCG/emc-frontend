@@ -45,8 +45,8 @@ type Props = {
   avatarUrl?: string | null
   emailVerifiedAt?: string | null
   lastLoginAt?: string | null
-  createdAt?: string | null
-  roleOptions: RoleOption[]
+  isDepartmentLeader?: boolean
+  onIsDepartmentLeader?: (v: boolean) => void
   onClose: () => void
   onSubmit: () => void | Promise<void>
   onFormName: (v: string) => void
@@ -89,7 +89,9 @@ export function UserEditDrawer({
   emailVerifiedAt,
   lastLoginAt,
   createdAt,
-  roleOptions,
+  roleOptions = [],
+  isDepartmentLeader,
+  onIsDepartmentLeader,
   onClose,
   onSubmit,
   onFormName,
@@ -262,6 +264,20 @@ export function UserEditDrawer({
                 <input value={formCountry} onChange={(e) => onFormCountry(e.target.value)} className={INPUT} />
               </Field>
             </div>
+            <label className="flex items-center gap-3 rounded-2xl border border-[#0077B6]/20 bg-[#0077B6]/[0.04] p-3 cursor-pointer text-right text-[12px] font-black text-[#0C2A4B] transition hover:bg-[#0077B6]/[0.08]">
+              <input
+                type="checkbox"
+                checked={isDepartmentLeader ?? false}
+                onChange={(e) => onIsDepartmentLeader?.(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-[#0077B6] focus:ring-[#0077B6]/20"
+              />
+              <div>
+                <span className="block text-[12px]">تعيين المستخدم كمدير / مسؤول للإدارة</span>
+                <span className="block text-[10px] font-semibold text-slate-500">
+                  يمنح المستخدم صلاحية إشراف وقيادة طلبات القسم والإدارة
+                </span>
+              </div>
+            </label>
             <Field label="كيف عرفتم المنصّة؟">
               <input value={formHow} onChange={(e) => onFormHow(e.target.value)} className={INPUT} />
             </Field>

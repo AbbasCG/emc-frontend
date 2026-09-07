@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import ArrowLeftIcon from '@/components/ui/ArrowLeftIcon'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +32,7 @@ export default function HomeGrandCTA() {
     <section dir="rtl" className="relative isolate overflow-hidden px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
       {/* Main gradient card */}
       <div
-        className="relative mx-auto max-w-[1540px] overflow-hidden rounded-[2rem] px-8 py-16 text-white sm:px-14 sm:py-20 lg:px-20 lg:py-24"
+        className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-8 py-16 text-white sm:px-14 sm:py-20 lg:px-20 lg:py-24"
         style={{
           background: 'linear-gradient(135deg, #0C2A4B 0%, #1a4f78 40%, #0077B6 75%, #1e6a9a 100%)',
         }}

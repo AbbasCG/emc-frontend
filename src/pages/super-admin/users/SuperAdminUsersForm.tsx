@@ -37,6 +37,7 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [department, setDepartment] = useState<string>('')
   const [departments, setDepartments] = useState<{ id: number; name_ar: string }[]>([])
+  const [isDepartmentLeader, setIsDepartmentLeader] = useState<boolean>(false)
   const [saving, setSaving] = useState(false)
 
   const baseOptions = useMemo(() => getAssignableRoleOptions(includeSuperAdmin), [includeSuperAdmin])
@@ -215,21 +216,38 @@ export default function SuperAdminUsersForm({ variant, userId }: Props) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">
-          الإدارة (اختياري)
-          <select
-            value={department}
-            onChange={(x) => setDepartment(x.target.value)}
-            className="rounded-2xl border border-deepBlue/[0.1] px-4 py-2.5 text-[13px] font-semibold outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/20"
-          >
-            <option value="">-- بدون إدارة --</option>
-            {departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>
-                {d.name_ar}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="space-y-3">
+          <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">
+            الإدارة (اختياري)
+            <select
+              value={department}
+              onChange={(x) => setDepartment(x.target.value)}
+              className="rounded-2xl border border-deepBlue/[0.1] px-4 py-2.5 text-[13px] font-semibold outline-none focus:border-customBlue focus:ring-2 focus:ring-customBlue/20"
+            >
+              <option value="">-- بدون إدارة --</option>
+              {departments.map((d) => (
+                <option key={d.id} value={String(d.id)}>
+                  {d.name_ar}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex items-center gap-3 rounded-2xl border border-customBlue/20 bg-customBlue/[0.04] p-3.5 cursor-pointer text-right text-[12px] font-black text-deepBlue transition hover:bg-customBlue/[0.08]">
+            <input
+              type="checkbox"
+              checked={isDepartmentLeader}
+              onChange={(e) => setIsDepartmentLeader(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-customBlue focus:ring-customBlue/20"
+            />
+            <div>
+              <span className="block text-[13px]">تعيين هذا المستخدم كمدير / مسؤول للإدارة</span>
+              <span className="block text-[11px] font-semibold text-slate-500">
+                يمنح المستخدم صلاحية القيادة وإشراف ومتابعة الإدارة والقسم
+              </span>
+            </div>
+          </label>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-right text-[12px] font-black text-deepBlue">

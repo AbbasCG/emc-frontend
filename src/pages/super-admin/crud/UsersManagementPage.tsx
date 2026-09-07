@@ -345,6 +345,7 @@ export default function UsersManagementPage() {
   const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(null)
   const [pw, setPw] = useState('')
   const [pwConf, setPwConf] = useState('')
+  const [isDepartmentLeader, setIsDepartmentLeader] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteAck, setDeleteAck] = useState(false)
   const [createWizardStep, setCreateWizardStep] = useState(1)
@@ -369,6 +370,7 @@ export default function UsersManagementPage() {
     setFormRole('student')
     setFormPhone('')
     setFormDepartment('')
+    setIsDepartmentLeader(false)
     setFormCity('')
     setFormCountry('')
     setFormHow('')
@@ -396,6 +398,7 @@ export default function UsersManagementPage() {
       setFormRole((u.role && String(u.role)) || 'student')
       setFormPhone(u.phone ?? '')
       setFormDepartment(u.department ?? '')
+      setIsDepartmentLeader(Boolean((u as any).is_department_leader || (u as any).is_leader))
       setFormCity(u.city ?? '')
       setFormCountry(u.country ?? '')
       setFormHow(u.how_did_you_hear_about_us ?? '')
@@ -813,6 +816,32 @@ export default function UsersManagementPage() {
                           </select>
                         }
                       />
+                      <Labeled
+                        label="القسم / الإدارة (اختياري)"
+                        children={
+                          <input
+                            type="text"
+                            value={formDepartment}
+                            onChange={(e) => setFormDepartment(e.target.value)}
+                            placeholder="أدخل اسم القسم أو الإدارة..."
+                            className={EMC_WIZARD_INPUT_BASE}
+                          />
+                        }
+                      />
+                      <label className="flex items-center gap-3 rounded-2xl border border-customBlue/20 bg-customBlue/[0.04] p-3.5 cursor-pointer text-right text-[12px] font-black text-deepBlue transition hover:bg-customBlue/[0.08]">
+                        <input
+                          type="checkbox"
+                          checked={isDepartmentLeader}
+                          onChange={(e) => setIsDepartmentLeader(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-customBlue focus:ring-customBlue/20"
+                        />
+                        <div>
+                          <span className="block text-[12px]">تعيين المستخدم كمدير / مسؤول لهذه الإدارة</span>
+                          <span className="block text-[10px] font-semibold text-slate-500">
+                            يمنح المستخدم صلاحية إشراف وقيادة ومتابعة الإدارة
+                          </span>
+                        </div>
+                      </label>
                     </FormSectionCard>
                   : createWizardStep === 3 ?
                     <FormSectionCard title="البيانات الأمنية الأولية" eyebrow="الخطوة 3" icon={Shield}>
@@ -914,6 +943,8 @@ export default function UsersManagementPage() {
         lastLoginAt={editMeta.lastLoginAt}
         createdAt={editMeta.createdAt}
         roleOptions={roleOptionsEdit}
+        isDepartmentLeader={isDepartmentLeader}
+        onIsDepartmentLeader={setIsDepartmentLeader}
         onClose={closeModal}
         onSubmit={submitEdit}
         onFormName={setFormName}

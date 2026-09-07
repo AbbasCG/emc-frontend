@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   BookOpen,
@@ -50,40 +50,6 @@ const features = [
 ] as const
 
 export default function WhyChooseSection() {
-  const { t } = useTranslation()
-
-  const reasons = [
-    {
-      icon: BookOpen,
-      title: t('home.practicalContent'),
-      desc: t('home.practicalContentDesc'),
-    },
-    {
-      icon: MessageCircle,
-      title: t('home.clearGuidance'),
-      desc: t('home.clearGuidanceDesc'),
-    },
-    {
-      icon: Globe,
-      title: 'برامج مرنة حضورية وعن بعد',
-      desc: 'تعلّم بالطريقة التي تناسبك، في الوقت الذي تختاره.',
-    },
-    {
-      icon: Users,
-      title: 'مدربون وشركاء متخصصون',
-      desc: 'فريق من المدربين المعتمدين والمؤسسات الشريكة في التعليم.',
-    },
-    {
-      icon: CheckCircle2,
-      title: 'تجربة تسجيل سهلة وواضحة',
-      desc: 'عملية انضمام مبسطة لتبدأ تعلّمك فور تسجيلك.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'قابلية التوسع نحو منصة متكاملة',
-      desc: 'نسعى لأن تكون EMC وجهتك الشاملة للتعليم والتطوير.',
-    },
-  ]
 
   return (
     <section

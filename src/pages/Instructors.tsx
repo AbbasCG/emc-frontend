@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -121,6 +122,7 @@ function InstructorCard({ ins }: { ins: InstructorPublic }) {
 /* ── Page ──────────────────────────────────────────────────────────── */
 
 export default function Instructors() {
+  const { t } = useTranslation()
   const [rows,    setRows]    = useState<InstructorPublic[]>([])
   const [loading, setLoading] = useState(true)
   const [err,     setErr]     = useState('')

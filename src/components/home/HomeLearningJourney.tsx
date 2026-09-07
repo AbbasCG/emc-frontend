@@ -32,7 +32,7 @@ function StationMarker({ final }: { final: boolean }) {
 export default function HomeLearningJourney() {
   return (
     <section dir="rtl" className="relative overflow-hidden bg-white px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
-      <div className="relative mx-auto max-w-[1540px]">
+      <div className="relative mx-auto max-w-7xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}

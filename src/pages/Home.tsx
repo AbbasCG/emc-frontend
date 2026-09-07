@@ -24,7 +24,7 @@ const HomeEcosystemBento = lazy(() => import('../components/home/HomeEcosystemBe
 function SectionFallback() {
   return (
     <section className="bg-white px-4 py-16 sm:px-6 lg:px-10" aria-hidden>
-      <div className="mx-auto max-w-[1540px]">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-10 h-8 w-48 animate-pulse rounded-lg bg-brand-100" />
         <div>
           {Array.from({ length: 3 }).map((_, i) => (

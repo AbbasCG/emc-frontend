@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, type LucideIcon } from 'lucide-react'
 import { t as contentT } from '@/data/publicPages'

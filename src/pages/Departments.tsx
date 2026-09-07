@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react'
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
@@ -8,7 +8,6 @@ import DepartmentsFaqAccordion from '@/components/departments/DepartmentsFaqAcco
 import DepartmentsLayerTabs from '@/components/departments/DepartmentsLayerTabs'
 import DepartmentsOrgEcosystem from '@/components/departments/DepartmentsOrgEcosystem'
 import DepartmentsTimelineStrip from '@/components/departments/DepartmentsTimelineStrip'
-import { useTranslation } from 'react-i18next'
 import { CTASection, PublicPageHero } from '@/components/public'
 import PublicSeo from '@/components/public/PublicSeo'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'

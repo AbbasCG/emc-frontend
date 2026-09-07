@@ -110,15 +110,15 @@ const PERM_LABELS: Record<string, string> = {
 const roleLabel = (role: string) => {
   const map: Record<string, string> = {
     super_admin: 'مشرف عام',
-    admin: 'مدير',
-    executive_admin: 'مدير تنفيذي',
-    department_manager: 'مدير قسم',
-    section_lead: 'رئيس قسم',
-    finance_manager: 'مدير مالي',
-    marketing_manager: 'مدير تسويق',
-    quality_manager: 'مدير جودة',
-    hr_manager: 'مدير موارد بشرية',
-    support_agent: 'وكيل دعم',
+    admin: 'مشرف',
+    executive_admin: 'الإدارة التنفيذية',
+    department_manager: 'إداري قسم',
+    section_lead: 'قائد قسم',
+    finance_manager: 'الإدارة المالية',
+    marketing_manager: 'التسويق والإعلام',
+    quality_manager: 'الجودة والامتثال',
+    hr_manager: 'الموارد البشرية',
+    support_agent: 'الدعم الفني',
     instructor: 'مدرب',
     teacher: 'مدرب',
     student: 'طالب',
@@ -144,7 +144,7 @@ export default function UserManagementPage() {
 
   const [form, setForm] = useState({
     name: '', email: '', password: '', role: 'department_manager',
-    department_id: '', permissions: [] as string[],
+    department_id: '', is_leader: false, permissions: [] as string[],
   })
   const [showPassword, setShowPassword] = useState(false)
 
@@ -165,7 +165,7 @@ export default function UserManagementPage() {
   useEffect(() => { load() }, [load])
 
   const resetForm = () => {
-    setForm({ name: '', email: '', password: '', role: 'department_manager', department_id: '', permissions: [] })
+    setForm({ name: '', email: '', password: '', role: 'department_manager', department_id: '', is_leader: false, permissions: [] })
     setEditId(null)
     setShowForm(false)
     setError('')
@@ -200,6 +200,7 @@ export default function UserManagementPage() {
         password: form.password,
         role: form.role,
         department_id: form.department_id ? Number(form.department_id) : null,
+        is_leader: form.is_leader,
         permissions: form.permissions.length > 0 ? form.permissions : undefined,
       }
       if (editId) {
@@ -224,6 +225,7 @@ export default function UserManagementPage() {
       password: '',
       role: u.role.startsWith('user_') ? 'department_manager' : u.role,
       department_id: String(u.department_id ?? ''),
+      is_leader: Boolean((u as any).is_leader || (u as any).is_department_leader),
       permissions: u.permissions,
     })
     setEditId(u.id)
@@ -360,14 +362,29 @@ export default function UserManagementPage() {
                   <option value="admin">مدير</option>
                 </select>
               </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-600 mb-1">القسم</label>
+              <div className="sm:col-span-2 space-y-2">
+                <label className="block text-xs font-bold text-slate-600 mb-1">الإدارة / القسم</label>
                 <select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-customBlue/20">
                   <option value="">بدون قسم</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>{d.name_ar ?? d.name}</option>
                   ))}
                 </select>
+
+                <label className="flex items-center gap-3 rounded-xl border border-customBlue/20 bg-customBlue/[0.04] p-3 cursor-pointer text-right text-xs font-bold text-deepBlue transition hover:bg-customBlue/[0.08]">
+                  <input
+                    type="checkbox"
+                    checked={form.is_leader}
+                    onChange={(e) => setForm({ ...form, is_leader: e.target.checked })}
+                    className="h-4 w-4 rounded border-slate-300 text-customBlue focus:ring-customBlue/20"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold">تعيين المستخدم كمدير / مسؤول للإدارة</span>
+                    <span className="block text-[10px] font-semibold text-slate-400">
+                      يمنح المستخدم صلاحيات القيادة وإدارة طلبات قسمه
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
 

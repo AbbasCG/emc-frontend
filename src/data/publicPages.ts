@@ -1,4 +1,4 @@
-﻿export type Locale = 'ar' | 'en' | 'nl'
+export type Locale = 'ar' | 'en' | 'nl'
 
 export type LocalizedString = {
   ar: string
@@ -159,7 +159,6 @@ export const themes12: PublicTheme[] = [
       { ar: 'ورشة رواد — أساسيات ريادة الأعمال', en: 'Ruwad Workshop — Entrepreneurship Basics', nl: 'Ruwad Workshop — Ondernemerschap Basis' },
       { ar: 'برنامج القيادة الخدمية', en: 'Servant Leadership Program', nl: 'Dienend Leiderschapsprogramma' },
     ],
-    suggestedPrograms: [{ ar: 'ورشة رواد أساسيات ريادة الأعمال' }, { ar: 'برنامج القيادة الخدمية' }],
   },
   {
     id: 'awareness-knowledge',
@@ -236,7 +235,6 @@ export const themes12: PublicTheme[] = [
       { ar: 'يوم ميداني — تعرّف على المؤسسات', en: 'Field Day — Discover Organizations', nl: 'Velddag — Ontdek Organisaties' },
       { ar: 'ورشة التعلم بالمشاريع', en: 'Project-Based Learning Workshop', nl: 'Workshop Projectgestuurd Leren' },
     ],
-    suggestedPrograms: [{ ar: 'يوم ميداني تعرّف على المؤسسات' }, { ar: 'ورشة التعلم بالمشاريع' }],
   },
   {
     id: 'future-minds',

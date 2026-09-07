@@ -2,10 +2,12 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Languages, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SUPPORTED, getLocaleDir } from '../i18n'
+import { LANGS } from '../i18n'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function LanguageSwitcher() {
-  const { i18n, t } = useTranslation()
+  const { t } = useTranslation()
+  const { lang, setLang } = useLanguage()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -25,15 +27,10 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [])
 
-  const currentLang = i18n.language?.substring(0, 2) || 'ar'
-  const supported = SUPPORTED as Record<string, { dir: 'rtl' | 'ltr'; label: string }>
-  const current = supported[currentLang] || supported['ar']
+  const current = LANGS.find((l) => l.code === lang) ?? LANGS[0]
 
-  function switchLang(lng: string) {
-    i18n.changeLanguage(lng)
-    const d = getLocaleDir(lng)
-    document.documentElement.setAttribute('dir', d)
-    document.documentElement.setAttribute('lang', lng)
+  function switchLang(code: any) {
+    setLang(code)
     setOpen(false)
   }
 
@@ -62,23 +59,23 @@ export default function LanguageSwitcher() {
             transition={{ duration: 0.15 }}
             className="absolute left-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-deepBlue/[0.08] bg-white py-1 shadow-[0_24px_48px_-14px_rgba(15,42,67,0.2)]"
           >
-            {Object.entries(supported).map(([code, lang]) => (
+            {LANGS.map((l) => (
               <button
-                key={code}
+                key={l.code}
                 type="button"
-                onClick={() => switchLang(code)}
-                disabled={code === currentLang}
+                onClick={() => switchLang(l.code)}
+                disabled={l.code === lang}
                 className={[
                   'flex w-full items-center gap-2 px-4 py-2.5 text-sm font-bold transition',
-                  code === currentLang
+                  l.code === lang
                     ? 'bg-customBlue/[0.08] text-customBlue'
                     : 'text-deepBlue hover:bg-customBlue/[0.05]',
                 ].join(' ')}
               >
                 <span className="flex h-6 w-6 items-center justify-center rounded-md border border-deepBlue/[0.1] bg-white text-[11px] font-black uppercase">
-                  {code}
+                  {l.code}
                 </span>
-                {lang.label}
+                {l.label}
               </button>
             ))}
           </motion.div>

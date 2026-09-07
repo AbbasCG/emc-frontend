@@ -1,19 +1,20 @@
-﻿import { Outlet } from 'react-router'
+import { useEffect } from 'react'
+import { Outlet } from 'react-router'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { getLocaleDir } from '../i18n'
+import { useLanguage } from '../i18n/useLanguage'
 import Footer from './Footer'
 import Navbar from './Navbar'
 import QuickJoinModal from './enrollment/QuickJoinModal'
 
 export default function Layout() {
-  const { i18n, t } = useTranslation()
-  const dir = getLocaleDir(i18n.language)
+  const { t } = useTranslation()
+  const { lang, dir } = useLanguage()
 
   useEffect(() => {
     document.documentElement.setAttribute('dir', dir)
-    document.documentElement.setAttribute('lang', i18n.language)
-  }, [i18n.language, dir])
+    document.documentElement.setAttribute('lang', lang)
+  }, [lang, dir])
 
   return (
     <motion.div

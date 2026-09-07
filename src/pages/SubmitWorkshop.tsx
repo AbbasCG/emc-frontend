@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
 import { cn } from '@/lib/utils'
@@ -569,7 +570,7 @@ export default function SubmitWorkshop() {
                                 <Check className="h-5 w-5" aria-hidden />
                               : meta.id}
                             </motion.span>
-                            <p className="mt-3 hidden text-[11px] font-black leading-snug text-[#0C2A4B] lg:block">{meta.title}</p>
+                            <p className="mt-3 hidden text-[11px] font-black leading-snug text-[#0C2A4B] lg:block">{t(meta.titleKey)}</p>
                           </div>
                         )
                       })}
@@ -617,7 +618,7 @@ export default function SubmitWorkshop() {
                             : meta.id}
                           </span>
                           <div className="min-w-0 flex-1 text-right">
-                            <p className="text-[13px] font-black text-[#0C2A4B]">{meta.title}</p>
+                            <p className="text-[13px] font-black text-[#0C2A4B]">{t(meta.titleKey)}</p>
                             <p className="text-[11px] font-semibold text-muted-600">{meta.hint}</p>
                           </div>
                         </div>
@@ -1075,7 +1076,7 @@ export default function SubmitWorkshop() {
                           <Check className="h-4 w-4" aria-hidden />
                         : meta.id}
                       </span>
-                      <span className={cn('text-[13px] font-bold', active ? 'text-[#0C2A4B]' : 'text-muted-600')}>{meta.title}</span>
+                      <span className={cn('text-[13px] font-bold', active ? 'text-[#0C2A4B]' : 'text-muted-600')}>{t(meta.titleKey)}</span>
                     </li>
                   )
                 })}

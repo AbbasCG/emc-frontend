@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   BadgeCheck,
   BadgeDollarSign,
@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { CTASection, PublicPageHero } from '@/components/public'
 import PublicSeo from '@/components/public/PublicSeo'
-import { partnershipTypes } from '@/data/publicPages'
+import { partnershipTypes, t as contentT } from '@/data/publicPages'
 import { fadeUp, staggerContainer, staggerItem } from '@/utils/motion'
 
 /** M3 i18n: copy lives in the catalogs under partnerships.*. */

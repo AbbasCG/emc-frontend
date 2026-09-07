@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { BookOpen, Check, Globe2, TrendingUp, Users } from 'lucide-react'
 import StatCard from '@/components/shared/StatCard'
@@ -52,14 +52,6 @@ function AnimatedNumber({ value }: { value: string }) {
 }
 
 export default function HomeStatsBand() {
-  const { t } = useTranslation()
-
-  const bandStats = [
-    { raw: '+25', label: t('home.statsPrograms'), icon: LayoutGrid },
-    { raw: '+500', label: t('home.statsBeneficiaries'), icon: TrendingUp },
-    { raw: '+10', label: t('home.statsFields'), icon: Users },
-    { raw: '✓', label: t('home.statsPartnerships'), icon: BookOpen },
-  ] as const
 
   return (
     <section className="bg-deepBlue px-4 py-14 sm:px-6 sm:py-16 lg:px-8">

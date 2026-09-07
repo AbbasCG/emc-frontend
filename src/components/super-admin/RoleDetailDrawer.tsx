@@ -6,6 +6,7 @@ import {
   Check,
   DollarSign,
   Lock,
+  Settings2,
   Shield,
   TrendingUp,
   Users,
@@ -14,6 +15,7 @@ import {
 import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
 import { fetchRolePermissions } from '@/api/rolesPermissionsApi'
 import { RolePermissionsMatrix } from '@/components/super-admin/RolePermissionsMatrix'
+import { UserPageAccessModal } from '@/components/super-admin/UserPageAccessModal'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import {
@@ -23,6 +25,7 @@ import {
 } from '@/pages/super-admin/users/roleScopeHints'
 import { normalizeRole } from '@/utils/dashboardAccess'
 import { useAuth } from '@/contexts/AuthContext'
+import { getUserPageOverrides } from '@/store/userPageOverridesStore'
 
 type RoleType = 'system' | 'admin' | 'operational' | 'external'
 
@@ -99,6 +102,8 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
   // Starts loading when the drawer mounts already open — the effect below no longer
   // flips it synchronously.
   const [usersLoading, setUsersLoading] = useState(open)
+  // User page access modal
+  const [pageAccessUser, setPageAccessUser] = useState<AdminManagedUser | null>(null)
 
   const type = classifyRole(slug)
   const risk = riskLevel(slug)
@@ -147,6 +152,7 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
  const statusLabel = isSystem ? 'محمي نظام': 'نشط'
 
   return (
+    <>
     <CrudDrawer
       open={open}
       title={labelAr}
@@ -277,27 +283,65 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
               لا يوجد مستخدمون مرتبطون بهذا الدور حالياً
             </p>
           ) : (
-            <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-              {roleUsers.map((u) => (
-                <li key={u.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[12px] font-black text-[#0077B6]">
-                    {initialsFromName(u.name)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-black text-[#0C2A4B]">{u.name}</p>
-                    <p className="truncate text-[11px] font-semibold text-slate-500" dir="ltr">{u.email}</p>
-                  </div>
-                  {u.is_active === false || u.status === 'inactive' ? (
-                    <Badge cls="bg-slate-100 text-slate-500 ring-slate-200">غير نشط</Badge>
-                  ) : (
-                    <Badge cls="bg-emerald-50 text-emerald-700 ring-emerald-200">نشط</Badge>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <>
+              <p className="text-[11px] font-semibold text-slate-400">
+                انقر على مستخدم لإدارة الصفحات التي يمكنه الوصول إليها بشكل مخصص.
+              </p>
+              <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
+                {roleUsers.map((u) => {
+                  const hasOverrides = (getUserPageOverrides(u.id)?.overrides.length ?? 0) > 0
+                  return (
+                    <li key={u.id}>
+                      <button
+                        type="button"
+                        onClick={() => setPageAccessUser(u)}
+                        className="group flex w-full items-center gap-3 px-4 py-3 text-right transition hover:bg-[#0077B6]/[0.04]"
+                      >
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#0077B6]/10 text-[12px] font-black text-[#0077B6] transition group-hover:bg-[#0077B6]/20">
+                          {initialsFromName(u.name)}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-black text-[#0C2A4B] group-hover:text-[#0077B6] transition-colors">
+                            {u.name}
+                          </p>
+                          <p className="truncate text-[11px] font-semibold text-slate-500" dir="ltr">{u.email}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {hasOverrides && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-700 ring-1 ring-amber-200">
+                              overrides
+                            </span>
+                          )}
+                          {u.is_active === false || u.status === 'inactive' ? (
+                            <Badge cls="bg-slate-100 text-slate-500 ring-slate-200">غير نشط</Badge>
+                          ) : (
+                            <Badge cls="bg-emerald-50 text-emerald-700 ring-emerald-200">نشط</Badge>
+                          )}
+                          <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100 text-slate-400 transition group-hover:bg-[#0077B6] group-hover:text-white">
+                            <Settings2 className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
           )}
         </div>
       )}
     </CrudDrawer>
+
+    {/* User page access modal */}
+    {pageAccessUser && (
+      <UserPageAccessModal
+        open={pageAccessUser != null}
+        user={pageAccessUser}
+        roleSlug={slug}
+        roleLabelAr={labelAr}
+        onClose={() => setPageAccessUser(null)}
+      />
+    )}
+    </>
   )
 }

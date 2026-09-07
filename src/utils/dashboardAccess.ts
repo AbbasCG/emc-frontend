@@ -3,6 +3,9 @@
  * Compare using normalized role strings from the backend (see normalizeRole aliases).
  */
 
+import { ALL_SITE_PAGES } from '@/data/sitePagesCatalog'
+import { getEffectivePageAccess } from '@/store/userPageOverridesStore'
+
 export const EMC_DASHBOARD_ROLES = [
   'student',
   'instructor',
@@ -365,10 +368,34 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   return []
 }
 
-export function canAccessDashboardPath(roleRaw: string | null | undefined, pathname: string): boolean {
+export function canAccessDashboardPath(
+  roleRaw: string | null | undefined,
+  pathname: string,
+  userId?: number | string,
+): boolean {
   const role = normalizeRole(roleRaw ?? null)
+
+  // Check per-user page access override if userId is provided
+  if (userId != null) {
+    const numId = typeof userId === 'string' ? parseInt(userId, 10) : userId
+    if (!isNaN(numId)) {
+      const matchedPage = ALL_SITE_PAGES.find(
+        (p) => p.path === pathname || (p.path !== '/' && pathname.startsWith(p.path)),
+      )
+      if (matchedPage) {
+        const override = getEffectivePageAccess(numId, matchedPage.id)
+        if (override === 'allow') return true
+        if (override === 'deny') return false
+      }
+    }
+  }
+
   /** Highest privilege: unrestricted access to the entire dashboard namespace */
-  if ((role === 'super_admin' || role === 'tech_admin') && (pathname === '/dashboard' || pathname.startsWith('/dashboard/'))) return true
+  if (
+    (role === 'super_admin' || role === 'tech_admin') &&
+    (pathname === '/dashboard' || pathname.startsWith('/dashboard/'))
+  )
+    return true
 
   const allowed = getAllowedRolesForPath(pathname)
 

@@ -1,4 +1,4 @@
-﻿import { memo } from 'react'
+import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ClipboardCheck, UserPlus } from 'lucide-react'
@@ -22,6 +22,7 @@ const steps = [
 ]
 
 function CoursesRegistrationSection() {
+  const { t } = useTranslation()
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -40,13 +41,13 @@ function CoursesRegistrationSection() {
           <ol className="space-y-4 text-right">
               {steps.map((s, i) => (
               <motion.li
-                key={s.titleKey}
+                key={s.titleKey ?? s.title}
                 variants={staggerItem}
                 className="rounded-3xl border border-slate-100 bg-[#f4f7fb] p-6"
               >
                 <span className="text-xs font-black text-customOrange">خطوة {i + 1}</span>
-                <p className="mt-2 text-lg font-black text-deepBlue">{t(s.titleKey)}</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{t(s.bodyKey)}</p>
+                <p className="mt-2 text-lg font-black text-deepBlue">{s.titleKey ? t(s.titleKey) : s.title}</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{s.bodyKey ? t(s.bodyKey) : s.body}</p>
               </motion.li>
             ))}
           </ol>

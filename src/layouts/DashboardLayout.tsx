@@ -582,7 +582,7 @@ function Topbar({
   return (
     <header
       dir="rtl"
-      className="fixed right-0 top-0 z-header isolate flex h-16 w-full items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
+      className="fixed right-0 top-0 z-header isolate flex h-16 w-full max-w-full overflow-x-hidden items-center gap-1.5 sm:gap-3 lg:gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-2.5 sm:px-4 shadow-sm backdrop-blur-2xl lg:sticky lg:col-start-1 lg:row-start-1"
     >
       <button
         type="button"
@@ -593,27 +593,27 @@ function Topbar({
         <Menu size={20} />
       </button>
 
-      <div className="flex min-w-0 flex-1 items-center gap-4">
-        <h1 className="line-clamp-2 min-w-0 break-words text-[13px] font-black leading-snug tracking-tight text-deepBlue font-display sm:text-base sm:leading-normal">{pageTitle}</h1>
+      <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
+        <h1 className="truncate min-w-0 text-xs font-black tracking-tight text-deepBlue font-display sm:text-base">{pageTitle}</h1>
         {/* زر لوحة التشغيل: بارز وسط الشريط لكل الأدوار — نافذة الفريق الواحدة على المهام */}
         <Link
           to="/dashboard/operations/board"
-          className="mx-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-customOrange px-3 text-[11px] font-extrabold text-white transition hover:bg-ember sm:gap-2 sm:px-4 sm:text-xs"
+          className="mx-auto inline-flex h-8 sm:h-9 shrink-0 items-center gap-1 sm:gap-2 rounded-xl bg-customOrange px-2 sm:px-4 text-[11px] font-extrabold text-white transition hover:bg-ember sm:text-xs"
         >
           <KanbanSquare size={15} aria-hidden />
-          لوحة التشغيل
+          <span className="hidden sm:inline">لوحة التشغيل</span>
         </Link>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <button
           type="button"
           onClick={onOpenSearch}
           aria-label="بحث عام"
-          className="group flex h-9 items-center gap-2 rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] px-3 text-xs font-black text-deepBlue/60 transition-all duration-200 ease-emc-out hover:-translate-y-px hover:border-customBlue/30 hover:bg-white hover:text-deepBlue hover:shadow-emc-xs"
+          className="group flex h-8 sm:h-9 items-center gap-1.5 rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] px-2 sm:px-3 text-xs font-black text-deepBlue/60 transition-all duration-200 ease-emc-out hover:-translate-y-px hover:border-customBlue/30 hover:bg-white hover:text-deepBlue hover:shadow-emc-xs"
         >
           <Search size={16} className="text-customBlue transition group-hover:scale-110" />
-          <span className="hidden sm:inline">بحث سريع</span>
+          <span className="hidden md:inline">بحث سريع</span>
           <kbd className="hidden rounded-md bg-white px-1.5 py-0.5 text-[10px] font-black text-deepBlue/45 ring-1 ring-deepBlue/[0.08] font-latin md:inline">
             Ctrl K
           </kbd>
@@ -624,9 +624,9 @@ function Topbar({
           type="button"
           onClick={onOpenWhatsNew}
           aria-label="ما الجديد؟"
-          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] text-deepBlue/65 transition hover:border-customBlue/30 hover:bg-white hover:text-customBlue"
+          className="relative flex h-8 sm:h-9 w-8 sm:w-9 items-center justify-center rounded-xl border border-deepBlue/[0.08] bg-[#F6F8FB] text-deepBlue/65 transition hover:border-customBlue/30 hover:bg-white hover:text-customBlue"
         >
-          <Megaphone size={17} />
+          <Megaphone size={16} />
           {whatsNewUnread > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-customBlue px-0.5 text-[9px] font-black text-white">
               {whatsNewUnread > 9 ? '9+' : whatsNewUnread}
@@ -641,7 +641,7 @@ function Topbar({
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
             className={[
-              'flex max-w-[min(100vw-10rem,17rem)] items-center gap-2 rounded-2xl border border-deepBlue/[0.08] bg-[#F6F8FB] py-1.5 ps-2 pe-2.5 sm:pe-3',
+              'flex items-center gap-1.5 sm:gap-2 rounded-2xl border border-deepBlue/[0.08] bg-[#F6F8FB] p-1 sm:py-1.5 sm:ps-2 sm:pe-3',
               'text-deepBlue transition hover:border-customBlue/25 hover:bg-white hover:shadow-emc-xs',
               menuOpen ? 'border-customBlue/30 bg-white shadow-emc-xs' : '',
             ].join(' ')}
@@ -651,7 +651,7 @@ function Topbar({
           >
             <UserAvatar
               user={user}
-              className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#0E5A8A] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(0,119,182,0.55)] ring-2 ring-white font-latin"
+              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-full bg-gradient-to-br from-customBlue to-[#0E5A8A] text-[11px] leading-none text-white shadow-[0_6px_14px_-4px_rgba(0,119,182,0.55)] ring-2 ring-white font-latin"
               textClassName="text-[11px] font-black text-white font-latin"
             />
             <div className="min-w-0 flex-1 text-right max-sm:hidden">
@@ -662,7 +662,7 @@ function Topbar({
             </div>
             <ChevronDown
               aria-hidden
-              className={`size-4 shrink-0 text-deepBlue/40 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+              className={`hidden sm:block size-4 shrink-0 text-deepBlue/40 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
               strokeWidth={2.25}
             />
           </button>
@@ -874,7 +874,7 @@ export default function DashboardLayout() {
       <Link
         to="/ai"
         aria-label="المساعد الذكي"
-        className="group fixed bottom-6 left-6 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(6,24,44,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
+        className="group fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-30 flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-deepBlue via-[#1A3A52] to-customBlue text-white shadow-[0_18px_44px_-10px_rgba(6,24,44,0.55),0_0_0_1px_rgba(0,119,182,0.25)] ring-2 sm:ring-4 ring-white transition-all duration-300 ease-emc-out hover:scale-[1.05] hover:shadow-[0_22px_52px_-10px_rgba(0,119,182,0.6),0_0_0_1px_rgba(0,119,182,0.35)]"
       >
         <span
           aria-hidden
@@ -884,10 +884,10 @@ export default function DashboardLayout() {
           aria-hidden
           className="pointer-events-none absolute -inset-1 rounded-2xl bg-customBlue/30 blur-xl opacity-0 transition group-hover:opacity-60"
         />
-        <Bot size={26} className="relative" />
+        <Bot className="relative h-5 w-5 sm:h-6 sm:w-6" />
       </Link>
 
-        <div className="p-5 md:p-7 lg:p-8">
+        <div className="p-3 sm:p-5 md:p-7 lg:p-8 max-w-full overflow-x-hidden">
           <ImpersonationBanner />
           <Outlet />
           {/* «ومضة الأثر» — لأدوار الفريق التي يعنيها نظام النقاط */}

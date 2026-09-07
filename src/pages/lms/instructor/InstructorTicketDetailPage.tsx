@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router'
 import { ArrowRight, Send, Clock, User } from 'lucide-react'
 import { DashboardPageShell, EmcButton, Eyebrow, Surface } from '@/components/ui'
 import { fetchInstructorTicket, replyInstructorTicket, type InstructorTicket } from '@/api/instructorApi'

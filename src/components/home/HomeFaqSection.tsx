@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { ChevronDown } from 'lucide-react'
@@ -37,7 +37,6 @@ const trustBullets = [
 // seats (emc-row): the answer slides under the seat and the chevron rotates.
 // aria-expanded + native button keyboard behavior are unchanged.
 export default function HomeFaqSection() {
-  const { t } = useTranslation()
   const [open, setOpen] = useState<number | null>(null)
 
   return (
@@ -57,7 +56,7 @@ export default function HomeFaqSection() {
         05
       </span>
 
-      <div className="relative mx-auto max-w-[1540px]">
+      <div className="relative mx-auto max-w-7xl">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">
 
           {/* Left column section info */}
