@@ -128,6 +128,7 @@ const FinanceManualPaymentsPage     = lazy(() => import('./pages/finance/Finance
 const ProgramApprovalsPage          = lazy(() => import('./pages/finance/ProgramApprovalsPage'))
 const DepartmentFinancialRequestsPage = lazy(() => import('./pages/department/DepartmentFinancialRequestsPage'))
 const DepartmentPermissionTreePage = lazy(() => import('./pages/department/DepartmentPermissionTree'))
+const DepartmentStructurePage = lazy(() => import('./pages/department/DepartmentStructurePage'))
 const ExecutiveFinancialRequestsPage  = lazy(() => import('./pages/executive/ExecutiveFinancialRequestsPage'))
 const SuperAdminFinancialRequestsPage = lazy(() => import('./pages/super-admin/SuperAdminFinancialRequestsPage'))
 
@@ -668,6 +669,7 @@ function App() {
                   <Route path="/dashboard/department/meeting-lounge" element={<MeetingLoungePage />} />
                   <Route path="/dashboard/department/meeting-lounge/:id" element={<OpsMeetingDetailPage />} />
                   <Route path="/dashboard/department/permissions" element={<Suspense fallback={<RouteFallback />}><DepartmentPermissionTreePage /></Suspense>} />
+                  <Route path="/dashboard/department/structure" element={<Suspense fallback={<RouteFallback />}><DepartmentStructurePage /></Suspense>} />
                   <Route path="/dashboard/department/:id" element={<OpsDepartmentDetailPage />} />
                   </Route>
 
