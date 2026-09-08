@@ -1,30 +1,10 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 
-const faqs = [
-  {
-    q: 'لماذا تُقسَّم EMC إلى عشر إدارات؟',
-    a: 'لضمان أن كل مجال من البرامج إلى التقنية والجودة له مسؤول واضح، مع تقليل الازدواجية وتحسين سرعة القرار.',
-  },
-  {
-    q: 'كيف تتعاون الإدارات دون تعقيد على المشارك؟',
-    a: 'عبر نقاط تسليم موحدة للمشارك: التسجيل، الدعم، والمتابعة تمر عبر قنوات محددة حتى وإن تعاونت عدة إدارات في الخلفية.',
-  },
-  {
-    q: 'هل يمكن التواصل مع إدارة محددة مباشرة؟',
-    a: 'للطلبات العامة يُفضّل التواصل عبر صفحة التواصل مع ذكر الموضوع؛ يتم توجيه الرسالة داخلياً للفريق المناسب.',
-  },
-  {
-    q: 'كيف تُدار الجودة والحوكمة عملياً؟',
-    a: 'من خلال سياسات موثقة، مراجعة دورية للمحتوى والتجربة، وقنوات ملاحظات تُغذي تحسيناً مستمراً.',
-  },
-]
 
 export default function DepartmentsFaqAccordion() {
-  const { t } = useTranslation()
 
   const faqs = [
     {

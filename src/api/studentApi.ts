@@ -1450,7 +1450,7 @@ export type StudentPayment = {
 
 export async function fetchStudentPayments(): Promise<StudentPayment[]> {
   const res = await apiClient.get<unknown>('/student/payments')
-  return asList<StudentPayment>(res.data)
+  return Array.isArray(res.data) ? (res.data as StudentPayment[]) : []
 }
 
 // ─── Recordings ──────────────────────────────────────────────────────────────
@@ -1467,5 +1467,5 @@ export type StudentRecording = {
 
 export async function fetchStudentRecordings(): Promise<StudentRecording[]> {
   const res = await apiClient.get<unknown>('/student/recordings')
-  return asList<StudentRecording>(res.data)
+  return Array.isArray(res.data) ? (res.data as StudentRecording[]) : []
 }

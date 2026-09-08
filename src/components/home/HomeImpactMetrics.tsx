@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Users, BookOpen, GraduationCap, Video } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import { Check } from 'lucide-react'
+
 
 // أرقام معتمدة (V3) — لا تُعرض أي أرقام أخرى على الواجهات العامّة.
 const metrics = [

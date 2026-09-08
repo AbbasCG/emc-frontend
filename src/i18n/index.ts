@@ -1,4 +1,4 @@
-﻿/**
+/**
  * M3 — i18n foundation.
  *
  * Arabic is the SOURCE language and the default: the `ar` catalog holds the

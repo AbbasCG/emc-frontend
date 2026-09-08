@@ -1,8 +1,8 @@
-﻿import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
+
 import {
   BadgeCheck,
   BookOpen,
@@ -145,14 +145,7 @@ function readWishlist(): string[] {
 }
 
 export default function CourseDetails() {
-  const { t } = useTranslation()
 
-  const fallbackLearningItems = [
-    t('courses.fallbackLearningItem1'),
-    t('courses.fallbackLearningItem2'),
-    t('courses.fallbackLearningItem3'),
-    t('courses.fallbackLearningItem4'),
-  ]
   const { slug } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()

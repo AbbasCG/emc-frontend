@@ -22,7 +22,7 @@ import { generateSecurePassword } from '@/utils/passwordGenerator'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import { cn } from '@/lib/utils'
 
-type RoleOption = { value: string; labelAr: string }
+
 
 type Props = {
   open: boolean
@@ -45,6 +45,8 @@ type Props = {
   avatarUrl?: string | null
   emailVerifiedAt?: string | null
   lastLoginAt?: string | null
+  createdAt?: string | null
+  roleOptions?: { value: string; labelAr: string }[]
   isDepartmentLeader?: boolean
   onIsDepartmentLeader?: (v: boolean) => void
   onClose: () => void
@@ -286,7 +288,7 @@ export function UserEditDrawer({
           <Section title="الأدوار والصلاحيات" icon={ShieldCheck}>
             <Field label="الدور">
               <select value={formRole} onChange={(e) => onFormRole(e.target.value)} className={INPUT}>
-                {roleOptions.map((o) => (
+                {(roleOptions ?? []).map((o: { value: string; labelAr: string }) => (
                   <option key={o.value} value={o.value}>
                     {o.labelAr}
                   </option>
