@@ -9,12 +9,9 @@ import {
   UserCheck,
   Building2,
   UserPlus,
-  Shield,
   Layers,
-  ChevronRight,
   X,
   CheckCircle2,
-  Briefcase,
   AlertCircle
 } from 'lucide-react';
 

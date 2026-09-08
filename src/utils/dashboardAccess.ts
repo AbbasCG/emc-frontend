@@ -132,6 +132,11 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   { prefix: '/dashboard/support', roles: ['support_agent'] },
   { prefix: '/dashboard/volunteer', roles: ['super_admin', 'tech_admin', 'admin', 'hr_manager'] },
   { prefix: '/dashboard/ops/volunteers', roles: ['volunteer'] },
+  // Department Structure editor — available to every canonical organizational
+  // manager role, not just department_manager (role only gates the sidebar
+  // link/route visibility; DepartmentAccessService::canManageDepartment() on
+  // the backend remains the actual authority for every read/write here).
+  { prefix: '/dashboard/department/structure', roles: ['department_manager', 'ai_manager', 'strategy_planning_manager', 'digital_ambassadors_manager', 'advisors_manager'] },
   { prefix: '/dashboard/department', roles: ['department_manager'] },
   // Organizational AI Department workspace (إدارة الذكاء الاصطناعي والتحول
   // الرقمي) — generic department-leader workspace, NOT the technical AI
