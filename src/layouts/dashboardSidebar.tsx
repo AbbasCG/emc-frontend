@@ -77,6 +77,7 @@ export const exactMatchSidebarRoutes = new Set([
   '/dashboard/volunteer',
   '/dashboard/department',
   '/dashboard/department/permissions',
+  '/dashboard/department/structure',
   '/dashboard/super-admin',
   '/dashboard/super-admin/audit-logs',
   '/dashboard/super-admin/crud/permissions',
@@ -720,6 +721,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         title: 'إدارة الموظفين',
         items: [
           { label: 'تفويض الصلاحيات', href: '/dashboard/department/permissions', icon: ShieldCheck },
+          { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
           membersNavItem(),
         ]
       },
@@ -919,6 +921,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         title: 'إدارة الذكاء الاصطناعي والتحول الرقمي',
         items: [
           membersNavItem(),
+          { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
           { label: 'التقارير الأسبوعية',    href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
           { label: 'تقارير الاجتماعات',      href: '/dashboard/operations/meeting-reports', icon: Calendar     },
           { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
@@ -947,6 +950,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         title: 'الإدارة التنظيمية',
         items: [
           membersNavItem(),
+          { label: 'الهيكلة والتقسيمات الإدارية', href: '/dashboard/department/structure', icon: FolderTree },
           { label: 'التقارير الأسبوعية',    href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
           { label: 'تقارير الاجتماعات',      href: '/dashboard/operations/meeting-reports', icon: Calendar     },
           { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
