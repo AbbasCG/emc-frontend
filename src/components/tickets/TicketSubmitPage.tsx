@@ -74,6 +74,44 @@ const TicketSubmitPage: React.FC = () => {
     const dropped = Array.from(e.dataTransfer.files);
     setFiles((prev) => [...prev, ...dropped]);
   };
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+  const items = Array.from(e.clipboardData.items);
+
+  const imageItems = items.filter(
+    (item) => item.kind === 'file' && item.type.startsWith('image/')
+  );
+
+  if (imageItems.length === 0) return;
+
+  e.preventDefault();
+
+  const pastedFiles = imageItems
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => Boolean(file))
+    .map((file, index) => {
+      const extension =
+        file.type.split('/')[1]?.replace('jpeg', 'jpg') || 'png';
+
+      return new File(
+        [file],
+        `pasted-image-${Date.now()}-${index}.${extension}`,
+        {
+          type: file.type,
+          lastModified: Date.now(),
+        }
+      );
+    });
+
+  if (pastedFiles.length > 0) {
+    setFiles((prev) => [...prev, ...pastedFiles]);
+
+    toast.success(
+      pastedFiles.length === 1
+        ? 'تم لصق الصورة وإضافتها للمرفقات'
+        : `تم لصق ${pastedFiles.length} صور وإضافتها للمرفقات`
+    );
+  }
+};
 
   const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
@@ -292,6 +330,7 @@ const TicketSubmitPage: React.FC = () => {
                 className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center transition cursor-pointer bg-slate-50/50"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
+                onPaste={handlePaste}
                 onClick={() => document.getElementById('ticket-media-input')?.click()}
               >
                 <input
