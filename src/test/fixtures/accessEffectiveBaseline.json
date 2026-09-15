@@ -1,0 +1,3272 @@
+{
+    "generated_by": "tests/Feature/AccessDiffBaselineTest.php",
+    "catalog_count": 129,
+    "catalog": [
+        {
+            "key": "operations.board",
+            "primary_route": "/dashboard/operations/board",
+            "route_patterns": [
+                "/dashboard/operations/board"
+            ],
+            "label_ar": "لوحة العمليات",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.weekly_reports",
+            "primary_route": "/dashboard/operations/weekly-reports",
+            "route_patterns": [
+                "/dashboard/operations/weekly-reports"
+            ],
+            "label_ar": "التقارير الأسبوعية",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.meeting_reports",
+            "primary_route": "/dashboard/operations/meeting-reports",
+            "route_patterns": [
+                "/dashboard/operations/meeting-reports"
+            ],
+            "label_ar": "محاضر الاجتماعات",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.impact_points",
+            "primary_route": "/dashboard/operations/impact-points",
+            "route_patterns": [
+                "/dashboard/operations/impact-points"
+            ],
+            "label_ar": "نقاط الأثر",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.workshop_requests",
+            "primary_route": "/dashboard/admin/workshop-requests",
+            "route_patterns": [
+                "/dashboard/admin/workshop-requests",
+                "/dashboard/admin/workshop-requests/:id"
+            ],
+            "label_ar": "طلبات الورش",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.tasks",
+            "primary_route": "/dashboard/admin/tasks",
+            "route_patterns": [
+                "/dashboard/admin/tasks",
+                "/dashboard/admin/tasks/kanban",
+                "/dashboard/admin/tasks/my",
+                "/dashboard/admin/tasks/overdue"
+            ],
+            "label_ar": "المهام",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.meetings",
+            "primary_route": "/dashboard/admin/meetings",
+            "route_patterns": [
+                "/dashboard/admin/meetings",
+                "/dashboard/admin/meetings/:id"
+            ],
+            "label_ar": "الاجتماعات",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.forms",
+            "primary_route": "/dashboard/admin/forms",
+            "route_patterns": [
+                "/dashboard/admin/forms",
+                "/dashboard/admin/forms/create",
+                "/dashboard/admin/forms/:id"
+            ],
+            "label_ar": "النماذج",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.dashboard_overview",
+            "primary_route": "/dashboard/executive/operations",
+            "route_patterns": [
+                "/dashboard/executive/operations",
+                "/dashboard/executive",
+                "/dashboard/admin/operations"
+            ],
+            "label_ar": "نظرة عامة على العمليات",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.kpi_dashboard",
+            "primary_route": "/dashboard/executive/kpi",
+            "route_patterns": [
+                "/dashboard/executive/kpi",
+                "/dashboard/admin/kpi"
+            ],
+            "label_ar": "مؤشرات الأداء",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.reports_dashboard",
+            "primary_route": "/dashboard/executive/reports",
+            "route_patterns": [
+                "/dashboard/executive/reports",
+                "/dashboard/admin/reports"
+            ],
+            "label_ar": "التقارير الإدارية",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.department_financial_requests",
+            "primary_route": "/dashboard/department/financial-requests",
+            "route_patterns": [
+                "/dashboard/department/financial-requests"
+            ],
+            "label_ar": "الطلبات المالية للإدارة",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.meeting_lounge",
+            "primary_route": "/dashboard/department/meeting-lounge",
+            "route_patterns": [
+                "/dashboard/department/meeting-lounge",
+                "/dashboard/department/meeting-lounge/:id"
+            ],
+            "label_ar": "صالة اجتماعات الإدارة",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.accepted_volunteers",
+            "primary_route": "/dashboard/volunteer",
+            "route_patterns": [
+                "/dashboard/volunteer",
+                "/dashboard/volunteer/:id"
+            ],
+            "label_ar": "المتطوعون المقبولون",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.volunteers_management",
+            "primary_route": "/dashboard/admin/volunteers",
+            "route_patterns": [
+                "/dashboard/admin/volunteers",
+                "/dashboard/admin/volunteers/:id",
+                "/dashboard/ops/volunteers"
+            ],
+            "label_ar": "إدارة المتطوعين",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.support_tickets",
+            "primary_route": "/dashboard/support",
+            "route_patterns": [
+                "/dashboard/support",
+                "/dashboard/support/:id",
+                "/dashboard/admin/support-tickets",
+                "/dashboard/admin/support-tickets/:id"
+            ],
+            "label_ar": "تذاكر الدعم الفني",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "operations.tickets",
+            "primary_route": "/dashboard/tickets",
+            "route_patterns": [
+                "/dashboard/tickets",
+                "/dashboard/tickets/new",
+                "/dashboard/tickets/:id"
+            ],
+            "label_ar": "تذاكر EMC",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.tickets_workspace",
+            "primary_route": "/dashboard/tickets/workspace",
+            "route_patterns": [
+                "/dashboard/tickets/workspace"
+            ],
+            "label_ar": "مساحة عمل التذاكر",
+            "category": "operations",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.registrations_requests",
+            "primary_route": "/dashboard/admin/registrations",
+            "route_patterns": [
+                "/dashboard/admin/registrations"
+            ],
+            "label_ar": "طلبات التسجيل",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "operations.calendar",
+            "primary_route": "/dashboard/admin/calendar",
+            "route_patterns": [
+                "/dashboard/admin/calendar"
+            ],
+            "label_ar": "التقويم الإداري",
+            "category": "operations",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.dashboard",
+            "primary_route": "/dashboard/finance",
+            "route_patterns": [
+                "/dashboard/finance",
+                "/dashboard/admin/finance"
+            ],
+            "label_ar": "لوحة المالية",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.payments",
+            "primary_route": "/dashboard/finance/payments",
+            "route_patterns": [
+                "/dashboard/finance/payments",
+                "/dashboard/admin/finance/payments"
+            ],
+            "label_ar": "المدفوعات",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.transactions",
+            "primary_route": "/dashboard/finance/transactions",
+            "route_patterns": [
+                "/dashboard/finance/transactions",
+                "/dashboard/admin/finance/transactions"
+            ],
+            "label_ar": "المعاملات المالية",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.chart_of_accounts",
+            "primary_route": "/dashboard/finance/chart-of-accounts",
+            "route_patterns": [
+                "/dashboard/finance/chart-of-accounts"
+            ],
+            "label_ar": "دليل الحسابات",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.financial_requests",
+            "primary_route": "/dashboard/finance/financial-requests",
+            "route_patterns": [
+                "/dashboard/finance/financial-requests",
+                "/dashboard/admin/finance/financial-requests"
+            ],
+            "label_ar": "الطلبات المالية",
+            "category": "finance",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "finance.manual_payments",
+            "primary_route": "/dashboard/finance/manual-payments",
+            "route_patterns": [
+                "/dashboard/finance/manual-payments",
+                "/dashboard/admin/finance/manual-payments"
+            ],
+            "label_ar": "الدفعات اليدوية",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.coupons",
+            "primary_route": "/dashboard/admin/coupons",
+            "route_patterns": [
+                "/dashboard/admin/coupons"
+            ],
+            "label_ar": "الكوبونات",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.scholarships",
+            "primary_route": "/dashboard/admin/scholarships",
+            "route_patterns": [
+                "/dashboard/admin/scholarships"
+            ],
+            "label_ar": "المنح الدراسية",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.orders",
+            "primary_route": "/dashboard/finance/orders",
+            "route_patterns": [
+                "/dashboard/finance/orders",
+                "/dashboard/admin/finance/orders"
+            ],
+            "label_ar": "طلبات الشراء",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.invoices",
+            "primary_route": "/dashboard/finance/invoices",
+            "route_patterns": [
+                "/dashboard/finance/invoices",
+                "/dashboard/admin/finance/invoices"
+            ],
+            "label_ar": "الفواتير",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.accounts",
+            "primary_route": "/dashboard/finance/accounts",
+            "route_patterns": [
+                "/dashboard/finance/accounts",
+                "/dashboard/admin/finance/accounts"
+            ],
+            "label_ar": "الحسابات المالية",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.program_approvals",
+            "primary_route": "/dashboard/finance/program-approvals",
+            "route_patterns": [
+                "/dashboard/finance/program-approvals"
+            ],
+            "label_ar": "اعتماد البرامج",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "finance.executive_financial_requests",
+            "primary_route": "/dashboard/executive/financial-requests",
+            "route_patterns": [
+                "/dashboard/executive/financial-requests"
+            ],
+            "label_ar": "الطلبات المالية التنفيذية",
+            "category": "finance",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "hr.dashboard",
+            "primary_route": "/dashboard/hr",
+            "route_patterns": [
+                "/dashboard/hr"
+            ],
+            "label_ar": "لوحة الموارد البشرية",
+            "category": "hr",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "hr.my_requests",
+            "primary_route": "/dashboard/hr/my-requests",
+            "route_patterns": [
+                "/dashboard/hr/my-requests",
+                "/dashboard/department/hr-requests"
+            ],
+            "label_ar": "طلباتي",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.incoming_requests",
+            "primary_route": "/dashboard/hr/incoming-requests",
+            "route_patterns": [
+                "/dashboard/hr/incoming-requests"
+            ],
+            "label_ar": "الطلبات الواردة",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.volunteers",
+            "primary_route": "/dashboard/hr/volunteers",
+            "route_patterns": [
+                "/dashboard/hr/volunteers",
+                "/dashboard/hr/volunteers/:id"
+            ],
+            "label_ar": "المتطوعون",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.instructors",
+            "primary_route": "/dashboard/hr/instructors",
+            "route_patterns": [
+                "/dashboard/hr/instructors"
+            ],
+            "label_ar": "المدربون",
+            "category": "hr",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "hr.onboarding",
+            "primary_route": "/dashboard/hr/onboarding",
+            "route_patterns": [
+                "/dashboard/hr/onboarding"
+            ],
+            "label_ar": "التهيئة",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.volunteer_requests",
+            "primary_route": "/dashboard/hr/volunteer-requests",
+            "route_patterns": [
+                "/dashboard/hr/volunteer-requests",
+                "/dashboard/hr/volunteer-requests/:id",
+                "/dashboard/super-admin/volunteer-requests",
+                "/dashboard/super-admin/volunteer-requests/:id"
+            ],
+            "label_ar": "طلبات المتطوعين",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.ambassador_applications",
+            "primary_route": "/dashboard/hr/ambassador-applications",
+            "route_patterns": [
+                "/dashboard/hr/ambassador-applications",
+                "/dashboard/hr/ambassador-applications/:id",
+                "/dashboard/super-admin/ambassador-applications",
+                "/dashboard/super-admin/ambassador-applications/:id"
+            ],
+            "label_ar": "طلبات السفراء",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.team",
+            "primary_route": "/dashboard/hr/team",
+            "route_patterns": [
+                "/dashboard/hr/team"
+            ],
+            "label_ar": "فريق الموارد البشرية",
+            "category": "hr",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "hr.departments_overview",
+            "primary_route": "/dashboard/hr/departments",
+            "route_patterns": [
+                "/dashboard/hr/departments"
+            ],
+            "label_ar": "الإدارات (موارد بشرية)",
+            "category": "hr",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "hr.tasks",
+            "primary_route": "/dashboard/hr/tasks",
+            "route_patterns": [
+                "/dashboard/hr/tasks"
+            ],
+            "label_ar": "مهام الموارد البشرية",
+            "category": "hr",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "hr.documents",
+            "primary_route": "/dashboard/hr/documents",
+            "route_patterns": [
+                "/dashboard/hr/documents"
+            ],
+            "label_ar": "مستندات الموارد البشرية",
+            "category": "hr",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.dashboard",
+            "primary_route": "/dashboard/quality",
+            "route_patterns": [
+                "/dashboard/quality"
+            ],
+            "label_ar": "لوحة الجودة",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.reviews",
+            "primary_route": "/dashboard/quality/reviews",
+            "route_patterns": [
+                "/dashboard/quality/reviews"
+            ],
+            "label_ar": "المراجعات",
+            "category": "quality",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "quality.incidents",
+            "primary_route": "/dashboard/quality/incidents",
+            "route_patterns": [
+                "/dashboard/quality/incidents"
+            ],
+            "label_ar": "الحوادث",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.corrective_actions",
+            "primary_route": "/dashboard/quality/corrective-actions",
+            "route_patterns": [
+                "/dashboard/quality/corrective-actions"
+            ],
+            "label_ar": "الإجراءات التصحيحية",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.compliance",
+            "primary_route": "/dashboard/quality/compliance",
+            "route_patterns": [
+                "/dashboard/quality/compliance"
+            ],
+            "label_ar": "الامتثال",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.governance",
+            "primary_route": "/dashboard/quality/governance",
+            "route_patterns": [
+                "/dashboard/quality/governance"
+            ],
+            "label_ar": "الحوكمة",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.audit_logs",
+            "primary_route": "/dashboard/quality/audit-logs",
+            "route_patterns": [
+                "/dashboard/quality/audit-logs"
+            ],
+            "label_ar": "سجلات التدقيق",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.reports",
+            "primary_route": "/dashboard/quality/reports",
+            "route_patterns": [
+                "/dashboard/quality/reports"
+            ],
+            "label_ar": "تقارير الجودة",
+            "category": "quality",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "quality.checklists",
+            "primary_route": "/dashboard/quality/checklists",
+            "route_patterns": [
+                "/dashboard/quality/checklists"
+            ],
+            "label_ar": "قوائم الجودة",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "quality.team",
+            "primary_route": "/dashboard/quality/team",
+            "route_patterns": [
+                "/dashboard/quality/team"
+            ],
+            "label_ar": "فريق الجودة",
+            "category": "quality",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.sessions",
+            "primary_route": "/dashboard/admin/lms/sessions",
+            "route_patterns": [
+                "/dashboard/admin/lms/sessions"
+            ],
+            "label_ar": "الجلسات",
+            "category": "lms",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "lms.attendance",
+            "primary_route": "/dashboard/admin/lms/attendance",
+            "route_patterns": [
+                "/dashboard/admin/lms/attendance"
+            ],
+            "label_ar": "الحضور",
+            "category": "lms",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "lms.assignments",
+            "primary_route": "/dashboard/admin/lms/assignments",
+            "route_patterns": [
+                "/dashboard/admin/lms/assignments"
+            ],
+            "label_ar": "الواجبات",
+            "category": "lms",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "lms.materials",
+            "primary_route": "/dashboard/admin/lms/materials",
+            "route_patterns": [
+                "/dashboard/admin/lms/materials",
+                "/dashboard/admin/courses"
+            ],
+            "label_ar": "المواد التعليمية",
+            "category": "lms",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "lms.evaluations",
+            "primary_route": "/dashboard/admin/lms/evaluations",
+            "route_patterns": [
+                "/dashboard/admin/lms/evaluations",
+                "/dashboard/admin/evaluations"
+            ],
+            "label_ar": "التقييمات",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.certificates",
+            "primary_route": "/dashboard/admin/certificates",
+            "route_patterns": [
+                "/dashboard/admin/certificates",
+                "/dashboard/admin/certificates/issue",
+                "/dashboard/admin/certificates/templates",
+                "/dashboard/admin/certificates/templates/:id/designer",
+                "/dashboard/admin/certificates/batches",
+                "/dashboard/admin/certificates/batches/:batchId",
+                "/dashboard/admin/certificates/overview",
+                "/dashboard/admin/certificates/analytics",
+                "/dashboard/admin/certificates/:id",
+                "/dashboard/programs-manager/certificates",
+                "/dashboard/programs-manager/certificates/issue"
+            ],
+            "label_ar": "الشهادات",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.programs",
+            "primary_route": "/dashboard/admin/programs",
+            "route_patterns": [
+                "/dashboard/admin/programs",
+                "/dashboard/super-admin/crud/programs",
+                "/dashboard/executive/programs",
+                "/dashboard/department/programs"
+            ],
+            "label_ar": "البرامج",
+            "category": "lms",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "lms.learning_paths",
+            "primary_route": "/dashboard/super-admin/crud/learning-paths",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/learning-paths",
+                "/dashboard/tech-admin/learning-paths",
+                "/dashboard/programs-manager/learning-paths"
+            ],
+            "label_ar": "المسارات التعليمية",
+            "category": "lms",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "lms.progress",
+            "primary_route": "/dashboard/admin/lms/progress",
+            "route_patterns": [
+                "/dashboard/admin/lms/progress",
+                "/dashboard/admin/progress"
+            ],
+            "label_ar": "تقدم الطلاب",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.institute_admin",
+            "primary_route": "/dashboard/admin/institute",
+            "route_patterns": [
+                "/dashboard/admin/institute",
+                "/dashboard/admin/institute/levels/new",
+                "/dashboard/admin/institute/levels/:id/edit",
+                "/dashboard/admin/institute/classes/new",
+                "/dashboard/admin/institute/classes/:id/edit"
+            ],
+            "label_ar": "إدارة المعهد",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.modules",
+            "primary_route": "/dashboard/admin/modules",
+            "route_patterns": [
+                "/dashboard/admin/modules"
+            ],
+            "label_ar": "الوحدات التعليمية",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.lessons",
+            "primary_route": "/dashboard/admin/lessons",
+            "route_patterns": [
+                "/dashboard/admin/lessons"
+            ],
+            "label_ar": "الدروس",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "lms.quizzes",
+            "primary_route": "/dashboard/admin/quizzes",
+            "route_patterns": [
+                "/dashboard/admin/quizzes"
+            ],
+            "label_ar": "الاختبارات القصيرة",
+            "category": "lms",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "organizational_departments.workspace",
+            "primary_route": "/dashboard/department-workspace",
+            "route_patterns": [
+                "/dashboard/department-workspace"
+            ],
+            "label_ar": "مساحة عمل الإدارة",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.members",
+            "primary_route": "/dashboard/members",
+            "route_patterns": [
+                "/dashboard/members"
+            ],
+            "label_ar": "الأعضاء",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.structure",
+            "primary_route": "/dashboard/department/structure",
+            "route_patterns": [
+                "/dashboard/department/structure"
+            ],
+            "label_ar": "هيكل الإدارة",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.permissions_delegation",
+            "primary_route": "/dashboard/department/permissions",
+            "route_patterns": [
+                "/dashboard/department/permissions"
+            ],
+            "label_ar": "تفويض صلاحيات الإدارة",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.ai_workspace",
+            "primary_route": "/dashboard/ai-department",
+            "route_patterns": [
+                "/dashboard/ai-department"
+            ],
+            "label_ar": "مساحة عمل إدارة الذكاء الاصطناعي",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.programs_manager",
+            "primary_route": "/dashboard/programs-manager",
+            "route_patterns": [
+                "/dashboard/programs-manager"
+            ],
+            "label_ar": "لوحة مدير البرامج",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.operations_manager",
+            "primary_route": "/dashboard/operations-manager",
+            "route_patterns": [
+                "/dashboard/operations-manager"
+            ],
+            "label_ar": "لوحة مدير العمليات",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.partnerships_manager",
+            "primary_route": "/dashboard/partnerships-manager",
+            "route_patterns": [
+                "/dashboard/partnerships-manager"
+            ],
+            "label_ar": "لوحة مدير الشراكات",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.community_manager",
+            "primary_route": "/dashboard/community-manager",
+            "route_patterns": [
+                "/dashboard/community-manager"
+            ],
+            "label_ar": "لوحة مدير المجتمع",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.section_lead",
+            "primary_route": "/dashboard/section-lead",
+            "route_patterns": [
+                "/dashboard/section-lead"
+            ],
+            "label_ar": "لوحة قائد القسم",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.marketing",
+            "primary_route": "/dashboard/marketing",
+            "route_patterns": [
+                "/dashboard/marketing",
+                "/dashboard/admin/marketing"
+            ],
+            "label_ar": "التسويق",
+            "category": "organizational_departments",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": true,
+            "department_scoped": true
+        },
+        {
+            "key": "organizational_departments.department_overview",
+            "primary_route": "/dashboard/department",
+            "route_patterns": [
+                "/dashboard/department",
+                "/dashboard/department/:id",
+                "/dashboard/executive/departments",
+                "/dashboard/admin/departments",
+                "/dashboard/admin/departments/:id"
+            ],
+            "label_ar": "نظرة عامة على الإدارات",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "organizational_departments.partners",
+            "primary_route": "/dashboard/admin/partners",
+            "route_patterns": [
+                "/dashboard/admin/partners"
+            ],
+            "label_ar": "الشركاء (عمليات)",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "organizational_departments.partnership_requests",
+            "primary_route": "/dashboard/admin/partnership-requests",
+            "route_patterns": [
+                "/dashboard/admin/partnership-requests"
+            ],
+            "label_ar": "طلبات الشراكة",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "organizational_departments.consultant_applications",
+            "primary_route": "/dashboard/admin/consultant-applications",
+            "route_patterns": [
+                "/dashboard/admin/consultant-applications"
+            ],
+            "label_ar": "طلبات الاستشاريين",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "organizational_departments.department_units",
+            "primary_route": "/dashboard/admin/department-units",
+            "route_patterns": [
+                "/dashboard/admin/department-units"
+            ],
+            "label_ar": "وحدات الإدارة",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.super_admin_overview",
+            "primary_route": "/dashboard/super-admin",
+            "route_patterns": [
+                "/dashboard/super-admin"
+            ],
+            "label_ar": "لوحة السوبر أدمن",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.admin_overview",
+            "primary_route": "/dashboard/admin",
+            "route_patterns": [
+                "/dashboard/admin"
+            ],
+            "label_ar": "لوحة الإدارة",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.tech_admin_overview",
+            "primary_route": "/dashboard/tech-admin",
+            "route_patterns": [
+                "/dashboard/tech-admin"
+            ],
+            "label_ar": "لوحة المشرف التقني",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.users",
+            "primary_route": "/dashboard/super-admin/crud/users",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/users"
+            ],
+            "label_ar": "إدارة المستخدمين",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.roles",
+            "primary_route": "/dashboard/super-admin/crud/roles",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/roles"
+            ],
+            "label_ar": "الأدوار والصلاحيات",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.permission_delegation_config",
+            "primary_route": "/dashboard/super-admin/crud/permissions",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/permissions"
+            ],
+            "label_ar": "إعدادات تفويض الصلاحيات",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.departments",
+            "primary_route": "/dashboard/super-admin/crud/departments",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/departments"
+            ],
+            "label_ar": "إدارة الأقسام",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.team",
+            "primary_route": "/dashboard/super-admin/crud/team",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/team"
+            ],
+            "label_ar": "إدارة الفريق",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.students",
+            "primary_route": "/dashboard/super-admin/crud/students",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/students",
+                "/dashboard/students"
+            ],
+            "label_ar": "إدارة الطلاب",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.instructors",
+            "primary_route": "/dashboard/super-admin/crud/instructors",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/instructors"
+            ],
+            "label_ar": "إدارة المدربين",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.workshops_catalog",
+            "primary_route": "/dashboard/super-admin/crud/workshops",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/workshops"
+            ],
+            "label_ar": "إدارة الورش",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.registrations",
+            "primary_route": "/dashboard/super-admin/crud/registrations",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/registrations"
+            ],
+            "label_ar": "إدارة التسجيلات",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.partners_catalog",
+            "primary_route": "/dashboard/super-admin/crud/partners",
+            "route_patterns": [
+                "/dashboard/super-admin/crud/partners"
+            ],
+            "label_ar": "إدارة الشركاء",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.audit_logs",
+            "primary_route": "/dashboard/super-admin/audit-logs",
+            "route_patterns": [
+                "/dashboard/super-admin/audit-logs"
+            ],
+            "label_ar": "سجلات التدقيق (سوبر أدمن)",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.admin_audit_logs",
+            "primary_route": "/dashboard/admin/audit-logs",
+            "route_patterns": [
+                "/dashboard/admin/audit-logs"
+            ],
+            "label_ar": "سجلات التدقيق (إداري)",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.integrations",
+            "primary_route": "/dashboard/admin/integrations",
+            "route_patterns": [
+                "/dashboard/admin/integrations",
+                "/dashboard/admin/integrations/whatsapp",
+                "/dashboard/admin/integrations/email"
+            ],
+            "label_ar": "التكاملات",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.webhooks",
+            "primary_route": "/dashboard/admin/webhooks",
+            "route_patterns": [
+                "/dashboard/admin/webhooks",
+                "/dashboard/admin/webhooks/:id"
+            ],
+            "label_ar": "الويب هوك",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.email_settings",
+            "primary_route": "/dashboard/super-admin/email-settings",
+            "route_patterns": [
+                "/dashboard/super-admin/email-settings"
+            ],
+            "label_ar": "إعدادات البريد",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.attendance_settings",
+            "primary_route": "/dashboard/super-admin/attendance-settings",
+            "route_patterns": [
+                "/dashboard/super-admin/attendance-settings"
+            ],
+            "label_ar": "إعدادات الحضور",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.email_logs",
+            "primary_route": "/dashboard/super-admin/email-logs",
+            "route_patterns": [
+                "/dashboard/super-admin/email-logs"
+            ],
+            "label_ar": "سجلات البريد",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.product_updates",
+            "primary_route": "/dashboard/super-admin/product-updates",
+            "route_patterns": [
+                "/dashboard/super-admin/product-updates"
+            ],
+            "label_ar": "تحديثات المنتج",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.financial_requests_oversight",
+            "primary_route": "/dashboard/super-admin/financial-requests",
+            "route_patterns": [
+                "/dashboard/super-admin/financial-requests"
+            ],
+            "label_ar": "الإشراف على الطلبات المالية",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.quality_admin_overview",
+            "primary_route": "/dashboard/admin/quality",
+            "route_patterns": [
+                "/dashboard/admin/quality"
+            ],
+            "label_ar": "إشراف الجودة (إداري)",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.visitor_analytics",
+            "primary_route": "/dashboard/admin/visitor-analytics",
+            "route_patterns": [
+                "/dashboard/admin/visitor-analytics"
+            ],
+            "label_ar": "تحليلات الزوار",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.catalog_import",
+            "primary_route": "/dashboard/admin/catalog-import",
+            "route_patterns": [
+                "/dashboard/admin/catalog-import"
+            ],
+            "label_ar": "استيراد الكتالوج",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.tickets_admin",
+            "primary_route": "/dashboard/tickets/admin",
+            "route_patterns": [
+                "/dashboard/tickets/admin"
+            ],
+            "label_ar": "إدارة التذاكر",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.team_members",
+            "primary_route": "/dashboard/admin/team-members",
+            "route_patterns": [
+                "/dashboard/admin/team-members"
+            ],
+            "label_ar": "أعضاء الفريق",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.knowledge_hub",
+            "primary_route": "/dashboard/admin/knowledge",
+            "route_patterns": [
+                "/dashboard/admin/knowledge",
+                "/dashboard/admin/knowledge/categories",
+                "/dashboard/admin/knowledge/articles/create",
+                "/dashboard/admin/knowledge/articles/:id/edit"
+            ],
+            "label_ar": "قاعدة المعرفة",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "administration.documents",
+            "primary_route": "/dashboard/admin/documents",
+            "route_patterns": [
+                "/dashboard/admin/documents"
+            ],
+            "label_ar": "المستندات الإدارية",
+            "category": "administration",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.ai_command_center",
+            "primary_route": "/dashboard/admin/ai",
+            "route_patterns": [
+                "/dashboard/admin/ai",
+                "/dashboard/admin/ai/expert-applications"
+            ],
+            "label_ar": "مركز قيادة الذكاء الاصطناعي",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.ai_automations",
+            "primary_route": "/dashboard/admin/ai/automations",
+            "route_patterns": [
+                "/dashboard/admin/ai/automations"
+            ],
+            "label_ar": "أتمتة الذكاء الاصطناعي",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.ai_insights",
+            "primary_route": "/dashboard/admin/ai/insights",
+            "route_patterns": [
+                "/dashboard/admin/ai/insights"
+            ],
+            "label_ar": "رؤى الذكاء الاصطناعي",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.ai_usage",
+            "primary_route": "/dashboard/admin/ai/usage",
+            "route_patterns": [
+                "/dashboard/admin/ai/usage"
+            ],
+            "label_ar": "استخدام الذكاء الاصطناعي",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.automations",
+            "primary_route": "/dashboard/admin/automations",
+            "route_patterns": [
+                "/dashboard/admin/automations",
+                "/dashboard/admin/automations/runs"
+            ],
+            "label_ar": "الأتمتة العامة",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.platform_scale",
+            "primary_route": "/dashboard/admin/platform-scale",
+            "route_patterns": [
+                "/dashboard/admin/platform-scale"
+            ],
+            "label_ar": "قياس نمو المنصة",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.api_tokens",
+            "primary_route": "/dashboard/admin/developer/api-tokens",
+            "route_patterns": [
+                "/dashboard/admin/developer/api-tokens"
+            ],
+            "label_ar": "رموز واجهة البرمجة",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "technical_system.mobile_readiness",
+            "primary_route": "/dashboard/admin/mobile-readiness",
+            "route_patterns": [
+                "/dashboard/admin/mobile-readiness"
+            ],
+            "label_ar": "جاهزية التطبيق المحمول",
+            "category": "technical_system",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.profile",
+            "primary_route": "/dashboard/profile",
+            "route_patterns": [
+                "/dashboard/profile"
+            ],
+            "label_ar": "الملف الشخصي",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.notifications",
+            "primary_route": "/dashboard/notifications",
+            "route_patterns": [
+                "/dashboard/notifications"
+            ],
+            "label_ar": "الإشعارات",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.notification_preferences",
+            "primary_route": "/dashboard/settings/notifications",
+            "route_patterns": [
+                "/dashboard/settings/notifications"
+            ],
+            "label_ar": "تفضيلات الإشعارات",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.volunteer_hr_profile",
+            "primary_route": "/dashboard/volunteer/hr-profile",
+            "route_patterns": [
+                "/dashboard/volunteer/hr-profile"
+            ],
+            "label_ar": "ملف المتطوع",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.resource_center_courses",
+            "primary_route": "/dashboard/resources/courses",
+            "route_patterns": [
+                "/dashboard/resources/courses"
+            ],
+            "label_ar": "مركز الموارد",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.student_learning",
+            "primary_route": "/dashboard/student",
+            "route_patterns": [
+                "/dashboard/student",
+                "/dashboard/student/learning-paths",
+                "/dashboard/student/learning-paths/:id",
+                "/dashboard/student/courses",
+                "/dashboard/student/learn/:courseId",
+                "/dashboard/student/registrations",
+                "/dashboard/student/available-courses",
+                "/dashboard/student/exams",
+                "/dashboard/student/classes/:groupId/announcements",
+                "/dashboard/student/calendar",
+                "/dashboard/student/sessions/:sessionId",
+                "/dashboard/student/courses/:courseId/placement-test",
+                "/dashboard/student/courses/:courseId/placement-result",
+                "/dashboard/student/courses/:courseId/oral-booking",
+                "/dashboard/student/orders",
+                "/dashboard/student/payment-success",
+                "/dashboard/student/institute",
+                "/dashboard/student/sessions",
+                "/dashboard/student/attendance",
+                "/dashboard/student/materials",
+                "/dashboard/student/assignments/:submissionId?",
+                "/dashboard/student/progress",
+                "/dashboard/certificates",
+                "/dashboard/student/my-certificates",
+                "/dashboard/learning"
+            ],
+            "label_ar": "مساحة الطالب التعليمية",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.instructor_workspace",
+            "primary_route": "/dashboard/instructor",
+            "route_patterns": [
+                "/dashboard/instructor",
+                "/dashboard/instructor/learning-paths",
+                "/dashboard/instructor/learning-paths/:id",
+                "/dashboard/instructor/courses",
+                "/dashboard/instructor/courses/:courseId/content",
+                "/dashboard/instructor/courses/:courseId/placement-students",
+                "/dashboard/instructor/oral-assessments",
+                "/dashboard/instructor/availability",
+                "/dashboard/instructor/students",
+                "/dashboard/instructor/courses/:courseId/students",
+                "/dashboard/instructor/quizzes",
+                "/dashboard/instructor/courses/:courseId/quizzes",
+                "/dashboard/instructor/placement-tests",
+                "/dashboard/instructor/classes",
+                "/dashboard/instructor/classes/:groupId/:tab",
+                "/dashboard/instructor/calendar",
+                "/dashboard/instructor/institute",
+                "/dashboard/instructor/classes/:groupId/sessions/:sessionId",
+                "/dashboard/instructor/workshops",
+                "/dashboard/instructor/sessions",
+                "/dashboard/instructor/attendance",
+                "/dashboard/instructor/attendance/dashboard",
+                "/dashboard/instructor/attendance/reports",
+                "/dashboard/instructor/submissions",
+                "/dashboard/instructor/submissions/:submissionId?",
+                "/dashboard/instructor/assignments/dashboard",
+                "/dashboard/instructor/assignments/missing-submissions"
+            ],
+            "label_ar": "مساحة عمل المدرب",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        },
+        {
+            "key": "personal.partner_portal",
+            "primary_route": "/dashboard/partner",
+            "route_patterns": [
+                "/dashboard/partner",
+                "/dashboard/partner/programs",
+                "/dashboard/partner/reports",
+                "/dashboard/partner/documents"
+            ],
+            "label_ar": "بوابة الشريك",
+            "category": "personal",
+            "risk_level": "SAFE_DELEGATABLE",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false
+        }
+    ],
+    "scenarios": {
+        "unseeded": {
+            "super_admin__none": {
+                "role": "super_admin",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [
+                    "operations.board",
+                    "operations.weekly_reports",
+                    "operations.meeting_reports",
+                    "operations.impact_points",
+                    "operations.workshop_requests",
+                    "operations.tasks",
+                    "operations.meetings",
+                    "operations.forms",
+                    "operations.dashboard_overview",
+                    "operations.kpi_dashboard",
+                    "operations.reports_dashboard",
+                    "operations.department_financial_requests",
+                    "operations.meeting_lounge",
+                    "operations.accepted_volunteers",
+                    "operations.volunteers_management",
+                    "operations.support_tickets",
+                    "operations.tickets",
+                    "operations.tickets_workspace",
+                    "operations.registrations_requests",
+                    "operations.calendar",
+                    "finance.dashboard",
+                    "finance.payments",
+                    "finance.transactions",
+                    "finance.chart_of_accounts",
+                    "finance.financial_requests",
+                    "finance.manual_payments",
+                    "finance.coupons",
+                    "finance.scholarships",
+                    "finance.orders",
+                    "finance.invoices",
+                    "finance.accounts",
+                    "finance.program_approvals",
+                    "finance.executive_financial_requests",
+                    "hr.dashboard",
+                    "hr.my_requests",
+                    "hr.incoming_requests",
+                    "hr.volunteers",
+                    "hr.instructors",
+                    "hr.onboarding",
+                    "hr.volunteer_requests",
+                    "hr.ambassador_applications",
+                    "hr.team",
+                    "hr.departments_overview",
+                    "hr.tasks",
+                    "hr.documents",
+                    "quality.dashboard",
+                    "quality.reviews",
+                    "quality.incidents",
+                    "quality.corrective_actions",
+                    "quality.compliance",
+                    "quality.governance",
+                    "quality.audit_logs",
+                    "quality.reports",
+                    "quality.checklists",
+                    "quality.team",
+                    "lms.sessions",
+                    "lms.attendance",
+                    "lms.assignments",
+                    "lms.materials",
+                    "lms.evaluations",
+                    "lms.certificates",
+                    "lms.programs",
+                    "lms.learning_paths",
+                    "lms.progress",
+                    "lms.institute_admin",
+                    "lms.modules",
+                    "lms.lessons",
+                    "lms.quizzes",
+                    "organizational_departments.workspace",
+                    "organizational_departments.members",
+                    "organizational_departments.structure",
+                    "organizational_departments.permissions_delegation",
+                    "organizational_departments.ai_workspace",
+                    "organizational_departments.programs_manager",
+                    "organizational_departments.operations_manager",
+                    "organizational_departments.partnerships_manager",
+                    "organizational_departments.community_manager",
+                    "organizational_departments.section_lead",
+                    "organizational_departments.marketing",
+                    "organizational_departments.department_overview",
+                    "organizational_departments.partners",
+                    "organizational_departments.partnership_requests",
+                    "organizational_departments.consultant_applications",
+                    "organizational_departments.department_units",
+                    "administration.super_admin_overview",
+                    "administration.admin_overview",
+                    "administration.tech_admin_overview",
+                    "administration.users",
+                    "administration.roles",
+                    "administration.permission_delegation_config",
+                    "administration.departments",
+                    "administration.team",
+                    "administration.students",
+                    "administration.instructors",
+                    "administration.workshops_catalog",
+                    "administration.registrations",
+                    "administration.partners_catalog",
+                    "administration.audit_logs",
+                    "administration.admin_audit_logs",
+                    "administration.integrations",
+                    "administration.webhooks",
+                    "administration.email_settings",
+                    "administration.attendance_settings",
+                    "administration.email_logs",
+                    "administration.product_updates",
+                    "administration.financial_requests_oversight",
+                    "administration.quality_admin_overview",
+                    "administration.visitor_analytics",
+                    "administration.catalog_import",
+                    "administration.tickets_admin",
+                    "administration.team_members",
+                    "administration.knowledge_hub",
+                    "administration.documents",
+                    "technical_system.ai_command_center",
+                    "technical_system.ai_automations",
+                    "technical_system.ai_insights",
+                    "technical_system.ai_usage",
+                    "technical_system.automations",
+                    "technical_system.platform_scale",
+                    "technical_system.api_tokens",
+                    "technical_system.mobile_readiness",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile",
+                    "personal.resource_center_courses",
+                    "personal.student_learning",
+                    "personal.instructor_workspace",
+                    "personal.partner_portal"
+                ],
+                "provenance": {
+                    "operations.board": "root_authority",
+                    "operations.weekly_reports": "root_authority",
+                    "operations.meeting_reports": "root_authority",
+                    "operations.impact_points": "root_authority",
+                    "operations.workshop_requests": "root_authority",
+                    "operations.tasks": "root_authority",
+                    "operations.meetings": "root_authority",
+                    "operations.forms": "root_authority",
+                    "operations.dashboard_overview": "root_authority",
+                    "operations.kpi_dashboard": "root_authority",
+                    "operations.reports_dashboard": "root_authority",
+                    "operations.department_financial_requests": "root_authority",
+                    "operations.meeting_lounge": "root_authority",
+                    "operations.accepted_volunteers": "root_authority",
+                    "operations.volunteers_management": "root_authority",
+                    "operations.support_tickets": "root_authority",
+                    "operations.tickets": "root_authority",
+                    "operations.tickets_workspace": "root_authority",
+                    "operations.registrations_requests": "root_authority",
+                    "operations.calendar": "root_authority",
+                    "finance.dashboard": "root_authority",
+                    "finance.payments": "root_authority",
+                    "finance.transactions": "root_authority",
+                    "finance.chart_of_accounts": "root_authority",
+                    "finance.financial_requests": "root_authority",
+                    "finance.manual_payments": "root_authority",
+                    "finance.coupons": "root_authority",
+                    "finance.scholarships": "root_authority",
+                    "finance.orders": "root_authority",
+                    "finance.invoices": "root_authority",
+                    "finance.accounts": "root_authority",
+                    "finance.program_approvals": "root_authority",
+                    "finance.executive_financial_requests": "root_authority",
+                    "hr.dashboard": "root_authority",
+                    "hr.my_requests": "root_authority",
+                    "hr.incoming_requests": "root_authority",
+                    "hr.volunteers": "root_authority",
+                    "hr.instructors": "root_authority",
+                    "hr.onboarding": "root_authority",
+                    "hr.volunteer_requests": "root_authority",
+                    "hr.ambassador_applications": "root_authority",
+                    "hr.team": "root_authority",
+                    "hr.departments_overview": "root_authority",
+                    "hr.tasks": "root_authority",
+                    "hr.documents": "root_authority",
+                    "quality.dashboard": "root_authority",
+                    "quality.reviews": "root_authority",
+                    "quality.incidents": "root_authority",
+                    "quality.corrective_actions": "root_authority",
+                    "quality.compliance": "root_authority",
+                    "quality.governance": "root_authority",
+                    "quality.audit_logs": "root_authority",
+                    "quality.reports": "root_authority",
+                    "quality.checklists": "root_authority",
+                    "quality.team": "root_authority",
+                    "lms.sessions": "root_authority",
+                    "lms.attendance": "root_authority",
+                    "lms.assignments": "root_authority",
+                    "lms.materials": "root_authority",
+                    "lms.evaluations": "root_authority",
+                    "lms.certificates": "root_authority",
+                    "lms.programs": "root_authority",
+                    "lms.learning_paths": "root_authority",
+                    "lms.progress": "root_authority",
+                    "lms.institute_admin": "root_authority",
+                    "lms.modules": "root_authority",
+                    "lms.lessons": "root_authority",
+                    "lms.quizzes": "root_authority",
+                    "organizational_departments.workspace": "root_authority",
+                    "organizational_departments.members": "root_authority",
+                    "organizational_departments.structure": "root_authority",
+                    "organizational_departments.permissions_delegation": "root_authority",
+                    "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.programs_manager": "root_authority",
+                    "organizational_departments.operations_manager": "root_authority",
+                    "organizational_departments.partnerships_manager": "root_authority",
+                    "organizational_departments.community_manager": "root_authority",
+                    "organizational_departments.section_lead": "root_authority",
+                    "organizational_departments.marketing": "root_authority",
+                    "organizational_departments.department_overview": "root_authority",
+                    "organizational_departments.partners": "root_authority",
+                    "organizational_departments.partnership_requests": "root_authority",
+                    "organizational_departments.consultant_applications": "root_authority",
+                    "organizational_departments.department_units": "root_authority",
+                    "administration.super_admin_overview": "root_authority",
+                    "administration.admin_overview": "root_authority",
+                    "administration.tech_admin_overview": "root_authority",
+                    "administration.users": "root_authority",
+                    "administration.roles": "root_authority",
+                    "administration.permission_delegation_config": "root_authority",
+                    "administration.departments": "root_authority",
+                    "administration.team": "root_authority",
+                    "administration.students": "root_authority",
+                    "administration.instructors": "root_authority",
+                    "administration.workshops_catalog": "root_authority",
+                    "administration.registrations": "root_authority",
+                    "administration.partners_catalog": "root_authority",
+                    "administration.audit_logs": "root_authority",
+                    "administration.admin_audit_logs": "root_authority",
+                    "administration.integrations": "root_authority",
+                    "administration.webhooks": "root_authority",
+                    "administration.email_settings": "root_authority",
+                    "administration.attendance_settings": "root_authority",
+                    "administration.email_logs": "root_authority",
+                    "administration.product_updates": "root_authority",
+                    "administration.financial_requests_oversight": "root_authority",
+                    "administration.quality_admin_overview": "root_authority",
+                    "administration.visitor_analytics": "root_authority",
+                    "administration.catalog_import": "root_authority",
+                    "administration.tickets_admin": "root_authority",
+                    "administration.team_members": "root_authority",
+                    "administration.knowledge_hub": "root_authority",
+                    "administration.documents": "root_authority",
+                    "technical_system.ai_command_center": "root_authority",
+                    "technical_system.ai_automations": "root_authority",
+                    "technical_system.ai_insights": "root_authority",
+                    "technical_system.ai_usage": "root_authority",
+                    "technical_system.automations": "root_authority",
+                    "technical_system.platform_scale": "root_authority",
+                    "technical_system.api_tokens": "root_authority",
+                    "technical_system.mobile_readiness": "root_authority",
+                    "personal.profile": "root_authority",
+                    "personal.notifications": "root_authority",
+                    "personal.notification_preferences": "root_authority",
+                    "personal.volunteer_hr_profile": "root_authority",
+                    "personal.resource_center_courses": "root_authority",
+                    "personal.student_learning": "root_authority",
+                    "personal.instructor_workspace": "root_authority",
+                    "personal.partner_portal": "root_authority"
+                }
+            },
+            "tech_admin__none": {
+                "role": "tech_admin",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [
+                    "operations.board",
+                    "operations.weekly_reports",
+                    "operations.meeting_reports",
+                    "operations.impact_points",
+                    "operations.workshop_requests",
+                    "operations.tasks",
+                    "operations.meetings",
+                    "operations.forms",
+                    "operations.dashboard_overview",
+                    "operations.kpi_dashboard",
+                    "operations.reports_dashboard",
+                    "operations.department_financial_requests",
+                    "operations.meeting_lounge",
+                    "operations.accepted_volunteers",
+                    "operations.volunteers_management",
+                    "operations.support_tickets",
+                    "operations.tickets",
+                    "operations.tickets_workspace",
+                    "operations.registrations_requests",
+                    "operations.calendar",
+                    "finance.dashboard",
+                    "finance.payments",
+                    "finance.transactions",
+                    "finance.chart_of_accounts",
+                    "finance.financial_requests",
+                    "finance.manual_payments",
+                    "finance.coupons",
+                    "finance.scholarships",
+                    "finance.orders",
+                    "finance.invoices",
+                    "finance.accounts",
+                    "finance.program_approvals",
+                    "finance.executive_financial_requests",
+                    "hr.dashboard",
+                    "hr.my_requests",
+                    "hr.incoming_requests",
+                    "hr.volunteers",
+                    "hr.instructors",
+                    "hr.onboarding",
+                    "hr.volunteer_requests",
+                    "hr.ambassador_applications",
+                    "hr.team",
+                    "hr.departments_overview",
+                    "hr.tasks",
+                    "hr.documents",
+                    "quality.dashboard",
+                    "quality.reviews",
+                    "quality.incidents",
+                    "quality.corrective_actions",
+                    "quality.compliance",
+                    "quality.governance",
+                    "quality.audit_logs",
+                    "quality.reports",
+                    "quality.checklists",
+                    "quality.team",
+                    "lms.sessions",
+                    "lms.attendance",
+                    "lms.assignments",
+                    "lms.materials",
+                    "lms.evaluations",
+                    "lms.certificates",
+                    "lms.programs",
+                    "lms.learning_paths",
+                    "lms.progress",
+                    "lms.institute_admin",
+                    "lms.modules",
+                    "lms.lessons",
+                    "lms.quizzes",
+                    "organizational_departments.workspace",
+                    "organizational_departments.members",
+                    "organizational_departments.structure",
+                    "organizational_departments.permissions_delegation",
+                    "organizational_departments.ai_workspace",
+                    "organizational_departments.programs_manager",
+                    "organizational_departments.operations_manager",
+                    "organizational_departments.partnerships_manager",
+                    "organizational_departments.community_manager",
+                    "organizational_departments.section_lead",
+                    "organizational_departments.marketing",
+                    "organizational_departments.department_overview",
+                    "organizational_departments.partners",
+                    "organizational_departments.partnership_requests",
+                    "organizational_departments.consultant_applications",
+                    "organizational_departments.department_units",
+                    "administration.super_admin_overview",
+                    "administration.admin_overview",
+                    "administration.tech_admin_overview",
+                    "administration.users",
+                    "administration.roles",
+                    "administration.permission_delegation_config",
+                    "administration.departments",
+                    "administration.team",
+                    "administration.students",
+                    "administration.instructors",
+                    "administration.workshops_catalog",
+                    "administration.registrations",
+                    "administration.partners_catalog",
+                    "administration.audit_logs",
+                    "administration.admin_audit_logs",
+                    "administration.integrations",
+                    "administration.webhooks",
+                    "administration.email_settings",
+                    "administration.attendance_settings",
+                    "administration.email_logs",
+                    "administration.product_updates",
+                    "administration.financial_requests_oversight",
+                    "administration.quality_admin_overview",
+                    "administration.visitor_analytics",
+                    "administration.catalog_import",
+                    "administration.tickets_admin",
+                    "administration.team_members",
+                    "administration.knowledge_hub",
+                    "administration.documents",
+                    "technical_system.ai_command_center",
+                    "technical_system.ai_automations",
+                    "technical_system.ai_insights",
+                    "technical_system.ai_usage",
+                    "technical_system.automations",
+                    "technical_system.platform_scale",
+                    "technical_system.api_tokens",
+                    "technical_system.mobile_readiness",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile",
+                    "personal.resource_center_courses",
+                    "personal.student_learning",
+                    "personal.instructor_workspace",
+                    "personal.partner_portal"
+                ],
+                "provenance": {
+                    "operations.board": "root_authority",
+                    "operations.weekly_reports": "root_authority",
+                    "operations.meeting_reports": "root_authority",
+                    "operations.impact_points": "root_authority",
+                    "operations.workshop_requests": "root_authority",
+                    "operations.tasks": "root_authority",
+                    "operations.meetings": "root_authority",
+                    "operations.forms": "root_authority",
+                    "operations.dashboard_overview": "root_authority",
+                    "operations.kpi_dashboard": "root_authority",
+                    "operations.reports_dashboard": "root_authority",
+                    "operations.department_financial_requests": "root_authority",
+                    "operations.meeting_lounge": "root_authority",
+                    "operations.accepted_volunteers": "root_authority",
+                    "operations.volunteers_management": "root_authority",
+                    "operations.support_tickets": "root_authority",
+                    "operations.tickets": "root_authority",
+                    "operations.tickets_workspace": "root_authority",
+                    "operations.registrations_requests": "root_authority",
+                    "operations.calendar": "root_authority",
+                    "finance.dashboard": "root_authority",
+                    "finance.payments": "root_authority",
+                    "finance.transactions": "root_authority",
+                    "finance.chart_of_accounts": "root_authority",
+                    "finance.financial_requests": "root_authority",
+                    "finance.manual_payments": "root_authority",
+                    "finance.coupons": "root_authority",
+                    "finance.scholarships": "root_authority",
+                    "finance.orders": "root_authority",
+                    "finance.invoices": "root_authority",
+                    "finance.accounts": "root_authority",
+                    "finance.program_approvals": "root_authority",
+                    "finance.executive_financial_requests": "root_authority",
+                    "hr.dashboard": "root_authority",
+                    "hr.my_requests": "root_authority",
+                    "hr.incoming_requests": "root_authority",
+                    "hr.volunteers": "root_authority",
+                    "hr.instructors": "root_authority",
+                    "hr.onboarding": "root_authority",
+                    "hr.volunteer_requests": "root_authority",
+                    "hr.ambassador_applications": "root_authority",
+                    "hr.team": "root_authority",
+                    "hr.departments_overview": "root_authority",
+                    "hr.tasks": "root_authority",
+                    "hr.documents": "root_authority",
+                    "quality.dashboard": "root_authority",
+                    "quality.reviews": "root_authority",
+                    "quality.incidents": "root_authority",
+                    "quality.corrective_actions": "root_authority",
+                    "quality.compliance": "root_authority",
+                    "quality.governance": "root_authority",
+                    "quality.audit_logs": "root_authority",
+                    "quality.reports": "root_authority",
+                    "quality.checklists": "root_authority",
+                    "quality.team": "root_authority",
+                    "lms.sessions": "root_authority",
+                    "lms.attendance": "root_authority",
+                    "lms.assignments": "root_authority",
+                    "lms.materials": "root_authority",
+                    "lms.evaluations": "root_authority",
+                    "lms.certificates": "root_authority",
+                    "lms.programs": "root_authority",
+                    "lms.learning_paths": "root_authority",
+                    "lms.progress": "root_authority",
+                    "lms.institute_admin": "root_authority",
+                    "lms.modules": "root_authority",
+                    "lms.lessons": "root_authority",
+                    "lms.quizzes": "root_authority",
+                    "organizational_departments.workspace": "root_authority",
+                    "organizational_departments.members": "root_authority",
+                    "organizational_departments.structure": "root_authority",
+                    "organizational_departments.permissions_delegation": "root_authority",
+                    "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.programs_manager": "root_authority",
+                    "organizational_departments.operations_manager": "root_authority",
+                    "organizational_departments.partnerships_manager": "root_authority",
+                    "organizational_departments.community_manager": "root_authority",
+                    "organizational_departments.section_lead": "root_authority",
+                    "organizational_departments.marketing": "root_authority",
+                    "organizational_departments.department_overview": "root_authority",
+                    "organizational_departments.partners": "root_authority",
+                    "organizational_departments.partnership_requests": "root_authority",
+                    "organizational_departments.consultant_applications": "root_authority",
+                    "organizational_departments.department_units": "root_authority",
+                    "administration.super_admin_overview": "root_authority",
+                    "administration.admin_overview": "root_authority",
+                    "administration.tech_admin_overview": "root_authority",
+                    "administration.users": "root_authority",
+                    "administration.roles": "root_authority",
+                    "administration.permission_delegation_config": "root_authority",
+                    "administration.departments": "root_authority",
+                    "administration.team": "root_authority",
+                    "administration.students": "root_authority",
+                    "administration.instructors": "root_authority",
+                    "administration.workshops_catalog": "root_authority",
+                    "administration.registrations": "root_authority",
+                    "administration.partners_catalog": "root_authority",
+                    "administration.audit_logs": "root_authority",
+                    "administration.admin_audit_logs": "root_authority",
+                    "administration.integrations": "root_authority",
+                    "administration.webhooks": "root_authority",
+                    "administration.email_settings": "root_authority",
+                    "administration.attendance_settings": "root_authority",
+                    "administration.email_logs": "root_authority",
+                    "administration.product_updates": "root_authority",
+                    "administration.financial_requests_oversight": "root_authority",
+                    "administration.quality_admin_overview": "root_authority",
+                    "administration.visitor_analytics": "root_authority",
+                    "administration.catalog_import": "root_authority",
+                    "administration.tickets_admin": "root_authority",
+                    "administration.team_members": "root_authority",
+                    "administration.knowledge_hub": "root_authority",
+                    "administration.documents": "root_authority",
+                    "technical_system.ai_command_center": "root_authority",
+                    "technical_system.ai_automations": "root_authority",
+                    "technical_system.ai_insights": "root_authority",
+                    "technical_system.ai_usage": "root_authority",
+                    "technical_system.automations": "root_authority",
+                    "technical_system.platform_scale": "root_authority",
+                    "technical_system.api_tokens": "root_authority",
+                    "technical_system.mobile_readiness": "root_authority",
+                    "personal.profile": "root_authority",
+                    "personal.notifications": "root_authority",
+                    "personal.notification_preferences": "root_authority",
+                    "personal.volunteer_hr_profile": "root_authority",
+                    "personal.resource_center_courses": "root_authority",
+                    "personal.student_learning": "root_authority",
+                    "personal.instructor_workspace": "root_authority",
+                    "personal.partner_portal": "root_authority"
+                }
+            },
+            "admin__none": {
+                "role": "admin",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "executive_admin__none": {
+                "role": "executive_admin",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "operations_manager__none": {
+                "role": "operations_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "programs_manager__none": {
+                "role": "programs_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "finance_manager__none": {
+                "role": "finance_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "quality_manager__none": {
+                "role": "quality_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "hr_manager__none": {
+                "role": "hr_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "marketing_manager__none": {
+                "role": "marketing_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "partnerships_manager__none": {
+                "role": "partnerships_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "community_manager__none": {
+                "role": "community_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "support_agent__none": {
+                "role": "support_agent",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "instructor__none": {
+                "role": "instructor",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "student__none": {
+                "role": "student",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "partner__none": {
+                "role": "partner",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "volunteer__none": {
+                "role": "volunteer",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "department_manager__none": {
+                "role": "department_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "section_lead__none": {
+                "role": "section_lead",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "ai_manager__none": {
+                "role": "ai_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "strategy_planning_manager__none": {
+                "role": "strategy_planning_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "digital_ambassadors_manager__none": {
+                "role": "digital_ambassadors_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "advisors_manager__none": {
+                "role": "advisors_manager",
+                "context": "none",
+                "note": "role only — no department, no override",
+                "allowed": [],
+                "provenance": []
+            },
+            "operations_manager__member": {
+                "role": "operations_manager",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "operations_manager__leader": {
+                "role": "operations_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "programs_manager__member": {
+                "role": "programs_manager",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "programs_manager__leader": {
+                "role": "programs_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "department_manager__member": {
+                "role": "department_manager",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "department_manager__leader": {
+                "role": "department_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "ai_manager__member": {
+                "role": "ai_manager",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "ai_manager__leader": {
+                "role": "ai_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "strategy_planning_manager__member": {
+                "role": "strategy_planning_manager",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "strategy_planning_manager__leader": {
+                "role": "strategy_planning_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "quality_manager__member": {
+                "role": "quality_manager",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "quality_manager__leader": {
+                "role": "quality_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "volunteer__member": {
+                "role": "volunteer",
+                "context": "member",
+                "note": "department member, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            },
+            "volunteer__leader": {
+                "role": "volunteer",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader, no defaults stored",
+                "allowed": [],
+                "provenance": []
+            }
+        },
+        "seeded": {
+            "super_admin__none": {
+                "role": "super_admin",
+                "context": "none",
+                "note": "canonical root authority",
+                "allowed": [
+                    "operations.board",
+                    "operations.weekly_reports",
+                    "operations.meeting_reports",
+                    "operations.impact_points",
+                    "operations.workshop_requests",
+                    "operations.tasks",
+                    "operations.meetings",
+                    "operations.forms",
+                    "operations.dashboard_overview",
+                    "operations.kpi_dashboard",
+                    "operations.reports_dashboard",
+                    "operations.department_financial_requests",
+                    "operations.meeting_lounge",
+                    "operations.accepted_volunteers",
+                    "operations.volunteers_management",
+                    "operations.support_tickets",
+                    "operations.tickets",
+                    "operations.tickets_workspace",
+                    "operations.registrations_requests",
+                    "operations.calendar",
+                    "finance.dashboard",
+                    "finance.payments",
+                    "finance.transactions",
+                    "finance.chart_of_accounts",
+                    "finance.financial_requests",
+                    "finance.manual_payments",
+                    "finance.coupons",
+                    "finance.scholarships",
+                    "finance.orders",
+                    "finance.invoices",
+                    "finance.accounts",
+                    "finance.program_approvals",
+                    "finance.executive_financial_requests",
+                    "hr.dashboard",
+                    "hr.my_requests",
+                    "hr.incoming_requests",
+                    "hr.volunteers",
+                    "hr.instructors",
+                    "hr.onboarding",
+                    "hr.volunteer_requests",
+                    "hr.ambassador_applications",
+                    "hr.team",
+                    "hr.departments_overview",
+                    "hr.tasks",
+                    "hr.documents",
+                    "quality.dashboard",
+                    "quality.reviews",
+                    "quality.incidents",
+                    "quality.corrective_actions",
+                    "quality.compliance",
+                    "quality.governance",
+                    "quality.audit_logs",
+                    "quality.reports",
+                    "quality.checklists",
+                    "quality.team",
+                    "lms.sessions",
+                    "lms.attendance",
+                    "lms.assignments",
+                    "lms.materials",
+                    "lms.evaluations",
+                    "lms.certificates",
+                    "lms.programs",
+                    "lms.learning_paths",
+                    "lms.progress",
+                    "lms.institute_admin",
+                    "lms.modules",
+                    "lms.lessons",
+                    "lms.quizzes",
+                    "organizational_departments.workspace",
+                    "organizational_departments.members",
+                    "organizational_departments.structure",
+                    "organizational_departments.permissions_delegation",
+                    "organizational_departments.ai_workspace",
+                    "organizational_departments.programs_manager",
+                    "organizational_departments.operations_manager",
+                    "organizational_departments.partnerships_manager",
+                    "organizational_departments.community_manager",
+                    "organizational_departments.section_lead",
+                    "organizational_departments.marketing",
+                    "organizational_departments.department_overview",
+                    "organizational_departments.partners",
+                    "organizational_departments.partnership_requests",
+                    "organizational_departments.consultant_applications",
+                    "organizational_departments.department_units",
+                    "administration.super_admin_overview",
+                    "administration.admin_overview",
+                    "administration.tech_admin_overview",
+                    "administration.users",
+                    "administration.roles",
+                    "administration.permission_delegation_config",
+                    "administration.departments",
+                    "administration.team",
+                    "administration.students",
+                    "administration.instructors",
+                    "administration.workshops_catalog",
+                    "administration.registrations",
+                    "administration.partners_catalog",
+                    "administration.audit_logs",
+                    "administration.admin_audit_logs",
+                    "administration.integrations",
+                    "administration.webhooks",
+                    "administration.email_settings",
+                    "administration.attendance_settings",
+                    "administration.email_logs",
+                    "administration.product_updates",
+                    "administration.financial_requests_oversight",
+                    "administration.quality_admin_overview",
+                    "administration.visitor_analytics",
+                    "administration.catalog_import",
+                    "administration.tickets_admin",
+                    "administration.team_members",
+                    "administration.knowledge_hub",
+                    "administration.documents",
+                    "technical_system.ai_command_center",
+                    "technical_system.ai_automations",
+                    "technical_system.ai_insights",
+                    "technical_system.ai_usage",
+                    "technical_system.automations",
+                    "technical_system.platform_scale",
+                    "technical_system.api_tokens",
+                    "technical_system.mobile_readiness",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile",
+                    "personal.resource_center_courses",
+                    "personal.student_learning",
+                    "personal.instructor_workspace",
+                    "personal.partner_portal"
+                ],
+                "provenance": {
+                    "operations.board": "root_authority",
+                    "operations.weekly_reports": "root_authority",
+                    "operations.meeting_reports": "root_authority",
+                    "operations.impact_points": "root_authority",
+                    "operations.workshop_requests": "root_authority",
+                    "operations.tasks": "root_authority",
+                    "operations.meetings": "root_authority",
+                    "operations.forms": "root_authority",
+                    "operations.dashboard_overview": "root_authority",
+                    "operations.kpi_dashboard": "root_authority",
+                    "operations.reports_dashboard": "root_authority",
+                    "operations.department_financial_requests": "root_authority",
+                    "operations.meeting_lounge": "root_authority",
+                    "operations.accepted_volunteers": "root_authority",
+                    "operations.volunteers_management": "root_authority",
+                    "operations.support_tickets": "root_authority",
+                    "operations.tickets": "root_authority",
+                    "operations.tickets_workspace": "root_authority",
+                    "operations.registrations_requests": "root_authority",
+                    "operations.calendar": "root_authority",
+                    "finance.dashboard": "root_authority",
+                    "finance.payments": "root_authority",
+                    "finance.transactions": "root_authority",
+                    "finance.chart_of_accounts": "root_authority",
+                    "finance.financial_requests": "root_authority",
+                    "finance.manual_payments": "root_authority",
+                    "finance.coupons": "root_authority",
+                    "finance.scholarships": "root_authority",
+                    "finance.orders": "root_authority",
+                    "finance.invoices": "root_authority",
+                    "finance.accounts": "root_authority",
+                    "finance.program_approvals": "root_authority",
+                    "finance.executive_financial_requests": "root_authority",
+                    "hr.dashboard": "root_authority",
+                    "hr.my_requests": "root_authority",
+                    "hr.incoming_requests": "root_authority",
+                    "hr.volunteers": "root_authority",
+                    "hr.instructors": "root_authority",
+                    "hr.onboarding": "root_authority",
+                    "hr.volunteer_requests": "root_authority",
+                    "hr.ambassador_applications": "root_authority",
+                    "hr.team": "root_authority",
+                    "hr.departments_overview": "root_authority",
+                    "hr.tasks": "root_authority",
+                    "hr.documents": "root_authority",
+                    "quality.dashboard": "root_authority",
+                    "quality.reviews": "root_authority",
+                    "quality.incidents": "root_authority",
+                    "quality.corrective_actions": "root_authority",
+                    "quality.compliance": "root_authority",
+                    "quality.governance": "root_authority",
+                    "quality.audit_logs": "root_authority",
+                    "quality.reports": "root_authority",
+                    "quality.checklists": "root_authority",
+                    "quality.team": "root_authority",
+                    "lms.sessions": "root_authority",
+                    "lms.attendance": "root_authority",
+                    "lms.assignments": "root_authority",
+                    "lms.materials": "root_authority",
+                    "lms.evaluations": "root_authority",
+                    "lms.certificates": "root_authority",
+                    "lms.programs": "root_authority",
+                    "lms.learning_paths": "root_authority",
+                    "lms.progress": "root_authority",
+                    "lms.institute_admin": "root_authority",
+                    "lms.modules": "root_authority",
+                    "lms.lessons": "root_authority",
+                    "lms.quizzes": "root_authority",
+                    "organizational_departments.workspace": "root_authority",
+                    "organizational_departments.members": "root_authority",
+                    "organizational_departments.structure": "root_authority",
+                    "organizational_departments.permissions_delegation": "root_authority",
+                    "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.programs_manager": "root_authority",
+                    "organizational_departments.operations_manager": "root_authority",
+                    "organizational_departments.partnerships_manager": "root_authority",
+                    "organizational_departments.community_manager": "root_authority",
+                    "organizational_departments.section_lead": "root_authority",
+                    "organizational_departments.marketing": "root_authority",
+                    "organizational_departments.department_overview": "root_authority",
+                    "organizational_departments.partners": "root_authority",
+                    "organizational_departments.partnership_requests": "root_authority",
+                    "organizational_departments.consultant_applications": "root_authority",
+                    "organizational_departments.department_units": "root_authority",
+                    "administration.super_admin_overview": "root_authority",
+                    "administration.admin_overview": "root_authority",
+                    "administration.tech_admin_overview": "root_authority",
+                    "administration.users": "root_authority",
+                    "administration.roles": "root_authority",
+                    "administration.permission_delegation_config": "root_authority",
+                    "administration.departments": "root_authority",
+                    "administration.team": "root_authority",
+                    "administration.students": "root_authority",
+                    "administration.instructors": "root_authority",
+                    "administration.workshops_catalog": "root_authority",
+                    "administration.registrations": "root_authority",
+                    "administration.partners_catalog": "root_authority",
+                    "administration.audit_logs": "root_authority",
+                    "administration.admin_audit_logs": "root_authority",
+                    "administration.integrations": "root_authority",
+                    "administration.webhooks": "root_authority",
+                    "administration.email_settings": "root_authority",
+                    "administration.attendance_settings": "root_authority",
+                    "administration.email_logs": "root_authority",
+                    "administration.product_updates": "root_authority",
+                    "administration.financial_requests_oversight": "root_authority",
+                    "administration.quality_admin_overview": "root_authority",
+                    "administration.visitor_analytics": "root_authority",
+                    "administration.catalog_import": "root_authority",
+                    "administration.tickets_admin": "root_authority",
+                    "administration.team_members": "root_authority",
+                    "administration.knowledge_hub": "root_authority",
+                    "administration.documents": "root_authority",
+                    "technical_system.ai_command_center": "root_authority",
+                    "technical_system.ai_automations": "root_authority",
+                    "technical_system.ai_insights": "root_authority",
+                    "technical_system.ai_usage": "root_authority",
+                    "technical_system.automations": "root_authority",
+                    "technical_system.platform_scale": "root_authority",
+                    "technical_system.api_tokens": "root_authority",
+                    "technical_system.mobile_readiness": "root_authority",
+                    "personal.profile": "root_authority",
+                    "personal.notifications": "root_authority",
+                    "personal.notification_preferences": "root_authority",
+                    "personal.volunteer_hr_profile": "root_authority",
+                    "personal.resource_center_courses": "root_authority",
+                    "personal.student_learning": "root_authority",
+                    "personal.instructor_workspace": "root_authority",
+                    "personal.partner_portal": "root_authority"
+                }
+            },
+            "tech_admin__none": {
+                "role": "tech_admin",
+                "context": "none",
+                "note": "canonical root authority",
+                "allowed": [
+                    "operations.board",
+                    "operations.weekly_reports",
+                    "operations.meeting_reports",
+                    "operations.impact_points",
+                    "operations.workshop_requests",
+                    "operations.tasks",
+                    "operations.meetings",
+                    "operations.forms",
+                    "operations.dashboard_overview",
+                    "operations.kpi_dashboard",
+                    "operations.reports_dashboard",
+                    "operations.department_financial_requests",
+                    "operations.meeting_lounge",
+                    "operations.accepted_volunteers",
+                    "operations.volunteers_management",
+                    "operations.support_tickets",
+                    "operations.tickets",
+                    "operations.tickets_workspace",
+                    "operations.registrations_requests",
+                    "operations.calendar",
+                    "finance.dashboard",
+                    "finance.payments",
+                    "finance.transactions",
+                    "finance.chart_of_accounts",
+                    "finance.financial_requests",
+                    "finance.manual_payments",
+                    "finance.coupons",
+                    "finance.scholarships",
+                    "finance.orders",
+                    "finance.invoices",
+                    "finance.accounts",
+                    "finance.program_approvals",
+                    "finance.executive_financial_requests",
+                    "hr.dashboard",
+                    "hr.my_requests",
+                    "hr.incoming_requests",
+                    "hr.volunteers",
+                    "hr.instructors",
+                    "hr.onboarding",
+                    "hr.volunteer_requests",
+                    "hr.ambassador_applications",
+                    "hr.team",
+                    "hr.departments_overview",
+                    "hr.tasks",
+                    "hr.documents",
+                    "quality.dashboard",
+                    "quality.reviews",
+                    "quality.incidents",
+                    "quality.corrective_actions",
+                    "quality.compliance",
+                    "quality.governance",
+                    "quality.audit_logs",
+                    "quality.reports",
+                    "quality.checklists",
+                    "quality.team",
+                    "lms.sessions",
+                    "lms.attendance",
+                    "lms.assignments",
+                    "lms.materials",
+                    "lms.evaluations",
+                    "lms.certificates",
+                    "lms.programs",
+                    "lms.learning_paths",
+                    "lms.progress",
+                    "lms.institute_admin",
+                    "lms.modules",
+                    "lms.lessons",
+                    "lms.quizzes",
+                    "organizational_departments.workspace",
+                    "organizational_departments.members",
+                    "organizational_departments.structure",
+                    "organizational_departments.permissions_delegation",
+                    "organizational_departments.ai_workspace",
+                    "organizational_departments.programs_manager",
+                    "organizational_departments.operations_manager",
+                    "organizational_departments.partnerships_manager",
+                    "organizational_departments.community_manager",
+                    "organizational_departments.section_lead",
+                    "organizational_departments.marketing",
+                    "organizational_departments.department_overview",
+                    "organizational_departments.partners",
+                    "organizational_departments.partnership_requests",
+                    "organizational_departments.consultant_applications",
+                    "organizational_departments.department_units",
+                    "administration.super_admin_overview",
+                    "administration.admin_overview",
+                    "administration.tech_admin_overview",
+                    "administration.users",
+                    "administration.roles",
+                    "administration.permission_delegation_config",
+                    "administration.departments",
+                    "administration.team",
+                    "administration.students",
+                    "administration.instructors",
+                    "administration.workshops_catalog",
+                    "administration.registrations",
+                    "administration.partners_catalog",
+                    "administration.audit_logs",
+                    "administration.admin_audit_logs",
+                    "administration.integrations",
+                    "administration.webhooks",
+                    "administration.email_settings",
+                    "administration.attendance_settings",
+                    "administration.email_logs",
+                    "administration.product_updates",
+                    "administration.financial_requests_oversight",
+                    "administration.quality_admin_overview",
+                    "administration.visitor_analytics",
+                    "administration.catalog_import",
+                    "administration.tickets_admin",
+                    "administration.team_members",
+                    "administration.knowledge_hub",
+                    "administration.documents",
+                    "technical_system.ai_command_center",
+                    "technical_system.ai_automations",
+                    "technical_system.ai_insights",
+                    "technical_system.ai_usage",
+                    "technical_system.automations",
+                    "technical_system.platform_scale",
+                    "technical_system.api_tokens",
+                    "technical_system.mobile_readiness",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile",
+                    "personal.resource_center_courses",
+                    "personal.student_learning",
+                    "personal.instructor_workspace",
+                    "personal.partner_portal"
+                ],
+                "provenance": {
+                    "operations.board": "root_authority",
+                    "operations.weekly_reports": "root_authority",
+                    "operations.meeting_reports": "root_authority",
+                    "operations.impact_points": "root_authority",
+                    "operations.workshop_requests": "root_authority",
+                    "operations.tasks": "root_authority",
+                    "operations.meetings": "root_authority",
+                    "operations.forms": "root_authority",
+                    "operations.dashboard_overview": "root_authority",
+                    "operations.kpi_dashboard": "root_authority",
+                    "operations.reports_dashboard": "root_authority",
+                    "operations.department_financial_requests": "root_authority",
+                    "operations.meeting_lounge": "root_authority",
+                    "operations.accepted_volunteers": "root_authority",
+                    "operations.volunteers_management": "root_authority",
+                    "operations.support_tickets": "root_authority",
+                    "operations.tickets": "root_authority",
+                    "operations.tickets_workspace": "root_authority",
+                    "operations.registrations_requests": "root_authority",
+                    "operations.calendar": "root_authority",
+                    "finance.dashboard": "root_authority",
+                    "finance.payments": "root_authority",
+                    "finance.transactions": "root_authority",
+                    "finance.chart_of_accounts": "root_authority",
+                    "finance.financial_requests": "root_authority",
+                    "finance.manual_payments": "root_authority",
+                    "finance.coupons": "root_authority",
+                    "finance.scholarships": "root_authority",
+                    "finance.orders": "root_authority",
+                    "finance.invoices": "root_authority",
+                    "finance.accounts": "root_authority",
+                    "finance.program_approvals": "root_authority",
+                    "finance.executive_financial_requests": "root_authority",
+                    "hr.dashboard": "root_authority",
+                    "hr.my_requests": "root_authority",
+                    "hr.incoming_requests": "root_authority",
+                    "hr.volunteers": "root_authority",
+                    "hr.instructors": "root_authority",
+                    "hr.onboarding": "root_authority",
+                    "hr.volunteer_requests": "root_authority",
+                    "hr.ambassador_applications": "root_authority",
+                    "hr.team": "root_authority",
+                    "hr.departments_overview": "root_authority",
+                    "hr.tasks": "root_authority",
+                    "hr.documents": "root_authority",
+                    "quality.dashboard": "root_authority",
+                    "quality.reviews": "root_authority",
+                    "quality.incidents": "root_authority",
+                    "quality.corrective_actions": "root_authority",
+                    "quality.compliance": "root_authority",
+                    "quality.governance": "root_authority",
+                    "quality.audit_logs": "root_authority",
+                    "quality.reports": "root_authority",
+                    "quality.checklists": "root_authority",
+                    "quality.team": "root_authority",
+                    "lms.sessions": "root_authority",
+                    "lms.attendance": "root_authority",
+                    "lms.assignments": "root_authority",
+                    "lms.materials": "root_authority",
+                    "lms.evaluations": "root_authority",
+                    "lms.certificates": "root_authority",
+                    "lms.programs": "root_authority",
+                    "lms.learning_paths": "root_authority",
+                    "lms.progress": "root_authority",
+                    "lms.institute_admin": "root_authority",
+                    "lms.modules": "root_authority",
+                    "lms.lessons": "root_authority",
+                    "lms.quizzes": "root_authority",
+                    "organizational_departments.workspace": "root_authority",
+                    "organizational_departments.members": "root_authority",
+                    "organizational_departments.structure": "root_authority",
+                    "organizational_departments.permissions_delegation": "root_authority",
+                    "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.programs_manager": "root_authority",
+                    "organizational_departments.operations_manager": "root_authority",
+                    "organizational_departments.partnerships_manager": "root_authority",
+                    "organizational_departments.community_manager": "root_authority",
+                    "organizational_departments.section_lead": "root_authority",
+                    "organizational_departments.marketing": "root_authority",
+                    "organizational_departments.department_overview": "root_authority",
+                    "organizational_departments.partners": "root_authority",
+                    "organizational_departments.partnership_requests": "root_authority",
+                    "organizational_departments.consultant_applications": "root_authority",
+                    "organizational_departments.department_units": "root_authority",
+                    "administration.super_admin_overview": "root_authority",
+                    "administration.admin_overview": "root_authority",
+                    "administration.tech_admin_overview": "root_authority",
+                    "administration.users": "root_authority",
+                    "administration.roles": "root_authority",
+                    "administration.permission_delegation_config": "root_authority",
+                    "administration.departments": "root_authority",
+                    "administration.team": "root_authority",
+                    "administration.students": "root_authority",
+                    "administration.instructors": "root_authority",
+                    "administration.workshops_catalog": "root_authority",
+                    "administration.registrations": "root_authority",
+                    "administration.partners_catalog": "root_authority",
+                    "administration.audit_logs": "root_authority",
+                    "administration.admin_audit_logs": "root_authority",
+                    "administration.integrations": "root_authority",
+                    "administration.webhooks": "root_authority",
+                    "administration.email_settings": "root_authority",
+                    "administration.attendance_settings": "root_authority",
+                    "administration.email_logs": "root_authority",
+                    "administration.product_updates": "root_authority",
+                    "administration.financial_requests_oversight": "root_authority",
+                    "administration.quality_admin_overview": "root_authority",
+                    "administration.visitor_analytics": "root_authority",
+                    "administration.catalog_import": "root_authority",
+                    "administration.tickets_admin": "root_authority",
+                    "administration.team_members": "root_authority",
+                    "administration.knowledge_hub": "root_authority",
+                    "administration.documents": "root_authority",
+                    "technical_system.ai_command_center": "root_authority",
+                    "technical_system.ai_automations": "root_authority",
+                    "technical_system.ai_insights": "root_authority",
+                    "technical_system.ai_usage": "root_authority",
+                    "technical_system.automations": "root_authority",
+                    "technical_system.platform_scale": "root_authority",
+                    "technical_system.api_tokens": "root_authority",
+                    "technical_system.mobile_readiness": "root_authority",
+                    "personal.profile": "root_authority",
+                    "personal.notifications": "root_authority",
+                    "personal.notification_preferences": "root_authority",
+                    "personal.volunteer_hr_profile": "root_authority",
+                    "personal.resource_center_courses": "root_authority",
+                    "personal.student_learning": "root_authority",
+                    "personal.instructor_workspace": "root_authority",
+                    "personal.partner_portal": "root_authority"
+                }
+            },
+            "admin__none": {
+                "role": "admin",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [],
+                "provenance": []
+            },
+            "executive_admin__none": {
+                "role": "executive_admin",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [],
+                "provenance": []
+            },
+            "finance_manager__none": {
+                "role": "finance_manager",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [
+                    "operations.weekly_reports",
+                    "finance.dashboard"
+                ],
+                "provenance": {
+                    "operations.weekly_reports": "role",
+                    "finance.dashboard": "role"
+                }
+            },
+            "quality_manager__none": {
+                "role": "quality_manager",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [
+                    "operations.weekly_reports",
+                    "quality.dashboard"
+                ],
+                "provenance": {
+                    "operations.weekly_reports": "role",
+                    "quality.dashboard": "role"
+                }
+            },
+            "instructor__none": {
+                "role": "instructor",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [
+                    "operations.weekly_reports"
+                ],
+                "provenance": {
+                    "operations.weekly_reports": "role"
+                }
+            },
+            "student__none": {
+                "role": "student",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [],
+                "provenance": []
+            },
+            "partner__none": {
+                "role": "partner",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [],
+                "provenance": []
+            },
+            "support_agent__none": {
+                "role": "support_agent",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [],
+                "provenance": []
+            },
+            "hr_manager__none": {
+                "role": "hr_manager",
+                "context": "none",
+                "note": "role defaults only",
+                "allowed": [],
+                "provenance": []
+            },
+            "operations_manager__none": {
+                "role": "operations_manager",
+                "context": "none",
+                "note": "manager ROLE SLUG only — no TeamProfile, no leader_id",
+                "allowed": [],
+                "provenance": []
+            },
+            "operations_manager__member": {
+                "role": "operations_manager",
+                "context": "member",
+                "note": "real department member (TeamProfile -> TeamMember)",
+                "allowed": [
+                    "operations.meeting_reports"
+                ],
+                "provenance": {
+                    "operations.meeting_reports": "department_member"
+                }
+            },
+            "operations_manager__leader": {
+                "role": "operations_manager",
+                "context": "leader",
+                "note": "canonical departments.leader_id leader — member + leader defaults",
+                "allowed": [
+                    "operations.meeting_reports",
+                    "organizational_departments.structure"
+                ],
+                "provenance": {
+                    "operations.meeting_reports": "department_member",
+                    "organizational_departments.structure": "department_leader"
+                }
+            },
+            "ai_manager__leader": {
+                "role": "ai_manager",
+                "context": "leader",
+                "note": "leads the organizational AI Department — NOT the technical AI Platform",
+                "allowed": [
+                    "operations.meeting_reports",
+                    "organizational_departments.structure",
+                    "organizational_departments.ai_workspace"
+                ],
+                "provenance": {
+                    "operations.meeting_reports": "department_member",
+                    "organizational_departments.structure": "department_leader",
+                    "organizational_departments.ai_workspace": "role"
+                }
+            },
+            "volunteer__override_allow": {
+                "role": "volunteer",
+                "context": "none",
+                "note": "explicit ALLOW on a page no role/department grants",
+                "allowed": [
+                    "operations.weekly_reports",
+                    "finance.dashboard"
+                ],
+                "provenance": {
+                    "operations.weekly_reports": "role",
+                    "finance.dashboard": "user_allow"
+                }
+            },
+            "volunteer__override_deny": {
+                "role": "volunteer",
+                "context": "none",
+                "note": "explicit DENY removing a page the role default grants",
+                "allowed": [],
+                "provenance": []
+            }
+        }
+    }
+}
