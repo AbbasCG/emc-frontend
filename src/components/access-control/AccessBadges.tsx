@@ -75,6 +75,7 @@ const SOURCE_STYLE: Record<PageAccessSource, { cls: string; fallbackAr: string }
   department_leader: { cls: 'bg-sky-50 text-sky-700 ring-sky-200', fallbackAr: 'لأنه قائد الإدارة' },
   department_member: { cls: 'bg-teal-50 text-teal-700 ring-teal-200', fallbackAr: 'من الإدارة' },
   role:              { cls: 'bg-indigo-50 text-indigo-700 ring-indigo-200', fallbackAr: 'من الدور' },
+  authenticated_baseline: { cls: 'bg-slate-100 text-slate-700 ring-slate-300', fallbackAr: 'متاح لجميع المستخدمين المسجلين' },
   none:              { cls: 'bg-slate-100 text-slate-500 ring-slate-200', fallbackAr: 'لا يوجد مصدر' },
 }
 

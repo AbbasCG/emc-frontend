@@ -287,6 +287,7 @@ export type PageAccessSource =
   | 'department_leader'
   | 'department_member'
   | 'role'
+  | 'authenticated_baseline'
   | 'none'
 
 export type EffectivePageAccessRow = {
@@ -322,6 +323,7 @@ const SOURCES: readonly PageAccessSource[] = [
   'department_leader',
   'department_member',
   'role',
+  'authenticated_baseline',
   'none',
 ]
 

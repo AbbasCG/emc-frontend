@@ -75,6 +75,9 @@ export function RolePageAccessPanel({
         catalog,
         eligible,
         'محمية من النظام — لا يمكن إسنادها كوصول افتراضي لأي دور.',
+        // Phase 2G.2 — baseline pages are already granted to everyone; shown
+        // inherited so the Role editor cannot imply it grants or revokes them.
+        'متاح لجميع المستخدمين المسجلين — لا يُدار من هنا.',
       ),
     [catalog, eligible],
   )

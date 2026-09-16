@@ -46,6 +46,13 @@ export type PageAccessEntry = {
   delegatable: boolean
   requiredPermission: string | null
   departmentScoped: boolean
+  /**
+   * Phase 2G.2 — AUTHENTICATED BASELINE. True when the capability belongs to
+   * any authenticated dashboard account regardless of role, department
+   * membership or leadership. Declared by the backend catalog and stored in no
+   * table, so the UI must read it from here rather than hardcoding page keys.
+   */
+  authenticatedBaseline: boolean
 }
 
 export type PageAccessCategory = {
@@ -102,6 +109,7 @@ function entryFromUnknown(raw: unknown): PageAccessEntry | null {
     delegatable: bool(o.delegatable),
     requiredPermission: o.required_permission == null ? null : str(o.required_permission) || null,
     departmentScoped: bool(o.department_scoped),
+    authenticatedBaseline: bool(o.authenticated_baseline),
   }
 }
 

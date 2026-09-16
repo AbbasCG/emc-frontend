@@ -65,6 +65,7 @@ describe('fetchPageAccessCatalog', () => {
       delegatable: false,
       requiredPermission: 'view_payments',
       departmentScoped: false,
+      authenticatedBaseline: false,
     })
     expect(catalog.categories).toEqual([{ key: 'finance', labelAr: 'المالية' }])
   })
@@ -161,6 +162,7 @@ describe('findPageAccessEntry', () => {
         delegatable: false,
         requiredPermission: 'view_payments',
         departmentScoped: false,
+        authenticatedBaseline: false,
       },
     ],
     categories: [],
@@ -187,6 +189,7 @@ describe('findPageAccessEntryByRoute', () => {
         delegatable: false,
         requiredPermission: 'view_payments',
         departmentScoped: false,
+        authenticatedBaseline: false,
       },
     ],
     categories: [],

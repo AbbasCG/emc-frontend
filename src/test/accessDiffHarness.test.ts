@@ -16,7 +16,12 @@ import {
   type BaselineCatalogEntry,
   type BaselinePersona,
 } from '@/utils/accessDiff'
-import { canAccessDashboardPath, DASHBOARD_NAMESPACE_RULES } from '@/utils/dashboardAccess'
+import {
+  canAccessDashboardPath,
+  DASHBOARD_NAMESPACE_RULES,
+  EMC_DASHBOARD_ROLES,
+  getAllowedRolesForPath,
+} from '@/utils/dashboardAccess'
 import { getSidebarItemsByRole } from '@/layouts/dashboardSidebar'
 
 /**
@@ -258,6 +263,88 @@ describe('AI Department vs Technical AI Platform separation', () => {
   })
 })
 
+/* ── Phase 2G.2 review — the 34 NEWLY_ALLOWED rows ─────────────────────── */
+
+/**
+ * Every NEWLY_ALLOWED row after Phase 2G.2 is `hr.my_requests`, and each one is
+ * a HARNESS MODEL DIFFERENCE rather than new access.
+ *
+ * The capability owns two routes that render the SAME self-service page:
+ *   /dashboard/hr/my-requests          legacy rule: ['hr_manager']   (primary)
+ *   /dashboard/department/hr-requests  legacy rule: 'authenticated'
+ *
+ * diffPersona() samples `primary_route`, so the legacy side reads "denied" for
+ * every non-hr_manager persona even though the legacy system already exposed
+ * that page to them through the second route. These assertions pin that down so
+ * the 34 can never quietly become genuine new access.
+ */
+describe('NEWLY_ALLOWED rows are a harness model difference, not new access', () => {
+  const newlyAllowed = diffScenario(UNSEEDED, CATALOG).flatMap((d) =>
+    d.rows.filter((r) => r.status === 'NEWLY_ALLOWED').map((r) => ({ ...r, personaId: d.personaId, role: d.role })),
+  )
+
+  it('hr.my_requests owns both self-service routes', () => {
+    const e = entry('hr.my_requests')
+    expect(e.primary_route).toBe('/dashboard/hr/my-requests')
+    expect(e.route_patterns).toEqual(['/dashboard/hr/my-requests', '/dashboard/department/hr-requests'])
+    expect(e.authenticated_baseline).toBe(true)
+  })
+
+  it('the secondary route was legacy-AUTHENTICATED before Phase 2G.2', () => {
+    // Read from the legacy module itself, never from the new resolver.
+    expect(getAllowedRolesForPath('/dashboard/department/hr-requests')).toBe('authenticated')
+    expect(getAllowedRolesForPath('/dashboard/hr/my-requests')).toEqual(['hr_manager'])
+  })
+
+  it('every dashboard role could already open the secondary route under legacy', () => {
+    const denied = [...EMC_DASHBOARD_ROLES].filter(
+      (r) => !canAccessDashboardPath(r, '/dashboard/department/hr-requests'),
+    )
+    expect(denied).toEqual([])
+  })
+
+  it('every NEWLY_ALLOWED row is hr.my_requests sourced from the baseline', () => {
+    expect(newlyAllowed.length).toBeGreaterThan(0)
+    expect([...new Set(newlyAllowed.map((r) => r.key))]).toEqual(['hr.my_requests'])
+    expect([...new Set(newlyAllowed.map((r) => r.effectivePrimarySource))]).toEqual(['authenticated_baseline'])
+  })
+
+  it('NONE of them represents access the legacy system actually denied', () => {
+    for (const row of newlyAllowed) {
+      const owned = entry(row.key).route_patterns
+      const legacyAllowsSomeRoute = owned.some((rt) => canAccessDashboardPath(row.role, rt))
+      expect(legacyAllowsSomeRoute, `${row.personaId} was genuinely denied ${row.key}`).toBe(true)
+    }
+  })
+
+  it('no NEWLY_ALLOWED row is protected, admin-only, or a security regression', () => {
+    for (const row of newlyAllowed) {
+      expect(row.riskLevelOfPage).toBe('SAFE_DELEGATABLE')
+      expect(entry(row.key).protected).toBe(false)
+      expect(row.risk).not.toBe('CRITICAL')
+      expect(row.risk).not.toBe('HIGH')
+    }
+  })
+
+  it('HR management stays a separate, non-baseline capability', () => {
+    const management = entry('hr.incoming_requests')
+    const selfService = entry('hr.my_requests')
+
+    expect(management.authenticated_baseline).toBe(false)
+    expect(management.route_patterns).not.toContain('/dashboard/department/hr-requests')
+    expect(management.route_patterns).not.toContain('/dashboard/hr/my-requests')
+    expect(selfService.route_patterns).not.toContain(management.primary_route)
+  })
+
+  it('no persona gains HR management from the authenticated baseline', () => {
+    for (const [id, p] of Object.entries(UNSEEDED)) {
+      if (p.role === 'super_admin' || p.role === 'tech_admin') continue
+      expect(p.allowed, `${id} must not gain HR management`).not.toContain('hr.incoming_requests')
+      expect(p.allowed).not.toContain('hr.dashboard')
+    }
+  })
+})
+
 /* ── 13. Sidebar comparison ────────────────────────────────────────────── */
 
 describe('sidebar comparison', () => {
@@ -273,13 +360,29 @@ describe('sidebar comparison', () => {
     }
   })
 
-  it('reports unseeded sidebar items as NEWLY_HIDDEN rather than silently dropping them', () => {
+  /**
+   * Phase 2G.2: a sidebar item whose capability is an AUTHENTICATED BASELINE now
+   * MATCHes even with all three tables empty, because baseline is catalog-driven
+   * and needs no stored row. Everything else is still NEWLY_HIDDEN — reported,
+   * never silently dropped.
+   */
+  it('reports unseeded sidebar items as NEWLY_HIDDEN except catalog baseline pages', () => {
     const items = getSidebarItemsByRole('finance_manager')
     const rows = diffSidebar(items, persona(UNSEEDED, 'finance_manager__none'), CATALOG)
 
     const mapped = rows.filter((r) => r.status !== 'UNMAPPED')
     expect(mapped.length).toBeGreaterThan(0)
-    expect(mapped.every((r) => r.status === 'NEWLY_HIDDEN')).toBe(true)
+
+    const baselineKeys = new Set(CATALOG.filter((c) => c.authenticated_baseline).map((c) => c.key))
+
+    for (const rowItem of mapped) {
+      const expected = baselineKeys.has(rowItem.key ?? '') ? 'MATCH' : 'NEWLY_HIDDEN'
+      expect(rowItem.status, `${rowItem.href} (${rowItem.key})`).toBe(expected)
+    }
+
+    // The baseline genuinely participates here, so the assertion above is not vacuous.
+    expect(mapped.some((r) => r.status === 'MATCH')).toBe(true)
+    expect(mapped.some((r) => r.status === 'NEWLY_HIDDEN')).toBe(true)
   })
 })
 

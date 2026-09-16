@@ -34,6 +34,8 @@ export type BaselineCatalogEntry = {
   protected: boolean
   delegatable: boolean
   department_scoped: boolean
+  /** Phase 2G.2 — catalog-declared authenticated baseline. */
+  authenticated_baseline: boolean
 }
 
 export type BaselinePersona = {

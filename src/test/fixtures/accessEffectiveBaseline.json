@@ -13,7 +13,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.weekly_reports",
@@ -26,7 +27,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.meeting_reports",
@@ -39,7 +41,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.impact_points",
@@ -52,7 +55,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.workshop_requests",
@@ -66,7 +70,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.tasks",
@@ -82,7 +87,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.meetings",
@@ -96,7 +102,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.forms",
@@ -111,7 +118,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.dashboard_overview",
@@ -126,7 +134,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.kpi_dashboard",
@@ -140,7 +149,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.reports_dashboard",
@@ -154,7 +164,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.department_financial_requests",
@@ -167,7 +178,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.meeting_lounge",
@@ -181,7 +193,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.accepted_volunteers",
@@ -195,7 +208,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.volunteers_management",
@@ -210,7 +224,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.support_tickets",
@@ -226,7 +241,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.tickets",
@@ -241,7 +257,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": true
         },
         {
             "key": "operations.tickets_workspace",
@@ -254,7 +271,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.registrations_requests",
@@ -267,7 +285,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "operations.calendar",
@@ -280,7 +299,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.dashboard",
@@ -294,7 +314,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.payments",
@@ -308,7 +329,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.transactions",
@@ -322,7 +344,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.chart_of_accounts",
@@ -335,7 +358,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.financial_requests",
@@ -349,7 +373,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.manual_payments",
@@ -363,7 +388,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.coupons",
@@ -376,7 +402,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.scholarships",
@@ -389,7 +416,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.orders",
@@ -403,7 +431,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.invoices",
@@ -417,7 +446,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.accounts",
@@ -431,7 +461,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.program_approvals",
@@ -444,7 +475,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "finance.executive_financial_requests",
@@ -457,7 +489,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.dashboard",
@@ -470,7 +503,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.my_requests",
@@ -484,7 +518,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": true
         },
         {
             "key": "hr.incoming_requests",
@@ -497,7 +532,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.volunteers",
@@ -511,7 +547,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.instructors",
@@ -524,7 +561,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.onboarding",
@@ -537,7 +575,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.volunteer_requests",
@@ -553,7 +592,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.ambassador_applications",
@@ -569,7 +609,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.team",
@@ -582,7 +623,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.departments_overview",
@@ -595,7 +637,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.tasks",
@@ -608,7 +651,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "hr.documents",
@@ -621,7 +665,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.dashboard",
@@ -634,7 +679,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.reviews",
@@ -647,7 +693,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.incidents",
@@ -660,7 +707,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.corrective_actions",
@@ -673,7 +721,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.compliance",
@@ -686,7 +735,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.governance",
@@ -699,7 +749,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.audit_logs",
@@ -712,7 +763,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.reports",
@@ -725,7 +777,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.checklists",
@@ -738,7 +791,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "quality.team",
@@ -751,7 +805,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.sessions",
@@ -764,7 +819,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.attendance",
@@ -777,7 +833,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.assignments",
@@ -790,7 +847,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.materials",
@@ -804,7 +862,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.evaluations",
@@ -818,7 +877,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.certificates",
@@ -841,7 +901,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.programs",
@@ -857,7 +918,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.learning_paths",
@@ -872,7 +934,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.progress",
@@ -886,7 +949,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.institute_admin",
@@ -903,7 +967,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.modules",
@@ -916,7 +981,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.lessons",
@@ -929,7 +995,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "lms.quizzes",
@@ -942,7 +1009,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.workspace",
@@ -955,7 +1023,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.members",
@@ -968,7 +1037,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.structure",
@@ -981,7 +1051,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.permissions_delegation",
@@ -994,7 +1065,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.ai_workspace",
@@ -1007,7 +1079,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.programs_manager",
@@ -1020,7 +1093,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.operations_manager",
@@ -1033,7 +1107,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.partnerships_manager",
@@ -1046,7 +1121,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.community_manager",
@@ -1059,7 +1135,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.section_lead",
@@ -1072,7 +1149,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.marketing",
@@ -1086,7 +1164,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": true,
-            "department_scoped": true
+            "department_scoped": true,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.department_overview",
@@ -1103,7 +1182,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.partners",
@@ -1116,7 +1196,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.partnership_requests",
@@ -1129,7 +1210,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.consultant_applications",
@@ -1142,7 +1224,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "organizational_departments.department_units",
@@ -1155,7 +1238,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.super_admin_overview",
@@ -1168,7 +1252,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.admin_overview",
@@ -1181,7 +1266,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.tech_admin_overview",
@@ -1194,7 +1280,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.users",
@@ -1207,7 +1294,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.roles",
@@ -1220,7 +1308,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.permission_delegation_config",
@@ -1233,7 +1322,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.departments",
@@ -1246,7 +1336,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.team",
@@ -1259,7 +1350,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.students",
@@ -1273,7 +1365,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.instructors",
@@ -1286,7 +1379,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.workshops_catalog",
@@ -1299,7 +1393,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.registrations",
@@ -1312,7 +1407,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.partners_catalog",
@@ -1325,7 +1421,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.audit_logs",
@@ -1338,7 +1435,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.admin_audit_logs",
@@ -1351,7 +1449,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.integrations",
@@ -1366,7 +1465,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.webhooks",
@@ -1380,7 +1480,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.email_settings",
@@ -1393,7 +1494,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.attendance_settings",
@@ -1406,7 +1508,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.email_logs",
@@ -1419,7 +1522,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.product_updates",
@@ -1432,7 +1536,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.financial_requests_oversight",
@@ -1445,7 +1550,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.quality_admin_overview",
@@ -1458,7 +1564,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.visitor_analytics",
@@ -1471,7 +1578,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.catalog_import",
@@ -1484,7 +1592,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.tickets_admin",
@@ -1497,7 +1606,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.team_members",
@@ -1510,7 +1620,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.knowledge_hub",
@@ -1526,7 +1637,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "administration.documents",
@@ -1539,7 +1651,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.ai_command_center",
@@ -1553,7 +1666,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.ai_automations",
@@ -1566,7 +1680,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.ai_insights",
@@ -1579,7 +1694,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.ai_usage",
@@ -1592,7 +1708,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.automations",
@@ -1606,7 +1723,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.platform_scale",
@@ -1619,7 +1737,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.api_tokens",
@@ -1632,7 +1751,8 @@
             "risk_level": "ADMIN_ONLY",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "technical_system.mobile_readiness",
@@ -1645,7 +1765,8 @@
             "risk_level": "SYSTEM_PROTECTED",
             "protected": true,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "personal.profile",
@@ -1658,7 +1779,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": true
         },
         {
             "key": "personal.notifications",
@@ -1671,7 +1793,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": true
         },
         {
             "key": "personal.notification_preferences",
@@ -1684,7 +1807,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": true
         },
         {
             "key": "personal.volunteer_hr_profile",
@@ -1697,7 +1821,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": true
         },
         {
             "key": "personal.resource_center_courses",
@@ -1710,7 +1835,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "personal.student_learning",
@@ -1747,7 +1873,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "personal.instructor_workspace",
@@ -1786,7 +1913,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         },
         {
             "key": "personal.partner_portal",
@@ -1802,7 +1930,8 @@
             "risk_level": "SAFE_DELEGATABLE",
             "protected": false,
             "delegatable": false,
-            "department_scoped": false
+            "department_scoped": false,
+            "authenticated_baseline": false
         }
     ],
     "scenarios": {
@@ -2345,246 +2474,736 @@
                 "role": "admin",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "executive_admin__none": {
                 "role": "executive_admin",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "operations_manager__none": {
                 "role": "operations_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "programs_manager__none": {
                 "role": "programs_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "finance_manager__none": {
                 "role": "finance_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "quality_manager__none": {
                 "role": "quality_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "hr_manager__none": {
                 "role": "hr_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "marketing_manager__none": {
                 "role": "marketing_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "partnerships_manager__none": {
                 "role": "partnerships_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "community_manager__none": {
                 "role": "community_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "support_agent__none": {
                 "role": "support_agent",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "instructor__none": {
                 "role": "instructor",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "student__none": {
                 "role": "student",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "partner__none": {
                 "role": "partner",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "volunteer__none": {
                 "role": "volunteer",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "department_manager__none": {
                 "role": "department_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "section_lead__none": {
                 "role": "section_lead",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "ai_manager__none": {
                 "role": "ai_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "strategy_planning_manager__none": {
                 "role": "strategy_planning_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "digital_ambassadors_manager__none": {
                 "role": "digital_ambassadors_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "advisors_manager__none": {
                 "role": "advisors_manager",
                 "context": "none",
                 "note": "role only — no department, no override",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "operations_manager__member": {
                 "role": "operations_manager",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "operations_manager__leader": {
                 "role": "operations_manager",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "programs_manager__member": {
                 "role": "programs_manager",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "programs_manager__leader": {
                 "role": "programs_manager",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "department_manager__member": {
                 "role": "department_manager",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "department_manager__leader": {
                 "role": "department_manager",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "ai_manager__member": {
                 "role": "ai_manager",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "ai_manager__leader": {
                 "role": "ai_manager",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "strategy_planning_manager__member": {
                 "role": "strategy_planning_manager",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "strategy_planning_manager__leader": {
                 "role": "strategy_planning_manager",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "quality_manager__member": {
                 "role": "quality_manager",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "quality_manager__leader": {
                 "role": "quality_manager",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "volunteer__member": {
                 "role": "volunteer",
                 "context": "member",
                 "note": "department member, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "volunteer__leader": {
                 "role": "volunteer",
                 "context": "leader",
                 "note": "canonical departments.leader_id leader, no defaults stored",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             }
         },
         "seeded": {
@@ -3126,15 +3745,43 @@
                 "role": "admin",
                 "context": "none",
                 "note": "role defaults only",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "executive_admin__none": {
                 "role": "executive_admin",
                 "context": "none",
                 "note": "role defaults only",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "finance_manager__none": {
                 "role": "finance_manager",
@@ -3142,11 +3789,23 @@
                 "note": "role defaults only",
                 "allowed": [
                     "operations.weekly_reports",
-                    "finance.dashboard"
+                    "operations.tickets",
+                    "finance.dashboard",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
-                    "finance.dashboard": "role"
+                    "operations.tickets": "authenticated_baseline",
+                    "finance.dashboard": "role",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "quality_manager__none": {
@@ -3155,11 +3814,23 @@
                 "note": "role defaults only",
                 "allowed": [
                     "operations.weekly_reports",
-                    "quality.dashboard"
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "quality.dashboard",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
-                    "quality.dashboard": "role"
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "quality.dashboard": "role",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "instructor__none": {
@@ -3167,56 +3838,150 @@
                 "context": "none",
                 "note": "role defaults only",
                 "allowed": [
-                    "operations.weekly_reports"
+                    "operations.weekly_reports",
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
-                    "operations.weekly_reports": "role"
+                    "operations.weekly_reports": "role",
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "student__none": {
                 "role": "student",
                 "context": "none",
                 "note": "role defaults only",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "partner__none": {
                 "role": "partner",
                 "context": "none",
                 "note": "role defaults only",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "support_agent__none": {
                 "role": "support_agent",
                 "context": "none",
                 "note": "role defaults only",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "hr_manager__none": {
                 "role": "hr_manager",
                 "context": "none",
                 "note": "role defaults only",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "operations_manager__none": {
                 "role": "operations_manager",
                 "context": "none",
                 "note": "manager ROLE SLUG only — no TeamProfile, no leader_id",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             },
             "operations_manager__member": {
                 "role": "operations_manager",
                 "context": "member",
                 "note": "real department member (TeamProfile -> TeamMember)",
                 "allowed": [
-                    "operations.meeting_reports"
+                    "operations.meeting_reports",
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
-                    "operations.meeting_reports": "department_member"
+                    "operations.meeting_reports": "department_member",
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "operations_manager__leader": {
@@ -3225,11 +3990,23 @@
                 "note": "canonical departments.leader_id leader — member + leader defaults",
                 "allowed": [
                     "operations.meeting_reports",
-                    "organizational_departments.structure"
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "organizational_departments.structure",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
                     "operations.meeting_reports": "department_member",
-                    "organizational_departments.structure": "department_leader"
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "organizational_departments.structure": "department_leader",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "ai_manager__leader": {
@@ -3238,13 +4015,25 @@
                 "note": "leads the organizational AI Department — NOT the technical AI Platform",
                 "allowed": [
                     "operations.meeting_reports",
+                    "operations.tickets",
+                    "hr.my_requests",
                     "organizational_departments.structure",
-                    "organizational_departments.ai_workspace"
+                    "organizational_departments.ai_workspace",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
                     "operations.meeting_reports": "department_member",
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
                     "organizational_departments.structure": "department_leader",
-                    "organizational_departments.ai_workspace": "role"
+                    "organizational_departments.ai_workspace": "role",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "volunteer__override_allow": {
@@ -3253,19 +4042,45 @@
                 "note": "explicit ALLOW on a page no role/department grants",
                 "allowed": [
                     "operations.weekly_reports",
-                    "finance.dashboard"
+                    "operations.tickets",
+                    "finance.dashboard",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
                 ],
                 "provenance": {
                     "operations.weekly_reports": "role",
-                    "finance.dashboard": "user_allow"
+                    "operations.tickets": "authenticated_baseline",
+                    "finance.dashboard": "user_allow",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
                 }
             },
             "volunteer__override_deny": {
                 "role": "volunteer",
                 "context": "none",
                 "note": "explicit DENY removing a page the role default grants",
-                "allowed": [],
-                "provenance": []
+                "allowed": [
+                    "operations.tickets",
+                    "hr.my_requests",
+                    "personal.profile",
+                    "personal.notifications",
+                    "personal.notification_preferences",
+                    "personal.volunteer_hr_profile"
+                ],
+                "provenance": {
+                    "operations.tickets": "authenticated_baseline",
+                    "hr.my_requests": "authenticated_baseline",
+                    "personal.profile": "authenticated_baseline",
+                    "personal.notifications": "authenticated_baseline",
+                    "personal.notification_preferences": "authenticated_baseline",
+                    "personal.volunteer_hr_profile": "authenticated_baseline"
+                }
             }
         }
     }

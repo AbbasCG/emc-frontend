@@ -88,6 +88,7 @@ export function DepartmentPageAccessPanel({
         catalog,
         eligible.member,
         'غير قابلة للإسناد كافتراضي لأعضاء الإدارة — بحسب تصنيف الخادم.',
+        'متاح لجميع المستخدمين المسجلين — لا يُدار من هنا.',
       ),
     [catalog, eligible.member],
   )
@@ -98,6 +99,7 @@ export function DepartmentPageAccessPanel({
         catalog,
         eligible.leader,
         'غير قابلة للإسناد كإضافة للقائد — بحسب تصنيف الخادم.',
+        'متاح لجميع المستخدمين المسجلين — لا يُدار من هنا.',
       ),
     [catalog, eligible.leader],
   )

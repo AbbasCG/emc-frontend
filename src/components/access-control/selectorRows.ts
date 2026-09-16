@@ -18,13 +18,27 @@ export function buildSelectorRows(
   catalog: PageAccessCatalog | null,
   eligible: EligiblePageEntry[],
   lockedReasonAr: string,
+  /**
+   * Phase 2G.2 — when supplied, AUTHENTICATED BASELINE rows render locked with
+   * this reason instead of as an editable default.
+   *
+   * Passed by the Role and Department editors: those pages are already granted
+   * to every authenticated account by the catalog, so showing them as a
+   * checkbox would falsely imply the role/department is what grants them — and
+   * unchecking would look like it revokes a global baseline it cannot touch.
+   * The User override editor deliberately does NOT pass it, because per-user
+   * ALLOW/DENY semantics are unchanged by Phase 2G.2.
+   */
+  baselineLockedReasonAr?: string,
 ): PageAccessSelectorRow[] {
   const eligibleKeys = new Set(eligible.map((e) => e.key))
 
   // Preferred path: render every catalog capability, locking the ineligible ones.
   if (catalog && catalog.pages.length > 0) {
     return catalog.pages.map((p) => {
-      const locked = !eligibleKeys.has(p.key)
+      const ineligible = !eligibleKeys.has(p.key)
+      const baselineLocked = Boolean(baselineLockedReasonAr) && p.authenticatedBaseline
+      const locked = ineligible || baselineLocked
       return {
         key: p.key,
         labelAr: p.labelAr,
@@ -34,7 +48,10 @@ export function buildSelectorRows(
         primaryRoute: p.primaryRoute,
         routePatterns: p.routePatterns,
         locked,
-        lockedReasonAr: locked ? lockedReasonAr : undefined,
+        lockedReasonAr:
+          ineligible ? lockedReasonAr
+          : baselineLocked ? baselineLockedReasonAr
+          : undefined,
       }
     })
   }
