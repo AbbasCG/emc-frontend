@@ -52,9 +52,9 @@ const persona = (scenario: Record<string, BaselinePersona>, id: string): Baselin
 /* ── Fixture integrity ─────────────────────────────────────────────────── */
 
 describe('baseline fixture', () => {
-  it('carries the full 129-entry catalog and both scenarios', () => {
-    expect(baseline.catalog_count).toBe(129)
-    expect(CATALOG).toHaveLength(129)
+  it('carries the full 130-entry catalog and both scenarios', () => {
+    expect(baseline.catalog_count).toBe(130)
+    expect(CATALOG).toHaveLength(130)
     expect(Object.keys(UNSEEDED).length).toBeGreaterThan(30)
     expect(Object.keys(SEEDED).length).toBeGreaterThan(10)
   })
@@ -189,10 +189,13 @@ describe('SYSTEM_PROTECTED comparison', () => {
   const protectedKeys = CATALOG.filter((c) => c.protected).map((c) => c.key)
 
   // Phase 2G.1C reclassified nine admin-tier capabilities SYSTEM_PROTECTED ->
-  // ADMIN_ONLY, leaving the eight genuine root-authority surfaces.
-  it('there are exactly 8 protected capabilities, and they are the root surfaces', () => {
-    expect(protectedKeys).toHaveLength(8)
+  // ADMIN_ONLY, leaving the genuine root-authority surfaces. The central Access
+  // Control page joins them: it EDITS the access-control tables themselves, so
+  // it must never be delegatable through the mechanism it configures.
+  it('there are exactly 9 protected capabilities, and they are the root surfaces', () => {
+    expect(protectedKeys).toHaveLength(9)
     expect([...protectedKeys].sort()).toEqual([
+      'administration.access_control',
       'administration.attendance_settings',
       'administration.email_logs',
       'administration.email_settings',
@@ -392,8 +395,8 @@ describe('route guard comparison', () => {
   it('compares canAccessDashboardPath against effective access for every capability', () => {
     const d = diffPersona('finance_manager__none', persona(UNSEEDED, 'finance_manager__none'), CATALOG)
 
-    expect(d.rows).toHaveLength(129)
-    expect(d.counts.MATCH_ALLOWED + d.counts.MATCH_DENIED + d.counts.NEWLY_ALLOWED + d.counts.NEWLY_DENIED).toBe(129)
+    expect(d.rows).toHaveLength(130)
+    expect(d.counts.MATCH_ALLOWED + d.counts.MATCH_DENIED + d.counts.NEWLY_ALLOWED + d.counts.NEWLY_DENIED).toBe(130)
   })
 })
 
@@ -434,7 +437,7 @@ describe('BASELINE DIFF REPORT', () => {
       byRisk: summary.byRisk,
     }).toMatchSnapshot('unseeded-summary')
 
-    expect(summary.totalComparisons).toBe(diffs.length * 129)
+    expect(summary.totalComparisons).toBe(diffs.length * 130)
   })
 
   it('seeded scenario — deterministic counts', () => {

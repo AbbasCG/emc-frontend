@@ -48,20 +48,20 @@ exports[`BASELINE DIFF REPORT > seeded scenario — deterministic counts > seede
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 2065,
+    "EXPECTED": 2082,
     "HIGH": 0,
     "LOW": 29,
     "MEDIUM": 99,
   },
   "counts": {
-    "MATCH_ALLOWED": 345,
-    "MATCH_DENIED": 1622,
+    "MATCH_ALLOWED": 347,
+    "MATCH_DENIED": 1637,
     "NEWLY_ALLOWED": 16,
     "NEWLY_DENIED": 210,
     "UNMAPPED": 0,
   },
   "personas": 17,
-  "totalComparisons": 2193,
+  "totalComparisons": 2210,
 }
 `;
 
@@ -69,20 +69,20 @@ exports[`BASELINE DIFF REPORT > unseeded scenario (production today) — determi
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 4463,
+    "EXPECTED": 4500,
     "HIGH": 0,
     "LOW": 58,
     "MEDIUM": 252,
   },
   "counts": {
-    "MATCH_ALLOWED": 434,
-    "MATCH_DENIED": 3844,
+    "MATCH_ALLOWED": 436,
+    "MATCH_DENIED": 3879,
     "NEWLY_ALLOWED": 34,
     "NEWLY_DENIED": 461,
     "UNMAPPED": 0,
   },
   "personas": 37,
-  "totalComparisons": 4773,
+  "totalComparisons": 4810,
 }
 `;
 

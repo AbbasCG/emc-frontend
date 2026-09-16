@@ -1,6 +1,6 @@
 {
     "generated_by": "tests/Feature/AccessDiffBaselineTest.php",
-    "catalog_count": 129,
+    "catalog_count": 130,
     "catalog": [
         {
             "key": "operations.board",
@@ -1326,6 +1326,20 @@
             "authenticated_baseline": false
         },
         {
+            "key": "administration.access_control",
+            "primary_route": "/dashboard/super-admin/access-control",
+            "route_patterns": [
+                "/dashboard/super-admin/access-control"
+            ],
+            "label_ar": "إدارة الوصول والصلاحيات",
+            "category": "administration",
+            "risk_level": "SYSTEM_PROTECTED",
+            "protected": true,
+            "delegatable": false,
+            "department_scoped": false,
+            "authenticated_baseline": false
+        },
+        {
             "key": "administration.departments",
             "primary_route": "/dashboard/super-admin/crud/departments",
             "route_patterns": [
@@ -2031,6 +2045,7 @@
                     "administration.users",
                     "administration.roles",
                     "administration.permission_delegation_config",
+                    "administration.access_control",
                     "administration.departments",
                     "administration.team",
                     "administration.students",
@@ -2162,6 +2177,7 @@
                     "administration.users": "root_authority",
                     "administration.roles": "root_authority",
                     "administration.permission_delegation_config": "root_authority",
+                    "administration.access_control": "root_authority",
                     "administration.departments": "root_authority",
                     "administration.team": "root_authority",
                     "administration.students": "root_authority",
@@ -2298,6 +2314,7 @@
                     "administration.users",
                     "administration.roles",
                     "administration.permission_delegation_config",
+                    "administration.access_control",
                     "administration.departments",
                     "administration.team",
                     "administration.students",
@@ -2429,6 +2446,7 @@
                     "administration.users": "root_authority",
                     "administration.roles": "root_authority",
                     "administration.permission_delegation_config": "root_authority",
+                    "administration.access_control": "root_authority",
                     "administration.departments": "root_authority",
                     "administration.team": "root_authority",
                     "administration.students": "root_authority",
@@ -3302,6 +3320,7 @@
                     "administration.users",
                     "administration.roles",
                     "administration.permission_delegation_config",
+                    "administration.access_control",
                     "administration.departments",
                     "administration.team",
                     "administration.students",
@@ -3433,6 +3452,7 @@
                     "administration.users": "root_authority",
                     "administration.roles": "root_authority",
                     "administration.permission_delegation_config": "root_authority",
+                    "administration.access_control": "root_authority",
                     "administration.departments": "root_authority",
                     "administration.team": "root_authority",
                     "administration.students": "root_authority",
@@ -3569,6 +3589,7 @@
                     "administration.users",
                     "administration.roles",
                     "administration.permission_delegation_config",
+                    "administration.access_control",
                     "administration.departments",
                     "administration.team",
                     "administration.students",
@@ -3700,6 +3721,7 @@
                     "administration.users": "root_authority",
                     "administration.roles": "root_authority",
                     "administration.permission_delegation_config": "root_authority",
+                    "administration.access_control": "root_authority",
                     "administration.departments": "root_authority",
                     "administration.team": "root_authority",
                     "administration.students": "root_authority",

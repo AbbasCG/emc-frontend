@@ -293,6 +293,7 @@ const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/Re
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
+const AccessControlCenterPage     = lazy(() => import('./pages/super-admin/AccessControlCenterPage'))
 const AdminPermissionConfigTreePage = lazy(() => import('./pages/super-admin/crud/AdminPermissionConfigTree'))
 const DepartmentsManagementPage   = lazy(() => import('./pages/super-admin/crud/DepartmentsManagementPage'))
 const TeamManagementPage          = lazy(() => import('./pages/super-admin/crud/TeamManagementPage'))
@@ -521,6 +522,7 @@ function App() {
                   <Route path="/dashboard/super-admin/crud/users/:id" element={<Navigate to="/dashboard/super-admin/crud/users" replace />} />
 
                   <Route path="/dashboard/super-admin/crud/users" element={<UsersManagementPage />} />
+                  <Route path="/dashboard/super-admin/access-control" element={<AccessControlCenterPage />} />
                   <Route path="/dashboard/super-admin/crud/roles" element={<RolesPermissionsPage />} />
                   <Route path="/dashboard/super-admin/crud/permissions" element={<Suspense fallback={<RouteFallback />}><AdminPermissionConfigTreePage /></Suspense>} />
                   <Route path="/dashboard/super-admin/crud/departments" element={<DepartmentsManagementPage />} />
