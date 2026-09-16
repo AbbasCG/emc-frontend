@@ -507,7 +507,12 @@ describe('cutover readiness gates', () => {
 /* ── 21/23/24/25. No cutover happened ──────────────────────────────────── */
 
 describe('Phase 2F changed NO production access behaviour', () => {
-  const read = (p: string) => readFileSync(resolve(process.cwd(), p), 'utf8')
+  // Strip comments: these guards test what the code DOES, not what a docblock
+  // explaining the architecture happens to mention.
+  const read = (p: string) =>
+    readFileSync(resolve(process.cwd(), p), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
 
   it('the diff harness is imported by no production module', () => {
     for (const f of [

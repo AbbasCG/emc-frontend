@@ -401,8 +401,12 @@ describe('EffectiveAccessPreview', () => {
 /* ── No-cutover guarantees ─────────────────────────────────────────────── */
 
 describe('Phase 2E introduces NO production access cutover', () => {
-  const read = (p: string) => readFileSync(resolve(process.cwd(), p), 'utf8')
-
+  // Strip comments: these guards test what the code DOES, not what a docblock
+  // explaining the architecture happens to mention.
+  const read = (p: string) =>
+    readFileSync(resolve(process.cwd(), p), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
   it('does not introduce any localStorage-based authorization', () => {
     for (const f of [
       'src/api/accessControlApi.ts',
