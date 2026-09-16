@@ -183,8 +183,20 @@ describe('seeded scenario — leadership, protection and overrides', () => {
 describe('SYSTEM_PROTECTED comparison', () => {
   const protectedKeys = CATALOG.filter((c) => c.protected).map((c) => c.key)
 
-  it('there are exactly 17 protected capabilities', () => {
-    expect(protectedKeys).toHaveLength(17)
+  // Phase 2G.1C reclassified nine admin-tier capabilities SYSTEM_PROTECTED ->
+  // ADMIN_ONLY, leaving the eight genuine root-authority surfaces.
+  it('there are exactly 8 protected capabilities, and they are the root surfaces', () => {
+    expect(protectedKeys).toHaveLength(8)
+    expect([...protectedKeys].sort()).toEqual([
+      'administration.attendance_settings',
+      'administration.email_logs',
+      'administration.email_settings',
+      'administration.permission_delegation_config',
+      'administration.roles',
+      'administration.super_admin_overview',
+      'technical_system.mobile_readiness',
+      'technical_system.platform_scale',
+    ])
   })
 
   it('super_admin and tech_admin reach every protected capability via root authority', () => {
@@ -213,10 +225,20 @@ describe('SYSTEM_PROTECTED comparison', () => {
 
 describe('AI Department vs Technical AI Platform separation', () => {
   it('the catalog itself separates the two surfaces', () => {
-    expect(entry('organizational_departments.ai_workspace').primary_route).toBe('/dashboard/ai-department')
-    expect(entry('organizational_departments.ai_workspace').protected).toBe(false)
-    expect(entry('technical_system.ai_command_center').primary_route).toBe('/dashboard/admin/ai')
-    expect(entry('technical_system.ai_command_center').protected).toBe(true)
+    const workspace = entry('organizational_departments.ai_workspace')
+    const platform = entry('technical_system.ai_command_center')
+
+    expect(workspace.primary_route).toBe('/dashboard/ai-department')
+    expect(workspace.risk_level).toBe('SAFE_DELEGATABLE')
+    expect(workspace.delegatable).toBe(true)
+
+    // Phase 2G.1C: the technical platform is ADMIN_ONLY (admin-tier backend
+    // gate), not root-protected. The separation is unchanged — what keeps it
+    // out of ai_manager's reach is delegatable=false, not the risk level.
+    expect(platform.primary_route).toBe('/dashboard/admin/ai')
+    expect(platform.risk_level).toBe('ADMIN_ONLY')
+    expect(platform.delegatable).toBe(false)
+    expect(platform.department_scoped).toBe(false)
   })
 
   it('an ai_manager leading the AI Department reaches its workspace but no technical_system page', () => {

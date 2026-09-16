@@ -48,10 +48,10 @@ exports[`BASELINE DIFF REPORT > seeded scenario — deterministic counts > seede
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 2013,
+    "EXPECTED": 2004,
     "HIGH": 0,
     "LOW": 75,
-    "MEDIUM": 105,
+    "MEDIUM": 114,
   },
   "counts": {
     "MATCH_ALLOWED": 269,
@@ -69,10 +69,10 @@ exports[`BASELINE DIFF REPORT > unseeded scenario (production today) — determi
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 4331,
+    "EXPECTED": 4322,
     "HIGH": 0,
     "LOW": 164,
-    "MEDIUM": 278,
+    "MEDIUM": 287,
   },
   "counts": {
     "MATCH_ALLOWED": 258,
