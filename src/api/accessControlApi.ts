@@ -307,6 +307,13 @@ export type EffectivePageAccessRow = {
   category: PageAccessCategoryKey
   categoryLabelAr: string
   riskLevel: PageAccessRiskLevel
+  /**
+   * Catalog routes, present on the /auth/me/page-access manifest so the route
+   * guard and sidebar can map a URL onto a capability WITHOUT re-deriving the
+   * mapping. Empty on the admin inspection payload, which does not need them.
+   */
+  primaryRoute: string
+  routePatterns: string[]
 }
 
 export type EffectivePageAccess = {
@@ -351,6 +358,8 @@ function effectiveRowFromUnknown(raw: unknown): EffectivePageAccessRow | null {
     category: str(o.category) as PageAccessCategoryKey,
     categoryLabelAr: str(o.category_label_ar),
     riskLevel: asRiskLevel(o.risk_level),
+    primaryRoute: str(o.primary_route),
+    routePatterns: asStringList(o.route_patterns),
   }
 }
 

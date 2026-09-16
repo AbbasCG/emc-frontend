@@ -15,6 +15,78 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => auth.state,
 }))
 
+/**
+ * The guard now consumes the BACKEND's effective page-access manifest instead
+ * of a role matrix compiled into the browser, so these tests supply a manifest
+ * rather than a role and assert the guard applies it faithfully.
+ */
+const access = vi.hoisted(() => ({
+  state: null as unknown as ReturnType<
+    (typeof import('@/contexts/PageAccessContext'))['usePageAccess']
+  >,
+}))
+
+vi.mock('@/contexts/PageAccessContext', () => ({
+  usePageAccess: () => access.state,
+}))
+
+type ManifestEntry = { route: string; allowed: boolean }
+
+/** Build a manifest context value from a handful of route decisions. */
+function setAccess(
+  entries: ManifestEntry[],
+  status: 'idle' | 'loading' | 'ready' | 'error' = 'ready',
+) {
+  const pages = entries.map((e, i) => ({
+    key: `k${i}`,
+    allowed: e.allowed,
+    primarySource: (e.allowed ? 'role' : 'none') as never,
+    primarySourceLabelAr: '',
+    sources: [],
+    overrideState: null,
+    protected: false,
+    reason: '',
+    labelAr: e.route,
+    category: 'operations' as never,
+    categoryLabelAr: '',
+    riskLevel: 'SAFE_DELEGATABLE' as never,
+    primaryRoute: e.route,
+    routePatterns: [e.route],
+  }))
+
+  const norm = (p: string) => p.split('?')[0].split('#')[0].replace(/(.)\/+$/, '$1')
+  const match = (pathname: string) => {
+    let best: (typeof pages)[number] | null = null
+    let bestLen = -1
+    for (const page of pages) {
+      for (const pattern of page.routePatterns) {
+        const path = norm(pathname)
+        const pat = norm(pattern)
+        if (path !== pat && !path.startsWith(`${pat}/`)) continue
+        if (pat.length > bestLen) {
+          best = page
+          bestLen = pat.length
+        }
+      }
+    }
+    return best
+  }
+
+  access.state = {
+    status,
+    pages,
+    allowedKeys: new Set(pages.filter((p) => p.allowed).map((p) => p.key)),
+    isReady: status === 'ready',
+    canAccessKey: (key: string) => pages.some((p) => p.key === key && p.allowed),
+    canAccessPath: (pathname: string) => {
+      const page = match(pathname)
+      return page ? page.allowed : null
+    },
+    pageForPath: (pathname: string) => match(pathname),
+    refresh: vi.fn(),
+  } as never
+}
+
 function baseAuth(): AuthValue {
   return {
     user: null,
@@ -56,6 +128,7 @@ function LocationProbe({ label }: { label: string }) {
 
 beforeEach(() => {
   setAuth({})
+  setAccess([])
 })
 
 /* ─────────────────────────  ProtectedRoute  ───────────────────────── */
@@ -263,18 +336,23 @@ function renderDashboardGuard(entry: string) {
 }
 
 describe('DashboardAccessGuard', () => {
-  it('يسمح للدور المطابق لمساحة اسم اللوحة', () => {
-    setAuth(asRole('admin'))
+  const ADMIN = '/dashboard/admin'
+  const PROGRAMS = '/dashboard/admin/programs'
 
-    renderDashboardGuard('/dashboard/admin')
+  it('renders a page the manifest allows', () => {
+    setAuth(asRole('admin'))
+    setAccess([{ route: ADMIN, allowed: true }])
+
+    renderDashboardGuard(ADMIN)
 
     expect(screen.getByText('لوحة الإدارة')).toBeInTheDocument()
   })
 
-  it('يحوّل الدور غير المصرّح إلى لوحته الرئيسية مع تمرير المسار المرفوض', () => {
+  it('redirects a denied page to the role home and passes the refused path', () => {
     setAuth(asRole('partner'))
+    setAccess([{ route: ADMIN, allowed: false }])
 
-    renderDashboardGuard('/dashboard/admin')
+    renderDashboardGuard(ADMIN)
 
     expect(screen.queryByText('لوحة الإدارة')).not.toBeInTheDocument()
     expect(
@@ -282,94 +360,115 @@ describe('DashboardAccessGuard', () => {
     ).toBeInTheDocument()
   })
 
-  it('يمنح super_admin وصولاً لكامل مساحة اللوحة', () => {
+  it('applies a capability decision to its nested routes', () => {
     setAuth(asRole('super_admin'))
+    setAccess([{ route: ADMIN, allowed: true }])
 
-    renderDashboardGuard('/dashboard/admin/programs')
-
-    expect(screen.getByText('إدارة البرامج')).toBeInTheDocument()
-  })
-
-  it('يسمح لمدير البرامج بمسار البرامج الدقيق داخل مساحة الإدارة', () => {
-    setAuth(asRole('programs_manager'))
-
-    renderDashboardGuard('/dashboard/admin/programs')
+    renderDashboardGuard(PROGRAMS)
 
     expect(screen.getByText('إدارة البرامج')).toBeInTheDocument()
   })
 
-  it('يمنع مدير البرامج من جذر مساحة الإدارة', () => {
+  it('honours a specific denial beneath an allowed section', () => {
     setAuth(asRole('programs_manager'))
+    setAccess([
+      { route: ADMIN, allowed: false },
+      { route: PROGRAMS, allowed: true },
+    ])
 
-    renderDashboardGuard('/dashboard/admin')
+    renderDashboardGuard(PROGRAMS)
+
+    expect(screen.getByText('إدارة البرامج')).toBeInTheDocument()
+  })
+
+  it('still refuses the section root when only the child is allowed', () => {
+    setAuth(asRole('programs_manager'))
+    setAccess([
+      { route: ADMIN, allowed: false },
+      { route: PROGRAMS, allowed: true },
+    ])
+
+    renderDashboardGuard(ADMIN)
 
     expect(screen.queryByText('لوحة الإدارة')).not.toBeInTheDocument()
+    expect(screen.getByText(/لوحة مدير البرامج/)).toBeInTheDocument()
+  })
+
+  it('keeps redirecting the legacy /dashboard/teacher path, preserving query and hash', () => {
+    setAuth(asRole('instructor'))
+    setAccess([{ route: '/dashboard/instructor', allowed: true }])
+
+    renderDashboardGuard('/dashboard/teacher/classes?tab=1#top')
+
     expect(
       screen.getByText(
-        'لوحة مدير البرامج | from: /dashboard/admin | url: /dashboard/programs-manager',
+        'صفوف المدرّب | from: none | url: /dashboard/instructor/classes?tab=1#top',
       ),
     ).toBeInTheDocument()
   })
 
-  it('يحوّل المدرّب من المسار القديم /dashboard/teacher مع الحفاظ على الاستعلام والمرساة', () => {
-    setAuth(asRole('instructor'))
-
-    renderDashboardGuard('/dashboard/teacher/classes?tab=active#top')
-
-    expect(screen.queryByText('المسار القديم للمدرّب')).not.toBeInTheDocument()
-    expect(
-      screen.getByText('صفوف المدرّب | from: none | url: /dashboard/instructor/classes?tab=active#top'),
-    ).toBeInTheDocument()
-  })
-
-  it('لا يعيد توجيه غير المدرّب من مسار /dashboard/teacher بل يمنعه', () => {
+  it('allows a path no catalog capability owns, because the manifest has no opinion', () => {
     setAuth(asRole('student'))
-
-    renderDashboardGuard('/dashboard/teacher/classes')
-
-    expect(screen.queryByText('المسار القديم للمدرّب')).not.toBeInTheDocument()
-    expect(
-      screen.getByText('لوحة الطالب | from: /dashboard/teacher/classes | url: /dashboard/student'),
-    ).toBeInTheDocument()
-  })
-
-  it('يسمح لأي دور بالمسارات المشتركة مثل الإشعارات', () => {
-    setAuth(asRole('student'))
+    setAccess([{ route: ADMIN, allowed: false }])
 
     renderDashboardGuard('/dashboard/notifications')
 
     expect(screen.getByText('الإشعارات')).toBeInTheDocument()
   })
 
-  it('يحوّل المستخدم بلا دور إلى الملف الشخصي المحايد', () => {
-    setAuth({ user: { id: 9, name: 'بلا دور', email: 'n@emc.test', role: null }, isAuthenticated: true })
+  it('decides nothing while the session is still loading', () => {
+    setAuth({ isLoading: true })
+    setAccess([{ route: ADMIN, allowed: true }])
 
-    renderDashboardGuard('/dashboard/admin')
+    renderDashboardGuard(ADMIN)
 
-    expect(
-      screen.getByText('الملف الشخصي | from: /dashboard/admin | url: /dashboard/profile'),
-    ).toBeInTheDocument()
-  })
-
-  it('لا يقرّر شيئاً أثناء تحميل الجلسة', () => {
-    setAuth({ isLoading: true, user: null })
-
-    renderDashboardGuard('/dashboard/admin')
-
-    const status = screen.getByRole('status')
-    expect(status).toHaveAttribute('aria-busy', 'true')
     expect(screen.queryByText('لوحة الإدارة')).not.toBeInTheDocument()
-    expect(screen.queryByText(/الملف الشخصي/)).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
-  it('المحتوى المسموح وحالة التحميل خاليان من مخالفات إمكانية الوصول', async () => {
-    setAuth({ isLoading: true, user: null })
-    const loadingView = renderDashboardGuard('/dashboard/admin')
-    expect(await axeCheck(loadingView.container)).toHaveNoViolations()
-    loadingView.unmount()
-
+  it('decides nothing while the manifest is still loading', () => {
     setAuth(asRole('admin'))
-    const { container } = renderDashboardGuard('/dashboard/admin')
-    expect(await axeCheck(container)).toHaveNoViolations()
+    setAccess([{ route: ADMIN, allowed: true }], 'loading')
+
+    renderDashboardGuard(ADMIN)
+
+    // The page must NOT render first and be withdrawn afterwards.
+    expect(screen.queryByText('لوحة الإدارة')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
+  })
+
+  it('a failed manifest grants nothing', () => {
+    // Deliberately NOT the role's own home: that path has an anti-loop escape
+    // hatch (covered separately), so testing there would prove nothing.
+    setAuth(asRole('partner'))
+    setAccess([{ route: ADMIN, allowed: true }], 'error')
+
+    renderDashboardGuard(ADMIN)
+
+    expect(screen.queryByText('لوحة الإدارة')).not.toBeInTheDocument()
+    expect(screen.getByText(/لوحة الشريك/)).toBeInTheDocument()
+  })
+
+  it('renders the fallback itself rather than looping when the home page is denied', () => {
+    setAuth(asRole(null))
+    setAccess([{ route: '/dashboard/profile', allowed: false }])
+
+    renderDashboardGuard('/dashboard/profile')
+
+    // Mounted outside the guard in this harness, so reaching it at all proves
+    // the guard did not bounce.
+    expect(screen.getByText(/الملف الشخصي/)).toBeInTheDocument()
+  })
+
+  it('allowed content and the loading state are free of accessibility violations', async () => {
+    setAuth(asRole('admin'))
+    setAccess([{ route: ADMIN, allowed: true }])
+    const allowed = renderDashboardGuard(ADMIN)
+    expect(await axeCheck(allowed.container)).toHaveNoViolations()
+    allowed.unmount()
+
+    setAccess([{ route: ADMIN, allowed: true }], 'loading')
+    const loading = renderDashboardGuard(ADMIN)
+    expect(await axeCheck(loading.container)).toHaveNoViolations()
   })
 })

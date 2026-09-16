@@ -8,6 +8,7 @@ import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { PageAccessProvider } from './contexts/PageAccessContext'
 import DashboardAccessGuard from './components/DashboardAccessGuard'
 import EnglishInstituteGuard from './components/EnglishInstituteGuard'
 import AppToaster from './components/feedback/AppToaster'
@@ -380,6 +381,7 @@ function App() {
         <AssessmentSparkWidget />
         <AppToaster />
         <AuthProvider>
+          <PageAccessProvider>
           <Routes>
 
             {/* ── Public routes Navbar + Footer layout ── */}
@@ -889,6 +891,7 @@ function App() {
             </Route>
 
           </Routes>
+          </PageAccessProvider>
         </AuthProvider>
         <CookieBanner />
         <CookiePreferencesModal />
