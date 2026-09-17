@@ -16,6 +16,21 @@ import {
 } from 'lucide-react';
 import toast from '@/lib/toast';
 
+/**
+ * Image types the ticket endpoint actually accepts, mapped to the extension
+ * used for the generated filename. Mirrors the server rule
+ * `attachments.* => mimes:jpg,jpeg,png,webp,...` at POST /api/v1/tickets.
+ */
+const PASTEABLE_IMAGE_TYPES: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+/** Server rule: `max:51200` kilobytes. */
+const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
+
 const PRIORITY_OPTIONS = [
   { id: 'LOW',      label: 'منخفضة',         dot: 'bg-slate-400' },
   { id: 'MEDIUM',   label: 'متوسطة',         dot: 'bg-blue-500' },
@@ -74,44 +89,85 @@ const TicketSubmitPage: React.FC = () => {
     const dropped = Array.from(e.dataTransfer.files);
     setFiles((prev) => [...prev, ...dropped]);
   };
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-  const items = Array.from(e.clipboardData.items);
-
-  const imageItems = items.filter(
-    (item) => item.kind === 'file' && item.type.startsWith('image/')
-  );
-
-  if (imageItems.length === 0) return;
-
-  e.preventDefault();
-
-  const pastedFiles = imageItems
-    .map((item) => item.getAsFile())
-    .filter((file): file is File => Boolean(file))
-    .map((file, index) => {
-      const extension =
-        file.type.split('/')[1]?.replace('jpeg', 'jpg') || 'png';
-
-      return new File(
-        [file],
-        `pasted-image-${Date.now()}-${index}.${extension}`,
-        {
-          type: file.type,
-          lastModified: Date.now(),
-        }
-      );
-    });
-
-  if (pastedFiles.length > 0) {
-    setFiles((prev) => [...prev, ...pastedFiles]);
-
-    toast.success(
-      pastedFiles.length === 1
-        ? 'تم لصق الصورة وإضافتها للمرفقات'
-        : `تم لصق ${pastedFiles.length} صور وإضافتها للمرفقات`
+  /**
+   * Clipboard image paste for ticket attachments.
+   *
+   * Bound to the FORM, not to the dropzone: a paste event is delivered to the
+   * focused element, the dropzone is a plain div with no tabIndex whose only
+   * child input is hidden, and the description textarea is a sibling - so a
+   * handler on the dropzone alone can never fire for the way people actually
+   * paste a screenshot. Binding at the form covers the textarea, the title
+   * field and the dropzone with ONE handler, which also means a paste cannot
+   * be counted twice by a nested handler.
+   *
+   * Non-image pastes are left completely alone: the function returns before
+   * preventDefault(), so ordinary text paste behaves exactly as before.
+   *
+   * ACCEPTED TYPES AND SIZE MIRROR THE SERVER. POST /api/v1/tickets validates
+   * `attachments.*` with mimes:jpg,jpeg,png,webp,... and max:51200. Attaching
+   * anything else here would show a success toast for a file the request is
+   * about to reject with a 422, so the same limits are applied at paste time.
+   * This is UX alignment, NOT security - the server remains the only authority,
+   * and it sniffs real file content rather than trusting this MIME string.
+   */
+  const handlePaste = (e: React.ClipboardEvent<HTMLFormElement>) => {
+    const imageItems = Array.from(e.clipboardData.items).filter(
+      (item) => item.kind === 'file' && item.type.startsWith('image/')
     );
-  }
-};
+
+    if (imageItems.length === 0) return;
+
+    e.preventDefault();
+
+    const accepted: File[] = [];
+    let rejectedType = 0;
+    let rejectedSize = 0;
+
+    imageItems
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file))
+      .forEach((file, index) => {
+        const extension = PASTEABLE_IMAGE_TYPES[file.type];
+
+        // Deliberately a whitelist, not a MIME split: image/svg+xml would
+        // otherwise produce a "pasted-image-….svg+xml" filename for a format
+        // the server refuses anyway.
+        if (!extension) {
+          rejectedType += 1;
+          return;
+        }
+
+        if (file.size > MAX_ATTACHMENT_BYTES) {
+          rejectedSize += 1;
+          return;
+        }
+
+        // The clipboard filename is never trusted - the name is generated.
+        accepted.push(
+          new File([file], `pasted-image-${Date.now()}-${index}.${extension}`, {
+            type: file.type,
+            lastModified: Date.now(),
+          })
+        );
+      });
+
+    if (accepted.length > 0) {
+      setFiles((prev) => [...prev, ...accepted]);
+      toast.success(
+        accepted.length === 1
+          ? 'تم لصق الصورة وإضافتها للمرفقات'
+          : `تم لصق ${accepted.length} صور وإضافتها للمرفقات`
+      );
+    }
+
+    if (rejectedType > 0) {
+      toast.error('صيغة الصورة غير مدعومة. الصيغ المقبولة: JPG, PNG, WEBP');
+    }
+
+    if (rejectedSize > 0) {
+      toast.error('حجم الصورة يتجاوز 50 ميجابايت');
+    }
+  };
 
   const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
@@ -197,7 +253,7 @@ const TicketSubmitPage: React.FC = () => {
             <p className="text-slate-500 text-sm font-semibold">جاري تحميل بيانات الإدارات...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/80 space-y-8">
+          <form onSubmit={handleSubmit} onPaste={handlePaste} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/80 space-y-8">
 
             {/* ── Ticket Type ── */}
             <div>
@@ -330,7 +386,6 @@ const TicketSubmitPage: React.FC = () => {
                 className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center transition cursor-pointer bg-slate-50/50"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                onPaste={handlePaste}
                 onClick={() => document.getElementById('ticket-media-input')?.click()}
               >
                 <input
