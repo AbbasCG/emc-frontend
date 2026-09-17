@@ -41,9 +41,21 @@ export interface TicketUser {
 export interface TicketAttachment {
   id: number;
   ticket_id: number;
+  /**
+   * The AUTHENTICATED endpoint for this attachment. It is not usable as an
+   * <img src> or <a href>: a browser navigation carries no Bearer token. Fetch
+   * it through ticketAttachmentsApi instead.
+   */
   preview_url: string;
   file_name?: string;
+  /** 'VIDEO' only ever appears on historical rows; video uploads are rejected. */
   file_type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  /** Null on rows created before the column existed. */
+  mime_type?: string | null;
+  /** Null on rows created before the column existed. */
+  file_size?: number | null;
+  /** Server-computed, with a safe fallback to file_type for historical rows. */
+  is_image?: boolean;
   attachment_context: 'INITIAL_SUBMISSION' | 'RESOLUTION_PROOF';
   uploaded_by?: number;
   created_at: string;

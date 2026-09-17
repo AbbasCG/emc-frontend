@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Ticket, TicketStatus } from '@/types/ticket';
+import { TicketAttachmentCard } from '@/components/tickets/TicketAttachmentCard';
 import SlaCountdownTimer from './SlaCountdownTimer';
 import TicketStatusBadge from './TicketStatusBadge';
 import {
@@ -12,11 +13,7 @@ import {
   Layers,
   Calendar,
   MessageSquare,
-  Download,
   AlertTriangle,
-  Image as ImageIcon,
-  Film,
-  FileText,
   Send,
   History,
   CheckCircle2,
@@ -87,11 +84,6 @@ const ACTION_LABEL: Record<string, string> = {
   INTERNAL_NOTE:   'ملاحظة داخلية',
 };
 
-function AttachmentFileIcon({ type }: { type: string }) {
-  if (type === 'IMAGE') return <ImageIcon className="w-4 h-4 text-blue-500" />;
-  if (type === 'VIDEO') return <Film className="w-4 h-4 text-violet-500" />;
-  return <FileText className="w-4 h-4 text-amber-500" />;
-}
 
 // ── Component ───────────────────────────────────────────────────────────────
 const TicketDetailPage: React.FC = () => {
@@ -252,19 +244,9 @@ const TicketDetailPage: React.FC = () => {
             {initialAttachments.length > 0 && (
               <div className="bg-white rounded-3xl border border-slate-200 p-7 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-700 mb-4">📎 المرفقات الأصلية ({initialAttachments.length})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {initialAttachments.map((att) => (
-                    <a
-                      key={att.id}
-                      href={att.preview_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 transition group"
-                    >
-                      <AttachmentFileIcon type={att.file_type} />
-                      <span className="text-xs font-medium text-slate-700 truncate flex-1">{att.file_name}</span>
-                      <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 shrink-0 transition" />
-                    </a>
+                    <TicketAttachmentCard key={att.id} attachment={att} />
                   ))}
                 </div>
               </div>
