@@ -2,14 +2,40 @@ export type TicketCategory = 'OLD_ISSUE' | 'NEW_SUGGESTION';
 
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export type TicketStatus = 
-  | 'PENDING_APPROVAL' 
-  | 'ASSIGNED' 
-  | 'IN_PROGRESS' 
-  | 'RESOLVED' 
-  | 'UNRESOLVED' 
-  | 'REJECTED_BY_ADMIN' 
+export type TicketStatus =
+  | 'PENDING_APPROVAL'
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'RESOLVED'
+  | 'UNRESOLVED'
+  | 'REJECTED_BY_ADMIN'
   | 'REJECTED_BY_ASSIGNEE';
+
+/**
+ * The canonical, per-ticket, per-user action set — computed server-side in
+ * TicketController::buildCapabilities() from the SAME canManage()/isAssignee()
+ * helpers every mutating endpoint already guards itself with, and the SAME
+ * status guard each endpoint already enforces. This is a REPORT of what the
+ * backend would actually allow, never a frontend-derived guess — do not
+ * re-derive any of these from role/status checks in component code.
+ *
+ * `reassign` covers BOTH "assign for the first time after approval" and "true
+ * reassignment": there is no separate assign endpoint, and reassign() itself
+ * doesn't care whether an assignee already exists, only that status is
+ * ASSIGNED or IN_PROGRESS. The UI derives its own label ("تعيين" vs
+ * "إعادة التوجيه") from whether `assignee` is null — that is presentation,
+ * not a second authorization decision.
+ */
+export interface TicketCapabilities {
+  approve: boolean;
+  reject: boolean;
+  reassign: boolean;
+  accept_task: boolean;
+  reject_task: boolean;
+  complete_task: boolean;
+  add_internal_note: boolean;
+  comment: boolean;
+}
 
 export interface DepartmentalUnit {
   id: number;
@@ -99,6 +125,8 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
   is_delayed?: boolean;
+  /** Present on show()/index() responses; absent is treated as "no actions known yet". */
+  capabilities?: TicketCapabilities;
 
   // Relations
   department?: Department;
