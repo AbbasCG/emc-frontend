@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router'
 import { lazy, Suspense, useEffect } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import AnalyticsListener from './components/AnalyticsListener'
@@ -8,6 +8,7 @@ import SectionErrorBoundary from './components/errors/SectionErrorBoundary'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { PageAccessProvider } from './contexts/PageAccessContext'
 import DashboardAccessGuard from './components/DashboardAccessGuard'
 import EnglishInstituteGuard from './components/EnglishInstituteGuard'
 import AppToaster from './components/feedback/AppToaster'
@@ -292,6 +293,7 @@ const ResourceCenterCoursesPage        = lazy(() => import('./pages/resources/Re
 const SuperAdminAuditLogsPage          = lazy(() => import('./pages/super-admin/AuditLogsPage'))
 const UsersManagementPage         = lazy(() => import('./pages/super-admin/crud/UsersManagementPage'))
 const RolesPermissionsPage        = lazy(() => import('./pages/super-admin/crud/RolesPermissionsPage'))
+const AccessControlCenterPage     = lazy(() => import('./pages/super-admin/AccessControlCenterPage'))
 const AdminPermissionConfigTreePage = lazy(() => import('./pages/super-admin/crud/AdminPermissionConfigTree'))
 const DepartmentsManagementPage   = lazy(() => import('./pages/super-admin/crud/DepartmentsManagementPage'))
 const TeamManagementPage          = lazy(() => import('./pages/super-admin/crud/TeamManagementPage'))
@@ -380,6 +382,7 @@ function App() {
         <AssessmentSparkWidget />
         <AppToaster />
         <AuthProvider>
+          <PageAccessProvider>
           <Routes>
 
             {/* ── Public routes Navbar + Footer layout ── */}
@@ -519,6 +522,7 @@ function App() {
                   <Route path="/dashboard/super-admin/crud/users/:id" element={<Navigate to="/dashboard/super-admin/crud/users" replace />} />
 
                   <Route path="/dashboard/super-admin/crud/users" element={<UsersManagementPage />} />
+                  <Route path="/dashboard/super-admin/access-control" element={<AccessControlCenterPage />} />
                   <Route path="/dashboard/super-admin/crud/roles" element={<RolesPermissionsPage />} />
                   <Route path="/dashboard/super-admin/crud/permissions" element={<Suspense fallback={<RouteFallback />}><AdminPermissionConfigTreePage /></Suspense>} />
                   <Route path="/dashboard/super-admin/crud/departments" element={<DepartmentsManagementPage />} />
@@ -698,7 +702,6 @@ function App() {
                   <Route path="/dashboard/profile" element={<ProfilePage />} />
                   <Route path="/dashboard/settings" element={<Navigate to="/dashboard/settings/notifications" replace />} />
                   <Route path="/dashboard/settings/notifications" element={<NotificationPreferencesPage />} />
-                  <Route path="/dashboard/settings/2fa" element={<TwoFactorSettingsPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/ai" element={<AiWorkspacePage />} />
@@ -751,7 +754,6 @@ function App() {
                   <Route path="/dashboard/admin/lms/evaluations" element={<AdminLmsEvaluationsPage />} />
                   <Route path="/dashboard/admin/lms/progress" element={<AdminLmsProgressPage />} />
                   <Route path="/dashboard/admin/operations" element={<OperationsDashboardPage />} />
-                  <Route path="/dashboard/admin/users" element={<UserManagementPage />} />
                   <Route path="/dashboard/admin/departments" element={<OpsDepartmentsPage />} />
                   <Route path="/dashboard/admin/departments/:id" element={<OpsDepartmentDetailPage />} />
                   <Route path="/dashboard/admin/tasks" element={<OpsTasksListPage />} />
@@ -891,6 +893,7 @@ function App() {
             </Route>
 
           </Routes>
+          </PageAccessProvider>
         </AuthProvider>
         <CookieBanner />
         <CookiePreferencesModal />

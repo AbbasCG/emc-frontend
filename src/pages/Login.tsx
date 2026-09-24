@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
@@ -8,7 +8,6 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from '@/lib/toast'
 import { getApiErrorMessage } from '@/api/apiErrors'
-import { TwoFactorRequiredError } from '@/api/authApi'
 import PageHeader from '../components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
 import { useAuth } from '../contexts/AuthContext'
@@ -24,12 +23,6 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard', { replace: true })
-    }
-  }, [isAuthenticated, navigate])
 
   // Redirect to the page the user originally tried to visit, or dashboard
   const [searchParams, setSearchParams] = useSearchParams()

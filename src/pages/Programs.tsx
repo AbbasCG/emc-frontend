@@ -1,1 +1,1 @@
-﻿export { default } from './Programs/index'
+export { default } from './Programs/index'

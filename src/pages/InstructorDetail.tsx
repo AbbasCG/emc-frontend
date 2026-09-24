@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { motion } from 'framer-motion'
 import {
@@ -72,7 +72,6 @@ function PathItem({ path }: { path: { id: number; slug: string; title: string } 
 /* ── Page ──────────────────────────────────────────────────────────── */
 
 export default function InstructorDetail() {
-  const { t } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const { pathname } = useLocation()
   const [ins,     setIns]     = useState<InstructorPublic | null>(null)
@@ -176,8 +175,8 @@ export default function InstructorDetail() {
         title={ins.name}
         subtitle={ins.title ?? 'مدرب ضمن منظومة EMC'}
         breadcrumbs={[
-          { label: t('courses.breadcrumbHome'), href: '/' },
-          { label: t('nav.programsItems.instructors.label'), href: '/instructors' },
+          { label: 'الرئيسية', href: '/' },
+          { label: 'المدربون', href: '/instructors' },
           { label: ins.name },
         ]}
       />

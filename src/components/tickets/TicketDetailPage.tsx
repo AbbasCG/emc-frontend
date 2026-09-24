@@ -1,22 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation, Link } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePageAccess } from '@/contexts/PageAccessContext';
 import type { Ticket, TicketStatus } from '@/types/ticket';
+import { TicketAttachmentCard } from '@/components/tickets/TicketAttachmentCard';
+import { TicketActionCenter } from '@/components/tickets/TicketActionCenter';
+import { resolveTicketBackDestination } from '@/utils/ticketNavigation';
 import SlaCountdownTimer from './SlaCountdownTimer';
 import TicketStatusBadge from './TicketStatusBadge';
 import {
   ArrowRight,
+  PlusCircle,
   User,
   Building2,
   Layers,
   Calendar,
   MessageSquare,
-  Download,
   AlertTriangle,
-  Image as ImageIcon,
-  Film,
-  FileText,
   Send,
   History,
   CheckCircle2,
@@ -87,17 +88,27 @@ const ACTION_LABEL: Record<string, string> = {
   INTERNAL_NOTE:   'ملاحظة داخلية',
 };
 
-function AttachmentFileIcon({ type }: { type: string }) {
-  if (type === 'IMAGE') return <ImageIcon className="w-4 h-4 text-blue-500" />;
-  if (type === 'VIDEO') return <Film className="w-4 h-4 text-violet-500" />;
-  return <FileText className="w-4 h-4 text-amber-500" />;
-}
 
 // ── Component ───────────────────────────────────────────────────────────────
 const TicketDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  const { canAccessPath } = usePageAccess();
+
+  // Prefer the exact list URL (filters/page/search) the user came from —
+  // passed via navigate() state when opening a ticket from a list — so
+  // "back" restores it exactly rather than resetting the list. Falls back to
+  // whichever ticket list this session can actually open (page access, never
+  // a role-name guess), and finally to the submission page itself: this
+  // product has no separate "my tickets" list, so that page genuinely is an
+  // ordinary user's own entry point into the feature.
+  const backTo = resolveTicketBackDestination({
+    locationState: location.state,
+    canAccessAdmin: canAccessPath('/dashboard/tickets/admin'),
+    canAccessWorkspace: canAccessPath('/dashboard/tickets/workspace'),
+  });
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,10 +167,10 @@ const TicketDetailPage: React.FC = () => {
           <h2 className="text-xl font-bold text-slate-900">التذكرة غير موجودة</h2>
           <p className="text-sm text-slate-500">لم يُعثر على التذكرة المطلوبة.</p>
           <button
-            onClick={() => navigate('/dashboard/tickets/new')}
+            onClick={() => navigate(backTo)}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition"
           >
-            تقديم تذكرة جديدة
+            رجوع إلى التذاكر
           </button>
         </div>
       </div>
@@ -176,17 +187,30 @@ const TicketDetailPage: React.FC = () => {
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* ── Nav ── */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <button
-            onClick={() => navigate('/dashboard/tickets/new')}
+            type="button"
+            onClick={() => navigate(backTo)}
             className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 text-xs font-bold transition"
           >
             <ArrowRight className="w-4 h-4" />
-            تقديم تذكرة جديدة
+            رجوع إلى التذاكر
           </button>
-          <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
-            {ticket.ticket_number}
-          </span>
+
+          <div className="flex items-center gap-3">
+            {/* Two distinct actions — "back" and "submit a new ticket" must
+                never be confused for one control. */}
+            <Link
+              to="/dashboard/tickets/new"
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-blue-600 text-xs font-bold transition"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              تقديم تذكرة جديدة
+            </Link>
+            <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+              {ticket.ticket_number}
+            </span>
+          </div>
         </div>
 
         {/* ── Status Banner ── */}
@@ -194,7 +218,16 @@ const TicketDetailPage: React.FC = () => {
           <div className={`flex items-center gap-3 ${statusMeta.text}`}>
             {statusMeta.icon}
             <div>
-              <p className="font-extrabold text-base">{statusMeta.label}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-extrabold text-base">{statusMeta.label}</p>
+                {/* Backend-owned computation (Ticket::is_delayed) — never
+                    re-derived from expected_resolution_time in the frontend. */}
+                {ticket.is_delayed && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                    ⚠️ متأخرة عن مهلة SLA
+                  </span>
+                )}
+              </div>
               {ticket.status === 'REJECTED_BY_ADMIN' && ticket.admin_rejection_reason && (
                 <p className="text-xs mt-0.5 opacity-80">سبب الرفض: {ticket.admin_rejection_reason}</p>
               )}
@@ -213,6 +246,9 @@ const TicketDetailPage: React.FC = () => {
             />
           )}
         </div>
+
+        {/* ── Action Center: context-sensitive, capability-gated ── */}
+        <TicketActionCenter ticket={ticket} onChanged={fetchTicket} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -252,19 +288,9 @@ const TicketDetailPage: React.FC = () => {
             {initialAttachments.length > 0 && (
               <div className="bg-white rounded-3xl border border-slate-200 p-7 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-700 mb-4">📎 المرفقات الأصلية ({initialAttachments.length})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {initialAttachments.map((att) => (
-                    <a
-                      key={att.id}
-                      href={att.preview_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 transition group"
-                    >
-                      <AttachmentFileIcon type={att.file_type} />
-                      <span className="text-xs font-medium text-slate-700 truncate flex-1">{att.file_name}</span>
-                      <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 shrink-0 transition" />
-                    </a>
+                    <TicketAttachmentCard key={att.id} attachment={att} />
                   ))}
                 </div>
               </div>
@@ -353,23 +379,28 @@ const TicketDetailPage: React.FC = () => {
 
             {/* Routing Info */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">مسار الإدراج</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">مسار المعالجة</h3>
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="text-slate-500">الإدارة:</span>
                 <span className="text-slate-700 font-medium">{ticket.department?.name_ar ?? '—'}</span>
               </div>
               {ticket.unit && (
                 <div className="flex items-center gap-2 text-sm">
                   <Layers className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span className="text-slate-500">الوحدة:</span>
                   <span className="text-slate-700 font-medium">{ticket.unit.name_ar}</span>
                 </div>
               )}
-              {ticket.assignee && (
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span className="text-slate-700 font-medium">المكلف: {ticket.assignee.name}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-sm">
+                <User className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="text-slate-500">المكلّف:</span>
+                {ticket.assignee ? (
+                  <span className="text-slate-700 font-medium">{ticket.assignee.name}</span>
+                ) : (
+                  <span className="text-slate-400 italic">لم يتم التعيين بعد</span>
+                )}
+              </div>
             </div>
 
             {/* SLA Info */}

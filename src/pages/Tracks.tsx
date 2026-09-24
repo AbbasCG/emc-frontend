@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router'
+import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 import PageHeader from '@/components/PageHeader'
 import PublicSeo from '@/components/public/PublicSeo'
 import TracksPageContinued from '@/components/tracks/TracksPageContinued'
-import { themes12, t as contentT } from '@/data/publicPages'
+import { themes12 } from '@/data/publicPages'
 import { staggerContainer, staggerItem, viewportOnce } from '@/utils/animations'
 
 const themeIcons = {
@@ -134,19 +134,19 @@ export default function Tracks() {
                     </div>
 
                     <h3 className="min-h-[2.85rem] text-lg font-black leading-snug tracking-tight text-deepBlue sm:text-xl">
-                      {contentT(theme.title)}
+                      {theme.title.ar}
                     </h3>
                     <p className="mt-3 flex-1 text-sm font-medium leading-7 text-foreground/72 line-clamp-4">
-                      {contentT(theme.shortDescription)}
+                      {theme.shortDescription.ar}
                     </p>
 
                     <ul className="mt-6 flex flex-wrap justify-end gap-2">
                       {chipBullets.map((b) => (
                         <li
-                          key={contentT(b)}
+                          key={b.ar}
                           className="rounded-full border border-deepBlue/[0.06] bg-emcBg/90 px-3 py-1 text-[11px] font-bold text-foreground/70"
                         >
-                          {contentT(b).length > 32 ? `${contentT(b).slice(0, 31)}…` : contentT(b)}
+                          {b.ar.length > 32 ? `${b.ar.slice(0, 31)}…` : b.ar}
                         </li>
                       ))}
                     </ul>

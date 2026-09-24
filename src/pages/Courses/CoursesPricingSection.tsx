@@ -1,7 +1,6 @@
-﻿import { memo } from 'react'
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { BadgePercent, Coins, Gift } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { fadeUp } from '@/utils/motion'
 
@@ -24,7 +23,7 @@ function CoursesPricingSection() {
         >
           <div className="rounded-3xl bg-white p-8 text-right ring-1 ring-slate-100">
             <Gift className="text-customBlue" size={30} />
-            <h3 className="mt-4 text-xl font-black text-deepBlue">{t('courses.freeSupported')}</h3>
+            <h3 className="mt-4 text-xl font-black text-deepBlue">برامج مجانية أو مدعومة</h3>
             <p className="mt-3 leading-8 text-slate-600">
               قد تُتاح برامج مجانية أو مدعومة جزئياً ضمن مبادرات محددة. راجع بطاقة البرنامج
               لمعرفة إن كان مجانياً، وتابع الشروط المعروضة في صفحة التفاصيل.
@@ -32,7 +31,7 @@ function CoursesPricingSection() {
           </div>
           <div className="rounded-3xl bg-white p-8 text-right ring-1 ring-slate-100">
             <Coins className="text-customOrange" size={30} />
-            <h3 className="mt-4 text-xl font-black text-deepBlue">{t('courses.paidPrograms')}</h3>
+            <h3 className="mt-4 text-xl font-black text-deepBlue">برامج مدفوعة</h3>
             <p className="mt-3 leading-8 text-slate-600">
               تظهر التكلفة في بطاقة الدورة عند توفرها من الـ API. أي استفسار مالي يُدار عبر
               القنوات الرسمية وليس عبر رسائل عشوائية.

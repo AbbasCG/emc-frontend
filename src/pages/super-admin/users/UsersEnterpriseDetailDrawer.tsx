@@ -4,6 +4,9 @@ import type { AdminManagedUser } from '@/api/adminUsersApi'
 import { CrudBadge } from '@/pages/super-admin/crud/shared/Badge'
 import { EmptyPanel } from '@/pages/super-admin/crud/shared/States'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
+import { EffectiveAccessPreview } from '@/components/access-control/EffectiveAccessPreview'
+import { UserPageAccessPanel } from '@/components/access-control/UserPageAccessPanel'
+import { useAuth } from '@/contexts/AuthContext'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
 import {
   CAPABILITIES,
@@ -18,6 +21,10 @@ import { AR_UNSPECIFIED } from '@/utils/dispAr'
 const TABS = [
   { id: 'general', label: 'البيانات العامة' },
   { id: 'permissions', label: 'مجالات الصلاحية' },
+  // Phase 2C / 2D. PAGE ACCESS != BUSINESS AUTHORIZATION: these two tabs are
+  // about which dashboard pages open for this user, never what they may do.
+  { id: 'page-access', label: 'الوصول للصفحات' },
+  { id: 'effective', label: 'الوصول الفعلي' },
   { id: 'activity', label: 'النشاط' },
   { id: 'courses', label: 'الدورات' },
   { id: 'registrations', label: 'التسجيلات' },
@@ -62,6 +69,7 @@ export function UsersEnterpriseDetailDrawer({
   onClose: () => void
   onEdit: (id: number) => void
 }) {
+  const { user: viewer } = useAuth()
   const [tab, setTab] = useState<TabId>('general')
 
   const role = user?.role
@@ -213,6 +221,20 @@ export function UsersEnterpriseDetailDrawer({
                     ))}
                   </ul>
                 )}
+              </div>
+            : tab === 'page-access' ?
+              <div className="rounded-[22px] border border-white/85 bg-white/90 p-4 shadow-sm ring-1 ring-ink-100/65">
+                <UserPageAccessPanel
+                  key={`pa-${user.id}`}
+                  userId={user.id}
+                  userName={user.name ?? ''}
+                  userRole={user.role}
+                  viewerRole={viewer?.role}
+                />
+              </div>
+            : tab === 'effective' ?
+              <div className="rounded-[22px] border border-white/85 bg-white/90 p-4 shadow-sm ring-1 ring-ink-100/65">
+                <EffectiveAccessPreview key={`ef-${user.id}`} userId={user.id} userName={user.name ?? ''} />
               </div>
             : tab === 'activity' ?
               <div className="rounded-[22px] border border-white/85 bg-white/90 p-4 shadow-sm ring-1 ring-ink-100/65">

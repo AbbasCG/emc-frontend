@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
@@ -409,11 +409,11 @@ export default function Contact() {
                 </li>
                 <li className="flex items-start gap-3">
                   <MapPin size={18} className="mt-0.5 shrink-0 text-customBlue" />
-                  <span className="leading-7">{contentT(siteContact.location)}</span>
+                  <span className="leading-7">{siteContact.location.ar}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Clock3 size={18} className="mt-0.5 shrink-0 text-customBlue" />
-                  <span className="leading-7">{contentT(siteContact.hours)}</span>
+                  <span className="leading-7">{siteContact.hours.ar}</span>
                 </li>
               </ul>
             </motion.article>

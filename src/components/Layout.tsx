@@ -1,24 +1,14 @@
-﻿import { Outlet } from 'react-router'
+import { Outlet } from 'react-router'
 import { motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
-import { getLocaleDir } from '../i18n'
 import Footer from './Footer'
 import Navbar from './Navbar'
 import QuickJoinModal from './enrollment/QuickJoinModal'
 
 export default function Layout() {
-  const { i18n, t } = useTranslation()
-  const dir = getLocaleDir(i18n.language)
-
-  useEffect(() => {
-    document.documentElement.setAttribute('dir', dir)
-    document.documentElement.setAttribute('lang', i18n.language)
-  }, [i18n.language, dir])
-
   return (
     <motion.div
       className="relative min-h-screen overflow-x-hidden bg-white font-sans text-deepBlue antialiased"
-      dir={dir}
+      dir="rtl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
@@ -48,7 +38,7 @@ export default function Layout() {
         href="#main-content"
         className="sr-only sr-only-focusable emc-focus-ring rounded-lg bg-deepBlue px-4 py-2 text-sm font-black text-white ring-2 ring-customOrange"
       >
-        {t('layout.skipToContent')}
+        تخطي إلى المحتوى الرئيسي
       </a>
       <Navbar />
       <main id="main-content" tabIndex={-1} className="relative outline-none">

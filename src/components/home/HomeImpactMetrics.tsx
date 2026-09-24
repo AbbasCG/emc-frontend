@@ -1,4 +1,4 @@
-﻿import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
@@ -45,15 +45,6 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 // huge serif numbers (emc-stat-num) on the dark field, separated by thin
 // white/15 vertical hairlines. No boxes; the numbers carry the scene.
 export default function HomeImpactMetrics() {
-  const { t } = useTranslation()
-
-  const metrics = [
-    { raw: '+850', label: t('home.learners'), icon: Users },
-    { raw: '+32', label: t('home.programCount'), icon: BookOpen },
-    { raw: '+420', label: t('home.graduates'), icon: GraduationCap },
-    { raw: '+95', label: 'ورشة وتجربة مباشرة', icon: Video },
-  ] as const
-
   return (
     <section dir="rtl" className="emc-dawn relative overflow-hidden px-4 py-20 sm:px-6 lg:px-10 lg:py-24">
       {/* Subtle grid */}

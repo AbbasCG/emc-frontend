@@ -15,10 +15,12 @@ import {
   UserCheck,
   BookOpen,
   Info,
+  ShieldCheck,
 } from 'lucide-react'
 import { fetchWorkspaceDepartmentsForSuperAdmin, updateDepartmentLeader } from '@/api/superAdminOpsApi'
 import { searchAdminUsers, type UserSearchHit } from '@/api/adminUsersApi'
 import { getApiErrorMessage } from '@/api/apiErrors'
+import { DepartmentPageAccessDrawer } from '@/components/access-control/DepartmentPageAccessDrawer'
 import type { WorkspaceDepartment } from '@/types/operations'
 import { computeDeptHealth, getDepartmentName } from '@/utils/workspaceDepartment'
 import { errorToast, successToast } from '@/lib/toast'
@@ -345,10 +347,13 @@ function DetailDrawer({
   dept,
   onClose,
   onLeaderChanged,
+  onManageAccess,
 }: {
   dept: WorkspaceDepartment | null
   onClose: () => void
   onLeaderChanged: (departmentId: string, leaderId: number | null, leaderName: string | null) => void
+  /** Phase 2A — open the department's default PAGE ACCESS editor. */
+  onManageAccess: (dept: WorkspaceDepartment) => void
 }) {
   const navigate = useNavigate()
 
@@ -459,6 +464,16 @@ function DetailDrawer({
                 <Users className="h-4 w-4" aria-hidden />
                 الفريق
               </Link>
+              {/* Phase 2A — PAGE ACCESS != BUSINESS AUTHORIZATION: this opens the
+                  department's DEFAULT PAGE EXPOSURE editor, not its permissions. */}
+              <button
+                type="button"
+                onClick={() => onManageAccess(dept)}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[#0077B6]/25 bg-[#0077B6]/[0.06] px-4 py-2.5 text-[12px] font-black text-[#0077B6] transition hover:bg-[#0077B6]/[0.12]"
+              >
+                <ShieldCheck className="h-4 w-4" aria-hidden />
+                الوصول الافتراضي للصفحات
+              </button>
             </div>
           </motion.aside>
         </>
@@ -476,6 +491,7 @@ export default function DepartmentsManagementPage() {
   const [q, setQ] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | WorkspaceDepartment['status']>('all')
   const [detail, setDetail] = useState<WorkspaceDepartment | null>(null)
+  const [accessDept, setAccessDept] = useState<WorkspaceDepartment | null>(null)
 
   /** Manual retry/refresh from a button — outside any effect, so flipping to the
    *  loading state synchronously is both allowed and required here. */
@@ -661,6 +677,7 @@ export default function DepartmentsManagementPage() {
 
       <DetailDrawer
         dept={detail}
+        onManageAccess={(d) => setAccessDept(d)}
         onClose={() => setDetail(null)}
         onLeaderChanged={(departmentId, leaderId, leaderName) => {
           const patch = (d: WorkspaceDepartment): WorkspaceDepartment =>
@@ -668,6 +685,13 @@ export default function DepartmentsManagementPage() {
           setRows((prev) => prev.map(patch))
           setDetail((prev) => (prev ? patch(prev) : prev))
         }}
+      />
+
+      <DepartmentPageAccessDrawer
+        open={accessDept != null}
+        departmentId={accessDept?.id ?? null}
+        departmentName={accessDept ? getDepartmentName(accessDept) : ''}
+        onClose={() => setAccessDept(null)}
       />
     </SaPageRoot>
   )

@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-
 import { BookOpen, Globe, LayoutGrid, TrendingUp } from 'lucide-react'
 import { fadeUp } from '../../utils/course'
 

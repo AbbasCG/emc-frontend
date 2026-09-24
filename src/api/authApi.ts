@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 import apiClient from './axios'
 import type { User } from '../types'
 import { unwrapData } from './unwrap'

@@ -146,7 +146,7 @@ const AssigneeWorkspacePage: React.FC = () => {
     setActionLoading(true);
     try {
       const formData = new FormData();
-      formData.append('completion_status', status);
+      formData.append('resolution_type', status);
       if (status === 'RESOLVED') {
         formData.append('resolution_summary', summary.trim());
         files.forEach((f) => formData.append('proof_files[]', f));

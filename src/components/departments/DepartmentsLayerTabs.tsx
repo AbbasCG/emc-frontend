@@ -1,35 +1,33 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Compass, Gauge, Network } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 
-export default function DepartmentsLayerTabs() {
-  const { t } = useTranslation()
+const tabs = [
+  {
+    id: 'strategy',
+    label: 'الطبقة الاستراتيجية',
+    icon: Compass,
+    body: 'الإدارة العليا والجودة تضع الإطار: الأولويات، المخاطر، والتزام الرسالة. هنا تُحوَّل الرؤية إلى قرارات برامج قابلة للتنفيذ.',
+    bullets: ['اعتماد السياسات', 'مؤشرات الجودة', 'تمثيل المؤسسة'],
+  },
+  {
+    id: 'ops',
+    label: 'الطبقة التشغيلية',
+    icon: Gauge,
+    body: 'البرامج والتشغيل والتسويق يشكّلون محرك التسليم اليومي: جداول، تجربة مشارك، ومحتوى يصل بشفافية.',
+    bullets: ['تصميم المسارات', 'تشغيل الفعاليات', 'الحملات والإعلام'],
+  },
+  {
+    id: 'mesh',
+    label: 'الطبقة الداعمة',
+    icon: Network,
+    body: 'المالية والتقنية والموارد البشرية والشراكات تربط الموارد بالأثر: استدامة، أمان، وشبكة علاقات مهنية.',
+    bullets: ['موارد مالية منضبطة', 'بنية تقنية آمنة', 'شراكات مؤسسية'],
+  },
+] as const
 
-  const tabs = [
-    {
-      id: 'strategy',
-      label: t('departments.layerStrategic'),
-      icon: Compass,
-      body: 'الإدارة العليا والجودة تضع الإطار: الأولويات، المخاطر، والتزام الرسالة. هنا تُحوَّل الرؤية إلى قرارات برامج قابلة للتنفيذ.',
-      bullets: ['اعتماد السياسات', 'مؤشرات الجودة', 'تمثيل المؤسسة'],
-    },
-    {
-      id: 'ops',
-      label: t('departments.layerOperational'),
-      icon: Gauge,
-      body: 'البرامج والتشغيل والتسويق يشكّلون محرك التسليم اليومي: جداول، تجربة مشارك، ومحتوى يصل بشفافية.',
-      bullets: ['تصميم المسارات', 'تشغيل الفعاليات', 'الحملات والإعلام'],
-    },
-    {
-      id: 'mesh',
-      label: t('departments.layerSupport'),
-      icon: Network,
-      body: 'المالية والتقنية والموارد البشرية والشراكات تربط الموارد بالأثر: استدامة، أمان، وشبكة علاقات مهنية.',
-      bullets: ['موارد مالية منضبطة', 'بنية تقنية آمنة', 'شراكات مؤسسية'],
-    },
-  ] as const
+export default function DepartmentsLayerTabs() {
   const [active, setActive] = useState<(typeof tabs)[number]['id']>('strategy')
 
   const current = tabs.find((t) => t.id === active)!

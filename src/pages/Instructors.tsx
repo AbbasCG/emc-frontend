@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
@@ -155,8 +155,8 @@ export default function Instructors() {
         title="مدربون يصنعون أثراً حقيقياً"
         subtitle="تعرّف على خبراء EMC الذين يقودون الجلسات والمسارات بجودة مؤسسية وتجربة تعلم حديثة."
         breadcrumbs={[
-          { label: t('courses.breadcrumbHome'), href: '/' },
-          { label: t('nav.programsItems.instructors.label') },
+          { label: 'الرئيسية', href: '/' },
+          { label: 'المدربون' },
         ]}
       />
 

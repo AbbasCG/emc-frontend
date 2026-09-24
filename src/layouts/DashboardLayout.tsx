@@ -35,6 +35,8 @@ import { subscribeToUserNotifications } from '@/lib/echo'
 import type { PlatformNotification } from '../types/platform'
 import { exactMatchSidebarRoutes, getSidebarByRole, type SidebarNavGroup } from './dashboardSidebar'
 import { normalizeRole } from '@/utils/dashboardAccess'
+import { usePageAccess } from '@/contexts/PageAccessContext'
+import { filterSidebarGroupsByAccess } from '@/utils/sidebarAccessFilter'
 import { filterSidebarGroups, isAdminSidebarSearchRole } from '@/utils/dashboardRouteSearch'
 import ImpactSparkWidget from '@/components/operations/ImpactSparkWidget'
 
@@ -229,6 +231,10 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   const { canCreate } = useFinancialRequestContext()
 
+  // Sidebar visibility derives from the backend manifest; the sidebar module
+  // itself stays a navigation catalog of labels, icons and hrefs.
+  const { pages: accessPages } = usePageAccess()
+
   const groups: SidebarNavGroup[] = useMemo((): SidebarNavGroup[] => {
     const base = getSidebarByRole(user?.role, { hasEnglishCourses: Boolean(user?.has_english_courses) })
 
@@ -273,15 +279,20 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     return withOps(base)
   }, [user?.role, canCreate, user?.has_english_courses])
 
+  const accessibleGroups = useMemo(
+    () => filterSidebarGroupsByAccess(groups, accessPages),
+    [groups, accessPages],
+  )
+
   const showSidebarSearch = isAdminSidebarSearchRole(user?.role)
 
   const filteredGroups = useMemo(
-    () => filterSidebarGroups(groups, sidebarQuery),
-    [groups, sidebarQuery],
+    () => filterSidebarGroups(accessibleGroups, sidebarQuery),
+    [accessibleGroups, sidebarQuery],
   )
 
   const sidebarSearching = sidebarQuery.trim().length > 0
-  const navGroups = sidebarSearching ? filteredGroups : groups
+  const navGroups = sidebarSearching ? filteredGroups : accessibleGroups
 
   const sidebarStorageKey = `emc_sidebar_collapsed_${normalizeRole(user?.role ?? null) ?? 'guest'}`
 

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { ChevronDown } from 'lucide-react'
@@ -37,8 +37,7 @@ const trustBullets = [
 // seats (emc-row): the answer slides under the seat and the chevron rotates.
 // aria-expanded + native button keyboard behavior are unchanged.
 export default function HomeFaqSection() {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState<number | null>(null)
+  const [open, setOpen] = useState<number | null>(0)
 
   return (
     <section

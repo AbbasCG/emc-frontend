@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { BookOpen } from 'lucide-react'

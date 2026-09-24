@@ -1,4 +1,4 @@
-﻿import { useRef, useState, useEffect, memo, type ChangeEvent } from 'react'
+import { useRef, useState, useEffect, memo, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { Search } from 'lucide-react'

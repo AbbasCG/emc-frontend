@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-
 import { Eye, Target } from 'lucide-react'
 import SectionHeader from '@/components/shared/SectionHeader'
 import { fadeUp, viewportOnce } from '@/utils/animations'

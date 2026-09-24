@@ -1,0 +1,159 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BASELINE DIFF REPORT > lists every CRITICAL and HIGH mismatch individually > critical-and-high-mismatches 1`] = `[]`;
+
+exports[`BASELINE DIFF REPORT > per-role NEWLY_DENIED counts for the unseeded scenario > unseeded-newly-denied-by-persona 1`] = `
+{
+  "admin__none": 56,
+  "advisors_manager__none": 9,
+  "ai_manager__leader": 9,
+  "ai_manager__member": 9,
+  "ai_manager__none": 9,
+  "community_manager__none": 14,
+  "department_manager__leader": 11,
+  "department_manager__member": 11,
+  "department_manager__none": 11,
+  "digital_ambassadors_manager__none": 9,
+  "executive_admin__none": 13,
+  "finance_manager__none": 20,
+  "hr_manager__none": 21,
+  "instructor__none": 9,
+  "marketing_manager__none": 10,
+  "operations_manager__leader": 13,
+  "operations_manager__member": 13,
+  "operations_manager__none": 13,
+  "partner__none": 4,
+  "partnerships_manager__none": 13,
+  "programs_manager__leader": 19,
+  "programs_manager__member": 19,
+  "programs_manager__none": 19,
+  "quality_manager__leader": 19,
+  "quality_manager__member": 19,
+  "quality_manager__none": 19,
+  "section_lead__none": 4,
+  "strategy_planning_manager__leader": 9,
+  "strategy_planning_manager__member": 9,
+  "strategy_planning_manager__none": 9,
+  "student__none": 4,
+  "super_admin__none": 0,
+  "support_agent__none": 11,
+  "tech_admin__none": 0,
+  "volunteer__leader": 8,
+  "volunteer__member": 8,
+  "volunteer__none": 8,
+}
+`;
+
+exports[`BASELINE DIFF REPORT > seeded scenario — deterministic counts > seeded-summary 1`] = `
+{
+  "byRisk": {
+    "CRITICAL": 0,
+    "EXPECTED": 2082,
+    "HIGH": 0,
+    "LOW": 29,
+    "MEDIUM": 99,
+  },
+  "counts": {
+    "MATCH_ALLOWED": 347,
+    "MATCH_DENIED": 1637,
+    "NEWLY_ALLOWED": 16,
+    "NEWLY_DENIED": 210,
+    "UNMAPPED": 0,
+  },
+  "personas": 17,
+  "totalComparisons": 2210,
+}
+`;
+
+exports[`BASELINE DIFF REPORT > unseeded scenario (production today) — deterministic counts > unseeded-summary 1`] = `
+{
+  "byRisk": {
+    "CRITICAL": 0,
+    "EXPECTED": 4500,
+    "HIGH": 0,
+    "LOW": 58,
+    "MEDIUM": 252,
+  },
+  "counts": {
+    "MATCH_ALLOWED": 436,
+    "MATCH_DENIED": 3879,
+    "NEWLY_ALLOWED": 34,
+    "NEWLY_DENIED": 461,
+    "UNMAPPED": 0,
+  },
+  "personas": 37,
+  "totalComparisons": 4810,
+}
+`;
+
+exports[`cutover readiness gates > evaluates all gates against the seeded scenario > seeded-gates 1`] = `
+[
+  {
+    "actual": 0,
+    "name": "CRITICAL mismatches = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "HIGH mismatches = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "UNMAPPED routes = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "SYSTEM_PROTECTED regressions = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "AI separation regressions = 0",
+    "pass": true,
+  },
+  {
+    "actual": 210,
+    "name": "NEWLY_DENIED reviewed",
+    "pass": false,
+  },
+]
+`;
+
+exports[`cutover readiness gates > evaluates all gates against the unseeded (production-today) scenario > unseeded-gates 1`] = `
+[
+  {
+    "actual": 0,
+    "name": "CRITICAL mismatches = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "HIGH mismatches = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "UNMAPPED routes = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "SYSTEM_PROTECTED regressions = 0",
+    "pass": true,
+  },
+  {
+    "actual": 0,
+    "name": "AI separation regressions = 0",
+    "pass": true,
+  },
+  {
+    "actual": 461,
+    "name": "NEWLY_DENIED reviewed",
+    "pass": false,
+  },
+]
+`;
+
+exports[`unmapped route detection > every legacy DASHBOARD_NAMESPACE_RULES prefix maps to a capability > unmapped-legacy-namespace-prefixes 1`] = `[]`;

@@ -370,6 +370,27 @@ export function getAllowedRolesForPath(pathname: string): string[] | 'authentica
   return []
 }
 
+/**
+ * LEGACY ROLE-BASED PATH CHECK - NO LONGER PAGE-ACCESS AUTHORITY.
+ *
+ * Page access is decided by the BACKEND (EffectivePageAccessService) and
+ * consumed through PageAccessContext. DashboardAccessGuard and the sidebar read
+ * that manifest; neither calls this function any more.
+ *
+ * It survives for two non-authoritative purposes, and must not acquire a third:
+ *
+ *   1. getPostLoginRedirect() uses it to sanity-check a PREFERRED redirect
+ *      target before sending a user there. That is a UX hint, not enforcement -
+ *      DashboardAccessGuard still applies the real decision on arrival, so a
+ *      wrong answer here costs one extra redirect and grants nothing.
+ *   2. The Phase 2F diff harness (utils/accessDiff.ts) calls it deliberately,
+ *      because comparing the legacy and effective systems requires executing
+ *      the real legacy rule rather than a re-implementation of it.
+ *
+ * DO NOT reintroduce this into a route guard, a sidebar filter or any other
+ * gate. A second page-access decision in the browser is exactly what the
+ * cutover removed, and an architecture test asserts it stays removed.
+ */
 export function canAccessDashboardPath(roleRaw: string | null | undefined, pathname: string): boolean {
   const role = normalizeRole(roleRaw ?? null)
   /** Highest privilege: unrestricted access to the entire dashboard namespace */

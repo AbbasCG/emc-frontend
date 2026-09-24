@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -78,7 +78,6 @@ function Navbar() {
   const { t } = useTranslation()
   const { lang, dir, setLang } = useLanguage()
   const { isAuthenticated, isLoading, user, logout } = useAuth()
-  const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -326,7 +325,7 @@ function Navbar() {
                         className="absolute left-0 top-full z-50 mt-2.5 w-56 overflow-hidden rounded-2xl border border-line bg-white/[0.97] p-1.5 ring-1 ring-line backdrop-blur-2xl backdrop-saturate-150"
                         role="menu"
                       >
-                          <Link
+                        <Link
                           to="/dashboard"
                           className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-deepBlue transition-colors duration-200 ease-emc-out hover:bg-customBlue/[0.06] hover:text-customBlue"
                         >
@@ -547,9 +546,7 @@ function Navbar() {
                     </Link>
                   ))}
                 </div>
-                <div className="shrink-0 self-center">
-                  <LanguageSwitcher />
-                </div>
+              ))}
 
               {/* M3: language switcher (mobile) */}
               {LANGS.length > 1 && <div className="flex items-center gap-2 rounded-2xl border border-line bg-paper px-4 py-2.5">
@@ -593,10 +590,10 @@ function Navbar() {
                           <p className="truncate text-xs text-ink-400">{user.email}</p>
                         </div>
                       </div>
-                        <Link
+                      <Link
                         to="/dashboard"
                         onClick={() => setMobileOpen(false)}
-                        className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm ${dashboardBtnClass}`}
+                        className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm ${dashboardBtnClass}`}
                       >
                         <LayoutDashboard strokeWidth={2} className={dashboardIconClass} aria-hidden />
                         <span className="whitespace-nowrap">{t('nav.auth.dashboard')}</span>

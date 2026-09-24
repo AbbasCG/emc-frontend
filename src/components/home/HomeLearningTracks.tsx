@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, GraduationCap, Languages, Smile, BadgeCheck, Clock } from 'lucide-react'

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { fetchAdminUsers, type AdminManagedUser } from '@/api/adminUsersApi'
 import { fetchRolePermissions } from '@/api/rolesPermissionsApi'
+import { RolePageAccessPanel } from '@/components/access-control/RolePageAccessPanel'
 import { RolePermissionsMatrix } from '@/components/super-admin/RolePermissionsMatrix'
 import { CrudDrawer } from '@/pages/super-admin/crud/shared/CrudDrawer'
 import { initialsFromName } from '@/pages/super-admin/crud/shared/initials'
@@ -63,6 +64,10 @@ const CAP_ICONS: Record<string, React.ElementType> = {
 const TABS = [
   { id: 'overview', label: 'نظرة عامة' },
   { id: 'permissions', label: 'الصلاحيات' },
+  // Phase 2B — deliberately a SEPARATE tab from "الصلاحيات".
+  // PAGE ACCESS != BUSINESS AUTHORIZATION: that tab grants business
+  // permissions; this one only decides which dashboard pages the role opens.
+  { id: 'page-access', label: 'الوصول للصفحات' },
   { id: 'users', label: 'المستخدمون' },
 ] as const
 
@@ -267,6 +272,8 @@ export function RoleDetailDrawer({ open, slug, labelAr, usageCount, onClose }: P
           onGrantedCountChange={setGrantedCount}
         />
       )}
+
+      {tab === 'page-access' && <RolePageAccessPanel roleId={slug} roleLabelAr={labelAr} />}
 
       {tab === 'users' && (
         <div className="space-y-3">

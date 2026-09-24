@@ -1,8 +1,7 @@
-﻿import { memo } from 'react'
+import { memo } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ClipboardCheck, UserPlus } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import SectionHeader from '@/components/sections/SectionHeader'
 import { staggerContainer, staggerItem } from '@/utils/motion'
 
@@ -12,12 +11,12 @@ const steps = [
     body: 'راجع الوصف، المدة، والمتطلبات ثم انتقل لصفحة تفاصيل الدورة.',
   },
   {
-    titleKey: 'courses.stepRegister',
-    bodyKey: 'courses.stepRegisterDesc',
+    title: 'التسجيل',
+    body: 'أكمل بيانات التسجيل عبر مسار المنصة الحالي (حساب/تسجيل) دون تغيير الـ API.',
   },
   {
-    titleKey: 'courses.stepConfirm',
-    bodyKey: 'courses.stepConfirmDesc',
+    title: 'تأكيد والمتابعة',
+    body: 'ستصلك تعليمات المشاركة عبر القنوات الرسمية للبرنامج.',
   },
 ]
 
@@ -38,15 +37,15 @@ function CoursesRegistrationSection() {
           viewport={{ once: true, amount: 0.15 }}
         >
           <ol className="space-y-4 text-right">
-              {steps.map((s, i) => (
+            {steps.map((s, i) => (
               <motion.li
-                key={s.titleKey}
+                key={s.title}
                 variants={staggerItem}
                 className="rounded-3xl border border-slate-100 bg-[#f4f7fb] p-6"
               >
                 <span className="text-xs font-black text-customOrange">خطوة {i + 1}</span>
-                <p className="mt-2 text-lg font-black text-deepBlue">{t(s.titleKey)}</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{t(s.bodyKey)}</p>
+                <p className="mt-2 text-lg font-black text-deepBlue">{s.title}</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{s.body}</p>
               </motion.li>
             ))}
           </ol>
@@ -66,7 +65,7 @@ function CoursesRegistrationSection() {
                 to="/contact"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-customOrange px-6 py-3 text-sm font-extrabold text-white"
               >
-                {t('courses.ctaContact')}
+                تواصل معنا
                 <ArrowLeft size={18} />
               </Link>
               <Link
@@ -74,7 +73,7 @@ function CoursesRegistrationSection() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 px-6 py-3 text-sm font-bold text-white hover:bg-white/10"
               >
                 <ClipboardCheck size={18} />
-                {t('courses.ctaTeamWorkshop')}
+                طلب ورشة للفريق
               </Link>
             </div>
           </motion.div>

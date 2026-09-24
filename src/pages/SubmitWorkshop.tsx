@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -54,7 +54,29 @@ type WorkshopFormValues = {
   price_amount: string
 }
 
+const categories = [
+  'المسارات الأكاديمية والمهنية',
+  'التعلم الدولي والتبادل',
+  'معهد اللغة والتواصل',
+  'الذكاء الاصطناعي والتمكين الرقمي',
+  'تطوير المهارات والمسار المهني',
+  'القيادة وريادة الأعمال',
+  'مساحات الوعي والمعرفة',
+  'الصحة النفسية ونمط الحياة',
+  'الوعي المالي',
+  'التعلم التجريبي والأنشطة الميدانية',
+  'تطوير الأطفال والناشئة Future Minds',
+  'الشراكات والتعاون الاستراتيجي',
+]
 
+const locationTypes = ['مقر المركز', 'Google Meet', 'Zoom', 'أخرى']
+
+const STEP_META = [
+  { id: 1, title: 'بيانات مقدم الطلب', hint: 'تواصل ومتابعة الطلب' },
+  { id: 2, title: 'بيانات الورشة', hint: 'البرنامج والمتحدث والمجالات' },
+  { id: 3, title: 'تفاصيل التنفيذ', hint: 'محاور، جمهور، موعد ومكان' },
+  { id: 4, title: 'المراجعة والإرسال', hint: 'التسعير ثم الإرسال النهائي' },
+] as const
 
 const initialForm: WorkshopFormValues = {
   requester_name: '',
@@ -92,8 +114,9 @@ const helpCardHoverShadow = 'hover:shadow-[0_24px_56px_-14px_rgba(12,42,75,0.22)
 
 const GENERAL_CONTACT_PATH = '/contact#general-contact-form'
 
-const SUCCESS_TITLE = 'submitWorkshop.successTitle'
-const SUCCESS_DESCRIPTION = 'submitWorkshop.successDesc'
+const SUCCESS_TITLE = 'تم استلام الطلب بنجاح'
+const SUCCESS_DESCRIPTION =
+  'تم إرسال طلب الورشة بنجاح، وسيقوم فريق EMC بالتواصل معك بعد مراجعة البيانات.'
 
 /** Ring length for r=54 in viewBox 0 0 120 120 */
 const RING_LEN = 2 * Math.PI * 54
@@ -105,7 +128,6 @@ function WorkshopSuccessCelebration({
   open: boolean
   onReset: () => void
 }) {
-  const { t } = useTranslation()
   const particles = Array.from({ length: 18 }, (_, i) => ({
     id: i,
     left: `${12 + (i * 41) % 76}%`,
@@ -217,7 +239,7 @@ function WorkshopSuccessCelebration({
                 {SUCCESS_TITLE}
               </h2>
               <p id="workshop-success-desc" className="mx-auto mt-4 max-w-sm text-[14px] font-semibold leading-relaxed text-muted-600">
-                {t(SUCCESS_DESCRIPTION)}
+                {SUCCESS_DESCRIPTION}
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row-reverse sm:justify-center">
@@ -237,7 +259,7 @@ function WorkshopSuccessCelebration({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-[#0077B6] to-[#1e7aad] px-6 py-3 text-[13px] font-black text-white shadow-[0_14px_32px_rgba(0,119,182,0.38)] transition hover:brightness-[1.05] sm:w-auto"
                   >
                     <RotateCcw className="h-4 w-4" aria-hidden />
-                    {t('submitWorkshop.submitNew')}
+                    تقديم طلب جديد
                   </button>
                 </motion.div>
               </div>
@@ -250,33 +272,6 @@ function WorkshopSuccessCelebration({
 }
 
 export default function SubmitWorkshop() {
-  const { t } = useTranslation()
-  const categories = [
-    t('submitWorkshop.category1'),
-    t('submitWorkshop.category2'),
-    t('submitWorkshop.category3'),
-    t('submitWorkshop.category4'),
-    t('submitWorkshop.category5'),
-    t('submitWorkshop.category6'),
-    t('submitWorkshop.category7'),
-    t('submitWorkshop.category8'),
-    t('submitWorkshop.category9'),
-    t('submitWorkshop.category10'),
-    t('submitWorkshop.category11'),
-    t('submitWorkshop.category12'),
-  ]
-  const locationTypes = [
-    t('submitWorkshop.locationCenter'),
-    t('submitWorkshop.locationGoogleMeet'),
-    t('submitWorkshop.locationZoom'),
-    t('submitWorkshop.locationOther'),
-  ]
-  const STEP_META = [
-    { id: 1, titleKey: 'submitWorkshop.stepApplicant', hint: t('submitWorkshop.step1Hint') },
-    { id: 2, titleKey: 'submitWorkshop.stepWorkshop', hint: t('submitWorkshop.step2Hint') },
-    { id: 3, titleKey: 'submitWorkshop.stepExecution', hint: t('submitWorkshop.step3Hint') },
-    { id: 4, titleKey: 'submitWorkshop.stepReview', hint: t('submitWorkshop.step4Hint') },
-  ] as const
   const [step, setStep] = useState(1)
   const formTopRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState<WorkshopFormValues>(initialForm)
@@ -331,17 +326,17 @@ export default function SubmitWorkshop() {
     }
 
     if (targetStep === 1) {
-      required('requester_name', t('submitWorkshop.validationNameRequired'))
-      required('requester_email', t('submitWorkshop.validationEmailRequired'))
-      required('requester_phone', t('submitWorkshop.validationPhoneRequired'))
-      required('requester_department', t('submitWorkshop.validationDepartmentRequired'))
+      required('requester_name', 'يرجى إدخال اسم مقدم الطلب.')
+      required('requester_email', 'يرجى إدخال البريد الإلكتروني.')
+      required('requester_phone', 'يرجى إدخال رقم الجوال.')
+      required('requester_department', 'يرجى إدخال القسم أو الجهة.')
     }
 
     if (targetStep === 2) {
-      required('program_name', t('submitWorkshop.validationProgramRequired'))
-      required('speaker_name', t('submitWorkshop.validationSpeakerRequired'))
-      required('speaker_job_title', t('submitWorkshop.validationJobTitleRequired'))
-      if (selectedCategories.length === 0) errors.categories = [t('submitWorkshop.validationCategoryRequired')]
+      required('program_name', 'يرجى إدخال اسم البرنامج.')
+      required('speaker_name', 'يرجى إدخال اسم المتحدث.')
+      required('speaker_job_title', 'يرجى إدخال المسمى الوظيفي للمتحدث.')
+      if (selectedCategories.length === 0) errors.categories = ['يرجى اختيار فئة واحدة على الأقل.']
     }
 
     if (targetStep === 3) {
@@ -365,7 +360,7 @@ export default function SubmitWorkshop() {
     }
 
     if (targetStep === 4 && form.price_type === 'paid') {
-      required('price_amount', t('submitWorkshop.validationPriceRequired'))
+      required('price_amount', 'يرجى إدخال قيمة السعر عند اختيار ورشة مدفوعة.')
     }
 
     return errors
@@ -375,7 +370,7 @@ export default function SubmitWorkshop() {
     const errors = validateStep()
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors)
-      setApiError(t('submitWorkshop.errorStepIncomplete'))
+      setApiError('يرجى إكمال الحقول المطلوبة في هذه الخطوة قبل المتابعة.')
       return
     }
 
@@ -414,7 +409,7 @@ export default function SubmitWorkshop() {
 
     if (Object.keys(allErrors).length > 0) {
       setValidationErrors(allErrors)
-      setApiError(t('submitWorkshop.errorReviewFields'))
+      setApiError('يرجى مراجعة الحقول المطلوبة قبل إرسال الطلب.')
       const firstBroken = ([1, 2, 3, 4] as const).find((s) => Object.keys(validateStep(s)).length > 0)
       setStep(firstBroken ?? step)
       return
@@ -446,11 +441,11 @@ export default function SubmitWorkshop() {
       if (axios.isAxiosError(error) && error.response?.status === 422) {
         const backendErrors = error.response.data?.errors ?? {}
         setValidationErrors(backendErrors)
-        setApiError(error.response.data?.message ?? t('submitWorkshop.errorCheckData'))
+        setApiError(error.response.data?.message ?? 'يرجى التحقق من البيانات المدخلة.')
         return
       }
 
-      setApiError(t('submitWorkshop.errorSubmitFailed'))
+      setApiError('تعذر إرسال الطلب الآن. يرجى المحاولة مرة أخرى لاحقا.')
     } finally {
       setIsSubmitting(false)
     }
@@ -511,7 +506,7 @@ export default function SubmitWorkshop() {
           <div className="relative text-right">
             <nav aria-label="مسار التنقل" className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-ice/85">
               <Link to="/" className="transition hover:text-white">
-                {t('courses.breadcrumbHome')}
+                الرئيسية
               </Link>
               <ChevronLeft className="h-4 w-4 shrink-0 rotate-180 text-amber" aria-hidden />
               <span className="text-white">تقديم ورشة عمل</span>
@@ -525,11 +520,11 @@ export default function SubmitWorkshop() {
 
         <div className="mt-8 space-y-5" aria-live="polite">
           {submissionSuccess ?
-            <span className="sr-only">{`${t(SUCCESS_TITLE)}. ${t(SUCCESS_DESCRIPTION)}`}</span>
+            <span className="sr-only">{`${SUCCESS_TITLE}. ${SUCCESS_DESCRIPTION}`}</span>
           : null}
           {apiError && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-              <AppAlert type="error" title={t('submitWorkshop.alertTitle')} message={apiError} dismissible onDismiss={() => setApiError('')} />
+              <AppAlert type="error" title="تنبيه" message={apiError} dismissible onDismiss={() => setApiError('')} />
             </motion.div>
           )}
         </div>
@@ -639,26 +634,26 @@ export default function SubmitWorkshop() {
                         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0077B6]">الخطوة ١ من ٤</p>
                         <h2 className="mt-2 text-xl font-black text-[#0C2A4B]">بيانات مقدم الطلب</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
-                          {t('submitWorkshop.step1Description')}
+                          بيانات التواصل التي سيستخدمها فريق EMC لمتابعة طلبك.
                         </p>
                       </header>
 
                       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                          <AppInput
-                            variant="emc"
-                            label={t('submitWorkshop.applicantName')}
-                            name="requester_name"
+                        <AppInput
+                          variant="emc"
+                          label="الاسم الكامل"
+                          name="requester_name"
                           value={form.requester_name}
                           onChange={(value) => updateField('requester_name', value)}
-                          placeholder={t('submitWorkshop.applicantNamePlaceholder')}
+                          placeholder="اكتب الاسم الكامل"
                           error={getError('requester_name')}
                           required
                           icon="user"
                         />
-                          <AppInput
-                            variant="emc"
-                            label={t('submitWorkshop.applicantEmail')}
-                            name="requester_email"
+                        <AppInput
+                          variant="emc"
+                          label="البريد الإلكتروني"
+                          name="requester_email"
                           type="email"
                           value={form.requester_email}
                           onChange={(value) => updateField('requester_email', value)}
@@ -667,10 +662,10 @@ export default function SubmitWorkshop() {
                           required
                           icon="mail"
                         />
-                          <AppInput
-                            variant="emc"
-                            label={t('submitWorkshop.applicantPhone')}
-                            name="requester_phone"
+                        <AppInput
+                          variant="emc"
+                          label="رقم الجوال"
+                          name="requester_phone"
                           type="tel"
                           value={form.requester_phone}
                           onChange={(value) => updateField('requester_phone', value)}
@@ -681,11 +676,11 @@ export default function SubmitWorkshop() {
                         />
                         <AppInput
                           variant="emc"
-                          label={t('submitWorkshop.departmentLabel')}
+                          label="القسم أو الجهة"
                           name="requester_department"
                           value={form.requester_department}
                           onChange={(value) => updateField('requester_department', value)}
-                          placeholder={t('submitWorkshop.departmentPlaceholder')}
+                          placeholder="مثال: كلية الأعمال"
                           error={getError('requester_department')}
                           required
                           icon="text"
@@ -700,17 +695,17 @@ export default function SubmitWorkshop() {
                         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#0077B6]">الخطوة ٢ من ٤</p>
                         <h2 className="mt-2 text-xl font-black text-[#0C2A4B]">بيانات الورشة</h2>
                         <p className="mt-2 text-[13px] font-semibold text-muted-600">
-                          {t('submitWorkshop.step2Description')}
+                          صِف البرنامج، المتحدث، والمجالات التي تمثل محتواك.
                         </p>
                       </header>
 
                       <AppInput
                         variant="emc"
-                        label={t('submitWorkshop.programNameLabel')}
+                        label="اسم البرنامج / عنوان الورشة"
                         name="program_name"
                         value={form.program_name}
                         onChange={(value) => updateField('program_name', value)}
-                        placeholder={t('submitWorkshop.programNamePlaceholder')}
+                        placeholder="مثال: مقدمة عملية في الذكاء الاصطناعي"
                         error={getError('program_name')}
                         required
                         icon="text"
@@ -718,7 +713,7 @@ export default function SubmitWorkshop() {
 
                       <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
                         <AppCheckboxGroup
-                          label={t('submitWorkshop.categoriesLabel')}
+                          label="فئات البرنامج"
                           name="categories"
                           options={categories.map((category) => ({ label: category, value: category }))}
                           selected={selectedCategories}
@@ -736,18 +731,18 @@ export default function SubmitWorkshop() {
                           name="speaker_name"
                           value={form.speaker_name}
                           onChange={(value) => updateField('speaker_name', value)}
-                          placeholder={t('submitWorkshop.speakerNamePlaceholder')}
+                          placeholder="اسم المتحدث الرئيسي"
                           error={getError('speaker_name')}
                           required
                           icon="user"
                         />
                         <AppInput
                           variant="emc"
-                          label={t('submitWorkshop.jobTitleLabel')}
+                          label="المسمى الوظيفي"
                           name="speaker_job_title"
                           value={form.speaker_job_title}
                           onChange={(value) => updateField('speaker_job_title', value)}
-                          placeholder={t('submitWorkshop.jobTitlePlaceholder')}
+                          placeholder="مثال: مستشار تطوير مهني"
                           error={getError('speaker_job_title')}
                           required
                           icon="text"
@@ -755,7 +750,7 @@ export default function SubmitWorkshop() {
                       </div>
 
                       <AppFileUpload
-                        label={t('submitWorkshop.speakerPhotoLabel')}
+                        label="صورة المتحدث"
                         name="speaker_photo"
                         file={speakerPhoto}
                         onChange={setSpeakerPhoto}
@@ -937,7 +932,7 @@ export default function SubmitWorkshop() {
                       <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }} className="sm:min-w-[8rem]">
                         <AppButton type="button" variant="outline" onClick={goToPreviousStep} fullWidth className="rounded-2xl border-2 border-slate-200 bg-white font-black text-[#0C2A4B] hover:border-[#0077B6]/35 hover:bg-slate-50">
                           <ArrowRight size={18} aria-hidden />
-                          {t('submitWorkshop.previous')}
+                          السابق
                         </AppButton>
                       </motion.div>
                     )}
@@ -950,7 +945,7 @@ export default function SubmitWorkshop() {
                           fullWidth
                           className="rounded-2xl border-0 bg-gradient-to-l from-[#0077B6] to-[#1e7aad] font-black shadow-[0_14px_32px_rgba(0,119,182,0.35)] hover:brightness-[1.05]"
                         >
-                          {t('submitWorkshop.next')}
+                          التالي
                           <ArrowLeft size={18} aria-hidden />
                         </AppButton>
                       </motion.div>
@@ -968,7 +963,7 @@ export default function SubmitWorkshop() {
                         {isSubmitting ?
                           <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
                         : <CheckCircle2 size={20} aria-hidden />}
-                        {t('submitWorkshop.submit')}
+                        إرسال الطلب
                       </motion.button>
                     }
                   </div>
@@ -997,7 +992,7 @@ export default function SubmitWorkshop() {
 
               {!previewHasData ?
                 <p className="mt-6 rounded-2xl border border-dashed border-slate-300/90 bg-slate-50/90 px-4 py-10 text-center text-[13px] font-bold text-muted-600">
-                  {t('submitWorkshop.summaryEmpty')}
+                  لم يتم إدخال البيانات بعد
                 </p>
               :
                 <motion.dl layout className="mt-6 space-y-4 text-right">

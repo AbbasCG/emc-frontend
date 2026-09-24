@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import type { TicketFilterParams } from '@/services/ticketService';
-import type { Ticket, TicketStatus, DepartmentalUnit, TicketUser } from '@/types/ticket';
+import type { Ticket, TicketStatus } from '@/types/ticket';
 import TicketStatusBadge from './TicketStatusBadge';
 import SlaCountdownTimer from './SlaCountdownTimer';
+import { ApproveTicketModal } from '@/components/tickets/modals/ApproveTicketModal';
+import { RejectTicketModal } from '@/components/tickets/modals/RejectTicketModal';
+import { ReassignTicketModal } from '@/components/tickets/modals/ReassignTicketModal';
 import {
   LayoutDashboard,
   RefreshCw,
@@ -23,30 +26,13 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import toast from '@/lib/toast';
-import AssigneeSearchSelect from './AssigneeSearchSelect';
 
 // ── Types ──────────────────────────────────────────────────────────────────
-interface ApproveModalState {
-  ticketId: number;
-  departmentId: number;
-  unitId: string;
-  assignedToId: string;
-  slaHours: string;
-  notes: string;
-}
-
-interface RejectModalState {
-  ticketId: number;
-  reason: string;
-}
-
-interface ReassignModalState {
-  ticketId: number;
-  departmentId: number;
-  assignedToId: string;
-  unitId: string;
-  reason: string;
-}
+type ActiveModal =
+  | { type: 'approve'; ticketId: number; departmentId: number }
+  | { type: 'reject'; ticketId: number }
+  | { type: 'reassign'; ticketId: number; departmentId: number; unitId?: number }
+  | null;
 
 const CLOSED_STATUSES = ['RESOLVED', 'REJECTED_BY_ADMIN', 'UNRESOLVED'];
 
@@ -61,23 +47,7 @@ const STATUS_FILTER_OPTS = [
   { value: 'REJECTED_BY_ASSIGNEE', label: 'اعتذر المكلف' },
 ];
 
-const SLA_HOUR_OPTIONS = [
-  { value: '4',   label: '4 ساعات' },
-  { value: '8',   label: '8 ساعات (يوم عمل)' },
-  { value: '24',  label: '24 ساعة' },
-  { value: '48',  label: '48 ساعة (يومان)' },
-  { value: '72',  label: '72 ساعة (3 أيام)' },
-  { value: '120', label: '5 أيام عمل' },
-  { value: '168', label: 'أسبوع كامل' },
-];
-
 // ── Helpers ─────────────────────────────────────────────────────────────────
-function isDelayed(ticket: Ticket): boolean {
-  if (!ticket.expected_resolution_time) return false;
-  if (CLOSED_STATUSES.includes(ticket.status)) return false;
-  return new Date() > new Date(ticket.expected_resolution_time);
-}
-
 function formatShortDate(str: string) {
   return new Date(str).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
@@ -85,31 +55,45 @@ function formatShortDate(str: string) {
 // ── Component ────────────────────────────────────────────────────────────────
 const TechAdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [tickets, setTickets]       = useState<Ticket[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  // Unit/employee lists are scoped per-modal (to the ticket's own department,
-  // and then to the selected unit) rather than loaded once globally — see the
-  // effects below.
-  const [units, setUnits]           = useState<DepartmentalUnit[]>([]);
-  const [unitsLoading, setUnitsLoading] = useState(false);
-  const [users, setUsers]           = useState<TicketUser[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
   const [loading, setLoading]       = useState(true);
 
-  // Filters
-  const [statusFilter, setStatusFilter]   = useState('');
-  const [search, setSearch]               = useState('');
-  const [delayedOnly, setDelayedOnly]     = useState(false);
-  const [currentPage, setCurrentPage]     = useState(1);
+  // Filters live in the URL query string, not local state — so returning
+  // here via a ticket's "رجوع" restores the exact same filtered/paged view
+  // (Detail passes `state: { from: location.pathname + location.search }`),
+  // and a bare refresh doesn't silently reset the table either. Mirrors the
+  // established pattern already used by OpsSupportTicketsPage.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const statusFilter = searchParams.get('status') ?? '';
+  const search       = searchParams.get('search') ?? '';
+  const delayedOnly  = searchParams.get('delayed') === '1';
+  const currentPage  = Math.max(1, Number(searchParams.get('page') ?? '1') || 1);
 
-  // Modals
-  const [approveModal, setApproveModal]   = useState<ApproveModalState | null>(null);
-  const [rejectModal, setRejectModal]     = useState<RejectModalState | null>(null);
-  const [reassignModal, setReassignModal] = useState<ReassignModalState | null>(null);
+  const updateParams = useCallback((patch: Record<string, string | null>) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null || value === '') next.delete(key);
+        else next.set(key, value);
+      }
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
-  // Submission loading
-  const [actionLoading, setActionLoading] = useState(false);
+  const setStatusFilter = (v: string) => updateParams({ status: v, page: null });
+  const setSearch = (v: string) => updateParams({ search: v, page: null });
+  const setDelayedOnly = (v: boolean) => updateParams({ delayed: v ? '1' : null, page: null });
+  const setCurrentPage = (v: number | ((p: number) => number)) => {
+    const next = typeof v === 'function' ? v(currentPage) : v;
+    updateParams({ page: next > 1 ? String(next) : null });
+  };
+
+  // Modal state — the approve/reject/reassign modals own their own unit/user
+  // loading now; this page just decides WHICH one is open, for WHICH ticket.
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -135,117 +119,32 @@ const TechAdminDashboardPage: React.FC = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Active modal's department/unit — whichever modal (approve or reassign)
-  // is currently open. Only one is ever open at a time.
-  const activeDepartmentId = approveModal?.departmentId ?? reassignModal?.departmentId ?? null;
-  const activeUnitId = approveModal?.unitId ?? reassignModal?.unitId ?? '';
+  const closeModal = () => setActiveModal(null);
+  const handleActionSuccess = () => {
+    closeModal();
+    fetchData();
+  };
 
-  // Load the ticket-department's own units whenever a modal opens — never a
-  // hardcoded department, and never every unit in the system.
-  useEffect(() => {
-    if (!activeDepartmentId) {
-      setUnits([]);
-      return;
+  const openTicket = (ticketId: number) => {
+    // Carries the exact filtered/paged URL back through Detail's "رجوع".
+    navigate(`/dashboard/tickets/${ticketId}`, {
+      state: { from: `${location.pathname}${location.search}` },
+    });
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, ticketId: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      openTicket(ticketId);
     }
-    let cancelled = false;
-    setUnitsLoading(true);
-    ticketService.getMeta({ department_id: activeDepartmentId })
-      .then((meta) => { if (!cancelled) setUnits(meta.tech_units ?? []); })
-      .catch(() => { if (!cancelled) toast.error('تعذر تحميل الوحدات التقنية'); })
-      .finally(() => { if (!cancelled) setUnitsLoading(false); });
-    return () => { cancelled = true; };
-  }, [activeDepartmentId]);
+  };
 
-  // Load employees scoped to the selected unit only once both department and
-  // unit are known — cancels a slow in-flight request if the unit changes
-  // again before it resolves, so a stale response can never overwrite the
-  // newer selection's results.
-  useEffect(() => {
-    if (!activeDepartmentId || !activeUnitId) {
-      setUsers([]);
-      return;
-    }
-    let cancelled = false;
-    setUsersLoading(true);
-    ticketService.getMeta({ department_id: activeDepartmentId, unit_id: Number(activeUnitId) })
-      .then((meta) => { if (!cancelled) setUsers(meta.users ?? []); })
-      .catch(() => { if (!cancelled) toast.error('تعذر تحميل قائمة الموظفين'); })
-      .finally(() => { if (!cancelled) setUsersLoading(false); });
-    return () => { cancelled = true; };
-  }, [activeDepartmentId, activeUnitId]);
-
-  // ── KPI counts ────────────────────────────────────────────────────────
+  // ── KPI counts — is_delayed is backend-owned (Ticket::getIsDelayedAttribute),
+  //    never recomputed here from expected_resolution_time. ──────────────────
   const pendingCount  = tickets.filter((t) => t.status === 'PENDING_APPROVAL').length;
   const activeCount   = tickets.filter((t) => ['ASSIGNED', 'IN_PROGRESS'].includes(t.status)).length;
-  const delayedCount  = tickets.filter(isDelayed).length;
+  const delayedCount  = tickets.filter((t) => t.is_delayed).length;
   const resolvedCount = tickets.filter((t) => t.status === 'RESOLVED').length;
-
-  // ── Actions ────────────────────────────────────────────────────────────
-  const handleApprove = async () => {
-    if (!approveModal) return;
-    if (!approveModal.assignedToId || !approveModal.unitId || !approveModal.slaHours) {
-      toast.error('يجب تحديد الوحدة التقنية والمكلف ومدة الـ SLA');
-      return;
-    }
-    setActionLoading(true);
-    try {
-      await ticketService.approveTicket(approveModal.ticketId, {
-        unit_id:        Number(approveModal.unitId),
-        assigned_to_id: Number(approveModal.assignedToId),
-        sla_hours:      Number(approveModal.slaHours),
-        internal_notes: approveModal.notes,
-      });
-      toast.success('تم اعتماد التذكرة وإحالتها للمكلف');
-      setApproveModal(null);
-      fetchData();
-    } catch {
-      toast.error('حدث خطأ أثناء الاعتماد');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!rejectModal) return;
-    if (!rejectModal.reason.trim()) {
-      toast.error('سبب الرفض إجباري ولا يمكن تجاوزه');
-      return;
-    }
-    setActionLoading(true);
-    try {
-      await ticketService.rejectByAdmin(rejectModal.ticketId, rejectModal.reason.trim());
-      toast.success('تم رفض التذكرة وإشعار المُدخل بالسبب');
-      setRejectModal(null);
-      fetchData();
-    } catch {
-      toast.error('حدث خطأ أثناء الرفض');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleReassign = async () => {
-    if (!reassignModal) return;
-    if (!reassignModal.assignedToId) {
-      toast.error('يجب اختيار المكلف الجديد');
-      return;
-    }
-    setActionLoading(true);
-    try {
-      await ticketService.reassign(reassignModal.ticketId, {
-        assigned_to_id: Number(reassignModal.assignedToId),
-        unit_id:         reassignModal.unitId ? Number(reassignModal.unitId) : undefined,
-        reason:          reassignModal.reason,
-      });
-      toast.success('تمت إعادة التوجيه وتغيير المكلف');
-      setReassignModal(null);
-      fetchData();
-    } catch {
-      toast.error('حدث خطأ أثناء إعادة التوجيه');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
@@ -362,22 +261,31 @@ const TechAdminDashboardPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {tickets.map((ticket) => {
-                    const delayed = isDelayed(ticket);
+                    const delayed = Boolean(ticket.is_delayed);
                     const isClosed = CLOSED_STATUSES.includes(ticket.status);
+                    const caps = ticket.capabilities;
 
                     return (
                       <tr
                         key={ticket.id}
-                        className={`hover:bg-slate-50 transition ${delayed ? 'bg-rose-50/30' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`فتح التذكرة ${ticket.ticket_number}`}
+                        onClick={() => openTicket(ticket.id)}
+                        onKeyDown={(e) => handleRowKeyDown(e, ticket.id)}
+                        className={`cursor-pointer hover:bg-slate-100 focus:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 transition ${delayed ? 'bg-rose-50/30' : ''}`}
                       >
-                        {/* Ticket # */}
+                        {/* Ticket # — a real link: keyboard/right-click/open-in-new-tab
+                            all still work independently of the row's own click handler. */}
                         <td className="px-5 py-4">
-                          <button
-                            onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
+                          <Link
+                            to={`/dashboard/tickets/${ticket.id}`}
+                            state={{ from: `${location.pathname}${location.search}` }}
+                            onClick={(e) => e.stopPropagation()}
                             className="text-blue-600 hover:text-blue-800 font-mono font-bold text-xs hover:underline"
                           >
                             {ticket.ticket_number}
-                          </button>
+                          </Link>
                           {delayed && (
                             <span className="block mt-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded-full w-fit">
                               ⚠️ متأخرة
@@ -447,55 +355,53 @@ const TechAdminDashboardPage: React.FC = () => {
                           )}
                         </td>
 
-                        {/* Actions */}
+                        {/* Actions — every button gated on the server-computed
+                            capability, never on a re-derived status check, and
+                            every click stops propagation so it never also
+                            triggers the row's own navigation. */}
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            {ticket.status === 'PENDING_APPROVAL' && (
-                              <>
-                                <button
-                                  onClick={() => setApproveModal({
+                            {caps?.approve && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveModal({ type: 'approve', ticketId: ticket.id, departmentId: ticket.department_id });
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition"
+                              >
+                                <CheckCircle2 className="w-3 h-3" />
+                                ✅ اعتماد
+                              </button>
+                            )}
+                            {caps?.reject && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveModal({ type: 'reject', ticketId: ticket.id });
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition"
+                              >
+                                <XCircle className="w-3 h-3" />
+                                ❌ رفض
+                              </button>
+                            )}
+                            {caps?.reassign && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveModal({
+                                    type: 'reassign',
                                     ticketId: ticket.id,
                                     departmentId: ticket.department_id,
-                                    unitId: '',
-                                    assignedToId: '',
-                                    slaHours: '24',
-                                    notes: '',
-                                  })}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition"
-                                >
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  ✅ اعتماد
-                                </button>
-                                <button
-                                  onClick={() => setRejectModal({ ticketId: ticket.id, reason: '' })}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition"
-                                >
-                                  <XCircle className="w-3 h-3" />
-                                  ❌ رفض
-                                </button>
-                              </>
-                            )}
-                            {['ASSIGNED', 'IN_PROGRESS', 'REJECTED_BY_ASSIGNEE'].includes(ticket.status) && (
-                              <button
-                                onClick={() => setReassignModal({
-                                  ticketId: ticket.id,
-                                  departmentId: ticket.department_id,
-                                  assignedToId: '',
-                                  unitId: ticket.unit_id ? String(ticket.unit_id) : '',
-                                  reason: '',
-                                })}
+                                    unitId: ticket.unit_id ?? undefined,
+                                  });
+                                }}
                                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition"
                               >
                                 <RotateCcw className="w-3 h-3" />
-                                🔄 إعادة توجيه
+                                {ticket.assignee ? '🔄 إعادة توجيه' : '➕ تعيين'}
                               </button>
                             )}
-                            <button
-                              onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition"
-                            >
-                              عرض
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -528,215 +434,31 @@ const TechAdminDashboardPage: React.FC = () => {
         )}
       </div>
 
-      {/* ═══════════════════ APPROVE MODAL ═══════════════════ */}
-      {approveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 space-y-5" dir="rtl">
-            <h2 className="text-lg font-extrabold text-slate-900">✅ اعتماد التذكرة وتحديد التكليف</h2>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                الوحدة التقنية المستهدفة <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={approveModal.unitId}
-                disabled={unitsLoading}
-                onChange={(e) => setApproveModal({ ...approveModal, unitId: e.target.value, assignedToId: '' })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
-              >
-                <option value="">
-                  {unitsLoading ? 'جارٍ تحميل الوحدات...' : '-- اختر الوحدة التقنية (من الوحدات المتاحة) --'}
-                </option>
-                {units.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name_ar}</option>
-                ))}
-              </select>
-              {!unitsLoading && units.length === 0 && (
-                <p className="text-[11px] text-amber-600 mt-1">لا توجد وحدات تقنية مُعرّفة لإدارة هذه التذكرة بعد.</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                الموظف المكلف بالإنجاز <span className="text-rose-500">*</span>
-              </label>
-              <AssigneeSearchSelect
-                instanceId="approve-modal-assignee"
-                ariaLabel="الموظف المكلف بالإنجاز"
-                users={users}
-                value={approveModal.assignedToId}
-                onChange={(v) => setApproveModal({ ...approveModal, assignedToId: v })}
-                isDisabled={!approveModal.unitId || usersLoading}
-                isLoading={usersLoading}
-                placeholder={!approveModal.unitId ? 'اختر الوحدة التقنية أولاً' : '-- ابحث عن المكلف بالاسم --'}
-                noOptionsMessage={
-                  !approveModal.unitId
-                    ? 'اختر الوحدة التقنية أولاً'
-                    : 'لا يوجد موظفون مرتبطون بهذه الوحدة'
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                مدة الـ SLA المسموح بها <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={approveModal.slaHours}
-                onChange={(e) => setApproveModal({ ...approveModal, slaHours: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                {SLA_HOUR_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات داخلية (اختياري)</label>
-              <textarea
-                rows={2}
-                value={approveModal.notes}
-                onChange={(e) => setApproveModal({ ...approveModal, notes: e.target.value })}
-                placeholder="توجيهات للمكلف أو السياق الإضافي..."
-                className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={() => setApproveModal(null)}
-                className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleApprove}
-                disabled={actionLoading}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition disabled:opacity-60"
-              >
-                {actionLoading ? 'جاري الاعتماد...' : '✅ تأكيد الاعتماد والإحالة'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Modals — same shared components TicketDetailPage uses, so both
+          surfaces call the exact same backend operation with no drift. */}
+      {activeModal?.type === 'approve' && (
+        <ApproveTicketModal
+          ticketId={activeModal.ticketId}
+          departmentId={activeModal.departmentId}
+          onClose={closeModal}
+          onSuccess={handleActionSuccess}
+        />
       )}
-
-      {/* ═══════════════════ REJECT MODAL ═══════════════════ */}
-      {rejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 space-y-5" dir="rtl">
-            <h2 className="text-lg font-extrabold text-slate-900">❌ رفض التذكرة الإداري</h2>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              سيتم إشعار مُدخل الطلب بقرار الرفض وسببه فوراً. <strong className="text-rose-600">سبب الرفض إجباري</strong> ولا يمكن الإغلاق بدونه.
-            </p>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                سبب الرفض الإداري <span className="text-rose-500">*</span>
-              </label>
-              <textarea
-                rows={4}
-                value={rejectModal.reason}
-                onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
-                placeholder="اكتب سبباً واضحاً ومفصلاً للرفض..."
-                className={`w-full rounded-xl border p-3 text-sm focus:ring-2 outline-none resize-none ${
-                  rejectModal.reason.trim().length === 0
-                    ? 'border-rose-300 focus:ring-rose-400'
-                    : 'border-slate-300 focus:ring-blue-500'
-                }`}
-              />
-              {rejectModal.reason.trim().length === 0 && (
-                <p className="text-[11px] text-rose-500 mt-1">⚠️ لا يمكن حفظ الرفض بدون سبب</p>
-              )}
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={() => setRejectModal(null)}
-                className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleReject}
-                disabled={actionLoading || !rejectModal.reason.trim()}
-                className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition disabled:opacity-60"
-              >
-                {actionLoading ? 'جاري الرفض...' : '❌ تأكيد الرفض'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {activeModal?.type === 'reject' && (
+        <RejectTicketModal
+          ticketId={activeModal.ticketId}
+          onClose={closeModal}
+          onSuccess={handleActionSuccess}
+        />
       )}
-
-      {/* ═══════════════════ REASSIGN MODAL ═══════════════════ */}
-      {reassignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 space-y-5" dir="rtl">
-            <h2 className="text-lg font-extrabold text-slate-900">🔄 إعادة التوجيه وتغيير المكلف</h2>
-            <p className="text-xs text-slate-500">ستُعاد التذكرة لحالة (معتمدة) وتُحال للمكلف الجديد.</p>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">الوحدة التقنية</label>
-              <select
-                value={reassignModal.unitId}
-                disabled={unitsLoading}
-                onChange={(e) => setReassignModal({ ...reassignModal, unitId: e.target.value, assignedToId: '' })}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60"
-              >
-                <option value="">— إبقاء الوحدة الحالية —</option>
-                {units.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name_ar}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">المكلف الجديد <span className="text-rose-500">*</span></label>
-              <AssigneeSearchSelect
-                instanceId="reassign-modal-assignee"
-                ariaLabel="المكلف الجديد"
-                users={users}
-                value={reassignModal.assignedToId}
-                onChange={(v) => setReassignModal({ ...reassignModal, assignedToId: v })}
-                isDisabled={!reassignModal.unitId || usersLoading}
-                isLoading={usersLoading}
-                placeholder={!reassignModal.unitId ? 'اختر الوحدة التقنية أولاً' : '-- ابحث عن المكلف بالاسم --'}
-                noOptionsMessage={
-                  !reassignModal.unitId
-                    ? 'اختر الوحدة التقنية أولاً'
-                    : 'لا يوجد موظفون مرتبطون بهذه الوحدة'
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">سبب إعادة التوجيه (اختياري)</label>
-              <input
-                type="text"
-                value={reassignModal.reason}
-                onChange={(e) => setReassignModal({ ...reassignModal, reason: e.target.value })}
-                placeholder="مثال: اعتذار المكلف الأول، تغيير في النطاق..."
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={() => setReassignModal(null)}
-                className="px-5 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleReassign}
-                disabled={actionLoading || !reassignModal.assignedToId}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition disabled:opacity-60"
-              >
-                {actionLoading ? 'جاري الحفظ...' : '🔄 تأكيد إعادة التوجيه'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {activeModal?.type === 'reassign' && (
+        <ReassignTicketModal
+          ticketId={activeModal.ticketId}
+          departmentId={activeModal.departmentId}
+          currentUnitId={activeModal.unitId}
+          onClose={closeModal}
+          onSuccess={handleActionSuccess}
+        />
       )}
     </div>
   );

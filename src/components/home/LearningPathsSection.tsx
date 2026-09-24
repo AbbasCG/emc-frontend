@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-
 import { ArrowLeft, BookMarked, Brain, GraduationCap, Globe } from 'lucide-react'
 import { fadeUp } from '../../utils/course'
 

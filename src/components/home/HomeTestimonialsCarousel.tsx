@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { BarChart3, MessageSquareText, Route } from 'lucide-react'
 
 const experienceSignals = [

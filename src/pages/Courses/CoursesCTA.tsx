@@ -1,4 +1,4 @@
-﻿import { memo, useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useInView } from 'framer-motion'
 import { Calendar } from 'lucide-react'

@@ -1,4 +1,4 @@
-﻿import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ChevronDown, Cookie, Mail, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

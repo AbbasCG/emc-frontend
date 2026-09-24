@@ -1,4 +1,4 @@
-﻿import { memo, Fragment, type ReactNode } from 'react'
+import { memo, Fragment, type ReactNode } from 'react'
 import { ChevronDown, AlertCircle, Search, X } from 'lucide-react'
 
 type SelectOption = { value: string; label: string }

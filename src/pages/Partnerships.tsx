@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   BadgeCheck,
   BadgeDollarSign,
@@ -87,7 +87,7 @@ export default function Partnerships() {
           >
             {partnershipTypes.map((p) => (
               <motion.article
-                key={contentT(p.title)}
+                key={p.title.ar}
                 variants={staggerItem}
                 whileHover={{ y: -3 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 30 }}
@@ -97,8 +97,8 @@ export default function Partnerships() {
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-customBlue ring-1 ring-customBlue/15">
                   <TypeIcon name={p.icon} />
                 </div>
-                <h3 className="text-lg font-black text-deepBlue">{contentT(p.title)}</h3>
-                <p className="mt-3 leading-8 text-slate-600">{contentT(p.description)}</p>
+                <h3 className="text-lg font-black text-deepBlue">{p.title.ar}</h3>
+                <p className="mt-3 leading-8 text-slate-600">{p.description.ar}</p>
               </motion.article>
             ))}
           </motion.div>

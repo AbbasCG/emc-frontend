@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Department, TicketCategory, TicketPriority } from '@/types/ticket';
@@ -6,8 +6,6 @@ import {
   AlertCircle,
   UploadCloud,
   FileText,
-  Image as ImageIcon,
-  Film,
   Send,
   Sparkles,
   X,
@@ -15,6 +13,16 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import toast from '@/lib/toast';
+import {
+  ACCEPT_ATTRIBUTE,
+  addFiles,
+  formatBytes,
+  pastedImageName,
+  releasePreviews,
+  REJECTION_MESSAGE_AR,
+  type RejectionReason,
+  type TicketAttachment,
+} from '@/utils/ticketAttachments';
 
 const PRIORITY_OPTIONS = [
   { id: 'LOW',      label: 'منخفضة',         dot: 'bg-slate-400' },
@@ -35,7 +43,7 @@ const TicketSubmitPage: React.FC = () => {
   const [title, setTitle]               = useState('');
   const [description, setDescription]   = useState('');
   const [priority, setPriority]         = useState<TicketPriority>('MEDIUM');
-  const [files, setFiles]               = useState<File[]>([]);
+  const [attachments, setAttachments]   = useState<TicketAttachment[]>([]);
 
   // Derived from session — never ask the logged-in user to type their own name
   const submitterName  = user?.name  ?? '';
@@ -65,25 +73,104 @@ const TicketSubmitPage: React.FC = () => {
     fetchMeta();
   }, []);
 
+  /**
+   * THE one place attachments enter the form.
+   *
+   * The picker, drag-drop and clipboard paste all funnel through here, so a
+   * single validation rule and a single preview-URL lifecycle covers every
+   * path - there is deliberately no second upload implementation.
+   */
+  const acceptFiles = useCallback(
+    (incoming: File[], nameFor?: (file: File, index: number) => string | undefined) => {
+      if (incoming.length === 0) return 0;
+
+      const { accepted, rejected } = addFiles(incoming, nameFor);
+
+      if (accepted.length > 0) {
+        setAttachments((prev) => [...prev, ...accepted]);
+      }
+
+      // One toast per distinct reason, so pasting a video and an oversized
+      // image explains both without stacking a toast per file.
+      new Set<RejectionReason>(rejected).forEach((reason) => {
+        toast.error(REJECTION_MESSAGE_AR[reason]);
+      });
+
+      return accepted.length;
+    },
+    [],
+  );
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+    if (!e.target.files) return;
+    acceptFiles(Array.from(e.target.files));
+    // Let the same file be picked again after removal.
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const dropped = Array.from(e.dataTransfer.files);
-    setFiles((prev) => [...prev, ...dropped]);
+    acceptFiles(Array.from(e.dataTransfer.files));
   };
 
-  const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
+  /**
+   * Clipboard image paste.
+   *
+   * Bound to the FORM, not the dropzone: a paste event is delivered to the
+   * focused element, and the dropzone is a plain div with no tabIndex whose
+   * only child input is hidden - so a handler there can never fire for the way
+   * people actually paste a screenshot. One handler at the form also means a
+   * single paste cannot be counted twice by a nested handler.
+   *
+   * Non-image pastes return BEFORE preventDefault(), so ordinary text paste is
+   * completely untouched.
+   */
+  const handlePaste = (e: React.ClipboardEvent<HTMLFormElement>) => {
+    const imageFiles = Array.from(e.clipboardData.items)
+      .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file));
+
+    if (imageFiles.length === 0) return;
+
+    e.preventDefault();
+
+    const added = acceptFiles(imageFiles, pastedImageName);
+
+    if (added > 0) {
+      toast.success(
+        added === 1
+          ? 'تم لصق الصورة وإضافتها للمرفقات'
+          : `تم لصق ${added} صور وإضافتها للمرفقات`
+      );
+    }
+  };
+
+  /** Removing an attachment must release its preview URL, or the file leaks. */
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => {
+      const going = prev.filter((a) => a.id === id);
+      releasePreviews(going);
+      return prev.filter((a) => a.id !== id);
+    });
+  };
 
   const handleReset = () => {
     setTitle('');
     setDescription('');
     setPriority('MEDIUM');
     setCategory('OLD_ISSUE');
-    setFiles([]);
+    setAttachments((prev) => {
+      releasePreviews(prev);
+      return [];
+    });
   };
+
+  // Release every outstanding preview URL when the page goes away. A ref keeps
+  // the effect from re-running (and revoking live URLs) on every change.
+  const attachmentsRef = useRef<TicketAttachment[]>([]);
+  attachmentsRef.current = attachments;
+  useEffect(() => () => releasePreviews(attachmentsRef.current), []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +189,7 @@ const TicketSubmitPage: React.FC = () => {
       formData.append('department_id', departmentId);
       formData.append('created_by_name', submitterName || 'مستخدم');
       if (submitterEmail) formData.append('created_by_email', submitterEmail);
-      files.forEach((file) => formData.append('attachments[]', file));
+      attachments.forEach(({ file }) => formData.append('attachments[]', file));
 
       const res = await ticketService.createTicket(formData);
       if (res.success && res.data) {
@@ -112,17 +199,26 @@ const TicketSubmitPage: React.FC = () => {
         toast.error(res.message || 'حدث خطأ أثناء حفظ التذكرة');
       }
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      toast.error(axiosErr.response?.data?.message || 'تعذر إرسال التذكرة، يرجى المحاولة لاحقاً');
+      const axiosErr = err as {
+        response?: { status?: number; data?: { message?: string; errors?: Record<string, string[]> } };
+      };
+      const status = axiosErr.response?.status;
+
+      if (status === 422) {
+        // Validation: surface the first field message, which is already a safe
+        // Arabic string from the server - never a stack trace or SQL text.
+        const first = Object.values(axiosErr.response?.data?.errors ?? {})[0]?.[0];
+        toast.error(first || 'تعذر رفع المرفق. تحقق من نوع الملف وحجمه.');
+      } else if (status === 413) {
+        toast.error('حجم الملف يتجاوز الحد المسموح.');
+      } else if (status === undefined) {
+        toast.error('تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.');
+      } else {
+        toast.error('حدث خطأ أثناء حفظ التذكرة. حاول مرة أخرى.');
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const FileIcon = ({ file }: { file: File }) => {
-    if (file.type.startsWith('image/')) return <ImageIcon className="w-4 h-4 text-blue-500 shrink-0" />;
-    if (file.type.startsWith('video/')) return <Film className="w-4 h-4 text-violet-500 shrink-0" />;
-    return <FileText className="w-4 h-4 text-amber-500 shrink-0" />;
   };
 
   return (
@@ -159,7 +255,7 @@ const TicketSubmitPage: React.FC = () => {
             <p className="text-slate-500 text-sm font-semibold">جاري تحميل بيانات الإدارات...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/80 space-y-8">
+          <form onSubmit={handleSubmit} onPaste={handlePaste} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/80 space-y-8">
 
             {/* ── Ticket Type ── */}
             <div>
@@ -297,7 +393,7 @@ const TicketSubmitPage: React.FC = () => {
                 <input
                   type="file"
                   multiple
-                  accept="image/*,video/*,.pdf,.doc,.docx"
+                  accept={ACCEPT_ATTRIBUTE}
                   onChange={handleFileChange}
                   className="hidden"
                   id="ticket-media-input"
@@ -307,27 +403,44 @@ const TicketSubmitPage: React.FC = () => {
                     <UploadCloud className="w-8 h-8" />
                   </div>
                   <span className="text-sm font-bold text-slate-700">اضغط أو اسحب وأفلت الملفات هنا</span>
-                  <span className="text-xs text-slate-400">JPG, PNG, MP4, MOV, PDF — حتى 50 ميجابايت لكل ملف</span>
+                  <span className="text-xs text-slate-400">JPG, PNG, WEBP, PDF — حتى 50 ميجابايت لكل ملف</span>
                 </div>
               </div>
 
-              {files.length > 0 && (
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {files.map((file, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <FileIcon file={file} />
-                        <span className="truncate font-medium text-slate-800">{file.name}</span>
-                        <span className="text-[10px] text-slate-400 shrink-0">
-                          ({(file.size / 1024 / 1024).toFixed(1)} MB)
-                        </span>
+              {attachments.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {attachments.map((att) => (
+                    <div
+                      key={att.id}
+                      className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white"
+                    >
+                      {att.isImage && att.previewUrl ? (
+                        <img
+                          src={att.previewUrl}
+                          alt={att.file.name}
+                          loading="lazy"
+                          className="h-28 w-full bg-slate-50 object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-28 w-full items-center justify-center bg-slate-50">
+                          <FileText className="h-9 w-9 text-amber-500" />
+                        </div>
+                      )}
+
+                      <div className="p-2 text-right">
+                        <p className="truncate text-[11px] font-semibold text-slate-800" title={att.file.name}>
+                          {att.file.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400">{formatBytes(att.file.size)}</p>
                       </div>
+
                       <button
                         type="button"
-                        onClick={() => removeFile(idx)}
-                        className="text-rose-500 hover:text-rose-700 p-1 rounded-lg hover:bg-rose-50 transition ml-1"
+                        onClick={() => removeAttachment(att.id)}
+                        aria-label={`إزالة ${att.file.name}`}
+                        className="absolute top-1.5 left-1.5 rounded-lg bg-white/90 p-1 text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-700"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   ))}

@@ -1,4 +1,4 @@
-﻿import { useState, memo } from 'react'
+import { useState, memo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { RotateCcw, Search } from 'lucide-react'
 import CourseCard from './CourseCard'
