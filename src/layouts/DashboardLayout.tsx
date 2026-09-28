@@ -609,7 +609,7 @@ function Topbar({
         {/* زر لوحة التشغيل: بارز وسط الشريط لكل الأدوار — نافذة الفريق الواحدة على المهام */}
         <Link
           to="/dashboard/operations/board"
-          className="mx-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-customOrange px-3 text-[11px] font-extrabold text-white transition hover:bg-ember sm:gap-2 sm:px-4 sm:text-xs"
+          className="mx-auto hidden h-9 shrink-0 items-center gap-1.5 rounded-xl bg-customOrange px-3 text-[11px] font-extrabold text-white transition hover:bg-ember sm:inline-flex sm:gap-2 sm:px-4 sm:text-xs"
         >
           <KanbanSquare size={15} aria-hidden />
           لوحة التشغيل
@@ -840,7 +840,7 @@ export default function DashboardLayout() {
   return (
     <FinancialRequestProvider>
     <StudentDashboardProvider>
-    <div className="emc-shell min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+    <div className="emc-shell min-h-[100dvh] overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_252px] h-full" dir="ltr">
         
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
