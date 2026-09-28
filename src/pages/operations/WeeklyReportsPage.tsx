@@ -77,7 +77,13 @@ export default function WeeklyReportsPage() {
     led_departments: LedDepartmentState[]
   } | null>(null)
   const [summary, setSummary] = useState<WeeklyReportsSummary | null>(null)
-  const { manifest: departmentAccess, loading: departmentAccessLoading, soleDepartmentId } = useDepartmentAccess()
+  const {
+    manifest: departmentAccess,
+    loading: departmentAccessLoading,
+    soleDepartmentId,
+    readableDepartments,
+    canViewMultipleDepartments,
+  } = useDepartmentAccess()
   // تسليم التقرير متاح فقط لمن يقود إدارة واحدة على الأقل (أو مدير عام) — وليس لكل عضو إدارة نشط.
   // مصدر الحقيقة الوحيد لكل هذا هو ما يُعيده الخادم (due.led_departments، مبني على
   // departments.leader_id عبر DepartmentAccessService) — لا اسم دور، ولا قائمة أدوار مسموحة هنا.
@@ -543,8 +549,11 @@ export default function WeeklyReportsPage() {
           <option value="this_month">هذا الشهر</option>
           <option value="all">الكل</option>
         </select>
-        {!isSoleLeader && canCreate && (departmentAccess?.allowed_departments.length ?? 0) > 1 && (
+        {/* تصفية التصفّح تتبع نطاق القراءة (readable_departments) لا صلاحية الإنشاء:
+            أدوار الاطلاع العام (الجودة) تتصفح كل الإدارات دون أن تملك الإنشاء. */}
+        {!departmentAccessLoading && canViewMultipleDepartments && (
           <select
+            aria-label="تصفية حسب الإدارة"
             value={departmentFilter}
             onChange={(e) => {
               setDepartmentFilter(e.target.value ? Number(e.target.value) : '')
@@ -553,7 +562,7 @@ export default function WeeklyReportsPage() {
             className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-deepBlue outline-none focus:border-customBlue"
           >
             <option value="">كل الأقسام</option>
-            {departmentAccess?.allowed_departments.map((d) => (
+            {readableDepartments.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>

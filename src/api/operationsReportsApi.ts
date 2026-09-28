@@ -21,12 +21,30 @@ export async function fetchDepartmentMembers(departmentId: number): Promise<Depa
 
 // ── نطاق الإدارات المتاح للمستخدم ────────────────────────────────────────────
 
+export type DepartmentOption = { id: number; name: string }
+
+/**
+ * Mirrors DepartmentAccessService::manifest(). Two deliberately separate
+ * scopes — READ authority is not WRITE authority:
+ *   - CREATE scope (`department_scope`, `allowed_departments`,
+ *     `can_select_any_department`, `can_create_report`): leadership or global
+ *     admin only. Drives the create form and sole-department auto-select.
+ *   - READ scope (`read_scope`, `readable_departments`,
+ *     `can_view_multiple_departments`): what the user may browse/filter.
+ *     A read-only global role (quality) gets every department here while its
+ *     create scope stays empty.
+ * The read fields are optional only to tolerate an older backend during a
+ * split deploy; useDepartmentAccess() supplies the fallback.
+ */
 export type DepartmentAccessManifest = {
   department_scope: 'restricted' | 'global'
-  allowed_departments: Array<{ id: number; name: string }>
+  allowed_departments: DepartmentOption[]
   can_select_any_department: boolean
   /** true when the current user may create/submit reports (leader or global admin). false for read-only-global roles like quality. */
   can_create_report?: boolean
+  read_scope?: 'restricted' | 'global'
+  readable_departments?: DepartmentOption[]
+  can_view_multiple_departments?: boolean
 }
 
 export async function fetchMyDepartmentAccess(): Promise<DepartmentAccessManifest> {
