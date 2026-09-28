@@ -6,9 +6,28 @@ export interface FinanceApprovalSummary {
   rejected: number;
 }
 
+/** Whether a request is a brand-new paid program or a change to an approved one. */
+export type FinanceRequestType = 'create' | 'update';
+
+/**
+ * One finance-relevant field's before/after, captured by the backend at
+ * submit time — NOT re-derived from the program's current columns, which keep
+ * moving as it is edited. `from` is the last approved value, `to` the proposed
+ * one. `course_ids` (Learning Paths only) carries arrays instead of scalars.
+ */
+export interface FinanceFieldChange {
+  from: string | number | boolean | number[] | null;
+  to: string | number | boolean | number[] | null;
+}
+
+export type FinanceChangeSet = Record<string, FinanceFieldChange>;
+
 export interface FinanceApprovalItem {
   id: number;
   status: 'pending' | 'approved' | 'rejected';
+  request_type: FinanceRequestType;
+  /** null for first submissions and for legacy rows predating change review. */
+  changes: FinanceChangeSet | null;
   approvable_type: 'Course' | 'LearningPath';
   approvable_id: number;
   submitted_at: string | null;

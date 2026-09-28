@@ -463,7 +463,9 @@ function FormModal({
 }: {
   editPath: LearningPath | null
   onClose: () => void
-  onSaved: () => void
+  /** Receives whether the saved path is now awaiting Finance review, so the
+   *  caller can avoid claiming the change is already live. */
+  onSaved: (awaitingFinance?: boolean) => void
 }) {
   const [step, setStep] = useState<FormStep>(1)
   const [form, setForm] = useState<FormState>(editPath ? pathToForm(editPath) : defaultForm())
@@ -510,12 +512,15 @@ function FormModal({
       if (form.schedule_note.trim()) fd.append('schedule_note', form.schedule_note.trim())
       if (form.featured_image_file) fd.append('featured_image', form.featured_image_file)
 
-      if (editPath) {
-        await updateLearningPath(editPath.id, fd)
-      } else {
-        await createLearningPath(fd)
-      }
-      onSaved()
+      const saved = editPath
+        ? await updateLearningPath(editPath.id, fd)
+        : await createLearningPath(fd)
+
+      // A financially relevant change puts a paid path back into review; the
+      // toast must not imply the new value is already effective.
+      const awaitingFinance =
+        String((saved as unknown as Record<string, unknown>)?.finance_approval_status) === 'pending'
+      onSaved(awaitingFinance)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       setError(msg ?? 'حدث خطأ أثناء الحفظ')
@@ -1428,10 +1433,17 @@ export default function LearningPathsManagementPage() {
           <FormModal
             editPath={editPath}
             onClose={() => { setShowForm(false); setEditPath(null) }}
-            onSaved={() => {
+            onSaved={(awaitingFinance) => {
+              const wasEdit = Boolean(editPath)
               setShowForm(false)
               setEditPath(null)
-              showToast(editPath ? 'تم تحديث المسار بنجاح' : 'تم إنشاء المسار بنجاح')
+              showToast(
+                awaitingFinance
+                  ? (wasEdit
+                      ? 'تم حفظ التعديلات وإرسالها إلى الإدارة المالية للمراجعة'
+                      : 'تم إنشاء المسار وإرساله إلى الإدارة المالية للمراجعة')
+                  : (wasEdit ? 'تم تحديث المسار بنجاح' : 'تم إنشاء المسار بنجاح'),
+              )
               load()
             }}
           />
