@@ -83,9 +83,11 @@ export default function WeeklyReportsPage() {
   // departments.leader_id عبر DepartmentAccessService) — لا اسم دور، ولا قائمة أدوار مسموحة هنا.
   const ledDepartments = due?.led_departments ?? []
   const isLeader = ledDepartments.length > 0
+  // can_create_report: يأتي من الخادم — false لأدوار الاطلاع (الجودة) حتى لو كان can_select_any_department=true
   const canCreate =
     !departmentAccessLoading &&
     !!departmentAccess &&
+    (departmentAccess.can_create_report !== false) &&
     (departmentAccess.can_select_any_department || departmentAccess.allowed_departments.length > 0)
   // الحقل الجاهز مسبقًا في نموذج الإنشاء يظهر فقط عندما يقود المستخدم إدارة واحدة تحديدًا.
   const isSoleLeader = isLeader && ledDepartments.length === 1 && !departmentAccess?.can_select_any_department
@@ -412,13 +414,33 @@ export default function WeeklyReportsPage() {
           {/* تقييم أعضاء الإدارة — نفس معايير الاجتماعات العشرة، ويغذي نقاط الأثر */}
           {form.department_id !== '' && (
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
-              <h3 className="text-xs font-black text-deepBlue">تقييم أداء الأعضاء هذا الأسبوع</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black text-deepBlue">تقييم أداء الأعضاء هذا الأسبوع</h3>
+                {!membersLoading && members.length > 0 && (
+                  <span className="text-[11px] font-bold text-slate-400">{members.length} عضو</span>
+                )}
+              </div>
               {membersLoading ? (
-                <p className="mt-3 text-xs font-bold text-slate-400">جاري تحميل أعضاء الإدارة...</p>
+                <div className="mt-3 space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="h-9 animate-pulse rounded-lg bg-slate-200" />
+                  ))}
+                </div>
               ) : membersError ? (
-                <p className="mt-3 text-xs font-bold text-red-500">تعذر تحميل أعضاء الإدارة</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <p className="text-xs font-bold text-red-500">تعذر تحميل أعضاء الإدارة</p>
+                  <button
+                    type="button"
+                    onClick={() => form.department_id && void pickDepartment(form.department_id)}
+                    className="text-[11px] font-bold text-customBlue underline"
+                  >
+                    إعادة المحاولة
+                  </button>
+                </div>
               ) : members.length === 0 ? (
-                <p className="mt-3 text-xs font-bold text-slate-400">لا يوجد أعضاء مرتبطون بهذه الإدارة</p>
+                <p className="mt-3 text-xs font-bold text-slate-400">
+                  لا يوجد أعضاء مرتبطون بهذه الإدارة — تأكد من إضافة أعضاء عبر صفحة هيكل الأقسام
+                </p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {members.map((m) => {
@@ -440,6 +462,8 @@ export default function WeeklyReportsPage() {
                             <span className="truncate">
                               {m.name}
                               {m.kind === 'leader' && <span className="ms-1.5 text-[10px] font-black text-customOrange">قائد</span>}
+                              {m.kind === 'deputy_leader' && <span className="ms-1.5 text-[10px] font-black text-customBlue">نائب القائد</span>}
+                              {m.kind === 'operational' && <span className="ms-1.5 text-[10px] font-black text-slate-500">تشغيلي</span>}
                             </span>
                           </label>
                           {row.included && (

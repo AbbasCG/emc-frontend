@@ -11,7 +11,7 @@ export type DepartmentMember = {
   name: string
   role: string | null
   role_title: string | null
-  kind: 'leader' | 'team'
+  kind: 'leader' | 'deputy_leader' | 'operational' | 'team'
 }
 
 export async function fetchDepartmentMembers(departmentId: number): Promise<DepartmentMember[]> {
@@ -25,6 +25,8 @@ export type DepartmentAccessManifest = {
   department_scope: 'restricted' | 'global'
   allowed_departments: Array<{ id: number; name: string }>
   can_select_any_department: boolean
+  /** true when the current user may create/submit reports (leader or global admin). false for read-only-global roles like quality. */
+  can_create_report?: boolean
 }
 
 export async function fetchMyDepartmentAccess(): Promise<DepartmentAccessManifest> {

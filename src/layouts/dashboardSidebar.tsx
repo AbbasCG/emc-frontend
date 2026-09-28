@@ -302,6 +302,15 @@ function superMasterSidebar(): SidebarNavGroup[] {
       ],
     },
     {
+      title: 'متابعة التقارير التشغيلية',
+      collapsible: true,
+      defaultOpen: true,
+      items: [
+        { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports', icon: FileBarChart },
+        { label: 'تقارير الاجتماعات',  href: '/dashboard/operations/meeting-reports', icon: Calendar     },
+      ],
+    },
+    {
       title: 'إدارة الكيانات (CRUD)',
       collapsible: true,
       defaultOpen: true,
@@ -577,9 +586,18 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
         ],
       },
       {
-        title: 'المراجعة والتقييم',
+        title: 'متابعة أداء الإدارات',
         collapsible: true,
         defaultOpen: true,
+        items: [
+          { label: 'التقارير الأسبوعية', href: '/dashboard/operations/weekly-reports',  icon: FileBarChart },
+          { label: 'تقارير الاجتماعات',  href: '/dashboard/operations/meeting-reports', icon: Calendar     },
+        ],
+      },
+      {
+        title: 'المراجعة والتقييم',
+        collapsible: true,
+        defaultOpen: false,
         items: [
           { label: 'مراجعات البرامج', href: '/dashboard/quality/reviews', icon: ClipboardCheck },
           { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
