@@ -74,6 +74,9 @@ export default function ImpactPointsPage() {
   const [leaderboard, setLeaderboard] = useState<Array<{ user: { id: number; name: string; role: string | null }; lifetime_points: number }>>([])
   const [levels, setLevels] = useState<PointsLevel[]>([])
   const [loading, setLoading] = useState(true)
+  // A failed load ends in an explicit error state with a retry — never an
+  // endless skeleton (which is what a single failed request used to cause).
+  const [loadFailed, setLoadFailed] = useState(false)
 
   // نموذج المنح (للمدراء)
   const [people, setPeople] = useState<Array<{ id: number; name: string }>>([])
@@ -82,6 +85,7 @@ export default function ImpactPointsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setLoadFailed(false)
     try {
       const [sum, myAwards, board, policy] = await Promise.all([
         fetchMyPointsSummary(),
@@ -94,6 +98,7 @@ export default function ImpactPointsPage() {
       setLeaderboard(board)
       setLevels(policy.levels)
     } catch {
+      setLoadFailed(true)
       toast.error('فشل تحميل نقاط الأثر')
     } finally {
       setLoading(false)
@@ -118,7 +123,10 @@ export default function ImpactPointsPage() {
           setLevels(policy.levels)
         }
       } catch {
-        if (alive) toast.error('فشل تحميل نقاط الأثر')
+        if (alive) {
+          setLoadFailed(true)
+          toast.error('فشل تحميل نقاط الأثر')
+        }
       } finally {
         if (alive) setLoading(false)
       }
@@ -175,11 +183,22 @@ export default function ImpactPointsPage() {
         </button>
       </div>
 
-      {loading || !summary ? (
-        <div className="grid gap-4 sm:grid-cols-3">
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-3" aria-busy="true">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
           ))}
+        </div>
+      ) : loadFailed || !summary ? (
+        <div role="alert" className="rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+          <p className="text-sm font-black text-red-700">تعذر تحميل نقاط الأثر</p>
+          <p className="mt-1 text-xs font-semibold text-red-600/80">تحقق من الاتصال ثم أعد المحاولة.</p>
+          <button
+            onClick={() => void load()}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-deepBlue ring-1 ring-red-200 hover:bg-red-100/50"
+          >
+            <RefreshCw size={14} aria-hidden /> إعادة المحاولة
+          </button>
         </div>
       ) : (
         <>
@@ -282,7 +301,7 @@ export default function ImpactPointsPage() {
                   <p className="mt-3 text-xs font-bold text-slate-400">لا نقاط ممنوحة بعد — أول منحة تبدأ السجل</p>
                 ) : (
                   <ol className="mt-3 space-y-1.5">
-                    {leaderboard.slice(0, 10).map((row, i) => (
+                    {leaderboard.filter((row) => row.user != null).slice(0, 10).map((row, i) => (
                       <li key={row.user.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
                         <span className="flex items-center gap-2.5 font-bold text-deepBlue">
                           <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${i < 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500'}`}>

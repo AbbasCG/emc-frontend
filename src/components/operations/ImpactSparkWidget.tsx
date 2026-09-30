@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Sparkles, X } from 'lucide-react'
+import { usePageAccess } from '@/contexts/PageAccessContext'
 
 /**
  * «ومضة الأثر» — أيقونة عائمة تُخرج كل فترة جملة خاطفة من سياسة التقدير
@@ -47,6 +48,12 @@ const INTERVAL_MS = 45_000      // بين الومضات
 
 export default function ImpactSparkWidget() {
   const { pathname } = useLocation()
+  // The button is a shortcut to the page, so it follows the same backend
+  // page-access manifest as the sidebar link: shown only to users who may
+  // actually open /dashboard/operations/impact-points, never a link the route
+  // guard would bounce.
+  const { canAccessKey } = usePageAccess()
+  const canOpenPage = canAccessKey('operations.impact_points')
   const shouldReduce = useReducedMotion()
   const [sparkIndex, setSparkIndex] = useState<number | null>(null)
   const [muted, setMuted] = useState(() => {
@@ -60,7 +67,7 @@ export default function ImpactSparkWidget() {
 
   // دورة الومضات: تظهر، تبقى ثوانيَ، تنسحب — ما لم تُكتم.
   useEffect(() => {
-    if (muted) return
+    if (muted || !canOpenPage) return
     // بذرة عشوائية داخل الأثر لا أثناء render (قاعدة نقاء المكوّنات).
     if (counter.current === -1) counter.current = Math.floor(Math.random() * SPARKS.length)
     let hideTimer: number | undefined
@@ -76,7 +83,9 @@ export default function ImpactSparkWidget() {
       window.clearInterval(loop)
       if (hideTimer) window.clearTimeout(hideTimer)
     }
-  }, [muted])
+  }, [muted, canOpenPage])
+
+  if (!canOpenPage) return null
 
   // على صفحة النقاط نفسها لا معنى للومضة.
   if (pathname.startsWith('/dashboard/operations/impact-points')) return null
