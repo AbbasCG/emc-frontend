@@ -4,11 +4,11 @@ exports[`BASELINE DIFF REPORT > lists every CRITICAL and HIGH mismatch individua
 
 exports[`BASELINE DIFF REPORT > per-role NEWLY_DENIED counts for the unseeded scenario > unseeded-newly-denied-by-persona 1`] = `
 {
-  "admin__none": 56,
+  "admin__none": 57,
   "advisors_manager__none": 9,
-  "ai_manager__leader": 9,
-  "ai_manager__member": 9,
-  "ai_manager__none": 9,
+  "ai_manager__leader": 10,
+  "ai_manager__member": 10,
+  "ai_manager__none": 10,
   "community_manager__none": 14,
   "department_manager__leader": 11,
   "department_manager__member": 11,
@@ -48,20 +48,20 @@ exports[`BASELINE DIFF REPORT > seeded scenario — deterministic counts > seede
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 2082,
+    "EXPECTED": 2097,
     "HIGH": 0,
     "LOW": 29,
-    "MEDIUM": 99,
+    "MEDIUM": 101,
   },
   "counts": {
-    "MATCH_ALLOWED": 347,
-    "MATCH_DENIED": 1637,
+    "MATCH_ALLOWED": 349,
+    "MATCH_DENIED": 1650,
     "NEWLY_ALLOWED": 16,
-    "NEWLY_DENIED": 210,
+    "NEWLY_DENIED": 212,
     "UNMAPPED": 0,
   },
   "personas": 17,
-  "totalComparisons": 2210,
+  "totalComparisons": 2227,
 }
 `;
 
@@ -69,20 +69,20 @@ exports[`BASELINE DIFF REPORT > unseeded scenario (production today) — determi
 {
   "byRisk": {
     "CRITICAL": 0,
-    "EXPECTED": 4500,
+    "EXPECTED": 4533,
     "HIGH": 0,
     "LOW": 58,
-    "MEDIUM": 252,
+    "MEDIUM": 256,
   },
   "counts": {
-    "MATCH_ALLOWED": 436,
-    "MATCH_DENIED": 3879,
+    "MATCH_ALLOWED": 438,
+    "MATCH_DENIED": 3910,
     "NEWLY_ALLOWED": 34,
-    "NEWLY_DENIED": 461,
+    "NEWLY_DENIED": 465,
     "UNMAPPED": 0,
   },
   "personas": 37,
-  "totalComparisons": 4810,
+  "totalComparisons": 4847,
 }
 `;
 
@@ -114,7 +114,7 @@ exports[`cutover readiness gates > evaluates all gates against the seeded scenar
     "pass": true,
   },
   {
-    "actual": 210,
+    "actual": 212,
     "name": "NEWLY_DENIED reviewed",
     "pass": false,
   },
@@ -149,7 +149,7 @@ exports[`cutover readiness gates > evaluates all gates against the unseeded (pro
     "pass": true,
   },
   {
-    "actual": 461,
+    "actual": 465,
     "name": "NEWLY_DENIED reviewed",
     "pass": false,
   },

@@ -107,11 +107,13 @@ export const DASHBOARD_NAMESPACE_RULES: { prefix: string; roles: readonly string
   // It now falls through to the generic '/dashboard/admin' rule below
   // (admin/super_admin/tech_admin only), matching the backend's
   // role:admin,super_admin,tech_admin gate on /api/admin/ai/*.
-  // Expert-applications (a talent/expert-recruitment intake, unrelated to
-  // AI technology) was reverted to admin-tier-only access after review found
-  // no evidence it belongs to ai_manager beyond historical /admin/ai nesting
-  // — permanent ownership (HR? Partnerships? Community?) is an open product
-  // decision. No carve-out needed: falls through to the generic admin rule.
+  // Expert-applications (the expert/trainer recruitment intake) — ownership
+  // was an open product decision and is now decided: the AI department
+  // manager manages it alongside the admin tier. This is the intake ONLY —
+  // the technical AI platform above stays out of ai_manager's reach. Mirrors
+  // the backend role:admin,super_admin,tech_admin,ai_manager gate and the
+  // organizational_departments.ai_expert_applications page capability.
+  { prefix: '/dashboard/admin/ai/expert-applications', roles: ['admin', 'super_admin', 'tech_admin', 'ai_manager'] },
 
   // ── Generic namespace: admin/super_admin/tech_admin ──
   { prefix: '/dashboard/admin', roles: ['admin', 'super_admin', 'tech_admin'] },

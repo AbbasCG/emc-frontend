@@ -1,6 +1,6 @@
 {
     "generated_by": "tests/Feature/AccessDiffBaselineTest.php",
-    "catalog_count": 130,
+    "catalog_count": 131,
     "catalog": [
         {
             "key": "operations.board",
@@ -1083,6 +1083,20 @@
             "authenticated_baseline": false
         },
         {
+            "key": "organizational_departments.ai_expert_applications",
+            "primary_route": "/dashboard/admin/ai/expert-applications",
+            "route_patterns": [
+                "/dashboard/admin/ai/expert-applications"
+            ],
+            "label_ar": "طلبات انضمام الخبراء",
+            "category": "organizational_departments",
+            "risk_level": "ADMIN_ONLY",
+            "protected": false,
+            "delegatable": false,
+            "department_scoped": false,
+            "authenticated_baseline": false
+        },
+        {
             "key": "organizational_departments.programs_manager",
             "primary_route": "/dashboard/programs-manager",
             "route_patterns": [
@@ -1672,8 +1686,7 @@
             "key": "technical_system.ai_command_center",
             "primary_route": "/dashboard/admin/ai",
             "route_patterns": [
-                "/dashboard/admin/ai",
-                "/dashboard/admin/ai/expert-applications"
+                "/dashboard/admin/ai"
             ],
             "label_ar": "مركز قيادة الذكاء الاصطناعي",
             "category": "technical_system",
@@ -2028,6 +2041,7 @@
                     "organizational_departments.structure",
                     "organizational_departments.permissions_delegation",
                     "organizational_departments.ai_workspace",
+                    "organizational_departments.ai_expert_applications",
                     "organizational_departments.programs_manager",
                     "organizational_departments.operations_manager",
                     "organizational_departments.partnerships_manager",
@@ -2160,6 +2174,7 @@
                     "organizational_departments.structure": "root_authority",
                     "organizational_departments.permissions_delegation": "root_authority",
                     "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.ai_expert_applications": "root_authority",
                     "organizational_departments.programs_manager": "root_authority",
                     "organizational_departments.operations_manager": "root_authority",
                     "organizational_departments.partnerships_manager": "root_authority",
@@ -2297,6 +2312,7 @@
                     "organizational_departments.structure",
                     "organizational_departments.permissions_delegation",
                     "organizational_departments.ai_workspace",
+                    "organizational_departments.ai_expert_applications",
                     "organizational_departments.programs_manager",
                     "organizational_departments.operations_manager",
                     "organizational_departments.partnerships_manager",
@@ -2429,6 +2445,7 @@
                     "organizational_departments.structure": "root_authority",
                     "organizational_departments.permissions_delegation": "root_authority",
                     "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.ai_expert_applications": "root_authority",
                     "organizational_departments.programs_manager": "root_authority",
                     "organizational_departments.operations_manager": "root_authority",
                     "organizational_departments.partnerships_manager": "root_authority",
@@ -3303,6 +3320,7 @@
                     "organizational_departments.structure",
                     "organizational_departments.permissions_delegation",
                     "organizational_departments.ai_workspace",
+                    "organizational_departments.ai_expert_applications",
                     "organizational_departments.programs_manager",
                     "organizational_departments.operations_manager",
                     "organizational_departments.partnerships_manager",
@@ -3435,6 +3453,7 @@
                     "organizational_departments.structure": "root_authority",
                     "organizational_departments.permissions_delegation": "root_authority",
                     "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.ai_expert_applications": "root_authority",
                     "organizational_departments.programs_manager": "root_authority",
                     "organizational_departments.operations_manager": "root_authority",
                     "organizational_departments.partnerships_manager": "root_authority",
@@ -3572,6 +3591,7 @@
                     "organizational_departments.structure",
                     "organizational_departments.permissions_delegation",
                     "organizational_departments.ai_workspace",
+                    "organizational_departments.ai_expert_applications",
                     "organizational_departments.programs_manager",
                     "organizational_departments.operations_manager",
                     "organizational_departments.partnerships_manager",
@@ -3704,6 +3724,7 @@
                     "organizational_departments.structure": "root_authority",
                     "organizational_departments.permissions_delegation": "root_authority",
                     "organizational_departments.ai_workspace": "root_authority",
+                    "organizational_departments.ai_expert_applications": "root_authority",
                     "organizational_departments.programs_manager": "root_authority",
                     "organizational_departments.operations_manager": "root_authority",
                     "organizational_departments.partnerships_manager": "root_authority",

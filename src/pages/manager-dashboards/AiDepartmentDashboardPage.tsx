@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Calendar, ClipboardList, FileBarChart, Presentation, Sparkles, UserCheck, Users } from 'lucide-react'
 import { DashboardHero } from '@/components/dashboard'
 import { useDepartmentAccess } from '@/hooks/useDepartmentAccess'
+import { usePageAccess } from '@/contexts/PageAccessContext'
 import { fetchDepartmentMembers, type DepartmentMember } from '@/api/operationsReportsApi'
 
 /**
@@ -25,6 +26,12 @@ function hourGreeting(): string {
 }
 
 function QuickLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
+  // Same rule as the sidebar filter: hide only what the backend page-access
+  // manifest explicitly denies, so a shortcut never leads into a redirect.
+  // `null` (no catalog entry owns the path) is not a denial.
+  const { canAccessPath, isReady } = usePageAccess()
+  if (isReady && canAccessPath(href) === false) return null
+
   return (
     <Link
       to={href}

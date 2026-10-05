@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Award, Coins, Crown, Medal, RefreshCw, Send, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { useAuth } from '@/contexts/AuthContext'
-import { fetchAdminUsersPage } from '@/api/adminUsersApi'
+import { isAxiosError } from 'axios'
 import {
   AWARD_CATEGORIES,
   awardPoints,
   fetchMyAwards,
   fetchMyPointsSummary,
+  fetchPointRecipients,
   fetchPointsLeaderboard,
   fetchPointsPolicy,
   type PointAward,
+  type PointRecipient,
   type PointsLevel,
   type PointsSummary,
 } from '@/api/volunteerPointsApi'
@@ -21,10 +22,18 @@ import {
  * سلم المستويات الست، ونموذج منح النقاط للمدراء المخوَّلين.
  */
 
-const MANAGER_ROLES = new Set([
-  'admin', 'super_admin', 'tech_admin', 'executive_admin',
-  'hr_manager', 'operations_manager', 'department_manager',
-])
+/** The server's own Arabic reason (self-award, ineligible recipient, monthly cap…). */
+function serverMessage(err: unknown, fallback: string): string {
+  if (isAxiosError(err)) {
+    const msg = (err.response?.data as { message?: unknown } | undefined)?.message
+    if (typeof msg === 'string' && msg.trim()) return msg
+  }
+  return fallback
+}
+
+function recipientLabel(r: PointRecipient): string {
+  return [r.name, r.department ?? 'بدون إدارة', r.role_title].filter(Boolean).join(' — ')
+}
 
 const fieldClass =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-deepBlue outline-none transition-colors focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
@@ -66,9 +75,6 @@ function LevelLadder({ levels, currentId }: { levels: PointsLevel[]; currentId: 
 }
 
 export default function ImpactPointsPage() {
-  const { user } = useAuth()
-  const canAward = MANAGER_ROLES.has(user?.role ?? '')
-
   const [summary, setSummary] = useState<PointsSummary | null>(null)
   const [awards, setAwards] = useState<PointAward[]>([])
   const [leaderboard, setLeaderboard] = useState<Array<{ user: { id: number; name: string; role: string | null }; lifetime_points: number }>>([])
@@ -78,8 +84,14 @@ export default function ImpactPointsPage() {
   // endless skeleton (which is what a single failed request used to cause).
   const [loadFailed, setLoadFailed] = useState(false)
 
-  // نموذج المنح (للمدراء)
-  const [people, setPeople] = useState<Array<{ id: number; name: string }>>([])
+  // Award authority comes from the server (summary.can_award), never from a
+  // role list in the browser; the award endpoint enforces it regardless.
+  const canAward = summary?.can_award === true
+  const monthlyCap = summary?.monthly_cap ?? 2500
+
+  // نموذج المنح — المستحقون: أعضاء فريق EMC الفعليون ضمن نطاق المانح فقط
+  const [people, setPeople] = useState<PointRecipient[]>([])
+  const [peopleFailed, setPeopleFailed] = useState(false)
   const [grant, setGrant] = useState({ user_id: '' as number | '', category: 'task', points: '', reason: '' })
   const [granting, setGranting] = useState(false)
 
@@ -136,12 +148,26 @@ export default function ImpactPointsPage() {
     }
   }, [])
 
+  const loadRecipients = useCallback(async () => {
+    try {
+      setPeople(await fetchPointRecipients())
+      setPeopleFailed(false)
+    } catch {
+      setPeople([])
+      setPeopleFailed(true)
+    }
+  }, [])
+
   useEffect(() => {
     if (!canAward) return
-    void fetchAdminUsersPage({ page: 1, per_page: 200 })
-      .then((res) => setPeople(res.users.map((u) => ({ id: Number(u.id), name: u.name }))))
-      .catch(() => setPeople([]))
+    let alive = true
+    void fetchPointRecipients()
+      .then((rows) => { if (alive) { setPeople(rows); setPeopleFailed(false) } })
+      .catch(() => { if (alive) { setPeople([]); setPeopleFailed(true) } })
+    return () => { alive = false }
   }, [canAward])
+
+  const selected = people.find((p) => p.user_id === grant.user_id)
 
   async function submitGrant() {
     if (!grant.user_id || !grant.points || !grant.reason.trim()) {
@@ -158,9 +184,9 @@ export default function ImpactPointsPage() {
       })
       toast.success('مُنحت النقاط ووُثِّق السبب')
       setGrant({ user_id: '', category: 'task', points: '', reason: '' })
-      await load()
-    } catch {
-      toast.error('تعذر منح النقاط')
+      await Promise.all([load(), loadRecipients()])
+    } catch (err) {
+      toast.error(serverMessage(err, 'تعذر منح النقاط'))
     } finally {
       setGranting(false)
     }
@@ -244,22 +270,35 @@ export default function ImpactPointsPage() {
               {/* منح النقاط — للمدراء */}
               {canAward && (
                 <section className="rounded-2xl border border-slate-100 bg-white p-6">
-                  <h2 className="text-sm font-black text-deepBlue">منح نقاط (للمدراء)</h2>
+                  <h2 className="text-sm font-black text-deepBlue">منح نقاط لأعضاء الفريق</h2>
                   <p className="mt-1 text-xs font-semibold leading-6 text-slate-400">
-                    لا مجاملة في النقاط: كل منحة تسجَّل باسم مانحها وسببها.
+                    لا مجاملة في النقاط: كل منحة تسجَّل باسم مانحها وسببها. السقف الشهري لكل عضو {monthlyCap.toLocaleString('en-US')} نقطة.
                   </p>
+                  {peopleFailed ? (
+                    <p role="alert" className="mt-4 text-xs font-bold text-red-600">تعذر تحميل قائمة الأعضاء المستحقين.</p>
+                  ) : people.length === 0 ? (
+                    <p className="mt-4 text-xs font-bold text-slate-400">لا يوجد أعضاء فريق ضمن نطاق صلاحيتك حالياً.</p>
+                  ) : null}
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <select
+                      aria-label="العضو المستحق"
                       value={grant.user_id}
                       onChange={(e) => setGrant((g) => ({ ...g, user_id: e.target.value ? Number(e.target.value) : '' }))}
-                      className={fieldClass}
+                      className={fieldClass + ' sm:col-span-2'}
                     >
                       <option value="">اختر العضو…</option>
                       {people.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
+                        <option key={p.user_id} value={p.user_id}>{recipientLabel(p)}</option>
                       ))}
                     </select>
+                    {selected && (
+                      <p className="text-[11px] font-bold text-slate-400 sm:col-span-2">
+                        رصيده التراكمي {selected.lifetime_points.toLocaleString('en-US')} نقطة · المتبقي من سقف هذا الشهر{' '}
+                        {Math.max(0, monthlyCap - selected.month_points).toLocaleString('en-US')} نقطة
+                      </p>
+                    )}
                     <select
+                      aria-label="فئة النقاط"
                       value={grant.category}
                       onChange={(e) => setGrant((g) => ({ ...g, category: e.target.value }))}
                       className={fieldClass}
@@ -271,12 +310,14 @@ export default function ImpactPointsPage() {
                     <input
                       type="number"
                       dir="ltr"
+                      aria-label="عدد النقاط"
                       placeholder="النقاط (مثال: 150)"
                       value={grant.points}
                       onChange={(e) => setGrant((g) => ({ ...g, points: e.target.value }))}
                       className={fieldClass}
                     />
                     <input
+                      aria-label="سبب المنح"
                       placeholder="السبب — يُوثَّق في السجل"
                       value={grant.reason}
                       onChange={(e) => setGrant((g) => ({ ...g, reason: e.target.value }))}
@@ -284,7 +325,7 @@ export default function ImpactPointsPage() {
                     />
                   </div>
                   <button
-                    disabled={granting}
+                    disabled={granting || people.length === 0}
                     onClick={() => void submitGrant()}
                     className="mt-4 inline-flex items-center gap-2 rounded-xl bg-customOrange px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-ember disabled:opacity-60"
                   >
