@@ -35,25 +35,29 @@ export default function MeetingCard({
                 ? 'منتهي'
                 : 'ملغى'}
         </span>
-        <span className="text-[11px] font-black text-customOrange">{MEETING_TYPE_AR[m.type]}</span>
+        <span className="text-[11px] font-black text-customOrange">{MEETING_TYPE_AR[m.type] || m.type}</span>
       </div>
       <h3 className="mt-3 text-right text-base font-black text-deepBlue">{m.title}</h3>
       <div className="mt-2 flex flex-wrap items-center justify-end gap-3 text-[11px] font-bold text-slate-500">
         <span className="inline-flex items-center gap-1">
           <Calendar size={13} />
-          {m.starts_at ?? '—'}
+          {m.starts_at ?? (m.meeting_date ? `${m.meeting_date} ${m.start_time ?? ''}` : '—')}
         </span>
-        <span>{m.department_name ?? '—'}</span>
-        <span>منظم: {m.organizer_name ?? '—'}</span>
+        <span>{m.department_name ?? m.department?.name ?? '—'}</span>
+        <span>منظم: {m.organizer_name ?? m.organizer?.name ?? '—'}</span>
       </div>
       <div className="mt-4 flex items-center justify-between">
         {onReportClick ? (
           <button
             onClick={() => onReportClick(m.id)}
-            className="flex items-center gap-1 rounded-lg bg-deepBlue/5 px-3 py-1.5 text-xs font-black text-deepBlue transition hover:bg-deepBlue hover:text-white"
+            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-black transition ${
+              m.report
+                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 ring-1 ring-emerald-500/20'
+                : 'bg-deepBlue/5 text-deepBlue hover:bg-deepBlue hover:text-white'
+            }`}
           >
             <FileText size={14} />
-            رفع التقرير
+            {m.report ? 'تم التقرير (تعديل)' : 'رفع التقرير'}
           </button>
         ) : (
           <div />

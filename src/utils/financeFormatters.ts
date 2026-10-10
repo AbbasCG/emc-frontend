@@ -33,6 +33,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
   GBP: '£',
   SAR: SAR_SIGN,
+  YER: 'ر.ي',
   TRY: '₺',
 }
 

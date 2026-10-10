@@ -103,11 +103,14 @@ export type DepartmentDetail = WorkspaceDepartment & {
 
 export type MeetingType =
   | 'exec'
+  | 'executive'
   | 'departments'
+  | 'department'
   | 'programs'
   | 'partnerships'
   | 'quality'
   | 'external'
+  | 'external_partner'
   | 'general'
 
 export type MeetingStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
@@ -116,11 +119,36 @@ export type OpsMeeting = {
   id: number
   title: string
   starts_at?: string | null
+  meeting_date?: string | null
+  start_time?: string | null
   type: MeetingType
-  department_id?: string | null
+  department_id?: string | number | null
   department_name?: string | null
   organizer_name?: string | null
+  department?: { id: number; name: string } | null
+  organizer?: { id: number; name: string } | null
   status: MeetingStatus
+  report?: MeetingReportDetail | null
+}
+
+export type MeetingReportDetail = {
+  id: number
+  absentees?: string[] | null
+  team_commitment_score?: number | null
+  team_commitment_notes?: string | null
+  completed_tasks_summary?: string | null
+  kpi_percentage?: number | null
+  top_interactive_member?: string | null
+  challenges?: string | null
+  executive_requests?: string | null
+  next_month_goals?: string | null
+  improvement_suggestions?: string | null
+  achieved?: string | null
+  planned?: string | null
+  needs?: string | null
+  needs_reason?: string | null
+  notes?: string | null
+  created_at?: string | null
 }
 
 export type OpsMeetingDetail = OpsMeeting & {
@@ -128,12 +156,13 @@ export type OpsMeetingDetail = OpsMeeting & {
   start_time?: string | null
   end_time?: string | null
   meeting_url?: string | null
-  agenda?: string | null
+  agenda?: string | string[] | null
   attendees?: { name: string; role?: string }[]
   decisions?: { id: number; text: string }[]
   action_items?: OpsActionItem[]
   minutes?: string | null
   recording_link?: string | null
+  report?: MeetingReportDetail | null
 }
 
 export type OpsActionItem = {

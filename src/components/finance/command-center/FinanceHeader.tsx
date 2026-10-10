@@ -29,7 +29,7 @@ const PERIODS = [
   { id: 'year' as const, label: 'هذه السنة' },
 ]
 
-const CURRENCIES: FinanceCurrency[] = ['EUR', 'USD', 'SAR']
+const CURRENCIES: FinanceCurrency[] = ['EUR', 'USD', 'YER', 'SAR']
 
 export default function FinanceHeader({
   displayName,

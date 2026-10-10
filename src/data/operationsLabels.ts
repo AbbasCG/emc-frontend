@@ -40,11 +40,14 @@ export const TASK_PRIORITY_AR: Record<TaskPriority, string> = {
 
 export const MEETING_TYPE_AR: Record<MeetingType, string> = {
   exec: 'اجتماع الإدارة العليا',
+  executive: 'اجتماع الإدارة العليا',
   departments: 'اجتماع الإدارات',
+  department: 'اجتماع داخلي للإدارة',
   programs: 'اجتماع البرامج',
   partnerships: 'اجتماع الشراكات',
   quality: 'اجتماع الجودة',
   external: 'اجتماع مع شريك خارجي',
+  external_partner: 'اجتماع مع شريك خارجي',
   general: 'اجتماع عام',
 }
 

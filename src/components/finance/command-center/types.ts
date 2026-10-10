@@ -9,7 +9,7 @@ import type {
 
 export type FinancePeriod = 'week' | 'month' | 'year'
 
-export type FinanceCurrency = 'EUR' | 'USD' | 'SAR'
+export type FinanceCurrency = 'EUR' | 'USD' | 'YER' | 'SAR'
 
 export type FinanceKpiId =
   | 'total_revenue'

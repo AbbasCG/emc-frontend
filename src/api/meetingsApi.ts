@@ -37,6 +37,12 @@ export type MeetingReportPayload = {
   executive_requests: string
   next_month_goals: string
   improvement_suggestions: string
+  /** محضر الاجتماع — تُحفظ على الاجتماع نفسه وتظهر في صفحة التفاصيل. */
+  agenda?: string[]
+  attendees?: { name: string; role?: string }[]
+  decisions?: { title: string }[]
+  action_items?: { title: string; due_date?: string }[]
+  minutes?: string
 }
 
 export async function submitMeetingReport(meetingId: number, payload: MeetingReportPayload): Promise<unknown> {
