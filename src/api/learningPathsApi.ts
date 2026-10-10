@@ -126,6 +126,9 @@ export interface LearningPath {
   price: number | null
   discount_price: number | null
   status: 'draft' | 'published' | 'archived'
+  /** Finance gate for paid paths — a paid path is only publicly visible and
+   *  purchasable while this is 'approved'. Absent on older API responses. */
+  finance_approval_status?: 'not_required' | 'pending' | 'approved' | 'rejected' | null
   is_featured: boolean
   enrollment_open: boolean
   learning_outcomes: string[]

@@ -198,6 +198,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/admin/developer/api-tokens': 'رموز المطوّر',
   '/dashboard/admin/mobile-readiness': 'جاهزية الجوال',
   '/dashboard/admin/ai': 'AI Command Center',
+  '/dashboard/admin/ai/expert-applications': 'طلبات انضمام الخبراء',
   '/dashboard/admin/ai/automations': 'AI Automations',
   '/dashboard/admin/ai/insights': 'AI Insights',
   '/dashboard/admin/ai/usage': 'AI Usage',

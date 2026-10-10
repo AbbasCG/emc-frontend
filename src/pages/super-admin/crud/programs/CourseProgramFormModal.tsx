@@ -2165,16 +2165,26 @@ export function CourseProgramFormModal({
   ])
 
   const successSlug = savedCourse?.slug
-  const _savedIsPaid = savedCourse
+  const _awaitingFinance = savedCourse
     ? (String((savedCourse as Record<string, unknown>).finance_approval_status) === 'pending')
     : false
-  const successTitle = editing
-    ? 'تم تحديث الدورة بنجاح'
-    : lastSavedAsPublished
-      ? 'تم إنشاء الدورة ونشرها بنجاح'
-      : _savedIsPaid
-        ? 'تم إنشاء البرنامج وإرساله للمراجعة المالية'
+  // The finance check comes BEFORE the `editing` branch on purpose: editing a
+  // financially relevant field on an approved course sends it back for review,
+  // and telling the editor "تم تحديث الدورة بنجاح" would imply the new price
+  // is already live when it is not.
+  const successTitle = _awaitingFinance
+    ? (editing
+        ? 'تم حفظ التعديلات وإرسالها إلى الإدارة المالية للمراجعة'
+        : 'تم إنشاء البرنامج وإرساله للمراجعة المالية')
+    : editing
+      ? 'تم تحديث الدورة بنجاح'
+      : lastSavedAsPublished
+        ? 'تم إنشاء الدورة ونشرها بنجاح'
         : 'تم إنشاء الدورة بنجاح'
+
+  const successDescription = _awaitingFinance
+    ? 'لن تظهر القيم الجديدة للطلاب ولن تُستخدم في الدفع قبل اعتمادها من الإدارة المالية.'
+    : 'تم حفظ بيانات الدورة.'
 
   const validationSummary =
     Object.keys(fieldErrors).length > 0 ?
@@ -2251,7 +2261,7 @@ export function CourseProgramFormModal({
           <FormSuccessState
             open
             title={successTitle}
-            description="تم حفظ بيانات الدورة."
+            description={successDescription}
             actions={
               <button type="button" onClick={() => { setSuccessOpen(false); onSaved() }} className="rounded-xl bg-[#0C2A4B] px-4 py-2 text-sm font-black text-white">
                 العودة للتفاصيل
@@ -2383,7 +2393,7 @@ export function CourseProgramFormModal({
       <FormSuccessState
         open={successOpen}
         title={successTitle}
-        description="تم حفظ بيانات الدورة وإتاحتها حسب حالة النشر والتسجيل."
+        description={_awaitingFinance ? successDescription : "تم حفظ بيانات الدورة وإتاحتها حسب حالة النشر والتسجيل."}
         actions={
           <div className="flex w-full flex-col gap-3 text-right">
             {successSlug ?

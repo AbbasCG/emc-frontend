@@ -27,8 +27,9 @@ describe('ai_manager home + route guard', () => {
     expect(canAccessDashboardPath('ai_manager', '/dashboard/admin/ai/automations')).toBe(false)
   })
 
-  it('ai_manager no longer has access to expert-applications (unrelated talent-recruitment workflow, not AI department or platform work)', () => {
-    expect(canAccessDashboardPath('ai_manager', '/dashboard/admin/ai/expert-applications')).toBe(false)
+  it('ai_manager manages expert applications (decided product ownership) — the intake only, not the platform', () => {
+    expect(canAccessDashboardPath('ai_manager', '/dashboard/admin/ai/expert-applications')).toBe(true)
+    expect(canAccessDashboardPath('ai_manager', '/dashboard/admin/ai')).toBe(false)
   })
 
   it('admin retains expert-applications access', () => {
@@ -70,8 +71,9 @@ describe('sidebar for ai_manager', () => {
     expect(hrefs).not.toContain('/dashboard/admin/ai/usage')
     expect(hrefs).not.toContain('/dashboard/admin/ai/automations')
     expect(hrefs).not.toContain('/dashboard/admin/ai/insights')
-    // Unrelated talent-recruitment workflow — no longer part of ai_manager's sidebar either.
-    expect(hrefs).not.toContain('/dashboard/admin/ai/expert-applications')
+    // The expert/trainer intake IS ai_manager's (decided ownership); the
+    // technical platform pages above are still absent.
+    expect(hrefs).toContain('/dashboard/admin/ai/expert-applications')
   })
 
   it('shows generic department actions (members, weekly reports, meeting reports)', () => {

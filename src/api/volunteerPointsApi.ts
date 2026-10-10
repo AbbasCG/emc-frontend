@@ -22,6 +22,23 @@ export type PointsSummary = {
   active_months: number
   eligible_level: PointsLevel
   next_level: PointsLevel | null
+  /**
+   * Business authority to award points, decided by the server
+   * (members.recognize / members.manage). The award endpoint re-checks it.
+   */
+  can_award?: boolean
+  monthly_cap?: number
+}
+
+/** A member the current user may award — an active EMC team member in scope. */
+export type PointRecipient = {
+  user_id: number
+  name: string
+  department_id: number
+  department: string | null
+  role_title: string | null
+  month_points: number
+  lifetime_points: number
 }
 
 export type PointAward = {
@@ -78,6 +95,11 @@ export async function fetchPointsPolicy(): Promise<{
 }> {
   const res = await apiClient.get<unknown>('/operations/volunteer-points/policy')
   return unwrapData(res.data)
+}
+
+export async function fetchPointRecipients(): Promise<PointRecipient[]> {
+  const res = await apiClient.get<unknown>('/operations/volunteer-points/recipients')
+  return unwrapData<PointRecipient[]>(res.data) ?? []
 }
 
 export async function awardPoints(input: {

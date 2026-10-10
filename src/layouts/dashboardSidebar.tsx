@@ -217,6 +217,7 @@ function adminSuperAdminSidebar(home = '/dashboard/admin'): SidebarNavGroup[] {
               { label: 'المستخدمون', href: '/dashboard/users',         icon: UserCog       },
             ]),
         { label: 'المدرسون',     href: '/dashboard/super-admin/crud/instructors',   icon: UserCheck     },
+        { label: 'طلبات انضمام الخبراء', href: '/dashboard/admin/ai/expert-applications', icon: UserPlus },
         { label: 'طلبات الاحتياج (HR والإدارات)', href: '/dashboard/hr/incoming-requests', icon: Inbox         },
         { label: 'تقديم طلب احتیاج كادر', href: '/dashboard/hr/my-requests', icon: UserPlus },
       ],
@@ -333,6 +334,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
         { label: 'الشراكات', href: '/dashboard/super-admin/crud/partners', icon: HeartHandshake },
         { label: 'طلبات التطوع', href: '/dashboard/super-admin/volunteer-requests', icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي', href: '/dashboard/super-admin/ambassador-applications', icon: Star },
+        { label: 'طلبات انضمام الخبراء', href: '/dashboard/admin/ai/expert-applications', icon: UserPlus },
         { label: 'طلبات البرامج التدريبية', href: '/dashboard/admin/workshop-requests', icon: Presentation },
       ],
     },
@@ -455,6 +457,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
       items: [
         { label: 'طلبات التطوع',            href: '/dashboard/super-admin/volunteer-requests',         icon: HeartHandshake },
         { label: 'سفراء التحول الرقمي',    href: '/dashboard/super-admin/ambassador-applications',    icon: Star           },
+        { label: 'طلبات انضمام الخبراء',   href: '/dashboard/admin/ai/expert-applications',           icon: UserPlus       },
         { label: 'المتطوعون',               href: '/dashboard/hr/volunteers',                          icon: UserCheck      },
         { label: 'المتطوعون المقبولون',     href: '/dashboard/volunteer',                             icon: Users          },
         { label: 'الشركاء',                  href: '/dashboard/admin/partners',                icon: Briefcase      },
@@ -953,6 +956,7 @@ export function getSidebarByRole(roleRaw?: string | null, ctx?: SidebarContext):
           { label: 'تقارير الاجتماعات',      href: '/dashboard/operations/meeting-reports', icon: Calendar     },
           { label: 'صالة الاجتماعات',        href: '/dashboard/department/meeting-lounge', icon: Presentation },
           { label: 'طلبات الموارد البشرية', href: '/dashboard/department/hr-requests',     icon: Users        },
+          { label: 'طلبات انضمام الخبراء',  href: '/dashboard/admin/ai/expert-applications', icon: UserPlus     },
         ],
       },
       {
