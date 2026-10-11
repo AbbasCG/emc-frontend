@@ -41,6 +41,7 @@ const ACCOUNT_TYPE_ICONS: Record<string, React.ElementType> = {
 const CURRENCY_COLORS: Record<string, string> = {
   EUR: 'bg-blue-100 text-blue-700',
   USD: 'bg-green-100 text-green-700',
+  YER: 'bg-emerald-100 text-emerald-800',
   SAR: 'bg-teal-100 text-teal-700',
   TRY: 'bg-orange-100 text-orange-700',
   GBP: 'bg-purple-100 text-purple-700',
@@ -333,7 +334,7 @@ function AccountModal({ account, onClose, onSaved }: AccountModalProps) {
                   title={isSystem ? PROTECTED_ACCOUNT_TOOLTIP : undefined}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
-                  {['EUR', 'USD', 'SAR', 'TRY', 'GBP'].map(c => (
+                  {['EUR', 'USD', 'YER', 'SAR', 'TRY', 'GBP'].map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
@@ -548,7 +549,7 @@ export default function FinanceAccountsPage() {
             className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
           >
             <option value="">كل العملات</option>
-            {['EUR', 'USD', 'SAR', 'TRY', 'GBP'].map(c => (
+            {['EUR', 'USD', 'YER', 'SAR', 'TRY', 'GBP'].map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>

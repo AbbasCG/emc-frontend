@@ -190,6 +190,8 @@ const FinanceDashboardPage    = lazy(() => import('./pages/intelligence/admin/Fi
 const FinancePaymentsPage     = lazy(() => import('./pages/intelligence/admin/FinancePaymentsPage'))
 const FinanceTransactionsPage = lazy(() => import('./pages/intelligence/admin/FinanceTransactionsPage'))
 const ChartOfAccountsPage     = lazy(() => import('./pages/finance/ChartOfAccountsPage'))
+const ExpenseManagementPage   = lazy(() => import('./pages/finance/ExpenseManagementPage'))
+const RevenueManagementPage   = lazy(() => import('./pages/finance/RevenueManagementPage'))
 const CouponsAdminPage        = lazy(() => import('./pages/intelligence/admin/CouponsAdminPage'))
 const ScholarshipsAdminPage   = lazy(() => import('./pages/intelligence/admin/ScholarshipsAdminPage'))
 const QualityAdminPage        = lazy(() => import('./pages/intelligence/admin/QualityAdminPage'))
@@ -624,6 +626,8 @@ function App() {
                   <Route path="/dashboard/finance/financial-requests" element={<Suspense fallback={<RouteFallback />}><FinanceFinancialRequestsPage /></Suspense>} />
                   <Route path="/dashboard/finance/accounts" element={<Suspense fallback={<RouteFallback />}><FinanceAccountsPage /></Suspense>} />
                   <Route path="/dashboard/finance/chart-of-accounts" element={<Suspense fallback={<RouteFallback />}><ChartOfAccountsPage /></Suspense>} />
+                  <Route path="/dashboard/finance/expenses" element={<Suspense fallback={<RouteFallback />}><ExpenseManagementPage /></Suspense>} />
+                  <Route path="/dashboard/finance/revenues" element={<Suspense fallback={<RouteFallback />}><RevenueManagementPage /></Suspense>} />
                   <Route path="/dashboard/finance/manual-payments" element={<Suspense fallback={<RouteFallback />}><FinanceManualPaymentsPage /></Suspense>} />
                   <Route path="/dashboard/finance/program-approvals" element={<Suspense fallback={<RouteFallback />}><ProgramApprovalsPage /></Suspense>} />
                   </Route>

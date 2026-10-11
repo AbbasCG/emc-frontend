@@ -136,6 +136,7 @@ function AddAccountModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
           <select value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))} className={inputCls}>
             <option value="EUR">EUR €</option>
             <option value="USD">USD $</option>
+            <option value="YER">YER ر.ي</option>
             <option value="SAR">SAR ر.س</option>
             <option value="TRY">TRY ₺</option>
           </select>
@@ -233,6 +234,7 @@ function AddTransactionModal({ account, onClose, onAdded }: {
           <select value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))} className={inputCls}>
             <option value="EUR">EUR</option>
             <option value="USD">USD</option>
+            <option value="YER">YER</option>
             <option value="SAR">SAR</option>
             <option value="TRY">TRY</option>
           </select>
