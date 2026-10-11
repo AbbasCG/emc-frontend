@@ -56,6 +56,32 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+/**
+ * Short, human file-type label for a stored attachment ("PNG", "PDF").
+ * Prefers the server's mime type, then the filename extension, so historical
+ * rows with no mime_type still get a sensible label.
+ */
+export function attachmentTypeLabel(
+  mime: string | null | undefined,
+  fileName: string | null | undefined,
+): string {
+  if (mime && mime.includes('/')) {
+    const sub = mime.split('/')[1].split(';')[0].toUpperCase()
+    return sub === 'JPEG' ? 'JPG' : sub
+  }
+
+  const ext = fileName?.includes('.') ? fileName.split('.').pop() : undefined
+  return ext ? ext.toUpperCase() : 'ملف'
+}
+
+/** Upload date for a card, or '' when the value is missing/invalid. */
+export function formatAttachmentDate(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
 /** Arabic messages, keyed by why the file was refused. */
 export const REJECTION_MESSAGE_AR: Record<RejectionReason, string> = {
   video: 'لا يمكن رفع ملفات الفيديو في التذاكر.',

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Eye, FileText, ImageOff } from 'lucide-react';
 import { downloadTicketAttachment, fetchTicketAttachmentBlob } from '@/api/ticketAttachmentsApi';
-import { formatBytes } from '@/utils/ticketAttachments';
+import { attachmentTypeLabel, formatAttachmentDate, formatBytes } from '@/utils/ticketAttachments';
+import { AttachmentMetaLine, TicketAttachmentLightbox } from './TicketAttachmentLightbox';
 import type { TicketAttachment } from '@/types/ticket';
 import toast from '@/lib/toast';
 
@@ -32,6 +33,7 @@ export function TicketAttachmentCard({ attachment }: { attachment: TicketAttachm
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const urlRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -81,8 +83,15 @@ export function TicketAttachmentCard({ attachment }: { attachment: TicketAttachm
     }
   };
 
+  const typeLabel = attachmentTypeLabel(attachment.mime_type, attachment.file_name);
+  const sizeLabel =
+    typeof attachment.file_size === 'number' && attachment.file_size > 0
+      ? formatBytes(attachment.file_size)
+      : '';
+  const dateLabel = formatAttachmentDate(attachment.created_at);
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       {isImage ? (
         failed ? (
           <div className="flex h-40 w-full flex-col items-center justify-center gap-2 bg-slate-50 text-slate-400">
@@ -90,14 +99,20 @@ export function TicketAttachmentCard({ attachment }: { attachment: TicketAttachm
             <span className="text-[11px]">تعذر عرض الصورة</span>
           </div>
         ) : objectUrl ? (
-          <a href={objectUrl} target="_blank" rel="noopener noreferrer" title="عرض بحجم أكبر">
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            title="عرض بحجم أكبر"
+            className="block w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
             <img
               src={objectUrl}
               alt={fileName}
               loading="lazy"
+              onError={() => setFailed(true)}
               className="h-40 w-full bg-slate-50 object-cover transition hover:opacity-90"
             />
-          </a>
+          </button>
         ) : (
           <div
             className="h-40 w-full animate-pulse bg-slate-100"
@@ -106,8 +121,11 @@ export function TicketAttachmentCard({ attachment }: { attachment: TicketAttachm
           />
         )
       ) : (
-        <div className="flex h-40 w-full items-center justify-center bg-slate-50">
+        <div className="flex h-40 w-full flex-col items-center justify-center gap-1.5 bg-slate-50">
           <FileText className="h-10 w-10 text-amber-500" aria-hidden="true" />
+          <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+            {typeLabel}
+          </span>
         </div>
       )}
 
@@ -116,22 +134,19 @@ export function TicketAttachmentCard({ attachment }: { attachment: TicketAttachm
           <p className="truncate text-xs font-semibold text-slate-800" title={fileName}>
             {fileName}
           </p>
-          {typeof attachment.file_size === 'number' && attachment.file_size > 0 && (
-            <p className="text-[10px] text-slate-400">{formatBytes(attachment.file_size)}</p>
-          )}
+          <AttachmentMetaLine parts={[typeLabel, sizeLabel, dateLabel]} className="text-[10px] text-slate-400" />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isImage && objectUrl && (
-            <a
-              href={objectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(true)}
               className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-700 transition hover:bg-slate-200"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
               عرض
-            </a>
+            </button>
           )}
 
           <button
@@ -145,6 +160,17 @@ export function TicketAttachmentCard({ attachment }: { attachment: TicketAttachm
           </button>
         </div>
       </div>
+
+      {lightboxOpen && objectUrl && (
+        <TicketAttachmentLightbox
+          src={objectUrl}
+          fileName={fileName}
+          meta={[typeLabel, sizeLabel, dateLabel]}
+          downloading={downloading}
+          onDownload={handleDownload}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

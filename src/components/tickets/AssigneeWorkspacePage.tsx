@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Ticket, TicketStatus } from '@/types/ticket';
+import type { Ticket, TicketAttachment, TicketPriority, TicketStatus } from '@/types/ticket';
 import TicketStatusBadge from './TicketStatusBadge';
 import SlaCountdownTimer from './SlaCountdownTimer';
+import { TicketAttachmentCard } from './TicketAttachmentCard';
 import {
   UserCheck,
   RefreshCw,
@@ -16,20 +17,29 @@ import {
   MessageSquare,
   UploadCloud,
   X,
-  Image as ImageIcon,
-  Film,
-  FileText,
-  Download,
   History,
-  ChevronRight,
+  ChevronLeft,
+  Paperclip,
+  User as UserIcon,
+  CalendarClock,
+  Lock,
+  Inbox,
+  ListChecks,
+  WifiOff,
 } from 'lucide-react';
 import toast from '@/lib/toast';
+
+// Brand V2.2 tokens only (raw hex is lint-forbidden):
+//   primary brand-500 · secondary accent-500 (solid; accent-600/800 for text on light)
+//   tertiary navy · neutral muted-500 · background slate-50
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type ActiveModal =
   | { type: 'reject'; ticketId: number; reason: string }
   | { type: 'resolve'; ticketId: number; summary: string; files: File[]; status: 'RESOLVED' | 'UNRESOLVED'; unresolvedReason: string; internalNote: string }
   | null;
+
+type ListTab = 'active' | 'closed';
 
 const ACTION_LABEL: Record<string, string> = {
   SUBMITTED:         'إدخال التذكرة',
@@ -43,34 +53,106 @@ const ACTION_LABEL: Record<string, string> = {
   INTERNAL_NOTE:     'ملاحظة داخلية',
 };
 
-function formatDate(str: string) {
-  return new Date(str).toLocaleDateString('ar-SA', {
-    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  });
+const PRIORITY_META: Record<TicketPriority, { label: string; className: string }> = {
+  LOW:      { label: 'أولوية منخفضة', className: 'bg-slate-100 text-slate-600 border-slate-200' },
+  MEDIUM:   { label: 'أولوية متوسطة', className: 'bg-sky-50 text-sky-700 border-sky-200' },
+  HIGH:     { label: 'أولوية عالية',  className: 'bg-orange-50 text-orange-700 border-orange-200' },
+  CRITICAL: { label: 'أولوية حرجة',   className: 'bg-rose-50 text-rose-700 border-rose-200' },
+};
+
+const ACTIVE_STATUSES: TicketStatus[] = ['ASSIGNED', 'IN_PROGRESS'];
+const CLOSED_STATUSES: TicketStatus[] = ['RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ASSIGNEE'];
+
+function formatDateTime(str?: string | null): string {
+  if (!str) return '';
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function FileTypeIcon({ type }: { type: string }) {
-  if (type === 'IMAGE') return <ImageIcon className="w-4 h-4 text-blue-500" />;
-  if (type === 'VIDEO') return <Film className="w-4 h-4 text-violet-500" />;
-  return <FileText className="w-4 h-4 text-amber-500" />;
+// ── Small presentational pieces ─────────────────────────────────────────────
+function StatCard({
+  label,
+  value,
+  icon,
+  tone,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  tone: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-2xl font-extrabold leading-none text-navy">{value}</p>
+        <p className="mt-1 truncate text-[11px] text-muted-500">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <h3 className="mb-3 flex items-center gap-2 text-xs font-bold text-navy">
+      <span className="text-brand-500">{icon}</span>
+      {children}
+    </h3>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-2 text-xs">
+      <dt className="shrink-0 text-muted-500">{label}</dt>
+      <dd className="min-w-0 break-words text-left font-semibold text-navy">
+        {value || <span className="font-normal text-slate-300">—</span>}
+      </dd>
+    </div>
+  );
+}
+
+function AttachmentGrid({ items }: { items: TicketAttachment[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
+      {items.map((att) => (
+        <TicketAttachmentCard key={att.id} attachment={att} />
+      ))}
+    </div>
+  );
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 const AssigneeWorkspacePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [tickets, setTickets]             = useState<Ticket[]>([]);
   const [loading, setLoading]             = useState(true);
+  const [loadError, setLoadError]         = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [modal, setModal]                 = useState<ActiveModal>(null);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [internalNote, setInternalNote]   = useState('');
   const [savingNote, setSavingNote]       = useState(false);
+  const [tab, setTab]                     = useState<ListTab>('active');
+
+  const detailRef = useRef<HTMLDivElement>(null);
+  const detailRequest = useRef(0);
 
   // Load assigned tasks for the current user
   const fetchTasks = useCallback(async () => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      // No signed-in user means nothing to load; never leave the spinner up.
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await ticketService.getTickets({
         assigned_to_id: user.id,
@@ -78,19 +160,51 @@ const AssigneeWorkspacePage: React.FC = () => {
       });
       if (res.success) {
         setTickets(res.data.data ?? []);
+      } else {
+        setLoadError(true);
       }
     } catch {
+      setLoadError(true);
       toast.error('تعذر تحميل مهامك المكلف بها');
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on mount / user change; the loading flag must reset before the request
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+  // The list payload has no activity log; the single-ticket payload does.
+  // A failed detail fetch keeps the list data on screen instead of blanking it.
+  const loadDetail = useCallback(async (ticketId: number) => {
+    const request = ++detailRequest.current;
+    setDetailLoading(true);
+    try {
+      const res = await ticketService.getTicket(ticketId);
+      if (request !== detailRequest.current) return;
+      if (res.success && res.data) {
+        setSelectedTicket((prev) => (prev && prev.id === ticketId ? { ...prev, ...res.data } : prev));
+      }
+    } catch {
+      /* list data stays */
+    } finally {
+      if (request === detailRequest.current) setDetailLoading(false);
+    }
+  }, []);
 
   const openTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setInternalNote('');
+    loadDetail(ticket.id);
+
+    if (typeof window !== 'undefined' && window.matchMedia?.('(max-width: 1023px)').matches) {
+      detailRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const refreshAfterAction = (ticketId: number) => {
+    fetchTasks();
+    loadDetail(ticketId);
   };
 
   // ── Accept task ──────────────────────────────────────────────────────────
@@ -99,8 +213,7 @@ const AssigneeWorkspacePage: React.FC = () => {
     try {
       await ticketService.acceptTask(ticketId);
       toast.success('تم قبول التكليف — التذكرة الآن قيد تنفيذك');
-      fetchTasks();
-      setSelectedTicket(null);
+      refreshAfterAction(ticketId);
     } catch {
       toast.error('حدث خطأ أثناء قبول التكليف');
     } finally {
@@ -115,13 +228,13 @@ const AssigneeWorkspacePage: React.FC = () => {
       toast.error('مبرر الاعتذار إجباري ولا يمكن تجاوزه');
       return;
     }
+    const { ticketId } = modal;
     setActionLoading(true);
     try {
-      await ticketService.rejectTask(modal.ticketId, modal.reason.trim());
+      await ticketService.rejectTask(ticketId, modal.reason.trim());
       toast.success('تم تسجيل اعتذارك — أُعيدت التذكرة للقيادة لإعادة التوجيه');
       setModal(null);
-      fetchTasks();
-      setSelectedTicket(null);
+      refreshAfterAction(ticketId);
     } catch {
       toast.error('حدث خطأ أثناء تسجيل الاعتذار');
     } finally {
@@ -156,8 +269,7 @@ const AssigneeWorkspacePage: React.FC = () => {
       await ticketService.completeTask(ticketId, formData);
       toast.success(status === 'RESOLVED' ? 'تم إغلاق التذكرة — أحسنت!' : 'تم رفع تقرير تعذر الحل للإدارة العليا');
       setModal(null);
-      fetchTasks();
-      setSelectedTicket(null);
+      refreshAfterAction(ticketId);
     } catch {
       toast.error('حدث خطأ أثناء حفظ نتيجة المهمة');
     } finally {
@@ -173,6 +285,7 @@ const AssigneeWorkspacePage: React.FC = () => {
       await ticketService.addComment(ticketId, internalNote.trim(), true);
       toast.success('تم حفظ الملاحظة الداخلية');
       setInternalNote('');
+      loadDetail(ticketId);
     } catch {
       toast.error('تعذر حفظ الملاحظة');
     } finally {
@@ -180,244 +293,321 @@ const AssigneeWorkspacePage: React.FC = () => {
     }
   };
 
-  // ── Derived stats ─────────────────────────────────────────────────────────
-  const pendingAccept = tickets.filter((t) => t.status === 'ASSIGNED').length;
-  const inProgress    = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
-  const closedCount   = tickets.filter((t) => ['RESOLVED', 'UNRESOLVED'].includes(t.status)).length;
+  // ── Derived data ──────────────────────────────────────────────────────────
+  const pendingAccept   = tickets.filter((t) => t.status === 'ASSIGNED').length;
+  const inProgress      = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
+  const resolvedCount   = tickets.filter((t) => t.status === 'RESOLVED').length;
+  const unresolvedCount = tickets.filter((t) => t.status === 'UNRESOLVED').length;
 
-  const activeTasks   = tickets.filter((t) => ['ASSIGNED', 'IN_PROGRESS'].includes(t.status));
-  const closedTasks   = tickets.filter((t) => ['RESOLVED', 'UNRESOLVED', 'REJECTED_BY_ASSIGNEE'].includes(t.status));
+  const activeTasks = tickets.filter((t) => ACTIVE_STATUSES.includes(t.status));
+  const closedTasks = tickets.filter((t) => CLOSED_STATUSES.includes(t.status));
+  const visibleTasks = tab === 'active' ? activeTasks : closedTasks;
+
+  const ticket = selectedTicket;
+  const caps = ticket?.capabilities;
+  const canAccept   = !!caps?.accept_task;
+  const canReject   = !!caps?.reject_task;
+  const canComplete = !!caps?.complete_task;
+  const canNote     = !!caps?.add_internal_note;
+
+  const attachments    = ticket?.attachments ?? [];
+  const originalFiles  = attachments.filter((a) => a.attachment_context !== 'RESOLUTION_PROOF');
+  const proofFiles     = attachments.filter((a) => a.attachment_context === 'RESOLUTION_PROOF');
+  const activityLogs   = ticket?.activity_logs ?? [];
 
   // ═══════════════════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800" dir="rtl">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+      <div className="mx-auto max-w-[1500px] space-y-6 px-4 py-8 sm:px-6">
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              <UserCheck className="w-6 h-6 text-blue-600" />
+        {/* ── Header ── */}
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-navy">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/10 text-brand-500">
+                <UserCheck className="h-5 w-5" aria-hidden="true" />
+              </span>
               مساحة العضو المكلف
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              مهامك الفنية المعيّنة إليك — {user?.name}
+            <p className="mt-1.5 text-xs text-muted-500">
+              مهامك الفنية المعيّنة إليك{user?.name ? ` — ${user.name}` : ''}
             </p>
           </div>
-          <button
-            onClick={fetchTasks}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            تحديث المهام
-          </button>
-        </div>
 
-        {/* KPI Strip */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'تنتظر قبولك',    value: pendingAccept, bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', icon: <Clock className="w-5 h-5" /> },
-            { label: 'قيد التنفيذ',     value: inProgress,   bg: 'bg-violet-50 border-violet-200', text: 'text-violet-700', icon: <Flag className="w-5 h-5" /> },
-            { label: 'مُغلقة',          value: closedCount,  bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', icon: <CheckCircle2 className="w-5 h-5" /> },
-          ].map((s, i) => (
-            <div key={i} className={`rounded-2xl border p-4 flex items-center gap-3 ${s.bg}`}>
-              <span className={s.text}>{s.icon}</span>
-              <div>
-                <p className={`text-2xl font-extrabold ${s.text}`}>{s.value}</p>
-                <p className="text-[11px] text-slate-500">{s.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-muted-500">
+              إجمالي المهام: <span className="text-navy">{tickets.length}</span>
+            </span>
+            <button
+              type="button"
+              onClick={fetchTasks}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand-600 disabled:opacity-60"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
+              تحديث المهام
+            </button>
+          </div>
+        </header>
+
+        {/* ── Status summary ── */}
+        <section aria-label="ملخص الحالات" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatCard label="تنتظر قبولك" value={pendingAccept} tone="bg-accent-500/15 text-accent-600" icon={<Clock className="h-5 w-5" aria-hidden="true" />} />
+          <StatCard label="قيد التنفيذ" value={inProgress} tone="bg-brand-500/10 text-brand-500" icon={<Flag className="h-5 w-5" aria-hidden="true" />} />
+          <StatCard label="تم الحل" value={resolvedCount} tone="bg-emerald-50 text-emerald-600" icon={<CheckCircle2 className="h-5 w-5" aria-hidden="true" />} />
+          <StatCard label="تعذر الحل" value={unresolvedCount} tone="bg-orange-50 text-orange-600" icon={<AlertTriangle className="h-5 w-5" aria-hidden="true" />} />
+        </section>
 
         {loading ? (
-          <div className="bg-white rounded-3xl p-16 text-center border border-slate-200">
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-slate-400 text-sm">جاري تحميل مهامك...</p>
+          <div role="status" className="rounded-3xl border border-slate-200 bg-white p-16 text-center shadow-sm">
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+            <p className="text-sm text-muted-500">جاري تحميل مهامك...</p>
+          </div>
+        ) : loadError ? (
+          <div className="rounded-3xl border border-rose-200 bg-white p-14 text-center shadow-sm">
+            <WifiOff className="mx-auto mb-3 h-10 w-10 text-rose-400" aria-hidden="true" />
+            <p className="font-bold text-navy">تعذر تحميل المهام</p>
+            <p className="mt-1 text-xs text-muted-500">تحقق من الاتصال ثم أعد المحاولة.</p>
+            <button
+              type="button"
+              onClick={fetchTasks}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2 text-xs font-bold text-white transition hover:bg-brand-600"
+            >
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              إعادة المحاولة
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)_300px]">
 
-            {/* ── Task List ── */}
-            <div className="lg:col-span-1 space-y-4">
-              <h2 className="text-sm font-bold text-slate-700">
-                المهام النشطة ({activeTasks.length})
-              </h2>
+            {/* ── Task list ── */}
+            <aside className="space-y-3 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:pl-1" aria-label="قائمة المهام">
+              <div role="tablist" className="flex gap-1 rounded-xl bg-slate-200/60 p-1">
+                {([
+                  ['active', `المهام النشطة (${activeTasks.length})`],
+                  ['closed', `المغلقة (${closedTasks.length})`],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === key}
+                    onClick={() => setTab(key)}
+                    className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition ${
+                      tab === key ? 'bg-white text-navy shadow-sm' : 'text-muted-500 hover:text-navy'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-              {activeTasks.length === 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400">
-                  <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                  <p className="text-sm font-semibold">لا مهام نشطة حالياً</p>
+              {visibleTasks.length === 0 && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-400">
+                  <Inbox className="mx-auto mb-2 h-10 w-10 text-slate-300" aria-hidden="true" />
+                  <p className="text-sm font-semibold">
+                    {tab === 'active' ? 'لا مهام نشطة حالياً' : 'لا مهام مغلقة'}
+                  </p>
                 </div>
               )}
 
-              {activeTasks.map((ticket) => {
-                const isSelected = selectedTicket?.id === ticket.id;
-                const awaitingAccept = ticket.status === 'ASSIGNED';
-                const isLate = ticket.expected_resolution_time &&
-                  new Date() > new Date(ticket.expected_resolution_time) &&
-                  ticket.status === 'IN_PROGRESS';
+              {visibleTasks.map((item) => {
+                const isSelected = selectedTicket?.id === item.id;
+                const awaitingAccept = item.status === 'ASSIGNED';
+                const isLate = !!item.expected_resolution_time &&
+                  new Date() > new Date(item.expected_resolution_time) &&
+                  item.status === 'IN_PROGRESS';
+                const attachmentCount = item.attachments?.length ?? 0;
+                const priority = PRIORITY_META[item.priority];
 
                 return (
-                  <div
-                    key={ticket.id}
-                    onClick={() => openTicket(ticket)}
-                    className={`rounded-2xl border p-4 cursor-pointer transition space-y-2 ${
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => openTicket(item)}
+                    aria-pressed={isSelected}
+                    className={`block w-full space-y-2.5 rounded-2xl border p-4 text-right shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 shadow-sm'
+                        ? 'border-brand-500 bg-brand-500/5 ring-1 ring-brand-500/30'
                         : isLate
-                        ? 'border-rose-300 bg-rose-50/30 hover:bg-rose-50/60'
+                        ? 'border-rose-300 bg-rose-50/40 hover:bg-rose-50'
                         : awaitingAccept
-                        ? 'border-amber-300 bg-amber-50/30 hover:bg-amber-50/60'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
+                        ? 'border-accent-500/50 bg-accent-500/5 hover:bg-accent-500/10'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    } ${tab === 'closed' ? 'opacity-80' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="font-mono text-[10px] font-bold text-slate-400">{ticket.ticket_number}</span>
-                      <TicketStatusBadge status={ticket.status as TicketStatus} />
+                      <span className="font-mono text-[10px] font-bold text-muted-500">{item.ticket_number}</span>
+                      <TicketStatusBadge status={item.status} />
                     </div>
-                    <p className="text-sm font-bold text-slate-800 leading-snug line-clamp-2">{ticket.title}</p>
-                    {ticket.expected_resolution_time && (
+
+                    <p className="line-clamp-2 break-words text-sm font-bold leading-snug text-navy">{item.title}</p>
+
+                    {item.expected_resolution_time && tab === 'active' && (
                       <SlaCountdownTimer
-                        expectedTime={ticket.expected_resolution_time}
-                        status={ticket.status}
+                        expectedTime={item.expected_resolution_time}
+                        status={item.status}
                         showIcon={false}
                         className="text-[11px]"
                       />
                     )}
-                    <div className="flex items-center justify-between pt-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        ticket.ticket_category === 'OLD_ISSUE'
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {priority && (
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${priority.className}`}>
+                          {priority.label}
+                        </span>
+                      )}
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        item.ticket_category === 'OLD_ISSUE'
                           ? 'bg-amber-100 text-amber-700'
                           : 'bg-emerald-100 text-emerald-700'
                       }`}>
-                        {ticket.ticket_category === 'OLD_ISSUE' ? '⚠️ مشكلة' : '💡 مقترح'}
+                        {item.ticket_category === 'OLD_ISSUE' ? 'مشكلة' : 'مقترح'}
                       </span>
-                      <ChevronRight className="w-4 h-4 text-slate-300" />
+                      {attachmentCount > 0 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-500">
+                          <Paperclip className="h-3 w-3" aria-hidden="true" />
+                          {attachmentCount}
+                        </span>
+                      )}
+                      <ChevronLeft className="mr-auto h-4 w-4 text-slate-300" aria-hidden="true" />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
+            </aside>
 
-              {/* Closed tasks */}
-              {closedTasks.length > 0 && (
-                <>
-                  <h2 className="text-sm font-bold text-slate-500 mt-6">المهام المغلقة ({closedTasks.length})</h2>
-                  {closedTasks.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      onClick={() => openTicket(ticket)}
-                      className="rounded-2xl border border-slate-100 bg-white p-4 cursor-pointer hover:bg-slate-50 transition space-y-1 opacity-70"
-                    >
-                      <span className="font-mono text-[10px] text-slate-400">{ticket.ticket_number}</span>
-                      <p className="text-xs font-bold text-slate-700 line-clamp-1">{ticket.title}</p>
-                      <TicketStatusBadge status={ticket.status as TicketStatus} />
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-
-            {/* ── Task Detail Panel ── */}
-            <div className="lg:col-span-2">
-              {!selectedTicket ? (
-                <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center text-slate-400 h-full flex flex-col items-center justify-center">
-                  <UserCheck className="w-12 h-12 mb-3 text-slate-300" />
-                  <p className="font-bold text-slate-500">اختر مهمة من القائمة لعرض تفاصيلها والإجراءات المتاحة</p>
+            {/* ── Task detail ── */}
+            <div ref={detailRef} className="min-w-0 scroll-mt-4">
+              {!ticket ? (
+                <div className="flex h-full min-h-[320px] flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-12 text-center text-slate-400 shadow-sm">
+                  <ListChecks className="mb-3 h-12 w-12 text-slate-300" aria-hidden="true" />
+                  <p className="font-bold text-muted-500">اختر مهمة من القائمة لعرض تفاصيلها والإجراءات المتاحة</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                  {/* Panel Header */}
-                  <div className="bg-gradient-to-r from-slate-900 to-indigo-900 p-6 text-white">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <span className="text-[11px] font-mono text-slate-400">{selectedTicket.ticket_number}</span>
-                        <h2 className="text-xl font-extrabold mt-1">{selectedTicket.title}</h2>
+                <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                  {/* Panel header */}
+                  <div className="bg-navy p-6 text-white">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-mono text-[11px] text-white/60">{ticket.ticket_number}</span>
+                        <h2 className="mt-1 break-words text-xl font-extrabold leading-snug">{ticket.title}</h2>
                       </div>
-                      <TicketStatusBadge status={selectedTicket.status as TicketStatus} />
+                      <TicketStatusBadge status={ticket.status} />
                     </div>
-                    {selectedTicket.expected_resolution_time && (
-                      <div className="mt-3">
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      {PRIORITY_META[ticket.priority] && (
+                        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white">
+                          {PRIORITY_META[ticket.priority].label}
+                        </span>
+                      )}
+                      <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white">
+                        {ticket.ticket_category === 'OLD_ISSUE' ? 'مشكلة قائمة' : 'مقترح جديد'}
+                      </span>
+                      {ticket.expected_resolution_time && (
                         <SlaCountdownTimer
-                          expectedTime={selectedTicket.expected_resolution_time}
-                          status={selectedTicket.status}
+                          expectedTime={ticket.expected_resolution_time}
+                          status={ticket.status}
                           showIcon
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
 
-                  <div className="p-6 space-y-6">
+                  <div className="space-y-7 p-6">
 
                     {/* Description */}
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 mb-1.5">وصف المشكلة / المقترح:</p>
-                      <p className="text-sm text-slate-700 leading-7 whitespace-pre-wrap">{selectedTicket.description}</p>
-                    </div>
+                    <section>
+                      <SectionTitle icon={<MessageSquare className="h-3.5 w-3.5" />}>وصف المشكلة / المقترح</SectionTitle>
+                      <p className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">{ticket.description}</p>
+                    </section>
 
-                    {/* Resolution summary (if resolved) */}
-                    {selectedTicket.status === 'RESOLVED' && selectedTicket.resolution_summary && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-                        <p className="text-xs font-bold text-emerald-700 mb-1">📋 ما تم تنفيذه:</p>
-                        <p className="text-sm text-emerald-900">{selectedTicket.resolution_summary}</p>
+                    {/* Resolution outcome */}
+                    {ticket.status === 'RESOLVED' && ticket.resolution_summary && (
+                      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                        <p className="mb-1 text-xs font-bold text-emerald-700">ما تم تنفيذه</p>
+                        <p className="break-words text-sm text-emerald-900">{ticket.resolution_summary}</p>
+                      </div>
+                    )}
+                    {ticket.status === 'UNRESOLVED' && ticket.unresolved_reason && (
+                      <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
+                        <p className="mb-1 text-xs font-bold text-orange-700">أسباب تعذر الحل</p>
+                        <p className="break-words text-sm text-orange-900">{ticket.unresolved_reason}</p>
                       </div>
                     )}
 
                     {/* Attachments */}
-                    {(selectedTicket.attachments ?? []).length > 0 && (
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 mb-2">📎 المرفقات ({selectedTicket.attachments!.length}):</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {selectedTicket.attachments!.map((att) => (
-                            <a
-                              key={att.id}
-                              href={att.preview_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 transition group text-xs"
+                    <section>
+                      <SectionTitle icon={<Paperclip className="h-3.5 w-3.5" />}>
+                        المرفقات ({attachments.length})
+                      </SectionTitle>
+
+                      {attachments.length === 0 ? (
+                        <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs text-muted-500">
+                          لا توجد مرفقات على هذه التذكرة.
+                        </p>
+                      ) : (
+                        <div className="space-y-5">
+                          {originalFiles.length > 0 && (
+                            <div>
+                              {proofFiles.length > 0 && (
+                                <p className="mb-2 text-[11px] font-semibold text-muted-500">مرفقات مقدّم الطلب</p>
+                              )}
+                              <AttachmentGrid items={originalFiles} />
+                            </div>
+                          )}
+                          {proofFiles.length > 0 && (
+                            <div>
+                              <p className="mb-2 text-[11px] font-semibold text-muted-500">إثباتات الحل</p>
+                              <AttachmentGrid items={proofFiles} />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </section>
+
+                    {/* ── Actions (server capabilities) ── */}
+                    {(canAccept || canReject) && (
+                      <section className="space-y-3 rounded-2xl border border-accent-500/40 bg-accent-500/5 p-5">
+                        <p className="text-sm font-bold text-navy">تنتظر قبولك — هل تقبل هذا التكليف؟</p>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          {canAccept && (
+                            <button
+                              type="button"
+                              onClick={() => handleAccept(ticket.id)}
+                              disabled={actionLoading}
+                              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                             >
-                              <FileTypeIcon type={att.file_type} />
-                              <span className="truncate flex-1 font-medium text-slate-700">{att.file_name}</span>
-                              <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 shrink-0" />
-                            </a>
-                          ))}
+                              <ThumbsUp className="h-4 w-4" aria-hidden="true" />
+                              قبول التكليف
+                            </button>
+                          )}
+                          {canReject && (
+                            <button
+                              type="button"
+                              onClick={() => setModal({ type: 'reject', ticketId: ticket.id, reason: '' })}
+                              disabled={actionLoading}
+                              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-rose-600 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700 disabled:opacity-60"
+                            >
+                              <ThumbsDown className="h-4 w-4" aria-hidden="true" />
+                              اعتذار / رفض التكليف
+                            </button>
+                          )}
                         </div>
-                      </div>
+                      </section>
                     )}
 
-                    {/* ── Action Buttons (RBAC by status) ── */}
-                    {selectedTicket.status === 'ASSIGNED' && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3">
-                        <p className="text-sm font-bold text-amber-800">⏳ تنتظر قبولك — هل تقبل هذا التكليف؟</p>
-                        <div className="flex gap-3">
+                    {canComplete && (
+                      <section className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        <p className="text-sm font-bold text-navy">المهمة قيد التنفيذ — أنهِ وأغلق التذكرة</p>
+                        <div className="flex flex-col gap-3 sm:flex-row">
                           <button
-                            onClick={() => handleAccept(selectedTicket.id)}
-                            disabled={actionLoading}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition disabled:opacity-60"
-                          >
-                            <ThumbsUp className="w-4 h-4" />
-                            👍 قبول التكليف
-                          </button>
-                          <button
-                            onClick={() => setModal({ type: 'reject', ticketId: selectedTicket.id, reason: '' })}
-                            disabled={actionLoading}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition disabled:opacity-60"
-                          >
-                            <ThumbsDown className="w-4 h-4" />
-                            🚫 اعتذار / رفض التكليف
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedTicket.status === 'IN_PROGRESS' && (
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-                        <p className="text-sm font-bold text-slate-700">📌 المهمة قيد التنفيذ — أنهِ وأغلق التذكرة:</p>
-                        <div className="flex gap-3">
-                          <button
+                            type="button"
                             onClick={() => setModal({
                               type: 'resolve',
-                              ticketId: selectedTicket.id,
+                              ticketId: ticket.id,
                               status: 'RESOLVED',
                               summary: '',
                               unresolvedReason: '',
@@ -425,15 +615,16 @@ const AssigneeWorkspacePage: React.FC = () => {
                               files: [],
                             })}
                             disabled={actionLoading}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition disabled:opacity-60"
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                           >
-                            <CheckCircle2 className="w-4 h-4" />
-                            🎯 تم الحل (Resolved)
+                            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                            تم الحل (Resolved)
                           </button>
                           <button
+                            type="button"
                             onClick={() => setModal({
                               type: 'resolve',
-                              ticketId: selectedTicket.id,
+                              ticketId: ticket.id,
                               status: 'UNRESOLVED',
                               summary: '',
                               unresolvedReason: '',
@@ -441,107 +632,156 @@ const AssigneeWorkspacePage: React.FC = () => {
                               files: [],
                             })}
                             disabled={actionLoading}
-                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition disabled:opacity-60"
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent-500 py-2.5 text-sm font-bold text-white transition hover:bg-accent-600 disabled:opacity-60"
                           >
-                            <AlertTriangle className="w-4 h-4" />
-                            ⚠️ تعذر الحل
+                            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                            تعذر الحل
                           </button>
                         </div>
-                      </div>
+                      </section>
                     )}
 
-                    {/* Internal Notes (always visible) */}
-                    <div className="border-t border-slate-100 pt-5">
-                      <p className="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        📝 حفظ ملاحظات داخلية (لا يراها مقدم الطلب)
+                    {!canAccept && !canReject && !canComplete && (
+                      <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs text-muted-500">
+                        لا توجد إجراءات متاحة لك على هذه التذكرة في حالتها الحالية.
                       </p>
-                      <textarea
-                        rows={2}
-                        value={internalNote}
-                        onChange={(e) => setInternalNote(e.target.value)}
-                        placeholder="ملاحظات تشغيلية، متطلبات تقنية، أو سياق إضافي..."
-                        className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50"
-                      />
-                      <div className="flex justify-end mt-2">
-                        <button
-                          onClick={() => handleSaveNote(selectedTicket.id)}
-                          disabled={savingNote || !internalNote.trim()}
-                          className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50"
-                        >
-                          {savingNote ? 'جاري الحفظ...' : '📝 حفظ الملاحظة'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Activity Logs */}
-                    {(selectedTicket.activity_logs ?? []).length > 0 && (
-                      <div className="border-t border-slate-100 pt-5">
-                        <p className="text-xs font-bold text-slate-500 mb-4 flex items-center gap-1.5">
-                          <History className="w-3.5 h-3.5" />
-                          سجل الأحداث
-                        </p>
-                        <ol className="relative border-r border-slate-200 space-y-4 pr-5">
-                          {(selectedTicket.activity_logs ?? []).map((log, idx) => (
-                            <li key={idx} className="relative">
-                              <div className="absolute -right-2.5 top-0 w-5 h-5 rounded-full bg-white border-2 border-blue-300 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                              </div>
-                              <div className="mr-3">
-                                <p className="text-xs font-bold text-slate-700">{ACTION_LABEL[log.action] ?? log.action}</p>
-                                {log.details && <p className="text-[11px] text-slate-500 mt-0.5">{log.details}</p>}
-                                <p className="text-[10px] text-slate-400 mt-0.5">
-                                  {log.performed_by_name} — {log.logged_at ? formatDate(log.logged_at) : ''}
-                                </p>
-                              </div>
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
                     )}
 
+                    {/* ── Internal notes ── */}
+                    <section className="border-t border-slate-100 pt-6">
+                      <SectionTitle icon={<MessageSquare className="h-3.5 w-3.5" />}>
+                        ملاحظات داخلية (لا يراها مقدم الطلب)
+                      </SectionTitle>
+
+                      {canNote ? (
+                        <>
+                          <label htmlFor="workspace-internal-note" className="sr-only">ملاحظة داخلية</label>
+                          <textarea
+                            id="workspace-internal-note"
+                            rows={3}
+                            value={internalNote}
+                            onChange={(e) => setInternalNote(e.target.value)}
+                            placeholder="ملاحظات تشغيلية، متطلبات تقنية، أو سياق إضافي..."
+                            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-brand-500"
+                          />
+                          <div className="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveNote(ticket.id)}
+                              disabled={savingNote || !internalNote.trim()}
+                              className="rounded-xl bg-navy px-4 py-2 text-xs font-bold text-white transition hover:bg-ink-700 disabled:opacity-50"
+                            >
+                              {savingNote ? 'جاري الحفظ...' : 'حفظ الملاحظة'}
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-xs text-muted-500">
+                          <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          إضافة الملاحظات الداخلية متاحة لقيادة الإدارة فقط.
+                        </p>
+                      )}
+                    </section>
                   </div>
-                </div>
+                </article>
               )}
             </div>
+
+            {/* ── Side panel ── */}
+            {ticket && (
+              <aside className="min-w-0 space-y-4 lg:col-span-2 xl:col-span-1" aria-label="تفاصيل التذكرة">
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <SectionTitle icon={<UserIcon className="h-3.5 w-3.5" />}>بيانات التذكرة</SectionTitle>
+                  <dl className="divide-y divide-slate-100">
+                    <InfoRow label="مقدّم الطلب" value={ticket.created_by_name || ticket.creator?.name} />
+                    <InfoRow label="الإدارة" value={ticket.department?.name_ar || ticket.department?.name} />
+                    <InfoRow label="الوحدة" value={ticket.unit?.name_ar} />
+                    <InfoRow label="المكلّف" value={ticket.assignee?.name} />
+                    <InfoRow label="تاريخ الإنشاء" value={formatDateTime(ticket.created_at)} />
+                    <InfoRow label="موعد الحل المتوقع" value={formatDateTime(ticket.expected_resolution_time)} />
+                    <InfoRow label="المرفقات" value={String(attachments.length)} />
+                  </dl>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <SectionTitle icon={<History className="h-3.5 w-3.5" />}>سجل الأحداث</SectionTitle>
+
+                  {activityLogs.length === 0 ? (
+                    <p className="flex items-center gap-2 text-xs text-muted-500">
+                      {detailLoading ? (
+                        <>
+                          <CalendarClock className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
+                          جارٍ تحميل السجل…
+                        </>
+                      ) : (
+                        'لا أحداث مسجّلة بعد.'
+                      )}
+                    </p>
+                  ) : (
+                    <ol className="relative space-y-4 border-r border-slate-200 pr-5">
+                      {activityLogs.map((log, idx) => (
+                        <li key={log.id ?? idx} className="relative">
+                          <span className="absolute -right-[27px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-brand-500 bg-white">
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+                          </span>
+                          <p className="text-xs font-bold text-navy">{ACTION_LABEL[log.action] ?? log.action}</p>
+                          {log.details && <p className="mt-0.5 break-words text-[11px] text-muted-500">{log.details}</p>}
+                          <p className="mt-0.5 text-[10px] text-slate-400">
+                            {[log.performed_by_name, formatDateTime(log.logged_at)].filter(Boolean).join(' — ')}
+                          </p>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              </aside>
+            )}
           </div>
         )}
       </div>
 
       {/* ═══════════════ REJECT TASK MODAL ═══════════════ */}
       {modal?.type === 'reject' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 space-y-5" dir="rtl">
-            <h2 className="text-lg font-extrabold text-slate-900">🚫 اعتذار عن استلام التكليف</h2>
-            <p className="text-xs text-slate-500 leading-relaxed">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="اعتذار عن استلام التكليف"
+            className="w-full max-w-md space-y-5 rounded-3xl bg-white p-8 shadow-2xl"
+            dir="rtl"
+          >
+            <h2 className="text-lg font-extrabold text-navy">اعتذار عن استلام التكليف</h2>
+            <p className="text-xs leading-relaxed text-muted-500">
               ستُعاد التذكرة لقيادة إدارة التقنية لإعادة التوجيه.
               <strong className="text-rose-600"> مبرر الاعتذار إجباري</strong> ولا يمكن تجاوزه.
             </p>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label htmlFor="reject-reason" className="mb-1.5 block text-xs font-bold text-slate-700">
                 مبررات الاعتذار <span className="text-rose-500">*</span>
               </label>
               <textarea
+                id="reject-reason"
                 rows={4}
                 value={modal.reason}
                 onChange={(e) => setModal({ ...modal, reason: e.target.value })}
                 placeholder="وضح سبب اعتذارك بشكل مفصل..."
-                className={`w-full rounded-xl border p-3 text-sm focus:ring-2 outline-none resize-none ${
-                  modal.reason.trim().length === 0 ? 'border-rose-300 focus:ring-rose-400' : 'border-slate-300 focus:ring-blue-500'
+                className={`w-full resize-none rounded-xl border p-3 text-sm outline-none focus:ring-2 ${
+                  modal.reason.trim().length === 0 ? 'border-rose-300 focus:ring-rose-400' : 'border-slate-300 focus:ring-brand-500'
                 }`}
               />
               {modal.reason.trim().length === 0 && (
-                <p className="text-[11px] text-rose-500 mt-1">⚠️ هذا الحقل إجباري</p>
+                <p className="mt-1 text-[11px] text-rose-500">هذا الحقل إجباري</p>
               )}
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setModal(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50">
+              <button type="button" onClick={() => setModal(null)} className="flex-1 rounded-xl border py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">
                 إلغاء
               </button>
               <button
+                type="button"
                 onClick={handleRejectTask}
                 disabled={actionLoading || !modal.reason.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition disabled:opacity-60"
+                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700 disabled:opacity-60"
               >
                 {actionLoading ? 'جاري التسجيل...' : 'تأكيد الاعتذار'}
               </button>
@@ -552,60 +792,68 @@ const AssigneeWorkspacePage: React.FC = () => {
 
       {/* ═══════════════ RESOLVE / UNRESOLVED MODAL ═══════════════ */}
       {modal?.type === 'resolve' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 space-y-5 max-h-[90vh] overflow-y-auto" dir="rtl">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="إغلاق المهمة"
+            className="max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl"
+            dir="rtl"
+          >
             {/* Toggle: Resolved vs Unresolved */}
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => setModal({ ...modal, status: 'RESOLVED' })}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition ${
+                className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-bold transition ${
                   modal.status === 'RESOLVED'
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                     : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                🎯 تم الحل (Resolved)
+                تم الحل (Resolved)
               </button>
               <button
+                type="button"
                 onClick={() => setModal({ ...modal, status: 'UNRESOLVED' })}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition ${
+                className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-bold transition ${
                   modal.status === 'UNRESOLVED'
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    ? 'border-accent-500 bg-accent-500/10 text-accent-800'
                     : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                ⚠️ تعذر الحل
+                تعذر الحل
               </button>
             </div>
 
             {modal.status === 'RESOLVED' ? (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <label htmlFor="resolve-summary" className="mb-1.5 block text-xs font-bold text-slate-700">
                     ما الذي تم بالتفصيل لحل المشكلة؟ <span className="text-rose-500">*</span>
                   </label>
                   <textarea
+                    id="resolve-summary"
                     rows={4}
                     value={modal.summary}
                     onChange={(e) => setModal({ ...modal, summary: e.target.value })}
                     placeholder="اشرح الإجراءات التقنية المتخذة والنتيجة التي تحققت..."
-                    className={`w-full rounded-xl border p-3 text-sm focus:ring-2 outline-none resize-none ${
-                      modal.summary.trim().length === 0 ? 'border-rose-300 focus:ring-rose-400' : 'border-slate-300 focus:ring-blue-500'
+                    className={`w-full resize-none rounded-xl border p-3 text-sm outline-none focus:ring-2 ${
+                      modal.summary.trim().length === 0 ? 'border-rose-300 focus:ring-rose-400' : 'border-slate-300 focus:ring-brand-500'
                     }`}
                   />
                   {modal.summary.trim().length === 0 && (
-                    <p className="text-[11px] text-rose-500 mt-1">⚠️ يجب ملء هذا الحقل لإغلاق التذكرة كـ تم الحل</p>
+                    <p className="mt-1 text-[11px] text-rose-500">يجب ملء هذا الحقل لإغلاق التذكرة كـ تم الحل</p>
                   )}
                 </div>
-                {/* Proof Upload */}
+                {/* Proof upload */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  <span className="mb-1.5 block text-xs font-bold text-slate-700">
                     رفع إثبات الحل (صورة / فيديو — اختياري)
-                  </label>
-                  <div
-                    className="border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-xl p-5 text-center cursor-pointer transition"
-                    onClick={() => document.getElementById('proof-upload-input')?.click()}
+                  </span>
+                  <label
+                    htmlFor="proof-upload-input"
+                    className="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-5 text-center transition hover:border-brand-500"
                   >
                     <input
                       type="file"
@@ -619,19 +867,21 @@ const AssigneeWorkspacePage: React.FC = () => {
                         }
                       }}
                     />
-                    <UploadCloud className="w-7 h-7 text-slate-400 mx-auto mb-1" />
+                    <UploadCloud className="mx-auto mb-1 h-7 w-7 text-slate-400" aria-hidden="true" />
                     <p className="text-xs text-slate-500">اضغط لرفع صورة أو فيديو إثبات</p>
-                  </div>
+                  </label>
                   {modal.files.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {modal.files.map((f, i) => (
-                        <div key={i} className="flex items-center justify-between text-xs bg-slate-50 rounded-lg p-2 border border-slate-200">
-                          <span className="truncate">{f.name}</span>
+                        <div key={i} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
+                          <span className="min-w-0 truncate">{f.name}</span>
                           <button
+                            type="button"
+                            aria-label={`إزالة ${f.name}`}
                             onClick={() => setModal({ ...modal, files: modal.files.filter((_, fi) => fi !== i) })}
-                            className="text-rose-500 hover:text-rose-700 p-0.5"
+                            className="p-0.5 text-rose-500 hover:text-rose-700"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="h-3.5 w-3.5" aria-hidden="true" />
                           </button>
                         </div>
                       ))}
@@ -641,44 +891,45 @@ const AssigneeWorkspacePage: React.FC = () => {
               </>
             ) : (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label htmlFor="unresolved-reason" className="mb-1.5 block text-xs font-bold text-slate-700">
                   أسباب تعذر الحل والعوائق الفنية <span className="text-rose-500">*</span>
                 </label>
                 <textarea
+                  id="unresolved-reason"
                   rows={4}
                   value={modal.unresolvedReason}
                   onChange={(e) => setModal({ ...modal, unresolvedReason: e.target.value })}
                   placeholder="وضح العوائق الفنية أو الصلاحيات اللازمة أو الجهة الأعلى التي يجب إحالتها..."
-                  className={`w-full rounded-xl border p-3 text-sm focus:ring-2 outline-none resize-none ${
-                    modal.unresolvedReason.trim().length === 0 ? 'border-rose-300 focus:ring-rose-400' : 'border-slate-300 focus:ring-blue-500'
+                  className={`w-full resize-none rounded-xl border p-3 text-sm outline-none focus:ring-2 ${
+                    modal.unresolvedReason.trim().length === 0 ? 'border-rose-300 focus:ring-rose-400' : 'border-slate-300 focus:ring-brand-500'
                   }`}
                 />
                 {modal.unresolvedReason.trim().length === 0 && (
-                  <p className="text-[11px] text-rose-500 mt-1">⚠️ يجب توثيق أسباب تعذر الحل قبل التصعيد</p>
+                  <p className="mt-1 text-[11px] text-rose-500">يجب توثيق أسباب تعذر الحل قبل التصعيد</p>
                 )}
               </div>
             )}
 
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setModal(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-bold text-slate-600 hover:bg-slate-50">
+              <button type="button" onClick={() => setModal(null)} className="flex-1 rounded-xl border py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">
                 إلغاء
               </button>
               <button
+                type="button"
                 onClick={handleComplete}
                 disabled={actionLoading}
-                className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition disabled:opacity-60 ${
+                className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition disabled:opacity-60 ${
                   modal.status === 'RESOLVED'
                     ? 'bg-emerald-600 hover:bg-emerald-700'
-                    : 'bg-orange-500 hover:bg-orange-600'
+                    : 'bg-accent-500 hover:bg-accent-600'
                 }`}
               >
-                {actionLoading ? 'جاري الحفظ...' : modal.status === 'RESOLVED' ? '🎯 تأكيد الإغلاق (تم الحل)' : '⚠️ تصعيد تعذر الحل'}
+                {actionLoading ? 'جاري الحفظ...' : modal.status === 'RESOLVED' ? 'تأكيد الإغلاق (تم الحل)' : 'تصعيد تعذر الحل'}
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };
