@@ -59,3 +59,28 @@ export const KIND_META: Record<PointEntryKind, { label: string; badge: string }>
 
 export const fieldClass =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-navy outline-none transition-colors placeholder:font-medium placeholder:text-muted-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15'
+
+/** HTTP status of a failed request, if it was one. */
+export function httpStatus(err: unknown): number | null {
+  return isAxiosError(err) ? (err.response?.status ?? null) : null
+}
+
+const cp = (n: number) => String.fromCharCode(n)
+/** Arabic harakat, superscript alef and tatweel (U+064B–U+065F, U+0670, U+0640). */
+const MARKS = new RegExp(`[${cp(0x064b)}-${cp(0x065f)}${cp(0x0670)}${cp(0x0640)}]`, 'g')
+
+/**
+ * Forgiving comparison key for searching Arabic and Latin names: case-insensitive,
+ * ignores diacritics and tatweel, and treats alef/hamza variants, ya/alef-maqsura
+ * and taa-marbuta/haa as the same letter. Used for matching only, never displayed.
+ */
+export function normalizeSearch(value: string | null | undefined): string {
+  return (value ?? '')
+    .toLowerCase()
+    .replace(MARKS, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ')
+    .trim()
+}

@@ -49,7 +49,8 @@ vi.mock('@/api/volunteerPointsApi', () => ({
 
 const toastSuccess = vi.fn()
 const toastError = vi.fn()
-vi.mock('@/lib/toast', () => ({ default: { success: (m: string) => toastSuccess(m), error: (m: string) => toastError(m) } }))
+const toastWarning = vi.fn()
+vi.mock('@/lib/toast', () => ({ default: { success: (m: string) => toastSuccess(m), error: (m: string) => toastError(m), warning: (m: string) => toastWarning(m) } }))
 
 const level = { id: 'volunteer', title: 'متطوع EMC', months: 0, points: 0, sadeem: 'Open Community' }
 const next = { id: 'contributor', title: 'متطوع مشارك', months: 3, points: 1500, sadeem: 'Standard' }
@@ -122,6 +123,7 @@ describe('ImpactPointsPage — member self view', () => {
 
     expect(screen.queryByText('المستفيدون من نقاط الأثر')).not.toBeInTheDocument()
     expect(screen.queryByText('منح نقاط لأعضاء الفريق')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'الأعضاء المستحقون' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^منح نقاط$/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /تعديل نقاط|منح نقاط لـ|سجل نقاط/ })).not.toBeInTheDocument()
   })
@@ -196,6 +198,7 @@ describe('ImpactPointsPage — HR / management view', () => {
     renderPage()
 
     expect(await screen.findByText('المستفيدون من نقاط الأثر')).toBeInTheDocument()
+    await screen.findByText('خالد')
     const kpis = screen.getByRole('region', { name: 'مؤشرات نقاط الأثر' })
     for (const label of ['إجمالي نقاط الأثر', 'عدد المستفيدين', 'نقاطي الحالية', 'أعلى مساهم هذا الشهر', 'النقاط الممنوحة هذا الشهر']) {
       expect(within(kpis).getByText(label)).toBeInTheDocument()
@@ -255,24 +258,55 @@ describe('ImpactPointsPage — HR / management view', () => {
     expect(screen.queryByRole('button', { name: /تعديل نقاط/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /منح نقاط لـ/ })).not.toBeInTheDocument()
     expect(screen.queryByText('منح نقاط لأعضاء الفريق')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'الأعضاء المستحقون' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^منح نقاط$/ })).not.toBeInTheDocument()
   })
 
-  it('lists only the server-provided recipients in the award form, with department and title', async () => {
-    renderPage()
-    const picker = await screen.findByRole('combobox', { name: 'العضو المستحق' })
-    await waitFor(() => expect(within(picker).getAllByRole('option')).toHaveLength(3))
+  async function openPicker() {
+    const box = await screen.findByRole('combobox', { name: 'الأعضاء المستحقون' })
+    await userEvent.click(box)
+    return { box, list: await screen.findByRole('listbox') }
+  }
 
-    const labels = within(picker).getAllByRole('option').map((o) => o.textContent)
-    expect(labels).toContain('سارة — إدارة البرامج — منسقة')
-    expect(labels).toContain('خالد — بدون إدارة')
+  const fillAward = async (points = '150', reason = 'تنظيم ورشة') => {
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'عدد النقاط' }), points)
+    await userEvent.type(screen.getByRole('textbox', { name: 'سبب المنح' }), reason)
+  }
+
+  const refused = async (status: number, message: string) => {
+    const { AxiosError } = await import('axios')
+    return new AxiosError('x', String(status), undefined, undefined, {
+      status, statusText: '', headers: {}, config: {} as never, data: { message },
+    })
+  }
+
+  it('lists only the server-provided recipients, name first and department · title below', async () => {
+    renderPage()
+    const { list } = await openPicker()
+
+    const options = within(list).getAllByRole('option')
+    expect(options).toHaveLength(2)
+    expect(within(options[0]).getByText('سارة')).toBeInTheDocument()
+    expect(within(options[0]).getByText('إدارة البرامج · منسقة')).toBeInTheDocument()
+    expect(within(options[1]).getByText('خالد')).toBeInTheDocument()
+    expect(options[1].querySelectorAll('p')).toHaveLength(1) // no department / title: no metadata line
   })
 
-  it('shows the remaining monthly cap for the chosen member', async () => {
+  it('shows only the NAME in the chip once someone is chosen', async () => {
     renderPage()
-    const picker = await screen.findByRole('combobox', { name: 'العضو المستحق' })
-    await waitFor(() => expect(within(picker).getAllByRole('option')).toHaveLength(3))
-    await userEvent.selectOptions(picker, '11')
+    const { list } = await openPicker()
+
+    await userEvent.click(within(list).getByText('سارة'))
+
+    const chip = screen.getByRole('button', { name: 'إزالة سارة' }).closest('span') as HTMLElement
+    expect(chip.textContent).toBe('سارة')
+    expect(chip.textContent).not.toMatch(/إدارة|—|·/)
+  })
+
+  it('shows the remaining monthly cap when exactly one member is chosen', async () => {
+    renderPage()
+    const { list } = await openPicker()
+    await userEvent.click(within(list).getByText('سارة'))
 
     expect(screen.getByText(/المتبقي من سقف هذا الشهر/)).toHaveTextContent('2,100')
   })
@@ -280,27 +314,105 @@ describe('ImpactPointsPage — HR / management view', () => {
   it('submits an award for the chosen recipient and refreshes the list', async () => {
     mockAward.mockResolvedValue({ id: 1 })
     renderPage()
-    const picker = await screen.findByRole('combobox', { name: 'العضو المستحق' })
-    await waitFor(() => expect(within(picker).getAllByRole('option')).toHaveLength(3))
+    const { list } = await openPicker()
     const callsBefore = mockMembers.mock.calls.length
 
-    await userEvent.selectOptions(picker, '11')
-    await userEvent.type(screen.getByRole('spinbutton', { name: 'عدد النقاط' }), '150')
-    await userEvent.type(screen.getByRole('textbox', { name: 'سبب المنح' }), 'تنظيم ورشة')
-    await userEvent.click(screen.getByRole('button', { name: /امنح النقاط/ }))
+    await userEvent.click(within(list).getByText('سارة'))
+    await fillAward()
+    await userEvent.click(screen.getByRole('button', { name: 'امنح النقاط' }))
 
-    await waitFor(() => expect(mockAward).toHaveBeenCalledWith({ user_id: 11, category: 'task', points: 150, reason: 'تنظيم ورشة' }))
+    await waitFor(() => expect(mockAward).toHaveBeenCalledTimes(1))
+    expect(mockAward).toHaveBeenCalledWith({ user_id: 11, category: 'task', points: 150, reason: 'تنظيم ورشة' })
     await waitFor(() => expect(mockMembers.mock.calls.length).toBeGreaterThan(callsBefore))
+    expect(toastSuccess).toHaveBeenCalledWith('مُنحت النقاط ووُثِّق السبب')
+    expect(screen.queryByRole('button', { name: /^إزالة/ })).not.toBeInTheDocument()
   })
 
-  it('a row\'s award button picks that member in the award form', async () => {
+  it('awards several people the same points and reason, one request each, in order', async () => {
+    mockAward.mockResolvedValue({ id: 1 })
     renderPage()
-    const picker = await screen.findByRole('combobox', { name: 'العضو المستحق' })
-    await waitFor(() => expect(within(picker).getAllByRole('option')).toHaveLength(3))
+    const { list } = await openPicker()
+
+    await userEvent.click(within(list).getByText('سارة'))
+    await userEvent.click(within(list).getByText('خالد'))
+    expect(screen.getByRole('button', { name: 'امنح النقاط (2)' })).toBeInTheDocument()
+    await fillAward('100', 'عمل جماعي')
+    await userEvent.click(screen.getByRole('button', { name: 'امنح النقاط (2)' }))
+
+    await waitFor(() => expect(mockAward).toHaveBeenCalledTimes(2))
+    expect(mockAward.mock.calls.map((c) => c[0])).toEqual([
+      { user_id: 11, category: 'task', points: 100, reason: 'عمل جماعي' },
+      { user_id: 12, category: 'task', points: 100, reason: 'عمل جماعي' },
+    ])
+    expect(toastSuccess).toHaveBeenCalledWith('مُنحت النقاط لـ 2 أعضاء ووُثِّق السبب')
+    expect(screen.queryByRole('button', { name: /^إزالة/ })).not.toBeInTheDocument()
+  })
+
+  it('on a partial failure keeps only the failed people selected and a retry skips the successes', async () => {
+    mockAward
+      .mockResolvedValueOnce({ id: 1 })
+      .mockRejectedValueOnce(await refused(422, 'يتجاوز السقف الشهري'))
+      .mockResolvedValue({ id: 3 })
+    renderPage()
+    const { list } = await openPicker()
+    await userEvent.click(within(list).getByText('سارة'))
+    await userEvent.click(within(list).getByText('خالد'))
+    await fillAward()
+
+    await userEvent.click(screen.getByRole('button', { name: 'امنح النقاط (2)' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('خالد')
+    expect(alert).toHaveTextContent('يتجاوز السقف الشهري')
+    expect(toastWarning).toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'إزالة سارة' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'إزالة خالد' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'امنح النقاط' }))
+
+    await waitFor(() => expect(mockAward).toHaveBeenCalledTimes(3))
+    expect(mockAward.mock.calls.map((c) => c[0].user_id)).toEqual([11, 12, 12])
+  })
+
+  it('stops the batch on a 403 instead of sending requests that will all be refused', async () => {
+    mockRecipients.mockResolvedValue([
+      { user_id: 11, name: 'سارة', department_id: 2, department: 'إدارة البرامج', role_title: 'منسقة', month_points: 0, lifetime_points: 0 },
+      { user_id: 12, name: 'خالد', department_id: 3, department: null, role_title: null, month_points: 0, lifetime_points: 0 },
+      { user_id: 13, name: 'منى', department_id: 3, department: null, role_title: null, month_points: 0, lifetime_points: 0 },
+    ])
+    mockAward.mockRejectedValue(await refused(403, 'ليست لديك صلاحية منح نقاط الأثر.'))
+    renderPage()
+    const { list } = await openPicker()
+    for (const name of ['سارة', 'خالد', 'منى']) await userEvent.click(within(list).getByText(name))
+    await fillAward()
+
+    await userEvent.click(screen.getByRole('button', { name: 'امنح النقاط (3)' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('تعذّرت المنح لـ 3')
+    expect(mockAward).toHaveBeenCalledTimes(1)
+    expect(toastError).toHaveBeenCalled()
+  })
+
+  it('refuses to submit without anyone selected, points or a reason', async () => {
+    renderPage()
+    await openPicker()
+
+    await userEvent.click(screen.getByRole('button', { name: 'امنح النقاط' }))
+
+    expect(toastError).toHaveBeenCalledWith('اختر عضواً واحداً على الأقل، وأدخل النقاط والسبب')
+    expect(mockAward).not.toHaveBeenCalled()
+  })
+
+  it('a row\'s award button adds that member as a chip without dropping the others', async () => {
+    renderPage()
+    const { list } = await openPicker()
+    await userEvent.click(within(list).getByText('خالد'))
 
     await userEvent.click(await screen.findByRole('button', { name: 'منح نقاط لـ سارة العلي' }))
 
-    expect(picker).toHaveValue('11')
+    // The row's user id (11) is the recipient "سارة"; both stay selected.
+    expect(screen.getByRole('button', { name: 'إزالة سارة' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'إزالة خالد' })).toBeInTheDocument()
   })
 
   it('explains an empty award scope instead of offering an unusable form', async () => {
@@ -309,6 +421,26 @@ describe('ImpactPointsPage — HR / management view', () => {
 
     expect(await screen.findByText('لا يوجد أعضاء فريق ضمن نطاق صلاحيتك حالياً.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /امنح النقاط/ })).toBeDisabled()
+  })
+
+  it('shows a retryable error when the recipients fail to load', async () => {
+    mockRecipients.mockRejectedValueOnce(new Error('500'))
+    renderPage()
+
+    expect(await screen.findByText('تعذر تحميل قائمة الأعضاء المستحقين.')).toBeInTheDocument()
+    mockRecipients.mockResolvedValue([{ user_id: 11, name: 'سارة', department_id: 2, department: null, role_title: null, month_points: 0, lifetime_points: 0 }])
+    await userEvent.click(screen.getByRole('button', { name: /إعادة المحاولة/ }))
+
+    const { list } = await openPicker()
+    expect(within(list).getByText('سارة')).toBeInTheDocument()
+  })
+
+  it('shows a loading state in the dropdown while recipients load', async () => {
+    mockRecipients.mockReturnValue(new Promise(() => {}))
+    renderPage()
+    await userEvent.click(await screen.findByRole('combobox', { name: 'الأعضاء المستحقون' }))
+
+    expect(await screen.findByText('جارٍ تحميل الأعضاء…')).toBeInTheDocument()
   })
 })
 
