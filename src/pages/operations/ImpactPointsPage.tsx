@@ -1,139 +1,92 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Award, Coins, Crown, Medal, RefreshCw, Send, TrendingUp } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { isAxiosError } from 'axios'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Award, CalendarClock, Coins, Crown, RefreshCw, Sparkles, TrendingUp, Trophy, Users } from 'lucide-react'
+import toast from '@/lib/toast'
+import { useAuth } from '@/contexts/AuthContext'
 import {
-  AWARD_CATEGORIES,
-  awardPoints,
   fetchMyAwards,
   fetchMyPointsSummary,
-  fetchPointRecipients,
   fetchPointsLeaderboard,
   fetchPointsPolicy,
   type PointAward,
-  type PointRecipient,
+  type PointsCapabilities,
   type PointsLevel,
+  type PointsMember,
   type PointsSummary,
 } from '@/api/volunteerPointsApi'
+import PointsKpiCards, { type KpiItem } from '@/components/operations/impactPoints/PointsKpiCards'
+import PeopleWithPoints from '@/components/operations/impactPoints/PeopleWithPoints'
+import PointsHistoryDrawer from '@/components/operations/impactPoints/PointsHistoryDrawer'
+import AdjustPointsModal from '@/components/operations/impactPoints/AdjustPointsModal'
+import QuickAwardForm from '@/components/operations/impactPoints/QuickAwardForm'
+import LevelLadder from '@/components/operations/impactPoints/LevelLadder'
+import { usePeopleWithPoints } from '@/components/operations/impactPoints/usePeopleWithPoints'
+import { formatNumber } from '@/components/operations/impactPoints/impactPointsUi'
+import {
+  LeaderboardCard,
+  ManagementNote,
+  MyHistoryTable,
+  MySummaryCard,
+  RecentActivityCard,
+} from '@/components/operations/impactPoints/SidePanels'
 
 /**
- * نقاط أثر EMC — تنفيذ سياسة التقدير والمكافآت والتدرج للمتطوعين v1.0:
- * ملخصي (المستوى، الرصيد، رصيد اليورو التعليمي)، سجل منحي، لوحة الصدارة،
- * سلم المستويات الست، ونموذج منح النقاط للمدراء المخوَّلين.
+ * نقاط الأثر — تنفيذ سياسة التقدير والمكافآت والتدرج للمتطوعين v1.0.
+ *
+ * Two experiences from one page, decided ONLY by the server's capabilities:
+ *  - every member: their own score, level, history and the level ladder;
+ *  - authorized staff (HR, admins, department leaders in scope): the people
+ *    who received points, per-person history, awards and adjustments.
+ *
+ * Opening the page grants none of the management actions. The browser never
+ * decides authority from a role name: it renders the capabilities the summary
+ * endpoint returns, and every endpoint re-checks them.
  */
 
-/** The server's own Arabic reason (self-award, ineligible recipient, monthly cap…). */
-function serverMessage(err: unknown, fallback: string): string {
-  if (isAxiosError(err)) {
-    const msg = (err.response?.data as { message?: unknown } | undefined)?.message
-    if (typeof msg === 'string' && msg.trim()) return msg
-  }
-  return fallback
+const NO_CAPABILITIES: PointsCapabilities = {
+  can_view_all: false, can_award: false, can_adjust: false, can_view_history: false, can_manage: false, scope: 'none',
 }
 
-function recipientLabel(r: PointRecipient): string {
-  return [r.name, r.department ?? 'بدون إدارة', r.role_title].filter(Boolean).join(' — ')
-}
+type Leaderboard = Array<{ user: { id: number; name: string; role: string | null } | null; lifetime_points: number }>
 
-const fieldClass =
-  'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-deepBlue outline-none transition-colors focus:border-customBlue focus:ring-2 focus:ring-customBlue/15'
+type PageData = { summary: PointsSummary; awards: PointAward[]; board: Leaderboard; levels: PointsLevel[] }
 
-function LevelLadder({ levels, currentId }: { levels: PointsLevel[]; currentId: string }) {
-  return (
-    <ol className="space-y-2">
-      {levels.map((level) => {
-        const isCurrent = level.id === currentId
-        return (
-          <li
-            key={level.id}
-            className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
-              isCurrent ? 'border-customBlue bg-sky/40' : 'border-slate-100 bg-white'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              {level.id === 'impact_leader' ? (
-                <Crown size={16} className="text-customOrange" aria-hidden />
-              ) : (
-                <Medal size={16} className={isCurrent ? 'text-customBlue' : 'text-slate-300'} aria-hidden />
-              )}
-              <div>
-                <p className={`text-sm font-black ${isCurrent ? 'text-deepBlue' : 'text-ink-600'}`}>{level.title}</p>
-                <p className="text-[11px] font-bold text-slate-400">
-                  {level.months > 0 ? `بعد ${level.months} شهراً · ` : 'من البداية · '}
-                  {level.points.toLocaleString('en-US')} نقطة
-                </p>
-              </div>
-            </div>
-            <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-500">
-              سديم {level.sadeem}
-            </span>
-          </li>
-        )
-      })}
-    </ol>
-  )
+async function fetchPageData(): Promise<PageData> {
+  const [summary, awards, board, policy] = await Promise.all([
+    fetchMyPointsSummary(),
+    fetchMyAwards(),
+    fetchPointsLeaderboard(),
+    fetchPointsPolicy(),
+  ])
+  return { summary, awards, board, levels: policy.levels }
 }
 
 export default function ImpactPointsPage() {
-  const [summary, setSummary] = useState<PointsSummary | null>(null)
-  const [awards, setAwards] = useState<PointAward[]>([])
-  const [leaderboard, setLeaderboard] = useState<Array<{ user: { id: number; name: string; role: string | null }; lifetime_points: number }>>([])
-  const [levels, setLevels] = useState<PointsLevel[]>([])
+  const { user } = useAuth()
+
+  const [data, setData] = useState<PageData | null>(null)
   const [loading, setLoading] = useState(true)
   // A failed load ends in an explicit error state with a retry — never an
-  // endless skeleton (which is what a single failed request used to cause).
+  // endless skeleton.
   const [loadFailed, setLoadFailed] = useState(false)
 
-  // Award authority comes from the server (summary.can_award), never from a
-  // role list in the browser; the award endpoint enforces it regardless.
-  const canAward = summary?.can_award === true
-  const monthlyCap = summary?.monthly_cap ?? 2500
+  const [historyFor, setHistoryFor] = useState<{ id: number; name: string } | null>(null)
+  const [adjusting, setAdjusting] = useState<PointsMember | null>(null)
+  const [awardTarget, setAwardTarget] = useState<number | null>(null)
+  const awardRef = useRef<HTMLDivElement>(null)
 
-  // نموذج المنح — المستحقون: أعضاء فريق EMC الفعليون ضمن نطاق المانح فقط
-  const [people, setPeople] = useState<PointRecipient[]>([])
-  const [peopleFailed, setPeopleFailed] = useState(false)
-  const [grant, setGrant] = useState({ user_id: '' as number | '', category: 'task', points: '', reason: '' })
-  const [granting, setGranting] = useState(false)
+  const summary = data?.summary ?? null
+  // Capabilities come from the server. `can_award` alone (an older server) still
+  // enables the award form but nothing else.
+  const caps: PointsCapabilities = summary?.capabilities ?? { ...NO_CAPABILITIES, can_award: summary?.can_award === true }
+  const people = usePeopleWithPoints(caps.can_view_all)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setLoadFailed(false)
-    try {
-      const [sum, myAwards, board, policy] = await Promise.all([
-        fetchMyPointsSummary(),
-        fetchMyAwards(),
-        fetchPointsLeaderboard(),
-        fetchPointsPolicy(),
-      ])
-      setSummary(sum)
-      setAwards(myAwards)
-      setLeaderboard(board)
-      setLevels(policy.levels)
-    } catch {
-      setLoadFailed(true)
-      toast.error('فشل تحميل نقاط الأثر')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Mount fetch — inline async IIFE per effect-patterns.md.
+  // Mount fetch — inline async IIFE.
   useEffect(() => {
     let alive = true
     void (async () => {
       try {
-        const [sum, myAwards, board, policy] = await Promise.all([
-          fetchMyPointsSummary(),
-          fetchMyAwards(),
-          fetchPointsLeaderboard(),
-          fetchPointsPolicy(),
-        ])
-        if (alive) {
-          setSummary(sum)
-          setAwards(myAwards)
-          setLeaderboard(board)
-          setLevels(policy.levels)
-        }
+        const next = await fetchPageData()
+        if (alive) setData(next)
       } catch {
         if (alive) {
           setLoadFailed(true)
@@ -148,254 +101,198 @@ export default function ImpactPointsPage() {
     }
   }, [])
 
-  const loadRecipients = useCallback(async () => {
+  /** Reload everything (the refresh button, the retry button and after a change). */
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    setLoadFailed(false)
     try {
-      setPeople(await fetchPointRecipients())
-      setPeopleFailed(false)
+      setData(await fetchPageData())
     } catch {
-      setPeople([])
-      setPeopleFailed(true)
+      setLoadFailed(true)
+      toast.error('فشل تحميل نقاط الأثر')
+    } finally {
+      setLoading(false)
     }
+    people.reload()
+    // people.reload is stable (useCallback with no dependencies).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    if (!canAward) return
-    let alive = true
-    void fetchPointRecipients()
-      .then((rows) => { if (alive) { setPeople(rows); setPeopleFailed(false) } })
-      .catch(() => { if (alive) { setPeople([]); setPeopleFailed(true) } })
-    return () => { alive = false }
-  }, [canAward])
-
-  const selected = people.find((p) => p.user_id === grant.user_id)
-
-  async function submitGrant() {
-    if (!grant.user_id || !grant.points || !grant.reason.trim()) {
-      toast.error('العضو والنقاط والسبب حقول لازمة')
-      return
-    }
-    setGranting(true)
-    try {
-      await awardPoints({
-        user_id: grant.user_id,
-        category: grant.category,
-        points: Number(grant.points),
-        reason: grant.reason.trim(),
-      })
-      toast.success('مُنحت النقاط ووُثِّق السبب')
-      setGrant({ user_id: '', category: 'task', points: '', reason: '' })
-      await Promise.all([load(), loadRecipients()])
-    } catch (err) {
-      toast.error(serverMessage(err, 'تعذر منح النقاط'))
-    } finally {
-      setGranting(false)
-    }
+  function onPointsChanged() {
+    void refresh()
   }
 
-  const categoryLabel = (value: string) => AWARD_CATEGORIES.find((c) => c.value === value)?.label ?? value
+  function startAward(member: PointsMember) {
+    setAwardTarget(member.user_id)
+  }
+
+  const monthlyCap = summary?.monthly_cap ?? 2500
+  const managerPage = people.state.page
+
+  const kpis: KpiItem[] = !summary
+    ? []
+    : caps.can_view_all
+      ? [
+          ...(managerPage
+            ? [
+                { label: 'إجمالي نقاط الأثر', value: formatNumber(managerPage.kpis.total_points), hint: 'مجموع نقاط المستفيدين في نطاقك', icon: TrendingUp },
+                { label: 'عدد المستفيدين', value: formatNumber(managerPage.kpis.members_with_points), hint: `من أصل ${formatNumber(managerPage.kpis.scope_members)} عضواً في النطاق`, icon: Users, tone: 'navy' as const },
+              ]
+            : []),
+          { label: 'نقاطي الحالية', value: formatNumber(summary.lifetime_points), hint: `المتاح ${formatNumber(summary.available_points)} · ${summary.eligible_level.title}`, icon: Sparkles },
+          ...(managerPage
+            ? [
+                {
+                  label: 'أعلى مساهم هذا الشهر',
+                  value: managerPage.kpis.top_contributor_month?.name ?? '—',
+                  hint: managerPage.kpis.top_contributor_month
+                    ? `${formatNumber(managerPage.kpis.top_contributor_month.points)} نقطة${managerPage.kpis.top_contributor_month.department ? ` · ${managerPage.kpis.top_contributor_month.department}` : ''}`
+                    : 'لا منح هذا الشهر بعد',
+                  icon: Trophy,
+                  tone: 'accent' as const,
+                },
+                { label: 'النقاط الممنوحة هذا الشهر', value: formatNumber(managerPage.kpis.month_points_total), hint: 'المنح الموجبة فقط', icon: CalendarClock, tone: 'accent' as const },
+              ]
+            : []),
+        ]
+      : [
+          { label: 'نقاط الأثر التراكمية', value: formatNumber(summary.lifetime_points), hint: 'لا تنقص عند الاستبدال', icon: TrendingUp },
+          { label: 'الرصيد المتاح', value: formatNumber(summary.available_points), hint: `يعادل €${formatNumber(summary.credit_eur)}`, icon: Coins, tone: 'accent' },
+          { label: 'مستواي الحالي', value: summary.eligible_level.title, hint: `سديم ${summary.eligible_level.sadeem}`, icon: Award, tone: 'navy' },
+          {
+            label: 'المستوى التالي',
+            value: summary.next_level?.title ?? 'القمة',
+            hint: summary.next_level
+              ? `يلزم ${formatNumber(Math.max(0, summary.next_level.points - summary.lifetime_points))} نقطة و${Math.max(0, summary.next_level.months - summary.active_months)} شهراً`
+              : 'أنت في أعلى السلم',
+            icon: Crown,
+          },
+        ]
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-customOrange">التقدير والمكافآت</p>
-          <h1 className="mt-1 text-2xl font-black text-deepBlue">نقاط أثر EMC</h1>
-          <p className="mt-1 text-sm text-deepBlue/50">
+    <div dir="rtl" className="min-h-full space-y-6 bg-slate-50/60 p-1">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-black tracking-[0.2em] text-accent-700">التقدير والمكافآت</p>
+          <h1 className="mt-1 text-2xl font-black text-navy">نقاط الأثر</h1>
+          <p className="mt-1 text-sm font-semibold text-muted-500">
             كل مساهمة تُحسب، وكل أثر يُقدَّر — 1,000 نقطة = 10 يورو رصيداً تعليمياً داخلياً
           </p>
         </div>
-        <button onClick={() => void load()} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-deepBlue hover:bg-slate-50">
-          <RefreshCw size={15} /> تحديث
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="grid gap-4 sm:grid-cols-3" aria-busy="true">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
-          ))}
-        </div>
-      ) : loadFailed || !summary ? (
-        <div role="alert" className="rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
-          <p className="text-sm font-black text-red-700">تعذر تحميل نقاط الأثر</p>
-          <p className="mt-1 text-xs font-semibold text-red-600/80">تحقق من الاتصال ثم أعد المحاولة.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {caps.can_award && (
+            <button
+              type="button"
+              onClick={() => {
+                setAwardTarget(null)
+                awardRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-accent-600"
+            >
+              <Award size={15} aria-hidden="true" /> منح نقاط
+            </button>
+          )}
           <button
-            onClick={() => void load()}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-deepBlue ring-1 ring-red-200 hover:bg-red-100/50"
+            type="button"
+            onClick={() => void refresh()}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-navy shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
           >
-            <RefreshCw size={14} aria-hidden /> إعادة المحاولة
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} aria-hidden="true" /> تحديث
+          </button>
+        </div>
+      </header>
+
+      {loading && !data ? (
+        <div aria-busy="true" aria-label="جارٍ التحميل" className="space-y-6">
+          <div className="grid gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
+            ))}
+          </div>
+          <div className="h-72 animate-pulse rounded-3xl bg-slate-100" />
+        </div>
+      ) : loadFailed || !data || !summary ? (
+        <div role="alert" className="rounded-3xl border border-rose-100 bg-rose-50 p-8 text-center">
+          <p className="text-sm font-black text-rose-700">تعذر تحميل نقاط الأثر</p>
+          <p className="mt-1 text-xs font-semibold text-rose-600/80">تحقق من الاتصال ثم أعد المحاولة.</p>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-navy ring-1 ring-rose-200 hover:bg-rose-100/50"
+          >
+            <RefreshCw size={14} aria-hidden="true" /> إعادة المحاولة
           </button>
         </div>
       ) : (
         <>
-          {/* ملخصي */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: 'نقاط الأثر التراكمية', value: summary.lifetime_points.toLocaleString('en-US'), icon: TrendingUp, hint: 'لا تنقص عند الاستبدال' },
-              { label: 'الرصيد المتاح', value: summary.available_points.toLocaleString('en-US'), icon: Coins, hint: `يعادل €${summary.credit_eur.toLocaleString('en-US')}` },
-              { label: 'مستواي الحالي', value: summary.eligible_level.title, icon: Award, hint: `سديم ${summary.eligible_level.sadeem}` },
-              {
-                label: 'المستوى التالي',
-                value: summary.next_level?.title ?? 'القمة',
-                icon: Crown,
-                hint: summary.next_level
-                  ? `يلزم ${Math.max(0, summary.next_level.points - summary.lifetime_points).toLocaleString('en-US')} نقطة و${Math.max(0, summary.next_level.months - summary.active_months)} شهراً`
-                  : 'أنت في أعلى السلم',
-              },
-            ].map((s) => (
-              <div key={s.label} className="rounded-2xl border border-slate-100 bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">{s.label}</span>
-                  <s.icon size={17} className="text-customBlue" aria-hidden />
+          <PointsKpiCards items={kpis} />
+
+          <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+            {/* Main column */}
+            <div className="min-w-0 space-y-6">
+              {caps.can_view_all ? (
+                <PeopleWithPoints
+                  state={people.state}
+                  query={people.query}
+                  hasFilters={people.hasFilters}
+                  capabilities={caps}
+                  onChange={people.update}
+                  onReset={people.reset}
+                  onRetry={people.reload}
+                  onHistory={(m) => setHistoryFor({ id: m.user_id, name: m.name })}
+                  onAdjust={setAdjusting}
+                  onAward={startAward}
+                />
+              ) : (
+                <>
+                  <ManagementNote />
+                  <MyHistoryTable awards={data.awards} />
+                </>
+              )}
+            </div>
+
+            {/* Side column */}
+            <aside aria-label="ملخص وأدوات" className="min-w-0 space-y-6">
+              <MySummaryCard summary={summary} name={user?.name} userId={user?.id} />
+
+              {caps.can_award && (
+                <div ref={awardRef} id="quick-award" className="scroll-mt-4">
+                  <QuickAwardForm monthlyCap={monthlyCap} preselectUserId={awardTarget} onAwarded={onPointsChanged} />
                 </div>
-                <p className="mt-3 text-xl font-black text-deepBlue">{s.value}</p>
-                <p className="mt-1 text-[11px] font-bold text-slate-400">{s.hint}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* سلم المستويات */}
-            <section className="rounded-2xl border border-slate-100 bg-white p-6">
-              <h2 className="text-sm font-black text-deepBlue">رحلة المتطوع — المستويات الست</h2>
-              <p className="mt-1 text-xs font-semibold leading-6 text-slate-400">
-                المدة تعطي الأهلية، والنقاط تثبت الاستحقاق. «رائد أثر EMC» يتطلب اعتماداً نوعياً من الإدارة.
-              </p>
-              <div className="mt-4">
-                <LevelLadder levels={levels} currentId={summary.eligible_level.id} />
-              </div>
-            </section>
-
-            <div className="space-y-6">
-              {/* منح النقاط — للمدراء */}
-              {canAward && (
-                <section className="rounded-2xl border border-slate-100 bg-white p-6">
-                  <h2 className="text-sm font-black text-deepBlue">منح نقاط لأعضاء الفريق</h2>
-                  <p className="mt-1 text-xs font-semibold leading-6 text-slate-400">
-                    لا مجاملة في النقاط: كل منحة تسجَّل باسم مانحها وسببها. السقف الشهري لكل عضو {monthlyCap.toLocaleString('en-US')} نقطة.
-                  </p>
-                  {peopleFailed ? (
-                    <p role="alert" className="mt-4 text-xs font-bold text-red-600">تعذر تحميل قائمة الأعضاء المستحقين.</p>
-                  ) : people.length === 0 ? (
-                    <p className="mt-4 text-xs font-bold text-slate-400">لا يوجد أعضاء فريق ضمن نطاق صلاحيتك حالياً.</p>
-                  ) : null}
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <select
-                      aria-label="العضو المستحق"
-                      value={grant.user_id}
-                      onChange={(e) => setGrant((g) => ({ ...g, user_id: e.target.value ? Number(e.target.value) : '' }))}
-                      className={fieldClass + ' sm:col-span-2'}
-                    >
-                      <option value="">اختر العضو…</option>
-                      {people.map((p) => (
-                        <option key={p.user_id} value={p.user_id}>{recipientLabel(p)}</option>
-                      ))}
-                    </select>
-                    {selected && (
-                      <p className="text-[11px] font-bold text-slate-400 sm:col-span-2">
-                        رصيده التراكمي {selected.lifetime_points.toLocaleString('en-US')} نقطة · المتبقي من سقف هذا الشهر{' '}
-                        {Math.max(0, monthlyCap - selected.month_points).toLocaleString('en-US')} نقطة
-                      </p>
-                    )}
-                    <select
-                      aria-label="فئة النقاط"
-                      value={grant.category}
-                      onChange={(e) => setGrant((g) => ({ ...g, category: e.target.value }))}
-                      className={fieldClass}
-                    >
-                      {AWARD_CATEGORIES.map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      dir="ltr"
-                      aria-label="عدد النقاط"
-                      placeholder="النقاط (مثال: 150)"
-                      value={grant.points}
-                      onChange={(e) => setGrant((g) => ({ ...g, points: e.target.value }))}
-                      className={fieldClass}
-                    />
-                    <input
-                      aria-label="سبب المنح"
-                      placeholder="السبب — يُوثَّق في السجل"
-                      value={grant.reason}
-                      onChange={(e) => setGrant((g) => ({ ...g, reason: e.target.value }))}
-                      className={fieldClass}
-                    />
-                  </div>
-                  <button
-                    disabled={granting || people.length === 0}
-                    onClick={() => void submitGrant()}
-                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-customOrange px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-ember disabled:opacity-60"
-                  >
-                    <Send size={14} aria-hidden />
-                    {granting ? 'جارٍ المنح…' : 'امنح النقاط'}
-                  </button>
-                </section>
               )}
 
-              {/* لوحة الصدارة */}
-              <section className="rounded-2xl border border-slate-100 bg-white p-6">
-                <h2 className="text-sm font-black text-deepBlue">لوحة صدارة الأثر</h2>
-                {leaderboard.length === 0 ? (
-                  <p className="mt-3 text-xs font-bold text-slate-400">لا نقاط ممنوحة بعد — أول منحة تبدأ السجل</p>
-                ) : (
-                  <ol className="mt-3 space-y-1.5">
-                    {leaderboard.filter((row) => row.user != null).slice(0, 10).map((row, i) => (
-                      <li key={row.user.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                        <span className="flex items-center gap-2.5 font-bold text-deepBlue">
-                          <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${i < 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500'}`}>
-                            {i + 1}
-                          </span>
-                          {row.user.name}
-                        </span>
-                        <span className="font-black tabular-nums text-customBlue">
-                          {row.lifetime_points.toLocaleString('en-US')}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                )}
+              <section aria-labelledby="ladder-heading" className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
+                <h2 id="ladder-heading" className="text-sm font-black text-navy">رحلة المتطوع — المستويات الست</h2>
+                <p className="mt-1 text-xs font-semibold leading-6 text-muted-500">
+                  المدة تعطي الأهلية، والنقاط تثبت الاستحقاق. «رائد أثر EMC» يتطلب اعتماداً نوعياً من الإدارة.
+                </p>
+                <div className="mt-4">
+                  <LevelLadder levels={data.levels} currentId={summary.eligible_level.id} lifetimePoints={summary.lifetime_points} />
+                </div>
               </section>
-            </div>
-          </div>
 
-          {/* سجلي */}
-          <section className="rounded-2xl border border-slate-100 bg-white p-6">
-            <h2 className="text-sm font-black text-deepBlue">سجل نقاطي</h2>
-            {awards.length === 0 ? (
-              <p className="mt-3 text-xs font-bold text-slate-400">لا منح بعد — مساهمتك القادمة تفتح السجل</p>
-            ) : (
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full min-w-[38rem] text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[11px] font-black uppercase tracking-wider text-slate-400">
-                      <th className="py-2.5 pe-4 text-start">التاريخ</th>
-                      <th className="py-2.5 pe-4 text-start">الفئة</th>
-                      <th className="py-2.5 pe-4 text-start">السبب</th>
-                      <th className="py-2.5 pe-4 text-start">مانح النقاط</th>
-                      <th className="py-2.5 text-start">النقاط</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {awards.map((a) => (
-                      <tr key={a.id} className="border-b border-slate-50 last:border-0">
-                        <td className="py-3 pe-4 tabular-nums text-slate-500">{a.awarded_at.slice(0, 10)}</td>
-                        <td className="py-3 pe-4 font-bold text-ink-600">{categoryLabel(a.category)}</td>
-                        <td className="max-w-xs py-3 pe-4 text-ink-500">{a.reason}</td>
-                        <td className="py-3 pe-4 text-slate-500">{a.awarder?.name ?? 'النظام'}</td>
-                        <td className={`py-3 font-black tabular-nums ${a.points >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                          {a.points >= 0 ? `+${a.points}` : a.points}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+              <LeaderboardCard rows={data.board} />
+
+              {caps.can_view_all && <RecentActivityCard awards={data.awards} />}
+            </aside>
+          </div>
         </>
+      )}
+
+      {historyFor && (
+        <PointsHistoryDrawer userId={historyFor.id} name={historyFor.name} onClose={() => setHistoryFor(null)} />
+      )}
+
+      {adjusting && (
+        <AdjustPointsModal
+          member={adjusting}
+          onClose={() => setAdjusting(null)}
+          onDone={() => {
+            setAdjusting(null)
+            onPointsChanged()
+          }}
+        />
       )}
     </div>
   )
