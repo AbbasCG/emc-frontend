@@ -75,51 +75,200 @@ export type MeetingReportInput = {
   ratings: MeetingReportRatingInput[]
 }
 
+/** One {id,name} reference. Either end can be absent on legacy rows, so consumers get `null`, never `undefined`. */
+export type NamedRef = { id: number; name: string }
+
+/**
+ * A row of the meeting-reports list. This is the shape the SERVER guarantees
+ * (OperationsMeetingReportResource) and the shape `normalizeMeetingReport`
+ * enforces on the client: `title` and `meeting_date` are never null, so the
+ * page can render a row without a single guard. A legacy quick-report row
+ * (no title/date/department/author) used to crash the page precisely because
+ * the previous type promised fields the data did not have.
+ */
 export type MeetingReport = {
   id: number
   title: string
-  meeting_date: string
+  /** `YYYY-MM-DD`, or null only if the server sent nothing parseable. */
+  meeting_date: string | null
+  department: NamedRef | null
+  author: NamedRef | null
+  ratings_count: number
+  attended_count: number
+  created_at: string | null
+}
+
+export type MeetingReportRatingRow = {
+  id: number
+  attended: boolean
+  scores: Record<string, number> | null
+  avg_score: number | null
+  note: string | null
+  user: NamedRef | null
+}
+
+/** Figures that exist only on quick reports filed from the meetings lounge. */
+export type MeetingReportExtras = {
+  team_commitment_score?: number
+  team_commitment_notes?: string
+  kpi_percentage?: number
+  top_interactive_member?: string
+  improvement_suggestions?: string
+  absentees?: string[]
+}
+
+export type MeetingReportDetail = MeetingReport & {
   achieved: string | null
   planned: string | null
   needs: string | null
   needs_reason: string | null
   decisions: string | null
   notes: string | null
-  department?: { id: number; name: string }
-  author?: { id: number; name: string }
-  ratings_count?: number
-  ratings?: Array<{
-    id: number
-    attended: boolean
-    rating: number | null
-    scores: Record<string, number> | null
-    avg_score: number | null
-    note: string | null
-    user?: { id: number; name: string }
-  }>
-  created_at: string
+  extras: MeetingReportExtras
+  ratings: MeetingReportRatingRow[]
+}
+
+export type MeetingReportsStats = {
+  total: number
+  this_month: number
+  latest_at: string | null
+  /** Null when no attendance has been recorded yet. */
+  attendance_rate: number | null
+}
+
+export type MeetingReportsQuery = {
+  department_id?: number
+  q?: string
+  date_from?: string
+  date_to?: string
+  page?: number
+  per_page?: number
+}
+
+export type MeetingReportsPage = {
+  rows: MeetingReport[]
+  total: number
+  page: number
+  lastPage: number
+  stats: MeetingReportsStats
+}
+
+type Rec = Record<string, unknown>
+const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v)
+const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() !== '' ? v : null)
+const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
+
+function ref(v: unknown): NamedRef | null {
+  if (!isRec(v)) return null
+  const id = num(v.id, NaN)
+  const name = str(v.name)
+  return Number.isNaN(id) || name === null ? null : { id, name }
+}
+
+/** `2026-10-12T00:00:00.000000Z` and `2026-10-12` both become `2026-10-12`; anything else becomes null. */
+function dateOnly(v: unknown): string | null {
+  const s = str(v)
+  const m = s?.match(/^(\d{4}-\d{2}-\d{2})/)
+  return m ? m[1] : null
+}
+
+/**
+ * Coerces whatever the API returned into a safe MeetingReport. Tolerates an
+ * older backend (raw model with nulls) as well as the current resource, so a
+ * single odd row can never take the whole page down.
+ */
+export function normalizeMeetingReport(raw: unknown): MeetingReport | null {
+  if (!isRec(raw)) return null
+  const id = num(raw.id, NaN)
+  if (Number.isNaN(id)) return null
+  return {
+    id,
+    title: str(raw.title) ?? 'تقرير اجتماع',
+    meeting_date: dateOnly(raw.meeting_date) ?? dateOnly(raw.created_at),
+    department: ref(raw.department),
+    author: ref(raw.author),
+    ratings_count: num(raw.ratings_count),
+    attended_count: num(raw.attended_count),
+    created_at: str(raw.created_at),
+  }
+}
+
+export function normalizeMeetingReportDetail(raw: unknown): MeetingReportDetail | null {
+  const base = normalizeMeetingReport(raw)
+  if (!base || !isRec(raw)) return null
+  const extras = isRec(raw.extras) ? raw.extras : {}
+  const ratings = Array.isArray(raw.ratings) ? raw.ratings : []
+  return {
+    ...base,
+    achieved: str(raw.achieved) ?? str(raw.completed_tasks_summary),
+    planned: str(raw.planned) ?? str(raw.next_month_goals),
+    needs: str(raw.needs) ?? str(raw.executive_requests),
+    needs_reason: str(raw.needs_reason) ?? str(raw.challenges),
+    decisions: str(raw.decisions),
+    notes: str(raw.notes),
+    extras: {
+      ...(typeof extras.team_commitment_score === 'number' ? { team_commitment_score: extras.team_commitment_score } : {}),
+      ...(str(extras.team_commitment_notes) ? { team_commitment_notes: str(extras.team_commitment_notes)! } : {}),
+      ...(typeof extras.kpi_percentage === 'number' ? { kpi_percentage: extras.kpi_percentage } : {}),
+      ...(str(extras.top_interactive_member) ? { top_interactive_member: str(extras.top_interactive_member)! } : {}),
+      ...(str(extras.improvement_suggestions) ? { improvement_suggestions: str(extras.improvement_suggestions)! } : {}),
+      ...(Array.isArray(extras.absentees)
+        ? { absentees: extras.absentees.filter((a): a is string => typeof a === 'string' && a.trim() !== '') }
+        : {}),
+    },
+    ratings: ratings.flatMap((r): MeetingReportRatingRow[] => {
+      if (!isRec(r)) return []
+      const rid = num(r.id, NaN)
+      if (Number.isNaN(rid)) return []
+      return [{
+        id: rid,
+        attended: r.attended === true,
+        scores: isRec(r.scores) ? (r.scores as Record<string, number>) : null,
+        avg_score: typeof r.avg_score === 'number' ? r.avg_score : null,
+        note: str(r.note),
+        user: ref(r.user),
+      }]
+    }),
+  }
+}
+
+const EMPTY_STATS: MeetingReportsStats = { total: 0, this_month: 0, latest_at: null, attendance_rate: null }
+
+export async function fetchMeetingReports(params?: MeetingReportsQuery): Promise<MeetingReportsPage> {
+  const res = await apiClient.get<unknown>('/operations/meeting-reports', { params })
+  const body = isRec(res.data) ? res.data : {}
+  const page = isRec(body.data) ? body.data : {}
+  const rows = (Array.isArray(page.data) ? page.data : [])
+    .map(normalizeMeetingReport)
+    .filter((r): r is MeetingReport => r !== null)
+  const stats = isRec(body.stats) ? body.stats : {}
+  return {
+    rows,
+    total: num(page.total, rows.length),
+    page: num(page.current_page, 1),
+    lastPage: Math.max(1, num(page.last_page, 1)),
+    stats: {
+      ...EMPTY_STATS,
+      total: num(stats.total),
+      this_month: num(stats.this_month),
+      latest_at: str(stats.latest_at),
+      attendance_rate: typeof stats.attendance_rate === 'number' ? stats.attendance_rate : null,
+    },
+  }
+}
+
+export async function fetchMeetingReport(id: number): Promise<MeetingReportDetail> {
+  const res = await apiClient.get<unknown>(`/operations/meeting-reports/${id}`)
+  const detail = normalizeMeetingReportDetail(unwrapData<unknown>(res.data))
+  if (!detail) throw new Error('تعذر قراءة تفاصيل التقرير')
+  return detail
+}
+
+export async function createMeetingReport(input: MeetingReportInput): Promise<void> {
+  await apiClient.post<unknown>('/operations/meeting-reports', input)
 }
 
 type Paginated<T> = { data?: T[]; total?: number }
-
-export async function fetchMeetingReports(params?: {
-  department_id?: number
-  page?: number
-}): Promise<{ rows: MeetingReport[]; total: number }> {
-  const res = await apiClient.get<unknown>('/operations/meeting-reports', { params })
-  const page = unwrapData<Paginated<MeetingReport>>(res.data)
-  return { rows: page?.data ?? [], total: page?.total ?? 0 }
-}
-
-export async function fetchMeetingReport(id: number): Promise<MeetingReport> {
-  const res = await apiClient.get<unknown>(`/operations/meeting-reports/${id}`)
-  return unwrapData<MeetingReport>(res.data)
-}
-
-export async function createMeetingReport(input: MeetingReportInput): Promise<MeetingReport> {
-  const res = await apiClient.post<unknown>('/operations/meeting-reports', input)
-  return unwrapData<MeetingReport>(res.data)
-}
 
 // ── التقارير الأسبوعية (إثنين كل أسبوع) ──────────────────────────────────────
 
