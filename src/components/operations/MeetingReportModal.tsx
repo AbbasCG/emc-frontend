@@ -1,22 +1,39 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react'
-import { submitMeetingReport } from '@/api/meetingsApi'
-import toast from 'react-hot-toast'
+import { useEffect, useState } from 'react'
+import type { FormEvent, KeyboardEvent } from 'react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
+import toast from '@/lib/toast'
+import { describeMeetingError, submitMeetingReport } from '@/api/meetingsApi'
+import type { OpsMeetingDetail } from '@/types/operations'
 
-interface MeetingReportModalProps {
-  isOpen: boolean
-  onClose: () => void
+type Props = {
   meetingId: number
-  onSuccess: () => void
+  meetingTitle?: string
+  onClose: () => void
+  /** The updated meeting (has_report: true) once the server confirms the report. */
+  onSuccess: (meeting: OpsMeetingDetail) => void
+  /** The server said this meeting already has its report: refresh the list behind. */
+  onDuplicate?: () => void
 }
 
-export default function MeetingReportModal({ isOpen, onClose, meetingId, onSuccess }: MeetingReportModalProps) {
+const input =
+  'w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-navy outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15'
+
+const STEPS = ['الانضباط والحضور', 'الإنجازات والتحديات', 'الطلبات والأهداف'] as const
+
+/**
+ * The meeting's ONE official report, in three short steps. It cannot be filed
+ * twice: the server refuses a second report with a clear Arabic message, and
+ * this form shows that message (and refreshes the list) instead of retrying.
+ * An empty report is blocked here and on the server, because the report cannot
+ * be replaced once filed.
+ */
+export default function MeetingReportModal({ meetingId, meetingTitle, onClose, onSuccess, onDuplicate }: Props) {
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
-
-  const [formData, setFormData] = useState({
-    absentees: '', // Will convert to array on submit
+  const [error, setError] = useState<string | null>(null)
+  const [duplicate, setDuplicate] = useState(false)
+  const [form, setForm] = useState({
+    absentees: '',
     team_commitment_score: 5,
     team_commitment_notes: '',
     completed_tasks_summary: '',
@@ -28,204 +45,186 @@ export default function MeetingReportModal({ isOpen, onClose, meetingId, onSucce
     improvement_suggestions: '',
   })
 
-  if (!isOpen) return null
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape' && !submitting) onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose, submitting])
 
-  const handleNext = () => setStep(s => Math.min(s + 1, 3))
-  const handlePrev = () => setStep(s => Math.max(s - 1, 1))
+  const hasContent = [form.completed_tasks_summary, form.challenges, form.executive_requests, form.next_month_goals, form.improvement_suggestions, form.team_commitment_notes]
+    .some((v) => v.trim() !== '')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Enter inside a text field must move on, never file a half-written report.
+  function blockEnter(e: KeyboardEvent<HTMLFormElement>) {
+    if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') e.preventDefault()
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (submitting || step !== 3) return
+
+    if (!hasContent) {
+      setError('أضف محتوى للتقرير قبل رفعه (إنجازات، تحديات، طلبات أو أهداف).')
+      return
+    }
+    setError(null)
     setSubmitting(true)
     try {
-      await submitMeetingReport(meetingId, {
-        ...formData,
-        absentees: formData.absentees.split(',').map(s => s.trim()).filter(Boolean)
+      const meeting = await submitMeetingReport(meetingId, {
+        ...form,
+        absentees: form.absentees.split(/[,،]/).map((s) => s.trim()).filter(Boolean),
       })
-      toast.success('تم رفع تقرير الاجتماع بنجاح وتوثيق المخرجات')
-      onSuccess()
-      onClose()
+      toast.success('تم رفع تقرير الاجتماع')
+      onSuccess(meeting)
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || 'تعذر رفع التقرير')
+      const d = describeMeetingError(err, 'الاجتماع')
+      if (d.kind === 'duplicate_report') {
+        setDuplicate(true)
+        onDuplicate?.()
+      }
+      const firstField = Object.values(d.fields)[0]
+      setError(d.kind === 'validation' && firstField ? firstField : d.message)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deepBlue/40 backdrop-blur-sm" dir="rtl">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl ring-1 ring-black/5"
-        >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/80 p-6 backdrop-blur-md">
-            <div>
-              <h2 className="text-xl font-black text-deepBlue">تقرير الاجتماع والمخرجات</h2>
-              <p className="mt-1 text-xs font-semibold text-slate-500">
-                الخطوة {step} من 3 توثيق الأداء والمقررات
-              </p>
-            </div>
-            <button onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition">
-              <X size={18} />
-            </button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/50 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => !submitting && onClose()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="رفع تقرير الاجتماع"
+        dir="rtl"
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-paper shadow-2xl sm:rounded-3xl"
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-line bg-white px-6 py-4">
+          <div className="min-w-0">
+            <h2 className="text-lg font-black text-navy">رفع تقرير الاجتماع</h2>
+            {meetingTitle && <p className="mt-0.5 truncate text-xs font-bold text-muted-500">{meetingTitle}</p>}
+            <p className="mt-2 text-[11px] font-black text-accent-700">
+              الخطوة {step} من 3 · {STEPS[step - 1]}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} disabled={submitting} aria-label="إغلاق" className="rounded-xl p-2 text-muted-500 transition hover:bg-slate-100 disabled:opacity-40">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </header>
+
+        <form onSubmit={(e) => void handleSubmit(e)} onKeyDown={blockEnter} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
+            <p className="rounded-2xl bg-brand-50 px-4 py-3 text-xs font-bold leading-6 text-brand-700">
+              لكل اجتماع تقرير رسمي واحد فقط ولا يمكن استبداله بعد رفعه، ويصبح متاحًا لإدارة الجودة فور رفعه.
+            </p>
+
+            {error && (
+              <p role="alert" className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</p>
+            )}
+
+            {step === 1 && (
+              <div className="space-y-5">
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  الأعضاء الغائبون (افصل بين الأسماء بفاصلة)
+                  <input type="text" className={input} value={form.absentees} onChange={(e) => setForm({ ...form, absentees: e.target.value })} placeholder="أحمد، سارة…" />
+                </label>
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  مقياس التزام الفريق (من 1 إلى 5)
+                  <input
+                    type="range"
+                    min={1}
+                    max={5}
+                    className="w-full accent-brand-500"
+                    value={form.team_commitment_score}
+                    onChange={(e) => setForm({ ...form, team_commitment_score: Number(e.target.value) })}
+                  />
+                  <span className="text-center text-sm font-black text-brand-600">{form.team_commitment_score} / 5</span>
+                </label>
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  ملاحظات حول الانضباط
+                  <textarea rows={3} className={input} value={form.team_commitment_notes} onChange={(e) => setForm({ ...form, team_commitment_notes: e.target.value })} />
+                </label>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-5">
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  المهام التي أُنجزت خلال الفترة السابقة
+                  <textarea rows={3} className={input} value={form.completed_tasks_summary} onChange={(e) => setForm({ ...form, completed_tasks_summary: e.target.value })} />
+                </label>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className="grid gap-2 text-xs font-black text-ink-500">
+                    نسبة تحقيق الأهداف التشغيلية (%)
+                    <input type="number" min={0} max={100} className={input} value={form.kpi_percentage} onChange={(e) => setForm({ ...form, kpi_percentage: Number(e.target.value) })} />
+                  </label>
+                  <label className="grid gap-2 text-xs font-black text-ink-500">
+                    العضو الأكثر تفاعلًا وتميزًا
+                    <input type="text" className={input} value={form.top_interactive_member} onChange={(e) => setForm({ ...form, top_interactive_member: e.target.value })} />
+                  </label>
+                </div>
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  المشاكل والتحديات التي واجهت الإدارة
+                  <textarea rows={3} className={input} value={form.challenges} onChange={(e) => setForm({ ...form, challenges: e.target.value })} />
+                </label>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-5">
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  الأعمال المطلوبة من الإدارة العليا
+                  <textarea rows={3} className={input} value={form.executive_requests} onChange={(e) => setForm({ ...form, executive_requests: e.target.value })} />
+                </label>
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  الأهداف التشغيلية للشهر القادم
+                  <textarea rows={3} className={input} value={form.next_month_goals} onChange={(e) => setForm({ ...form, next_month_goals: e.target.value })} />
+                </label>
+                <label className="grid gap-2 text-xs font-black text-ink-500">
+                  مقترحات تطوير آلية العمل
+                  <textarea rows={3} className={input} value={form.improvement_suggestions} onChange={(e) => setForm({ ...form, improvement_suggestions: e.target.value })} />
+                </label>
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6">
-            <div className="min-h-[300px]">
-              {step === 1 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">البيانات التأسيسية والانضباط</h3>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الأعضاء الغائبون (مفصولين بفاصلة)</label>
-                    <input
-                      type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      value={formData.absentees}
-                      onChange={e => setFormData({ ...formData, absentees: e.target.value })}
-                      placeholder="أحمد، سارة..."
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">مقياس التزام الفريق (1 - 5)</label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="5"
-                      className="w-full accent-customBlue"
-                      value={formData.team_commitment_score}
-                      onChange={e => setFormData({ ...formData, team_commitment_score: Number(e.target.value) })}
-                    />
-                    <div className="mt-2 text-center font-black text-customBlue">{formData.team_commitment_score} / 5</div>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">ملاحظات حول الانضباط</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.team_commitment_notes}
-                      onChange={e => setFormData({ ...formData, team_commitment_notes: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">تقييم الأداء والإنجازات السابقة</h3>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">المهام التي أُنجزت خلال الفترة السابقة</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.completed_tasks_summary}
-                      onChange={e => setFormData({ ...formData, completed_tasks_summary: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">نسبة تحقيق الأهداف التشغيلية (%)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      value={formData.kpi_percentage}
-                      onChange={e => setFormData({ ...formData, kpi_percentage: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">اسم العضو الأكثر تفاعلاً وتميزاً</label>
-                    <input
-                      type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      value={formData.top_interactive_member}
-                      onChange={e => setFormData({ ...formData, top_interactive_member: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">المشاكل والتحديات التي واجهت الإدارة</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.challenges}
-                      onChange={e => setFormData({ ...formData, challenges: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-
-
-
-              {step === 3 && (
-                <div className="space-y-5 animate-in fade-in slide-in-from-right-4">
-                  <h3 className="text-sm font-black text-customBlue border-b border-customBlue/10 pb-2">المتطلبات من الإدارة العليا والتطلعات</h3>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الأعمال المطلوبة من مجلس إدارة المركز</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.executive_requests}
-                      onChange={e => setFormData({ ...formData, executive_requests: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">الأهداف التشغيلية للشهر القادم</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.next_month_goals}
-                      onChange={e => setFormData({ ...formData, next_month_goals: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-deepBlue">مقترحات تطوير آلية عمل المركز</label>
-                    <textarea
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-deepBlue focus:border-customBlue focus:ring-1 focus:ring-customBlue"
-                      rows={3}
-                      value={formData.improvement_suggestions}
-                      onChange={e => setFormData({ ...formData, improvement_suggestions: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={step === 1 || submitting}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-50"
-              >
-                <ChevronRight size={16} />
-                السابق
-              </button>
-              
-              {step < 3 ? (
+          <footer className="flex items-center justify-between gap-2 border-t border-line bg-white px-6 py-4">
+            {duplicate ? (
+              <>
+                <span />
+                <button type="button" onClick={onClose} className="rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-brand-600">
+                  إغلاق
+                </button>
+              </>
+            ) : (
+              <>
                 <button
                   type="button"
-                  onClick={handleNext}
-                  className="flex items-center gap-2 rounded-xl bg-customBlue px-5 py-2.5 text-sm font-black text-white hover:bg-customBlue/90"
+                  onClick={() => setStep((s) => Math.max(1, s - 1))}
+                  disabled={step === 1 || submitting}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-line px-5 py-2.5 text-sm font-bold text-muted-600 transition hover:bg-slate-50 disabled:opacity-40"
                 >
-                  التالي
-                  <ChevronLeft size={16} />
+                  <ChevronRight size={16} aria-hidden="true" />
+                  السابق
                 </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex items-center gap-2 rounded-xl bg-deepBlue px-6 py-2.5 text-sm font-black text-white hover:bg-deepBlue/90 disabled:opacity-70"
-                >
-                  {submitting ? 'يتم الرفع...' : 'رفع التقرير النهائي'}
-                  {!submitting && <CheckCircle size={16} />}
-                </button>
-              )}
-            </div>
-          </form>
-        </motion.div>
+                {step < 3 ? (
+                  <button type="button" onClick={() => setStep((s) => Math.min(3, s + 1))} className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-brand-600">
+                    التالي
+                    <ChevronLeft size={16} aria-hidden="true" />
+                  </button>
+                ) : (
+                  <button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-black text-white transition hover:bg-brand-600 disabled:opacity-60">
+                    {submitting ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={16} aria-hidden="true" />}
+                    {submitting ? 'جارٍ الرفع…' : 'رفع التقرير النهائي'}
+                  </button>
+                )}
+              </>
+            )}
+          </footer>
+        </form>
       </div>
-    </AnimatePresence>
+    </div>
   )
 }

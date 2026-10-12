@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { ChevronLeft, ExternalLink, Video, FileText } from 'lucide-react'
 import OpsPageSkeleton from '@/components/operations/OpsPageSkeleton'
 import DecisionList from '@/components/operations/DecisionList'
@@ -9,7 +9,9 @@ import { createTaskFromActionItem } from '@/api/tasksApi'
 import { fetchMeetingIntelligence } from '@/api/aiInsightsApi'
 import AiSummaryPanel from '@/components/ai/AiSummaryPanel'
 import MeetingReportModal from '@/components/operations/MeetingReportModal'
-import { MEETING_TYPE_AR } from '@/data/operationsLabels'
+import { MeetingStatusBadge } from '@/components/operations/meetings/MeetingStatusBadge'
+import { ReportBlock } from '@/components/operations/meetings/MeetingDetailsDrawer'
+import { formatDay, meetingTypeLabel, timeRange } from '@/components/operations/meetings/meetingsUi'
 import type { OpsMeetingDetail } from '@/types/operations'
 import type { AiMeetingIntelligence } from '@/types/ai'
 
@@ -18,6 +20,9 @@ const LOAD_ERROR = 'تعذّر تحميل تفاصيل الاجتماع. تحق�
 export default function OpsMeetingDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  // The same page serves the admin schedule and the lounge; "back" goes to whichever the user came from.
+  const inLounge = useLocation().pathname.startsWith('/dashboard/department')
+  const listPath = inLounge ? '/dashboard/department/meeting-lounge' : '/dashboard/admin/meetings'
   const mid = id ? Number(id) : NaN
   const [detail, setDetail] = useState<OpsMeetingDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -104,55 +109,85 @@ export default function OpsMeetingDetailPage() {
   return (
     <div className="space-y-8">
       <Link
-        to="/dashboard/admin/meetings"
-        className="inline-flex items-center gap-1 text-xs font-black text-customBlue hover:text-customOrange"
+        to={listPath}
+        className="inline-flex items-center gap-1 text-xs font-black text-brand-600 hover:text-accent-700"
       >
         <ChevronLeft size={14} />
-        كل الاجتماعات
+        {inLounge ? 'صالة الاجتماعات' : 'كل الاجتماعات'}
       </Link>
 
-      <header className="rounded-[1.35rem] bg-deepBlue p-8 text-right text-white shadow-xl ring-1 ring-white/10">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45">
-          {MEETING_TYPE_AR[detail.type]}
-        </p>
+      <header className="rounded-3xl bg-navy p-8 text-right text-white shadow-xl ring-1 ring-white/10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] font-black tracking-[0.2em] text-white/60">{meetingTypeLabel(detail.type)}</p>
+          <MeetingStatusBadge status={detail.display_status} />
+        </div>
         <h1 className="mt-2 text-2xl font-black">{detail.title}</h1>
-        <div className="mt-6 flex flex-wrap items-center justify-end gap-6 border-t border-white/10 pt-6">
-          <div className="flex gap-4 text-[11px] font-bold text-white/65">
-            <span>{detail.starts_at ?? '—'}</span>
-            <span>{detail.department_name ?? '—'}</span>
-            <span>منظم: {detail.organizer_name ?? '—'}</span>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-[12px] font-bold text-white/75">
+            <span>
+              {formatDay(detail.meeting_date)}
+              {timeRange(detail) && <bdi dir="ltr" className="ms-2">{timeRange(detail)}</bdi>}
+            </span>
+            <span>{detail.department?.name ?? 'غير محدّدة'}</span>
+            <span>المنظِّم: {detail.organizer?.name ?? 'غير معروف'}</span>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsReportModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-deepBlue shadow-sm transition hover:bg-slate-100 hover:shadow-md"
-            >
-              <FileText size={16} />
-              رفع تقرير الاجتماع
-            </button>
-        {detail.recording_link && (
-          <a
-            href={detail.recording_link}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-customOrange px-4 py-2 text-xs font-black text-white"
-          >
-            <Video size={16} />
-            التسجيل
-            <ExternalLink size={14} />
-          </a>
-        )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            {detail.capabilities.can_upload_report && (
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-navy shadow-sm transition hover:bg-slate-100"
+              >
+                <FileText size={16} />
+                رفع التقرير
+              </button>
+            )}
+            {detail.recording_link && (
+              <a
+                href={detail.recording_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2 text-xs font-black text-white"
+              >
+                <Video size={16} />
+                التسجيل
+                <ExternalLink size={14} />
+              </a>
+            )}
           </div>
         </div>
       </header>
 
-      <MeetingReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        meetingId={mid}
-        onSuccess={() => void retry()}
-      />
+      <section aria-label="التقرير الرسمي" className="rounded-2xl bg-white p-6 text-right ring-1 ring-deepBlue/[0.06]">
+        <h2 className="text-sm font-black text-deepBlue">التقرير الرسمي للاجتماع</h2>
+        <div className="mt-4">
+          {detail.report ? (
+            <ReportBlock report={detail.report} />
+          ) : detail.has_report ? (
+            <p className="text-sm font-semibold text-slate-500">تم رفع تقرير لهذا الاجتماع، وهو متاح للمخوَّلين بقراءته فقط.</p>
+          ) : detail.display_status === 'cancelled' ? (
+            <p className="text-sm font-semibold text-slate-500">لا يُرفع تقرير لاجتماع ملغى.</p>
+          ) : (
+            <p className="text-sm font-semibold text-slate-500">
+              لم يُرفع تقرير لهذا الاجتماع بعد. لكل اجتماع تقرير رسمي واحد فقط، يراه فريق إدارة الجودة بعد رفعه.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {isReportModalOpen && (
+        <MeetingReportModal
+          meetingId={mid}
+          meetingTitle={detail.title}
+          onClose={() => setIsReportModalOpen(false)}
+          onDuplicate={() => void retry()}
+          onSuccess={() => {
+            setIsReportModalOpen(false)
+            void retry()
+          }}
+        />
+      )}
 
       {convertMsg && (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-right text-xs font-bold text-amber-900 ring-1 ring-amber-100">

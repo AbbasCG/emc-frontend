@@ -7,7 +7,7 @@ describe('normalizeMeetingReport', () => {
   it('turns a legacy all-null row into a displayable one', () => {
     const r = normalizeMeetingReport({ id: 3, title: null, meeting_date: null, department: null, author: null, created_at: '2026-10-12T22:23:06.000000Z' })
     expect(r).toEqual({
-      id: 3, title: 'تقرير اجتماع', meeting_date: '2026-10-12', department: null, author: null,
+      id: 3, title: 'تقرير اجتماع', meeting_date: '2026-10-12', department: null, author: null, meeting: null,
       ratings_count: 0, attended_count: 0, created_at: '2026-10-12T22:23:06.000000Z',
     })
   })

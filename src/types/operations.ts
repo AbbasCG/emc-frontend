@@ -101,39 +101,81 @@ export type DepartmentDetail = WorkspaceDepartment & {
 
 /** ── Meetings ─────────────────────────────────────────────────────────── */
 
+/** The values the API stores (`meetings.type`). */
 export type MeetingType =
-  | 'exec'
-  | 'departments'
+  | 'executive'
+  | 'department'
   | 'programs'
   | 'partnerships'
   | 'quality'
-  | 'external'
+  | 'external_partner'
   | 'general'
 
-export type MeetingStatus = 'scheduled' | 'live' | 'completed' | 'cancelled'
+/** `meetings.status`: what is recorded about the meeting itself. */
+export type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+
+/**
+ * The single plain state the UI badges, computed by the server:
+ * - awaiting_report: held (or due) and no official report yet
+ * - report_submitted: the meeting's one official report exists
+ */
+export type MeetingDisplayStatus = 'scheduled' | 'in_progress' | 'awaiting_report' | 'report_submitted' | 'cancelled'
+
+export type MeetingRef = { id: number; name: string }
+
+/** What the signed-in viewer may do with this meeting, as decided by the server. */
+export type MeetingCapabilities = {
+  can_manage: boolean
+  can_upload_report: boolean
+  can_view_report: boolean
+}
 
 export type OpsMeeting = {
   id: number
   title: string
-  starts_at?: string | null
   type: MeetingType
-  department_id?: string | null
-  department_name?: string | null
-  organizer_name?: string | null
   status: MeetingStatus
+  display_status: MeetingDisplayStatus
+  /** `YYYY-MM-DD` */
+  meeting_date: string | null
+  /** `HH:MM` */
+  start_time: string | null
+  end_time: string | null
+  department: MeetingRef | null
+  organizer: MeetingRef | null
+  has_report: boolean
+  report_id: number | null
+  capabilities: MeetingCapabilities
+  created_at: string | null
+}
+
+/** The one official report of a meeting (the periodic report filed from the lounge). */
+export type MeetingReportView = {
+  id: number
+  absentees: string[]
+  team_commitment_score: number | null
+  team_commitment_notes: string | null
+  completed_tasks_summary: string | null
+  kpi_percentage: number | null
+  top_interactive_member: string | null
+  challenges: string | null
+  executive_requests: string | null
+  next_month_goals: string | null
+  improvement_suggestions: string | null
+  uploaded_by: MeetingRef | null
+  uploaded_at: string | null
 }
 
 export type OpsMeetingDetail = OpsMeeting & {
-  meeting_date?: string | null
-  start_time?: string | null
-  end_time?: string | null
-  meeting_url?: string | null
-  agenda?: string | null
-  attendees?: { name: string; role?: string }[]
-  decisions?: { id: number; text: string }[]
-  action_items?: OpsActionItem[]
-  minutes?: string | null
-  recording_link?: string | null
+  description: string | null
+  meeting_url: string | null
+  recording_link: string | null
+  agenda: string | null
+  attendees: { name: string; role?: string }[]
+  decisions: { id: number; text: string }[]
+  action_items: OpsActionItem[]
+  minutes: string | null
+  report: MeetingReportView | null
 }
 
 export type OpsActionItem = {

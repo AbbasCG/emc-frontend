@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Building2, CalendarDays, Lock, RefreshCw, Star, UserRound, X } from 'lucide-react'
 import { fetchMeetingReport, type MeetingReportDetail, type MeetingReportExtras } from '@/api/operationsReportsApi'
+import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 import { describeReportsError, formatDateTime, formatDay, scoreTone, type ReportsError } from './meetingReportsUi'
 
 type Props = {
@@ -105,6 +106,11 @@ export function MeetingReportDetails({ reportId, titleHint, onClose }: Props) {
                 <span className="inline-flex items-center gap-1.5"><CalendarDays size={13} aria-hidden="true" />{formatDay(detail.meeting_date)}</span>
                 <span className="inline-flex items-center gap-1.5"><Building2 size={13} aria-hidden="true" />{detail.department?.name ?? 'غير محدّدة'}</span>
                 <span className="inline-flex items-center gap-1.5"><UserRound size={13} aria-hidden="true" />{detail.author?.name ?? 'غير معروف'}</span>
+              </p>
+            )}
+            {detail?.meeting && (
+              <p className="mt-2 text-xs font-bold text-muted-500" data-testid="report-source-meeting">
+                الاجتماع المرتبط: <span className="text-navy">{detail.meeting.title}</span> · {MEETING_TYPE_AR[detail.meeting.type]}
               </p>
             )}
           </div>

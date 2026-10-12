@@ -1,5 +1,6 @@
 import { Building2, CalendarDays, ChevronLeft, UserRound, Users } from 'lucide-react'
 import type { MeetingReport } from '@/api/operationsReportsApi'
+import { MEETING_TYPE_AR } from '@/data/operationsLabels'
 import { formatDay } from './meetingReportsUi'
 
 /**
@@ -30,6 +31,11 @@ export function MeetingReportCard({ report, onOpen }: { report: MeetingReport; o
 
         <span className="min-w-0 flex-1 space-y-2">
           <span className="block truncate text-base font-black text-navy">{report.title}</span>
+          {report.meeting && (
+            <span className="inline-flex items-center rounded-full bg-accent-50 px-2.5 py-0.5 text-[11px] font-black text-accent-800 ring-1 ring-accent-200" data-testid="report-source">
+              {MEETING_TYPE_AR[report.meeting.type]}
+            </span>
+          )}
           <span className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-semibold text-muted-500">
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays size={13} aria-hidden="true" />

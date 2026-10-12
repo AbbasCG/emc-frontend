@@ -1,229 +1,242 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import type { FormEvent } from 'react'
+import { CalendarPlus, Loader2, X } from 'lucide-react'
 import toast from '@/lib/toast'
-import { createMeeting } from '@/api/meetingsApi'
+import { createMeeting, describeMeetingError } from '@/api/meetingsApi'
 import { fetchWorkspaceDepartments } from '@/api/operationsApi'
-import type { MeetingType, WorkspaceDepartment } from '@/types/operations'
+import type { MeetingRef, MeetingType, OpsMeeting } from '@/types/operations'
 import { MEETING_TYPE_AR } from '@/data/operationsLabels'
-import EmcButton from '@/components/ui/EmcButton'
 
 type Props = {
-  isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  /** Called with the saved meeting once the server confirms it. */
+  onSaved: (meeting: OpsMeeting) => void
   initialType?: MeetingType
+  /** The lounge fixes the type by which tile the user clicked. */
   hideTypeSelector?: boolean
+  /**
+   * Departments this user may schedule for, from the server. `null` means every
+   * department (global roles): the list is then fetched here and the field is optional.
+   */
+  departments: MeetingRef[] | null
 }
 
-export default function CreateMeetingForm({ isOpen, onClose, onSuccess, initialType, hideTypeSelector }: Props) {
-  const [departments, setDepartments] = useState<WorkspaceDepartment[]>([])
-  const [submitting, setSubmitting] = useState(false)
-  const [loadingDepts, setLoadingDepts] = useState(isOpen)
+const field =
+  'w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-navy outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15'
 
-  const [formData, setFormData] = useState({
+/**
+ * Schedule a meeting. Mounted only while open, so every opening starts clean.
+ * The server decides who may schedule and for which department; this form only
+ * offers what it allowed, and shows any refusal or per-field error inline.
+ */
+export default function CreateMeetingForm({ onClose, onSaved, initialType = 'general', hideTypeSelector = false, departments }: Props) {
+  const [allDepartments, setAllDepartments] = useState<MeetingRef[]>([])
+  const [form, setForm] = useState({
     title: '',
-    type: initialType || 'general',
-    department_id: '',
+    type: initialType,
+    department_id: departments && departments.length === 1 ? String(departments[0].id) : '',
     meeting_date: '',
     start_time: '',
     end_time: '',
     meeting_url: '',
   })
+  const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const titleRef = useRef<HTMLInputElement>(null)
 
-  // Reset the type + loading flag when the form opens — render-phase adjustment
-  // (docs/04-references/effect-patterns.md §P2), not a setState in the effect.
-  const [wasOpen, setWasOpen] = useState(isOpen)
-  if (wasOpen !== isOpen) {
-    setWasOpen(isOpen)
-    if (isOpen) {
-      setFormData(prev => ({ ...prev, type: initialType || 'general' }))
-      setLoadingDepts(true)
+  // Global roles may leave the department empty, so their list is fetched here.
+  useEffect(() => {
+    if (departments !== null) return
+    let alive = true
+    void fetchWorkspaceDepartments()
+      .then((res) => {
+        if (alive) setAllDepartments(res.items.map((d) => ({ id: Number(d.id), name: d.name_ar || d.title || d.name || `إدارة ${d.id}` })))
+      })
+      .catch(() => {
+        /* the field is optional for global roles; scheduling still works without it */
+      })
+    return () => {
+      alive = false
     }
-  }
+  }, [departments])
 
   useEffect(() => {
-    if (isOpen) {
-      fetchWorkspaceDepartments()
-        .then((res) => setDepartments(res.items))
-        .catch((err) => {
-          if (err.response?.status !== 403) {
-            toast.error('تعذر تحميل الإدارات')
-          }
-        })
-        .finally(() => setLoadingDepts(false))
-    }
-  }, [isOpen])
+    titleRef.current?.focus()
+  }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !saving) onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose, saving])
+
+  const choices = departments ?? allDepartments
+  const required = departments !== null
+  const locked = departments !== null && departments.length === 1
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setSubmitting(true)
+    if (saving) return
+
+    const next: Record<string, string> = {}
+    if (!form.title.trim()) next.title = 'اكتب عنوان الاجتماع.'
+    if (!form.meeting_date) next.meeting_date = 'حدّد تاريخ الاجتماع.'
+    if (!form.start_time) next.start_time = 'حدّد وقت بدء الاجتماع.'
+    if (form.end_time && form.start_time && form.end_time <= form.start_time) next.end_time = 'يجب أن يكون وقت الانتهاء بعد وقت البدء.'
+    if (required && !form.department_id) next.department_id = 'اختر الإدارة التي يتبعها الاجتماع.'
+    setErrors(next)
+    setFormError(null)
+    if (Object.keys(next).length > 0) return
+
+    setSaving(true)
     try {
-      await createMeeting({
-        ...formData,
-        department_id: formData.department_id || undefined,
-        end_time: formData.end_time || undefined,
-        meeting_url: formData.meeting_url || undefined,
+      const meeting = await createMeeting({
+        title: form.title.trim(),
+        type: form.type,
+        meeting_date: form.meeting_date,
+        start_time: form.start_time,
+        ...(form.department_id ? { department_id: Number(form.department_id) } : {}),
+        ...(form.end_time ? { end_time: form.end_time } : {}),
+        ...(form.meeting_url.trim() ? { meeting_url: form.meeting_url.trim() } : {}),
       })
-      toast.success('تمت جدولة الاجتماع بنجاح')
-      onSuccess()
-      onClose()
-      setFormData({
-        title: '',
-        type: initialType || 'general',
-        department_id: '',
-        meeting_date: '',
-        start_time: '',
-        end_time: '',
-        meeting_url: '',
-      })
+      toast.success('تمت جدولة الاجتماع')
+      onSaved(meeting)
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || 'تعذر إضافة الاجتماع')
+      const d = describeMeetingError(err, 'الاجتماع')
+      setErrors(d.fields)
+      setFormError(Object.keys(d.fields).length > 0 && d.kind === 'validation' ? 'راجع الحقول المظلَّلة ثم أعد المحاولة.' : d.message)
     } finally {
-      setSubmitting(false)
+      setSaving(false)
     }
   }
 
+  const err = (key: string) => (errors[key] ? <span className="text-[11px] font-bold text-rose-600" role="alert">{errors[key]}</span> : null)
+  const bad = (key: string) => (errors[key] ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-200' : '')
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-          animate={{ opacity: 1, height: 'auto', marginBottom: 32 }}
-          exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-          className="overflow-hidden"
-          dir="rtl"
-        >
-          <div className="rounded-2xl bg-white shadow-lg ring-1 ring-black/5 border border-slate-100">
-            <header className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-customBlue/10 text-customBlue">
-                  <Calendar size={20} />
-                </div>
-                <h2 className="text-lg font-black text-deepBlue">جدولة اجتماع جديد</h2>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-              >
-                <X size={20} />
-              </button>
-            </header>
-
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-700">عنوان الاجتماع *</label>
-                  <input
-                    required
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
-                    placeholder="مثال: مراجعة خطة الربع الثالث"
-                  />
-                </div>
-
-                <div className={`grid grid-cols-1 gap-4 ${departments.length > 0 && !hideTypeSelector ? 'md:grid-cols-2' : ''}`}>
-                  {!hideTypeSelector && (
-                    <div>
-                      <label className="mb-1.5 block text-sm font-semibold text-slate-700">النوع *</label>
-                      <select
-                        required
-                        value={formData.type}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value as MeetingType })}
-                        className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
-                      >
-                        {Object.entries(MEETING_TYPE_AR).map(([key, label]) => (
-                          <option key={key} value={key}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {departments.length > 0 && (
-                    <div>
-                      <label className="mb-1.5 block text-sm font-semibold text-slate-700">الإدارة (اختياري)</label>
-                      <select
-                        value={formData.department_id}
-                        onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-                        disabled={loadingDepts}
-                        className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
-                      >
-                        <option value="">-- اختر الإدارة --</option>
-                        {departments.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name_ar || d.name} {d.leader_name ? `(مسؤول: ${d.leader_name})` : ''}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">تاريخ الاجتماع *</label>
-                    <input
-                      required
-                      type="date"
-                      value={formData.meeting_date}
-                      onChange={(e) => setFormData({ ...formData, meeting_date: e.target.value })}
-                      className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">وقت البدء *</label>
-                    <input
-                      required
-                      type="time"
-                      value={formData.start_time}
-                      onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                      className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">وقت الانتهاء (اختياري)</label>
-                    <input
-                      type="time"
-                      value={formData.end_time}
-                      onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                      className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-700">رابط الاجتماع (اختياري)</label>
-                  <input
-                    type="url"
-                    value={formData.meeting_url}
-                    onChange={(e) => setFormData({ ...formData, meeting_url: e.target.value })}
-                    className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-customBlue focus:bg-white focus:ring-1 focus:ring-customBlue text-left"
-                    dir="ltr"
-                    placeholder="https://zoom.us/..."
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 flex gap-3">
-                <EmcButton type="submit" loading={submitting} className="flex-1 justify-center bg-deepBlue hover:bg-deepBlue/90">
-                  حفظ الاجتماع
-                </EmcButton>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-xl border border-slate-200 bg-white px-6 font-semibold text-slate-600 hover:bg-slate-50"
-                >
-                  إلغاء
-                </button>
-              </div>
-            </form>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/50 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => !saving && onClose()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="جدولة اجتماع جديد"
+        dir="rtl"
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-paper shadow-2xl sm:rounded-3xl"
+      >
+        <header className="flex items-center justify-between gap-3 border-b border-line bg-white px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600" aria-hidden="true">
+              <CalendarPlus size={20} />
+            </span>
+            <div>
+              <h2 className="text-lg font-black text-navy">جدولة اجتماع جديد</h2>
+              <p className="text-xs font-semibold text-muted-500">يظهر الاجتماع في صالة الاجتماعات لأعضاء الإدارة المعنية.</p>
+            </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <button type="button" onClick={onClose} disabled={saving} aria-label="إغلاق" className="rounded-xl p-2 text-muted-500 transition hover:bg-slate-100 disabled:opacity-40">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </header>
+
+        <form onSubmit={(e) => void handleSubmit(e)} className="flex min-h-0 flex-1 flex-col" noValidate>
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
+            {formError && (
+              <p role="alert" className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{formError}</p>
+            )}
+
+            <label className="grid gap-1.5 text-xs font-black text-ink-500">
+              عنوان الاجتماع *
+              <input
+                ref={titleRef}
+                value={form.title}
+                maxLength={255}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="مثال: مراجعة خطة الربع الثالث"
+                aria-invalid={Boolean(errors.title)}
+                className={`${field} ${bad('title')}`}
+              />
+              {err('title')}
+            </label>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {!hideTypeSelector && (
+                <label className="grid gap-1.5 text-xs font-black text-ink-500">
+                  نوع الاجتماع *
+                  <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as MeetingType }))} className={`${field} ${bad('type')}`}>
+                    {(Object.keys(MEETING_TYPE_AR) as MeetingType[]).map((t) => (
+                      <option key={t} value={t}>{MEETING_TYPE_AR[t]}</option>
+                    ))}
+                  </select>
+                  {err('type')}
+                </label>
+              )}
+              {(choices.length > 0 || required) && (
+                <label className="grid gap-1.5 text-xs font-black text-ink-500">
+                  {required ? 'الإدارة *' : 'الإدارة (اختياري)'}
+                  <select
+                    value={form.department_id}
+                    disabled={locked}
+                    onChange={(e) => setForm((f) => ({ ...f, department_id: e.target.value }))}
+                    aria-invalid={Boolean(errors.department_id)}
+                    className={`${field} ${bad('department_id')} disabled:bg-slate-50 disabled:text-muted-500`}
+                  >
+                    {!locked && <option value="">{required ? 'اختر الإدارة…' : 'بدون إدارة محددة'}</option>}
+                    {choices.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                  {err('department_id')}
+                </label>
+              )}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label className="grid gap-1.5 text-xs font-black text-ink-500">
+                تاريخ الاجتماع *
+                <input type="date" dir="ltr" value={form.meeting_date} onChange={(e) => setForm((f) => ({ ...f, meeting_date: e.target.value }))} aria-invalid={Boolean(errors.meeting_date)} className={`${field} ${bad('meeting_date')}`} />
+                {err('meeting_date')}
+              </label>
+              <label className="grid gap-1.5 text-xs font-black text-ink-500">
+                وقت البدء *
+                <input type="time" dir="ltr" value={form.start_time} onChange={(e) => setForm((f) => ({ ...f, start_time: e.target.value }))} aria-invalid={Boolean(errors.start_time)} className={`${field} ${bad('start_time')}`} />
+                {err('start_time')}
+              </label>
+              <label className="grid gap-1.5 text-xs font-black text-ink-500">
+                وقت الانتهاء
+                <input type="time" dir="ltr" value={form.end_time} onChange={(e) => setForm((f) => ({ ...f, end_time: e.target.value }))} aria-invalid={Boolean(errors.end_time)} className={`${field} ${bad('end_time')}`} />
+                {err('end_time')}
+              </label>
+            </div>
+
+            <label className="grid gap-1.5 text-xs font-black text-ink-500">
+              رابط الاجتماع (اختياري)
+              <input
+                type="url"
+                dir="ltr"
+                value={form.meeting_url}
+                onChange={(e) => setForm((f) => ({ ...f, meeting_url: e.target.value }))}
+                placeholder="https://meet.google.com/…"
+                aria-invalid={Boolean(errors.meeting_url)}
+                className={`${field} text-left ${bad('meeting_url')}`}
+              />
+              {err('meeting_url')}
+            </label>
+          </div>
+
+          <footer className="flex items-center justify-end gap-2 border-t border-line bg-white px-6 py-4">
+            <button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-line px-5 py-2.5 text-sm font-bold text-muted-600 transition hover:bg-slate-50 disabled:opacity-40">
+              إلغاء
+            </button>
+            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-extrabold text-white transition hover:bg-brand-600 disabled:opacity-60">
+              {saving && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+              {saving ? 'جارٍ الحفظ…' : 'حفظ الاجتماع'}
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
   )
 }

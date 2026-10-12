@@ -508,3 +508,28 @@ describe('meeting reports page — layout contract', () => {
     expect(screen.getByTestId('meeting-reports-list').children).toHaveLength(2)
   })
 })
+
+describe('meeting reports page — reports filed from the lounge', () => {
+  it('shows the source meeting type on the card and the linked meeting in the details', async () => {
+    serve({
+      list: () => listResponse([row({ meeting: { id: 8, title: 'مراجعة الجودة الفصلية', type: 'quality' } })]),
+      detail: () => ({ data: { data: { ...row({ meeting: { id: 8, title: 'مراجعة الجودة الفصلية', type: 'quality' } }), achieved: 'تم', extras: {}, ratings: [] } } }),
+    })
+    render(<MeetingReportsPage />)
+
+    const card = (await screen.findByText('الاجتماع الأسبوعي')).closest('button')!
+    expect(within(card).getByTestId('report-source')).toHaveTextContent('اجتماع الجودة')
+
+    await userEvent.click(card)
+    const panel = await screen.findByRole('dialog')
+    expect(await within(panel).findByTestId('report-source-meeting')).toHaveTextContent('مراجعة الجودة الفصلية')
+  })
+
+  it('a standalone department report has no source chip', async () => {
+    serve({ list: () => listResponse([row()]) })
+    render(<MeetingReportsPage />)
+
+    await screen.findByText('الاجتماع الأسبوعي')
+    expect(screen.queryByTestId('report-source')).not.toBeInTheDocument()
+  })
+})
