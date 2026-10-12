@@ -127,6 +127,8 @@ export interface Ticket {
   is_delayed?: boolean;
   /** Present on show()/index() responses; absent is treated as "no actions known yet". */
   capabilities?: TicketCapabilities;
+  /** 'staff' on the operational payload from show(); absent on list rows. */
+  viewer_role?: 'staff';
 
   // Relations
   department?: Department;
@@ -145,4 +147,45 @@ export interface TicketMeta {
   categories: { id: TicketCategory; label_ar: string; label_en: string }[];
   priorities: { id: TicketPriority; label_ar: string; color: string }[];
   statuses: Record<TicketStatus, { label_ar: string; color: string }>;
+}
+
+/** One step of the reporter's simplified history. `key` is stable; `label` is ready to display. */
+export interface ReporterTimelineStep {
+  key: string;
+  label: string;
+  at: string | null;
+  /** Only the submitter's own follow-up text, or the rejection reason written for them. */
+  note?: string;
+}
+
+/**
+ * What the server returns from GET /v1/tickets/:id to the person who submitted
+ * the ticket (TicketReporterView). A deliberate whitelist: none of the
+ * operational fields on {@link Ticket} (assignee, internal notes, SLA, the raw
+ * activity log, the submitter email...) exist here, so a component rendering
+ * this type cannot show them even by accident.
+ */
+export interface ReporterTicket {
+  viewer_role: 'reporter';
+  id: number;
+  ticket_number: string;
+  title: string;
+  description: string;
+  ticket_category: TicketCategory;
+  status: TicketStatus;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  /** The written answer, only while RESOLVED. */
+  resolution_note: string | null;
+  /** The department's reason, written for the submitter, only when rejected. */
+  rejection_reason: string | null;
+  department: { id: number; name: string } | null;
+  attachments: TicketAttachment[];
+  timeline: ReporterTimelineStep[];
+  capabilities: TicketCapabilities;
+}
+
+export function isReporterTicket(ticket: Ticket | ReporterTicket): ticket is ReporterTicket {
+  return ticket.viewer_role === 'reporter';
 }

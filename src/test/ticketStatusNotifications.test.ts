@@ -23,17 +23,17 @@ const CASES = [
   {
     type: 'ticket_resolved',
     title: 'تم حل البلاغ',
-    message: 'تمت معالجة البلاغ "تعطل بوابة الدفع" وتغيير حالته إلى "تم الحل". يمكنك عرض التفاصيل من خلال الرابط.',
+    message: 'تم حل بلاغك "تعطل بوابة الدفع" وأصبحت حالته: تم الحل. اضغط لعرض التفاصيل.',
   },
   {
     type: 'suggestion_approved',
     title: 'تم اعتماد المقترح',
-    message: 'تم اعتماد المقترح "إضافة وضع ليلي" من قبل الإدارة وتغيير حالته إلى "معتمد". يمكنك متابعة التفاصيل من خلال الرابط.',
+    message: 'تم اعتماد مقترحك "إضافة وضع ليلي" من قبل الإدارة وأصبحت حالته: معتمد. اضغط لعرض التفاصيل.',
   },
   {
     type: 'suggestion_implemented',
-    title: 'تمت إضافة المقترح إلى النظام',
-    message: 'تمت إضافة المقترح "إضافة وضع ليلي" إلى النظام وتغيير حالته إلى "تمت الإضافة إلى النظام". شكرًا لمساهمتك في تطوير المنصة.',
+    title: 'تم تنفيذ المقترح',
+    message: 'تم تنفيذ مقترحك "إضافة وضع ليلي" وإضافته إلى النظام. شكرًا لمساهمتك في تطوير المنصة. اضغط لعرض التفاصيل.',
   },
 ]
 
@@ -61,7 +61,7 @@ describe('ticket status notifications in the notification centre', () => {
 
   it('carries the title with quotes and long text through untouched', () => {
     const title = 'تعطل "بوابة" الدفع الإلكتروني الخاصة بالمشتركين الجدد في برنامج التدريب المتقدم'
-    const n = normalizePlatformNotification({ ...base, type: 'ticket_resolved', title: 'تم حل البلاغ', message: `تمت معالجة البلاغ "${title}" وتغيير حالته إلى "تم الحل".` })
+    const n = normalizePlatformNotification({ ...base, type: 'ticket_resolved', title: 'تم حل البلاغ', message: `تم حل بلاغك "${title}" وأصبحت حالته: تم الحل.` })
 
     expect(n?.body).toContain(title)
   })

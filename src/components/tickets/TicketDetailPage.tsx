@@ -3,9 +3,11 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router';
 import { ticketService } from '@/services/ticketService';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePageAccess } from '@/contexts/PageAccessContext';
-import type { Ticket, TicketStatus } from '@/types/ticket';
+import { isReporterTicket } from '@/types/ticket';
+import type { ReporterTicket, Ticket, TicketStatus } from '@/types/ticket';
 import { TicketAttachmentCard } from '@/components/tickets/TicketAttachmentCard';
 import { TicketActionCenter } from '@/components/tickets/TicketActionCenter';
+import { ReporterTicketView } from '@/components/tickets/ReporterTicketView';
 import { resolveTicketBackDestination } from '@/utils/ticketNavigation';
 import SlaCountdownTimer from './SlaCountdownTimer';
 import TicketStatusBadge from './TicketStatusBadge';
@@ -110,7 +112,9 @@ const TicketDetailPage: React.FC = () => {
     canAccessWorkspace: canAccessPath('/dashboard/tickets/workspace'),
   });
 
-  const [ticket, setTicket] = useState<Ticket | null>(null);
+  // The server decides which payload this viewer gets: the operational ticket
+  // for staff, or the whitelisted read-only projection for the submitter.
+  const [ticket, setTicket] = useState<Ticket | ReporterTicket | null>(null);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -120,7 +124,7 @@ const TicketDetailPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await ticketService.getTicket(id);
-      if (res.success && res.data) setTicket(res.data);
+      if (res.success && res.data) setTicket(res.data as Ticket | ReporterTicket);
       else toast.error(res.message || 'تعذر تحميل التذكرة');
     } catch {
       toast.error('حدث خطأ أثناء جلب تفاصيل التذكرة');
@@ -175,6 +179,10 @@ const TicketDetailPage: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (isReporterTicket(ticket)) {
+    return <ReporterTicketView ticket={ticket} onBack={() => navigate(backTo)} onChanged={fetchTicket} />;
   }
 
   const statusMeta = STATUS_META[ticket.status as TicketStatus] ?? STATUS_META['PENDING_APPROVAL'];
