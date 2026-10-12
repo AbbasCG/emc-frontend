@@ -140,6 +140,9 @@ export type NotificationType =
   | 'assignment_created'
   | 'session_scheduled'
   | 'attendance_marked'
+  | 'ticket_resolved'
+  | 'suggestion_approved'
+  | 'suggestion_implemented'
 
 export type PlatformNotification = {
   id: number
