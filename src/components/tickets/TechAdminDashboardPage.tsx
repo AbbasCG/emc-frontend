@@ -207,7 +207,7 @@ const TechAdminDashboardPage: React.FC = () => {
               type="text"
               placeholder="بحث بالرقم، العنوان، أو اسم المُدخل..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => { setSearch(e.target.value); }}
               className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
@@ -215,7 +215,7 @@ const TechAdminDashboardPage: React.FC = () => {
             <Filter className="w-4 h-4 text-slate-400" />
             <select
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => { setStatusFilter(e.target.value);}}
               className="rounded-xl border border-slate-200 text-sm px-3 py-2.5 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
             >
               {STATUS_FILTER_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -225,7 +225,7 @@ const TechAdminDashboardPage: React.FC = () => {
             <input
               type="checkbox"
               checked={delayedOnly}
-              onChange={(e) => { setDelayedOnly(e.target.checked); setCurrentPage(1); }}
+              onChange={(e) => { setDelayedOnly(e.target.checked);}}
               className="rounded accent-rose-600"
             />
             متأخرة فقط
