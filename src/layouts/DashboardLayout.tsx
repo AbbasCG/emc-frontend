@@ -285,8 +285,8 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   // the menu fails closed. Pages the manifest allows but the role's static menu does not list
   // are added; nothing here looks at a role name.
   const resolvedNav = useMemo(
-    () => resolveSidebarNavigation({ groups, pages: accessPages, status: accessStatus }),
-    [groups, accessPages, accessStatus],
+    () => resolveSidebarNavigation({ groups, pages: accessPages, status: accessStatus, permissions: user?.permissions }),
+    [groups, accessPages, accessStatus, user?.permissions],
   )
   const accessibleGroups = resolvedNav.groups
 

@@ -49,6 +49,18 @@ export const HIDDEN_FROM_SIDEBAR: Readonly<Record<string, string>> = {
   'personal.volunteer_hr_profile': 'A one-off application form opened from an invitation link, not a standing destination.',
 }
 
+/**
+ * Pages whose menu entry needs an explicit BUSINESS permission on top of page access.
+ *
+ * Page access for this page is granted to root roles by the platform's architecture, but its
+ * API requires a permission that no role inherits (not even tech_admin). Without this the
+ * menu would offer a link that can only end in "unauthorized". The backend still enforces
+ * the permission on every request; this only keeps the menu truthful.
+ */
+export const PERMISSION_GATED_PAGES: Readonly<Record<string, string>> = {
+  'executive.command_center': 'executive.command_center.view',
+}
+
 /** Heading icons for pages injected under their catalog category. */
 export const CATEGORY_ICON: Readonly<Record<string, ElementType>> = {
   operations: ClipboardCheck,

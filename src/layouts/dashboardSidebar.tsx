@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import {
+  Activity,
   Award,
   BarChart3,
   Bell,
@@ -299,6 +300,7 @@ function superMasterSidebar(): SidebarNavGroup[] {
     {
       items: [
         { label: 'نظرة عامة', href: '/dashboard/super-admin', icon: Crown },
+        { label: 'مركز المتابعة التنفيذي', href: '/dashboard/executive/command-center', icon: Activity },
         { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
         { label: 'سجل التغييرات', href: '/dashboard/super-admin/audit-logs', icon: ScrollText },
         { label: 'الطلبات المالية', href: '/dashboard/super-admin/financial-requests', icon: Wallet },
@@ -411,6 +413,7 @@ function techAdminSidebar(): SidebarNavGroup[] {
       defaultOpen: true,
       items: [
         { label: 'لوحة التحكم التقنية', href: '/dashboard/tech-admin',              icon: LayoutDashboard },
+        { label: 'مركز المتابعة التقني', href: '/dashboard/executive/command-center', icon: Activity },
         { label: 'لوحات الإدارات', href: '/dashboard/tech-admin/department-dashboards', icon: Building2 },
 
         { label: 'حالة النظام',      href: '/dashboard/admin/platform-scale',    icon: Cpu             },

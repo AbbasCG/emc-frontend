@@ -46,8 +46,8 @@ function manifest(opts: { deny?: string[]; only?: string[]; sources?: PageAccess
 }
 
 const hrefs = (groups: readonly SidebarNavGroup[]) => groups.flatMap((g) => g.items.map((i) => i.href))
-const resolve = (role: string, pages: EffectivePageAccessRow[], status: 'ready' | 'loading' | 'error' | 'idle' = 'ready') =>
-  resolveSidebarNavigation({ groups: getSidebarByRole(role), pages, status })
+const resolve = (role: string, pages: EffectivePageAccessRow[], status: 'ready' | 'loading' | 'error' | 'idle' = 'ready', permissions: string[] = ['executive.command_center.view']) =>
+  resolveSidebarNavigation({ groups: getSidebarByRole(role), pages, status, permissions })
 
 describe('the production case: programs_manager + hr.my_requests', () => {
   it('the role\'s static menu does not list the page (the root cause)', () => {

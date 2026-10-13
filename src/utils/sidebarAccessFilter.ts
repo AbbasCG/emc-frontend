@@ -1,7 +1,7 @@
 import type { EffectivePageAccessRow } from '@/api/accessControlApi'
 import type { SidebarNavGroup, SidebarNavItem } from '@/layouts/dashboardSidebar'
 import { findPageForPath, isPathAllowed } from '@/utils/pageAccessMatch'
-import { CATEGORY_ICON, FALLBACK_ICON, HIDDEN_FROM_SIDEBAR, STRUCTURAL_SIDEBAR_PATHS } from '@/utils/sidebarNavigationMeta'
+import { CATEGORY_ICON, FALLBACK_ICON, HIDDEN_FROM_SIDEBAR, PERMISSION_GATED_PAGES, STRUCTURAL_SIDEBAR_PATHS } from '@/utils/sidebarNavigationMeta'
 
 /**
  * SIDEBAR VISIBILITY, derived from backend effective page access.
@@ -92,13 +92,22 @@ function keepStructuralOnly(groups: readonly SidebarNavGroup[]): SidebarNavGroup
  * Strict filter: allowed keeps, denied removes, and an unmapped link survives only if it is
  * declared structural. (The lenient filterSidebarItemsByAccess above keeps unmapped links.)
  */
-function strictFilter(groups: readonly SidebarNavGroup[], pages: readonly EffectivePageAccessRow[]): SidebarNavGroup[] {
+function strictFilter(
+  groups: readonly SidebarNavGroup[],
+  pages: readonly EffectivePageAccessRow[],
+  permissions: ReadonlySet<string>,
+): SidebarNavGroup[] {
   return groups
     .map((g) => ({
       ...g,
       items: g.items.filter((item) => {
         const decision = isPathAllowed(pages, item.href)
-        return decision === null ? STRUCTURAL_SIDEBAR_PATHS.has(item.href) : decision
+        if (decision === null) return STRUCTURAL_SIDEBAR_PATHS.has(item.href)
+        if (!decision) return false
+
+        const owner = findPageForPath(pages, item.href)
+        const needed = owner ? PERMISSION_GATED_PAGES[owner.key] : undefined
+        return needed === undefined || permissions.has(needed)
       }),
     }))
     .filter((g) => g.items.length > 0)
@@ -108,6 +117,7 @@ function strictFilter(groups: readonly SidebarNavGroup[], pages: readonly Effect
 export function findUnlistedAccessiblePages(
   groups: readonly SidebarNavGroup[],
   pages: readonly EffectivePageAccessRow[],
+  permissions: ReadonlySet<string> = new Set(),
 ): EffectivePageAccessRow[] {
   const listed = new Set<string>()
   for (const g of groups) {
@@ -122,6 +132,7 @@ export function findUnlistedAccessiblePages(
       p.allowed &&
       !listed.has(p.key) &&
       !(p.key in HIDDEN_FROM_SIDEBAR) &&
+      (PERMISSION_GATED_PAGES[p.key] === undefined || permissions.has(PERMISSION_GATED_PAGES[p.key])) &&
       p.primaryRoute !== '' &&
       !p.primaryRoute.includes(':') &&
       // Root authority reaches every page; that is not a reason to list all of them. Only a
@@ -167,14 +178,17 @@ export function resolveSidebarNavigation(input: {
   groups: readonly SidebarNavGroup[]
   pages: readonly EffectivePageAccessRow[]
   status: SidebarAccessStatus
+  /** The viewer's business permissions; consulted only for pages in PERMISSION_GATED_PAGES. */
+  permissions?: readonly string[]
 }): ResolvedSidebar {
   const { groups, pages, status } = input
+  const permissions = new Set(input.permissions ?? [])
 
   if (status === 'idle' || status === 'loading') return { state: 'loading', groups: [] }
   if (status === 'error') return { state: 'error', groups: keepStructuralOnly(groups) }
 
-  const visible = strictFilter(groups, pages)
-  const withGranted = appendUnlisted(visible, findUnlistedAccessiblePages(visible, pages))
+  const visible = strictFilter(groups, pages, permissions)
+  const withGranted = appendUnlisted(visible, findUnlistedAccessiblePages(visible, pages, permissions))
 
   return { state: 'ready', groups: withGranted.filter((g) => g.items.length > 0) }
 }
